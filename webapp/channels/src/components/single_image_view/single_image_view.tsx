@@ -7,12 +7,13 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {Client4} from 'mattermost-redux/client';
+import {getFilePreviewUrl, getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {FileTypes, HttpHeaders, ModalIdentifiers} from 'utils/constants';
 import {
     getFileType,
 } from 'utils/utils';
@@ -25,11 +26,11 @@ const DISPROPORTIONATE_HEIGHT_RATIO = 20;
 export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
-    isRhsOpen: boolean;
     enablePublicLink: boolean;
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
+    disableActions?: boolean;
 }
 
 type State = {
@@ -38,7 +39,9 @@ type State = {
         width: number;
         height: number;
     };
-}
+    thumbnailCheckComplete: boolean;
+    thumbnailRejected: boolean;
+};
 
 export default class SingleImageView extends React.PureComponent<Props, State> {
     private mounted = false;
@@ -54,12 +57,53 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 width: props.fileInfo?.width || 0,
                 height: props.fileInfo?.height || 0,
             },
+            thumbnailCheckComplete: !props.fileInfo?.has_preview_image,
+            thumbnailRejected: false,
         };
     }
 
     componentDidMount() {
         this.mounted = true;
+        this.checkThumbnailAvailability();
     }
+
+    checkThumbnailAvailability = () => {
+        // Probe the thumbnail endpoint to see if it's rejected by a plugin
+        // This allows plugins to control inline image display via thumbnail rejection when
+        // there's only one file in the post and we try to display it inline as a preview and
+        // not as a thumbnail.
+        const {fileInfo} = this.props;
+        if (!fileInfo || !fileInfo.has_preview_image) {
+            // No preview image, so we'll use the file directly - don't check thumbnail
+            this.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
+            return;
+        }
+
+        const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
+
+        // Use Client4.getOptions() to get properly authenticated request options
+        // This includes the Bearer token and all required headers
+        const options = Client4.getOptions({method: 'HEAD'});
+
+        fetch(thumbnailUrl, options).then((response) => {
+            if (this.mounted) {
+                // 403 Forbidden with X-Reject-Reason header = rejected by plugin
+                const rejected = response.status === 403 && response.headers.get(HttpHeaders.REJECT_REASON) !== null;
+                this.setState({
+                    thumbnailCheckComplete: true,
+                    thumbnailRejected: rejected,
+                });
+            }
+        }).catch(() => {
+            // On error, assume not rejected (fail open for compatibility)
+            if (this.mounted) {
+                this.setState({
+                    thumbnailCheckComplete: true,
+                    thumbnailRejected: false,
+                });
+            }
+        });
+    };
 
     static getDerivedStateFromProps(props: Props, state: State) {
         if ((props.fileInfo?.width !== state.dimensions.width) || props.fileInfo.height !== state.dimensions.height) {
@@ -97,7 +141,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         });
     };
 
-    toggleEmbedVisibility = () => {
+    toggleEmbedVisibility = (e: React.MouseEvent) => {
+        // stopping propagation to avoid accidentally closing edit history
+        // section when clicking on image collapse/expand button.
+        e.stopPropagation();
         this.props.actions.toggleEmbedVisibility(this.props.postId);
     };
 
@@ -109,15 +156,41 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         const {fileInfo, compactDisplay, isInPermalink} = this.props;
         const {
             loaded,
+            thumbnailCheckComplete,
+            thumbnailRejected,
         } = this.state;
 
         if (fileInfo === undefined) {
             return <></>;
         }
 
+        // If thumbnail was rejected, treat this file as rejected
+        // Show it collapsed with file icon instead of inline preview
+        const thumbnailRejectedByPlugin = thumbnailCheckComplete && thumbnailRejected;
+        const effectivelyRejected = this.props.isFileRejected || thumbnailRejectedByPlugin;
+        if (effectivelyRejected) {
+            // Don't show inline preview - return minimal view
+            // User can still click to attempt opening in modal (which will be controlled by preview rejection)
+            return (
+                <div className={classNames('file-view--single')}>
+                    <div className='file__image'>
+                        <div className='image-header'>
+                            <div
+                                className='image-name'
+                                onClick={this.handleImageClick}
+                            >
+                                {fileInfo.name}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         const {has_preview_image: hasPreviewImage, id} = fileInfo;
         const fileURL = getFileUrl(id);
         const previewURL = hasPreviewImage ? getFilePreviewUrl(id) : fileURL;
+        const renderPlaceholderOnly = !thumbnailCheckComplete;
 
         const previewHeight = fileInfo.height;
         const previewWidth = fileInfo.width;
@@ -238,9 +311,12 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     fileURL={fileURL}
                                     onImageLoaded={this.imageLoaded}
                                     showLoader={this.props.isEmbedVisible}
+                                    renderPlaceholderOnly={renderPlaceholderOnly}
                                     handleSmallImageContainer={true}
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
+                                    hideUtilities={this.props.disableActions}
+                                    isFileRejected={effectivelyRejected}
                                 />
                             </div>
                         </div>

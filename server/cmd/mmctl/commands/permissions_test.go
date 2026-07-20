@@ -246,6 +246,13 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			"edit_bookmark_private_channel",
 			"delete_bookmark_private_channel",
 			"order_bookmark_private_channel",
+			"manage_public_channel_banner",
+			"manage_private_channel_banner",
+			"manage_channel_access_rules",
+			"manage_public_channel_auto_translation",
+			"manage_private_channel_auto_translation",
+			"manage_private_channel_discoverability",
+			"manage_channel_join_requests",
 		}
 		expectedPatch := &model.RolePatch{
 			Permissions: &expectedPermissions,

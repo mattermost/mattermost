@@ -73,9 +73,19 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
     public renderRow = (item: Group, listModal: any) => {
         let title;
         if (item.scheme_admin) {
-            title = Utils.localizeMessage('channel_members_dropdown.channel_admins', 'Channel Admins');
+            title = (
+                <FormattedMessage
+                    id='channel_members_dropdown.channel_admins'
+                    defaultMessage='Channel Admins'
+                />
+            );
         } else {
-            title = Utils.localizeMessage('channel_members_dropdown.channel_members', 'Channel Members');
+            title = (
+                <FormattedMessage
+                    id='channel_members_dropdown.channel_members'
+                    defaultMessage='Channel Members'
+                />
+            );
         }
 
         return (
@@ -116,21 +126,21 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                         </button>
                         <Menu
                             openLeft={true}
-                            ariaLabel={Utils.localizeMessage('channel_members_dropdown.menuAriaLabel', 'Change the role of channel member')}
+                            ariaLabel={Utils.localizeMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'})}
                         >
                             <Menu.ItemAction
                                 show={!item.scheme_admin}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, true)}
-                                text={Utils.localizeMessage('channel_members_dropdown.make_channel_admins', 'Make Channel Admins')}
+                                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_admins', defaultMessage: 'Make Channel Admins'})}
                             />
                             <Menu.ItemAction
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, false)}
-                                text={Utils.localizeMessage('channel_members_dropdown.make_channel_members', 'Make Channel Members')}
+                                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_members', defaultMessage: 'Make Channel Members'})}
                             />
                             <Menu.ItemAction
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
-                                text={Utils.localizeMessage('group_list_modal.removeGroupButton', 'Remove Group')}
+                                text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
                             />
                         </Menu>
                     </MenuWrapper>

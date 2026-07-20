@@ -1,0 +1,104 @@
+  /api/v4/client_perf:
+    post:
+      tags:
+        - metrics
+      summary: Report client performance metrics
+      description: >
+        Uploads client performance measurements to the server as part of the Client Performance Monitoring feature.
+
+        __Minimum server version__: 9.9.0
+      operationId: SubmitPerformanceReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+                - start
+                - end
+              properties:
+                version:
+                  type: string
+                  description: An identifier for the schema of the data being submitted which currently must be "0.1.0"
+                client_id:
+                  type: string
+                  description: Not currently used
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  description: Labels to be applied to all metrics when recorded by the metrics backend
+                start:
+                  type: integer
+                  format: int64
+                  description: The time in milliseconds of the first metric in this report
+                end:
+                  type: integer
+                  format: int64
+                  description: The time in milliseconds of the last metric in this report
+                counters:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - metric
+                      - value
+                    properties:
+                      metric:
+                        type: string
+                        description: The name of the counter
+                      value:
+                        type: number
+                        format: double
+                        description: The value to increment the counter by
+                      timestamp:
+                        type: integer
+                        format: int64
+                        description: The time that the counter was incremented
+                      labels:
+                        type: array
+                        items:
+                          type: string
+                        description: Labels to be applied to this metric when recorded by the metrics backend
+                  description: An array of counter metrics to be reported
+                histograms:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - metric
+                      - value
+                    properties:
+                      metric:
+                        type: string
+                        description: The name of the measurement
+                      value:
+                        type: number
+                        format: double
+                        description: The value of the measurement
+                      timestamp:
+                        type: integer
+                        format: int64
+                        description: The time that the measurement was taken
+                      labels:
+                        type: array
+                        items:
+                          type: string
+                        description: Labels to be applied to this metric when recorded by the metrics backend
+                  description: An array of histogram measurements to be reported
+      responses:
+        "200":
+          description: Measurements reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

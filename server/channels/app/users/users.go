@@ -43,11 +43,16 @@ func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserC
 	}
 
 	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if ok, err := us.store.IsEmpty(true); err != nil {
-		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
-	} else if ok {
-		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+	// system is granted the system_admin role. Bot users must never be
+	// granted this role: on a fresh install the bots created by plugins
+	// can be the only accounts present, and they should not be treated
+	// as the "first user".
+	if !user.IsBot {
+		if ok, err := us.store.IsEmpty(true); err != nil {
+			return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
+		} else if ok {
+			user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+		}
 	}
 
 	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
@@ -94,8 +99,8 @@ func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
 }
 
-func (us *UserService) GetUsers(userIDs []string) ([]*model.User, error) {
-	return us.store.GetMany(context.Background(), userIDs)
+func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {
+	return us.store.GetMany(rctx, userIDs)
 }
 
 func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
@@ -112,6 +117,10 @@ func (us *UserService) GetUserByRemoteID(remoteID string) (*model.User, error) {
 
 func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {
 	return us.store.GetByAuth(authData, authService)
+}
+
+func (us *UserService) GetUserByAuthData(authData *string) (*model.User, error) {
+	return us.store.GetByAuthData(authData)
 }
 
 func (us *UserService) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, error) {
@@ -135,10 +144,10 @@ func (us *UserService) GetUsersEtag(restrictionsHash string) string {
 	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForAllProfiles(), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (us *UserService) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
+func (us *UserService) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
 	allowFromCache := options.ViewRestrictions == nil
 
-	users, err := us.store.GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
+	users, err := us.store.GetProfileByIds(rctx, userIDs, options, allowFromCache)
 	if err != nil {
 		return nil, err
 	}
@@ -208,6 +217,15 @@ func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]str
 
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	users, err := us.store.DeactivateGuests()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (us *UserService) DeactivateMagicLinkGuests() ([]string, error) {
+	users, err := us.store.DeactivateMagicLinkGuests()
 	if err != nil {
 		return nil, err
 	}

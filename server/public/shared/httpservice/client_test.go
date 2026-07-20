@@ -60,13 +60,13 @@ func TestHTTPClient(t *testing.T) {
 	t.Run("checks", func(t *testing.T) {
 		allowHost := func(_ string) bool { return true }
 		rejectHost := func(_ string) bool { return false }
-		allowIP := func(_ net.IP) bool { return true }
-		rejectIP := func(_ net.IP) bool { return false }
+		allowIP := func(_ net.IP) error { return nil }
+		rejectIP := func(_ net.IP) error { return fmt.Errorf("IP not allowed") }
 
 		testCases := []struct {
 			description     string
 			allowHost       func(string) bool
-			allowIP         func(net.IP) bool
+			allowIP         func(net.IP) error
 			expectedAllowed bool
 		}{
 			{"allow with no checks", nil, nil, true},
@@ -88,10 +88,43 @@ func TestHTTPClient(t *testing.T) {
 					require.NoError(t, err)
 				} else {
 					require.IsType(t, &url.Error{}, err)
-					require.Equal(t, ErrAddressForbidden, err.(*url.Error).Err)
+					require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
 				}
 			})
 		}
+	})
+}
+
+func TestNewTransportForInternalConnections(t *testing.T) {
+	// httptest servers listen on a loopback address, which is a reserved range.
+	mockHTTP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockHTTP.Close()
+
+	u, err := url.Parse(mockHTTP.URL)
+	require.NoError(t, err)
+	host := u.Hostname()
+
+	t.Run("blocks reserved IP ranges when the allowlist is empty", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, ""))
+		_, err := c.Get(mockHTTP.URL)
+		require.IsType(t, &url.Error{}, err)
+		require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
+	})
+
+	t.Run("allows a host named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, host))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
+	})
+
+	t.Run("allows a CIDR range named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, "127.0.0.0/8 ::1/128"))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
 	})
 }
 
@@ -110,6 +143,17 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, "proxy", string(body))
+
+	t.Run("invalid IPv6 address in proxied URL", func(t *testing.T) {
+		c := NewHTTPClient(NewTransport(true, nil, nil))
+
+		t.Setenv("HTTP_PROXY", "http://proxy.example.org")
+		t.Setenv("HTTPS_PROXY", "https://proxy.example.org")
+		t.Setenv("NO_PROXY", ".example.com")
+
+		_, err := c.Get("http://[fe80::8e87:5021:6f6c:605e%25eth0]")
+		require.EqualError(t, err, `Get "http://[fe80::8e87:5021:6f6c:605e%25eth0]": invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`)
+	})
 }
 
 func createProxyServer() *httptest.Server {
@@ -145,7 +189,12 @@ func TestDialContextFilter(t *testing.T) {
 		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
 			didDial = true
 			return nil, nil
-		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
+		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) error {
+			if IsReservedIP(ip) {
+				return fmt.Errorf("IP %s is reserved", ip)
+			}
+			return nil
+		})
 		_, err := filter(context.Background(), "", tc.Addr)
 
 		if tc.IsValid {
@@ -153,7 +202,7 @@ func TestDialContextFilter(t *testing.T) {
 			require.True(t, didDial)
 		} else {
 			require.Error(t, err)
-			require.Equal(t, err, ErrAddressForbidden)
+			require.Contains(t, err.Error(), "address forbidden")
 			require.False(t, didDial)
 		}
 	}
@@ -195,6 +244,17 @@ func TestIsReservedIP(t *testing.T) {
 		{"127.120.6.3", net.IPv4(127, 120, 6, 3), true},
 		{"8.8.8.8", net.IPv4(8, 8, 8, 8), false},
 		{"9.9.9.9", net.IPv4(9, 9, 9, 8), false},
+		// IPv4-mapped IPv6 addresses should be detected as reserved
+		{"::ffff:127.0.0.1", net.ParseIP("::ffff:127.0.0.1"), true},
+		{"::ffff:192.168.1.1", net.ParseIP("::ffff:192.168.1.1"), true},
+		{"::ffff:10.0.0.1", net.ParseIP("::ffff:10.0.0.1"), true},
+		{"::ffff:169.254.169.254", net.ParseIP("::ffff:169.254.169.254"), true},
+		{"::ffff:8.8.8.8", net.ParseIP("::ffff:8.8.8.8"), false},
+		// Pure IPv6 reserved addresses
+		{"::1", net.ParseIP("::1"), true},
+		{"fe80::1", net.ParseIP("fe80::1"), true},
+		// Public IPv6
+		{"2607:f8b0:4004:800::200e", net.ParseIP("2607:f8b0:4004:800::200e"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -215,8 +275,9 @@ func TestIsOwnIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := IsOwnIP(tt.ip)
-			assert.Equalf(t, tt.want, got, "IsOwnIP() = %v, want %v for IP %s", got, tt.want, tt.ip.String())
+			got, err := IsOwnIP(tt.ip)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -260,4 +321,96 @@ func TestSplitHostnames(t *testing.T) {
 	config = "127.0.0.1 localhost, 192.168.1.0"
 	hostnames = strings.FieldsFunc(config, splitFields)
 	require.Equal(t, []string{"127.0.0.1", "localhost", "192.168.1.0"}, hostnames)
+}
+
+func TestGetProxyFn(t *testing.T) {
+	t.Setenv("HTTP_PROXY", "http://proxy.example.org")
+	t.Setenv("HTTPS_PROXY", "https://proxy.example.org")
+	t.Setenv("NO_PROXY", ".example.com")
+
+	for _, tc := range []struct {
+		name   string
+		input  string
+		output string
+		err    string
+	}{
+		{
+			name: "empty",
+		},
+		{
+			name:  "no proxy",
+			input: "http://test.example.com",
+		},
+		{
+			name:  "localhost",
+			input: "http://localhost",
+		},
+		{
+			name:   "hostname",
+			input:  "http://example.org",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "hostname with port",
+			input:  "http://example.org:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "https",
+			input:  "https://example.org",
+			output: "https://proxy.example.org",
+		},
+		{
+			name:   "ipv4",
+			input:  "http://10.0.0.45",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv4 with port",
+			input:  "http://10.0.0.45:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6",
+			input:  "http://[fe80::8e87:5021:6f6c:605e]",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6 with port",
+			input:  "http://[fe80::8e87:5021:6f6c:605e]:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6 with zone",
+			input:  "http://[fe80::8e87:5021:6f6c:605e%25eth0]",
+			output: "http://proxy.example.org",
+			err:    `invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`,
+		},
+		{
+			name:   "ipv6 with zone and port",
+			input:  "http://[fe80::8e87:5021:6f6c:605e%25eth0]:4545",
+			output: "http://proxy.example.org",
+			err:    `invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			inURL, err := url.Parse(tc.input)
+			require.NoError(t, err)
+			outURL, err := getProxyFn()(&http.Request{
+				URL: inURL,
+			})
+			if tc.err != "" { // error case
+				require.EqualError(t, err, tc.err)
+				return
+			}
+
+			require.NoError(t, err)
+			if tc.output == "" { // not proxied case
+				require.Nil(t, outURL)
+			} else { // proxied case
+				require.NotNil(t, outURL)
+				require.Equal(t, tc.output, outURL.String())
+			}
+		})
+	}
 }

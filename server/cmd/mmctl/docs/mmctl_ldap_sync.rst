@@ -20,15 +20,14 @@ Examples
 
 ::
 
-    ldap sync
+  mmctl ldap sync
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help                      help for sync
-      --include-removed-members   Include members who left or were removed from a group-synced team/channel
+  -h, --help   help for sync
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GroupSearchParams} from '@mattermost/types/groups';
 import type {PostList, Post, PostAcknowledgement, PostEmbed, PostPreviewMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {searchGroups} from 'mattermost-redux/actions/groups';
+import {getGroupsByNames} from 'mattermost-redux/actions/groups';
 import {getNeededAtMentionedUsernamesAndGroups} from 'mattermost-redux/actions/posts';
 import {
     getProfilesByIds,
@@ -15,7 +14,7 @@ import {
     maxUserIdsPerStatusesRequest,
 } from 'mattermost-redux/actions/users';
 import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUsers} from 'mattermost-redux/selectors/entities/common';
-import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {BackgroundDataLoader} from 'mattermost-redux/utils/data_loader';
@@ -88,29 +87,24 @@ export function cleanUpStatusAndProfileFetchingPoll(): ThunkActionFunc<void> {
     };
 }
 
-/**
- * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
- * This action however doesn't refetch the profiles and statuses except for groups if they are already fetched once
- */
-export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']|Post): ActionFunc<boolean> {
+interface UserIdsAndMentions {
+    userIdsForProfilePoll: Array<UserProfile['id']>;
+    userIdsForStatusPoll: Array<UserProfile['id']>;
+    mentionedUsernamesAndGroups: string[];
+}
+
+export function extractUserIdsAndMentionsFromPosts(posts: Post[]): ActionFunc<UserIdsAndMentions> {
     return (dispatch, getState) => {
-        if (!postsArrayOrMap) {
-            return {data: false};
-        }
-
-        let posts: Post[] = [];
-        if (Array.isArray(postsArrayOrMap)) {
-            posts = postsArrayOrMap;
-        } else if (typeof postsArrayOrMap === 'object' && 'id' in postsArrayOrMap) {
-            posts = [postsArrayOrMap as Post];
-        } else if (typeof postsArrayOrMap === 'object') {
-            posts = Object.values(postsArrayOrMap);
-        }
-
         if (posts.length === 0) {
-            return {data: false};
+            return {data: {
+                userIdsForProfilePoll: [],
+                userIdsForStatusPoll: [],
+                mentionedUsernamesAndGroups: [],
+            }};
         }
 
+        const userIdsForProfilePoll = new Set<UserProfile['id']>();
+        const userIdsForStatusPoll = new Set<UserProfile['id']>();
         const mentionedUsernamesAndGroupsInPosts = new Set<string>();
 
         const state = getState();
@@ -129,10 +123,10 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
                             const permalinkPostPreviewMetaData = embed.data as PostPreviewMetadata;
 
                             if (permalinkPostPreviewMetaData.post?.user_id && !users[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId) {
-                                dispatch(addUserIdsForProfileFetchingPoll([permalinkPostPreviewMetaData.post.user_id]));
+                                userIdsForProfilePoll.add(permalinkPostPreviewMetaData.post.user_id);
                             }
                             if (permalinkPostPreviewMetaData.post?.user_id && !userStatuses[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                                dispatch(addUserIdsForStatusFetchingPoll([permalinkPostPreviewMetaData.post.user_id]));
+                                userIdsForStatusPoll.add(permalinkPostPreviewMetaData.post.user_id);
                             }
                         }
                     });
@@ -142,7 +136,7 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
                 if (post.metadata.acknowledgements) {
                     post.metadata.acknowledgements.forEach((ack: PostAcknowledgement) => {
                         if (ack.acknowledged_at > 0 && ack.user_id && !users[ack.user_id] && ack.user_id !== currentUserId) {
-                            dispatch(addUserIdsForProfileFetchingPoll([ack.user_id]));
+                            userIdsForProfilePoll.add(ack.user_id);
                         }
                     });
                 }
@@ -151,13 +145,13 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
             // This is sufficient to check if the profile is already fetched
             // as we receive the websocket events for the profiles changes
             if (!users[post.user_id] && post.user_id !== currentUserId) {
-                dispatch(addUserIdsForProfileFetchingPoll([post.user_id]));
+                userIdsForProfilePoll.add(post.user_id);
             }
 
             // This is sufficient to check if the status is already fetched
             // as we do the polling for statuses for current channel's channel members every 1 minute in channel_controller
             if (!userStatuses[post.user_id] && post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                dispatch(addUserIdsForStatusFetchingPoll([post.user_id]));
+                userIdsForStatusPoll.add(post.user_id);
             }
 
             // We need to check for all @mentions in the post, they can be either users or groups
@@ -171,15 +165,61 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
             }
         });
 
-        if (mentionedUsernamesAndGroupsInPosts.size > 0) {
-            dispatch(getUsersFromMentionedUsernamesAndGroups(Array.from(mentionedUsernamesAndGroupsInPosts)));
+        return {data: {
+            userIdsForProfilePoll: Array.from(userIdsForProfilePoll),
+            userIdsForStatusPoll: Array.from(userIdsForStatusPoll),
+            mentionedUsernamesAndGroups: Array.from(mentionedUsernamesAndGroupsInPosts),
+        }};
+    };
+}
+
+/**
+ * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
+ * This action however doesn't refetch the profiles and statuses except for groups if they are already fetched once
+ */
+export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[] | PostList['posts'] | Post): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        if (!postsArrayOrMap) {
+            return {data: false};
+        }
+
+        let posts: Post[] = [];
+        if (Array.isArray(postsArrayOrMap)) {
+            posts = postsArrayOrMap;
+        } else if (typeof postsArrayOrMap === 'object' && 'id' in postsArrayOrMap) {
+            posts = [postsArrayOrMap as Post];
+        } else if (typeof postsArrayOrMap === 'object') {
+            posts = Object.values(postsArrayOrMap);
+        }
+
+        if (posts.length === 0) {
+            return {data: false};
+        }
+
+        const state = getState();
+        const {data: result} = dispatch(extractUserIdsAndMentionsFromPosts(posts));
+
+        if (!result) {
+            return {data: false};
+        }
+
+        if (result.userIdsForProfilePoll.length > 0) {
+            dispatch(addUserIdsForProfileFetchingPoll(result.userIdsForProfilePoll));
+        }
+
+        if (result.userIdsForStatusPoll.length > 0) {
+            dispatch(addUserIdsForStatusFetchingPoll(result.userIdsForStatusPoll));
+        }
+
+        if (result.mentionedUsernamesAndGroups.length > 0) {
+            dispatch(getUsersFromMentionedUsernamesAndGroups(result.mentionedUsernamesAndGroups, getLicense(state).IsLicensed === 'true'));
         }
 
         return {data: true};
     };
 }
 
-export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: string[]): ActionFuncAsync<string[]> {
+export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: string[], isLicensed: boolean): ActionFuncAsync<string[]> {
     return async (dispatch) => {
         // We run the at-mentioned be it user or group through the user profile search
         const {data: userProfiles} = await dispatch(getProfilesByUsernames(usernamesAndGroups));
@@ -198,15 +238,8 @@ export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: stri
         // Removing usernames from the list will leave only the group names
         const mentionedGroups = usernamesAndGroups.filter((name) => !mentionedUsernames.includes(name));
 
-        for (const group of mentionedGroups) {
-            const groupSearchParam: GroupSearchParams = {
-                q: group,
-                filter_allow_reference: true,
-                page: 0,
-                per_page: 60,
-            };
-
-            dispatch(searchGroups(groupSearchParam));
+        if (isLicensed && mentionedGroups.length > 0) {
+            await dispatch(getGroupsByNames(mentionedGroups));
         }
 
         return {data: mentionedGroups};

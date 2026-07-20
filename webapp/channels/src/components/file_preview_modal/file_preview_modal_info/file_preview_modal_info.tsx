@@ -34,7 +34,7 @@ const FilePreviewModalInfo: React.FC<Props> = (props: Props) => {
     const user = useSelector((state: GlobalState) => selectUser(state, props.post?.user_id ?? '')) as UserProfile | undefined;
     const channel = useSelector((state: GlobalState) => {
         const getChannel = makeGetChannel();
-        return getChannel(state, {id: props.post?.channel_id ?? ''});
+        return getChannel(state, props.post?.channel_id ?? '');
     });
     const name = useSelector((state: GlobalState) => displayNameGetter(state, props.post?.user_id ?? '', true));
 
@@ -76,8 +76,10 @@ const FilePreviewModalInfo: React.FC<Props> = (props: Props) => {
                 (props.post && Object.keys(props.post).length > 0) &&
                 <Avatar
                     size='lg'
+                    username={user?.username}
                     url={imageURLForUser(props.post.user_id, user?.last_picture_update)}
                     className='file-preview-modal__avatar'
+                    alt=''
                 />
             }
 

@@ -3,6 +3,8 @@
 
 import {clickCategoryMenuItem} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -20,7 +22,9 @@ describe('Sidebar category menu', () => {
     });
 
     it('MM-T3171_1 Verify that the 3-dot menu on the Channels Category contains an option to Create New Category', () => {
-        clickCategoryMenuItem('CHANNELS', 'Create New Category');
+        clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Create New Category', categoryMenuButtonName: 'Channels'});
+
+        cy.wait(TIMEOUTS.ONE_SEC);
 
         cy.get('body').type('{esc}', {force: true});
     });
@@ -39,7 +43,9 @@ describe('Sidebar category menu', () => {
         cy.contains('.SidebarChannelGroup', 'FAVORITES').find('#sidebarItem_town-square');
 
         // # Verify that Create New Category exists on Favorites category and click on it
-        clickCategoryMenuItem('FAVORITES', 'Create New Category');
+        clickCategoryMenuItem({categoryDisplayName: 'FAVORITES', menuItemText: 'Create New Category', categoryMenuButtonName: 'Favorites'});
+
+        cy.wait(TIMEOUTS.ONE_SEC);
 
         cy.get('body').type('{esc}', {force: true});
     });

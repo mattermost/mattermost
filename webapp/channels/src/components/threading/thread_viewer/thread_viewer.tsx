@@ -11,8 +11,10 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelBanner from 'components/channel_banner/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
+import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -39,11 +41,12 @@ export type Props = Attrs & {
     actions: {
         fetchRHSAppsBindings: (channelId: string, rootID: string) => unknown;
         getNewestPostThread: (rootId: string) => Promise<ActionResult>;
-        getPostThread: (rootId: string, fetchThreads: boolean) => Promise<ActionResult>;
+        getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<ActionResult>;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
+        updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
     };
     useRelativeTimestamp?: boolean;
     postIds: string[];
@@ -52,12 +55,12 @@ export type Props = Attrs & {
     isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
-    enableWebSocketEventScope: boolean;
+    lastUpdateAt: number;
 };
 
 type State = {
     isLoading: boolean;
-}
+};
 
 export default class ThreadViewer extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -81,9 +84,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     public componentWillUnmount() {
-        if (this.props.enableWebSocketEventScope) {
-            WebSocketClient.updateActiveThread(this.props.isThreadView, '');
-        }
+        WebSocketClient.updateActiveThread(this.props.isThreadView, '');
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -94,7 +95,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         const selectedChanged = this.props.selected.id !== prevProps.selected?.id;
-
         if (reconnected || selectedChanged) {
             this.onInit(reconnected);
         }
@@ -107,7 +107,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         if (this.props.appsEnabled && (
-            this.props.channel?.id !== prevProps.channel?.id || this.props.selected.id !== prevProps.selected?.id
+            this.props.channel?.id !== prevProps.channel?.id || selectedChanged
         )) {
             this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected.id);
         }
@@ -172,7 +172,26 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
-        await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
+        const res = await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected, this.props.lastUpdateAt);
+
+        if (this.props.selected && res.data) {
+            const {order, posts} = res.data;
+            if (order.length > 0 && posts[order[0]]) {
+                let highestUpdateAt = posts[order[0]].update_at;
+
+                // Check all posts to find the highest update_at
+                for (const postId in posts) {
+                    if (Object.hasOwn(posts, postId)) {
+                        const post = posts[postId];
+                        if (post.update_at > highestUpdateAt) {
+                            highestUpdateAt = post.update_at;
+                        }
+                    }
+                }
+
+                this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
+            }
+        }
 
         if (
             this.props.isCollapsedThreadsEnabled &&
@@ -181,7 +200,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             await this.fetchThread();
         }
 
-        if (this.props.channel && this.props.enableWebSocketEventScope) {
+        if (this.props.channel) {
             WebSocketClient.updateActiveThread(this.props.isThreadView, this.props.channel?.id);
         }
         this.setState({isLoading: false});
@@ -217,9 +236,13 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         return (
             <>
                 <div className={classNames('ThreadViewer', this.props.className)}>
+                    <ChannelBanner channelId={this.props.channel?.id || ''}/>
                     <div className='post-right-comments-container'>
                         <>
-                            <FileUploadOverlay overlayType='right'/>
+                            <FileUploadOverlay
+                                overlayType='right'
+                                id={DropOverlayIdThreads}
+                            />
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
                                     inputPlaceholder={this.props.inputPlaceholder}

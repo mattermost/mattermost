@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/functions";
 
 @media screen and (min-width: 1680px) {
     .sidebar--right,
@@ -16,22 +16,6 @@
             .search__form--focused {
                 width: 374px;
                 max-width: 374px;
-            }
-        }
-    }
-}
-
-@media screen and (max-width: 1800px) {
-    .inner-wrap {
-        &.move--left {
-            .date-separator,
-            .new-separator {
-                &.hovered--comment {
-                    &::before,
-                    &::after {
-                        background: none;
-                    }
-                }
             }
         }
     }
@@ -75,7 +59,7 @@
     .inner-wrap {
         &.move--left {
             .file-overlay {
-                font-size: em(18px);
+                font-size: functions.em(18px);
 
                 .overlay__circle {
                     width: 300px;

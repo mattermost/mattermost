@@ -20,7 +20,19 @@ export function isMeMessage(post: Post): boolean {
 }
 
 export function isFromWebhook(post: Post): boolean {
-    return post.props && post.props.from_webhook;
+    return post.props?.from_webhook === 'true';
+}
+
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+// Mirrors server IsNotificationSuppressed: force_notification wins over silent.
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
 }
 
 export function isPostEphemeral(post: Post): boolean {
@@ -28,8 +40,8 @@ export function isPostEphemeral(post: Post): boolean {
 }
 
 export function isUserAddedInChannel(post: Post, userId?: UserProfile['id']): boolean {
-    const postTypeCheck = post.type && (post.type === Posts.POST_TYPES.ADD_TO_CHANNEL);
-    const userIdCheck = post.props && post.props.addedUserId && (post.props.addedUserId === userId);
+    const postTypeCheck = Boolean(post.type && (post.type === Posts.POST_TYPES.ADD_TO_CHANNEL));
+    const userIdCheck = Boolean(post.props && post.props.addedUserId && (post.props.addedUserId === userId));
     return postTypeCheck && userIdCheck;
 }
 
@@ -54,6 +66,10 @@ export function isEdited(post: Post): boolean {
 
 export function canEditPost(state: GlobalState, config: any, license: any, teamId: Team['id'], channelId: Channel['id'], userId: UserProfile['id'], post: Post): boolean {
     if (!post || isSystemMessage(post)) {
+        return false;
+    }
+
+    if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
         return false;
     }
 
@@ -169,7 +185,7 @@ export function isPostCommentMention({post, currentUser, threadRepliedToByCurren
         commentsNotifyLevel = currentUser.notify_props.comments;
     }
 
-    const notCurrentUser = post.user_id !== currentUser.id || (post.props && post.props.from_webhook);
+    const notCurrentUser = post.user_id !== currentUser.id || isFromWebhook(post);
     if (notCurrentUser) {
         if (commentsNotifyLevel === Preferences.COMMENTS_ANY && (threadCreatedByCurrentUser || threadRepliedToByCurrentUser)) {
             isCommentMention = true;
@@ -240,4 +256,16 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
 
     // The stored post is older than the one we've received
     return true;
+}
+
+export function ensureString(v: unknown) {
+    return typeof v === 'string' ? v : '';
+}
+
+export function ensureNumber(v: unknown) {
+    return typeof v === 'number' ? v : 0;
+}
+
+export function secureGetFromRecord<T>(v: Record<string, T> | undefined, key: string) {
+    return typeof v === 'object' && v && Object.hasOwn(v, key) ? v[key] : undefined;
 }

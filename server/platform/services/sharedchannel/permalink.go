@@ -4,7 +4,6 @@
 package sharedchannel
 
 import (
-	"context"
 	"net/url"
 	"regexp"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 var (
@@ -26,6 +26,10 @@ const (
 
 // processPermalinkToRemote processes all permalinks going towards a remote site.
 func (scs *Service) processPermalinkToRemote(p *model.Post) string {
+	// request.CTX is not widely used in the shared channels code.
+	// Just create a new request.CTX for now.
+	rctx := request.EmptyContext(scs.server.Log())
+
 	var sent bool
 	return permaLinkRegex.ReplaceAllStringFunc(p.Message, func(msg string) string {
 		// Extract the postID (This is simple enough not to warrant full-blown URL parsing.)
@@ -34,13 +38,13 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, opts, "", map[string]bool{})
+		postList, err := scs.server.GetStore().Post().Get(rctx, postID, opts, "", map[string]bool{})
 		if err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
 			return msg
 		}
 		if len(postList.Order) == 0 {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
 			return msg
 		}
 
@@ -66,7 +70,7 @@ func (scs *Service) processPermalinkFromRemote(p *model.Post, team *model.Team) 
 		// Extract host name
 		parsed, err := url.Parse(remoteLink)
 		if err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
 			return remoteLink
 		}
 

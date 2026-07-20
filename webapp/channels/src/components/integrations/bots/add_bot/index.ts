@@ -24,7 +24,7 @@ type OwnProps = {
      * Search query for the bot
      */
     location: RouteComponentProps['location'];
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);

@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/ChannelHeaderMobile/UnmuteChannelButton should match snapshot 1`] = `
+<div>
+  <button
+    class="navbar-toggle icon icon__mute"
+    type="button"
+  >
+    <span
+      class="fa fa-bell-slash-o icon"
+    />
+  </button>
+</div>
+`;

@@ -13,8 +13,8 @@ import (
 )
 
 func TestGetClusterStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
 		_, resp, err := th.Client.GetClusterStatus(context.Background())

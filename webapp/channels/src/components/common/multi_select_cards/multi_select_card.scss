@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .MultiSelectCard {
     position: relative;
@@ -12,7 +12,7 @@
     border-radius: 8px;
     margin-right: 16px;
     background: var(--center-channel-bg);
-    box-shadow: $elevation-3;
+    box-shadow: variables.$elevation-3;
     cursor: pointer;
     list-style-type: none;
     outline: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -21,7 +21,7 @@
     &:hover,
     &:active,
     &:focus {
-        box-shadow: $elevation-4;
+        box-shadow: variables.$elevation-4;
         outline: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
     }
 
@@ -44,18 +44,18 @@
     }
 
     &--checked {
-        box-shadow: $elevation-2;
+        box-shadow: variables.$elevation-2;
         outline: 2px solid var(--button-bg);
 
         &:hover,
         &:active,
         &:focus {
-            box-shadow: $elevation-2;
+            box-shadow: variables.$elevation-2;
             outline: 2px solid var(--button-bg);
         }
 
         &:focus {
-            box-shadow: $elevation-4;
+            box-shadow: variables.$elevation-4;
         }
     }
 

@@ -1,0 +1,126 @@
+---
+title: "Reporting configuration settings"
+---
+<PlanAvailability slug="all-commercial" />
+
+View the following statistics for your overall deployment and specific teams, as well as access server logs, in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Reporting**:
+
+- [System statistics](#system-statistics)
+- [Team statistics](#team-statistics)
+- [Server logs](#server-logs)
+- [Statistics configuration settings](#statistics-configuration-settings)
+
+------------------------------------------------------------------------------------------------------------------------
+
+<a id="site-statistics" />
+
+## System statistics
+
+<table>
+<colgroup>
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>View statistics on a wide variety of activities in Mattermost, including: users, seats, teams, channels, posts, calls, sessions, commands, webhooks, websocket and database connections, and collaborative playbooks.</td>
+<td><ul>
+<li>System Config path: <strong>Reporting &gt; System Statistics</strong></li>
+<li><code>config.json setting</code>: N/A</li>
+<li>Environment variable: N/A</li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Bots, deactivated users, and synthetic users in [Microsoft Teams integrations](/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams) and [connected workspaces](/administration-guide/onboard/connected-workspaces) users aren't counted towards the total number of activated users.
+- **Single-channel Guests** shows the number of active guest accounts that belong to exactly one channel. Direct messages and group messages don't affect whether a guest is counted as a single-channel guest. Single-channel guests are counted separately from the primary paid seat count and are free up to a 1:1 ratio with licensed seats. When this count exceeds the allowance, the statistic is highlighted as a warning for system admins.
+- Guests in multiple channels continue to count as paid active users. See the [guest accounts](/administration-guide/onboard/guest-accounts) documentation for details.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Team statistics
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>View statistics per team on number of activated users, number of public and private channels, total post count, and count of paid users (self-hosted only).</td>
+<td><ul>
+<li>System Config path: <strong>Reporting &gt; Team Statistics</strong></li>
+<li><code>config.json</code> setting: N/A</li>
+<li>Environment variable: N/A</li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Bots, deactivated users, and synthetic users in [Microsoft Teams integrations](/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams) and [connected workspaces](/administration-guide/onboard/connected-workspaces) users aren't counted towards the total number of active users.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Server logs
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>View logging of server-side events.</p>
+<p>Reload data, download the <code>mattermost.log</code> file locally, and view full log event details for any log entry.</p></td>
+<td><ul>
+<li>System Config path: <strong>Reporting &gt; Server Logs</strong></li>
+<li><code>config.json</code> setting: N/A</li>
+<li>Environment variable: N/A</li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This setting is applicable to self-hosted deployments only.
+- From Mattermost v10.9, you can toggle between JSON and plain text server logs in the System Console when console log output is configured as [JSON](/administration-guide/configure/environment-configuration-settings#output-console-logs-as-json) by specifying the log format as **JSON** or **Plain text**. This option is located in the top right corner of the page **Server logs** page.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Statistics configuration settings
+
+The following self-hosted deployment configuration setting controls statistics collection behavior. This setting is not available in the System Console and can only be set in the `config.json` file.
+
+### Maximum users for statistics
+
+This setting is used to maximize performance for large Enterprise deployments and isn't available in the System Console and can only be set in `config.json`.
+
+<table>
+<colgroup>
+<col style={{width: '44%'}} />
+<col style={{width: '55%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Set the maximum number of users on the server before statistics for total messages, total hashtag messages, total file messages, messages per day, and activated users with messages per day are disabled.</p>
+<p>Numerical input. Default is <strong>2500</strong> users.</p></td>
+<td><ul>
+<li>System Config path: N/A</li>
+<li><code>config.json</code> setting: <code>"AnalyticsSettings.MaxUsersForStatistics": 2500</code></li>
+<li>Environment variable: N/A</li>
+</ul></td>
+</tr>
+</tbody>
+</table>

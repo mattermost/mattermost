@@ -8,15 +8,15 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
+	"slices"
 	"time"
 
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
-	gomail "gopkg.in/mail.v2"
+	gomail "github.com/wneessen/go-mail"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -67,10 +67,6 @@ type smtpClient interface {
 	Data() (io.WriteCloser, error)
 }
 
-func encodeRFC2047Word(s string) string {
-	return mime.BEncoding.Encode("utf-8", s)
-}
-
 type authChooser struct {
 	smtp.Auth
 	config *SMTPConfig
@@ -79,11 +75,8 @@ type authChooser struct {
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	smtpAddress := a.config.ServerName + ":" + a.config.Port
 	a.Auth = LoginAuth(a.config.Username, a.config.Password, smtpAddress)
-	for _, method := range server.Auth {
-		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
-			break
-		}
+	if slices.Contains(server.Auth, "PLAIN") {
+		a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
 	}
 	return a.Auth.Start(server)
 }
@@ -291,67 +284,96 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
+func generateMessageID(hostname string) string {
+	return fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(16), time.Now().Unix(), hostname)
+}
+
+// validateSingleAddress rejects a value that resolves to anything other than
+// exactly one address. This package only ever sends to a single recipient per
+// header; a multi-address value would otherwise be rejected deep inside the
+// SMTP library (or, worse, silently mishandled), so we fail early with a clear
+// error rather than adding multi-recipient support. The caller wraps the error
+// with the relevant header name.
+func validateSingleAddress(value string) error {
+	addresses, err := mail.ParseAddressList(value)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse address")
+	}
+	if len(addresses) != 1 {
+		return errors.Errorf("must contain exactly one address, got %d", len(addresses))
+	}
+	return nil
+}
+
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
-	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
+	mlog.Info("sending mail", mlog.String("to", mail.smtpTo))
 
 	htmlMessage := mail.htmlBody
-
-	txtBody, err := html2text.FromString(mail.htmlBody)
+	text, err := html2text.FromString(htmlMessage)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
-		txtBody = ""
+		text = ""
 	}
 
-	headers := map[string][]string{
-		"From":                      {mail.from.String()},
-		"To":                        {mail.mimeTo},
-		"Subject":                   {encodeRFC2047Word(mail.subject)},
-		"Content-Transfer-Encoding": {"8bit"},
-		"Auto-Submitted":            {"auto-generated"},
-		"Precedence":                {"bulk"},
+	m := gomail.NewMsg()
+
+	m.SetAddrHeaderFromMailAddress(gomail.HeaderFrom, &mail.from)
+	if err = validateSingleAddress(mail.mimeTo); err != nil {
+		return errors.Wrap(err, "invalid To header")
 	}
+	if err = m.SetAddrHeader(gomail.HeaderTo, mail.mimeTo); err != nil {
+		return errors.Wrap(err, "failed to set To address")
+	}
+	m.SetGenHeader(gomail.HeaderSubject, mail.subject)
+	m.SetGenHeader(gomail.Header("Content-Transfer-Encoding"), "8bit")
+	m.SetGenHeader(gomail.Header("Auto-Submitted"), "auto-generated")
+	m.SetGenHeader(gomail.Header("Precedence"), "bulk")
 
 	if mail.category != "" {
-		sendgridHeader := fmt.Sprintf(`{"category": %q}`, mail.category)
-		headers[SendGridXSMTPAPIHeader] = []string{sendgridHeader}
+		m.SetGenHeader(gomail.Header(SendGridXSMTPAPIHeader), fmt.Sprintf(`{"category": %q}`, mail.category))
 	}
 
 	if mail.replyTo.Address != "" {
-		headers["Reply-To"] = []string{mail.replyTo.String()}
+		m.SetAddrHeaderFromMailAddress(gomail.HeaderReplyTo, &mail.replyTo)
 	}
 
 	if mail.cc != "" {
-		headers["CC"] = []string{mail.cc}
+		if err = validateSingleAddress(mail.cc); err != nil {
+			return errors.Wrap(err, "invalid Cc header")
+		}
+		if err = m.SetAddrHeader(gomail.HeaderCc, mail.cc); err != nil {
+			return errors.Wrap(err, "failed to set Cc address")
+		}
 	}
 
-	if mail.messageID != "" {
-		headers["Message-ID"] = []string{mail.messageID}
-	} else {
-		randomStringLength := 16
-		msgID := fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(randomStringLength), time.Now().Unix(), config.Hostname)
-		headers["Message-ID"] = []string{msgID}
+	msgID := mail.messageID
+	if msgID == "" {
+		msgID = generateMessageID(config.Hostname)
 	}
+	// Must be SetGenHeader, not SetGenHeaderPreformatted: only genHeader suppresses go-mail's
+	// auto-generated Message-ID, otherwise we emit two and strict servers reject with a 554.
+	m.SetGenHeader(gomail.HeaderMessageID, msgID)
 
 	if mail.inReplyTo != "" {
-		headers["In-Reply-To"] = []string{mail.inReplyTo}
+		m.SetGenHeaderPreformatted(gomail.HeaderInReplyTo, mail.inReplyTo)
 	}
 
 	if mail.references != "" {
-		headers["References"] = []string{mail.references}
+		m.SetGenHeaderPreformatted(gomail.HeaderReferences, mail.references)
 	}
 
 	for k, v := range mail.mimeHeaders {
-		headers[k] = []string{encodeRFC2047Word(v)}
+		m.SetGenHeader(gomail.Header(k), v)
 	}
 
-	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
-	m.SetHeaders(headers)
-	m.SetDateHeader("Date", date)
-	m.SetBody("text/plain", txtBody)
-	m.AddAlternative("text/html", htmlMessage)
+	m.SetDateWithValue(date)
+	m.SetBodyString(gomail.TypeTextPlain, text)
+	m.AddAlternativeString(gomail.TypeTextHTML, htmlMessage)
 
 	for name, reader := range mail.embeddedFiles {
-		m.EmbedReader(name, reader)
+		if err = m.EmbedReader(name, reader); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("failed to embed file %q", name))
+		}
 	}
 
 	if err = c.Mail(mail.from.Address); err != nil {

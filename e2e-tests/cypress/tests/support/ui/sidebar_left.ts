@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from '../../types';
+import type {ChainableT} from '../../types';
 
 Cypress.Commands.add('uiGetLHS', () => {
     return cy.get('#SidebarContainer').should('be.visible');
@@ -9,7 +9,7 @@ Cypress.Commands.add('uiGetLHS', () => {
 
 Cypress.Commands.add('uiGetLHSHeader', () => {
     return cy.uiGetLHS().
-        find('.SidebarHeaderMenuWrapper').
+        find('#sidebarTeamMenuButton').
         should('be.visible');
 });
 
@@ -31,12 +31,11 @@ Cypress.Commands.add('uiOpenTeamMenu', (item = '') => {
 });
 
 Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
-    return cy.uiGetLHS().
-        find('.AddChannelDropdown_dropdownButton');
+    return cy.uiGetLHS().findByRole('button', {name: 'Browse or create channels'});
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
-    return cy.uiGetLHS().find('#sidebarDropdownMenu');
+    return cy.get('#sidebarTeamMenu');
 });
 
 function uiOpenSystemConsoleMenu(item = ''): ChainableT<JQuery> {
@@ -88,15 +87,16 @@ Cypress.Commands.add('uiGetLhsSection', (section) => {
         parent();
 });
 
-Cypress.Commands.add('uiBrowseOrCreateChannel', (item) => {
-    cy.get('.AddChannelDropdown_dropdownButton').
-        should('be.visible').
-        click();
-    cy.get('.dropdown-menu').should('be.visible');
+Cypress.Commands.add('uiBrowseOrCreateChannel', (menuitem) => {
+    cy.uiGetLHSAddChannelButton().should('be.visible').click();
 
-    if (item) {
-        cy.findByRole('menuitem', {name: item});
-    }
+    cy.get('#browserOrAddChannelMenu').
+        should('exist').and('be.visible').
+        within(() => {
+            if (menuitem) {
+                cy.findByText(menuitem).should('exist').click();
+            }
+        });
 });
 
 Cypress.Commands.add('uiAddDirectMessage', () => {
@@ -139,7 +139,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
         });
         cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
     } else {
-        cy.findAllByTestId('postView').should('be.visible');
+        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
     }
 });
 

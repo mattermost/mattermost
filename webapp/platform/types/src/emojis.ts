@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 export type EmojiCategory =
-    | 'recent'
-    | 'searchResults'
-    | 'smileys-emotion'
-    | 'people-body'
-    | 'animals-nature'
-    | 'food-drink'
-    | 'activities'
-    | 'travel-places'
-    | 'objects'
-    | 'symbols'
-    | 'flags'
-    | 'custom';
+    'recent' |
+    'searchResults' |
+    'smileys-emotion' |
+    'people-body' |
+    'animals-nature' |
+    'food-drink' |
+    'activities' |
+    'travel-places' |
+    'objects' |
+    'symbols' |
+    'flags' |
+    'custom';
 
 export type CustomEmoji = {
     id: string;
@@ -28,10 +28,8 @@ export type CustomEmoji = {
 export type SystemEmoji = {
     name: string;
     category: EmojiCategory;
-    image: string;
     short_name: string;
     short_names: string[];
-    batch: number;
     skins?: string[];
     skin_variations?: Record<string, SystemEmojiVariation>;
     unified: string;
@@ -48,7 +46,7 @@ export type SystemEmojiVariation = {
     has_img_google: boolean;
     has_img_twitter: boolean;
     has_img_facebook: boolean;
-}
+};
 
 export type Emoji = SystemEmoji | CustomEmoji;
 
@@ -63,3 +61,11 @@ export type RecentEmojiData = {
     name: string;
     usageCount: number;
 };
+
+export function isSystemEmoji(emoji: Emoji): emoji is SystemEmoji {
+    if ('category' in emoji) {
+        return emoji.category !== 'custom';
+    }
+
+    return !('id' in emoji);
+}

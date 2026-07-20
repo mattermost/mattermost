@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func TestAudit_LogRecord(t *testing.T) {
+func TestAudit_LogAuditRecord(t *testing.T) {
 	userId := model.NewId()
 	testCases := []struct {
 		description  string
@@ -28,7 +28,7 @@ func TestAudit_LogRecord(t *testing.T) {
 		{
 			"empty record",
 			func(audit Audit) {
-				rec := Record{}
+				rec := model.AuditRecord{}
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},
 			[]string{
@@ -43,7 +43,7 @@ func TestAudit_LogRecord(t *testing.T) {
 				usr.Username = "TestABC"
 				usr.Password = "hello_world"
 
-				rec := Record{}
+				rec := model.AuditRecord{}
 				rec.AddEventObjectType("user")
 				rec.EventName = "User.Update"
 				rec.AddEventPriorState(usr)

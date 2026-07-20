@@ -1,17 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import {isSystemEmoji, type Emoji} from '@mattermost/types/emojis';
 
 import {Client4} from 'mattermost-redux/client';
 
-export function isSystemEmoji(emoji: Emoji): emoji is SystemEmoji {
-    if ('category' in emoji) {
-        return emoji.category !== 'custom';
-    }
-
-    return !('id' in emoji);
-}
+export {isSystemEmoji};
 
 export function getEmojiImageUrl(emoji: Emoji): string {
     // If its the mattermost custom emoji

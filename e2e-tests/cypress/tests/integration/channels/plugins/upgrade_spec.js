@@ -17,10 +17,10 @@
 
 // Group: @channels @system_console @plugin @plugins_uninstall @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {demoPlugin, demoPluginOld} from '../../../utils/plugins';
-
 import {waitForAlertMessage} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {demoPlugin, demoPluginOld} from '@/utils/plugins';
 
 describe('Plugin remains enabled when upgraded', () => {
     before(() => {
@@ -152,11 +152,11 @@ function waitForServerStatus(pluginId, version, state = {}) {
     const checkFn = () => {
         cy.log(`Waiting for ${pluginId}`);
         return cy.apiGetPluginStatus(pluginId, version).then((status) => {
-            if (state.hasOwnProperty('isActive')) {
+            if (Object.hasOwn(state, 'isActive')) {
                 return state.isActive === status.isActive;
             }
 
-            if (state.hasOwnProperty('isInstalled')) {
+            if (Object.hasOwn(state, 'isInstalled')) {
                 return state.isInstalled === status.isInstalled;
             }
 

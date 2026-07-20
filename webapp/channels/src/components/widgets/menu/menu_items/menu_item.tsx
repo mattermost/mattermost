@@ -15,7 +15,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
         id?: string;
         icon?: React.ReactNode;
         text?: React.ReactNode;
-    }
+    };
     class MenuItem extends React.PureComponent<Props & React.ComponentProps<typeof Component>> {
         public static defaultProps = {
             show: true,
@@ -34,7 +34,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
                 textProp = (
                     <>
                         <span className='icon'>{icon}</span>
-                        {text}
+                        <div className='text'>{text}</div>
                     </>
                 );
             }
@@ -50,6 +50,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
                     <Component
                         text={textProp}
                         ariaLabel={text?.toString()}
+                        id={id + '-button'}
                         {...props}
                     />
                 </li>

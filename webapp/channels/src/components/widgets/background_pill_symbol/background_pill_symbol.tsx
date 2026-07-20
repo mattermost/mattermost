@@ -5,7 +5,7 @@ import React from 'react';
 
 type Props = {
     id?: string;
-}
+};
 
 // NOTE: this SVG Symbol component needs to be included inside an <SVG /> container
 const BackgroundPillSymbol = ({id = 'pill'}: Props): JSX.Element => (

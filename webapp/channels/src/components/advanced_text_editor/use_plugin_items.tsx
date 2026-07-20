@@ -6,6 +6,8 @@ import {useSelector} from 'react-redux';
 
 import type TextboxClass from 'components/textbox/textbox';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
@@ -34,21 +36,27 @@ const usePluginItems = (
         // Missing setting the state eventually?
     }, [handleDraftChange, draft]);
 
-    const items = useMemo(() => postEditorActions?.map((item) => {
-        if (!item.component) {
-            return null;
-        }
+    const items = useMemo(() => {
+        return postEditorActions?.map((item) => {
+            if (!item.component) {
+                return null;
+            }
 
-        const Component = item.component as any;
-        return (
-            <Component
-                key={item.id}
-                draft={draft}
-                getSelectedText={getSelectedText}
-                updateText={updateText}
-            />
-        );
-    }), [postEditorActions, draft, getSelectedText, updateText]);
+            const Component = item.component as any;
+            return (
+                <PluggableErrorBoundary
+                    key={item.id}
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        draft={draft}
+                        getSelectedText={getSelectedText}
+                        updateText={updateText}
+                    />
+                </PluggableErrorBoundary>
+            );
+        });
+    }, [postEditorActions, draft, getSelectedText, updateText]);
 
     return items;
 };

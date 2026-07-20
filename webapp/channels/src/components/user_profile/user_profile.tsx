@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -11,7 +11,7 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {imageURLForUser} from 'utils/utils';
+import {imageURLForUser, getUsername} from 'utils/utils';
 
 import {generateColor} from './utils';
 
@@ -23,6 +23,7 @@ export default function UserProfile({
     disablePopover = false,
     displayUsername = false,
     hideStatus = false,
+    hideGuestTag = false,
     overwriteName = '',
     colorize = false,
     user,
@@ -31,11 +32,18 @@ export default function UserProfile({
     userId,
     channelId,
     overwriteIcon,
-    isShared,
+    remoteNames,
+    actions,
 }: Props) {
+    // Fetch remote info when component mounts for remote users
+    useEffect(() => {
+        if (user?.remote_id) {
+            actions.fetchRemoteClusterInfo(user.remote_id, true);
+        }
+    }, [user?.remote_id]);
     let name: ReactNode;
     if (user && displayUsername) {
-        name = `@${(user.username)}`;
+        name = `@${(getUsername(user))}`;
     } else {
         name = overwriteName || displayName || '...';
     }
@@ -62,8 +70,12 @@ export default function UserProfile({
     }
 
     let profileImg = '';
+    let userIsRemote = false;
     if (user) {
         profileImg = imageURLForUser(user.id, user.last_picture_update);
+        if (user.remote_id) {
+            userIsRemote = true;
+        }
     }
 
     return (
@@ -81,14 +93,15 @@ export default function UserProfile({
             >
                 {name}
             </ProfilePopover>
-            {(isShared) &&
+            {userIsRemote &&
             <SharedUserIndicator
-                id={`sharedUserIndicator-${userId}`}
                 className='shared-user-icon'
+                withTooltip={true}
+                remoteNames={remoteNames}
             />
             }
             {(user && user.is_bot) && <BotTag/>}
-            {(user && isGuest(user.roles)) && <GuestTag/>}
+            {(user && !hideGuestTag && isGuest(user.roles)) && <GuestTag/>}
         </>
     );
 }

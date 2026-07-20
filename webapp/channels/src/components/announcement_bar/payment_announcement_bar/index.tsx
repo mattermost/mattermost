@@ -41,6 +41,7 @@ export default function PaymentAnnouncementBar() {
     const mostRecentPaymentFailed = subscription?.last_invoice?.status === 'failed';
 
     if (
+
         // Prevents banner flashes if the subscription hasn't been loaded yet
         isEmpty(subscription) ||
         isStarterFree ||
@@ -88,6 +89,6 @@ export default function PaymentAnnouncementBar() {
 const messages = defineMessages({
     updatePaymentInfo: {
         id: 'admin.billing.subscription.updatePaymentInfo',
-        defaultMessage: 'Update payment info',
+        defaultMessage: 'Update Payment Information',
     },
 });

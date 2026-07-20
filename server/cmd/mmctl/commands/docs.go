@@ -36,7 +36,7 @@ func docsCmdF(cmd *cobra.Command, args []string) error {
 			return createErr
 		}
 	} else if !fileInfo.IsDir() {
-		return fmt.Errorf(fmt.Sprintf("File \"%s\" is not a directory", outDir))
+		return fmt.Errorf("File %q is not a directory", outDir)
 	}
 
 	err = doc.GenReSTTree(RootCmd, outDir)

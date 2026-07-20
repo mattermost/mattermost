@@ -23,15 +23,14 @@ import (
 
 func TestGetConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	_, resp, err := client.GetConfig(context.Background())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		cfg, _, err := client.GetConfig(context.Background())
+	t.Run("Get config for system admin client", func(t *testing.T) {
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
@@ -59,11 +58,18 @@ func TestGetConfig(t *testing.T) {
 			require.FailNow(t, "did not sanitize properly")
 		}
 	})
+
+	t.Run("Get config for local client", func(t *testing.T) {
+		cfg, _, err := th.LocalClient.GetConfig(context.Background())
+		require.NoError(t, err)
+
+		require.NotEqual(t, model.FakeSetting, *cfg.SqlSettings.DataSource)
+		require.NotEqual(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt)
+	})
 }
 
 func TestGetConfigWithAccessTag(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// set some values so that we know they're not blank
 	mockVaryByHeader := model.NewId()
@@ -73,11 +79,12 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 		cfg.SupportSettings.SupportEmail = &mockSupportEmail
 	})
 
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, _, err := th.Client.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -97,9 +104,9 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 
 func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 	_, resp, _ := th.Client.GetConfig(context.Background())
 
 	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
@@ -107,19 +114,19 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	})
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, _, err := th.Client.GetConfig(context.Background())
 	require.NoError(t, err)
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.NotNil(t, cfg.FeatureFlags)
+		assert.NotNil(t, cfg.ExperimentalSettings.RestrictSystemAdmin)
 	})
 }
 
 func TestReloadConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -144,7 +151,6 @@ func TestReloadConfig(t *testing.T) {
 
 func TestUpdateConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
@@ -178,41 +184,76 @@ func TestUpdateConfig(t *testing.T) {
 		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 			//Revert the change
 			badcfg := cfg.Clone()
-			badcfg.PasswordSettings.MinimumLength = model.NewPointer(4)
-			badcfg.PasswordSettings.MinimumLength = model.NewPointer(4)
+			badcfg.PasswordSettings.MinimumLength = new(4)
 			_, resp, err = client.UpdateConfig(context.Background(), badcfg)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			CheckErrorID(t, err, "model.config.is_valid.password_length.app_error")
 		})
+	})
 
-		t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+	t.Run("Ensure PluginSettings.EnableUploads settings are protected", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
 			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
 			cfg.PluginSettings.EnableUploads = nil
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 		})
 
-		t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		t.Run("local mode", func(t *testing.T) {
+			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
+			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.NotEqual(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.NotEqual(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+
+			cfg.PluginSettings.EnableUploads = nil
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+		})
+	})
+
+	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
 			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
 
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 
 			cfg.PluginSettings.SignaturePublicKeyFiles = nil
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		})
+
+		t.Run("local mode", func(t *testing.T) {
+			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.NotEqual(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.NotEqual(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+
+			cfg.PluginSettings.SignaturePublicKeyFiles = nil
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
@@ -250,7 +291,10 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should not be able to modify ComplianceSettings.Directory in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		cfg2 := th.App.Config().Clone()
 		*cfg2.ComplianceSettings.Directory = "hellodir"
@@ -258,6 +302,43 @@ func TestUpdateConfig(t *testing.T) {
 		_, resp, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Should not be able to modify ImportSettings.Directory", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			cfg2 := th.App.Config().Clone()
+			*cfg2.ImportSettings.Directory = "./new-import-dir"
+
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+
+			cfg2.ImportSettings.Directory = nil
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+		})
+
+		t.Run("local mode", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			cfg2 := th.App.Config().Clone()
+			newDirectory := "./new-import-dir"
+			*cfg2.ImportSettings.Directory = newDirectory
+
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, newDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, newDirectory, *th.App.Config().ImportSettings.Directory)
+
+			cfg2.ImportSettings.Directory = nil
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldDirectory, *cfg2.ImportSettings.Directory)
+			assert.Equal(t, oldDirectory, *th.App.Config().ImportSettings.Directory)
+		})
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
@@ -273,7 +354,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
 		// Check that the Site URL can't be cleared
-		cfg.ServiceSettings.SiteURL = sToP("")
+		cfg.ServiceSettings.SiteURL = new("")
 		cfg, resp, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -287,8 +368,8 @@ func TestUpdateConfig(t *testing.T) {
 
 func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
 		// forbidden by default
@@ -297,7 +378,7 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
-		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
 		_, _, err = th.Client.GetConfig(context.Background())
 		// should be readable now
 		require.NoError(t, err)
@@ -306,12 +387,12 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 
 func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
-	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
 
 	// add read sysconsole integrations config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -331,8 +412,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -351,10 +432,10 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -371,7 +452,6 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
 	messageExportTimestamp := *th.App.Config().MessageExportSettings.ExportFromTimestamp
@@ -439,7 +519,6 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 
 func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 	t.Run("Restrict flag should be honored for sysadmin", func(t *testing.T) {
@@ -483,24 +562,21 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	})
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 	require.NoError(t, err)
 
 	timeoutVal := *cfg.ServiceSettings.ReadTimeout
-	cfg.ServiceSettings.ReadTimeout = model.NewPointer(timeoutVal + 1)
+	cfg.ServiceSettings.ReadTimeout = new(timeoutVal + 1)
 	cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 	require.NoError(t, err)
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.ReadTimeout = model.NewPointer(timeoutVal)
+		cfg.ServiceSettings.ReadTimeout = new(timeoutVal)
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
@@ -514,19 +590,23 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 
-	require.Contains(t, string(data),
-		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}]`,
-			timeoutVal+1, timeoutVal))
+	entry := FindAuditEntry(string(data), "updateConfig", "")
+	require.NotNil(t, entry, "should find an updateConfig audit entry")
+	// Verify config diffs are in the raw entry
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("actual_val:%d", timeoutVal+1))
+	require.Contains(t, fmt.Sprintf("%v", entry.Raw),
+		fmt.Sprintf("base_val:%d", timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
-	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
+	// These MUST be t.Setenv (not UpdateConfig) because GetEnvironmentConfig
+	// returns only config values sourced from environment variables.
+	// t.Setenv prevents t.Parallel — intentionally serial.
+	t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
+	t.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
@@ -560,7 +640,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 
 	t.Run("as team admin", func(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
-		th.LoginTeamAdminWithClient(TeamAdminClient)
+		th.LoginTeamAdminWithClient(t, TeamAdminClient)
 
 		envConfig, _, err := TeamAdminClient.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
@@ -584,9 +664,8 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	})
 }
 
-func TestGetOldClientConfig(t *testing.T) {
+func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	testKey := "supersecretkey"
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoogleDeveloperKey = testKey })
@@ -598,7 +677,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.Client
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -612,37 +691,46 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.CreateClient()
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
-	t.Run("missing format", func(t *testing.T) {
+	t.Run("format=old (backward compatibility)", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoAPIGet(context.Background(), "/config/client", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=old", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 
-	t.Run("invalid format", func(t *testing.T) {
+	t.Run("format=junk (ignored)", func(t *testing.T) {
 		client := th.Client
 
 		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=junk", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 }
 
 func TestPatchConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Ensure ConsoleLevel is set to DEBUG
 	config := model.Config{LogSettings: model.LogSettings{
-		ConsoleLevel: model.NewPointer("DEBUG"),
+		ConsoleLevel: new("DEBUG"),
 	}}
 	_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
 	require.NoError(t, err)
@@ -663,7 +751,7 @@ func TestPatchConfig(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
-			ConsoleLevel: model.NewPointer("INFO"),
+			ConsoleLevel: new("INFO"),
 		}}
 
 		updatedConfig, _, _ := th.SystemAdminClient.PatchConfig(context.Background(), &config)
@@ -675,7 +763,7 @@ func TestPatchConfig(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
-			ConsoleLevel: model.NewPointer("INFO"),
+			ConsoleLevel: new("INFO"),
 		}}
 
 		oldConfig, _, _ := th.LocalClient.GetConfig(context.Background())
@@ -690,7 +778,7 @@ func TestPatchConfig(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("check if config is valid", func(t *testing.T) {
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				MinimumLength: model.NewPointer(4),
+				MinimumLength: new(4),
 			}}
 
 			_, response, err := client.PatchConfig(context.Background(), &config)
@@ -713,12 +801,12 @@ func TestPatchConfig(t *testing.T) {
 			assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
 
 			states := make(map[string]*model.PluginState)
-			states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewPointer(false)}
+			states["com.mattermost.nps"] = &model.PluginState{Enable: *new(false)}
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				Lowercase:     model.NewPointer(true),
-				MinimumLength: model.NewPointer(15),
+				Lowercase:     new(true),
+				MinimumLength: new(15),
 			}, LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("INFO"),
+				ConsoleLevel: new("INFO"),
 			},
 				TeamSettings: model.TeamSettings{
 					ExperimentalDefaultChannels: []string{"another-channel"},
@@ -746,7 +834,7 @@ func TestPatchConfig(t *testing.T) {
 
 		t.Run("should sanitize config", func(t *testing.T) {
 			config := model.Config{PasswordSettings: model.PasswordSettings{
-				Symbol: model.NewPointer(true),
+				Symbol: new(true),
 			}}
 
 			updatedConfig, _, err := client.PatchConfig(context.Background(), &config)
@@ -757,7 +845,7 @@ func TestPatchConfig(t *testing.T) {
 
 		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
 			config := model.Config{PluginSettings: model.PluginSettings{
-				EnableUploads: model.NewPointer(true),
+				EnableUploads: new(true),
 			}}
 
 			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
@@ -768,6 +856,30 @@ func TestPatchConfig(t *testing.T) {
 			} else {
 				require.Error(t, err)
 				CheckForbiddenStatus(t, resp)
+			}
+		})
+
+		t.Run("not allowing to change import directory via api, unless local mode", func(t *testing.T) {
+			oldDirectory := *th.App.Config().ImportSettings.Directory
+			config := model.Config{ImportSettings: model.ImportSettings{
+				Directory: new("./new-import-dir"),
+			}}
+
+			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
+			if client == th.LocalClient {
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Equal(t, "./new-import-dir", *updatedConfig.ImportSettings.Directory)
+			} else {
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+			}
+
+			// Reset for local mode
+			if client == th.LocalClient {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ImportSettings.Directory = oldDirectory
+				})
 			}
 		})
 	})
@@ -800,6 +912,20 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
 	})
 
+	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		// Mirror the behavior of the full update endpoint (TestUpdateConfig):
+		// changes to this field are silently preserved, not rejected.
+		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+
+		cfg := th.App.Config().Clone()
+		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		assert.Equal(t, oldPublicKeys, updatedConfig.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
@@ -810,7 +936,7 @@ func TestPatchConfig(t *testing.T) {
 		nonEmptyURL := "http://localhost"
 		config := model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewPointer(nonEmptyURL),
+				SiteURL: new(nonEmptyURL),
 			},
 		}
 		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
@@ -820,7 +946,7 @@ func TestPatchConfig(t *testing.T) {
 		// Check that the Site URL can't be cleared
 		config = model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewPointer(""),
+				SiteURL: new(""),
 			},
 		}
 		_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
@@ -837,11 +963,130 @@ func TestPatchConfig(t *testing.T) {
 		_, _, err = th.SystemAdminClient.PatchConfig(context.Background(), &model.Config{})
 		require.NoError(t, err)
 	})
+
+	t.Run("should preserve plugin configs when toggling plugin enable off then on", func(t *testing.T) {
+		// Have some plugin settings setup
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.oauth-plugin": {
+					"clientid":     "test-client-id",
+					"clientsecret": "test-client-secret",
+				},
+			}
+		})
+
+		// First PATCH: disable the plugin subsystem
+		disablePatch := &model.Config{}
+		disablePatch.PluginSettings.Enable = new(false)
+		disabledResponse, _, err := th.SystemAdminClient.PatchConfig(context.Background(), disablePatch)
+		require.NoError(t, err)
+		// The sanitized response returns an empty Plugins map when plugins are disabled
+		assert.Empty(t, disabledResponse.PluginSettings.Plugins)
+
+		// Second PATCH: re-enable plugins using the response from the first PATCH
+		disabledResponse.PluginSettings.Enable = new(true)
+		_, _, err = th.SystemAdminClient.PatchConfig(context.Background(), &model.Config{
+			PluginSettings: disabledResponse.PluginSettings,
+		})
+		require.NoError(t, err)
+
+		// Plugin configs must survive the round-trip unchanged
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.oauth-plugin")
+		assert.Equal(t, "test-client-id", storedCfg.PluginSettings.Plugins["com.example.oauth-plugin"]["clientid"])
+	})
+
+	t.Run("local client should preserve plugin configs when toggling plugin enable off then on", func(t *testing.T) {
+		// Have some plugin settings setup
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.oauth-plugin": {
+					"clientid":     "test-client-id",
+					"clientsecret": "test-client-secret",
+				},
+			}
+		})
+
+		// First PATCH: disable the plugin subsystem
+		disablePatch := &model.Config{}
+		disablePatch.PluginSettings.Enable = new(false)
+		disabledResponse, _, err := th.LocalClient.PatchConfig(context.Background(), disablePatch)
+		require.NoError(t, err)
+		// The sanitized response returns an empty Plugins map when plugins are disabled
+		assert.Empty(t, disabledResponse.PluginSettings.Plugins)
+
+		// Second PATCH: re-enable plugins using the response from the first PATCH
+		disabledResponse.PluginSettings.Enable = new(true)
+		_, _, err = th.LocalClient.PatchConfig(context.Background(), &model.Config{
+			PluginSettings: disabledResponse.PluginSettings,
+		})
+		require.NoError(t, err)
+
+		// Plugin configs must survive the round-trip unchanged
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.oauth-plugin")
+		assert.Equal(t, "test-client-id", storedCfg.PluginSettings.Plugins["com.example.oauth-plugin"]["clientid"])
+	})
+
+	t.Run("should preserve plugin configs absent from patch due to partial sync", func(t *testing.T) {
+		// Start with multiple plugins configured.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.plugin-a": {"token": "token-a"},
+				"com.example.plugin-b": {"token": "token-b"},
+			}
+		})
+
+		// simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
+		patch := &model.Config{}
+		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin-a": {"token": "token-a-updated"},
+		}
+		_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+
+		// All plugin configs must survive; only the synced plugin was in the patch.
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-a")
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-b")
+		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
+		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
+	})
+
+	t.Run("should preserve plugin configs absent from patch due to partial sync while using local client", func(t *testing.T) {
+		// Start with multiple plugins configured.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.plugin-a": {"token": "token-a"},
+				"com.example.plugin-b": {"token": "token-b"},
+			}
+		})
+
+		// Simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
+		patch := &model.Config{}
+		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin-a": {"token": "token-a-updated"},
+		}
+		_, _, err := th.LocalClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+
+		// All plugin configs must survive; only the synced plugin was in the patch.
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-a")
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-b")
+		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
+		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
+	})
 }
 
 func TestMigrateConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("LocalClient", func(t *testing.T) {
 		cfg := &model.Config{}
@@ -857,11 +1102,17 @@ func TestMigrateConfig(t *testing.T) {
 
 		f, err := config.NewStoreFromDSN("from.json", false, nil, false)
 		require.NoError(t, err)
-		defer f.RemoveFile("from.json")
+		defer func() {
+			err = f.RemoveFile("from.json")
+			require.NoError(t, err)
+		}()
 
 		_, err = config.NewStoreFromDSN("to.json", false, nil, true)
 		require.NoError(t, err)
-		defer f.RemoveFile("to.json")
+		defer func() {
+			err = f.RemoveFile("to.json")
+			require.NoError(t, err)
+		}()
 
 		_, err = th.LocalClient.MigrateConfig(context.Background(), "from.json", "to.json")
 		require.NoError(t, err)

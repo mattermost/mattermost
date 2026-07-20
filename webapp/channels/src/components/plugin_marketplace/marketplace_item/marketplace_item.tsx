@@ -4,12 +4,12 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import ExternalLink from 'components/external_link';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.
@@ -26,9 +26,7 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
     if (description) {
         label = (
             <WithTooltip
-                id={'plugin-marketplace_label_' + name.toLowerCase() + '-tooltip'}
                 title={description}
-                placement='top'
             >
                 {tag}
             </WithTooltip>
@@ -65,7 +63,7 @@ export type MarketplaceItemProps = {
 
     button: JSX.Element;
     updateDetails: JSX.Element | null;
-    versionLabel: JSX.Element| null;
+    versionLabel: JSX.Element | null;
 };
 
 type MarketplaceItemState = {
@@ -137,9 +135,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         if (this.state.showTooltip) {
             description = (
                 <WithTooltip
-                    id='marketplace-item-description__tooltip'
                     title={descriptionText || ''}
-                    placement='top'
                 >
                     {description}
                 </WithTooltip>

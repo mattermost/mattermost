@@ -5,38 +5,32 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {allowOAuth2} from 'actions/admin_actions';
+
 import FormError from 'components/form_error';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import icon50 from 'images/icon50x50.png';
 import {getHistory} from 'utils/browser_history';
-
-export type Params = {
-    responseType: string | null;
-    clientId: string | null;
-    redirectUri: string | null;
-    state: string | null;
-    scope: string | null;
-}
 
 type Props = {
     location: {
         search: string;
     };
     actions: {
-        getOAuthAppInfo: (clientId: string | null) => Promise<ActionResult<OAuthApp>>;
-        allowOAuth2: (params: Params) => Promise<ActionResult<{redirect: string}>>;
+        getOAuthAppInfo: (clientId: string) => Promise<ActionResult<OAuthApp>>;
+        allowOAuth2: (...params: Parameters<typeof allowOAuth2>) => Promise<ActionResult<{redirect: string}>>;
     };
-}
+};
 
 type State = {
     app?: OAuthApp;
     error?: string;
-}
+};
 
 export default class Authorize extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -52,7 +46,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
             blocker.parentNode.removeChild(blocker);
         }
         const clientId = (new URLSearchParams(this.props.location.search)).get('client_id');
-        if (clientId && !((/^[a-z0-9]+$/).test(clientId))) {
+        if (!clientId || !((/^[a-z0-9]+$/).test(clientId))) {
             return;
         }
 
@@ -71,7 +65,10 @@ export default class Authorize extends React.PureComponent<Props, State> {
             clientId: searchParams.get('client_id'),
             redirectUri: searchParams.get('redirect_uri'),
             state: searchParams.get('state'),
-            scope: searchParams.get('store'),
+            scope: searchParams.get('scope'),
+            resource: searchParams.get('resource'),
+            codeChallenge: searchParams.get('code_challenge'),
+            codeChallengeMethod: searchParams.get('code_challenge_method'),
         };
 
         this.props.actions.allowOAuth2(params).then(
@@ -130,54 +127,59 @@ export default class Authorize extends React.PureComponent<Props, State> {
                             />
                         </div>
                         <div className='text'>
-                            <FormattedMarkdownMessage
-                                id='authorize.title'
-                                defaultMessage='Authorize **{appName}** to Connect to Your **Mattermost** User Account'
+                            <FormattedMessage
+                                id='authorize.connectTitle'
+                                defaultMessage='Authorize <b>{appName}</b> to Connect to Your <b>Mattermost</b> User Account'
                                 values={{
                                     appName: app.name,
+                                    b: (chunks) => <b>{chunks}</b>,
                                 }}
                             />
                         </div>
                     </div>
                     <p>
-                        <FormattedMarkdownMessage
-                            id='authorize.app'
-                            defaultMessage='The app **{appName}** would like the ability to access and modify your basic information.'
+                        <FormattedMessage
+                            id='authorize.modificationAccess'
+                            defaultMessage='The app <b>{appName}</b> would like the ability to access and modify your basic information.'
                             values={{
                                 appName: app.name,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
                     <h2 className='prompt__allow'>
-                        <FormattedMarkdownMessage
-                            id='authorize.access'
-                            defaultMessage='Allow **{appName}** access?'
+                        <FormattedMessage
+                            id='authorize.allowAccess'
+                            defaultMessage='Allow <b>{appName}</b> access?'
                             values={{
                                 appName: app.name,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </h2>
                     <div className='prompt__buttons'>
-                        <button
+                        <Button
                             type='submit'
-                            className='btn btn-tertiary authorize-btn'
+                            emphasis='tertiary'
+                            className='authorize-btn'
                             onClick={this.handleDeny}
                         >
                             <FormattedMessage
                                 id='authorize.deny'
                                 defaultMessage='Deny'
                             />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='submit'
-                            className='btn btn-primary authorize-btn'
+                            emphasis='primary'
+                            className='authorize-btn'
                             onClick={this.handleAllow}
                         >
                             <FormattedMessage
                                 id='authorize.allow'
                                 defaultMessage='Allow'
                             />
-                        </button>
+                        </Button>
                     </div>
                     {error}
                 </div>

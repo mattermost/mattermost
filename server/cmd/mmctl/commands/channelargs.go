@@ -55,7 +55,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 	}
 
 	if channel == nil {
-		channel, _, _ = c.GetChannel(context.TODO(), channelPart, "")
+		channel, _, _ = c.GetChannel(context.TODO(), channelPart)
 	}
 
 	return channel
@@ -109,7 +109,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return channel, nil
 	}
 	var err error
-	channel, response, err = c.GetChannel(context.TODO(), channelArg, "")
+	channel, response, err = c.GetChannel(context.TODO(), channelArg)
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError

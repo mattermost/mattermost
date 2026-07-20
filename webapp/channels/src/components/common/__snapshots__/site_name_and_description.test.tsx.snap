@@ -1,36 +1,33 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`/components/common/SiteNameAndDescription should match snapshot, default 1`] = `
-<Fragment>
+<div>
   <h1
     id="site_name"
   >
     Mattermost
   </h1>
   <h3
-    className="color--light"
+    class="color--light"
     id="site_description"
   >
-    <MemoizedFormattedMessage
-      defaultMessage="All team communication in one place, searchable and accessible anywhere"
-      id="web.root.signup_info"
-    />
+    All team communication in one place, searchable and accessible anywhere
   </h3>
-</Fragment>
+</div>
 `;
 
 exports[`/components/common/SiteNameAndDescription should match snapshot, with custom site name and description 1`] = `
-<Fragment>
+<div>
   <h1
     id="site_name"
   >
     other_site
   </h1>
   <h3
-    className="color--light"
+    class="color--light"
     id="site_description"
   >
     custom_description_text
   </h3>
-</Fragment>
+</div>
 `;

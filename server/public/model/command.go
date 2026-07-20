@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -14,6 +15,8 @@ const (
 	MinTriggerLength  = 1
 	MaxTriggerLength  = 128
 )
+
+var validCommandTriggerChars = regexp.MustCompile(`^[A-Za-z0-9_./-]+$`)
 
 type Command struct {
 	Id               string `json:"id"`
@@ -41,8 +44,8 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
-func (o *Command) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Command) Auditable() map[string]any {
+	return map[string]any{
 		"id":                 o.Id,
 		"create_at":          o.CreateAt,
 		"update_at":          o.UpdateAt,
@@ -96,7 +99,7 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Trigger) < MinTriggerLength || len(o.Trigger) > MaxTriggerLength || strings.Index(o.Trigger, "/") == 0 || strings.Contains(o.Trigger, " ") {
+	if len(o.Trigger) < MinTriggerLength || len(o.Trigger) > MaxTriggerLength || strings.Index(o.Trigger, "/") == 0 || !validCommandTriggerChars.MatchString(o.Trigger) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "", http.StatusBadRequest)
 	}
 

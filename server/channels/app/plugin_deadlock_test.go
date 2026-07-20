@@ -16,9 +16,9 @@ import (
 )
 
 func TestPluginDeadlock(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Single Plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		pluginPostOnActivate := template.Must(template.New("pluginPostOnActivate").Parse(`
 			package main
@@ -82,7 +82,8 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}
@@ -105,8 +106,7 @@ func TestPluginDeadlock(t *testing.T) {
 	})
 
 	t.Run("Multiple Plugins", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		pluginPostOnHasBeenPosted := template.Must(template.New("pluginPostOnHasBeenPosted").Parse(`
 			package main
@@ -189,7 +189,8 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}
@@ -212,7 +213,7 @@ func TestPluginDeadlock(t *testing.T) {
 	})
 
 	t.Run("CreatePost on OnDeactivate Plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		pluginPostOnActivate := template.Must(template.New("pluginPostOnActivate").Parse(`
 			package main
@@ -272,14 +273,15 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}
 
 		done := make(chan bool)
 		go func() {
-			posts, appErr := th.App.GetPosts(th.BasicChannel.Id, 0, 2)
+			posts, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 2)
 			require.Nil(t, appErr)
 			require.NotNil(t, posts)
 
@@ -292,9 +294,10 @@ func TestPluginDeadlock(t *testing.T) {
 			require.False(t, messageWillBePostedCalled, "MessageWillBePosted should not have been called")
 
 			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.NewPluginAPI)
-			th.TearDown()
+			// Shut down all plugins
+			th.App.ch.ShutDownPlugins()
 
-			posts, appErr = th.App.GetPosts(th.BasicChannel.Id, 0, 2)
+			posts, appErr = th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 2)
 			require.Nil(t, appErr)
 			require.NotNil(t, posts)
 

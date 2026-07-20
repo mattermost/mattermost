@@ -14,22 +14,26 @@ type Props = {
     hasDot?: boolean;
     allowTextOverflow?: boolean;
     marginTop?: boolean;
-}
+};
 
-type Attrs = Exclude<ButtonHTMLAttributes<HTMLButtonElement>, Props>
+type Attrs = Exclude<ButtonHTMLAttributes<HTMLButtonElement>, Props>;
 
-function Button({
-    prepend,
-    append,
-    children,
-    isActive,
-    hasDot,
-    marginTop,
-    allowTextOverflow = false,
-    ...attrs
-}: Props & Attrs) {
+const Button = React.forwardRef<HTMLButtonElement, Props & Attrs>((
+    {
+        prepend,
+        append,
+        children,
+        isActive,
+        hasDot,
+        marginTop,
+        allowTextOverflow = false,
+        ...attrs
+    },
+    ref,
+) => {
     return (
         <button
+            ref={ref}
             {...attrs}
             className={classNames('Button Button___transparent', {'is-active': isActive, allowTextOverflow}, attrs.className)}
         >
@@ -49,6 +53,7 @@ function Button({
             )}
         </button>
     );
-}
+});
+Button.displayName = 'Button';
 
 export default memo(Button);

@@ -4,6 +4,9 @@ name: i18n CI Template
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   check-files:
     name: Check only English translation files changed
@@ -11,11 +14,13 @@ jobs:
     if: github.event.pull_request.user.login != 'weblate' # Allow weblate to modify non-English
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@95690f9ece77c1740f4a55b7f1de9023ed6b1f87 # v39.2.3
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             server/i18n/*.json

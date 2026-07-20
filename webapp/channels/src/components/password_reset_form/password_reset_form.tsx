@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useRef, memo} from 'react';
+import React, {useState, useRef, memo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -26,6 +28,16 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
     const [error, setError] = useState<React.ReactNode>(null);
 
     const passwordInput = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        document.title = intl.formatMessage(
+            {
+                id: 'password_form.pageTitle',
+                defaultMessage: 'Password Reset | {siteName}',
+            },
+            {siteName: siteName || 'Mattermost'},
+        );
+    }, [intl, siteName]);
 
     const handlePasswordReset = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,16 +97,16 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
                         />
                     </div>
                     {errorElement}
-                    <button
+                    <Button
                         id='resetPasswordButton'
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <FormattedMessage
                             id='password_form.change'
                             defaultMessage='Change my password'
                         />
-                    </button>
+                    </Button>
                 </form>
             </div>
         </div>

@@ -29,8 +29,8 @@ type TeamMember struct {
 	CreateAt      int64  `json:"-"`
 }
 
-func (o *TeamMember) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *TeamMember) Auditable() map[string]any {
+	return map[string]any{
 		"team_id":        o.TeamId,
 		"user_id":        o.UserId,
 		"roles":          o.Roles,
@@ -141,4 +141,15 @@ func (o *TeamMember) PreUpdate() {
 
 func (o *TeamMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+func (o *TeamMember) SanitizeRoleData(currentUserId string) {
+	if o.UserId != currentUserId {
+		o.Roles = ""
+		o.ExplicitRoles = ""
+		o.SchemeAdmin = false
+		o.SchemeGuest = false
+		o.SchemeUser = false
+		o.DeleteAt = -1
+	}
 }

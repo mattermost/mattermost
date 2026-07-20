@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
+import {act, render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
@@ -16,14 +16,22 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
+import SharedPackageProvider from 'components/root/shared_package_provider';
+
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
+
 export * from '@testing-library/react';
 export {userEvent};
+
+export type IntlOptions = {
+    messages?: Record<string, string>;
+    locale?: string;
+};
 
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
@@ -31,7 +39,7 @@ export type FullContextOptions = {
     useMockedStore?: boolean;
     pluginReducers?: string[];
     history?: History<unknown>;
-}
+};
 
 export const renderWithContext = (
     component: React.ReactElement,
@@ -54,28 +62,14 @@ export const renderWithContext = (
         store: testStore,
     };
 
-    // This should wrap the component in roughly the same providers used in App and RootProvider
-    function WrapComponent(props: {children: React.ReactElement}) {
-        // Every time this is called, these values should be updated from `renderState`
-        return (
-            <Provider store={renderState.store}>
-                <Router history={renderState.history}>
-                    <IntlProvider
-                        locale={renderState.options.locale}
-                        messages={renderState.options.intlMessages}
-                    >
-                        <WebSocketContext.Provider value={WebSocketClient}>
-                            {props.children}
-                        </WebSocketContext.Provider>
-                    </IntlProvider>
-                </Router>
-            </Provider>
-        );
-    }
-
     replaceGlobalStore(() => renderState.store);
 
-    const results = render(component, {wrapper: WrapComponent});
+    const results = render(component, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
 
     return {
         ...results,
@@ -103,6 +97,50 @@ export const renderWithContext = (
 
             results.rerender(renderState.component);
         },
+        store: testStore,
+    };
+};
+
+export const renderHookWithContext = <TProps, TResult>(
+    callback: (props: TProps) => TResult,
+    initialState: DeepPartial<GlobalState> = {},
+    partialOptions?: FullContextOptions,
+) => {
+    const options = {
+        intlMessages: partialOptions?.intlMessages,
+        locale: partialOptions?.locale ?? 'en',
+        useMockedStore: partialOptions?.useMockedStore ?? false,
+    };
+
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
+
+    // Store these in an object so that they can be maintained through rerenders
+    const renderState = {
+        callback,
+        history: partialOptions?.history ?? createBrowserHistory(),
+        options,
+        store: testStore,
+    };
+    replaceGlobalStore(() => renderState.store);
+
+    const results = renderHook(callback, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
+
+    return {
+        ...results,
+
+        /**
+         * Rerenders the component after replacing the entire store state with the provided one.
+         */
+        replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+
+            results.rerender();
+        },
     };
 };
 
@@ -128,8 +166,68 @@ function replaceGlobalStore(getStore: () => any) {
     jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
     jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
     jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
-    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
 
     // This may stop working if getStore starts to return new results
     jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
+}
+
+type Opts = {
+    intlMessages: Record<string, string> | undefined;
+    locale: string;
+    useMockedStore: boolean;
+};
+
+type RenderStateProps = {children: React.ReactNode; store: any; history: History<unknown>; options: Opts};
+
+// This should wrap the component in roughly the same providers used in App and RootProvider
+const Providers = ({children, store, history, options}: RenderStateProps) => {
+    return (
+        <Provider store={store}>
+            <Router history={history}>
+                <SharedPackageProvider>
+                    <IntlProvider
+                        locale={options.locale}
+                        messages={options.intlMessages}
+                    >
+                        <WebSocketContext.Provider value={WebSocketClient}>
+                            {children}
+                        </WebSocketContext.Provider>
+                    </IntlProvider>
+                </SharedPackageProvider>
+            </Router>
+        </Provider>
+    );
+};
+
+/**
+ * After `render` / `renderWithContext`, runs an async `act` boundary so updates from mount effects
+ * (e.g. promise chains) can commit. Does not wrap the render call itself.
+ *
+ * @param microtaskRounds How many times to `await Promise.resolve()` inside `act`, yielding to the
+ * microtask queue between each. Increase above the default when mocked thunks resolve in sequence
+ * (e.g. effect + multiple `await`s) so `setState` runs inside `act` and React does not warn.
+ * @default 1
+ */
+export function runPostRenderAct(microtaskRounds: number = 1) {
+    const rounds = Math.max(1, microtaskRounds);
+    return act(async () => {
+        const drainMicrotasks = async (remaining: number): Promise<void> => {
+            if (remaining <= 0) {
+                return;
+            }
+            await Promise.resolve();
+            await drainMicrotasks(remaining - 1);
+        };
+        await drainMicrotasks(rounds);
+    });
+}
+
+/**
+ * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
+ *
+ * This should only be used in those cases.
+ */
+export function waitForEnzymeSnapshot() {
+    return act(async () => {});
 }

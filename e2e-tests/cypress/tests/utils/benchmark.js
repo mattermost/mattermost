@@ -15,7 +15,7 @@ function getTestName() {
     const testTitles = [];
 
     function extractTitles(obj) {
-        if (obj.hasOwnProperty('parent')) {
+        if (Object.hasOwn(obj, 'parent')) {
             testTitles.push(obj.title);
             const nextObj = obj.parent;
             extractTitles(nextObj);

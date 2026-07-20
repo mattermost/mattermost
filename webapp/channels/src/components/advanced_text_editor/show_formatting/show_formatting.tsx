@@ -6,9 +6,9 @@ import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import {IconContainer} from '../formatting_bar/formatting_icon';
 
@@ -25,7 +25,6 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
 
     return (
         <WithTooltip
-            id='PreviewInputTextButtonTooltip'
             title={
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.msgMarkdownPreview}
@@ -33,7 +32,6 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
                     isInsideTooltip={true}
                 />
             }
-            placement='left'
         >
             <IconContainer
                 type='button'

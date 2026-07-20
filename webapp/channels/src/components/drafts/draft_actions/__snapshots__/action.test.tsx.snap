@@ -1,23 +1,19 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
-<div
-  className="DraftAction"
->
-  <WithTooltip
-    id="drafts_action_tooltip_"
-    placement="top"
-    title=""
+<div>
+  <div
+    class="DraftAction"
   >
     <button
-      className="DraftAction__button"
-      id="draft_{icon}_"
-      onClick={[MockFunction]}
+      aria-labelledby="draft_tooltip_some-id"
+      class="DraftAction__button"
+      id="draft_some-icon_some-id"
     >
       <i
-        className="icon "
+        class="icon some-icon"
       />
     </button>
-  </WithTooltip>
+  </div>
 </div>
 `;

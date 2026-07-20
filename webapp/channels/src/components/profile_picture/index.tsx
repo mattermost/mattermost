@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import styled from 'styled-components';
 
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
@@ -28,7 +27,7 @@ type Props = {
     overwriteName?: string;
     newStatusIcon?: boolean;
     statusClass?: string;
-}
+};
 
 function ProfilePicture(props: Props) {
     // profileSrc will, if possible, be the original user profile picture even if the icon
@@ -42,28 +41,33 @@ function ProfilePicture(props: Props) {
     if (props.userId) {
         return (
             <ProfilePopover
-                triggerComponentClass={classNames('status-wrapper', props.wrapperClass)}
+                triggerComponentClass={classNames('status-wrapper style--none', props.wrapperClass)}
                 userId={props.userId}
                 src={profileSrc}
+                username={props.username}
                 channelId={props.channelId}
                 hideStatus={hideStatus}
                 overwriteIcon={props.overwriteIcon}
                 overwriteName={props.overwriteName}
                 fromWebhook={props.fromWebhook}
+                triggerComponentAs='button'
+                triggerComponentStyle={{
+                    borderRadius: '50%',
+                    width: getAvatarWidth(props?.size ?? 'md'),
+                    height: getAvatarWidth(props?.size ?? 'md'),
+                }}
             >
                 <>
-                    <RoundButton
-                        className='style--none'
-                        size={props?.size ?? 'md'}
+                    <span
+                        className={profileIconClass}
+                        data-testid='profile-icon'
                     >
-                        <span className={profileIconClass}>
-                            <Avatar
-                                username={props.username}
-                                size={props.size}
-                                url={props.src}
-                            />
-                        </span>
-                    </RoundButton>
+                        <Avatar
+                            username={props.username}
+                            size={props.size}
+                            url={props.src}
+                        />
+                    </span>
                     <StatusIcon status={props.status}/>
                 </>
             </ProfilePopover>
@@ -74,7 +78,10 @@ function ProfilePicture(props: Props) {
         <span
             className={classNames('status-wrapper', 'style--none', props.wrapperClass)}
         >
-            <span className={profileIconClass}>
+            <span
+                className={profileIconClass}
+                data-testid='profile-icon'
+            >
                 <Avatar
                     size={props?.size ?? 'md'}
                     url={props.src}
@@ -91,11 +98,5 @@ function ProfilePicture(props: Props) {
         </span>
     );
 }
-
-const RoundButton = styled.button<{size: TAvatarSizeToken}>`
-    border-radius: 50%;
-    width: ${(p) => getAvatarWidth(p.size)}px;
-    height: ${(p) => getAvatarWidth(p.size)}px;
-`;
 
 export default ProfilePicture;

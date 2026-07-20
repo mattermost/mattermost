@@ -16,13 +16,13 @@ import (
 )
 
 func TestGetPreferences(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	// recreate basic user (cached has no default preferences)
-	th.BasicUser = th.CreateUser()
-	th.LoginBasic()
+	th.BasicUser = th.CreateUser(t)
+	th.LoginBasic(t)
 
 	user1 := th.BasicUser
 
@@ -45,7 +45,8 @@ func TestGetPreferences(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	_, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.NoError(t, err)
 
 	prefs, _, err := client.GetPreferences(context.Background(), user1.Id)
 	require.NoError(t, err)
@@ -58,8 +59,8 @@ func TestGetPreferences(t *testing.T) {
 	}
 
 	// recreate basic user2
-	th.BasicUser2 = th.CreateUser()
-	th.LoginBasic2()
+	th.BasicUser2 = th.CreateUser(t)
+	th.LoginBasic2(t)
 
 	prefs, _, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.NoError(t, err)
@@ -70,18 +71,27 @@ func TestGetPreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferences(context.Background(), user1.Id)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -103,7 +113,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	_, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.NoError(t, err)
 
 	prefs, _, err := client.GetPreferencesByCategory(context.Background(), user1.Id, category)
 	require.NoError(t, err)
@@ -114,7 +125,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
@@ -130,18 +141,27 @@ func TestGetPreferencesByCategory(t *testing.T) {
 
 	require.Equal(t, len(prefs), 0, "received the wrong number of preferences")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferencesByCategory API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		prefs, resp, err := c.GetPreferencesByCategory(context.Background(), user1.Id, category)
+		require.NotNil(t, prefs)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user := th.BasicUser
 	name := model.NewId()
 	value := model.NewId()
@@ -161,7 +181,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user.Id, preferences)
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
 
 	pref, _, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, model.PreferenceCategoryDirectChannelShow, name)
 	require.NoError(t, err)
@@ -171,7 +192,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	require.Equal(t, preferences[0].Name, pref.Name, "Name preference not saved")
 
 	preferences[0].Value = model.NewId()
-	client.UpdatePreferences(context.Background(), user.Id, preferences)
+	_, err = client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
 
 	_, resp, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, "junk", preferences[0].Name)
 	require.Error(t, err)
@@ -188,18 +210,27 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, _, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// GetPreferenceByCategoryAndName API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		pref, resp, err := c.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
+		require.NotNil(t, pref)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferences(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -251,18 +282,34 @@ func TestUpdatePreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// UpdatePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		preferences := model.Preferences{
+			{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    "true",
+			},
+		}
+		resp, err := c.UpdatePreferences(context.Background(), user1.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferencesOverload(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	t.Run("No preferences", func(t *testing.T) {
@@ -294,16 +341,10 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-
-	WebSocketClient.Listen()
-	time.Sleep(300 * time.Millisecond)
-	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, wsResp.Status, model.StatusOk, "expected OK from auth challenge")
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	userId := th.BasicUser.Id
 	preferences := model.Preferences{
@@ -319,7 +360,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, err = th.Client.UpdatePreferences(context.Background(), userId, preferences)
+	_, err := th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
@@ -351,20 +392,20 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 }
 
 func TestUpdateSidebarPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("when favoriting a channel, should add it to the Favorites sidebar category", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -414,18 +455,17 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 	})
 
 	t.Run("when favoriting a DM channel, should add it to the Favorites sidebar category for all teams", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(user, team2)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team2)
 
-		dmChannel := th.CreateDmChannel(user2)
+		dmChannel := th.CreateDmChannel(t, user2)
 
 		// Favorite the channel
 		_, err := th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -481,27 +521,26 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 	})
 
 	t.Run("when favoriting a channel, should not affect other users' favorites categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
 		client2 := th.CreateClient()
-		th.LoginBasic2WithClient(client2)
+		th.LoginBasic2WithClient(t, client2)
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		th.LinkUserToTeam(user2, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		th.LinkUserToTeam(t, user2, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(context.Background(), user2.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
+		th.AddUserToChannel(t, user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -578,18 +617,18 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 }
 
 func TestDeletePreferences(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	prefs, _, _ := client.GetPreferences(context.Background(), th.BasicUser.Id)
 	originalCount := len(prefs)
 
 	// save 10 preferences
 	var preferences model.Preferences
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		preference := model.Preference{
 			UserId:   th.BasicUser.Id,
 			Category: model.PreferenceCategoryDirectChannelShow,
@@ -598,16 +637,17 @@ func TestDeletePreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 	}
 
-	client.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+	_, err := client.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+	require.NoError(t, err)
 
 	// delete 10 preferences
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	resp, err := client.DeletePreferences(context.Background(), th.BasicUser2.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	_, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.NoError(t, err)
@@ -619,18 +659,39 @@ func TestDeletePreferences(t *testing.T) {
 	prefs, _, _ = client.GetPreferences(context.Background(), th.BasicUser.Id)
 	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	// DeletePreferences API from System Admin and Local Client
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// Creating Test Data
+		var preferences model.Preferences
+		preference := model.Preference{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryCustomStatus,
+			Name:     model.NewId(),
+			Value:    "true",
+		}
+		preferences = append(preferences, preference)
+		_, err = c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+		require.NoError(t, err)
+
+		// Delete Prefrerences Operation
+		resp, err = c.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestDeletePreferencesOverload(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	t.Run("No preferences", func(t *testing.T) {
@@ -662,8 +723,8 @@ func TestDeletePreferencesOverload(t *testing.T) {
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	userId := th.BasicUser.Id
 	preferences := model.Preferences{
@@ -681,12 +742,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	_, err := th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-
-	WebSocketClient.Listen()
-	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, model.StatusOk, wsResp.Status, "should have responded OK to authentication challenge")
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	_, err = th.Client.DeletePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
@@ -720,20 +776,20 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 }
 
 func TestDeleteSidebarPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("when removing a favorited channel preference, should remove it from the Favorites sidebar category", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -781,18 +837,17 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 	})
 
 	t.Run("when removing a favorited DM preference, should remove it from the Favorites sidebar category", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(user, team2)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team2)
 
-		dmChannel := th.CreateDmChannel(user2)
+		dmChannel := th.CreateDmChannel(t, user2)
 
 		// Favorite the channel
 		_, err := th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -847,27 +902,26 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 	})
 
 	t.Run("when removing a favorited channel preference, should not affect other users' favorites categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
 		client2 := th.CreateClient()
-		th.LoginBasic2WithClient(client2)
+		th.LoginBasic2WithClient(t, client2)
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		th.LinkUserToTeam(user2, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		th.LinkUserToTeam(t, user2, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(context.Background(), user2.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
+		th.AddUserToChannel(t, user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -935,12 +989,12 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 }
 
 func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		_, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -960,11 +1014,10 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 	})
 
 	t.Run("Update limit_visible_dms_gms to a value greater PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -980,11 +1033,10 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 	})
 
 	t.Run("Update limit_visible_dms_gms to an invalid value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -1000,11 +1052,10 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 	})
 
 	t.Run("Update limit_visible_dms_gms to a negative number", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{

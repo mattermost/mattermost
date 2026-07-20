@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -43,10 +45,19 @@ var RemoveLicenseCmd = &cobra.Command{
 	RunE:    withClient(removeLicenseCmdF),
 }
 
+var GetLicenseCmd = &cobra.Command{
+	Use:     "get",
+	Short:   "Get the current license.",
+	Long:    "Get the current server license and print it.",
+	Example: "  license get",
+	RunE:    withClient(getLicenseCmdF),
+}
+
 func init() {
 	LicenseCmd.AddCommand(UploadLicenseCmd)
 	LicenseCmd.AddCommand(RemoveLicenseCmd)
 	LicenseCmd.AddCommand(UploadLicenseStringCmd)
+	LicenseCmd.AddCommand(GetLicenseCmd)
 	RootCmd.AddCommand(LicenseCmd)
 }
 
@@ -93,4 +104,42 @@ func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	printer.Print("Removed license")
 
 	return nil
+}
+
+func getLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	license, _, err := c.GetOldClientLicense(context.TODO(), "")
+	if err != nil {
+		return err
+	}
+
+	if license["IsLicensed"] != "true" {
+		printer.Print("No license installed")
+		return nil
+	}
+
+	// Format timestamps for human-readable output
+	license["StartsAtReadable"] = formatLicenseTimestamp(license["StartsAt"])
+	license["ExpiresAtReadable"] = formatLicenseTimestamp(license["ExpiresAt"])
+	license["IssuedAtReadable"] = formatLicenseTimestamp(license["IssuedAt"])
+
+	printer.PrintT(`License ID: {{.Id}}
+Starts At: {{.StartsAtReadable}}
+Expires At: {{.ExpiresAtReadable}}
+Users: {{.Users}}
+SKU: {{.SkuShortName}}
+Is Trial: {{.IsTrial}}
+Issued At: {{.IssuedAtReadable}}
+Name: {{.Name}}
+Company: {{.Company}}`, license)
+
+	return nil
+}
+
+// formatLicenseTimestamp converts an epoch milliseconds string to a human-readable date.
+func formatLicenseTimestamp(epochMs string) string {
+	ms, err := strconv.ParseInt(epochMs, 10, 64)
+	if err != nil {
+		return epochMs
+	}
+	return time.UnixMilli(ms).UTC().Format(time.RFC3339)
 }

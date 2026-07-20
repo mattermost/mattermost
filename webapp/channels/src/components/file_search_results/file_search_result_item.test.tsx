@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ShallowWrapper} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -26,11 +25,11 @@ describe('components/file_search_result/FileSearchResultItem', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
+        const {container} = renderWithContext(
             <FileSearchResultItem {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with channel name', () => {
@@ -39,11 +38,11 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelDisplayName: 'test',
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
+        const {container} = renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with DM', () => {
@@ -53,11 +52,11 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelType: Constants.DM_CHANNEL as ChannelType,
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
+        const {container} = renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with GM', () => {
@@ -67,10 +66,10 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelType: Constants.GM_CHANNEL as ChannelType,
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
+        const {container} = renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

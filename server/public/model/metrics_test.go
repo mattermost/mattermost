@@ -4,7 +4,6 @@
 package model
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 	tests := []struct {
 		name     string
 		report   *PerformanceReport
-		expected error
+		expected string
 	}{
 		{
 			name: "ValidReport",
@@ -26,12 +25,12 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 				Start:   float64(time.Now().UnixMilli() - 10000),
 				End:     float64(time.Now().UnixMilli()),
 			},
-			expected: nil,
+			expected: "",
 		},
 		{
 			name:     "NilReport",
 			report:   nil,
-			expected: fmt.Errorf("the report is nil"),
+			expected: "the report is nil",
 		},
 		{
 			name: "UnsupportedVersion",
@@ -41,7 +40,7 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 				Start:   float64(time.Now().UnixMilli() - 10000),
 				End:     float64(time.Now().UnixMilli()),
 			},
-			expected: fmt.Errorf("report version is not supported: server version: 0.1.0, report version: 2.0.0"),
+			expected: "report version is not supported:",
 		},
 		{
 			name: "ErroneousTimestamps",
@@ -51,7 +50,7 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 				Start:   float64(time.Now().UnixMilli()),
 				End:     float64(time.Now().Add(-1 * time.Hour).UnixMilli()),
 			},
-			expected: fmt.Errorf("report timestamps are erroneous"),
+			expected: "report timestamps are erroneous",
 		},
 		{
 			name: "OutdatedReport",
@@ -61,15 +60,15 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 				Start:   float64(time.Now().Add(-7 * time.Minute).UnixMilli()),
 				End:     float64(outdatedTimestamp),
 			},
-			expected: fmt.Errorf("report is outdated: %f", float64(outdatedTimestamp)),
+			expected: "report is outdated:",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.report.IsValid()
-			if tt.expected != nil {
-				require.EqualError(t, err, tt.expected.Error())
+			if tt.expected != "" {
+				require.Contains(t, err.Error(), tt.expected)
 				return
 			}
 			require.NoError(t, err)

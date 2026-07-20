@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -103,7 +104,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 	}
 
 	// download attachments
-	if record.Attachments != nil && len(record.Attachments) > 0 {
+	if len(record.Attachments) > 0 {
 		for i := range record.Attachments {
 			var bytes []byte
 			bytes, err = downloadAttachment(record.Attachments[i].DownloadLink)
@@ -178,5 +179,5 @@ func getInbucketHost() (host string) {
 	if inbucket_port == "" {
 		inbucket_port = "9001"
 	}
-	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
+	return "http://" + net.JoinHostPort(inbucket_host, inbucket_port)
 }

@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
-import * as TextFormatting from 'utils/text_formatting';
 
 import {unescapeHtmlEntities} from './markdown/renderer';
 
@@ -20,7 +19,7 @@ type WindowObject = {
         port: string;
     };
     basename?: string;
-}
+};
 
 export function cleanUpUrlable(input: string): string {
     let cleaned: string = latinise(input);
@@ -82,7 +81,7 @@ export function isUrlSafe(url: string): boolean {
 
     try {
         unescaped = decodeURIComponent(url);
-    } catch (e) {
+    } catch {
         unescaped = unescape(url);
     }
 
@@ -102,9 +101,13 @@ export function makeUrlSafe(url: string, defaultUrl = ''): string {
 }
 
 export function getScheme(url: string): string | null {
-    const match = (/([a-z0-9+.-]+):/i).exec(url);
+    const match = (/^!?([a-z0-9+.-]+):/i).exec(url);
 
     return match && match[1];
+}
+
+export function removeScheme(url: string) {
+    return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
 function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
@@ -139,7 +142,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
             errors.push(formattedError(
                 defineMessage({
                     id: 'change_url.longer',
-                    defaultMessage: 'URLs must have at least 2 characters.',
+                    defaultMessage: 'URLs must have at least 1 character.',
                 }),
                 intl,
             ));
@@ -220,7 +223,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
 
 // Returns true when the URL could possibly cause any external requests.
 // Currently returns false only for permalinks
-const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}(\\?view=citation)?$');
 export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
     if (siteURL && siteURL !== '') {
         let standardSiteURL = siteURL;
@@ -237,7 +240,7 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
-    return url.startsWith(siteURL || '') || url.startsWith('/');
+    return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
@@ -260,7 +263,7 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
     // Paths managed by another service shouldn't be handled by the web app either
     if (managedResourcePaths) {
         for (const managedPath of managedResourcePaths) {
-            unhandledPaths.push(TextFormatting.escapeRegex(managedPath));
+            unhandledPaths.push(RegExp.escape(managedPath));
         }
     }
 
@@ -289,7 +292,7 @@ export function isStringContainingUrl(text: string): boolean {
 export type UrlValidationCheck = {
     url: string;
     error: typeof BadUrlReasons[keyof typeof BadUrlReasons] | false;
-}
+};
 
 export const BadUrlReasons = {
     Empty: 'Empty',
@@ -334,13 +337,13 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
     return {url, error: false};
 }
 
-export function parseLink(href: string) {
+export function parseLink(href: string, defaultSecure = location.protocol === 'https:') {
     let outHref = href;
 
     if (!href.startsWith('/')) {
         const scheme = getScheme(href);
         if (!scheme) {
-            outHref = `http://${outHref}`;
+            outHref = `${defaultSecure ? 'https' : 'http'}://${outHref}`;
         }
     }
 
@@ -350,3 +353,20 @@ export function parseLink(href: string) {
 
     return outHref;
 }
+
+export const validHttpUrl = (input: string) => {
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
+    }
+
+    let url;
+    try {
+        url = new URL(val);
+    } catch {
+        return null;
+    }
+
+    return url;
+};

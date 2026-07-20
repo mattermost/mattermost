@@ -1,0 +1,48 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
+
+import {components} from '@/ui/components';
+
+export default class ResetPasswordPage {
+    readonly page: Page;
+
+    readonly title;
+    readonly subtitle;
+    readonly emailInput;
+    readonly resetButton;
+
+    readonly header;
+    readonly footer;
+
+    constructor(page: Page) {
+        this.page = page;
+
+        this.title = page.getByRole('heading', {name: 'Password Reset'});
+        this.subtitle = page.getByText('To reset your password, enter the email address you used to sign up');
+        this.emailInput = page.locator('#passwordResetEmailInput');
+        this.resetButton = page.locator('#passwordResetButton');
+
+        this.header = new components.MainHeader(page.getByTestId('signup-header'));
+        this.footer = new components.Footer(page.locator('#footer_section'));
+    }
+
+    async toBeVisible() {
+        await this.page.waitForLoadState('networkidle');
+        await expect(this.title).toBeVisible();
+        await expect(this.subtitle).toBeVisible();
+        await expect(this.emailInput).toBeVisible();
+        await expect(this.resetButton).toBeVisible();
+    }
+
+    async goto() {
+        await this.page.goto('/reset_password');
+    }
+
+    async reset(email: string) {
+        await this.emailInput.fill(email);
+        await Promise.all([this.page.waitForNavigation(), this.resetButton.click()]);
+    }
+}

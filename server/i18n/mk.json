@@ -388,10 +388,6 @@
     "translation": "%v го напушти каналот."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вие сте единствениот останат член, пробајте да го отстраните Приватниот Канал наместо да го напуштите."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Неможе да се напушти канал за директни пораки."
   },
@@ -706,10 +702,6 @@
   {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Неможе да се превземат каналите."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Не може да се превземат бројките на каналот."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",

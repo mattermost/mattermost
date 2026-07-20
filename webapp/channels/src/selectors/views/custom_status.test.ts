@@ -14,7 +14,14 @@ import configureStore from 'store';
 import {TestHelper} from 'utils/test_helper';
 import {addTimeToTimestamp, TimeInformation} from 'utils/utils';
 
-jest.mock('mattermost-redux/selectors/entities/users');
+jest.mock('mattermost-redux/selectors/entities/users', () => {
+    const originalModule = jest.requireActual('mattermost-redux/selectors/entities/users');
+    return {
+        ...originalModule,
+        getCurrentUser: jest.fn(),
+        getUser: jest.fn(),
+    };
+});
 jest.mock('mattermost-redux/selectors/entities/general');
 jest.mock('mattermost-redux/selectors/entities/preferences');
 

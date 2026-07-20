@@ -5,8 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/url"
 	"strconv"
 	"strings"
@@ -17,6 +19,40 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
+
+// defaultMaxInsertParams is a conservative threshold (76% of PostgreSQL's
+// 65,535 parameter limit) used to chunk bulk INSERT statements so they never
+// overflow the wire-protocol's 16-bit parameter counter.
+const defaultMaxInsertParams = 50_000
+
+// chunkSlice splits items into sub-slices sized so that each chunk uses at most
+// maxParams query parameters (columnsPerRow params per item). When the input
+// already fits in one chunk the original slice is returned with zero allocation
+// overhead.
+func chunkSlice[T any](items []T, columnsPerRow int, maxParams int) [][]T {
+	if columnsPerRow <= 0 {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow must be > 0, got %d", columnsPerRow))
+	}
+	if maxParams <= 0 {
+		panic(fmt.Sprintf("chunkSlice: maxParams must be > 0, got %d", maxParams))
+	}
+	if columnsPerRow > maxParams {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow (%d) must be <= maxParams (%d)", columnsPerRow, maxParams))
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	chunkSize := maxParams / columnsPerRow
+	if len(items) <= chunkSize {
+		return [][]T{items}
+	}
+	var chunks [][]T
+	for i := 0; i < len(items); i += chunkSize {
+		end := min(i+chunkSize, len(items))
+		chunks = append(chunks, items[i:end])
+	}
+	return chunks
+}
 
 var escapeLikeSearchChar = []string{
 	"%",
@@ -54,7 +90,7 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
 func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+	if err := transaction.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 		*perr = merror.Append(*perr, err)
 	}
 }
@@ -100,40 +136,6 @@ func isQuotedWord(s string) bool {
 	return s[0] == '"' && s[len(s)-1] == '"'
 }
 
-// constructMySQLJSONArgs returns the arg list to pass to a query along with
-// the string of placeholders which is needed to be to the JSON_SET function.
-// Use this function in this way:
-// UPDATE Table
-// SET Col = JSON_SET(Col, `+argString+`)
-// WHERE Id=?`, args...)
-// after appending the Id param to the args slice.
-func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
-	if len(props) == 0 {
-		return nil, ""
-	}
-
-	// Unpack the keys and values to pass to MySQL.
-	args := make([]any, 0, len(props))
-	for k, v := range props {
-		args = append(args, "$."+k, v)
-	}
-
-	// We calculate the number of ? to set in the query string.
-	argString := strings.Repeat("?, ", len(props)*2)
-	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(argString, ", ")
-
-	return args, argString
-}
-
-func makeStringArgs(params []string) []any {
-	args := make([]any, len(params))
-	for i, name := range params {
-		args[i] = name
-	}
-	return args
-}
-
 func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
 	values := make([]any, 0, len(ids))
@@ -160,11 +162,10 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 // morphWriter is a target to pass to the logger instance of morph.
 // For now, everything is just logged at a debug level. If we need to log
 // errors/warnings from the library also, that needs to be seen later.
-type morphWriter struct {
-}
+type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
-	mlog.Debug(string(in))
+	mlog.Debug(strings.TrimSpace(string(in)))
 	return len(in), nil
 }
 
@@ -192,22 +193,60 @@ func trimInput(input string) string {
 	return input
 }
 
-func maxInt64(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
+// rowScanner is the minimal interface needed to iterate over SQL result rows.
+type rowScanner interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
 }
 
-// Adds backtiks to the column name for MySQL, this is required if
-// the column name is a reserved keyword.
-//
-//	`ColumnName` -  MySQL
-//	ColumnName   -  Postgres
-func quoteColumnName(driver string, columnName string) string {
-	if driver == model.DatabaseDriverMysql {
-		return fmt.Sprintf("`%s`", columnName)
+// neutralizeNonWordHyphens replaces any '-' that isn't flanked by a word
+// rune (letter or digit) on both sides with a space, so malformed hyphen
+// usage (leading/trailing/standalone/repeated) can't reach to_tsquery, while
+// compound words like "t-shirt" are preserved.
+func neutralizeNonWordHyphens(s string) string {
+	if !strings.ContainsRune(s, '-') {
+		return s
+	}
+	runes := []rune(s)
+	for i, r := range runes {
+		if r != '-' {
+			continue
+		}
+		hasLeft := i > 0 && isWordRune(runes[i-1])
+		hasRight := i < len(runes)-1 && isWordRune(runes[i+1])
+		if !hasLeft || !hasRight {
+			runes[i] = ' '
+		}
+	}
+	return string(runes)
+}
+
+// isWordRune reports whether r can be part of a word for hyphen-flanking
+// purposes. Combining marks (e.g. a decomposed accent) count too, since they
+// attach to the preceding base letter rather than acting as a boundary.
+func isWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
+}
+
+// scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
+func scanRowsIntoMap[K comparable, V any](rows rowScanner, scanner func(rows rowScanner) (K, V, error), defaults map[K]V) (map[K]V, error) {
+	results := make(map[K]V, len(defaults))
+
+	// Initialize with default values if provided
+	maps.Copy(results, defaults)
+
+	for rows.Next() {
+		key, value, err := scanner(rows)
+		if err != nil {
+			return nil, err
+		}
+		results[key] = value
 	}
 
-	return columnName
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error while iterating rows: %w", err)
+	}
+
+	return results, nil
 }

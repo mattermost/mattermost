@@ -6,12 +6,12 @@ import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import LoadingScreen from 'components/loading_screen';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
-
-import {localizeMessage} from 'utils/utils';
 
 import './backstage_list.scss';
 
@@ -24,6 +24,7 @@ type Props = {
     emptyText?: ReactNode;
     emptyTextSearch?: JSX.Element;
     helpText?: ReactNode;
+    error?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
     nextPage?: () => void;
@@ -51,12 +52,19 @@ const getPaging = (remainingProps: Props, childCount: number, hasFilter: boolean
     return {startCount, endCount, total, isFirstPage, isLastPage};
 };
 
-const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.search', 'Search'), ...remainingProps}: Props) => {
+const BackstageList = (remainingProps: Props) => {
     const {formatMessage} = useIntl();
 
     const [filter, setFilter] = useState('');
     const updateFilter = (e: ChangeEvent<HTMLInputElement>) => setFilter(e.target.value);
     const filterLowered = filter.toLowerCase();
+
+    let searchPlaceholder;
+    if (remainingProps.searchPlaceholder) {
+        searchPlaceholder = remainingProps.searchPlaceholder;
+    } else {
+        searchPlaceholder = formatMessage({id: 'backstage_list.search', defaultMessage: 'Search'});
+    }
 
     let children = [];
     let childCount = 0;
@@ -95,7 +103,7 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                         id='emptySearchResultsMessage'
                         key='emptyTextSearch'
                     >
-                        {React.cloneElement(remainingProps.emptyTextSearch, {values: {searchTerm: filterLowered}})}
+                        {React.cloneElement(remainingProps.emptyTextSearch, {values: {...remainingProps.emptyTextSearch.props.values, searchTerm: filterLowered}})}
                     </div>
                 )];
             }
@@ -112,15 +120,15 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                 className='add-link'
                 to={remainingProps.addLink}
             >
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     id={remainingProps.addButtonId}
                 >
                     <span>
                         {remainingProps.addText}
                     </span>
-                </button>
+                </Button>
             </Link>
         );
     }
@@ -146,6 +154,7 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                 </h1>
                 {addLink}
             </div>
+            {remainingProps.error}
             <div className='backstage-filters'>
                 <div className='backstage-filter__search'>
                     <SearchIcon/>

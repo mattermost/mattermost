@@ -6,6 +6,9 @@ scrape_configs:
   - job_name: 'mattermost'
     static_configs:
       - targets: ['host.docker.internal:8067']
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
   - job_name: fmetrics_scrape
     docker_sd_configs:
       - host: unix:///var/run/docker.sock

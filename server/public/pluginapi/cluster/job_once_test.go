@@ -29,7 +29,7 @@ func TestScheduleOnceParallel(t *testing.T) {
 	count5 := new(int32)
 
 	manyJobs := make(map[string]*int32)
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		manyJobs[makeKey()] = new(int32)
 	}
 
@@ -300,9 +300,13 @@ func TestScheduleOnceSequential(t *testing.T) {
 
 		_, err = s.ScheduleOnce("anything", time.Now().Add(50*time.Millisecond), nil)
 		require.NoError(t, err)
-		time.Sleep(70*time.Millisecond + scheduleOnceJitter)
-		assert.Equal(t, int32(0), atomic.LoadInt32(newCount2))
-		assert.Equal(t, int32(1), atomic.LoadInt32(newCount3))
+
+		// Poll for the scheduled callback. A fixed sleep is flaky under the race
+		// detector and on loaded CI because job.run adds up to scheduleOnceJitter
+		// on top of the scheduled delay.
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(newCount2) == int32(0) && atomic.LoadInt32(newCount3) == int32(1)
+		}, 5*time.Second, 50*time.Millisecond, "timed out waiting for scheduled callback")
 	})
 
 	t.Run("test paging keys from the db by inserting 3 pages of jobs and starting scheduler", func(t *testing.T) {
@@ -310,7 +314,7 @@ func TestScheduleOnceSequential(t *testing.T) {
 
 		numPagingJobs := keysPerPage*3 + 2
 		testPagingJobs := make(map[string]*int32)
-		for i := 0; i < numPagingJobs; i++ {
+		for range numPagingJobs {
 			testPagingJobs[makeKey()] = new(int32)
 		}
 
@@ -343,29 +347,26 @@ func TestScheduleOnceSequential(t *testing.T) {
 		err = s.scheduleNewJobsFromDB()
 		require.NoError(t, err)
 
-		// wait for the testPagingJobs created in the setup to finish
-		time.Sleep(300 * time.Millisecond)
-
-		numInDB := 0
-		numActive := 0
-		numCountsAtZero := 0
-		for k, v := range testPagingJobs {
-			if getVal(oncePrefix+k) != nil {
-				numInDB++
+		// Wait for all paging jobs to complete. Use polling instead of a
+		// fixed sleep because the race detector slows execution significantly,
+		// making a 300ms window insufficient for 25+ scheduled jobs.
+		require.Eventually(t, func() bool {
+			for k, v := range testPagingJobs {
+				if getVal(oncePrefix+k) != nil {
+					return false
+				}
+				s.activeJobs.mu.RLock()
+				active := s.activeJobs.jobs[k] != nil
+				s.activeJobs.mu.RUnlock()
+				if active {
+					return false
+				}
+				if atomic.LoadInt32(v) != int32(1) {
+					return false
+				}
 			}
-			s.activeJobs.mu.RLock()
-			if s.activeJobs.jobs[k] != nil {
-				numActive++
-			}
-			s.activeJobs.mu.RUnlock()
-			if atomic.LoadInt32(v) == int32(0) {
-				numCountsAtZero++
-			}
-		}
-
-		assert.Equal(t, 0, numInDB)
-		assert.Equal(t, 0, numActive)
-		assert.Equal(t, 0, numCountsAtZero)
+			return true
+		}, 5*time.Second, 50*time.Millisecond, "timed out waiting for paging jobs to complete")
 	})
 
 	t.Run("failed at the db", func(t *testing.T) {
@@ -412,7 +413,7 @@ func TestScheduleOnceSequential(t *testing.T) {
 		resetScheduler()
 
 		jobKeys := make(map[string]*int32)
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			jobKeys[makeKey()] = new(int32)
 		}
 
@@ -675,7 +676,7 @@ func TestScheduleOnceProps(t *testing.T) {
 		s := GetJobOnceScheduler(newMockPluginAPI(t))
 
 		props := make([]byte, propsLimit)
-		for i := 0; i < propsLimit; i++ {
+		for i := range propsLimit {
 			props[i] = 'a'
 		}
 

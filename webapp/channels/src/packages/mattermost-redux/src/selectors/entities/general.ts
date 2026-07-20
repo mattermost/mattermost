@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GiphyFetch} from '@giphy/js-fetch-api';
-
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+
+import type {CWSAvailabilityState} from '../../reducers/entities/general';
 
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
@@ -19,6 +20,47 @@ export function getConfig(state: GlobalState): Partial<ClientConfig> {
  */
 export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags): string | undefined {
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
+}
+
+export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagCustomProfileAttributes === 'true';
+}
+
+export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPermissionPolicies === 'true';
+}
+
+/**
+ * Whether channel-scope policies may carry permission-rule actions
+ * (file upload/download) — i.e. whether the Channel Settings →
+ * Permissions Policy tab should be exposed.
+ *
+ * The sub-flag `ChannelPermissionPolicies` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsChannelPermissionPoliciesEnabled()` helper so the
+ * dependency direction is consistent across the wire. Centralizing
+ * the check here means every consumer (settings tab, save buttons,
+ * etc.) automatically picks up future changes to the dependency.
+ */
+export function isChannelPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelPermissionPolicies === 'true';
+}
+
+/**
+ * Whether the "Simulate access" preview UX should be exposed
+ * (System Console policy editor + Channel Settings tab).
+ *
+ * The sub-flag `PolicySimulation` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsPolicySimulationEnabled()` helper. The backing
+ * `/cel/simulate_users` endpoint returns 501 when this is off, so
+ * hiding the entry points here also prevents users from seeing an
+ * "Evaluating…" button that can never resolve.
+ */
+export function isPolicySimulationEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagPolicySimulation === 'true';
 }
 
 export type PasswordConfig = {
@@ -45,6 +87,11 @@ export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createS
 
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
+}
+
+export function isFreeEdition(state: GlobalState): boolean {
+    const license = getLicense(state);
+    return license.IsLicensed !== 'true' || license.SkuShortName === General.SKUEntry;
 }
 
 export const isCloudLicense: (state: GlobalState) => boolean = createSelector(
@@ -132,19 +179,6 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
     },
 );
 
-export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = createSelector(
-    'getGiphyFetchInstance',
-    (state) => getConfig(state).GiphySdkKey,
-    (giphySdkKey) => {
-        if (giphySdkKey) {
-            const giphyFetch = new GiphyFetch(giphySdkKey);
-            return giphyFetch;
-        }
-
-        return null;
-    },
-);
-
 export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
     'getUsersStatusAndProfileFetchingPollInterval',
     getConfig,
@@ -157,3 +191,27 @@ export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) 
         return null;
     },
 );
+
+export function developerModeEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableDeveloper === 'true';
+}
+
+export function testingEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableTesting === 'true';
+}
+
+export const getCustomProfileAttributes: (state: GlobalState) => UserPropertyField[] = createSelector(
+    'getCustomProfileAttributes',
+    (state) => state.entities.general.customProfileAttributes,
+    (fields) => {
+        return Object.values(fields).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
+    },
+);
+
+export function getIsCrossTeamSearchEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableCrossTeamSearch === 'true';
+}
+
+export function getCWSAvailability(state: GlobalState): CWSAvailabilityState {
+    return state.entities.general.cwsAvailability;
+}

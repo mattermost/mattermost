@@ -7,22 +7,21 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @integrations
 
-import {getRandomId} from '../../../../utils';
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
-
 import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system_console/channel_moderation/helpers';
 
-describe('Integrations page', () => {
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
+import {getRandomId} from '@/utils';
 
-    let user1;
-    let user2;
-    let testChannelUrl1;
-    let oauthClientID;
-    let oauthClientSecret;
+describe('Integrations page', () => {
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
+
+    let user1: Cypress.UserProfile;
+    let user2: Cypress.UserProfile;
+    let testChannelUrl1: string;
+    let oauthClientID: string;
+    let oauthClientSecret: string;
     const testApp = `Test${getRandomId()}`;
 
     before(() => {
@@ -101,13 +100,13 @@ describe('Integrations page', () => {
             const cId = clientID as unknown as string;
             cy.contains('.item-details', cId).within(() => {
                 // * Copy button should exist for Client ID
-                cy.contains('.item-details__token', 'Client ID').within(() => {
+                cy.contains('.item-details__token', 'Client ID').should('exist').within(() => {
                     cy.get('.fa-copy').should('exist');
                 });
 
-                cy.contains('.item-details__token', 'Client Secret').within(() => {
+                cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Client secret should not show
-                    cy.contains('*******************').should('exist');
+                    cy.contains('***************').should('exist');
 
                     // * Copy button should not exist
                     cy.get('.fa-copy').should('not.exist');
@@ -120,9 +119,9 @@ describe('Integrations page', () => {
                 cy.findByText('Hide Secret').should('exist');
                 cy.findByText('Show Secret').should('not.exist');
 
-                cy.contains('.item-details__token', 'Client Secret').within(() => {
+                cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Token should not be obscured
-                    cy.contains('*******************').should('not.exist');
+                    cy.contains('***************').should('not.exist');
 
                     // * Copy button should exist
                     cy.get('.fa-copy').should('exist');
@@ -165,9 +164,9 @@ describe('Integrations page', () => {
         });
 
         cy.get('@clientID').then((clientID) => {
-            oauthClientID = clientID;
+            oauthClientID = clientID as unknown as string;
             cy.get('@clientSecret').then((clientSecret) => {
-                oauthClientSecret = clientSecret;
+                oauthClientSecret = clientSecret as unknown as string;
 
                 // # Send credentials
                 cy.postIncomingWebhook({
@@ -246,7 +245,11 @@ describe('Integrations page', () => {
         });
 
         // # Update description
-        cy.get('#description').type('Edited');
+        cy.get('#description').invoke('val').then(($text) => {
+            if (!(String($text)).match('Edited$')) {
+                cy.get('#description').type('Edited');
+            }
+        });
 
         // # Save
         cy.get('#saveOauthApp').click({force: true});
@@ -437,7 +440,7 @@ describe('Integrations page', () => {
         });
 
         // # Confirm Delete
-        cy.contains('#confirmModalButton', 'Delete').click();
+        cy.contains('#confirmModalButton', 'Yes, delete it').click();
 
         // # Go back to channels
         cy.visit(testChannelUrl1);

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {verifySavedPost} from '../../../support/ui/post';
+import {verifySavedPost} from '@/support/ui/post';
 
 describe('Post PreHeader', () => {
     let testTeam;
@@ -186,7 +186,8 @@ describe('Post PreHeader', () => {
             });
 
             // # Search for the channel.
-            cy.get('#searchBox').type('test both pinned and saved {enter}');
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().type('test both pinned and saved {enter}');
 
             // * Check that the post pre-header has both pinned and saved links in RHS search results
             cy.get('#searchContainer').should('be.visible').within(() => {

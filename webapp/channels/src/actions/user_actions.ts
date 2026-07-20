@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {UserTypes} from 'mattermost-redux/action_types';
 import {getChannelAndMyMember, getChannelMembersByIds} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getTeamMembersByIds} from 'mattermost-redux/actions/teams';
@@ -22,18 +25,18 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
 
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -53,16 +56,60 @@ export function loadProfilesAndReloadTeamMembers(page: number, perPage: number, 
     };
 }
 
-export function loadProfilesAndReloadChannelMembers(page: number, perPage?: number, channelId?: string, sort = '', options = {}): ActionFuncAsync {
+export function loadProfilesAndReloadChannelMembers(page: number, perPage?: number, channelId?: string, sort = '', options = {}, reconcile = false): ActionFuncAsync {
     return async (doDispatch, doGetState) => {
         const newChannelId = channelId || getCurrentChannelId(doGetState());
         const {data} = await doDispatch(UserActions.getProfilesInChannel(newChannelId, page, perPage, sort, options));
         if (data) {
+            // getProfilesInChannel only adds to the channel member stores, so a removal
+            // missed over the websocket (e.g. an ABAC access-rule change handled while
+            // another channel was focused) leaves the member list stale. Prune members
+            // the server no longer returns, but only when this first page holds the full
+            // membership; a full page means more pages follow and must not be pruned.
+            if (reconcile && page === 0 && perPage !== undefined && data.length < perPage) {
+                doDispatch(pruneStaleChannelMembers(newChannelId, data));
+            }
             await Promise.all([
                 doDispatch(loadChannelMembersForProfilesList(data, newChannelId, true)),
                 doDispatch(loadStatusesForProfilesList(data)),
             ]);
         }
+
+        return {data: true};
+    };
+}
+
+function pruneStaleChannelMembers(channelId: string, currentProfiles: UserProfile[]): ActionFunc {
+    return (doDispatch, doGetState) => {
+        const state = doGetState();
+        const currentIds = new Set(currentProfiles.map((profile) => profile.id));
+
+        const staleIds = new Set<string>();
+        const storedMembers = getChannelMembersInChannels(state)[channelId];
+        if (storedMembers) {
+            Object.keys(storedMembers).forEach((userId) => {
+                if (!currentIds.has(userId)) {
+                    staleIds.add(userId);
+                }
+            });
+        }
+        const storedProfileIds = Selectors.getUserIdsInChannels(state)[channelId];
+        if (storedProfileIds) {
+            storedProfileIds.forEach((userId) => {
+                if (!currentIds.has(userId)) {
+                    staleIds.add(userId);
+                }
+            });
+        }
+
+        if (staleIds.size === 0) {
+            return {data: false};
+        }
+
+        doDispatch(batchActions(Array.from(staleIds).map((userId) => ({
+            type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
+            data: {id: channelId, user_id: userId},
+        }))));
 
         return {data: true};
     };
@@ -150,16 +197,6 @@ export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: 
         await doDispatch(getTeamMembersByIds(teamIdParam, userIdsToLoad));
 
         return {data: true};
-    };
-}
-
-export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>): ActionFuncAsync {
-    return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.getProfilesWithoutTeam(page, perPage, options));
-
-        doDispatch(loadStatusesForProfilesMap(data!));
-
-        return {data};
     };
 }
 
@@ -308,7 +345,7 @@ export async function loadProfilesForGM() {
     const currentUserId = Selectors.getCurrentUserId(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
-    const userIdsForLoadingCustomEmojis = new Set();
+    const userIdsForLoadingCustomEmojis = new Set<string>();
     const channelUsersToLoad: string[] = [];
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();
@@ -406,10 +443,17 @@ export async function loadProfilesForDM() {
     await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
-export function autocompleteUsersInTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+export function autocompleteUsersInCurrentTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
     return async (doDispatch, doGetState) => {
         const currentTeamId = getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, currentTeamId));
+        return data!;
+    };
+}
+
+export function autocompleteUsersInTeam(username: string, teamId: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, teamId));
         return data!;
     };
 }
@@ -418,6 +462,13 @@ export function autocompleteUsers(username: string): ThunkActionFunc<Promise<Use
     return async (doDispatch) => {
         const {data} = await doDispatch(UserActions.autocompleteUsers(username));
         return data!;
+    };
+}
+
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.canUserDirectMessage(userId, otherUserId));
+        return {data};
     };
 }
 

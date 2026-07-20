@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import isEqual from 'lodash/isEqual';
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import './channel_invite_modal.scss';
 
+import isEqual from 'lodash/isEqual';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -19,16 +21,24 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
+
+import AlertBanner from 'components/alert_banner';
+import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
+import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage, sortUsersAndGroups} from 'utils/utils';
+import {formatAttributeName} from 'utils/format_attribute_name';
+import {sortUsersAndGroups} from 'utils/utils';
 
 import GroupOption from './group_option';
 import TeamWarningBanner from './team_warning_banner';
@@ -68,273 +78,463 @@ export type Props = {
     isGroupsEnabled: boolean;
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
-        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number) => Promise<ActionResult>;
+        getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number, cursorId?: string) => Promise<ActionResult>;
         getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
-}
+};
 
-type State = {
-    selectedUsers: UserProfileValue[];
-    groupAndUserOptions: Array<UserProfileValue | GroupValue>;
-    usersNotInTeam: UserProfileValue[];
-    guestsNotInTeam: UserProfileValue[];
-    term: string;
-    show: boolean;
-    saving: boolean;
-    loadingUsers: boolean;
-    inviteError?: string;
-}
+// Helper function to check if an option is a user
+const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
+    return (option as UserProfile).username !== undefined;
+};
 
-const UsernameSpan = styled.span`
-    fontSize: 12px;
-`;
+const ChannelInviteModalComponent = (props: Props) => {
+    const [selectedUsers, setSelectedUsers] = useState<UserProfileValue[]>([]);
+    const [usersNotInTeam, setUsersNotInTeam] = useState<UserProfileValue[]>([]);
+    const [guestsNotInTeam, setGuestsNotInTeam] = useState<UserProfileValue[]>([]);
+    const [term, setTerm] = useState('');
+    const [show, setShow] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [loadingUsers, setLoadingUsers] = useState(true);
+    const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
+    const [inviteError, setInviteError] = useState<string | undefined>(undefined);
+    const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
+    const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
 
-const UserMappingSpan = styled.span`
-    position: absolute;
-    right: 20px;
-`;
+    /** Server ABAC search hits when the user types a term on private policy-enforced channels (see Client4.searchUsers). Null means use {@link abacFilteredUsers} instead. */
+    const [privateAbacSearchHits, setPrivateAbacSearchHits] = useState<UserProfile[] | null>(null);
+    const [recommendedUserIds, setRecommendedUserIds] = useState<Set<string>>(new Set());
 
-export class ChannelInviteModal extends React.PureComponent<Props, State> {
-    private searchTimeoutId = 0;
-    private selectedItemRef = React.createRef<HTMLDivElement>();
+    const searchTimeoutId = useRef<number>(0);
+    const selectedItemRef = useRef<HTMLDivElement>(null);
+    const privateAbacSearchSeq = useRef<number>(0);
 
-    public static defaultProps = {
-        includeUsers: {},
-        excludeUsers: {},
-        skipCommit: false,
-    };
+    // Monotonic token for fetchRecommendedUserIds — incremented every time we
+    // start a fresh fetch (or the channel changes). The pagination loop reads
+    // its captured token before each step and aborts/skips state writes when
+    // it sees a newer token, so a stale response from a prior channel can't
+    // overwrite recommendations for the current one.
+    const recommendedUserIdsRequestId = useRef<number>(0);
 
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            selectedUsers: [],
-            usersNotInTeam: [],
-            guestsNotInTeam: [],
-            term: '',
-            show: true,
-            saving: false,
-            loadingUsers: true,
-            groupAndUserOptions: [],
-        } as State;
-    }
+    // Monotonic token for fetchAbacUsers — stale HTTP responses must not
+    // overwrite abacFilteredUsers after the user switches channels.
+    const abacProfilesFetchRequestId = useRef<number>(0);
 
-    isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
-        return (option as UserProfile).username !== undefined;
-    };
+    // Public channels with a membership policy are advisory — the invite
+    // list is not filtered and matching users are merely surfaced as a
+    // recommendation. Private channels with a membership policy remain a
+    // hard gate. Permission-only policies (e.g. file upload) must not flip
+    // either branch, which is why we read the membership action key
+    // specifically instead of the broad policy_enforced flag.
+    const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
+    const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
+    const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
-    private addValue = (value: UserProfileValue | GroupValue): void => {
-        if (this.isUser(value)) {
+    // Admins can disable the attribute indicators to avoid leaking policy
+    // details; when off we skip fetching/rendering the tags entirely.
+    const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
+
+    // Use the useAccessControlAttributes hook
+    const {structuredAttributes} = useAccessControlAttributes(
+        EntityType.Channel,
+        props.channel.id,
+        isMembershipPolicy && indicatorsEnabled,
+    );
+
+    // Memoise the rendered access-control tags so they don't re-render on
+    // every keystroke in the invite text box.
+    const accessControlTags = useMemo(() => {
+        if (structuredAttributes.length === 0) {
+            return null;
+        }
+        return (
+            <TagGroup>
+                {structuredAttributes.flatMap((attribute) =>
+                    attribute.values.map((value) => {
+                        const attributeLabel = formatAttributeName(attribute.name);
+                        return (
+                            <AlertTag
+                                key={`${attribute.name}-${value}`}
+                                tooltipTitle={attributeLabel}
+                                text={`${attributeLabel}: ${value}`}
+                            />
+                        );
+                    }),
+                )}
+            </TagGroup>
+        );
+    }, [structuredAttributes]);
+
+    // Helper function to add a user or group to the selected list
+    const addValue = useCallback((value: UserProfileValue | GroupValue) => {
+        if (isUser(value)) {
             const profile = value;
-            if (!this.props.membersInTeam || !this.props.membersInTeam[profile.id]) {
+            if (!props.membersInTeam || !props.membersInTeam[profile.id]) {
                 if (isGuest(profile.roles)) {
-                    if (this.state.guestsNotInTeam.indexOf(profile) === -1) {
-                        this.setState((prevState) => {
-                            return {guestsNotInTeam: [...prevState.guestsNotInTeam, profile]};
-                        });
-                    }
+                    setGuestsNotInTeam((prevState) => {
+                        if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                            return [...prevState, profile];
+                        }
+                        return prevState;
+                    });
                     return;
                 }
-                if (this.state.usersNotInTeam.indexOf(profile) === -1) {
-                    this.setState((prevState) => {
-                        return {usersNotInTeam: [...prevState.usersNotInTeam, profile]};
-                    });
-                }
+                setUsersNotInTeam((prevState) => {
+                    if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                        return [...prevState, profile];
+                    }
+                    return prevState;
+                });
                 return;
             }
 
-            if (this.state.selectedUsers.indexOf(profile) === -1) {
-                this.setState((prevState) => {
-                    return {selectedUsers: [...prevState.selectedUsers, profile]};
-                });
-            }
-        }
-    };
-
-    private removeInvitedUsers = (profiles: UserProfile[]): void => {
-        const usersNotInTeam = this.state.usersNotInTeam.filter((profile) => {
-            const user = profile as UserProfileValue;
-
-            const index = profiles.indexOf(user);
-            if (index === -1) {
-                return true;
-            }
-            this.addValue(user);
-            return false;
-        });
-
-        this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    };
-
-    private removeUsersFromValuesNotInTeam = (profiles: UserProfile[]): void => {
-        const usersNotInTeam = this.state.usersNotInTeam.filter((profile) => {
-            const index = profiles.indexOf(profile);
-            return index === -1;
-        });
-        this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    };
-
-    public componentDidMount(): void {
-        this.props.actions.getProfilesNotInChannel(this.props.channel.team_id, this.props.channel.id, this.props.channel.group_constrained, 0).then(() => {
-            this.setUsersLoadingState(false);
-        });
-        this.props.actions.getProfilesInChannel(this.props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
-        this.props.actions.getTeamStats(this.props.channel.team_id);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
-    }
-
-    public async componentDidUpdate(prevProps: Props, prevState: State) {
-        if (prevState.term !== this.state.term) {
-            const values = this.getOptions();
-            const userIds: string[] = [];
-
-            for (let index = 0; index < values.length; index++) {
-                const newValue = values[index];
-                if (this.isUser(newValue)) {
-                    userIds.push(newValue.id);
-                } else if (newValue.member_ids) {
-                    userIds.push(...newValue.member_ids);
+            setSelectedUsers((prevState) => {
+                if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                    return [...prevState, profile];
                 }
-            }
-
-            if (!isEqual(values, this.state.groupAndUserOptions)) {
-                if (userIds.length > 0) {
-                    this.props.actions.getTeamMembersByIds(this.props.channel.team_id, userIds);
-                }
-                this.setState({groupAndUserOptions: values});
-            }
+                return prevState;
+            });
         }
-    }
+    }, [props.membersInTeam, isGuest]);
 
-    getExcludedUsers = (): Set<string> => {
-        if (this.props.excludeUsers) {
-            return new Set(...this.props.profilesNotInCurrentTeam.map((user) => user.id), Object.values(this.props.excludeUsers).map((user) => user.id));
+    // Get excluded users
+    const excludedUsers = useMemo(() => {
+        if (props.excludeUsers) {
+            return new Set([
+                ...props.profilesNotInCurrentTeam.map((user) => user.id),
+                ...Object.values(props.excludeUsers).map((user) => user.id),
+            ]);
         }
-        return new Set(this.props.profilesNotInCurrentTeam.map((user) => user.id));
-    };
+        return new Set(props.profilesNotInCurrentTeam.map((user) => user.id));
+    }, [props.excludeUsers, props.profilesNotInCurrentTeam]);
 
-    // Options list prioritizes recent dms for the first 10 users and then the next 15 are a mix of users and groups
-    public getOptions = () => {
-        const excludedAndNotInTeamUserIds = this.getExcludedUsers();
+    // Filter out deleted and excluded users
+    const filterOutDeletedAndExcludedAndNotInTeamUsers = useCallback((users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
+        return users.filter((user) => {
+            return user.delete_at === 0 && !excludeUserIds.has(user.id);
+        }) as UserProfileValue[];
+    }, []);
 
-        const filteredDmUsers = filterProfilesStartingWithTerm(this.props.profilesFromRecentDMs, this.state.term);
-        const dmUsers = this.filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+    // Get options for the multiselect
+    const getOptions = useCallback(() => {
+        const excludedAndNotInTeamUserIds = excludedUsers;
+
+        // DM users and include_users are suppressed only for the hard-gated
+        // private policy path, since public policies are purely advisory.
+        let dmUsers: UserProfileValue[] = [];
+        if (!isPolicyEnforcedPrivate) {
+            const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
+            dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        }
 
         let users: UserProfileValue[];
-        const filteredUsers: UserProfile[] = filterProfilesStartingWithTerm(this.props.profilesNotInCurrentChannel.concat(this.props.profilesInCurrentChannel), this.state.term);
-        users = this.filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
-        if (this.props.includeUsers) {
-            users = [...users, ...Object.values(this.props.includeUsers)];
+        if (isPolicyEnforcedPrivate) {
+            const sourceList =
+                term.trim().length > 0 ? (privateAbacSearchHits ?? []) : abacFilteredUsers;
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(sourceList, excludedAndNotInTeamUserIds);
+        } else {
+            // Non-ABAC or advisory (public policy): full team list.
+            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+
+            if (props.includeUsers) {
+                users = [...users, ...Object.values(props.includeUsers)];
+            }
         }
+
+        // Groups are suppressed only for the hard-gated private ABAC path.
         const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(this.props.groups, this.state.term) as GroupValue[],
+            ...(isPolicyEnforcedPrivate ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
-        const optionValues = [
+        let optionValues: Array<UserProfileValue | GroupValue> = [
             ...dmUsers,
             ...groupsAndUsers,
-        ].slice(0, MAX_USERS);
+        ];
 
-        return Array.from(new Set(optionValues));
-    };
-
-    public onHide = (): void => {
-        this.setState({show: false});
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
-    };
-
-    public handleInviteError = (err: any): void => {
-        if (err) {
-            this.setState({
-                saving: false,
-                inviteError: err.message,
-            });
+        // For advisory (public) policies, boost recommended users to the top
+        // while keeping the rest of the order stable.
+        if (isPolicyRecommendedPublic && recommendedUserIds.size > 0) {
+            const recommended: Array<UserProfileValue | GroupValue> = [];
+            const rest: Array<UserProfileValue | GroupValue> = [];
+            for (const opt of optionValues) {
+                if (isUser(opt) && recommendedUserIds.has(opt.id)) {
+                    recommended.push(opt);
+                } else {
+                    rest.push(opt);
+                }
+            }
+            optionValues = [...recommended, ...rest];
         }
-    };
 
-    private handleDelete = (values: Array<UserProfileValue | GroupValue>): void => {
+        return Array.from(new Set(optionValues.slice(0, MAX_USERS)));
+    }, [
+        term,
+        props.profilesFromRecentDMs,
+        props.profilesNotInCurrentChannel,
+        props.profilesInCurrentChannel,
+        props.includeUsers,
+        props.groups,
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
+        recommendedUserIds,
+        excludedUsers,
+        filterOutDeletedAndExcludedAndNotInTeamUsers,
+        abacFilteredUsers,
+        privateAbacSearchHits,
+    ]);
+
+    // Handle modal hide
+    const onHide = useCallback(() => {
+        setShow(false);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+    }, [props.actions, props.profilesNotInCurrentChannel, props.profilesInCurrentChannel]);
+
+    // Handle invite error
+    const handleInviteError = useCallback((err: any) => {
+        if (err) {
+            setSaving(false);
+            setInviteError(err.message);
+        }
+    }, []);
+
+    // Handle delete (removing users from selection)
+    const handleDelete = useCallback((values: Array<UserProfileValue | GroupValue>) => {
         // Our values for this component are always UserProfileValue
         const profiles = values as UserProfileValue[];
-        this.setState({selectedUsers: profiles});
-    };
+        setSelectedUsers(profiles);
+    }, []);
 
-    private setUsersLoadingState = (loadingState: boolean): void => {
-        this.setState({
-            loadingUsers: loadingState,
-        });
-    };
+    // Set users loading state
+    const setUsersLoadingState = useCallback((loadingState: boolean) => {
+        setLoadingUsers(loadingState);
+    }, []);
 
-    private handlePageChange = (page: number, prevPage: number): void => {
-        if (page > prevPage) {
-            this.setUsersLoadingState(true);
-            this.props.actions.getProfilesNotInChannel(
-                this.props.channel.team_id,
-                this.props.channel.id,
-                this.props.channel.group_constrained,
-                page + 1, USERS_PER_PAGE).then(() => this.setUsersLoadingState(false));
-
-            this.props.actions.getProfilesInChannel(this.props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
+    // Custom function to fetch ABAC users without polluting Redux store.
+    // Used only for the private (hard-gated) policy path.
+    //
+    // The first call (page 0, no cursor) replaces the buffer; subsequent
+    // calls append (deduped by id) so paging through the policy-filtered
+    // list grows the in-memory buffer that getOptions() searches over.
+    // We can't merge with Redux profile lists here because the global
+    // search/profile actions don't apply the ABAC server-side filter, and
+    // doing so would surface non-matching users in the strict-gate UI.
+    const fetchAbacUsers = useCallback(async (page = 0, perPage = USERS_PER_PAGE, cursorId = '') => {
+        const requestId = ++abacProfilesFetchRequestId.current;
+        const isInitialLoad = page === 0 && !cursorId;
+        try {
+            const profiles = await Client4.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page,
+                perPage,
+                cursorId,
+            );
+            if (requestId !== abacProfilesFetchRequestId.current) {
+                return {data: profiles || []};
+            }
+            if (isInitialLoad) {
+                setAbacFilteredUsers(profiles || []);
+            } else if (profiles && profiles.length > 0) {
+                setAbacFilteredUsers((prev) => {
+                    const seen = new Set(prev.map((u) => u.id));
+                    const additions = profiles.filter((u) => !seen.has(u.id));
+                    return additions.length > 0 ? [...prev, ...additions] : prev;
+                });
+            }
+            return {data: profiles || []};
+        } catch (error) {
+            if (requestId !== abacProfilesFetchRequestId.current) {
+                return {error};
+            }
+            if (isInitialLoad) {
+                setAbacFilteredUsers([]);
+            }
+            return {error};
         }
-    };
+    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
 
-    public handleSubmit = (): void => {
-        const {actions, channel} = this.props;
+    // For advisory (public) policies, fetch the matching-user subset to
+    // render a subtle "Recommended" indicator and boost them to the top.
+    // This bypasses Redux so the normal (unfiltered) list remains intact.
+    //
+    // Uses the cursor-based pagination on getProfilesMatchingChannelPolicy
+    // to walk every page of matching users; otherwise users beyond the
+    // first page would never be tagged as recommended. Capped to keep the
+    // tag-rendering set bounded for very large teams.
+    const fetchRecommendedUserIds = useCallback(async () => {
+        const RECOMMENDED_HARD_CAP = 1000;
+        const requestId = ++recommendedUserIdsRequestId.current;
+        try {
+            const ids = new Set<string>();
+            let cursorId = '';
 
-        const userIds = this.state.selectedUsers.map((u) => u.id);
+            while (true) {
+                // eslint-disable-next-line no-await-in-loop
+                const profiles = await Client4.getProfilesMatchingChannelPolicy(
+                    props.channel.team_id,
+                    props.channel.id,
+                    props.channel.group_constrained,
+                    USERS_PER_PAGE,
+                    cursorId,
+                );
+
+                // A newer fetch (or channel switch) bumped the token; bail
+                // before doing more work or writing stale results to state.
+                if (recommendedUserIdsRequestId.current !== requestId) {
+                    return;
+                }
+                if (!profiles || profiles.length === 0) {
+                    break;
+                }
+                for (const u of profiles) {
+                    ids.add(u.id);
+                }
+                if (profiles.length < USERS_PER_PAGE || ids.size >= RECOMMENDED_HARD_CAP) {
+                    break;
+                }
+                cursorId = profiles[profiles.length - 1].id;
+            }
+            if (recommendedUserIdsRequestId.current === requestId) {
+                setRecommendedUserIds(ids);
+            }
+        } catch {
+            if (recommendedUserIdsRequestId.current === requestId) {
+                setRecommendedUserIds(new Set());
+            }
+        }
+    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
+
+    // Handle page change with cursor-based pagination
+    const handlePageChange = useCallback((page: number, prevPage: number) => {
+        if (page > prevPage) {
+            setUsersLoadingState(true);
+
+            // Get cursor for this page (if we're going forward)
+            const cursorId = page > 0 ? pageCursors[page - 1] : '';
+
+            // Private ABAC channels page through Client4 directly so the
+            // result lands in our scoped abacFilteredUsers buffer that
+            // getOptions() reads from. Routing through Redux here would
+            // populate profilesNotInCurrentChannel which getOptions ignores
+            // on the strict-gate path, leaving subsequent pages invisible.
+            const fetchPage = isPolicyEnforcedPrivate ? fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) : props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            );
+
+            fetchPage.then((result) => {
+                // Store the cursor for the next page (ID of the last user)
+                if (result.data && result.data.length > 0) {
+                    const lastUserId = result.data[result.data.length - 1].id;
+                    setPageCursors((prev) => ({
+                        ...prev,
+                        [page]: lastUserId,
+                    }));
+                }
+                setUsersLoadingState(false);
+            }).catch(() => {
+                setUsersLoadingState(false);
+            });
+
+            // Existing channel members are only relevant outside the strict
+            // ABAC path — its in-channel listing comes from policy data, not
+            // from the global Redux profile lists.
+            if (!isPolicyEnforcedPrivate) {
+                props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
+            }
+        }
+    }, [props.actions, props.channel, setUsersLoadingState, pageCursors, setPageCursors, isPolicyEnforcedPrivate, fetchAbacUsers]);
+
+    // Handle form submission
+    const handleSubmit = useCallback(() => {
+        const {actions, channel} = props;
+
+        const userIds = selectedUsers.map((u) => u.id);
         if (userIds.length === 0) {
             return;
         }
 
-        if (this.props.skipCommit && this.props.onAddCallback) {
-            this.props.onAddCallback(this.state.selectedUsers);
-            this.setState({
-                saving: false,
-                inviteError: undefined,
-            });
-            this.onHide();
+        if (props.skipCommit && props.onAddCallback) {
+            props.onAddCallback(selectedUsers);
+            setSaving(false);
+            setInviteError(undefined);
+            onHide();
             return;
         }
 
-        this.setState({saving: true});
+        setSaving(true);
 
         actions.addUsersToChannel(channel.id, userIds).then((result) => {
             if (result.error) {
-                this.handleInviteError(result.error);
+                handleInviteError(result.error);
             } else {
-                this.setState({
-                    saving: false,
-                    inviteError: undefined,
-                });
-                this.onHide();
+                setSaving(false);
+                setInviteError(undefined);
+                onHide();
             }
         });
-    };
+    }, [props, selectedUsers, handleInviteError, onHide]);
 
-    public search = (searchTerm: string): void => {
+    // Handle search
+    const search = useCallback((searchTerm: string) => {
         const term = searchTerm.trim();
-        clearTimeout(this.searchTimeoutId);
-        this.setState({
-            term,
-        });
+        clearTimeout(searchTimeoutId.current);
+        setTerm(term);
 
-        this.searchTimeoutId = window.setTimeout(
+        if (!term) {
+            // Reset cursor state when clearing search
+            setPageCursors({});
+            setPrivateAbacSearchHits(null);
+            setUsersLoadingState(false);
+            return;
+        }
+
+        searchTimeoutId.current = window.setTimeout(
             async () => {
-                if (!term) {
+                if (isPolicyEnforcedPrivate) {
+                    privateAbacSearchSeq.current++;
+                    const seq = privateAbacSearchSeq.current;
+                    setUsersLoadingState(true);
+                    try {
+                        const profiles = await Client4.searchUsers(term, {
+                            team_id: props.channel.team_id,
+                            not_in_channel_id: props.channel.id,
+                            group_constrained: Boolean(props.channel.group_constrained),
+                            limit: 100,
+                        });
+                        if (seq === privateAbacSearchSeq.current) {
+                            setPrivateAbacSearchHits(profiles || []);
+                        }
+                    } catch {
+                        if (seq === privateAbacSearchSeq.current) {
+                            setPrivateAbacSearchHits([]);
+                        }
+                    } finally {
+                        if (seq === privateAbacSearchSeq.current) {
+                            setUsersLoadingState(false);
+                        }
+                    }
                     return;
                 }
 
                 const options = {
-                    team_id: this.props.channel.team_id,
-                    not_in_channel_id: this.props.channel.id,
-                    group_constrained: this.props.channel.group_constrained,
+                    team_id: props.channel.team_id,
+                    not_in_channel_id: props.channel.id,
+                    group_constrained: Boolean(props.channel.group_constrained),
                 };
 
                 const opts = {
@@ -345,60 +545,59 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                     include_member_count: true,
                     include_member_ids: true,
                 };
+
                 const promises = [
-                    this.props.actions.searchProfiles(term, options),
+                    props.actions.searchProfiles(term, options),
                 ];
-                if (this.props.isGroupsEnabled) {
-                    promises.push(this.props.actions.searchAssociatedGroupsForReference(term, this.props.channel.team_id, this.props.channel.id, opts));
+
+                if (props.isGroupsEnabled) {
+                    promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
-                this.setUsersLoadingState(false);
+                setUsersLoadingState(false);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
-    };
+    }, [props.actions, props.channel, props.isGroupsEnabled, isPolicyEnforcedPrivate, setUsersLoadingState]);
 
-    private renderAriaLabel = (option: UserProfileValue | GroupValue): string => {
+    // Render aria label for options
+    const renderAriaLabel = useCallback((option: UserProfileValue | GroupValue): string => {
         if (!option) {
             return '';
         }
-        if (this.isUser(option)) {
+        if (isUser(option)) {
             return option.username;
         }
         return option.name;
-    };
+    }, []);
 
-    private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
-        return users.filter((user) => {
-            return user.delete_at === 0 && !excludeUserIds.has(user.id);
-        }) as UserProfileValue[];
-    };
-
-    renderOption = (option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
+    // Render option for multiselect
+    const renderOption = useCallback((option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
         let rowSelected = '';
         if (isSelected) {
             rowSelected = 'more-modal__row--selected';
         }
 
-        if (this.isUser(option)) {
-            const ProfilesInGroup = this.props.profilesInCurrentChannel.map((user) => user.id);
+        if (isUser(option)) {
+            const ProfilesInGroup = props.profilesInCurrentChannel.map((user) => user.id);
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
                 userMapping[ProfilesInGroup[i]] = 'Already in channel';
             }
-            const displayName = displayUsername(option, this.props.teammateNameDisplaySetting);
+            const displayName = displayUsername(option, props.teammateNameDisplaySetting);
+            const isRecommended = isPolicyRecommendedPublic && recommendedUserIds.has(option.id);
             return (
                 <div
                     key={option.id}
-                    ref={isSelected ? this.selectedItemRef : option.id}
+                    ref={isSelected ? selectedItemRef : undefined}
                     className={'more-modal__row clickable ' + rowSelected}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >
                     <ProfilePicture
                         src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
-                        status={this.props.userStatuses[option.id]}
+                        status={props.userStatuses[option.id]}
                         size='md'
                         username={option.username}
                     />
@@ -408,28 +607,40 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                                 {displayName}
                                 {option.is_bot && <BotTag/>}
                                 {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                                {displayName === option.username ?
-                                    null :
-                                    <UsernameSpan
-                                        className='ml-2 light'
-                                    >
-                                        {'@'}{option.username}
-                                    </UsernameSpan>
+                                {displayName === option.username ? null : <span className='channel-invite__username ml-2 light'>
+                                    {'@'}{option.username}
+                                </span>
                                 }
-                                <UserMappingSpan
-                                    className='light'
+                                {isRecommended && (
+                                    <AlertTag
+                                        className='channel-invite__recommended-tag'
+                                        text={props.intl.formatMessage({
+                                            id: 'channel_invite.recommended_tag',
+                                            defaultMessage: 'Recommended',
+                                        })}
+                                        tooltipTitle={props.intl.formatMessage({
+                                            id: 'channel_invite.recommended_tag.tooltip',
+                                            defaultMessage: 'Matches the suggested membership for this channel',
+                                        })}
+                                    />
+                                )}
+                                <span
+                                    className='channel-invite__user-mapping light'
                                 >
                                     {userMapping[option.id]}
-                                </UserMappingSpan>
+                                </span>
                             </span>
                         </div>
                     </div>
                     <div className='more-modal__actions'>
-                        <div className='more-modal__actions--round'>
+                        <button
+                            className='more-modal__actions--round'
+                            aria-label='Add channel to invite'
+                        >
                             <i
                                 className='icon icon-plus'
                             />
-                        </div>
+                        </button>
                     </div>
                 </div>
             );
@@ -443,143 +654,299 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                 isSelected={isSelected}
                 rowSelected={rowSelected}
                 onMouseMove={onMouseMove}
-                selectedItemRef={this.selectedItemRef}
+                selectedItemRef={selectedItemRef}
             />
         );
-    };
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds]);
 
-    public render = (): JSX.Element => {
-        let inviteError = null;
-        if (this.state.inviteError) {
-            inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
+    // Initial data loading - only run when channel changes or component mounts
+    useEffect(() => {
+        privateAbacSearchSeq.current++;
+        setAbacFilteredUsers([]);
+        setRecommendedUserIds(new Set());
+        setPrivateAbacSearchHits(null);
+        setPageCursors({});
+        setUsersLoadingState(true);
+
+        if (isPolicyEnforcedPrivate) {
+            // Hard-gate ABAC: avoid Redux store pollution; only matching users.
+            fetchAbacUsers().then(() => {
+                setUsersLoadingState(false);
+            });
+        } else {
+            // Non-ABAC or advisory (public) policy: fetch the full team list
+            // via the standard Redux action. The server returns the unfiltered
+            // list for public policy-enforced channels.
+            props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                0,
+                USERS_PER_PAGE,
+            ).then(() => {
+                setUsersLoadingState(false);
+            });
+
+            if (isPolicyRecommendedPublic) {
+                fetchRecommendedUserIds();
+            }
         }
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
+        props.actions.getTeamStats(props.channel.team_id);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
 
-        const closeMembersInviteModal = () => {
-            this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
+        // Bump the request token on dep change / unmount so any in-flight
+        // fetchRecommendedUserIds (queued from a prior channel) sees a newer
+        // token and discards its results before they reach setState. Covers
+        // the cases the in-fetch token alone can't: switching from public to
+        // private (no new fetch is started, but the old one is still running)
+        // and modal unmount.
+        return () => {
+            recommendedUserIdsRequestId.current++;
+            abacProfilesFetchRequestId.current++;
         };
+    }, [
+        props.channel.id,
+        props.channel.team_id,
+        props.channel.group_constrained,
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
+        props.actions,
+        fetchAbacUsers,
+        fetchRecommendedUserIds,
+    ]);
 
-        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode}) => {
-            return (
-                <ToggleModalButton
-                    id='inviteGuest'
-                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
-                    modalId={ModalIdentifiers.INVITATION}
-                    dialogType={InvitationModal}
-                    dialogProps={{
-                        channelToInvite: this.props.channel,
-                        initialValue: this.state.term,
-                        inviteAsGuest: props.inviteAsGuest,
-                    }}
-                    onClick={closeMembersInviteModal}
-                >
-                    {props.children}
-                </ToggleModalButton>
-            );
+    // Compute options with useMemo to ensure they're always fresh
+    const computedOptions = useMemo(() => getOptions(), [
+        term,
+        props.profilesFromRecentDMs,
+        props.profilesNotInCurrentChannel,
+        props.profilesInCurrentChannel,
+        props.includeUsers,
+        props.groups,
+        props.profilesNotInCurrentTeam,
+        props.excludeUsers,
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
+        recommendedUserIds,
+        abacFilteredUsers,
+        privateAbacSearchHits,
+    ]);
+
+    // Update team members when options change
+    useEffect(() => {
+        const userIds: string[] = [];
+
+        for (let index = 0; index < computedOptions.length; index++) {
+            const newValue = computedOptions[index];
+            if (isUser(newValue)) {
+                userIds.push(newValue.id);
+            } else if (newValue.member_ids) {
+                userIds.push(...newValue.member_ids);
+            }
+        }
+
+        if (!isEqual(computedOptions, groupAndUserOptions)) {
+            if (userIds.length > 0) {
+                props.actions.getTeamMembersByIds(props.channel.team_id, userIds);
+            }
+            setGroupAndUserOptions(computedOptions);
+        }
+    }, [computedOptions, props.actions, props.channel.team_id]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            clearTimeout(searchTimeoutId.current);
         };
+    }, []);
 
-        const customNoOptionsMessage = (
-            <div className='custom-no-options-message'>
-                <FormattedMessage
-                    id='channel_invite.no_options_message'
-                    defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
-                    values={{
-                        InvitationModalLink: (chunks: string) => (
-                            <InviteModalLink>
-                                {chunks}
-                            </InviteModalLink>
-                        ),
-                    }}
-                />
-            </div>
-        );
+    // Render the component
+    const {channel} = props;
 
-        const content = (
-            <MultiSelect
-                key='addUsersToChannelKey'
-                options={this.state.groupAndUserOptions}
-                optionRenderer={this.renderOption}
-                intl={this.props.intl}
-                selectedItemRef={this.selectedItemRef}
-                values={this.state.selectedUsers}
-                ariaLabelRenderer={this.renderAriaLabel}
-                saveButtonPosition={'bottom'}
-                perPage={USERS_PER_PAGE}
-                handlePageChange={this.handlePageChange}
-                handleInput={this.search}
-                handleDelete={this.handleDelete}
-                handleAdd={this.addValue}
-                handleSubmit={this.handleSubmit}
-                handleCancel={closeMembersInviteModal}
-                buttonSubmitText={buttonSubmitText}
-                buttonSubmitLoadingText={buttonSubmitLoadingText}
-                saving={this.state.saving}
-                loading={this.state.loadingUsers}
-                placeholderText={this.props.isGroupsEnabled ? localizeMessage('multiselect.placeholder.peopleOrGroups', 'Search for people or groups') : localizeMessage('multiselect.placeholder', 'Search for people')}
-                valueWithImage={true}
-                backButtonText={localizeMessage('multiselect.cancel', 'Cancel')}
-                backButtonClick={closeMembersInviteModal}
-                backButtonClass={'btn-tertiary tertiary-button'}
-                customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}
+    const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+    const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
+
+    const {closeModal} = props.actions;
+    const closeMembersInviteModal = useCallback(() => {
+        closeModal(ModalIdentifiers.CHANNEL_INVITE);
+    }, [closeModal]);
+
+    const customNoOptionsMessage = (
+        <div
+            className='custom-no-options-message'
+        >
+            <FormattedMessage
+                id='channel_invite.no_options_message'
+                defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
+                values={{
+                    InvitationModalLink: (chunks) => (
+                        <InviteModalLink
+                            id='customNoOptionsMessageLink'
+                            abacChannelPolicyEnforced={isPolicyEnforcedPrivate}
+                            channel={channel}
+                            closeMembersInviteModal={closeMembersInviteModal}
+                            inviteAsGuest={false}
+                            term={term}
+                        >
+                            {chunks}
+                        </InviteModalLink>
+                    ),
+                }}
             />
-        );
+        </div>
+    );
 
-        const inviteGuestLink = (
-            <InviteModalLink inviteAsGuest={true}>
+    const content = (
+        <MultiSelect
+            key='addUsersToChannelKey'
+            options={groupAndUserOptions}
+            optionRenderer={renderOption}
+            intl={props.intl}
+            selectedItemRef={selectedItemRef}
+            values={selectedUsers}
+            ariaLabelRenderer={renderAriaLabel}
+            saveButtonPosition={'bottom'}
+            perPage={USERS_PER_PAGE}
+            handlePageChange={handlePageChange}
+            handleInput={search}
+            handleDelete={handleDelete}
+            handleAdd={addValue}
+            handleSubmit={handleSubmit}
+            handleCancel={closeMembersInviteModal}
+            buttonSubmitText={buttonSubmitText}
+            buttonSubmitLoadingText={buttonSubmitLoadingText}
+            saving={saving}
+            loading={loadingUsers}
+            placeholderText={props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
+            valueWithImage={true}
+            backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
+            backButtonClick={closeMembersInviteModal}
+            customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
+        />
+    );
+
+    const inviteGuestLink = (
+        <InviteModalLink
+            id='inviteAsGuestLink'
+            abacChannelPolicyEnforced={false}
+            channel={channel}
+            closeMembersInviteModal={closeMembersInviteModal}
+            inviteAsGuest={true}
+            term={term}
+        >
+            <FormattedMessage
+                id='channel_invite.invite_guest'
+                defaultMessage='Invite as a Guest'
+            />
+        </InviteModalLink>
+    );
+
+    return (
+        <GenericModal
+            id='addUsersToChannelModal'
+            className='channel-invite'
+            show={show}
+            onHide={onHide}
+            onExited={props.onExited}
+            modalHeaderText={
                 <FormattedMessage
-                    id='channel_invite.invite_guest'
-                    defaultMessage='Invite as a Guest'
+                    id='channel_invite.addNewMembers'
+                    defaultMessage='Add people to {channel}'
+                    values={{
+                        channel: channel.display_name,
+                    }}
                 />
-            </InviteModalLink>
-        );
-
-        return (
-            <Modal
-                id='addUsersToChannelModal'
-                dialogClassName='a11y__modal channel-invite'
-                show={this.state.show}
-                onHide={this.onHide}
-                onExited={this.props.onExited}
-                role='dialog'
-                aria-labelledby='channelInviteModalLabel'
-            >
-                <Modal.Header
-                    id='channelInviteModalLabel'
-                    closeButton={true}
-                >
-                    <Modal.Title
-                        componentClass='h1'
-                        id='deletePostModalLabel'
-                    >
-                        <FormattedMessage
-                            id='channel_invite.addNewMembers'
-                            defaultMessage='Add people to {channel}'
-                            values={{
-                                channel: this.props.channel.display_name,
-                            }}
-                        />
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body
-                    role='application'
-                    className='overflow--visible'
-                >
-                    {inviteError}
-                    <div className='channel-invite__content'>
-                        {content}
-                        <TeamWarningBanner
-                            guests={this.state.guestsNotInTeam}
-                            teamId={this.props.channel.team_id}
-                            users={this.state.usersNotInTeam}
-                        />
-                        {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
+            }
+            compassDesign={true}
+            bodyOverflowVisible={true}
+        >
+            <div className='channel-invite__wrapper'>
+                {inviteError && <label className='has-error control-label'>{inviteError}</label>}
+                {isMembershipPolicy && (
+                    <div className='channel-invite__policy-banner'>
+                        <AlertBanner
+                            mode='info'
+                            variant='app'
+                            title={channel.type === Constants.OPEN_CHANNEL ? (
+                                <FormattedMessage
+                                    id='channel_invite.policy_recommended.title'
+                                    defaultMessage='This channel has recommended members based on user attributes'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='channel_invite.policy_enforced.title'
+                                    defaultMessage='Channel access is restricted by user attributes'
+                                />
+                            )}
+                            message={channel.type === Constants.OPEN_CHANNEL ? (
+                                <FormattedMessage
+                                    id='channel_invite.policy_recommended.description'
+                                    defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='channel_invite.policy_enforced.description'
+                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
+                                />
+                            )}
+                        >
+                            {accessControlTags}
+                        </AlertBanner>
                     </div>
-                </Modal.Body>
-            </Modal>
-        );
-    };
+                )}
+                <div className='channel-invite__content'>
+                    {content}
+                    <TeamWarningBanner
+                        guests={guestsNotInTeam}
+                        teamId={channel.team_id}
+                        users={usersNotInTeam}
+                    />
+                    {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}
+                </div>
+            </div>
+        </GenericModal>
+    );
+};
+
+interface InviteModalLinkProps extends Pick<Props, 'channel'> {
+    abacChannelPolicyEnforced: boolean;
+    children: React.ReactNode;
+    closeMembersInviteModal: () => void;
+    id: string;
+    inviteAsGuest: boolean;
+    term: string;
 }
 
-export default injectIntl(ChannelInviteModal);
+const InviteModalLink = ({
+    abacChannelPolicyEnforced,
+    channel,
+    children,
+    closeMembersInviteModal,
+    id,
+    inviteAsGuest,
+    term,
+}: InviteModalLinkProps) => {
+    return (
+        <ToggleModalButton
+            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            modalId={ModalIdentifiers.INVITATION}
+            dialogType={InvitationModal}
+            dialogProps={{
+                channelToInvite: channel,
+                initialValue: term,
+                inviteAsGuest,
+                focusOriginElement: id,
+                canInviteGuests: Boolean(!abacChannelPolicyEnforced),
+            }}
+            onClick={closeMembersInviteModal}
+            id={id}
+        >
+            {children}
+        </ToggleModalButton>
+    );
+};
+
+export default injectIntl(ChannelInviteModalComponent);

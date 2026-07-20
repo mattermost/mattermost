@@ -1,75 +1,22 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
-<Provider
-  store={
-    Object {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-    }
-  }
->
-  <InviteMembersButton
-    isAdmin={false}
+<div>
+  <button
+    aria-label="Invite Members"
+    class="style--none intro-links color--link cursor--pointer"
+    id="inviteMembersButton"
   >
-    <Memo(TeamPermissionGate)
-      permissions={
-        Array [
-          "add_user_to_team",
-          "invite_guest",
-        ]
-      }
-      teamId="team_id2sss"
+    <div
+      aria-label="Invite Users"
+      class="SidebarChannelNavigator__inviteMembersLhsButton"
     >
-      <Gate
-        hasPermission={true}
-        invert={false}
-      >
-        <ToggleModalButton
-          ariaLabel="Invite Members"
-          className="intro-links color--link cursor--pointer"
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
-          id="inviteMembersButton"
-          modalId="invitation"
-          onClick={[Function]}
-        >
-          <button
-            aria-label="Invite Members dialog"
-            className="style--none intro-links color--link cursor--pointer"
-            id="inviteMembersButton"
-            onClick={[Function]}
-          >
-            <div
-              aria-label="Invite Members"
-              className="SidebarChannelNavigator__inviteMembersLhsButton"
-            >
-              <i
-                className="icon-plus-box"
-              />
-              <FormattedMessage
-                defaultMessage="Invite Members"
-                id="sidebar_left.inviteMembers"
-              >
-                <span>
-                  Invite Members
-                </span>
-              </FormattedMessage>
-            </div>
-          </button>
-        </ToggleModalButton>
-      </Gate>
-    </Memo(TeamPermissionGate)>
-  </InviteMembersButton>
-</Provider>
+      <i
+        aria-hidden="true"
+        class="icon-plus-box"
+      />
+      Invite Members
+    </div>
+  </button>
+</div>
 `;

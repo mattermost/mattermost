@@ -27,10 +27,6 @@ const (
 )
 
 func TestService_sendProfileImageToRemote(t *testing.T) {
-	hadPing := disablePing
-	disablePing = true
-	defer func() { disablePing = hadPing }()
-
 	shouldError := &flag{}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +91,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	user := &model.User{
 		Id:       model.NewId(),
-		RemoteId: model.NewPointer(rc.RemoteId),
+		RemoteId: new(rc.RemoteId),
 	}
 
 	provider := testImageProvider{}
@@ -107,6 +103,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	service, err := NewRemoteClusterService(mockServer, mockApp)
 	require.NoError(t, err)
+	service.disablePing = true
 
 	err = service.Start()
 	require.NoError(t, err)
@@ -159,8 +156,8 @@ func (tip testImageProvider) GetProfileImage(user *model.User) ([]byte, bool, *m
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{imageWidth, imageHeight}})
 	red := color.RGBA{255, 50, 50, 0xff}
 
-	for x := 0; x < imageWidth; x++ {
-		for y := 0; y < imageHeight; y++ {
+	for x := range imageWidth {
+		for y := range imageHeight {
 			img.Set(x, y, red)
 		}
 	}

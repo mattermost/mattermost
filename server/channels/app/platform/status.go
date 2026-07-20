@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -15,13 +16,15 @@ import (
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
+	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
+		ps.logger.Warn("Failed to set cache entry for status", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.Cluster() != nil {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))
@@ -46,11 +49,7 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var status *model.Status
-			toPass = append(toPass, &status)
-		}
+		toPass := allocateCacheTargets[*model.Status](len(keys))
 		errs := ps.statusCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -84,11 +83,7 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 	metrics := ps.Metrics()
 	missingUserIds := []string{}
 
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -147,11 +142,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	metrics := ps.Metrics()
 
 	missingUserIds := []string{}
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -226,7 +217,7 @@ func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
 	ps.AddStatusCache(status)
 
 	if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
+		ps.Log().Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	ps.BroadcastStatus(status)
@@ -279,6 +270,9 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 
 	ps.AddStatusCacheSkipClusterSend(status)
 	ps.SetStatusAwayIfNeeded(userID, false)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -291,11 +285,13 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := ps.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		ps.Log().Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now
-	ps.AddSessionToCache(&session)
+	if err := ps.AddSessionToCache(&session); err != nil {
+		ps.Log().Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
@@ -346,6 +342,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
 	}
 
 	if broadcast {
@@ -353,19 +352,124 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	}
 }
 
-func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
 	status, err := ps.GetStatus(userID)
-	if err == nil && status.Manual && !manual {
+	if err != nil {
+		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
+	} else if !force && status.Manual && !manual {
+		return // manually set status always overrides non-manual one
+	}
+	ps._setStatusOfflineAndNotify(userID, manual)
+}
+
+func (ps *PlatformService) _setStatusOfflineAndNotify(userID string, manual bool) {
+	status := &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+}
+
+// QueueSetStatusOffline queues a status update to set a user offline
+// instead of directly updating it for better performance during high load
+func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
+	} else if status.Manual && !manual {
+		// Force will be false here, so no need to add another variable.
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	status = &model.Status{
+		UserId:         userID,
+		Status:         model.StatusOffline,
+		Manual:         manual,
+		LastActivityAt: model.GetMillis(),
+		ActiveChannel:  "",
+	}
 
-	ps.SaveAndBroadcastStatus(status)
+	select {
+	case ps.statusUpdateChan <- status:
+		// Successfully queued
+	default:
+		// Channel is full, fall back to direct update
+		ps.Log().Warn("Status update channel is full. Falling back to direct update")
+		ps._setStatusOfflineAndNotify(userID, manual)
+	}
+}
+
+const (
+	statusUpdateBufferSize     = sendQueueSize // We use the webConn sendQueue size as a reference point for the buffer size.
+	statusUpdateFlushThreshold = statusUpdateBufferSize / 8
+	statusUpdateBatchInterval  = 500 * time.Millisecond // Max time to wait before processing
+)
+
+// processStatusUpdates processes status updates in batches for better performance
+// This runs as a goroutine and continuously monitors the statusUpdateChan
+func (ps *PlatformService) processStatusUpdates() {
+	defer close(ps.statusUpdateDoneSignal)
+
+	statusBatch := make(map[string]*model.Status)
+	ticker := time.NewTicker(statusUpdateBatchInterval)
+	defer ticker.Stop()
+
+	flush := func(broadcast bool) {
+		if len(statusBatch) == 0 {
+			return
+		}
+
+		// Add each status to cache.
+		for _, status := range statusBatch {
+			ps.AddStatusCache(status)
+		}
+
+		// Process statuses in batch
+		if err := ps.Store.Status().SaveOrUpdateMany(statusBatch); err != nil {
+			ps.logger.Warn("Failed to save multiple statuses", mlog.Err(err))
+		}
+
+		// Broadcast each status only if hub is still running
+		if broadcast {
+			for _, status := range statusBatch {
+				ps.BroadcastStatus(status)
+				if ps.sharedChannelService != nil {
+					ps.sharedChannelService.NotifyUserStatusChanged(status)
+				}
+			}
+		}
+
+		clear(statusBatch)
+	}
+
+	for {
+		select {
+		case status := <-ps.statusUpdateChan:
+			// In case of duplicates, we override the last entry
+			statusBatch[status.UserId] = status
+
+			if len(statusBatch) >= statusUpdateFlushThreshold {
+				ps.logger.Debug("Flushing statuses because the current buffer exceeded the flush threshold.", mlog.Int("current_buffer", len(statusBatch)), mlog.Int("flush_threshold", statusUpdateFlushThreshold))
+				flush(true)
+			}
+		case <-ticker.C:
+			flush(true)
+		case <-ps.statusUpdateExitSignal:
+			// Process any remaining statuses before shutting down
+			// Skip broadcast since hub is already stopped
+			ps.logger.Debug("Exit signal received. Flushing any remaining statuses.")
+			flush(false)
+			return
+		}
+	}
 }
 
 func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
@@ -398,28 +502,47 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.ActiveChannel = ""
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (ps *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int64) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := ps.GetStatus(userId)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	status.PrevStatus = status.Status
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	status.DNDEndTime = endtime
+	status.DNDEndTime = truncateDNDEndTime(endtime)
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+}
+
+// truncateDNDEndTime takes a user-provided timestamp (in seconds) for when their DND expiry should end and truncates
+// it to line up with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to
+// expire statuses runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+//
+// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
+// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
+// 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+//
+// Note that the timestamps used by this are in seconds, not milliseconds. This matches UserStatus.DNDEndTime.
+func truncateDNDEndTime(endtime int64) int64 {
+	return time.Unix(endtime, 0).Truncate(model.DNDExpiryInterval).Unix()
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
@@ -437,6 +560,9 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
@@ -454,6 +580,9 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {

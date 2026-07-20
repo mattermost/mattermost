@@ -14,7 +14,7 @@ import './submenu_modal.scss';
 type Props = {
     elements?: Array<React.ComponentProps<typeof SubMenuItem>>;
     onExited: () => void;
-}
+};
 
 const SubMenuModal = ({
     elements,
@@ -53,7 +53,7 @@ const SubMenuModal = ({
             onExited={onExited}
             enforceFocus={false}
             id='submenuModal'
-            role='dialog'
+            role='none'
         >
             <Modal.Body
                 data-testid={'SubMenuModalBody'}

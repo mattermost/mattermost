@@ -161,7 +161,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "არ არის ფაილი მოთხოვნაში 'certificate'"
+    "translation": "მოთხოვნაში 'certificate'-ში ფაილი აღმოჩენილი არაა."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -169,7 +169,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "მომხმარებელი არ არის ნაპოვნი."
+    "translation": "მომხმარებლის აღმოჩენა შეუძლებელია. {{.user}}"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -242,10 +242,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v დატოვა არხი."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "თქვენ მარტო დარჩით, ცადეთ წაშალოთ პრივატული არხი მისი დატოვების ნაცვლად."
   },
   {
     "id": "api.channel.leave.direct.app_error",

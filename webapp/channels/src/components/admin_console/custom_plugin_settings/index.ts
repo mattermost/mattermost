@@ -6,7 +6,6 @@ import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
 import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
-import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -18,16 +17,17 @@ import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'se
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
 import type {AdminConsolePluginComponent, AdminConsolePluginCustomSection} from 'types/store/plugins';
 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
-import {it} from '../admin_definition';
+import {it} from '../admin_definition_helpers';
 import {escapePathPart} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
-type OwnProps = { match: { params: { plugin_id: string } } }
+type OwnProps = {match: {params: {plugin_id: string}}};
 
 function makeGetPluginSchema() {
     return createSelector(
@@ -95,8 +95,10 @@ function makeGetPluginSchema() {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
                             settings = parsePluginSettings(section.settings);
+                        } else if (section.fallback) {
+                            settings = parsePluginSettings(section.settings);
                         } else {
-                            // Show warning banner for custom sections when the plugin is disabled.
+                            // Show warning banner for custom sections when the plugin is disabled and there's no fallback.
                             settings = [{
                                 key: key + 'disabledWarning',
                                 type: Constants.SettingsTypes.TYPE_BANNER,
@@ -134,8 +136,11 @@ function makeGetPluginSchema() {
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
-                if (plugin.settings_schema && plugin.settings_schema.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()])) {
-                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled (custom components are not found), we show a single warning.
+                const hasAllCustomSectionsDisabled = plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
+                const allCustomSectionsAllowFallback = plugin.settings_schema?.sections?.every((s) => s.custom && s.fallback);
+
+                if (plugin.settings_schema && hasAllCustomSectionsDisabled && !allCustomSectionsAllowFallback) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls), it's disabled (custom components are not found), and they don't allow a fallback, we show a single warning.
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
@@ -198,6 +203,8 @@ function makeMapStateToProps() {
         return {
             schema: getPluginSchema(state, pluginId),
             roles: getRoles(state),
+            plugin: state.entities.admin.plugins?.[pluginId],
+            pluginVersion: state.entities.admin.pluginStatuses?.[pluginId]?.version,
         };
     };
 }

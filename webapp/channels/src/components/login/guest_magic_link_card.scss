@@ -1,0 +1,35 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.guest-magic-link-card {
+    margin-top: 8px;
+    text-align: center;
+
+    svg {
+        display: block;
+        margin: 0 auto 12px;
+    }
+
+    h2 {
+        margin-bottom: 4px;
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    p {
+        margin-bottom: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .guest-magic-link-card-expiry {
+        margin-top: 2px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+

@@ -12,10 +12,10 @@ import {
 
 enum SkinTones {
     Light = '1F3FB',
-    MediumLight ='1F3FC',
+    MediumLight = '1F3FC',
     Medium = '1F3FD',
     MediumDark = '1F3FE',
-    Dark = '1F3FF'
+    Dark = '1F3FF',
 }
 
 const smileEmoji = {
@@ -232,6 +232,19 @@ describe('getFilteredEmojis', () => {
         ];
 
         expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toEqual(filteredResults);
+    });
+
+    test('Should be case-insensitive', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            thumbsup: thumbsupEmoji,
+            thumbsdown: thumbsdownEmoji,
+        };
+        const filter = 'DoWn';
+        const recentEmojisString: string[] = [];
+        const userSkinTone = '';
+
+        expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toStrictEqual([thumbsdownEmoji]);
     });
 });
 

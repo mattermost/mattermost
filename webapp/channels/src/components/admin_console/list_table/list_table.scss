@@ -123,7 +123,7 @@ table.adminConsoleListTable {
             font-weight: 400;
             line-height: 20px;
 
-            &:hover {
+            &.clickable:hover {
                 background-color: $sysCenterChannelColorWith8Alpha;
                 cursor: pointer;
 
@@ -206,6 +206,41 @@ table.adminConsoleListTable {
 
     tfoot {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .dragHandle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: inline-flex;
+        width: 24px;
+        height: calc(100% - 1px);
+        padding: 0;
+        border: 0;
+
+        // Reset native <button> styling
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: grab;
+
+        svg {
+            align-self: center;
+        }
+
+        &:active {
+            cursor: grabbing;
+        }
+
+        &:focus-visible {
+            border-radius: 2px;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        &--disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.16);
+            cursor: not-allowed;
+        }
     }
 }
 

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Channel', () => {
     let testTeamId;
@@ -77,7 +77,7 @@ describe('Channel', () => {
 */
 function verifyExistingChannelError(newChannelName, makePrivate = false) {
     // Click on '+' button for Public or Private Channel
-    cy.uiBrowseOrCreateChannel('Create new channel').click();
+    cy.uiBrowseOrCreateChannel('Create new channel');
 
     if (makePrivate) {
         cy.get('#public-private-selector-button-P').click();

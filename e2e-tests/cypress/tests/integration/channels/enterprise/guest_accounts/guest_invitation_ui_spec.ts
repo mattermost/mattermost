@@ -14,13 +14,13 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import {getRandomId} from '../../../../utils';
-
 import {
     changeGuestFeatureSettings,
     invitePeople,
     verifyInvitationSuccess,
 } from './helpers';
+
+import {getRandomId} from '@/utils';
 
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;
@@ -51,9 +51,32 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         });
     });
 
+    it('MM-T1335 Invite Guests - Add Public and Private channels', () => {
+        // # Create a private channel in the test team
+        const privateChannelDisplayName = `Private ${getRandomId()}`;
+        cy.apiCreateChannel(testTeam.id, `private-${getRandomId()}`, privateChannelDisplayName, 'P').then(() => {
+            // # Invite a new guest by email, adding both a public and a private channel
+            const email = `temp-${getRandomId()}@mattermost.com`;
+            invitePeople(email, 1, email, ['Town Square', privateChannelDisplayName], false);
+
+            // * Verify both channels are added to the list of channels the guest will be added to
+            cy.get('.channels-input__control').should('be.visible').within(() => {
+                cy.get('.channels-input__multi-value').should('have.length', 2);
+
+                // * Verify the public channel (Town Square) is added
+                cy.findByText('Town Square').should('be.visible');
+                cy.get('.public-channel-icon').should('be.visible');
+
+                // * Verify the private channel is added
+                cy.contains('.channels-input__multi-value', privateChannelDisplayName).should('be.visible');
+                cy.get('.private-channel-icon').should('be.visible');
+            });
+        });
+    });
+
     it('MM-T4451 Verify UI Elements of Guest User Invitation Flow', () => {
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify Invite Guest link
         cy.findByTestId('inviteGuestLink').should('be.visible').click();
@@ -117,7 +140,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify if Invite Members modal is displayed when guest account feature is disabled
         cy.findByTestId('invitationModal').find('h1').should('have.text', `Invite people to ${testTeam.display_name}`);
@@ -128,7 +151,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         });
 
         // # Close the Modal
-        cy.get('#closeIcon').should('be.visible').click();
+        cy.findByTestId('invitationModal').findByRole('button', {name: 'Close'}).should('be.visible').click();
 
         // # Enable Guest Accounts
         // # Disable Email Invitations
@@ -164,7 +187,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.apiDemoteUserToGuest(newUser.id);
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
@@ -226,7 +249,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
     it('hides the copy link button when inviting guests', () => {
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Select Guest
         cy.findByTestId('inviteGuestLink').should('be.visible').click();

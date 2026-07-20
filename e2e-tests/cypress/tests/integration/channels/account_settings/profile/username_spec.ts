@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Settings > Sidebar > General > Edit', () => {
-    let testTeam;
-    let testUser;
-    let testChannel;
-    let otherUser;
-    let offTopicUrl;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let testChannel: Cypress.Channel;
+    let otherUser: Cypress.UserProfile;
+    let offTopicUrl: string;
 
     before(() => {
         // # Login as admin and visit off-topic
@@ -47,11 +47,10 @@ describe('Settings > Sidebar > General > Edit', () => {
     it('MM-T2050 Username cannot be blank', () => {
         // # Clear the username textfield contents
         cy.get('#usernameEdit').click();
-        cy.get('#username').clear();
-        cy.uiSave();
+        cy.get('#username').click().clear().blur();
 
         // * Check if element is present and contains expected text values
-        cy.get('#clientError').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+        cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
 
         // # Click "x" button to close Profile modal
         cy.uiClose();
@@ -62,11 +61,10 @@ describe('Settings > Sidebar > General > Edit', () => {
         cy.get('#usernameEdit').click();
 
         // # Add the username to textfield contents
-        cy.get('#username').clear().type('te');
-        cy.uiSave();
+        cy.get('#username').clear().type('te').blur();
 
         // * Check if element is present and contains expected text values
-        cy.get('#clientError').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+        cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
 
         // # Click "x" button to close Profile modal
         cy.uiClose();
@@ -88,7 +86,7 @@ describe('Settings > Sidebar > General > Edit', () => {
     });
 
     it('MM-T2053 Username w/ dot, dash, underscore still searches', () => {
-        let tempUser;
+        let tempUser: Cypress.UserProfile;
 
         // # Create a temporary user
         cy.apiCreateUser({prefix: 'temp'}).then(({user: user1}) => {
@@ -116,8 +114,8 @@ describe('Settings > Sidebar > General > Edit', () => {
             // # Step 3
             // * Verify that we've logged in as the temp user
             cy.visit(offTopicUrl);
-            cy.uiOpenUserMenu().findByText(`@${newTempUserName}`);
-            cy.uiGetSetStatusButton().click();
+            cy.uiOpenUserMenu().findByText(`@${newTempUserName}`).should('exist');
+            cy.get('body').type('{esc}');
 
             // # Step 4
             const text = `${newTempUserName} test message!`;
@@ -151,11 +149,10 @@ describe('Settings > Sidebar > General > Edit', () => {
 
         for (const prefix of prefixes) {
             // # Add  username to textfield contents
-            cy.get('#username').clear().type(prefix).type('{backspace}.').type(otherUser.username);
-            cy.uiSave();
+            cy.get('#username').clear().type(prefix).type('{backspace}.').type(otherUser.username).blur();
 
             // * Check if element is present and contains expected text values
-            cy.get('#clientError').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+            cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
         }
 
         // # Click "x" button to close Profile modal
@@ -175,11 +172,10 @@ describe('Settings > Sidebar > General > Edit', () => {
 
         for (const username of usernames) {
             // # Add  username to textfield contents
-            cy.get('#username').clear().type(username);
-            cy.uiSave();
+            cy.get('#username').clear().type(username).blur();
 
             // * Check if element is present and contains expected text values
-            cy.get('#clientError').should('be.visible').should('contain', 'This username is reserved, please choose a new one.');
+            cy.get('#error_username').should('be.visible').should('contain', 'This username is reserved, please choose a new one.');
         }
 
         // # Click "x" button to close Profile modal

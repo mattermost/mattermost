@@ -11,8 +11,10 @@
 // Group: @channels @channel_settings
 // node run_tests.js --group='@channel_settings'
 
-import {getRandomId} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import type {ChannelType} from '@mattermost/types/channels';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Channel Settings', () => {
     let testTeam: Cypress.Team;
@@ -35,7 +37,7 @@ describe('Channel Settings', () => {
     it('MM-T1808 Hover effect exists to add a channel description / header (when not already present)', () => {
         // # Create a new public channel and then private channel
         ['O', 'P'].forEach((channelType) => {
-            cy.apiCreateChannel(testTeam.id, `chan${getRandomId()}`, 'chan', channelType).then(({channel}) => {
+            cy.apiCreateChannel(testTeam.id, `chan${getRandomId()}`, 'chan', channelType as ChannelType).then(({channel}) => {
                 // # Go to new channel
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 

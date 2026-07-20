@@ -83,6 +83,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
 		{"fonts", "fonts", resourceTypeFolder, actionSymlink},
+		{"channels/app/plugin_api_tests", "channels/app/plugin_api_tests", resourceTypeFolder, actionSymlink},
 		{"channels/utils/policies-roles-mapping.json", "channels/utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
 	}
 
@@ -139,6 +140,12 @@ func SetupTestResources() (string, error) {
 	err = os.Mkdir(clientDir, 0700)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
+	}
+
+	logsDir := path.Join(tempDir, "logs")
+	err = os.Mkdir(logsDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create logs directory %s", logsDir)
 	}
 
 	err = setupConfig(path.Join(tempDir, "config"))

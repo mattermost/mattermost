@@ -50,12 +50,6 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
-			Return(nil, nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(nil, nil, nil).
 			Times(1)
@@ -92,7 +86,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
@@ -121,7 +115,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
@@ -150,12 +144,6 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
-			Return(nil, nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
@@ -180,12 +168,6 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			EXPECT().
 			GetTeam(context.TODO(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
-			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
@@ -226,7 +208,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
@@ -288,12 +270,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "user1", "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), "user1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
@@ -322,7 +298,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "user1", "").
+			GetUserByUsername(context.TODO(), "user1", "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -353,7 +329,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "user1", "").
+			GetUserByUsername(context.TODO(), "user1", "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 

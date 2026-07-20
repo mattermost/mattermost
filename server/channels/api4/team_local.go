@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -33,6 +32,7 @@ func (api *API) InitTeamLocal() {
 
 	api.BaseRoutes.TeamByName.Handle("", api.APILocal(getTeamByName)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMembers.Handle("", api.APILocal(addTeamMember)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamMembers.Handle("/ids", api.APILocal(getTeamMembersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.TeamMember.Handle("", api.APILocal(removeTeamMember)).Methods(http.MethodDelete)
 }
 
@@ -42,8 +42,8 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localDeleteTeam", audit.Fail)
-	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalDeleteTeam, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
@@ -92,7 +92,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	for i := range emailList {
-		email := strings.ToLower(emailList[i])
+		email := model.NormalizeEmail(emailList[i])
 		if !model.IsValidEmail(email) {
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Address": email}, "", http.StatusBadRequest)
 			return
@@ -100,10 +100,16 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		emailList[i] = email
 	}
 
-	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
+	graceful := r.URL.Query().Get("graceful") != ""
+	if !graceful && len(memberInvite.Profiles) > 0 {
+		c.Err = model.NewAppError("Api4.localInviteUsersToTeam", "api.team.invite_members.profiles_graceful.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalInviteUsersToTeam, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -134,42 +140,68 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if r.URL.Query().Get("graceful") != "" {
+	if graceful {
 		var invitesWithErrors []*model.EmailInviteWithError
-		var goodEmails, errList []string
-		for _, email := range emailList {
-			invite := &model.EmailInviteWithError{
-				Email: email,
-				Error: nil,
-			}
-			if !isEmailAddressAllowed(email, allowedDomains) {
-				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
-				errList = append(errList, model.EmailInviteWithErrorToString(invite))
-			} else {
-				goodEmails = append(goodEmails, email)
-			}
-			invitesWithErrors = append(invitesWithErrors, invite)
-		}
-		auditRec.AddMeta("errors", errList)
-		if len(goodEmails) > 0 {
-			var invitesWithErrors2 []*model.EmailInviteWithError
-			if len(channels) > 0 {
-				invitesWithErrors2, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(team, channels, "Administrator", "mmctl "+model.NewId(), nil, goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, memberInvite.Message, true, true, false)
-				invitesWithErrors = append(invitesWithErrors, invitesWithErrors2...)
-			} else {
-				err = c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
-			}
-
-			if err != nil {
-				switch {
-				case errors.Is(err, email.NoRateLimiterError):
-					c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError).Wrap(err)
-				case errors.Is(err, email.SetupRateLimiterError):
-					c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError).Wrap(err)
-				default:
-					c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge).Wrap(err)
-				}
+		var errList []string
+		if len(memberInvite.Profiles) > 0 {
+			var appErr *model.AppError
+			invitesWithErrors, appErr = c.App.InviteNewUsersToTeamGracefullyForLocal(c.AppContext, memberInvite, team, channels)
+			if appErr != nil {
+				c.Err = appErr
 				return
+			}
+			for _, invite := range invitesWithErrors {
+				if invite.Error != nil {
+					errList = append(errList, model.EmailInviteWithErrorToString(invite))
+				}
+			}
+			auditRec.AddMeta("errors", errList)
+		} else {
+			var goodEmails []string
+			for _, emailAddress := range emailList {
+				invite := &model.EmailInviteWithError{Email: emailAddress}
+				if !isEmailAddressAllowed(emailAddress, allowedDomains) {
+					invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": emailAddress}, "", http.StatusBadRequest)
+					errList = append(errList, model.EmailInviteWithErrorToString(invite))
+				} else {
+					goodEmails = append(goodEmails, emailAddress)
+				}
+				invitesWithErrors = append(invitesWithErrors, invite)
+			}
+			auditRec.AddMeta("errors", errList)
+
+			if len(goodEmails) > 0 {
+				inviteData := email.InviteEmailData{
+					Team:             team,
+					Channels:         channels,
+					SenderName:       "Administrator",
+					SenderUserID:     "mmctl " + model.NewId(),
+					Invites:          goodEmails,
+					SiteURL:          *c.App.Config().ServiceSettings.SiteURL,
+					Message:          memberInvite.Message,
+					ErrorWhenNotSent: true,
+					IsSystemAdmin:    true,
+				}
+				var sendErrors []*model.EmailInviteWithError
+				if len(channels) > 0 {
+					sendErrors, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(c.AppContext, inviteData)
+					invitesWithErrors = append(invitesWithErrors, sendErrors...)
+				} else {
+					inviteData.ErrorWhenNotSent = false
+					err = c.App.Srv().EmailService.SendInviteEmails(c.AppContext, inviteData)
+				}
+
+				if err != nil {
+					switch {
+					case errors.Is(err, email.NoRateLimiterError):
+						c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError).Wrap(err)
+					case errors.Is(err, email.SetupRateLimiterError):
+						c.Err = model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusInternalServerError).Wrap(err)
+					default:
+						c.Err = model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("team_id=%s, error=%v", team.Id, err), http.StatusRequestEntityTooLarge).Wrap(err)
+					}
+					return
+				}
 			}
 		}
 
@@ -180,7 +212,9 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
 		var invalidEmailList []string
 
@@ -194,7 +228,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
-		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
+		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, email.InviteEmailData{
+			Team:          team,
+			SenderName:    "Administrator",
+			SenderUserID:  "mmctl " + model.NewId(),
+			Invites:       emailList,
+			SiteURL:       *c.App.Config().ServiceSettings.SiteURL,
+			IsSystemAdmin: true,
+		})
 		if err != nil {
 			switch {
 			case errors.Is(err, email.NoRateLimiterError):
@@ -246,9 +287,9 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.Email = strings.ToLower(team.Email)
 
-	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "team", &team)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {

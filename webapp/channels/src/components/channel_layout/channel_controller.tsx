@@ -2,43 +2,50 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect} from 'react';
+import React, {lazy, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
-import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
+import {getIsMobileView} from 'selectors/views/browser';
 
+import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
-import ProductNoticesModal from 'components/product_notices_modal';
-import ResetStatusModal from 'components/reset_status_modal';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
-import {isInternetExplorer, isEdge} from 'utils/user_agent';
 
-const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
+const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
+const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
+const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
+const MarkAllAsReadToast = makeAsyncComponent('MarkAllAsReadToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
+
+const BODY_CLASS_FOR_CHANNEL = ['channel-view'];
 
 type Props = {
     shouldRenderCenterChannel: boolean;
-}
+};
 
 export default function ChannelController(props: Props) {
+    const isMobileView = useSelector(getIsMobileView);
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const enableMarkAllReadShortcut = useGetFeatureFlagValue('EnableShiftEscapeToMarkAllRead') === 'true';
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const isMsBrowser = isInternetExplorer() || isEdge();
         const {navigator} = window;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
-        document.body.classList.add(...getClassnamesForBody(platform, isMsBrowser));
+        document.body.classList.add(...getClassnamesForBody(platform));
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
@@ -49,11 +56,13 @@ export default function ChannelController(props: Props) {
         };
     }, []);
 
+    // Starts a regular interval to fetch statuses of users.
+    // see function "addVisibleUsersInCurrentChannelAndSelfToStatusPoll" for more details on which user's statuses are fetched.
     useEffect(() => {
         let loadStatusesIntervalId: NodeJS.Timeout;
         if (enabledUserStatuses) {
             loadStatusesIntervalId = setInterval(() => {
-                dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
+                dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
             }, Constants.STATUS_INTERVAL);
         }
 
@@ -65,6 +74,7 @@ export default function ChannelController(props: Props) {
     return (
         <>
             <CRTPostsChannelResetWatcher/>
+            <QueryParamActionController/>
             <Sidebar/>
             <div
                 id='channel_view'
@@ -73,17 +83,19 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
                     <Pluggable pluggableName='Root'/>
                     <ResetStatusModal/>
                 </div>
             </div>
+            {isMobileView && <MobileSidebarRight/>}
         </>
     );
 }
 
-export function getClassnamesForBody(platform: Window['navigator']['platform'], isMsBrowser = false) {
+export function getClassnamesForBody(platform: Window['navigator']['platform']) {
     const bodyClass = [...BODY_CLASS_FOR_CHANNEL];
 
     // OS Detection
@@ -91,11 +103,6 @@ export function getClassnamesForBody(platform: Window['navigator']['platform'], 
         bodyClass.push('os--windows');
     } else if (platform === 'MacIntel' || platform === 'MacPPC') {
         bodyClass.push('os--mac');
-    }
-
-    // IE Detection
-    if (isMsBrowser) {
-        bodyClass.push('browser--ie');
     }
 
     return bodyClass;

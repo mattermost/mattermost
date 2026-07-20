@@ -13,7 +13,7 @@ import PostTime from './post_time';
 
 type OwnProps = {
     teamName?: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {

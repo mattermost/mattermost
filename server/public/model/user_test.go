@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
@@ -35,7 +34,7 @@ func TestUserAuditable(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -51,7 +50,7 @@ func TestUserAuditable(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 		m := u.Auditable()
 
@@ -99,7 +98,7 @@ func TestUserLogClone(t *testing.T) {
 		l := u.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -115,7 +114,7 @@ func TestUserLogClone(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -131,11 +130,11 @@ func TestUserLogClone(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 
 		l := u.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{
@@ -173,7 +172,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: new(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -197,24 +196,60 @@ func TestUserDeepCopy(t *testing.T) {
 	assert.Equal(t, id, copyUser.Id)
 }
 
+type stubHasherFunc func(password string) (string, error)
+
+func (f stubHasherFunc) Hash(password string) (string, error) { return f(password) }
+
 func TestUserPreSave(t *testing.T) {
+	hasher := stubHasherFunc(func(password string) (string, error) {
+		return "hashed_" + password, nil
+	})
+
 	user := User{Password: "test"}
-	err := user.PreSave()
+	err := user.PreSave(hasher)
 	require.Nil(t, err)
+	assert.Equal(t, "hashed_test", user.Password)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserPreSavePwdTooLong(t *testing.T) {
+	hasher := stubHasherFunc(func(password string) (string, error) {
+		return "", ErrPasswordTooLong
+	})
+
 	user := User{Password: strings.Repeat("1234567890", 8)}
-	err := user.PreSave()
-	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
+	err := user.PreSave(hasher)
+	require.NotNil(t, err)
+	assert.Equal(t, "model.user.pre_save.password_too_long.app_error", err.Id)
 }
 
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -281,7 +316,7 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -324,22 +359,23 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.Nickname = "nickname"
 	user.FirstName = "firstname"
 	user.LastName = "lastname"
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	user.Position = "position"
 	user.Roles = "system_admin"
-	user.AuthData = NewPointer("authdata")
+	user.AuthData = new("authdata")
 	user.AuthService = "saml"
 	user.EmailVerified = true
 	user.FailedAttempts = 10
 	user.LastActivityAt = GetMillis()
+	user.MfaUsedTimestamps = StringArray{"1234", "4566"}
 
 	user.SanitizeInput(false)
 
 	// these fields should be reset
-	require.Equal(t, NewPointer(""), user.AuthData)
+	require.Equal(t, new(""), user.AuthData)
 	require.Equal(t, "", user.AuthService)
 	require.False(t, user.EmailVerified)
-	require.Equal(t, NewPointer(""), user.RemoteId)
+	require.Equal(t, new(""), user.RemoteId)
 	require.Equal(t, int64(0), user.CreateAt)
 	require.Equal(t, int64(0), user.UpdateAt)
 	require.Equal(t, int64(0), user.DeleteAt)
@@ -347,6 +383,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, int64(0), user.LastPictureUpdate)
 	require.Equal(t, int64(0), user.LastActivityAt)
 	require.Equal(t, 0, user.FailedAttempts)
+	require.Equal(t, StringArray{}, user.MfaUsedTimestamps)
 
 	// these fields should remain intact
 	require.Equal(t, "user@example.com", user.Email)
@@ -429,9 +466,9 @@ var usernames = []usernamesTest{
 	{"spin-punch", true, true},
 	{"sp", true, true},
 	{"s", true, true},
-	{"1spin-punch", false, false},
-	{"-spin-punch", false, false},
-	{".spin-punch", false, false},
+	{"1spin-punch", true, true},
+	{"-spin-punch", true, true},
+	{".spin-punch", true, true},
 	{"Spin-punch", false, false},
 	{"spin punch-", false, false},
 	{"spin_punch", true, true},
@@ -607,4 +644,70 @@ func TestSanitizeProfile(t *testing.T) {
 		require.Empty(t, user.Email)
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
+}
+
+func TestIsValidUserAuthService(t *testing.T) {
+	valid := []string{
+		UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid,
+	}
+	for _, s := range valid {
+		t.Run("valid/"+s, func(t *testing.T) {
+			require.True(t, IsValidUserAuthService(s))
+		})
+	}
+
+	invalid := []string{"", "not-a-real-service", UserAuthServiceMagicLink, "EMAIL"}
+	for _, s := range invalid {
+		t.Run("invalid/"+s, func(t *testing.T) {
+			require.False(t, IsValidUserAuthService(s))
+		})
+	}
+}
+
+func TestUserAuthIsValid(t *testing.T) {
+	authData := "test@test.com"
+
+	tests := []struct {
+		name     string
+		userAuth UserAuth
+		expected bool
+	}{
+		{
+			name:     "email auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail},
+			expected: true,
+		},
+		{
+			name:     "email auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail, AuthData: &authData},
+			expected: false,
+		},
+		{
+			name:     "sso auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml, AuthData: &authData},
+			expected: true,
+		},
+		{
+			name:     "sso auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml},
+			expected: false,
+		},
+		{
+			name:     "unknown auth service",
+			userAuth: UserAuth{AuthService: "not-a-real-service", AuthData: &authData},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, tt.userAuth.IsValid())
+		})
+	}
 }

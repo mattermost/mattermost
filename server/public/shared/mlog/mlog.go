@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -65,12 +67,10 @@ type Sugar = logr.Sugar
 type LoggerConfiguration map[string]TargetCfg
 
 func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
-	for k, v := range cfg {
-		lc[k] = v
-	}
+	maps.Copy(lc, cfg)
 }
 
-func (lc LoggerConfiguration) IsValid() error {
+func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	logger, err := logr.New()
 	if err != nil {
 		return errors.Wrap(err, "failed to create logger")
@@ -82,14 +82,25 @@ func (lc LoggerConfiguration) IsValid() error {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}
 
+	validLevelIDs := make([]logr.LevelID, 0, len(validLevels))
+	for _, l := range validLevels {
+		validLevelIDs = append(validLevelIDs, l.ID)
+	}
+
+	for _, c := range lc {
+		for _, l := range c.Levels {
+			if !slices.Contains(validLevelIDs, l.ID) {
+				return errors.Errorf("invalid log level id %d", l.ID)
+			}
+		}
+	}
+
 	return nil
 }
 
 func (lc LoggerConfiguration) toTargetCfg() map[string]logrcfg.TargetCfg {
 	tcfg := make(map[string]logrcfg.TargetCfg)
-	for k, v := range lc {
-		tcfg[k] = v
-	}
+	maps.Copy(tcfg, lc)
 	return tcfg
 }
 

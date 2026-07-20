@@ -28,7 +28,7 @@ type Worker struct {
 	jobServer *jobs.JobServer
 	logger    mlog.LoggerIFace
 	store     store.Store
-	closed    int32
+	closed    atomic.Int32
 }
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) *Worker {
@@ -48,7 +48,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) *Worker {
 
 func (worker *Worker) Run() {
 	// Set to open if closed before. We are not bothered about multiple opens.
-	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
+	if worker.closed.CompareAndSwap(1, 0) {
 		worker.stop = make(chan struct{})
 	}
 	worker.logger.Debug("Worker started")
@@ -71,7 +71,7 @@ func (worker *Worker) Run() {
 
 func (worker *Worker) Stop() {
 	// Set to close, and if already closed before, then return.
-	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+	if !worker.closed.CompareAndSwap(0, 1) {
 		return
 	}
 	worker.logger.Debug("Worker stopping")
@@ -93,10 +93,12 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
+	if appErr != nil {
+		logger.Warn("Worker experienced an error while trying to claim job", mlog.Err(appErr))
 		return
-	} else if !claimed {
+	} else if job == nil {
 		return
 	}
 

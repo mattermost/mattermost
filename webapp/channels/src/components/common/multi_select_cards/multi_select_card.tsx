@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './multi_select_card.scss';
 
@@ -15,7 +15,7 @@ export type Props = {
     checked: boolean;
     tooltip?: string;
     size?: 'regular' | 'small';
-}
+};
 const MultiSelectCard = (props: Props) => {
     const buttonProps: {
         className: string;
@@ -46,8 +46,6 @@ const MultiSelectCard = (props: Props) => {
     if (props.tooltip) {
         button = (
             <WithTooltip
-                id={props.id}
-                placement='top'
                 title={props.tooltip}
             >
                 {button}

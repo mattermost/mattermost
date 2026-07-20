@@ -1,0 +1,68 @@
+  /api/v4/audit_logs/certificate:
+    post:
+      tags:
+        - audit_logs
+      summary: Upload audit log certificate
+      description: |
+        Upload the certificate to be used for TLS verification with the audit log service.
+
+        ##### Permissions
+        Must have `sysconsole_write_experimental_features` permission.
+
+        __Minimum server version__: 10.9
+      operationId: AddAuditLogCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The certificate file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: Certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+    delete:
+      tags:
+        - audit_logs
+      summary: Remove audit log certificate
+      description: |
+        Delete the current certificate being used with the audit log service.
+
+        ##### Permissions
+        Must have `sysconsole_write_experimental_features` permission.
+
+        __Minimum server version__: 9.5
+      operationId: RemoveAuditLogCertificate
+      responses:
+        "200":
+          description: Certificate deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Upload Files', () => {
     let channelUrl;
@@ -140,12 +140,12 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(file.filename);
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', file.filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
 
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -174,12 +174,12 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(filename);
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
 
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -236,7 +236,7 @@ describe('Upload Files', () => {
         }
         cy.get(':nth-child(5) > .post-image__thumbnail > .post-image').should('be.visible');
         cy.postMessage('test');
-        cy.findByTestId('fileAttachmentList').find('.post-image').should('have.length', 5);
+        cy.findByTestId('fileAttachmentList').find('[data-testid="media-gallery-tile"]').should('have.length', 5);
     });
 
     it('MM-T338 Image Attachment Upload in Mobile View', () => {
@@ -405,12 +405,12 @@ describe('Upload Files', () => {
 
         // * Download button should exist
         cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-            expect(downloadLink.attr('download')).to.equal(filename);
+            cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                const fileAttachmentURL = link.attr('href');
 
-            const fileAttachmentURL = downloadLink.attr('href');
-
-            // * Verify that download link has correct name
-            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                // * Verify that download link has correct name
+                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+            });
         });
 
         // # Close modal

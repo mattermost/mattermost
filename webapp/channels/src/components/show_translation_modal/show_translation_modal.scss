@@ -1,0 +1,69 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ShowTranslationModal {
+    min-width: 960px;
+
+    &__content {
+        display: flex;
+        flex-direction: row;
+        padding-bottom: 32px;
+        gap: 16px;
+    }
+
+    &__messageBlock {
+        flex: 1;
+        padding: 16px;
+        border-radius: 4px;
+        background-color: var(--center-channel-bg);
+
+        &--original {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__badgeContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+
+    &__languageText {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+}
+
+// On narrow screens, use as much of the viewport as possible
+@media screen and (max-width: 1000px) {
+    .ShowTranslationModal {
+        width: calc(100vw - 40px);
+        min-width: unset;
+        max-width: calc(100vw - 40px);
+    }
+}
+
+// On small screens, stack original and translated messages vertically
+@media screen and (max-width: 768px) {
+    .ShowTranslationModal {
+        width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
+    }
+
+    .ShowTranslationModal__content {
+        flex-direction: column;
+    }
+}
+
+// Below 640px, modal takes over the whole screen with no margins
+@media screen and (max-width: 640px) {
+    .ShowTranslationModal {
+        width: 100vw;
+        max-width: 100vw;
+    }
+}
+

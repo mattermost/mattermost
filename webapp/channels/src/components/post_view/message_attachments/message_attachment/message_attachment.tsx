@@ -4,17 +4,16 @@
 import truncate from 'lodash/truncate';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
-    MessageAttachmentField,
 } from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {trackEvent} from 'actions/telemetry_actions';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
@@ -24,6 +23,7 @@ import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {decodeHtmlEntities} from 'utils/markdown/decode_html_entities';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
@@ -62,13 +62,14 @@ type Props = {
     };
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
-}
+    actionError: React.ReactNode | null;
+};
 
 export default class MessageAttachment extends React.PureComponent<Props, State> {
     private mounted = false;
@@ -81,6 +82,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             checkOverflow: 0,
             actionExecuting: false,
             actionExecutingMessage: null,
+            actionError: null,
         };
 
         this.imageProps = {
@@ -99,14 +101,20 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
     handleHeightReceivedForThumbUrl = ({height}: {height: number}) => {
         const {attachment} = this.props;
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.thumb_url])) {
+        if (!attachment.thumb_url) {
+            return;
+        }
+        if (!secureGetFromRecord(this.props.imagesMetadata, attachment.thumb_url)) {
             this.handleHeightReceived(height);
         }
     };
 
     handleHeightReceivedForImageUrl = ({height}: {height: number}) => {
         const {attachment} = this.props;
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.image_url])) {
+        if (!attachment.image_url) {
+            return;
+        }
+        if (!secureGetFromRecord(this.props.imagesMetadata, attachment.image_url)) {
             this.handleHeightReceived(height);
         }
     };
@@ -138,7 +146,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         const content = [] as JSX.Element[];
 
-        actions.forEach((action: PostAction) => {
+        actions.forEach((action) => {
             if (!action.id || !action.name) {
                 return;
             }
@@ -171,10 +179,17 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         });
 
         return (
-            <div
-                className='attachment-actions'
-            >
-                {content}
+            <div>
+                <div
+                    className='attachment-actions'
+                >
+                    {content}
+                </div>
+                {this.state.actionError && (
+                    <div className='has-error'>
+                        <label className='control-label'>{this.state.actionError}</label>
+                    </div>
+                )}
             </div>
         );
     };
@@ -182,24 +197,50 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
     handleAction = (e: React.MouseEvent, actionOptions?: PostActionOption[]) => {
         e.preventDefault();
 
+        // Clear any previous error
+        this.setState({actionError: null});
+
         const actionExecutingMessage = this.getActionOption(actionOptions, 'ActionExecutingMessage');
         if (actionExecutingMessage) {
             this.setState({actionExecuting: true, actionExecutingMessage: actionExecutingMessage.value});
         }
 
-        const trackOption = this.getActionOption(actionOptions, 'TrackEventId');
-        if (trackOption) {
-            trackEvent('admin', 'click_warn_metric_bot_id', {metric: trackOption.value});
-        }
-
         const actionId = e.currentTarget.getAttribute('data-action-id') || '';
         const actionCookie = e.currentTarget.getAttribute('data-action-cookie') || '';
 
-        this.props.actions.doPostActionWithCookie(this.props.postId, actionId, actionCookie).then(() => {
+        this.props.actions.doPostActionWithCookie(this.props.postId, actionId, actionCookie).then((result) => {
+            if (result.error) {
+                // Handle errors returned in the result
+                this.setState({
+                    actionExecuting: false,
+                    actionExecutingMessage: null,
+                    actionError: result.error.message || (
+                        <FormattedMessage
+                            id='post.message_attachment.action_failed'
+                            defaultMessage='Action failed to execute'
+                        />
+                    ),
+                });
+                return;
+            }
+
+            // Success case
             this.handleCustomActions(actionOptions);
             if (actionExecutingMessage) {
                 this.setState({actionExecuting: false, actionExecutingMessage: null});
             }
+        }).catch((error) => {
+            // Handle promise rejection errors
+            this.setState({
+                actionExecuting: false,
+                actionExecutingMessage: null,
+                actionError: error.message || (
+                    <FormattedMessage
+                        id='post.message_attachment.action_failed'
+                        defaultMessage='Action failed to execute'
+                    />
+                ),
+            });
         });
     };
 
@@ -232,9 +273,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false};
+        const markdown = {...this.props.options, markdown: false, mentionHighlight: false, atMentions: false};
 
-        fields.forEach((field: MessageAttachmentField, i: number) => {
+        fields.forEach((field, i) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
                 fieldTables.push(
                     <table
@@ -279,6 +320,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 >
                     <Markdown
                         message={String(field.value)}
+                        options={this.props.options}
                         postId={this.props.postId}
                     />
                 </td>,
@@ -351,6 +393,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 <div className='attachment__thumb-pretext'>
                     <Markdown
                         message={attachment.pretext}
+                        options={options}
                         postId={this.props.postId}
                     />
                 </div>
@@ -364,7 +407,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     <ExternalImage
                         key={'attachment__author-icon'}
                         src={attachment.author_icon}
-                        imageMetadata={this.props.imagesMetadata && this.props.imagesMetadata[attachment.author_icon]}
+                        imageMetadata={secureGetFromRecord(this.props.imagesMetadata, attachment.author_icon)}
                     >
                         {(iconUrl) => (
                             <img
@@ -384,7 +427,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         className='attachment__author-name'
                         key={'attachment__author-name'}
                     >
-                        {attachment.author_name}
+                        {decodeHtmlEntities(attachment.author_name)}
                     </span>,
                 );
             }
@@ -411,7 +454,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                             href={attachment.title_link}
                             location='message_attachment'
                         >
-                            {attachment.title}
+                            {decodeHtmlEntities(attachment.title)}
                         </ExternalLink>
                     </h1>
                 );
@@ -421,9 +464,10 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                ...options,
+                                atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
-                                autolinkedUrlSchemes: [],
                             }}
                             postId={this.props.postId}
                         />
@@ -453,7 +497,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         let image;
         if (attachment.image_url) {
-            const imageMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.image_url];
+            const imageMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.image_url);
 
             image = (
                 <div className='attachment__image-container'>
@@ -479,7 +523,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (attachment.footer) {
             let footerIcon;
             if (attachment.footer_icon) {
-                const footerIconMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.footer_icon];
+                const footerIconMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.footer_icon);
 
                 footerIcon = (
                     <ExternalImage
@@ -502,14 +546,18 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             footer = (
                 <div className='attachment__footer-container'>
                     {footerIcon}
-                    <span>{truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}</span>
+                    <Markdown
+                        message={truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}
+                        options={options}
+                        postId={this.props.postId}
+                    />
                 </div>
             );
         }
 
         let thumb;
         if (attachment.thumb_url) {
-            const thumbMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.thumb_url];
+            const thumbMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.thumb_url);
 
             thumb = (
                 <div className='attachment__thumb-container'>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Category} from 'components/emoji_picker/types';
@@ -43,18 +43,17 @@ describe('EmojiPickerCategory', () => {
         renderWithContext(<EmojiPickerCategory {...props}/>);
 
         // TODO: Change when we actually disabled the element when enable is false
-        expect(screen.getByRole('link')).toHaveClass('emoji-picker__category disable');
+        expect(screen.getByRole('button')).toHaveClass('emoji-picker__category disable');
     });
 
     test('should have tooltip on hover', async () => {
         renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
 
-        await act(async () => {
-            const emojiPickerCategory = screen.getByRole('link');
-            userEvent.hover(emojiPickerCategory);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        });
+        const emojiPickerCategory = screen.getByRole('button');
+        await userEvent.hover(emojiPickerCategory);
 
-        expect(screen.getByText(categoryMessage)).toBeVisible();
+        await waitFor(() => {
+            expect(screen.getByText(categoryMessage)).toBeVisible();
+        });
     });
 });

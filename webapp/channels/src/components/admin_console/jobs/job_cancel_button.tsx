@@ -16,12 +16,12 @@ type Props = {
     onClick: (id: string) => void;
 };
 
-const JobCancelButton = (props: Props): JSX.Element|null => {
+const JobCancelButton = (props: Props): JSX.Element | null => {
     const {job, disabled, onClick} = props;
     const intl = useIntl();
     let cancelButton = null;
 
-    const handleClick = useCallback((e) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         onClick(job.id);
     }, [onClick, job.id]);

@@ -23,11 +23,12 @@ type FencedCode struct {
 	RawCode      []FencedCodeLine
 }
 
-func (b *FencedCode) Code() (result string) {
+func (b *FencedCode) Code() string {
+	var resultSb strings.Builder
 	for _, code := range b.RawCode {
-		result += strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End]
+		resultSb.WriteString(strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End])
 	}
-	return
+	return resultSb.String()
 }
 
 func (b *FencedCode) Info() string {

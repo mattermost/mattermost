@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Message permalink', () => {
     let testTeam;
@@ -54,7 +53,8 @@ describe('Message permalink', () => {
         }
 
         // # Search for a message in the current channel
-        cy.get('#searchBox').clear().type('in:town-square').type('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
 
         // # Jump to first permalink view (most recent message)
         cy.get('.search-item__jump').first().click();
@@ -71,7 +71,8 @@ describe('Message permalink', () => {
         });
 
         // # Search for a message in the current channel
-        cy.get('#searchBox').clear().type('in:town-square').type('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
 
         // # Jump to first permalink view (most recent message)
         cy.get('.search-item__jump').first().click();

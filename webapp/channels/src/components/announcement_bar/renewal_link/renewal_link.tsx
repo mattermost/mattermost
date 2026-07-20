@@ -4,19 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import {Button} from '@mattermost/shared/components/button';
 
-import type {ModalData} from 'types/actions';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import './renew_link.scss';
 
 export interface RenewalLinkProps {
-    telemetryInfo?: { success: string; error: string };
-    actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
-    };
     isDisabled?: boolean;
-    customBtnText?: JSX.Element;
 }
 
 const RenewalLink = (props: RenewalLinkProps) => {
@@ -35,13 +30,16 @@ const RenewalLink = (props: RenewalLinkProps) => {
     );
 
     return (
-        <button
-            className='btn btn-primary annnouncementBar__renewLicense'
+        <Button
+            emphasis='tertiary'
+            size='xs'
+            variant='inverted'
+            className='annnouncementBar__renewLicense'
             disabled={props.isDisabled}
             onClick={(e) => handleLinkClick(e)}
         >
             {btnText}
-        </button>
+        </Button>
     );
 };
 

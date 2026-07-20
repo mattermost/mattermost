@@ -3,10 +3,9 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useRef, useState} from 'react';
-import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, ActionMeta} from 'react-select';
+import type {Props as SelectProps, ActionMeta, StylesConfig} from 'react-select';
 
 import InputError from 'components/input_error';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -20,7 +19,7 @@ import './dropdown_input.scss';
 export type ValueType = {
     label: string;
     value: string;
-}
+};
 
 type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     value?: T;
@@ -29,33 +28,48 @@ type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     onChange: (value: T, action: ActionMeta<T>) => void;
     testId?: string;
     required?: boolean;
+    addon?: React.ReactNode;
+    textPrefix?: React.ReactNode;
 };
 
 const baseStyles = {
-    input: (provided: CSSProperties) => ({
+    input: (provided) => ({
         ...provided,
         color: 'var(--center-channel-color)',
     }),
-    control: (provided: CSSProperties) => ({
+    control: (provided) => ({
         ...provided,
         border: 'none',
         boxShadow: 'none',
         padding: '0 2px',
         cursor: 'pointer',
     }),
-    indicatorSeparator: (provided: CSSProperties) => ({
+    indicatorSeparator: (provided) => ({
         ...provided,
         display: 'none',
     }),
-    menu: (provided: CSSProperties) => ({
+    menu: (provided) => ({
         ...provided,
         zIndex: 100,
     }),
-    menuPortal: (provided: CSSProperties) => ({
+    menuPortal: (provided) => ({
         ...provided,
         zIndex: 100,
     }),
-};
+    group: (provided) => ({
+        ...provided,
+        paddingTop: 0,
+        paddingBottom: 0,
+    }),
+    groupHeading: (provided) => ({
+        ...provided,
+        height: 1,
+        margin: '4px 0',
+        padding: 0,
+        fontSize: 0,
+        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
+    }),
+} satisfies StylesConfig;
 
 const IndicatorsContainer = (props: any) => {
     return (
@@ -88,12 +102,21 @@ const Option = (props: any) => {
     );
 };
 
+const Menu = (props: any) => {
+    return (
+        <components.Menu
+            {...props}
+            innerProps={{...props.innerProps, 'data-testid': 'dropdownMenu'}}
+        />
+    );
+};
+
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
-    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props;
+    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props; // types are not inferred correctly for `props` in react-select version v5.
 
     const [focused, setFocused] = useState(false);
 
-    const onInputFocus = (event: React.FocusEvent<HTMLElement>) => {
+    const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
         const {onFocus} = props;
 
         setFocused(true);
@@ -122,7 +145,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
     }, [required, formatMessage]);
 
-    const onInputBlur = useCallback((event: React.FocusEvent<HTMLElement>) => {
+    const onInputBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
         setFocused(false);
         validateInput();
 
@@ -162,6 +185,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                             IndicatorsContainer,
                             Option,
                             Control,
+                            Menu,
                         }}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}

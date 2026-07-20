@@ -55,14 +55,14 @@ class BrowserStoreClass {
                 this.localStorageSupported = true;
             }
             localStorage.removeItem('__testLocal__');
-        } catch (e) {
+        } catch {
             this.localStorageSupported = false;
         }
 
         try {
             sessionStorage.setItem('__testSession__', '1');
             sessionStorage.removeItem('__testSession__');
-        } catch (e) {
+        } catch {
             // Session storage not usable, website is unusable
             getHistory().push('/error?type=' + ErrorPageTypes.LOCAL_STORAGE);
         }
@@ -95,7 +95,20 @@ class BrowserStoreClass {
     clearLandingPreference(siteUrl?: string) {
         localStorage.removeItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl));
     }
+
+    getHideNotificationPermissionRequestBanner() {
+        return localStorage.getItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER) === 'true';
+    }
+
+    setHideNotificationPermissionRequestBanner() {
+        localStorage.setItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER, 'true');
+    }
+
+    clearHideNotificationPermissionRequestBanner() {
+        localStorage.removeItem(StoragePrefixes.HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER);
+    }
 }
 
 const BrowserStore = new BrowserStoreClass();
+
 export default BrowserStore;

@@ -20,34 +20,35 @@ import './result_table.scss';
 
 type InviteNotSent = {
     text: React.ReactNode | React.ReactNodeArray;
-}
+};
 
 type InviteEmail = {
     email: string;
-}
+};
 
 type InviteUser = {
     user: UserProfile;
-}
+};
 
 type I18nLike = {
     id: string;
     defaultMessage: string;
     values?: Record<string, React.ReactNode>;
-}
+};
 
 export type InviteResult = (InviteNotSent | InviteEmail | InviteUser) & {
     reason: string | I18nLike;
     path?: string;
-}
+};
 
 export type Props = {
     sent?: boolean;
     rows: InviteResult[];
-}
+};
 
 export default function ResultTable(props: Props) {
     const intl = useIntl();
+    let wrapperDataTestId = 'invitation-not-sent-section';
     let wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--not-sent';
     let header = (
         <h2>
@@ -58,6 +59,7 @@ export default function ResultTable(props: Props) {
         </h2>
     );
     if (props.sent) {
+        wrapperDataTestId = 'invitation-sent-section';
         wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--sent';
         header = (
             <h2>
@@ -88,24 +90,29 @@ export default function ResultTable(props: Props) {
         );
     }
     return (
-        <div className={wrapperClass}>
+        <div
+            className={wrapperClass}
+            data-testid={wrapperDataTestId}
+        >
             {header}
-            <div className='InviteResultTable'>
-                <div className='table-header'>
-                    <div className='people-header'>
-                        <FormattedMessage
-                            id='invitation-modal.confirm.people-header'
-                            defaultMessage='People'
-                        />
-                    </div>
-                    <div className='details-header'>
-                        <FormattedMessage
-                            id='invitation-modal.confirm.details-header'
-                            defaultMessage='Details'
-                        />
-                    </div>
-                </div>
-                <div className='rows'>
+            <table className='InviteResultTable'>
+                <thead>
+                    <tr className='table-header'>
+                        <th className='people-header'>
+                            <FormattedMessage
+                                id='invitation-modal.confirm.people-header'
+                                defaultMessage='People'
+                            />
+                        </th>
+                        <th className='details-header'>
+                            <FormattedMessage
+                                id='invitation-modal.confirm.details-header'
+                                defaultMessage='Details'
+                            />
+                        </th>
+                    </tr>
+                </thead>
+                <tbody className='rows'>
                     {props.rows.map((invitation: InviteResult) => {
                         let icon;
                         let username;
@@ -114,7 +121,7 @@ export default function ResultTable(props: Props) {
                         let botBadge;
                         let reactKey = '';
 
-                        if (invitation.hasOwnProperty('user')) {
+                        if (Object.hasOwn(invitation, 'user')) {
                             className = 'name';
                             const user = (invitation as InviteUser).user;
                             reactKey = user.id;
@@ -133,7 +140,7 @@ export default function ResultTable(props: Props) {
                             if (isGuest(user.roles)) {
                                 guestBadge = <GuestTag/>;
                             }
-                        } else if (invitation.hasOwnProperty('email')) {
+                        } else if (Object.hasOwn(invitation, 'email')) {
                             const email = (invitation as InviteEmail).email;
                             reactKey = email;
                             className = 'email';
@@ -163,27 +170,29 @@ export default function ResultTable(props: Props) {
                         }
 
                         return (
-                            <div
+                            <tr
                                 key={reactKey}
                                 className='InviteResultRow'
                             >
-                                <div className='username-or-icon'>
+                                <td className='username-or-icon'>
                                     {icon}
                                     <span className={className}>
                                         {username}
                                         {botBadge}
                                         {guestBadge}
                                     </span>
-                                </div>
-                                <div className='reason'>
+                                </td>
+                                <td
+                                    className='reason'
+                                    data-testid='invitation-result-reason'
+                                >
                                     {reason}
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         );
                     })}
-
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
     );
 }

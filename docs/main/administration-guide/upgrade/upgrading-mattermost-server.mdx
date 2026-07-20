@@ -1,0 +1,267 @@
+---
+title: "Upgrade Mattermost Server"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+In most cases, you can upgrade Mattermost Server in a few minutes. However, the upgrade can take longer depending on several factors, including the size and complexity of your installation, and the version that you're upgrading from.
+
+If this is your first Mattermost upgrade, we recommend that you read the [comprehensive upgrade guide](#comprehensive-upgrade-guide) below. If you're an experienced system admin familiar with the upgrade process, see the [quick start checklist](#quick-start).
+
+## Quick start
+
+Experienced system admins looking for a quick overview of the Mattermost upgrade process can use the following 4-step checklist below:
+
+1.  Ensure you have a complete backup of your system before proceeding, including database and application.
+2.  **System requirements**: Verify that your server and PostgreSQL version meets [Mattermost requirements](/deployment-guide/software-hardware-requirements).
+3.  **Preparation steps**
+
+> - Download the latest server version.
+> - Extract the new files to a temporary location (`/tmp`)
+> - Identify the current Mattermost directory (default: `/opt/mattermost`)
+
+4.  **Upgrade process**
+
+> - Stop the Mattermost service: `sudo systemctl stop mattermost`
+> - Remove old application files (preserve config, data, logs, plugins).
+> - Copy new files to the install directory.
+> - Change file ownership: `sudo chown -R mattermost:mattermost mattermost`
+> - Set capabilities for low port usage if needed: `sudo setcap cap_net_bind_service=+ep ./mattermost/bin/mattermost`
+> - Start the Mattermost service: `sudo systemctl start mattermost`
+> - Remove temporary upgrade files.
+
+For detailed instructions and additional considerations, see the complete upgrade guide below.
+
+<div id="before-you-begin">
+
+<Tip>
+
+To learn how to safely upgrade your deployment in Kubernetes for High Availability and Active/Active support, see the [Upgrading Mattermost in Kubernetes and High Availability Environments](/administration-guide/upgrade/upgrade-mattermost-kubernetes-ha) documenation.
+
+</Tip>
+
+</div>
+
+## Comprehensive upgrade guide
+
+### Before you begin
+
+**Read these instructions carefully from start to finish.**
+
+<Important>
+
+**Before upgrading to Mattermost v11.0**: If you're currently using Bleve search (found under **System Console \> Experimental \> Bleve**), ensure that `DisableDatabaseSearch` is set to `false` before upgrading, or search will become non-functional after the upgrade. Bleve search has been removed in v11.0. For enterprise search capabilities, consider migrating to [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [OpenSearch](/administration-guide/scale/opensearch-setup) for [enterprise search](/administration-guide/scale/enterprise-search) capabilities.
+
+</Important>
+
+Make sure that you understand how to [prepare for your upgrade](/administration-guide/upgrade/prepare-to-upgrade-mattermost), familiarize yourself with all [software and hardware requirements](/deployment-guide/software-hardware-requirements), read the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) and that you understand each step of the upgrade process documented below before starting a Mattermost upgrade. If you have questions or concerns, you can ask on the Mattermost forum at [https://forum.mattermost.com/](https://forum.mattermost.com/).
+
+**Gather the following information before starting the upgrade:**
+
+- **Existing install directory - &#123;install-path&#125;**: If you don't know where Mattermost Server is installed, use the `whereis mattermost` command to find standard binary places and $PATH.
+  - This command won't return anything if `/opt/mattermost/bin` wasn't added to the PATH.
+  - Alternatively, you can use the `find / -executable -type f -iname mattermost 2> /dev/null` command to find the `mattermost` binary.
+  - The output should be similar to `/opt/mattermost/bin/mattermost`.
+  - The install directory is everything before the first occurrence of the string `/mattermost`. In this example, the `&#123;install-path&#125;` is `/opt`.
+  - If that command doesn't produce any results, it's likely because your version is older; try `whereis platform` instead.
+- **Location and size of your local storage directory**: The local storage directory contains all the files that users have attached to their messages.
+  - If you don't know its location, open the System Console and go to **Environment \> File Storage**, then read the value in **Local Storage Directory**.
+  - Paths are relative to the `mattermost` directory. For example, if the local storage directory is `./data/` then the absolute path is `&#123;install-path&#125;/mattermost/data`.
+- **Database disk space**: If you're upgrading a Mattermost deployment on the same server as your database, we recommend a minimum 2GB of free disk space to allow for extraction, copy, and cleanup, and a minimum of twice the size of your Mattermost installation available for the database.
+
+<Tip>
+
+Consider generating a migration plan using the [mattermost db migrate --save-plan](/administration-guide/manage/command-line-tools#mattermost-db-migrate) CLI command when upgrading to have a detailed record of the changes that will be applied to your database. This can make it easier to revert those changes if you need to downgrade later.
+
+</Tip>
+
+### Upgrade Mattermost Server
+
+1.  In a terminal window on the server that hosts Mattermost, change to your home directory. Delete any files and directories that might still exist from a previous download.
+
+    ``` sh
+    cd /tmp
+    ```
+
+2.  Download [the latest version of Mattermost Server](https://mattermost.com/download/) based on your Mattermost edition.
+
+<Tabs>
+<TabItem value="enterprise-edition" label="Enterprise Edition">
+
+In the following command, replace `X.X.X` with the version that you want to download:
+
+``` sh
+wget https://releases.mattermost.com/X.X.X/mattermost-X.X.X-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="team-edition" label="Team Edition">
+
+In the following command, replace `X.X.X` with the version that you want to download:
+
+``` sh
+wget https://releases.mattermost.com/X.X.X/mattermost-team-X.X.X-linux-amd64.tar.gz
+```
+
+</TabItem>
+</Tabs>
+
+
+3.  Confirm no other Mattermost zip folders exist in your `/tmp` directory. If another version's zip file does exist, delete or rename the file.
+
+    ``` sh
+    ls -- mattermost*.gz
+    ```
+
+    If anything except the new release is returned above, rename this file or delete it completely.
+
+4.  Extract the Mattermost Server files.
+
+    ``` sh
+    tar -xf mattermost*.gz --transform='s,^[^/]\+,\0-upgrade,'
+    ```
+
+    The `transform` option adds a suffix to the topmost extracted directory so it does not conflict with the usual install directory.
+
+5.  Stop your Mattermost server.
+
+    ``` sh
+    sudo systemctl stop mattermost
+    ```
+
+6.  Back up your data and application. Make sure you've properly backed up your database before continuing with the upgrade. In case of an unexpected failure, you should be in a position to load a previous database snapshot.
+
+    1.  Back up your database using your organization’s standard procedures for backing up the database.
+
+    2.  Back up your application by copying into an archive folder (e.g. `mattermost-back-YYYY-MM-DD-HH-mm`).
+
+        ``` sh
+        cd {install-path}
+        sudo cp -ra mattermost/ mattermost-back-$(date +'%F-%H-%M')/
+        ```
+
+7.  Remove all files **except** data and custom directories from within the current `mattermost` directory. We strongly recommend reading the important note below before executing the following command.
+
+    ``` sh
+    sudo find mattermost/ mattermost/client/ -mindepth 1 -maxdepth 1 \! \( -type d \( -path mattermost/client -o -path mattermost/client/plugins -o -path mattermost/config -o -path mattermost/logs -o -path mattermost/plugins -o -path mattermost/data \) -prune \) | sort | sudo xargs rm -r
+    ```
+
+    <div class="important">
+
+    <div class="title">
+
+    Important
+
+    </div>
+
+    By default, the following subdirectories will be preserved on upgrade:`config`, `logs`, `plugins`, `client/plugins`, and `data`. Custom directories and ANY other directories that you've added to Mattermost are NOT preserved by default. Generally, these are TLS keys or other custom information, but can also include a different directories configured for local storage other than `data`, as well as custom directories used to store attachments.
+
+    Before continuing with your upgrade, we strongly recommend that you:
+
+    1.  Run `ls` on your Mattermost install directory to identify all default folders that exist prior to upgrading.
+
+        A default Mattermost installation has the following files and directories:
+
+        ``` sh
+        $ ls /opt/mattermost
+        ENTERPRISE-EDITION-LICENSE.txt README.md  client  data   i18n  manifest.txt  prepackaged_plugins
+        NOTICE.txt                      bin        config  fonts  logs  plugins       templates
+        ```
+
+    2.  Perform a dry run of deleting the contents of the `mattermost` folder and preserving only the specified directories and their contents by running the following command. It's the same command listed above, but it omits `sudo xargs rm -r`:
+
+        ``` sh
+        sudo find mattermost/ mattermost/client/ -mindepth 1 -maxdepth 1 \! \( -type d \( -path mattermost/client -o -path mattermost/client/plugins -o -path mattermost/config -o -path mattermost/logs -o -path mattermost/plugins -o -path mattermost/data \) -prune \) | sort
+        ```
+
+    3.  If you store TLSCert/TLSKey files or other information within your `/opt/mattermost` folder, you need to append `-o -path mattermost/yourFolderHere` to the command above to avoid having to manually copy the TLSCert/TLSKey files from the backup into the new install.
+
+        ``` sh
+        sudo find mattermost/ mattermost/client/ -mindepth 1 -maxdepth 1 \! \( -type d \( -path mattermost/client -o -path mattermost/client/plugins -o -path mattermost/config -o -path mattermost/logs -o -path mattermost/plugins -o -path mattermost/data -o -path  mattermost/yourFolderHere \) -prune \) | sort
+        ```
+
+    4.  If you're using [Bleve search](/administration-guide/configure/bleve-search), and the directory exists *within* the `mattermost` directory, the index directory path won't be preserved using the command above.
+
+        - You can either move the bleve index directory out from the `mattermost` directory before upgrading or, following an upgrade, you can copy the contents of the bleve index directory from the `backup` directory.
+        - You can then store that directory or re-index as preferred.
+        - The bleve indexes can be migrated without reindexing between Mattermost versions. See our [Configuration Settings](/administration-guide/configure/deprecated-configuration-settings#bleve-settings) documentation for details on configuring the bleve index directory.
+
+    Once you've completed all of the steps above (where applicable), you're ready to execute the full command that includes `xargs rm -r` to delete the files. Note that the following example includes `-o -path mattermost/yourFolderHere`:
+
+    ``` sh
+    sudo find mattermost/ mattermost/client/ -mindepth 1 -maxdepth 1 \! \( -type d \( -path mattermost/client -o -path mattermost/client/plugins -o -path mattermost/config -o -path mattermost/logs -o -path mattermost/plugins -o -path mattermost/data -o -path  mattermost/yourFolderHere \) -prune \) | sort | sudo xargs rm -r
+    ```
+
+    </div>
+
+8.  Copy the new files to your install directory.
+
+    ``` sh
+    sudo cp -an /tmp/mattermost-upgrade/. mattermost/
+    ```
+
+    <div class="note">
+
+    <div class="title">
+
+    Note
+
+    </div>
+
+    The `n` (no-clobber) flag and trailing `.` on source are very important. The `n` (no-clobber) flag preserves existing configurations and logs in your installation path. The trailing `.` on source ensures all installation files are copied.
+
+    </div>
+
+9.  Change ownership of the new files after copying them. For example:
+
+    ``` sh
+    sudo chown -R mattermost:mattermost mattermost
+    ```
+
+    <div class="note">
+
+    <div class="title">
+
+    Note
+
+    </div>
+
+    - If you didn't use `mattermost` as the owner and group of the install directory, run `sudo chown -hR &#123;owner&#125;:&#123;group&#125; &#123;install-path&#125;/mattermost`.
+    - If you're uncertain what owner or group was defined, use the `ls -l &#123;install-path&#125;/mattermost/bin/mattermost` command to obtain them.
+
+    </div>
+
+10. If you want to use port 80 or 443 to serve your server, and/or if you have TLS set up on your Mattermost server, you **must** activate the `CAP_NET_BIND_SERVICE` capability to allow the new Mattermost binary to bind to ports lower than 1024. For example:
+
+    ``` sh
+    sudo setcap cap_net_bind_service=+ep ./mattermost/bin/mattermost
+    ```
+
+11. Start your Mattermost server.
+
+    ``` sh
+    sudo systemctl start mattermost
+    ```
+
+12. Remove the temporary files.
+
+    ``` sh
+    sudo rm -r /tmp/mattermost-upgrade/
+    sudo rm -i /tmp/mattermost*.gz
+    ```
+
+13. If you're using a [high availability](/administration-guide/scale/high-availability-cluster-based-deployment) deployment, you need to apply the steps above on every node in your cluster. Once complete, the **Config File MD5** columns in the high availability section of the System Console should be green. If they're yellow, please ensure that all nodes have the same server version and the same configuration.
+
+    If they continue to display as yellow, trigger a configuration propagation across the cluster by opening the System Console, changing a setting, and reverting it. This will enable the **Save** button for that page. Then, select **Save**. This will not change any configuration, but sends the existing configuration to all nodes in the cluster.
+
+After the server is upgraded, users might need to refresh their browsers to experience any new features.
+
+## Upgrade Team Edition to Enterprise Edition
+
+To upgrade from the Team Edition to the Enterprise Edition, follow the normal upgrade instructions provided above, making sure that you download the Enterprise Edition of Mattermost Server in Step 2.
+
+## Upload a license key
+
+When Enterprise Edition is running, open **System Console \> About \> Editions and License** and upload your license key.

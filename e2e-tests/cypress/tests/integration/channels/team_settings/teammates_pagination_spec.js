@@ -50,7 +50,7 @@ describe('Teams Suite', () => {
 
     it('MM-T384 Team Admin can use Next button to page through list in Manage Members', () => {
         // # Open team menu and click "Manage Members"
-        cy.uiOpenTeamMenu('Manage Members');
+        cy.uiOpenTeamMenu('Manage members');
 
         // * Check Manage Members modal dialog
         cy.get('#teamMemberModalLabel').should('be.visible');

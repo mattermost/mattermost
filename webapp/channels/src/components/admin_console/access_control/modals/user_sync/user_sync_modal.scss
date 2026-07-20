@@ -1,0 +1,56 @@
+#user-list-modal-dialog {
+    .modal-header {
+        padding-bottom: 0px;
+    }
+
+    .tabs {
+        display: flex;
+        padding: 0 32px;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 12px;
+    }
+    
+    .tab-button {
+        padding: 10px 15px;
+        border: none;
+        margin-bottom: -1px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        font-weight: 600;
+    
+        &.active {
+            border-bottom: 2px solid var(--button-bg);
+            color: var(--button-bg);
+        }
+    
+        &:hover:not(.active) {
+            color: var(--center-channel-color);
+        }
+    }
+    
+    .tab-content {
+        .filtered-user-list {
+            height: 440px;
+            overflow-y: auto;
+        }
+
+        .no-user-message {
+            display: flex;
+            height: 440px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            text-align: center;
+
+            .empty-state-svg {
+                margin-bottom: 20px;
+            }
+          
+            .primary-message {
+                padding-bottom: 24px;
+            }
+        }
+    }
+}

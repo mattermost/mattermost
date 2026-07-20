@@ -5,7 +5,10 @@ package sharedchannel
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,27 +19,47 @@ import (
 )
 
 type syncTask struct {
-	id         string
-	channelID  string
-	remoteID   string
-	AddedAt    time.Time
-	retryCount int
-	retryMsg   *model.SyncMsg
-	schedule   time.Time
+	id        string
+	channelID string
+	userID    string
+	remoteID  string
+	AddedAt   time.Time
+	// existingMsg is used to add information to the task on creation
+	// instead of waiting until the task is processed to fetch it. If
+	// a new task with the same ID is scheduled, its existingMsg will
+	// replace the previous one
+	existingMsg *model.SyncMsg
+	retryCount  int
+	retryMsg    *model.SyncMsg
+	schedule    time.Time
+	// originRemoteID is the remote that initiated this change; it will be
+	// skipped when syncing to prevent echo-back.
+	originRemoteID string
 }
 
-func newSyncTask(channelID string, remoteID string, retryMsg *model.SyncMsg) syncTask {
+func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMsg *model.SyncMsg) syncTask {
 	var retryID string
 	if retryMsg != nil {
 		retryID = retryMsg.Id
 	}
 
+	// Generate a unique task ID
+	taskID := channelID + userID + remoteID + retryID // combination of ids to avoid duplicates
+
+	// For batch tasks, add a batch identifier to make the ID unique
+	if existingMsg != nil && len(existingMsg.MembershipChanges) > 1 {
+		batchID := model.NewId()[:8] // Use a short unique ID for the batch
+		taskID = channelID + "batch" + batchID + remoteID + retryID
+	}
+
 	return syncTask{
-		id:        channelID + remoteID + retryID, // combination of ids to avoid duplicates
-		channelID: channelID,
-		remoteID:  remoteID, // empty means update all remote clusters
-		retryMsg:  retryMsg,
-		schedule:  time.Now(),
+		id:          taskID,
+		channelID:   channelID,
+		userID:      userID,
+		remoteID:    remoteID, // empty means update all remote clusters
+		existingMsg: existingMsg,
+		retryMsg:    retryMsg,
+		schedule:    time.Now(),
 	}
 }
 
@@ -53,13 +76,13 @@ func (scs *Service) NotifyChannelChanged(channelID string) {
 		return
 	}
 
-	task := newSyncTask(channelID, "", nil)
+	task := newSyncTask(channelID, "", "", nil, nil)
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
 	scs.addTask(task)
 }
 
-// NotifyUserProfileChanged is called to indicate that a user belonging to at least one
-// shared channel has modified their user profile (name, username, email, custom status, profile image)
+// NotifyUserProfileChanged is called to indicate that a user has modified their user
+// profile (name, username, email, custom status, profile image)
 func (scs *Service) NotifyUserProfileChanged(userID string) {
 	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
 		return
@@ -67,7 +90,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 
 	scusers, err := scs.server.GetStore().SharedChannel().GetUsersForUser(userID)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel users",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch shared channel users",
 			mlog.String("userID", userID),
 			mlog.Err(err),
 		)
@@ -80,17 +103,120 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 	notified := make(map[string]struct{})
 
 	for _, user := range scusers {
-		// update every channel + remote combination they belong to.
+		// update every user + remote combination they belong to.
 		// Redundant updates (ie. to same remote for multiple channels) will be
 		// filtered out.
-		combo := user.ChannelId + user.RemoteId
+
+		combo := user.UserId + user.RemoteId
 		if _, ok := notified[combo]; ok {
 			continue
 		}
 		notified[combo] = struct{}{}
-		task := newSyncTask(user.ChannelId, user.RemoteId, nil)
+		task := newSyncTask(user.ChannelId, "", user.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
 		scs.addTask(task)
+	}
+}
+
+// NotifyUserStatusChanged is called to indicate that a user has modified their status
+func (scs *Service) NotifyUserStatusChanged(status *model.Status) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
+		return
+	}
+
+	if *scs.server.Config().ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync {
+		return
+	}
+
+	if status.UserId == "" {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Received invalid status for sync",
+			mlog.String("userID", status.UserId),
+		)
+		return
+	}
+
+	scusers, err := scs.server.GetStore().SharedChannel().GetUsersForUser(status.UserId)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch shared channel users",
+			mlog.String("userID", status.UserId),
+			mlog.Err(err),
+		)
+		return
+	}
+	if len(scusers) == 0 {
+		return
+	}
+
+	existingMsg := &model.SyncMsg{Statuses: []*model.Status{status}}
+	notified := make(map[string]struct{})
+
+	for _, user := range scusers {
+		// update every user + remote combination they belong to.
+		// Redundant updates (ie. to same remote for multiple channels) will be
+		// filtered out.
+		combo := user.UserId + user.RemoteId
+		if _, ok := notified[combo]; ok {
+			continue
+		}
+		notified[combo] = struct{}{}
+		task := newSyncTask(user.ChannelId, user.UserId, user.RemoteId, existingMsg, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+	}
+}
+
+func (scs *Service) SendPendingInvitesForRemote(rc *model.RemoteCluster) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
+		return
+	}
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing pending invites for remote after reconnection",
+		mlog.String("remote", rc.DisplayName),
+		mlog.String("remoteId", rc.RemoteId),
+	)
+
+	opts := model.SharedChannelRemoteFilterOpts{
+		RemoteId:         rc.RemoteId,
+		ExcludeConfirmed: true,
+	}
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch shared channel remotes for pending invites",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, scr := range scrs {
+		channel, err := scs.server.GetStore().Channel().Get(scr.ChannelId, true)
+		if err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to fetch channel for pending invite",
+				mlog.String("remote_id", scr.RemoteId),
+				mlog.String("channel_id", scr.ChannelId),
+				mlog.String("sharedchannelremote_id", scr.Id),
+				mlog.Err(err),
+			)
+			continue
+		}
+
+		if err := scs.SendChannelInvite(channel, scr.CreatorId, rc); err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to send pending invite",
+				mlog.String("remote_id", scr.RemoteId),
+				mlog.String("channel_id", scr.ChannelId),
+				mlog.String("sharedchannelremote_id", scr.Id),
+				mlog.Err(err),
+			)
+			continue
+		}
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Pending invite sent",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("channel_id", scr.ChannelId),
+			mlog.String("sharedchannelremote_id", scr.Id),
+		)
 	}
 }
 
@@ -106,7 +232,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	}
 	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),
@@ -115,7 +241,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	}
 
 	for _, scr := range scrs {
-		task := newSyncTask(scr.ChannelId, rc.RemoteId, nil)
+		task := newSyncTask(scr.ChannelId, "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
 		scs.addTask(task)
 	}
@@ -124,8 +250,25 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 // addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
+
 	scs.mux.Lock()
-	if _, ok := scs.tasks[task.id]; !ok {
+	if originalTask, ok := scs.tasks[task.id]; ok {
+		// if the task was already scheduled, we only update the
+		// existingMsg in case there is new information
+		originalTask.existingMsg = task.existingMsg
+
+		// originRemoteID identifies which remote initiated a change so processTask
+		// can skip sending back to that remote. When multiple events merge within
+		// the NotifyMinimumDelay window we can only safely skip a remote if every
+		// merged event came from that same remote. If the origins differ (e.g.
+		// remote-A join + remote-B join, or remote join + local join) we must clear
+		// originRemoteID so the sync fans out to all remotes. The receiver is
+		// idempotent, so the worst case is a redundant sync to the originating remote.
+		if task.originRemoteID != originalTask.originRemoteID {
+			originalTask.originRemoteID = ""
+		}
+		scs.tasks[task.id] = originalTask
+	} else {
 		scs.tasks[task.id] = task
 	}
 	scs.mux.Unlock()
@@ -200,6 +343,7 @@ func (scs *Service) doSync() time.Duration {
 		if err := scs.processTask(task); err != nil {
 			// put task back into map so it will update again
 			if task.incRetry() {
+				task.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(task)
 			} else {
 				scs.server.Log().Error("Failed to synchronize shared channel",
@@ -263,23 +407,39 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		for _, r := range remotes {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 
-		// add all remotes that have the autoinvited option.
+		// add all confirmed remotes that have the autoinvited option.
 		filter = model.RemoteClusterQueryFilter{
 			RequireOptions: model.BitflagOptionAutoInvited,
+			OnlyConfirmed:  true,
 		}
 		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
 			return err
 		}
 		for _, r := range remotesAutoInvited {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 	} else {
-		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
+		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
+			// The remote cluster has been deleted or no longer exists; there is
+			// nothing to sync, so drop the task rather than retrying and logging
+			// an error on every change for the orphaned reference.
+			if errors.Is(err, sql.ErrNoRows) {
+				scs.selfHealOrphanedSharedChannelRemote(task.channelID, task.remoteID)
+				return nil
+			}
 			return err
 		}
 		if !rc.IsOnline() {
@@ -292,8 +452,18 @@ func (scs *Service) processTask(task syncTask) error {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
 		if err := scs.syncForRemote(rtask, rc); err != nil {
-			// retry...
+			// retry, spaced by SyncRetryDelay to avoid hammering the remote...
 			if rtask.incRetry() {
+				// A task with no specific remote fans out to every remote in this loop, and
+				// each rtask is a copy that still carries the original (remote-less) task id.
+				// Give the per-remote retry a distinct, remote-specific id so addTask (which
+				// merges on id) keeps a separate retry task per failed remote instead of
+				// collapsing them into one. Single-remote tasks already have a remote-specific
+				// id, so leave those untouched (recomputing would grow the id on every retry).
+				if task.remoteID == "" {
+					rtask.id = task.id + rc.RemoteId
+				}
+				rtask.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(rtask)
 			} else {
 				scs.server.Log().Error("Failed to synchronize shared channel for remote cluster",
@@ -307,13 +477,58 @@ func (scs *Service) processTask(task syncTask) error {
 	return nil
 }
 
+// selfHealOrphanedSharedChannelRemote handles a SharedChannelRemote row that still
+// references a RemoteCluster which has been soft-deleted or removed. Left alone, the
+// live SCR row (DeleteAt = 0) keeps getting picked up by the sync loop, spamming a log
+// entry on every tick. Soft-deleting the orphaned SCR row stops the recurrence without
+// requiring manual DB intervention.
+func (scs *Service) selfHealOrphanedSharedChannelRemote(channelID, remoteID string) {
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		// The SCR row is already gone (or unreadable); nothing left to self-heal.
+		scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	if scr.DeleteAt != 0 {
+		// The SCR row is already soft-deleted, so there is nothing to heal. A deleted
+		// remote no longer syncing is the expected steady state, so this is logged at
+		// debug rather than warn to avoid noise.
+		scs.server.Log().Debug("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+		)
+		return
+	}
+
+	if _, err := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); err != nil {
+		scs.server.Log().Warn("Failed to self-heal orphaned shared channel remote for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.String("sharedChannelRemoteId", scr.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	scs.server.Log().Warn("Self-healed orphaned shared channel remote for deleted remote cluster",
+		mlog.String("channelId", channelID),
+		mlog.String("remoteId", remoteID),
+		mlog.String("sharedChannelRemoteId", scr.Id),
+	)
+}
+
 func (scs *Service) handlePostError(postId string, task syncTask, rc *model.RemoteCluster) {
 	if task.retryMsg != nil && len(task.retryMsg.Posts) == 1 && task.retryMsg.Posts[0].Id == postId {
 		// this was a retry for specific post that failed previously. Try again if within MaxRetries.
 		if task.incRetry() {
 			scs.addTask(task)
 		} else {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error syncing post",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error syncing post",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("post_id", postId),
 			)
@@ -324,17 +539,52 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 	// this post failed as part of a group of posts. Retry as an individual post.
 	post, err := scs.server.GetStore().Post().GetSingle(request.EmptyContext(scs.server.Log()), postId, true)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching post for sync retry",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error fetching post for sync retry",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("post_id", postId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	// Populate metadata for the retry post
+	post = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
+
+	syncMsg := model.NewSyncMsg(task.channelID)
+	syncMsg.Posts = []*model.Post{post}
+
+	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
+}
+
+func (scs *Service) handleStatusError(userId string, task syncTask, rc *model.RemoteCluster) {
+	if task.retryMsg != nil && len(task.retryMsg.Statuses) == 1 && task.retryMsg.Statuses[0].UserId == userId {
+		// this was a retry for specific status that failed previously. Try again if within MaxRetries.
+		if task.incRetry() {
+			scs.addTask(task)
+		} else {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "error syncing status",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("user_id", userId),
+			)
+		}
+		return
+	}
+
+	// this status failed as part of a group of statuses. Retry as an individual status.
+	status, err := scs.server.GetStore().Status().Get(userId)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "error fetching status for sync retry",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("user_id", userId),
+			mlog.Err(err),
 		)
 		return
 	}
 
 	syncMsg := model.NewSyncMsg(task.channelID)
-	syncMsg.Posts = []*model.Post{post}
+	syncMsg.Statuses = []*model.Status{status}
 
-	scs.addTask(newSyncTask(task.channelID, task.remoteID, syncMsg))
+	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
 }
 
 // notifyRemoteOffline creates an ephemeral post to the author for any posts created recently to remotes
@@ -345,8 +595,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
 	// get added where it is mostly likely to be seen.
-	for i := len(posts) - 1; i >= 0; i-- {
-		post := posts[i]
+	for _, post := range slices.Backward(posts) {
 		if didNotify := notified[post.UserId]; didNotify {
 			continue
 		}
@@ -369,7 +618,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster, cursor model.GetPostsSinceForSyncCursor) {
 	if err := scs.server.GetStore().SharedChannel().UpdateRemoteCursor(scrId, cursor); err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error updating cursor for shared channel remote",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error updating cursor for shared channel remote",
 			mlog.String("remote", rc.DisplayName),
 			mlog.Err(err),
 		)
@@ -420,16 +669,16 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 			ChannelId: channelID,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
 				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
+				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
 		}
@@ -459,7 +708,7 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 			return
 		}
 
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error synchronizing users profile image",
 			mlog.String("user_id", user.Id),
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", rc.RemoteId),
@@ -470,7 +719,7 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 
 func (scs *Service) sendProfileImageToPlugin(user *model.User, channelID string, rc *model.RemoteCluster) {
 	if err := scs.app.OnSharedChannelsProfileImageSyncMsg(user, rc); err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image for plugin",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error synchronizing users profile image for plugin",
 			mlog.String("user_id", user.Id),
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", rc.RemoteId),
@@ -489,7 +738,7 @@ func (scs *Service) recordProfileImageSuccess(userID, channelID, remoteID string
 
 	// update LastSyncAt for user in SharedChannelUsers table
 	if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remoteID); err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error updating users LastSyncTime after profile image update",
 			mlog.String("user_id", userID),
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", remoteID),

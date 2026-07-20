@@ -9,7 +9,9 @@ import isNil from 'lodash/isNil';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
+import {isFirefox, isSafari} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
 import type {FileInfo} from '@mattermost/types/files';
@@ -27,8 +29,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences, General} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -42,23 +43,24 @@ import {
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
-import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import {getIntl} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
+import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -69,6 +71,8 @@ const CLICKABLE_ELEMENTS = [
     'svg',
     'audio',
     'video',
+    'select',
+    'input',
 ];
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60 * MS_PER_SECOND;
@@ -82,7 +86,7 @@ export enum TimeInformation {
     HOURS = 'h',
     DAYS = 'd',
     FUTURE = 'f',
-    PAST = 'p'
+    PAST = 'p',
 }
 
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
@@ -107,7 +111,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
     return Boolean(
         Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -212,6 +216,43 @@ const removeQuerystringOrHash = (extin: string): string => {
 };
 
 export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTypes] => {
+    // Handle null or undefined input
+    if (!extin) {
+        return FileTypes.OTHER;
+    }
+
+    // Special handling for image proxy URLs
+    // Check for various forms of image proxy URLs
+    if (extin.includes('/api/v4/image') &&
+        (extin.includes('?url=') || extin.includes('&url='))) {
+        return FileTypes.IMAGE;
+    }
+
+    // Check for image file extensions in the URL path
+    try {
+        // Try to parse as a URL - this will validate if it's a proper URL
+        const url = new URL(extin);
+        const pathname = url.pathname;
+        const pathParts = pathname.split('/');
+        const lastPathPart = pathParts[pathParts.length - 1];
+
+        if (lastPathPart && lastPathPart.includes('.')) {
+            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    } catch {
+        // Not a valid URL, just check if the string itself has an extension
+        if (extin.includes('.')) {
+            const extension = extin.split('.').pop()?.toLowerCase();
+            if (extension && Constants.IMAGE_TYPES.indexOf(extension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    }
+
+    // Standard extension-based detection
     const ext = removeQuerystringOrHash(extin.toLowerCase());
 
     if (Constants.TEXT_TYPES.indexOf(ext) > -1) {
@@ -290,7 +331,7 @@ export function getCompassIconClassName(fileTypeIn: string, outline = true, larg
 }
 
 export function getIconClassName(fileTypeIn: string) {
-    const fileType = fileTypeIn.toLowerCase()as keyof typeof Constants.ICON_FROM_TYPE;
+    const fileType = fileTypeIn.toLowerCase() as keyof typeof Constants.ICON_FROM_TYPE;
 
     if (fileType in Constants.ICON_NAME_FROM_TYPE) {
         return Constants.ICON_NAME_FROM_TYPE[fileType];
@@ -317,13 +358,14 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
+    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
+
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .btn.btn-transparent', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -339,21 +381,18 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.5));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.03));
         changeCss('.app__body .input-group-addon, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .date-separator .separator__text', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .channel-intro, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
+        changeCss('.app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.a11y--active, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.04));
-        changeCss('@media(min-width: 768px){.app__body .post.post--editing', 'background:' + changeOpacity(theme.buttonBg, 0.08));
-        changeCss('@media(min-width: 768px){.app__body .post.current--user:hover .post__body ', 'background: transparent;');
-        changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
+        changeCss('.app__body .more-modal__row.more-modal__row--selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('@media(min-width: 768px){.app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
@@ -361,23 +400,16 @@ export function applyTheme(theme: Theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items, .app__body .emoji-picker__search-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .emoji-picker__item-wrapper:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .icon__postcontent_picker:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .emoji-picker .nav-tabs li a', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post .post-collapse__show-more-button', `border-color:${changeOpacity(theme.centerChannelColor, 0.1)}`);
         changeCss('.app__body .post .post-collapse__show-more-line', `background-color:${changeOpacity(theme.centerChannelColor, 0.1)}`);
-    }
-
-    if (theme.newMessageSeparator) {
-        changeCss('.app__body .new-separator .separator__text', 'color:' + theme.newMessageSeparator);
-        changeCss('.app__body .new-separator .separator__hr', 'border-color:' + changeOpacity(theme.newMessageSeparator, 0.5));
     }
 
     if (theme.linkColor) {
@@ -397,38 +429,6 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .post .post-collapse__show-more', `color:${theme.linkColor}`);
         changeCss('.app__body .post .post-attachment-collapse__show-more', `color:${theme.linkColor}`);
         changeCss('.app__body .post .post-collapse__show-more-button:hover', `background-color:${theme.linkColor}`);
-    }
-
-    if (theme.buttonBg) {
-        changeCss('.app__body .modal .settings-modal .profile-img__remove:hover, .app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover:before, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .post-image__details .post-image__download svg:hover, .app__body .file-view--single .file__download:hover, .app__body .new-messages__button div, .app__body .tutorial__circles .circle.active', 'background:' + theme.buttonBg);
-        changeCss('.app__body .system-notice__logo svg', 'fill:' + theme.buttonBg);
-        changeCss('.app__body .post-image__details .post-image__download svg:hover', 'border-color:' + theme.buttonBg);
-        changeCss('.app__body .emoji-picker .nav-tabs li.active a, .app__body .emoji-picker .nav-tabs li a:hover', 'fill:' + theme.buttonBg);
-        changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
-        changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
-        changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
-    }
-
-    if (theme.buttonColor) {
-        changeCss('.app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .new-messages__button div', 'color:' + theme.buttonColor);
-        changeCss('.app__body .new-messages__button svg', 'fill:' + theme.buttonColor);
-        changeCss('.app__body .post-image__details .post-image__download svg:hover, .app__body .file-view--single .file__download svg', 'stroke:' + theme.buttonColor);
-    }
-
-    if (theme.errorTextColor) {
-        changeCss('.app__body .error-text, .app__body .modal .settings-modal .settings-table .settings-content .has-error, .app__body .modal .input__help.error, .app__body .color--error, .app__body .has-error .help-block, .app__body .has-error .control-label, .app__body .has-error .radio, .app__body .has-error .checkbox, .app__body .has-error .radio-inline, .app__body .has-error .checkbox-inline, .app__body .has-error.radio label, .app__body .has-error.checkbox label, .app__body .has-error.radio-inline label, .app__body .has-error.checkbox-inline label', 'color:' + theme.errorTextColor);
-        changeCss('.app__body .btn-danger:hover', 'background:' + blendColors(theme.errorTextColor, '#000000', 0.1));
-        changeCss('.app__body .btn-danger:active', 'background:' + blendColors(theme.errorTextColor, '#000000', 0.2));
-    }
-
-    if (theme.mentionHighlightBg) {
-        changeCss('.app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
-    }
-
-    if (theme.mentionHighlightLink) {
-        changeCss('.app__body .search-highlight', 'color:' + theme.mentionHighlightLink);
-        changeCss('.app__body .search-highlight > a', 'color: inherit');
     }
 
     if (!theme.codeTheme) {
@@ -617,7 +617,7 @@ function updateCodeTheme(codeTheme: string) {
         xmlHTTP.onload = function onLoad() {
             link.href = cssPath;
 
-            if (UserAgent.isFirefox()) {
+            if (isFirefox()) {
                 link.addEventListener('load', () => {
                     changeCss('code.hljs', 'visibility: visible');
                 }, {once: true});
@@ -736,6 +736,27 @@ export function offsetTopLeft(el: HTMLElement) {
     return {top: rect.top + scrollTop, left: rect.left + scrollLeft};
 }
 
+function getSuggestionBoxHorizontalBoundary(textArea: HTMLElement) {
+    const {w: viewportWidth} = getViewportSize();
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const textAreaRect = textArea.getBoundingClientRect();
+
+    let ancestor = textArea.parentElement;
+    while (ancestor) {
+        const ancestorRect = ancestor.getBoundingClientRect();
+        const ancestorStyle = getElementComputedStyle(ancestor);
+        const clipsHorizontalOverflow = ancestorStyle.overflow !== 'visible' || ancestorStyle.overflowX !== 'visible';
+
+        if (clipsHorizontalOverflow && ancestorRect.width >= textAreaRect.width) {
+            return ancestorRect.right + scrollLeft;
+        }
+
+        ancestor = ancestor.parentElement;
+    }
+
+    return viewportWidth + scrollLeft;
+}
+
 export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstract = 0, alignWithTextBox = false) {
     if (!textArea || !(textArea instanceof HTMLElement)) {
         return {
@@ -745,8 +766,9 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     }
 
     const {x: caretXCoordinateInTxtArea, y: caretYCoordinateInTxtArea} = getCaretXYCoordinate(textArea);
-    const {w: viewportWidth, h: viewportHeight} = getViewportSize();
+    const {h: viewportHeight} = getViewportSize();
     const {offsetWidth: textAreaWidth} = textArea;
+    const horizontalBoundary = getSuggestionBoxHorizontalBoundary(textArea);
 
     const suggestionBoxWidth = Math.min(textAreaWidth, Constants.SUGGESTION_LIST_MAXWIDTH);
 
@@ -762,8 +784,8 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     if (alignWithTextBox) {
         // when the list should be aligned with the textbox just set this value to 0
         pxToTheRight = 0;
-    } else if (xBoxRightCoordinate > viewportWidth) {
-        // if the right-border edge of the suggestion box will overflow the x-axis viewport
+    } else if (xBoxRightCoordinate > horizontalBoundary) {
+        // if the right-border edge of the suggestion box will overflow the visible text area container
         // stick the suggestion list to the very right of the TextArea
         pxToTheRight = textAreaWidth - suggestionBoxWidth;
     }
@@ -908,6 +930,20 @@ function changeColor(colourIn: string, amt: number): string {
     }
 
     return rgb;
+}
+
+export function getUsername(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteUsername) {
+        return user.props.RemoteUsername;
+    }
+    return user.username;
+}
+
+export function getEmail(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteEmail) {
+        return user.props?.RemoteEmail;
+    }
+    return user.email;
 }
 
 export function getFullName(user: UserProfile) {
@@ -1136,15 +1172,11 @@ export function fillRecord<T>(value: T, length: number): Record<number, T> {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
-        return files.types != null && files.types.includes('Files');
-    }
-
     return files.types != null && (files.types.indexOf ? files.types.indexOf('Files') !== -1 : files.types.includes('application/x-moz-file'));
 }
 
 export function isUriDrop(dataTransfer: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge() || UserAgent.isSafari()) {
+    if (isSafari()) {
         for (let i = 0; i < dataTransfer.items.length; i++) {
             if (dataTransfer.items[i].type === 'text/uri-list') {
                 return true;
@@ -1173,41 +1205,40 @@ export function clearFileInput(elm: HTMLInputElement) {
             elm.type = 'text';
             elm.type = 'file';
         }
-    } catch (e) {
+    } catch {
         // Do nothing
     }
 }
 
 /**
- * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ * @deprecated Prefer using react-intl's `useIntl` hook or `FormattedMessage` component within React components.
+ * This function is mainly for use in Redux actions, utilities, and other non-React contexts.
+ *
+ * @param descriptor - Message descriptor with id, defaultMessage, and optional description
+ * @param values - Optional values for placeholder interpolation
+ * @returns The localized string with interpolated values
+ *
+ * @example
+ * // Simple message
+ * localizeMessage({
+ *   id: 'example.message',
+ *   defaultMessage: 'This is an example message',
+ *   description: 'An example message shown in the help section'
+ * })
+ *
+ * @example
+ * // Message with interpolation
+ * localizeMessage({
+ *   id: 'welcome.message',
+ *   defaultMessage: 'Welcome, {username}!',
+ *   description: 'Welcome message with username'
+ * }, {username: 'John'})
  */
-export function localizeMessage(id: string, defaultMessage?: string) {
-    const state = store.getState();
-
-    const locale = getCurrentLocale(state);
-    const translations = getTranslations(state, locale);
-
-    if (!translations || !(id in translations)) {
-        return defaultMessage || id;
-    }
-
-    return translations[id];
-}
-
-/**
- * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
- */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
-
-    if (!template) {
-        return base;
-    }
-
-    return base.replace(/{[\w]+}/g, (match) => {
-        const key = match.substr(1, match.length - 2);
-        return template[key] || match;
-    });
+export function localizeMessage(descriptor: MessageDescriptor, values?: Record<string, any>): string;
+export function localizeMessage(descriptor: {id: string; defaultMessage?: string; description?: string}, values?: Record<string, any>): string;
+export function localizeMessage(descriptor: MessageDescriptor | {id: string; defaultMessage?: string; description?: string}, values?: Record<string, any>): string {
+    const intl = getIntl();
+    return intl.formatMessage(descriptor as MessageDescriptor, values);
 }
 
 export function mod(a: number, b: number): number {
@@ -1236,7 +1267,7 @@ function isChannelOrPermalink(link: string) {
     return match;
 }
 
-export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
+export async function handleFormattedTextClick(e: React.UIEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
@@ -1248,7 +1279,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
 
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+        if (!isMouseEvent(e) || !(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
             e.preventDefault();
 
             const state = store.getState();
@@ -1258,65 +1289,63 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
 
             let isReply = false;
 
-            if (isSystemAdmin(user.roles)) {
-                if (match) {
-                    // Get team by name
-                    const {teamName} = match;
-                    let team = getTeamByName(state, teamName);
-                    if (!team) {
-                        const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
-                        team = teamData;
-                    }
-                    if (team && team.delete_at === 0) {
-                        let channel;
+            if (match) {
+                // Get team by name
+                const {teamName} = match;
+                let team = getTeamByName(state, teamName);
+                if (!team) {
+                    const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
+                    team = teamData;
+                }
+                if (team && team.delete_at === 0) {
+                    let channel;
 
-                        // Handle channel url - Get channel data from channel name
-                        if (match.type === 'channel') {
-                            const {channelName} = match;
-                            channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                    // Handle channel url - Get channel data from channel name
+                    if (match.type === 'channel') {
+                        const {channelName} = match;
+                        channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                        if (!channel) {
+                            const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                            channel = channelData;
+                        }
+                    } else { // Handle permalink - Get channel data from post
+                        const {postId} = match;
+                        let post = getPost(state, postId!);
+                        if (!post) {
+                            const {data: postData} = await store.dispatch(getPostAction(match.postId!));
+                            post = postData!;
+                        }
+                        if (post) {
+                            isReply = Boolean(post.root_id);
+
+                            channel = getChannel(state, post.channel_id);
                             if (!channel) {
-                                const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                                const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
                                 channel = channelData;
                             }
-                        } else { // Handle permalink - Get channel data from post
-                            const {postId} = match;
-                            let post = getPost(state, postId!);
-                            if (!post) {
-                                const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData;
-                            }
-                            if (post) {
-                                isReply = Boolean(post.root_id);
-
-                                channel = getChannel(state, post.channel_id);
-                                if (!channel) {
-                                    const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
-                                    channel = channelData;
-                                }
+                        }
+                    }
+                    if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
+                        let member = getMyChannelMemberships(state)[channel.id];
+                        if (!member) {
+                            const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
+                            if ('data' in membership) {
+                                member = membership.data!;
                             }
                         }
-                        if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
-                            let member = getMyChannelMemberships(state)[channel.id];
-                            if (!member) {
-                                const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
-                                if ('data' in membership) {
-                                    member = membership.data;
+                        if (!member) {
+                            const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
+                            if (data!.join) {
+                                let error = false;
+                                if (!getTeamMemberships(state)[team.id]) {
+                                    const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
+                                    error = joinTeamResult.error;
                                 }
-                            }
-                            if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data.join) {
-                                    let error = false;
-                                    if (!getTeamMemberships(state)[team.id]) {
-                                        const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
-                                        error = joinTeamResult.error;
-                                    }
-                                    if (!error) {
-                                        await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
-                                    }
-                                } else {
-                                    return;
+                                if (!error) {
+                                    await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
                                 }
+                            } else {
+                                return;
                             }
                         }
                     }
@@ -1326,15 +1355,28 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                if (isPopoutWindow()) {
+                    sendToParent(FOCUS_REPLY_POST, match.postId ?? '', linkAttribute.value);
+                } else {
+                    store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                }
             } else {
                 getHistory().push(linkAttribute.value);
             }
         }
     } else if (channelMentionAttribute) {
         e.preventDefault();
-        getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
+
+        // Check if the link specifies a team (for cross-team channel mentions)
+        const teamAttribute = (e.target as any).getAttributeNode('data-channel-mention-team');
+        const teamUrl = teamAttribute ? '/' + teamAttribute.value : currentRelativeTeamUrl;
+
+        getHistory().push(teamUrl + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+function isMouseEvent(e: React.UIEvent): e is React.MouseEvent {
+    return 'button' in e;
 }
 
 export function isEmptyObject(object: any) {
@@ -1436,13 +1478,18 @@ function isSelection() {
     return selection!.type === 'Range';
 }
 
+/**
+ * Checks if text is selected in the a textbox in center or in RHS or in edit mode of post
+ */
 export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
     const {id} = e.target as HTMLElement;
 
-    const isTypingInPost = id === 'post_textbox';
-    const isTypingInReply = id === 'reply_textbox';
+    const isTypingInValidTextbox =
+        id === AdvancedTextEditorTextboxIds.InCenter ||
+        id === AdvancedTextEditorTextboxIds.InRHSComment ||
+        id === AdvancedTextEditorTextboxIds.InEditMode;
 
-    if (!isTypingInPost && !isTypingInReply) {
+    if (isTypingInValidTextbox === false) {
         return false;
     }
 
@@ -1493,6 +1540,7 @@ export function makeIsEligibleForClick(selector = '') {
             if (
                 CLICKABLE_ELEMENTS.includes(node.tagName.toLowerCase()) ||
                 node.getAttribute('role') === 'button' ||
+                node.getAttribute('role') === 'link' ||
                 (selector && node.matches(selector))
             ) {
                 return false;
@@ -1531,85 +1579,18 @@ export function numberToFixedDynamic(num: number, places: number): string {
     return str.slice(0, indexToExclude);
 }
 
-const TrackFlowRoles: Record<string, string> = {
-    fa: Constants.FIRST_ADMIN_ROLE,
-    sa: General.SYSTEM_ADMIN_ROLE,
-    su: General.SYSTEM_USER_ROLE,
-};
-
-export function getTrackFlowRole(state: GlobalState) {
-    let trackFlowRole = 'su';
-
-    if (isFirstAdmin(state)) {
-        trackFlowRole = 'fa';
-    } else if (isSystemAdmin(getCurrentUser(state).roles)) {
-        trackFlowRole = 'sa';
-    }
-
-    return trackFlowRole;
-}
-
-export const getRoleForTrackFlow = createSelector(
-    'getRoleForTrackFlow',
-    getTrackFlowRole,
-    (trackFlowRole) => {
-        const startedByRole = TrackFlowRoles[trackFlowRole];
-
-        return {started_by_role: startedByRole};
-    },
-);
-
-export function getSbr() {
-    const params = new URLSearchParams(window.location.search);
-    const sbr = params.get('sbr') ?? '';
-    return sbr;
-}
-
-export function getRoleFromTrackFlow() {
-    const sbr = getSbr();
-    const startedByRole = TrackFlowRoles[sbr] ?? '';
-
-    return {started_by_role: startedByRole};
-}
-
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
-            /* eslint-disable global-require */
+            /* eslint-disable global-require, @typescript-eslint/no-require-imports */
             loadedLocales[locale] = require(`date-fns/locale/${locale}/index.js`);
-            /* eslint-disable global-require */
+            /* eslint-enable global-require, @typescript-eslint/no-require-imports */
         } catch (e) {
             console.log(e); // eslint-disable-line no-console
         }
     }
 
     return loadedLocales;
-}
-
-export function getMediumFromTrackFlow() {
-    const params = new URLSearchParams(window.location.search);
-    const source = params.get('md') ?? '';
-
-    return {source};
-}
-
-const TrackFlowSources: Record<string, string> = {
-    wd: 'webapp-desktop',
-    wm: 'webapp-mobile',
-    d: 'desktop-app',
-};
-
-function getTrackFlowSource() {
-    if (UserAgent.isMobile()) {
-        return TrackFlowSources.wm;
-    } else if (UserAgent.isDesktopApp()) {
-        return TrackFlowSources.d;
-    }
-    return TrackFlowSources.wd;
-}
-
-export function getSourceForTrackFlow() {
-    return {source: getTrackFlowSource()};
 }
 
 export function a11yFocus(element: HTMLElement | null | undefined, keyboardOnly = true) {

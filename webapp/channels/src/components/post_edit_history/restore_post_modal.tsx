@@ -7,7 +7,10 @@ import {defineMessages, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
+import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostMessageView from 'components/post_view/post_message_view';
+
+import './restore_post_history.scss';
 
 const modalMessages = defineMessages({
     title: {
@@ -27,10 +30,11 @@ type Props = {
         handleRestore: (post: Post) => void;
     };
     onExited: () => void;
-}
+    isChannelAutotranslated: boolean;
+};
 
-const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
-    const {formatMessage} = useIntl();
+const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotranslated}: Props) => {
+    const {formatMessage, locale} = useIntl();
     const onHide = () => onExited();
 
     const handleRestore = async () => {
@@ -53,7 +57,6 @@ const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
             aria-labelledby='restorePostModalLabel'
             modalHeaderText={modalHeaderText}
             handleCancel={onHide}
-            cancelButtonClassName='cancel-button'
             handleConfirm={handleRestore}
         >
             <div className='edit-post-history__restore__modal__content'>
@@ -63,6 +66,14 @@ const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
                     overflowType='ellipsis'
                     maxHeight={100}
                     showPostEditedIndicator={false}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
+                />
+                <FileAttachmentListContainer
+                    post={post}
+                    isEditHistory={true}
+                    disableDownload={true}
+                    disableActions={true}
                 />
             </div>
         </GenericModal>

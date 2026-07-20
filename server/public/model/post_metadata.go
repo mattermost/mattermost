@@ -3,16 +3,26 @@
 
 package model
 
+import (
+	"encoding/json"
+	"maps"
+)
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
 	Embeds []*PostEmbed `json:"embeds,omitempty"`
 
-	// Emojis holds all custom emojis used in the post or used in reaction to the post.
+	// Emojis holds all custom emojis used in the post, reactions, message attachments, and
+	// interactive payloads (mm_blocks, Block Kit blocks, Adaptive Cards) where applicable.
 	Emojis []*Emoji `json:"emojis,omitempty"`
 
 	// Files holds information about the file attachments on the post.
 	Files []*FileInfo `json:"files,omitempty"`
+
+	// RedactedFileCount is set when file attachments are stripped by an ABAC permission policy.
+	// Clients use this to render a placeholder instead of the file.
+	RedactedFileCount int `json:"redacted_file_count,omitempty"`
 
 	// Images holds the dimensions of all external images in the post as a map of the image URL to its dimensions.
 	// This includes image embeds (when the message contains a plaintext link to an image), Markdown images, images
@@ -28,6 +38,21 @@ type PostMetadata struct {
 
 	// Acknowledgements holds acknowledgements made by users to the post
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+
+	// Translations holds translation data for configured target languages, keyed by language code
+	Translations map[string]*PostTranslation `json:"translations,omitempty"`
+
+	ExpireAt   int64    `json:"expire_at,omitempty"`
+	Recipients []string `json:"recipients,omitempty"`
+}
+
+// PostTranslation represents a translation of a post in a specific language
+type PostTranslation struct {
+	Text       string          `json:"text,omitempty"`   // Used when Type is "string"
+	Object     json.RawMessage `json:"object,omitempty"` // Used when Type is "object"
+	Type       string          `json:"type"`
+	State      string          `json:"state"`
+	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
@@ -40,13 +65,15 @@ func (p *PostMetadata) Auditable() map[string]any {
 	}
 
 	return map[string]any{
-		"embeds":           embeds,
-		"emojis":           p.Emojis,
-		"files":            p.Files,
-		"images":           p.Images,
-		"reactions":        p.Reactions,
-		"priority":         p.Priority,
-		"acknowledgements": p.Acknowledgements,
+		"embeds":              embeds,
+		"emojis":              p.Emojis,
+		"files":               p.Files,
+		"images":              p.Images,
+		"reactions":           p.Reactions,
+		"priority":            p.Priority,
+		"acknowledgements":    p.Acknowledgements,
+		"translations":        p.Translations,
+		"redacted_file_count": p.RedactedFileCount,
 	}
 }
 
@@ -73,15 +100,16 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	copy(filesCopy, p.Files)
 
 	imagesCopy := map[string]*PostImage{}
-	for k, v := range p.Images {
-		imagesCopy[k] = v
-	}
+	maps.Copy(imagesCopy, p.Images)
 
 	reactionsCopy := make([]*Reaction, len(p.Reactions))
 	copy(reactionsCopy, p.Reactions)
 
 	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
 	copy(acknowledgementsCopy, p.Acknowledgements)
+
+	translationsCopy := map[string]*PostTranslation{}
+	maps.Copy(translationsCopy, p.Translations)
 
 	var postPriorityCopy *PostPriority
 	if p.Priority != nil {
@@ -95,12 +123,14 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	}
 
 	return &PostMetadata{
-		Embeds:           embedsCopy,
-		Emojis:           emojisCopy,
-		Files:            filesCopy,
-		Images:           imagesCopy,
-		Reactions:        reactionsCopy,
-		Priority:         postPriorityCopy,
-		Acknowledgements: acknowledgementsCopy,
+		Embeds:            embedsCopy,
+		Emojis:            emojisCopy,
+		Files:             filesCopy,
+		Images:            imagesCopy,
+		Reactions:         reactionsCopy,
+		Priority:          postPriorityCopy,
+		Acknowledgements:  acknowledgementsCopy,
+		Translations:      translationsCopy,
+		RedactedFileCount: p.RedactedFileCount,
 	}
 }

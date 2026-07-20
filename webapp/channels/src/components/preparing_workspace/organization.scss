@@ -1,6 +1,6 @@
-@import 'utils/variables';
-@import 'utils/mixins';
-@import './mixins';
+@use 'utils/variables';
+@use 'utils/mixins' as utils-mixins;
+@use 'mixins';
 
 .Organization-body {
     display: flex;
@@ -23,7 +23,7 @@
 
 .Organization {
     &__input {
-        @include input;
+        @include mixins.input;
     }
 
     &__status {
@@ -60,4 +60,4 @@
     }
 }
 
-@include simple-in-and-out("Organization");
+@include utils-mixins.simple-in-and-out("Organization");

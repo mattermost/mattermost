@@ -3,6 +3,8 @@
 
 package markdown
 
+import "strings"
+
 type ReferenceDefinition struct {
 	RawDestination Range
 
@@ -24,10 +26,11 @@ func (d *ReferenceDefinition) Title() string {
 }
 
 func parseReferenceDefinition(markdown string, ranges []Range) (*ReferenceDefinition, []Range) {
-	raw := ""
+	var rawSb strings.Builder
 	for _, r := range ranges {
-		raw += markdown[r.Position:r.End]
+		rawSb.WriteString(markdown[r.Position:r.End])
 	}
+	raw := rawSb.String()
 
 	label, next, ok := parseLinkLabel(raw, 0)
 	if !ok {

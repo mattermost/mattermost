@@ -6,7 +6,7 @@ import type {MouseEvent} from 'react';
 
 import type {ClusterInfo} from '@mattermost/types/admin';
 
-import {getClusterStatus} from 'actions/admin_actions.jsx';
+import {getClusterStatus} from 'actions/admin_actions';
 
 import ClusterTable from './cluster_table';
 
@@ -17,6 +17,7 @@ const ClusterTableContainer = () => {
     const [clusterInfos, setClusterInfos] = useState<ClusterInfo[] | null>(null);
 
     const load = useCallback(() => {
+        setClusterInfos(null);
         getClusterStatus(setClusterInfos, null);
     }, []);
 

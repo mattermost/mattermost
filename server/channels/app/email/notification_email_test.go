@@ -12,14 +12,13 @@ import (
 )
 
 func TestProcessMessageAttachments(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
 
 	post := &model.Post{
 		Message: "This is the message",
 	}
 
-	messageAttachments := []*model.SlackAttachment{
+	messageAttachments := []*model.MessageAttachment{
 		{
 			Color:      "#FF0000",
 			Pretext:    "message attachment 1 pretext",
@@ -31,7 +30,7 @@ func TestProcessMessageAttachments(t *testing.T) {
 			Text:       "message attachment 1 text",
 			ImageURL:   "https://example.com/slack_attachment_1/image",
 			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Short: true,
 					Title: "message attachment 1 field 1 title",
@@ -62,7 +61,7 @@ func TestProcessMessageAttachments(t *testing.T) {
 		},
 	}
 
-	model.ParseSlackAttachment(post, messageAttachments)
+	model.ParseMessageAttachment(post, messageAttachments)
 
 	processedAttachmentsPost := ProcessMessageAttachments(post, "https://example.com")
 	require.NotNil(t, processedAttachmentsPost)

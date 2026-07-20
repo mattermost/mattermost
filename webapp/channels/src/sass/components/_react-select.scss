@@ -123,6 +123,10 @@
     &__input,
     .react-select__input {
         color: var(--sys-center-channel-color);
+       
+        &-container{
+            color: inherit;
+        }
 
         .app__body & {
             color: var(--center-channel-color);

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IntlShape} from 'react-intl';
+
 import mockStore from 'tests/test_store';
 
 import {
@@ -58,28 +60,28 @@ describe('AppCommandParser', () => {
     };
 
     const intl = {
-        formatMessage: (message: {id: string; defaultMessage: string}) => {
-            return message.defaultMessage;
+        formatMessage: (message: {id: string; defaultMessage?: string}) => {
+            return message.defaultMessage ?? '';
         },
     };
 
     let parser: AppCommandParser;
     beforeEach(async () => {
         const store = await makeStore(testBindings);
-        parser = new AppCommandParser(store as any, intl, 'current_channel_id', 'team_id', 'root_id');
+        parser = new AppCommandParser(store as any, intl as IntlShape, 'current_channel_id', 'team_id', 'root_id');
     });
 
     type Variant = {
         expectError?: string;
         verify?(parsed: ParsedCommand): void;
-    }
+    };
 
     type TC = {
         title: string;
         command: string;
         submit: Variant;
         autocomplete?: Variant; // if undefined, use same checks as submnit
-    }
+    };
 
     const checkResult = (parsed: ParsedCommand, v: Variant) => {
         if (v.expectError) {

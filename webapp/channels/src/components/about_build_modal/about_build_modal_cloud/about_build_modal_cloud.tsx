@@ -43,7 +43,7 @@ export default function AboutBuildModalCloud(props: Props) {
     const subTitle = (
         <FormattedMessage
             id='about.enterpriseEditionSst'
-            defaultMessage='High trust messaging for the enterprise'
+            defaultMessage='High-trust messaging for the enterprise'
         />
     );
 
@@ -63,7 +63,7 @@ export default function AboutBuildModalCloud(props: Props) {
             show={props.show}
             onHide={props.doHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='aboutModalLabel'
         >
             <Modal.Header closeButton={true}>

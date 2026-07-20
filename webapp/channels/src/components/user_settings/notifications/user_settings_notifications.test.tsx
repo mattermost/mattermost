@@ -10,6 +10,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsNotifications, {areDesktopAndMobileSettingsDifferent} from './user_settings_notifications';
 
+jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice', () => () => <div/>);
+jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag', () => () => <div/>);
+
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const defaultProps = {
         user: TestHelper.getUserMock({id: 'user_id'}),

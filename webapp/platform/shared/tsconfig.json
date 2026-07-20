@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "es2022",
+        "moduleResolution": "bundler",
+        "target": "es2022",
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "rootDir": "./src",
+        "composite": true,
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "references": [
+        {"path": "../types"}
+    ]
+}

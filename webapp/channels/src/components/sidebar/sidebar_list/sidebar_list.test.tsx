@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {MovementMode, DropResult} from 'react-beautiful-dnd';
 
@@ -11,12 +10,58 @@ import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import SidebarList from './sidebar_list';
+import {SidebarList as SidebarListComponent} from './sidebar_list';
+
+jest.mock('components/async_load', () => ({
+    makeAsyncComponent: (displayName: string) => {
+        const Component = (props: {children?: React.ReactNode}) => (
+            <div data-testid={displayName}>{props.children}</div>
+        );
+        Component.displayName = displayName;
+        return Component;
+    },
+}));
+
+jest.mock('components/common/scrollbars', () => {
+    const React = require('react');
+
+    return React.forwardRef(({children, onScroll}: {children?: React.ReactNode; onScroll?: () => void}, ref: any) => {
+        const setRef = (node: HTMLDivElement | null) => {
+            if (!node) {
+                return;
+            }
+            if (!node.scrollTo) {
+                node.scrollTo = jest.fn();
+            }
+            if (typeof ref === 'function') {
+                ref(node);
+            } else if (ref) {
+                ref.current = node;
+            }
+        };
+
+        return (
+            <div
+                ref={setRef}
+                onScroll={onScroll}
+            >
+                {children}
+            </div>
+        );
+    });
+});
+
+jest.mock('components/sidebar/sidebar_category', () => () => <div data-testid='sidebar-category'/>);
 
 describe('SidebarList', () => {
+    const intl = {
+        formatMessage: ({defaultMessage}: {defaultMessage: string}) => defaultMessage,
+    } as any;
+
     const currentChannel = TestHelper.getChannelMock({
         id: 'channel_id',
         display_name: 'channel_display_name',
@@ -86,6 +131,7 @@ describe('SidebarList', () => {
             },
         ],
         unreadChannelIds: ['channel_id_2'],
+        currentUserId: 'current_user_id',
         displayedChannels: [currentChannel, unreadChannel],
         newCategoryIds: [],
         multiSelectedChannelIds: [],
@@ -98,6 +144,8 @@ describe('SidebarList', () => {
         showUnreadsCategory: false,
         collapsedThreads: true,
         hasUnreadThreads: false,
+        markAllAsReadWithoutConfirm: false,
+        markAllAsReadShortcutEnabled: false,
         currentStaticPageId: '',
         staticPages: [],
         actions: {
@@ -111,41 +159,61 @@ describe('SidebarList', () => {
             stopDragging: jest.fn(),
             clearChannelSelection: jest.fn(),
             multiSelectChannelAdd: jest.fn(),
+            readAllMessages: jest.fn(),
+            markAllInTeamAsRead: jest.fn(),
+            setMarkAllAsReadWithoutConfirm: jest.fn(),
+            openModal: jest.fn(),
         },
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SidebarList {...baseProps}/>,
+        const {container} = renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+            />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        const draggable = wrapper.find('Connect(Droppable)').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
-        expect(inner).toMatchSnapshot();
+        const sidebarRegion = screen.getByRole('application', {name: /channel sidebar region/i});
+        const droppable = sidebarRegion.querySelector('#sidebar-droppable-categories');
+        expect(droppable).toBeInTheDocument();
+        expect(droppable).toMatchSnapshot();
     });
 
     test('should close sidebar on mobile when channel is selected (ie. changed)', () => {
-        const wrapper = shallow(
-            <SidebarList {...baseProps}/>,
+        const {rerender} = renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+            />,
         );
 
-        wrapper.setProps({currentChannelId: 'new_channel_id'});
+        rerender(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                currentChannelId='new_channel_id'
+            />,
+        );
         expect(baseProps.actions.close).toHaveBeenCalled();
     });
 
     test('should scroll to top when team changes', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        const {rerender} = renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
+        const instance = sidebarListRef.current!;
 
-        wrapper.instance().scrollbar = {
+        instance.scrollbar = {
             current: {
-                scrollToTop: jest.fn(),
+                scrollTo: jest.fn(),
             } as any,
         };
 
@@ -154,20 +222,32 @@ describe('SidebarList', () => {
             id: 'new_team',
         };
 
-        wrapper.setProps({currentTeam: newCurrentTeam});
-        expect(wrapper.instance().scrollbar.current!.scrollToTop).toHaveBeenCalled();
+        rerender(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+                currentTeam={newCurrentTeam}
+            />,
+        );
+        expect(instance.scrollbar.current!.scrollTo).toHaveBeenCalledWith({top: 0});
     });
 
     test('should display unread scroll indicator when channels appear outside visible area', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance();
+        const instance = sidebarListRef.current!;
 
         instance.scrollbar = {
             current: {
-                getScrollTop: jest.fn(() => 0),
-                getClientHeight: jest.fn(() => 500),
+                scrollTop: 0,
+                clientHeight: 500,
             } as any,
         };
 
@@ -176,7 +256,9 @@ describe('SidebarList', () => {
             offsetHeight: 0,
         } as any);
 
-        instance.updateUnreadIndicators();
+        act(() => {
+            instance.updateUnreadIndicators();
+        });
         expect(instance.state.showTopUnread).toBe(true);
 
         instance.channelRefs.set(unreadChannel.id, {
@@ -184,23 +266,30 @@ describe('SidebarList', () => {
             offsetHeight: 0,
         } as any);
 
-        instance.updateUnreadIndicators();
+        act(() => {
+            instance.updateUnreadIndicators();
+        });
         expect(instance.state.showBottomUnread).toBe(true);
     });
 
     test('should scroll to correct position when scrolling to channel', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance();
+        const instance = sidebarListRef.current!;
 
         instance.scrollToPosition = jest.fn();
 
         instance.scrollbar = {
             current: {
-                scrollTop: jest.fn(),
-                getScrollTop: jest.fn(() => 100),
-                getClientHeight: jest.fn(() => 500),
+                scrollTo: jest.fn(),
+                scrollTop: 100,
+                clientHeight: 500,
             } as any,
         };
 
@@ -210,16 +299,21 @@ describe('SidebarList', () => {
         } as any);
 
         instance.scrollToChannel(unreadChannel.id);
-        expect(instance.scrollToPosition).toBeCalledWith(8); // includes margin and category header height
+        expect(instance.scrollToPosition).toHaveBeenCalledWith(8); // includes margin and category header height
     });
 
     test('should set the dragging state based on type', () => {
-        (global as any).document.querySelectorAll = jest.fn().mockReturnValue([{
+        const querySpy = jest.spyOn(document, 'querySelectorAll').mockReturnValue([{
             style: {},
-        }]);
+        }] as any);
 
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
 
         const categoryBefore = {
@@ -232,7 +326,9 @@ describe('SidebarList', () => {
             type: DraggingStateTypes.CATEGORY,
         };
 
-        wrapper.instance().onBeforeCapture(categoryBefore);
+        const instance = sidebarListRef.current!;
+
+        instance.onBeforeCapture(categoryBefore);
         expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(expectedCategoryBefore);
 
         const channelBefore = {
@@ -245,14 +341,22 @@ describe('SidebarList', () => {
             type: DraggingStateTypes.CHANNEL,
         };
 
-        wrapper.instance().onBeforeCapture(channelBefore);
+        instance.onBeforeCapture(channelBefore);
         expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(expectedChannelBefore);
+
+        querySpy.mockRestore();
     });
 
     test('should call correct action on dropping item', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
+        const instance = sidebarListRef.current!;
 
         const categoryResult: DropResult = {
             reason: 'DROP',
@@ -269,7 +373,7 @@ describe('SidebarList', () => {
             mode: 'SNAP' as MovementMode,
         };
 
-        wrapper.instance().onDragEnd(categoryResult);
+        instance.onDragEnd(categoryResult);
         expect(baseProps.actions.moveCategory).toHaveBeenCalledWith(baseProps.currentTeam.id, categoryResult.draggableId, categoryResult.destination!.index);
 
         const channelResult: DropResult = {
@@ -287,7 +391,7 @@ describe('SidebarList', () => {
             mode: 'SNAP' as MovementMode,
         };
 
-        wrapper.instance().onDragEnd(channelResult);
+        instance.onDragEnd(channelResult);
         expect(baseProps.actions.moveChannelsInSidebar).toHaveBeenCalledWith(channelResult.destination!.droppableId, channelResult.destination!.index, channelResult.draggableId);
     });
 });

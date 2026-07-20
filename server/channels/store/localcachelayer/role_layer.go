@@ -44,6 +44,14 @@ func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return s.RoleStore.Save(role)
 }
 
+func (s LocalCacheRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
+	if role.Name != "" {
+		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name, nil)
+		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	}
+	return s.RoleStore.SavePreservingUnknownPermissions(role)
+}
+
 func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
@@ -62,11 +70,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
-	toPass := make([]any, 0, len(names))
-	for i := 0; i < len(names); i++ {
-		var role *model.Role
-		toPass = append(toPass, &role)
-	}
+	toPass := allocateCacheTargets[*model.Role](len(names))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, names, toPass)
 	for i, err := range errs {
 		if err != nil {

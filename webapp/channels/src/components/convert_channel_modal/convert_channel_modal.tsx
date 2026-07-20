@@ -5,11 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {General} from 'mattermost-redux/constants';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
 
@@ -25,11 +23,11 @@ type Props = {
     actions: {
         updateChannelPrivacy: (channelId: string, privacy: string) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class ConvertChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -45,7 +43,6 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
         }
 
         actions.updateChannelPrivacy(channelId, General.PRIVATE_CHANNEL);
-        trackEvent('actions', 'convert_to_private_channel', {channel_id: channelId});
         this.onHide();
     };
 
@@ -65,7 +62,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='convertChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -84,44 +81,41 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 </Modal.Header>
                 <Modal.Body>
                     <p>
-                        <FormattedMarkdownMessage
-                            id='convert_channel.question1'
-                            defaultMessage='When you convert **{display_name}** to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
+                        <FormattedMessage
+                            id='convertChannel.question1'
+                            defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
                             values={{
                                 display_name: channelDisplayName,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question2'
-                            defaultMessage='The change is permanent and cannot be undone.'
-                        />
-                    </p>
-                    <p>
-                        <FormattedMarkdownMessage
-                            id='convert_channel.question3'
-                            defaultMessage='Are you sure you want to convert **{display_name}** to a private channel?'
+                            id='convertChannel.question3'
+                            defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
                             values={{
                                 display_name: channelDisplayName,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
+                        data-testid='convertChannelCancel'
                     >
                         <FormattedMessage
                             id='convert_channel.cancel'
                             defaultMessage='No, cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         data-dismiss='modal'
                         onClick={this.handleConvert}
                         autoFocus={true}
@@ -131,7 +125,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             id='convert_channel.confirm'
                             defaultMessage='Yes, convert to private channel'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

@@ -1,0 +1,76 @@
+name: Migration Review & Release Notes
+ 
+# Fires whenever a new .up.sql file lands on master.
+# Runs the review-migration and migration-release-notes skills via Claude
+# and writes the combined output to the job summary, visible directly in
+# the Actions run UI — no GitHub App, PAT, or special permissions needed.
+#
+# Required secrets:
+#   ANTHROPIC_API_KEY  — already a repo secret
+ 
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'server/channels/db/migrations/postgres/**.up.sql'
+ 
+permissions:
+  contents: read  # checkout only
+ 
+# Only one run at a time per branch. If a new push to master arrives while
+# a review is already in progress, the in-progress run is cancelled — the
+# new run will cover the full push range anyway, avoiding duplicate API spend.
+concurrency:
+  group: migration-review-${{ github.ref }}
+  cancel-in-progress: true
+ 
+jobs:
+  generate:
+    name: Generate migration review & release notes
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout
+        # actions/checkout v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0             # full history — covers multi-commit pushes
+          persist-credentials: false
+ 
+      - name: Set up Python
+        # actions/setup-python v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+ 
+      - name: Install dependencies
+        # Pin anthropic to a known-good version for reproducible builds.
+        # Bump intentionally when upgrading.
+        run: pip install anthropic==0.105.2
+ 
+      - name: Detect and process new migrations
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+ 
+          # Filter on .up.sql only: each migration is identified by its up
+          # file; the paired .down.sql is read by the script if present.
+          # Triggering on up files avoids duplicate runs when both files
+          # arrive in the same push.
+          MIGRATIONS_GLOB='server/channels/db/migrations/postgres/*.up.sql'
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=A \
+              "$PUSH_BASE_SHA" "$GITHUB_SHA" -- "$MIGRATIONS_GLOB"
+          )
+ 
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No new .up.sql files — skipping."
+            exit 0
+          fi
+ 
+          echo "Found ${#files[@]} new migration(s):"
+          printf '  %s\n' "${files[@]}"
+ 
+          python .github/scripts/migration_automation.py "${files[@]}"

@@ -7,13 +7,64 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestParseEmailList(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "single valid email",
+			input:    "user@example.com",
+			expected: []string{"user@example.com"},
+		},
+		{
+			name:     "multiple valid emails",
+			input:    "a@example.com b@example.com",
+			expected: []string{"a@example.com", "b@example.com"},
+		},
+		{
+			name:     "trailing commas stripped",
+			input:    "a@example.com, b@example.com,",
+			expected: []string{"a@example.com", "b@example.com"},
+		},
+		{
+			name:     "non-email tokens filtered out",
+			input:    "notanemail a@example.com alsoinvalid",
+			expected: []string{"a@example.com"},
+		},
+		{
+			name:     "comma immediately after email treated as one token",
+			input:    "a@example.com,b@example.com",
+			expected: []string{"a@example.com,b@example.com"},
+		},
+		{
+			name:     "empty input",
+			input:    "",
+			expected: nil,
+		},
+		{
+			name:     "all tokens invalid",
+			input:    "notanemail alsoinvalid",
+			expected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := parseEmailList(tc.input)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestInvitePeopleProvider(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SendEmailNotifications = true
@@ -22,7 +73,7 @@ func TestInvitePeopleProvider(t *testing.T) {
 
 	cmd := InvitePeopleProvider{}
 
-	notTeamUser := th.createUser()
+	notTeamUser := th.createUser(t)
 
 	// Test without required permissions
 	args := &model.CommandArgs{

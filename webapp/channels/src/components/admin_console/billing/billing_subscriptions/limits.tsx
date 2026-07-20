@@ -5,6 +5,8 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {
     getCloudProducts,
     getCloudSubscription,
@@ -31,7 +33,7 @@ const Limits = (): JSX.Element | null => {
     const [cloudLimits, limitsLoaded] = useGetLimits();
     const usage = useGetUsage();
     const [openSalesLink] = useOpenSalesLink();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     if (!subscriptionProduct || !limitsLoaded || !hasSomeLimits(cloudLimits)) {
         return null;
@@ -68,7 +70,7 @@ const Limits = (): JSX.Element | null => {
                         name={(
                             <FormattedMessage
                                 id='workspace_limits.file_storage'
-                                defaultMessage='File Storage'
+                                defaultMessage='File storage'
                             />
                         )}
                         status={(
@@ -92,13 +94,13 @@ const Limits = (): JSX.Element | null => {
                         name={
                             <FormattedMessage
                                 id='workspace_limits.message_history'
-                                defaultMessage='Message History'
+                                defaultMessage='Message history'
                             />
                         }
                         status={
                             <FormattedMessage
                                 id='workspace_limits.message_history.usage'
-                                defaultMessage='{actual} of {limit} ({percent}%)'
+                                defaultMessage='{actual} of {limit} messages ({percent}%)'
                                 values={{
                                     actual: `${Math.floor(usage.messages.history / 1000)}K`,
                                     limit: `${Math.floor(cloudLimits.messages.history / 1000)}K`,
@@ -133,24 +135,26 @@ const Limits = (): JSX.Element | null => {
             <div className={actionsClassname}>
                 {subscriptionProduct.sku === CloudProducts.STARTER && (
                     <>
-                        <button
-                            onClick={() => openPricingModal({trackingLocation: 'billing_subscriptions_limits_dashboard'})}
-                            className='btn btn-primary'
-                        >
-                            {intl.formatMessage({
-                                id: 'workspace_limits.modals.view_plan_options',
-                                defaultMessage: 'View plan options',
-                            })}
-                        </button>
-                        <button
+                        {!isAirGapped && (
+                            <Button
+                                onClick={openPricingModal}
+                                emphasis='primary'
+                            >
+                                {intl.formatMessage({
+                                    id: 'workspace_limits.modals.view_plan_options',
+                                    defaultMessage: 'View plan options',
+                                })}
+                            </Button>
+                        )}
+                        <Button
                             onClick={openSalesLink}
-                            className='btn btn-secondary'
+                            emphasis='secondary'
                         >
                             {intl.formatMessage({
                                 id: 'admin.license.trialCard.contactSales',
-                                defaultMessage: 'Contact sales',
+                                defaultMessage: 'Contact Sales',
                             })}
-                        </button>
+                        </Button>
                     </>
                 )}
             </div>

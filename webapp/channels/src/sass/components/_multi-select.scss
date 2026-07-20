@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 .multi-select__container {
     display: flex;
     width: 100%;
@@ -10,6 +8,10 @@
     .btn {
         height: 40px;
         margin-left: 16px;
+    }
+
+    &.has-error.react-select .react-select__control.react-select-auto {
+        border-color: var(--error-text);
     }
 }
 
@@ -51,6 +53,26 @@
 
         &.note__icon {
             width: 15px;
+        }
+    }
+}
+
+.multi-select__error {
+    display: flex;
+    margin-top: 5px;
+    color: var(--error-text);
+    font-size: 12px;
+    line-height: 16px;
+    text-align: left;
+
+    i {
+        height: 14px;
+        align-self: baseline;
+        margin-right: 7px;
+        font-size: 14px;
+
+        &::before {
+            margin: 0;
         }
     }
 }

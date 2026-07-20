@@ -1,26 +1,54 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
-import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
+import {fetchChannelBookmarks, reorderBookmark} from 'actions/channel_bookmarks';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 
 import Constants from 'utils/constants';
 import {trimmedEmojiName} from 'utils/emoji_utils';
 import {canUploadFiles, isPublicLinksEnabled} from 'utils/file_utils';
+import {shouldOpenInNewTab} from 'utils/url';
+import {copyToClipboard} from 'utils/utils';
 
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
+
+export function bookmarkHasLinkUrl(bookmark: ChannelBookmark): boolean {
+    return (bookmark.type === 'link' || bookmark.type === 'board') && Boolean(bookmark.link_url);
+}
+
+export function shouldOpenBookmarkInNewTab(bookmark: ChannelBookmark, siteURL?: string): boolean {
+    if (!bookmarkHasLinkUrl(bookmark)) {
+        return false;
+    }
+
+    return shouldOpenInNewTab(bookmark.link_url!, siteURL);
+}
+
+export function copyBookmarkLink(bookmark: ChannelBookmark): void {
+    if (bookmarkHasLinkUrl(bookmark)) {
+        copyToClipboard(bookmark.link_url!);
+        return;
+    }
+
+    if (bookmark.type === 'file' && bookmark.file_id) {
+        copyToClipboard(getFileDownloadUrl(bookmark.file_id));
+    }
+}
 
 const {OPEN_CHANNEL, PRIVATE_CHANNEL, GM_CHANNEL, DM_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'; GM_CHANNEL: 'G'; DM_CHANNEL: 'D'};
 
@@ -56,6 +84,11 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
     if (!channel) {
         return false;
     }
+
+    if (channel.delete_at !== 0) {
+        return false;
+    }
+
     const {type} = channel;
 
     if (type === 'threads') {
@@ -85,12 +118,6 @@ export const useCanGetLinkPreviews = () => {
 };
 
 export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
-    const isEnabled = getFeatureFlagValue(state, 'ChannelBookmarks') === 'true';
-
-    if (!isEnabled) {
-        return false;
-    }
-
     const license = getLicense(state);
 
     return license?.IsLicensed === 'true';
@@ -103,6 +130,13 @@ export const useChannelBookmarks = (channelId: string) => {
     const order = useMemo(() => {
         return Object.keys(bookmarks).sort((a, b) => bookmarks[a].sort_order - bookmarks[b].sort_order);
     }, [bookmarks]);
+    const [tempOrder, setTempOrder] = useState<typeof order>();
+
+    useEffect(() => {
+        if (tempOrder) {
+            setTempOrder(undefined);
+        }
+    }, [order]);
 
     useEffect(() => {
         if (channelId) {
@@ -124,8 +158,19 @@ export const useChannelBookmarks = (channelId: string) => {
         }
     }, [bookmarks]);
 
+    const reorder = async (id: string, prevOrder: number, nextOrder: number) => {
+        setTempOrder(insertWithoutDuplicates(order, id, nextOrder));
+        const {error} = await dispatch(reorderBookmark(channelId, id, nextOrder));
+
+        if (error) {
+            setTempOrder(undefined);
+        }
+    };
+
     return {
         bookmarks,
-        order,
-    };
+        order: tempOrder ?? order,
+        reorder,
+    } as const;
 };
+

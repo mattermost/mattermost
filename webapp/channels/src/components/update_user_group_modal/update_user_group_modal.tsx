@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {CustomGroupPatch, Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,7 +15,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -30,12 +30,18 @@ export type Props = {
         patchGroup: (groupId: string, group: CustomGroupPatch) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
-const UpdateUserGroupModal = (props: Props) => {
+const UpdateUserGroupModal = ({
+    actions,
+    backButtonCallback,
+    group,
+    groupId,
+    onExited,
+}: Props) => {
     const [hasUpdated, setHasUpdated] = useState(false);
-    const [name, setName] = useState(props.group.display_name);
-    const [mention, setMention] = useState(`@${props.group.name}`);
+    const [name, setName] = useState(group.display_name);
+    const [mention, setMention] = useState(`@${group.name}`);
     const [saving, setSaving] = useState(false);
     const [show, setShow] = useState(true);
     const [mentionInputErrorText, setMentionInputErrorText] = useState('');
@@ -53,17 +59,6 @@ const UpdateUserGroupModal = (props: Props) => {
         return name.length > 0 && mention.length > 0 && hasUpdated && !saving;
     }, [name, mention, hasUpdated, saving]);
 
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
-            patchGroup();
-        }
-    }, [name, mention, hasUpdated, saving]);
-
-    useEffect(() => {
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-
     const updateNameState = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         let newMention = mention;
@@ -76,7 +71,7 @@ const UpdateUserGroupModal = (props: Props) => {
         setName(value);
         setHasUpdated(true);
         setMention(newMention);
-    }, [mention]);
+    }, [mention, mentionUpdatedManually]);
 
     const updateMentionState = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -86,9 +81,9 @@ const UpdateUserGroupModal = (props: Props) => {
     }, []);
 
     const goBack = useCallback(() => {
-        props.backButtonCallback();
-        props.onExited();
-    }, [props.backButtonCallback, props.onExited]);
+        backButtonCallback();
+        onExited();
+    }, [backButtonCallback, onExited]);
 
     const patchGroup = useCallback(async () => {
         setSaving(true);
@@ -96,7 +91,7 @@ const UpdateUserGroupModal = (props: Props) => {
         const displayName = name;
 
         if (!displayName || !displayName.trim()) {
-            setNameInputErrorText(Utils.localizeMessage('user_groups_modal.nameIsEmpty', 'Name is a required field.'));
+            setNameInputErrorText(formatMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}));
             setSaving(false);
             return;
         }
@@ -106,20 +101,20 @@ const UpdateUserGroupModal = (props: Props) => {
         }
 
         if (newMention.length < 1) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionIsEmpty', 'Mention is a required field.'));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}));
             setSaving(false);
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(newMention.toLowerCase())) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionReservedWord', 'Mention contains a reserved word.'));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}));
             setSaving(false);
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(newMention)) {
-            setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionInvalidError', 'Invalid character in mention.'));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}));
             setSaving(false);
             return;
         }
@@ -128,13 +123,13 @@ const UpdateUserGroupModal = (props: Props) => {
             name: newMention,
             display_name: displayName,
         };
-        const data = await props.actions.patchGroup(props.groupId, group);
+        const data = await actions.patchGroup(groupId, group);
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionNotUnique', 'Mention needs to be unique.'));
+                setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'}));
                 setSaving(false);
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                setMentionInputErrorText(Utils.localizeMessage('user_groups_modal.mentionUsernameConflict', 'A username already exists with this name. Mention must be unique.'));
+                setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'}));
                 setSaving(false);
             } else {
                 setShowUnknownError(true);
@@ -143,15 +138,36 @@ const UpdateUserGroupModal = (props: Props) => {
         } else {
             goBack();
         }
-    }, [name, mention, goBack, props.groupId, props.actions.patchGroup]);
+    }, [mention, name, actions, groupId, formatMessage, goBack]);
+
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
+            patchGroup();
+        }
+    }, [isSaveEnabled, patchGroup]);
+
+    const onSaveClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((e) => {
+        e.preventDefault();
+        patchGroup();
+    }, [patchGroup]);
+
+    const onBackClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((e) => {
+        e.preventDefault();
+        goBack();
+    }, [goBack]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     return (
         <Modal
             dialogClassName='a11y__modal user-groups-modal-update'
             show={show}
             onHide={doHide}
-            onExited={props.onExited}
-            role='dialog'
+            onExited={onExited}
+            role='none'
             aria-labelledby='createUserGroupsModalLabel'
             id='createUserGroupsModal'
         >
@@ -181,7 +197,7 @@ const UpdateUserGroupModal = (props: Props) => {
                     <div className='group-name-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage('user_groups_modal.name', 'Name')}
+                            placeholder={formatMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                             onChange={updateNameState}
                             value={name}
                             data-testid='nameInput'
@@ -192,7 +208,7 @@ const UpdateUserGroupModal = (props: Props) => {
                     <div className='group-mention-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage('user_groups_modal.mention', 'Mention')}
+                            placeholder={formatMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                             onChange={updateMentionState}
                             value={mention}
                             data-testid='nameInput'
@@ -210,25 +226,22 @@ const UpdateUserGroupModal = (props: Props) => {
                                 />
                             </div>
                         }
-                        <button
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                e.preventDefault();
-                                goBack();
-                            }}
-                            className='btn btn-tertiary'
+                        <Button
+                            onClick={onBackClick}
+                            emphasis='tertiary'
                         >
-                            {Utils.localizeMessage('multiselect.backButton', 'Back')}
-                        </button>
+                            <FormattedMessage
+                                id='multiselect.backButton'
+                                defaultMessage='Back'
+                            />
+                        </Button>
                         <SaveButton
                             id='saveItems'
                             saving={saving}
                             disabled={!isSaveEnabled()}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                patchGroup();
-                            }}
-                            defaultMessage={Utils.localizeMessage('multiselect.saveDetailsButton', 'Save Details')}
-                            savingMessage={Utils.localizeMessage('multiselect.savingDetailsButton', 'Saving...')}
+                            onClick={onSaveClick}
+                            defaultMessage={formatMessage({id: 'multiselect.saveDetailsButton', defaultMessage: 'Save Details'})}
+                            savingMessage={formatMessage({id: 'multiselect.savingDetailsButton', defaultMessage: 'Saving...'})}
                         />
                     </div>
                 </div>

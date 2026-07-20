@@ -9,15 +9,14 @@
 
 // Group: @channels @not_cloud @plugin_marketplace @plugin @plugins_uninstall
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {githubPluginOld} from '../../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {githubPluginOld} from '@/utils/plugins';
 
 describe('Plugin Marketplace', () => {
     let townsquareLink;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
-        cy.shouldHaveFeatureFlag('StreamlinedMarketplace', 'false'); // https://mattermost.atlassian.net/browse/MM-54230
         cy.shouldHavePluginUploadEnabled();
 
         cy.apiInitSetup().then(({team}) => {

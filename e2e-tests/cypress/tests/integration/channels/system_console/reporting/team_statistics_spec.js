@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('System Console > Team Statistics', () => {
     before(() => {
@@ -19,14 +19,16 @@ describe('System Console > Team Statistics', () => {
             // # Create private channel.
             cy.apiCreateChannel(team.id, 'mmt906-ch', 'mmt906-ch', 'P');
 
-            // # Visit team statistics page.
-            cy.visit('/admin_console/reporting/team_statistics');
+            cy.dbRefreshPostStats().then(() => {
+                // # Visit team statistics page.
+                cy.visit('/admin_console/reporting/team_statistics');
 
-            // # Select created team.
-            cy.get('select.team-statistics__team-filter__dropdown').select(team.id);
+                // # Select created team.
+                cy.get('select.team-statistics__team-filter__dropdown').select(team.id);
 
-            // # Explicit wait to allow stats to get loaded
-            cy.wait(TIMEOUTS.TWO_SEC);
+                // # Explicit wait to allow stats to get loaded
+                cy.wait(TIMEOUTS.TWO_SEC);
+            });
         });
     });
 

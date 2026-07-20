@@ -14,7 +14,7 @@ type Props = {
     message?: string;
     service?: string;
     isGuest?: boolean;
-}
+};
 
 const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props) => {
     let errorMessage = null;
@@ -56,6 +56,16 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                     <FormattedMessage
                         id='permalink.error.access'
                         defaultMessage='Permalink belongs to a deleted message or to a channel to which you do not have access.'
+                    />
+                </p>
+            );
+            break;
+        case ErrorPageTypes.POST_NOT_FOUND:
+            errorMessage = (
+                <p>
+                    <FormattedMessage
+                        id='post.error.access'
+                        defaultMessage="The post you're requesting is private or does not exist."
                     />
                 </p>
             );
@@ -196,6 +206,16 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             errorMessage = (
                 <p>
                     {message}
+                </p>
+            );
+            break;
+        case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
+            errorMessage = (
+                <p>
+                    <FormattedMessage
+                        id='error.magic_link_already_logged_in.message'
+                        defaultMessage='You are already logged in. Log out and try again.'
+                    />
                 </p>
             );
             break;

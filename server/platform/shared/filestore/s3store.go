@@ -4,11 +4,14 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -44,14 +47,16 @@ type S3FileBackend struct {
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
 	uploadPartSize int64
+	storageClass   string
 }
 
-type S3FileBackendAuthError struct {
-	DetailedError string
-}
-
-// S3FileBackendNoBucketError is returned when testing a connection and no S3 bucket is found
-type S3FileBackendNoBucketError struct{}
+// S3FileBackendAuthError and S3FileBackendNoBucketError are aliases for the
+// generic backend errors. They are kept so external code (plugins,
+// historically-typed consumers) continues to compile.
+type (
+	S3FileBackendAuthError     = FileBackendAuthError
+	S3FileBackendNoBucketError = FileBackendNoBucketError
+)
 
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
@@ -60,35 +65,17 @@ const (
 )
 
 var (
-	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
-	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
-)
-
-var (
 	// Ensure that the ReaderAt interface is implemented.
 	_ io.ReaderAt                  = (*s3WithCancel)(nil)
 	_ FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
 )
 
-func isFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	return imageExtensions[ext]
-}
-
-func getImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if imageMimeTypes[ext] == "" {
-		return "image"
+func getContentType(ext string) string {
+	mimeType := mime.TypeByExtension(strings.ToLower(ext))
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
 	}
-	return imageMimeTypes[ext]
-}
-
-func (s *S3FileBackendAuthError) Error() string {
-	return s.DetailedError
-}
-
-func (s *S3FileBackendNoBucketError) Error() string {
-	return "no such bucket"
+	return mimeType
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.
@@ -118,6 +105,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
 		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
+		storageClass:   settings.AmazonS3StorageClass,
 	}
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
@@ -193,6 +181,13 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 		s3Clnt.TraceOn(&s3Trace{})
 	}
 
+	if tr, ok := opts.Transport.(*http.Transport); ok {
+		if tr.TLSClientConfig == nil {
+			tr.TLSClientConfig = &tls.Config{}
+		}
+		tr.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+
 	return s3Clnt, nil
 }
 
@@ -213,7 +208,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -222,7 +217,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
@@ -364,6 +359,48 @@ func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 	return info.LastModified, nil
 }
 
+// maxS3SingleCopySize is the largest source object (5GiB) that S3 allows for a
+// single server-side copy (CopyObject). Sources larger than this must be copied
+// with a server-side multipart copy (UploadPartCopy).
+const maxS3SingleCopySize = 5 * 1024 * 1024 * 1024
+
+// s3CopyClient is the subset of the S3 client used to route a server-side copy.
+// It exists so copyObjectWithClient can be unit tested with a mock client.
+type s3CopyClient interface {
+	StatObject(ctx context.Context, bucketName, objectName string, opts s3.StatObjectOptions) (s3.ObjectInfo, error)
+	CopyObject(ctx context.Context, dst s3.CopyDestOptions, src s3.CopySrcOptions) (s3.UploadInfo, error)
+	ComposeObject(ctx context.Context, dst s3.CopyDestOptions, srcs ...s3.CopySrcOptions) (s3.UploadInfo, error)
+}
+
+// copyObject performs a server-side copy of a single object from srcOpts to
+// dstOpts, using the backend's request timeout.
+func (b *S3FileBackend) copyObject(srcOpts s3.CopySrcOptions, dstOpts s3.CopyDestOptions) error {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	return copyObjectWithClient(ctx, b.client, srcOpts, dstOpts)
+}
+
+// copyObjectWithClient uses CopyObject for sources up to 5GiB, and falls back to
+// ComposeObject — which performs a server-side multipart copy — for larger
+// sources, which S3's single-operation CopyObject rejects. The size is checked
+// explicitly rather than relying on ComposeObject's own single-copy fast path,
+// which is only taken when the source range Start is -1 (a value its input
+// validation rejects, so it is unreachable here).
+func copyObjectWithClient(ctx context.Context, client s3CopyClient, srcOpts s3.CopySrcOptions, dstOpts s3.CopyDestOptions) error {
+	stat, err := client.StatObject(ctx, srcOpts.Bucket, srcOpts.Object, s3.StatObjectOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "unable to stat source file %s", srcOpts.Object)
+	}
+
+	if stat.Size > maxS3SingleCopySize {
+		_, err = client.ComposeObject(ctx, dstOpts, srcOpts)
+	} else {
+		_, err = client.CopyObject(ctx, dstOpts, srcOpts)
+	}
+	return err
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath, err := b.prefixedPath(oldPath)
 	if err != nil {
@@ -386,9 +423,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
-	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+	if err := b.copyObject(srcOpts, dstOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 
@@ -436,9 +471,7 @@ func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
 		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
-	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+	if err := b.copyObject(srcOpts, dstOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
 	}
 
@@ -473,9 +506,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
-	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+	if err := b.copyObject(srcOpts, dstOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
 	}
 
@@ -498,13 +529,10 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	ext := filepath.Ext(path)
+	contentType = getContentType(ext)
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -541,14 +569,9 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
 	}
 
-	var contentType string
-	if ext := filepath.Ext(fp); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	contentType := getContentType(filepath.Ext(fp))
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -606,26 +629,6 @@ func (b *S3FileBackend) RemoveFile(path string) error {
 	}
 
 	return nil
-}
-
-func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
-	out := make(chan s3.ObjectInfo, 1)
-
-	go func() {
-		defer close(out)
-
-		for {
-			info, done := <-in
-
-			if !done {
-				break
-			}
-
-			out <- info
-		}
-	}()
-
-	return out
 }
 
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
@@ -688,15 +691,117 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	list := b.client.ListObjects(ctx, b.bucket, opts)
 
-	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel2()
-	objectsCh := b.client.RemoveObjects(ctx2, b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
-	for err := range objectsCh {
-		if err.Err != nil {
-			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
+	// List all objects in the directory
+	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
+		if object.Err != nil {
+			return errors.Wrapf(object.Err, "unable to list the directory %s", path)
 		}
+
+		// Remove each object individually to avoid MD5 usage
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+		err := b.client.RemoveObject(ctx2, b.bucket, object.Key, s3.RemoveObjectOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "unable to remove object %s from directory %s", object.Key, path)
+		}
+	}
+
+	return nil
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+
+		// Is path a single file?
+		object, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
+		if err == nil {
+			// We want the zipped file to be at the root of the zip. E.g., given a path of
+			// "path/to/file.sh" we want the zip to have one file: "file.sh", not "path/to/file.sh".
+			stripPath := filepath.Dir(path)
+			if stripPath != "" {
+				stripPath += "/"
+			}
+			if err = b._copyObjectToZipWriter(zipWriter, object, stripPath, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+			}
+			return
+		}
+
+		// Is path a directory?
+		path = path + "/"
+		opts := s3.ListObjectsOptions{
+			Prefix:    path,
+			Recursive: true,
+		}
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+
+		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
+			if object.Err != nil {
+				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
+				return
+			}
+
+			if err = b._copyObjectToZipWriter(zipWriter, object, path, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+		}
+	}()
+
+	return pr, nil
+}
+
+func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
+	// We strip the path prefix that gets applied,
+	// so that it remains transparent to the application.
+	object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+
+	// We strip the path prefix + path so the zip file is relative to the root of the requested path
+	relPath := strings.TrimPrefix(object.Key, stripPath)
+	header := &zip.FileHeader{
+		Name:     relPath,
+		Method:   deflateMethod,
+		Modified: object.LastModified,
+	}
+	header.SetMode(0644) // rw-r--r-- permissions
+
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create zip entry for %s", object.Key)
+	}
+
+	reader, err := b.Reader(object.Key)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create reader for %s", object.Key)
+	}
+	defer reader.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return errors.Wrapf(err, "unable to copy content for %s", object.Key)
 	}
 
 	return nil
@@ -752,20 +857,21 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 			// and therefore the signature sent from the bifrost client
 			// will contain the encoded path, whereas the original path is sent
 			// un-encoded.
-			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
+			// More info at: https://github.com/aws/aws-sdk-go-v2/blob/1e4148ac334a4ea7abe31bd984a31dc761bb289d/aws/signer/v4/v4.go#L20
 			s = s3utils.EncodePath(s)
 		}
 	}
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64, storageClass string) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
 	options.PartSize = uint64(uploadPartSize)
+	options.StorageClass = storageClass
 
 	return options
 }

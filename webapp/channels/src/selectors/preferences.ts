@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Preferences} from 'utils/constants';
 
@@ -14,4 +14,31 @@ export const arePreviewsCollapsed = (state: GlobalState) => {
         Preferences.COLLAPSE_DISPLAY,
         Preferences.COLLAPSE_DISPLAY_DEFAULT !== 'false',
     );
+};
+
+export const isSendOnCtrlEnter = (state: GlobalState) => {
+    return getBoolPreference(
+        state,
+        Preferences.CATEGORY_ADVANCED_SETTINGS,
+        'send_on_ctrl_enter',
+        false,
+    );
+};
+
+export const isUseMilitaryTime = (state: GlobalState) => {
+    return getBoolPreference(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.USE_MILITARY_TIME,
+        false,
+    );
+};
+
+export const isCompactMode = (state: GlobalState) => {
+    return get(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.MESSAGE_DISPLAY,
+        Preferences.MESSAGE_DISPLAY_DEFAULT,
+    ) === Preferences.MESSAGE_DISPLAY_COMPACT;
 };

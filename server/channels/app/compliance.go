@@ -34,7 +34,7 @@ func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*mo
 
 	job.Type = model.ComplianceTypeAdhoc
 
-	rctx = rctx.WithLogger(rctx.Logger().With(job.LoggerFields()...))
+	rctx = rctx.WithLogFields(job.LoggerFields()...)
 
 	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {

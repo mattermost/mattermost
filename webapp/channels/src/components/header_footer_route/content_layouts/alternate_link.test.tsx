@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 import {BrowserRouter} from 'react-router-dom';
 
@@ -9,28 +9,29 @@ import AlternateLink from './alternate_link';
 
 describe('components/header_footer_route/content_layouts/alternate_link', () => {
     it('should return default', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <AlternateLink/>,
         );
 
-        expect(wrapper).toEqual({});
+        expect(container.firstChild).toBeNull();
     });
 
     it('should show with message', () => {
         const alternateMessage = 'alternateMessage';
 
-        const wrapper = shallow(
+        render(
             <AlternateLink alternateMessage={alternateMessage}/>,
         );
 
-        expect(wrapper.find('.alternate-link__message').text()).toEqual(alternateMessage);
+        expect(screen.getByText(alternateMessage)).toBeInTheDocument();
+        expect(screen.getByText(alternateMessage)).toHaveClass('alternate-link__message');
     });
 
     it('should show with link', () => {
         const alternateLinkPath = 'alternateLinkPath';
         const alternateLinkLabel = 'alternateLinkLabel';
 
-        const wrapper = mount(
+        render(
             <BrowserRouter>
                 <AlternateLink
                     alternateLinkPath={alternateLinkPath}
@@ -39,9 +40,9 @@ describe('components/header_footer_route/content_layouts/alternate_link', () => 
             </BrowserRouter>,
         );
 
-        const link = wrapper.find('.alternate-link__link').first();
-
-        expect(link.text()).toEqual(alternateLinkLabel);
-        expect(link.props().to).toEqual({pathname: alternateLinkPath, search: ''});
+        const link = screen.getByText(alternateLinkLabel);
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveClass('alternate-link__link');
+        expect(link.closest('a')).toHaveAttribute('href', 'alternateLinkPath');
     });
 });

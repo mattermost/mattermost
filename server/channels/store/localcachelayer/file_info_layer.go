@@ -5,6 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -45,6 +46,45 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 
 	if len(fileInfos) > 0 {
 		s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, cacheKey, fileInfos)
+	}
+
+	return fileInfos, nil
+}
+
+func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	if readFromMaster {
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, false, readFromMaster)
+	}
+
+	if !allowFromCache {
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
+	}
+
+	var fileIdsToFetch []string
+	var fileInfos []*model.FileInfo
+
+	for _, fileId := range ids {
+		cacheKey := fmt.Sprintf("%s_%t", fileId, includeDeleted)
+
+		var fileInfo *model.FileInfo
+		if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, cacheKey, &fileInfo); err == nil {
+			fileInfos = append(fileInfos, fileInfo)
+		} else {
+			fileIdsToFetch = append(fileIdsToFetch, fileId)
+		}
+	}
+
+	if len(fileIdsToFetch) > 0 {
+		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false, readFromMaster)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, fileInfo := range fetchedFileInfos {
+			cacheKey := fmt.Sprintf("%s_%t", fileInfo.Id, includeDeleted)
+			s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, cacheKey, fileInfo)
+			fileInfos = append(fileInfos, fileInfo)
+		}
 	}
 
 	return fileInfos, nil

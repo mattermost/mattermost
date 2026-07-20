@@ -18,11 +18,11 @@ const (
 // A MentionableID stores the ID of a single User/Group with information about which type of object it refers to.
 type MentionableID string
 
-func MentionableUserID(userID string) MentionableID {
+func mentionableUserID(userID string) MentionableID {
 	return MentionableID(fmt.Sprint(mentionableUserPrefix, userID))
 }
 
-func MentionableGroupID(groupID string) MentionableID {
+func mentionableGroupID(groupID string) MentionableID {
 	return MentionableID(fmt.Sprint(mentionableGroupPrefix, groupID))
 }
 
@@ -48,7 +48,7 @@ func (id MentionableID) AsGroupID() (groupID string, ok bool) {
 type MentionKeywords map[string][]MentionableID
 
 func (k MentionKeywords) AddUser(profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) MentionKeywords {
-	mentionableID := MentionableUserID(profile.Id)
+	mentionableID := mentionableUserID(profile.Id)
 
 	userMention := "@" + strings.ToLower(profile.Username)
 	k[userMention] = append(k[userMention], mentionableID)
@@ -87,7 +87,7 @@ func (k MentionKeywords) AddUser(profile *model.User, channelNotifyProps map[str
 }
 
 func (k MentionKeywords) AddUserKeyword(userID string, keyword string) MentionKeywords {
-	k[keyword] = append(k[keyword], MentionableUserID(userID))
+	k[keyword] = append(k[keyword], mentionableUserID(userID))
 
 	return k
 }
@@ -95,7 +95,7 @@ func (k MentionKeywords) AddUserKeyword(userID string, keyword string) MentionKe
 func (k MentionKeywords) AddGroup(group *model.Group) MentionKeywords {
 	if group.Name != nil {
 		keyword := "@" + *group.Name
-		k[keyword] = append(k[keyword], MentionableGroupID(group.Id))
+		k[keyword] = append(k[keyword], mentionableGroupID(group.Id))
 	}
 
 	return k

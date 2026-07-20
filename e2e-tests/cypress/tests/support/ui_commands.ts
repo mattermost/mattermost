@@ -4,23 +4,22 @@
 import localforage from 'localforage';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
+import type {ChainableT} from '../types';
 import {isMac} from '../utils';
-
-import {ChainableT} from '../types';
 
 // ***********************************************************
 // Read more: https://on.cypress.io/custom-commands
 // ***********************************************************
 
-function logout(): ChainableT<any> {
+function logout(): ChainableT<JQuery> {
     return cy.get('#logout').click({force: true});
 }
 Cypress.Commands.add('logout', logout);
 
-function getCurrentUserId(): ChainableT<Promise<unknown>> {
-    return cy.wrap(new Promise((resolve) => {
+function getCurrentUserId(): ChainableT<string> {
+    return cy.wrap(new Promise<string>((resolve) => {
         cy.getCookie('MMUSERID').then((cookie) => {
-            resolve(cookie.value);
+            resolve(cookie!.value);
         });
     }));
 }
@@ -31,12 +30,12 @@ Cypress.Commands.add('getCurrentUserId', getCurrentUserId);
 // ***********************************************************
 
 // Type Cmd or Ctrl depending on OS
-function typeCmdOrCtrl(): ChainableT<any> {
+function typeCmdOrCtrl(): ChainableT<JQuery> {
     return typeCmdOrCtrlInt('#post_textbox');
 }
 Cypress.Commands.add('typeCmdOrCtrl', typeCmdOrCtrl);
 
-function typeCmdOrCtrlForEdit(): ChainableT<any> {
+function typeCmdOrCtrlForEdit(): ChainableT<JQuery> {
     return typeCmdOrCtrlInt('#edit_textbox');
 }
 Cypress.Commands.add('typeCmdOrCtrlForEdit', typeCmdOrCtrlForEdit);
@@ -52,7 +51,7 @@ function typeCmdOrCtrlInt(textboxSelector: string) {
     return cy.get(textboxSelector).type(cmdOrCtrl, {release: false});
 }
 
-function cmdOrCtrlShortcut(subject: string, text?: string): ChainableT<any> {
+function cmdOrCtrlShortcut(subject: string, text?: string): ChainableT<JQuery> {
     const cmdOrCtrl = isMac() ? '{cmd}' : '{ctrl}';
     return cy.get(subject).type(`${cmdOrCtrl}${text}`);
 }
@@ -62,13 +61,13 @@ Cypress.Commands.add('cmdOrCtrlShortcut', {prevSubject: true}, cmdOrCtrlShortcut
 // Post
 // ***********************************************************
 
-function postMessage(message: string): ChainableT<any> {
+function postMessage(message: string): ChainableT<boolean> {
     cy.get('#postListContent').should('be.visible');
     return postMessageAndWait('#post_textbox', message);
 }
 Cypress.Commands.add('postMessage', postMessage);
 
-function postMessageReplyInRHS(message: string): ChainableT<any> {
+function postMessageReplyInRHS(message: string): ChainableT<boolean> {
     cy.get('#sidebar-right').should('be.visible');
     return postMessageAndWait('#reply_textbox', message, true);
 }
@@ -98,10 +97,10 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).should('have.value', message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-    cy.get(textboxSelector).invoke('val').then((value: string) => {
-        if (value.length > 0 && value === message) {
+    cy.get(textboxSelector).invoke('val').then((value) => {
+        if (typeof value === 'string' && value.length > 0 && value === message) {
             cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
         }
     });
@@ -170,9 +169,9 @@ function getLastPostId(): ChainableT<string> {
 }
 Cypress.Commands.add('getLastPostId', getLastPostId);
 
-function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<any> {
+function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<boolean> {
     const checkFn = () => {
-        return cy.getLastPost().then((el) => {
+        return cy.getLastPost().scrollIntoView().then((el) => {
             const postedMessageEl = el.find('.post-message__text')[0];
             return Boolean(postedMessageEl && postedMessageEl.textContent.includes(message));
         });
@@ -204,14 +203,14 @@ function uiGetNthPost(index: number): ChainableT<JQuery> {
 }
 Cypress.Commands.add('uiGetNthPost', uiGetNthPost);
 
-function postMessageFromFile(file: string, target = '#post_textbox'): ChainableT<any> {
+function postMessageFromFile(file: string, target = '#post_textbox') {
     return cy.fixture(file, 'utf-8').then((text) => {
         return cy.get(target).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
     });
 }
 Cypress.Commands.add('postMessageFromFile', postMessageFromFile);
 
-function compareLastPostHTMLContentFromFile(file: string, timeout = TIMEOUTS.TEN_SEC): ChainableT<any> {
+function compareLastPostHTMLContentFromFile(file: string, timeout = TIMEOUTS.TEN_SEC): ChainableT<void> {
     // * Verify that HTML Content is correct
     return cy.getLastPostId().then((postId) => {
         const postMessageTextId = `#postMessageText_${postId}`;
@@ -237,7 +236,7 @@ function uiGotoDirectMessageWithUser(user: User) {
     cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
     // # Type username
-    cy.findByRole('textbox', {name: 'Search for people'}).click({force: true}).
+    cy.findByRole('combobox', {name: 'Search for people'}).click({force: true}).
         type(user.username, {force: true}).wait(TIMEOUTS.ONE_SEC);
 
     // * Expect user count in the list to be 1
@@ -325,12 +324,12 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
     }
 
     if (postId) {
-        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true});
-        cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${postId}`).click({force: true});
+        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
+            get(`#${location}_${item}_${postId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
     } else {
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true});
-            cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${lastPostId}`).click({force: true});
+            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
+                get(`#${location}_${item}_${lastPostId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
         });
     }
 }
@@ -348,12 +347,14 @@ Cypress.Commands.add('clickPostSaveIcon', clickPostSaveIcon);
 function clickPostDotMenu(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'button');
 }
-Cypress.Commands.add('clickPostDotMenu', clickPostDotMenu);
+// Cypress.Commands.add requires cast for overloaded commands
+Cypress.Commands.add('clickPostDotMenu', clickPostDotMenu as any);
 
 function clickPostReactionIcon(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'reaction');
 }
-Cypress.Commands.add('clickPostReactionIcon', clickPostReactionIcon);
+// Cypress.Commands.add requires cast for overloaded commands
+Cypress.Commands.add('clickPostReactionIcon', clickPostReactionIcon as any);
 
 function clickPostCommentIcon(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'commentIcon');
@@ -393,8 +394,8 @@ function getCurrentTeamURL(siteURL: string): ChainableT<string> {
 Cypress.Commands.add('getCurrentTeamURL', getCurrentTeamURL);
 
 function leaveTeam() {
-    // # Open team menu and click "Leave Team"
-    cy.uiOpenTeamMenu('Leave Team');
+    // # Open team menu and click "Leave team"
+    cy.uiOpenTeamMenu('Leave team');
 
     // * Check that the "leave team modal" opened up
     cy.get('#leaveTeamModal').should('be.visible');
@@ -462,13 +463,49 @@ function getCurrentChannelId(): ChainableT<string> {
 Cypress.Commands.add('getCurrentChannelId', getCurrentChannelId);
 
 function updateChannelHeader(text: string) {
-    cy.get('#channelHeaderDropdownIcon').
+    // # Open channel header dropdown
+    cy.get('#channelHeaderDropdownButton').click();
+
+    // # Click on Channel Settings
+    cy.findByText('Channel Settings').should('be.visible').click();
+
+    // * Verify Channel Settings modal opens
+    cy.get('.ChannelSettingsModal').should('be.visible');
+
+    // # Edit channel header in the modal
+    cy.get('#channel_settings_header_textbox').
+        scrollIntoView().
+        should('be.visible').
+        clear().
+        type(text);
+
+    // # Save changes
+    cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+    // * Verify changes are saved
+    cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+    // # Close the modal
+    cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
+
+    // * Verify modal is closed
+    cy.get('.ChannelSettingsModal').should('not.exist');
+
+    // Wait for UI to stabilize
+    cy.wait(TIMEOUTS.HALF_SEC);
+}
+
+Cypress.Commands.add('updateChannelHeader', updateChannelHeader);
+
+function updateDMGMChannelHeader(text: string) {
+    cy.get('#channelHeaderTitle').
         should('be.visible').
         click();
-    cy.get('.Menu__content').
-        should('be.visible').
-        find('#channelEditHeader').
-        click();
+    cy.get('#channelHeaderDropdownMenu').
+        should('be.visible');
+
+    // * Channel Settings menu option should be visible
+    cy.findByText('Edit Header').click();
     cy.get('#edit_textbox').
         clear().
         type(text).
@@ -476,9 +513,9 @@ function updateChannelHeader(text: string) {
         wait(TIMEOUTS.HALF_SEC);
 }
 
-Cypress.Commands.add('updateChannelHeader', updateChannelHeader);
+Cypress.Commands.add('updateDMGMChannelHeader', updateDMGMChannelHeader);
 
-function checkRunLDAPSync(): ChainableT<any> {
+function checkRunLDAPSync() {
     return cy.apiGetLDAPSync().then((response) => {
         const jobs = response.body;
         const currentTime = new Date();
@@ -506,8 +543,8 @@ function checkRunLDAPSync(): ChainableT<any> {
                 return cy.get('@firstRow').then((el) => {
                     return el.find('.status-icon-success').length > 0;
                 });
-            }
-            , {
+            },
+            {
                 timeout: TIMEOUTS.FIVE_MIN,
                 interval: TIMEOUTS.TWO_SEC,
                 errorMsg: 'AD/LDAP Sync Job did not finish',
@@ -531,7 +568,7 @@ function clickEmojiInEmojiPicker(emojiName: string) {
 }
 Cypress.Commands.add('clickEmojiInEmojiPicker', clickEmojiInEmojiPicker);
 
-function verifyPostedMessage(message) {
+function verifyPostedMessage(message: string) {
     cy.wait(TIMEOUTS.HALF_SEC).getLastPostId().then((postId) => {
         cy.get(`#post_${postId}`).within(() => {
             cy.get(`#postMessageText_${postId}`).contains(message);
@@ -540,7 +577,7 @@ function verifyPostedMessage(message) {
 }
 Cypress.Commands.add('verifyPostedMessage', verifyPostedMessage);
 
-function verifyEphemeralMessage(message, isCompactMode, needsToScroll) {
+function verifyEphemeralMessage(message: string, isCompactMode: boolean, needsToScroll: boolean) {
     if (needsToScroll) {
         // # Scroll the ephemeral message into view
         cy.get('#postListContent').within(() => {
@@ -638,7 +675,7 @@ declare global {
              * @example
              *  cy.uiPostMessageQuickly('Hello world')
              */
-            uiPostMessageQuickly(message: string): void;
+            uiPostMessageQuickly(message: string): ChainableT<void>;
 
             /**
              * Clicks on a visible emoji in the emoji picker.
@@ -711,7 +748,7 @@ declare global {
              * @param {User[]} users - the users that should get the message
              * @param {String} message - the message to send
              */
-            sendDirectMessageToUsers(users: User[], message: string): ChainableT<any>;
+            sendDirectMessageToUsers(users: User[], message: string): ChainableT<boolean>;
 
             /**
              * Click post time
@@ -786,6 +823,12 @@ declare global {
              * @param {String} text - Text to set the header to
              */
             updateChannelHeader(text: string): ChainableT<void>;
+
+            /**
+             * Update DM or GM channel header
+             * @param {String} text - Text to set the header to
+             */
+            updateDMGMChannelHeader(text: string): ChainableT<void>;
 
             /**
              * Navigate to system console-PluginManagement from profile settings

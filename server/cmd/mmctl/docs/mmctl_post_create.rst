@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Create a post
+Create a post in a channel or send a direct message to a user by prefixing the user with '@'.
 
 ::
 
@@ -21,12 +21,14 @@ Examples
 ::
 
     post create myteam:mychannel --message "some text for the post"
+    post create @target-user --message "some text for the direct message"
 
 Options
 ~~~~~~~
 
 ::
 
+  -b, --burn-on-read      Message will be deleted after a certain time after being read
   -h, --help              help for create
   -m, --message string    Message for the post
   -r, --reply-to string   Post id to reply to

@@ -6,4 +6,4 @@ import type {UserThread, ThreadsState} from '@mattermost/types/threads';
 export type ExtraData = {
     threadsToDelete?: UserThread[];
     threads: ThreadsState['threads'];
-}
+};

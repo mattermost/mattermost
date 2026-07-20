@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 //go:build e2e
-// +build e2e
 
 package commands
 

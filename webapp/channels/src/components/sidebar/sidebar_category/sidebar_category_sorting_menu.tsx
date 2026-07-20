@@ -14,6 +14,7 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -23,8 +24,6 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {trackEvent} from 'actions/telemetry_actions';
 
 import * as Menu from 'components/menu';
 
@@ -48,14 +47,13 @@ const SidebarCategorySortingMenu = ({
 
     function handleSortDirectMessages(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
-        trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
 
     let sortDirectMessagesIcon = <ClockOutlineIcon size={18}/>;
     let sortDirectMessagesSelectedValue = (
         <FormattedMessage
             id='user.settings.sidebar.recent'
-            defaultMessage='Recent Activity'
+            defaultMessage='Recent activity'
         />
     );
     if (category.sorting === CategorySorting.Alphabetical) {
@@ -95,16 +93,18 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
-                        defaultMessage='Recent Activity'
+                        defaultMessage='Recent activity'
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
 
@@ -153,6 +153,7 @@ const SidebarCategorySortingMenu = ({
                     key={`showDmCount-${category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
+                    trailingElements={selectedDmNumber === dmGmShowCount ? <CheckIcon size={16}/> : null}
                 />
             ))}
         </Menu.SubMenu>
@@ -189,13 +190,12 @@ const SidebarCategorySortingMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategorySortingMenu-Button-${category.id}`,
-                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
                     class: 'SidebarMenu_menuButton sortingMenu',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${category.id}`,
-                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
                     class: 'hidden-xs',
                 }}
                 menu={{

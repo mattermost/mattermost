@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type Plugin struct {
@@ -15,11 +16,21 @@ type Plugin struct {
 
 func (p *Plugin) ServeMetrics(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/subpath" {
-		w.Write([]byte("METRICS SUBPATH"))
+		_, err := w.Write([]byte("METRICS SUBPATH"))
+		if err != nil {
+			mlog.Error("Failed to write response", mlog.Err(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
-	w.Write([]byte("METRICS"))
+	_, err := w.Write([]byte("METRICS"))
+	if err != nil {
+		mlog.Error("Failed to write response", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func main() {

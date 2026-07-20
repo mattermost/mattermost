@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 //go:build !race
-// +build !race
 
 package api4
 
@@ -19,8 +18,8 @@ import (
 // because the websocket client is known to be racy and needs a big overhaul
 // to fix everything.
 func TestWebSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	defer WebSocketClient.Close()

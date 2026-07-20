@@ -1,0 +1,1 @@
+ALTER TABLE PropertyGroups ADD COLUMN IF NOT EXISTS SchemaVersion integer DEFAULT 1 NOT NULL;

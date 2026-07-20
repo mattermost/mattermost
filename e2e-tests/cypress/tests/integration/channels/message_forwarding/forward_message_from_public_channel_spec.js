@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const DEFAULT_CHARACTER_LIMIT = 16383;
 
@@ -179,7 +179,7 @@ describe('Forward Message', () => {
         cy.uiClickSidebarItem('threads');
 
         // # Open the RHS with replies to the root post
-        cy.get('article.ThreadItem').should('have.lengthOf', 1).first().click();
+        cy.get('div.ThreadItem').should('have.lengthOf', 1).first().click();
 
         // # Click on ... button of reply post
         cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');

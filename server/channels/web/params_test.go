@@ -70,13 +70,13 @@ func TestParamsFromRequest(t *testing.T) {
 				LimitAfter:                6,
 				LimitBefore:               7,
 				Q:                         "picard",
-				IsLinked:                  boolPtr(true),
-				IsConfigured:              boolPtr(true),
+				IsLinked:                  new(true),
+				IsConfigured:              new(true),
 				NotAssociatedToTeam:       "this_team",
 				NotAssociatedToChannel:    "this_channel",
 				FilterAllowReference:      true,
 				FilterParentTeamPermitted: true,
-				Paginate:                  boolPtr(true),
+				Paginate:                  new(true),
 				IncludeMemberCount:        true,
 				NotAssociatedToGroup:      "test",
 				ExcludeDefaultChannels:    true,
@@ -92,8 +92,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=hello"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -105,8 +104,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=-1"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -480,7 +478,6 @@ func TestParamsFromRequest(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 
@@ -498,8 +495,4 @@ func mustURL(u string) *url.URL {
 		panic(err)
 	}
 	return parsed
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }

@@ -3,7 +3,6 @@
 
 import moment from 'moment-timezone';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -11,10 +10,8 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {General} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
-import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
@@ -64,15 +61,16 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             preferences: {
                 myPreferences: {},
             },
-            admin: {
-                config: {
-                    ServiceSettings: {
-                        SelfHostedPurchase: true,
-                    },
-                },
-            },
             cloud: {
                 subscription: undefined,
+            },
+            limits: {
+                serverLimits: {
+                    activeUserCount: 0,
+                    maxUsersLimit: 0,
+                    singleChannelGuestCount: 0,
+                    singleChannelGuestLimit: 0,
+                },
             },
             hostedCustomer: {
                 products: {
@@ -101,34 +99,35 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         handleChange: jest.fn(),
         fileInputRef: React.createRef(),
         statsActiveUsers: 1,
+        isLicenseSetByEnvVar: false,
     };
 
     test('should format the Users field', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionLeftPanel
-                    {...baseProps}
-                />
-            </Provider>,
-        );
-
-        const item = wrapper.find('.item-element').filterWhere((n) => {
-            return n.children().length === 2 &&
-                n.childAt(0).type() === 'span' &&
-                !n.childAt(0).text().includes('ACTIVE') &&
-                n.childAt(0).text().includes('LICENSED SEATS');
-        });
-
-        expect(item.text()).toContain('1,000');
-    });
-
-    test('should not add any class if active users is lower than the minimal', () => {
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...baseProps}
             />,
             initialState,
+        );
+
+        expect(screen.getByText('LICENSED SEATS:')).toBeInTheDocument();
+        expect(screen.getByText('1,000')).toBeInTheDocument();
+    });
+
+    test('should not add any class if active users is lower than the minimal', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                limits: {
+                    serverLimits: {activeUserCount: baseProps.statsActiveUsers},
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
         );
 
         expect(screen.getByText(Intl.NumberFormat('en').format(baseProps.statsActiveUsers))).toHaveClass('value');
@@ -139,40 +138,26 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
     });
 
-    test('should add warning class to active users', () => {
-        const minWarning = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MIN) + parseInt(license.Users, 10);
-        const props = {
-            ...baseProps,
-            statsActiveUsers: minWarning,
-        };
-
-        renderWithContext(
-            <EnterpriseEditionLeftPanel
-                {...props}
-            />,
-            initialState,
-        );
-
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value--warning-over-seats-purchased');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).not.toHaveClass('value--over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--warning-over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
-    });
-
     test('should add over-seats-purchased class to active users', () => {
-        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MAX) + parseInt(license.Users, 10);
+        // Changed to not use the constant OverActiveUserLimits.MAX given that we are currently set to 0. So the active users will be 0
+        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * 0.2) + parseInt(license.Users, 10);
         const props = {
             ...baseProps,
             statsActiveUsers: exceedHighLimitExtraUsersError,
         };
+        const testState = mergeObjects(initialState, {
+            entities: {
+                limits: {
+                    serverLimits: {activeUserCount: exceedHighLimitExtraUsersError},
+                },
+            },
+        });
 
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...props}
             />,
-            initialState,
+            testState,
         );
 
         expect(screen.getByText(Intl.NumberFormat('en').format(exceedHighLimitExtraUsersError))).toHaveClass('value');
@@ -237,5 +222,226 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
+    });
+
+    test('should render simplified panel for Entry license', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        // Check for the title section - should only show the plan name, not "Enterprise Edition"
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+
+        // Verify that "Enterprise Edition" pre-title is no longer displayed
+        expect(screen.queryByText('Enterprise Edition')).not.toBeInTheDocument();
+
+        // Check for the subtitle with limits link
+        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities/)).toBeInTheDocument();
+        expect(screen.getByText('with limits')).toBeInTheDocument();
+
+        // Check for the "Have a license?" section
+        expect(screen.getByText('Have a license?')).toBeInTheDocument();
+        expect(screen.getByText('Upload your license here to unlock licensed features')).toBeInTheDocument();
+
+        // Check for the upload license button
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeInTheDocument();
+
+        // Verify that the license details section is NOT rendered for Entry SKU
+        expect(screen.queryByText('License details')).not.toBeInTheDocument();
+        expect(screen.queryByText('LICENSED SEATS:')).not.toBeInTheDocument();
+        expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
+    });
+
+    test('should show single-channel guests row when guest accounts enabled and limit is set', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).toBeInTheDocument();
+        expect(screen.getByText('500')).toBeInTheDocument();
+    });
+
+    test('should not show single-channel guests row when guest accounts disabled', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'false',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.queryByText('SINGLE-CHANNEL GUESTS:')).not.toBeInTheDocument();
+    });
+
+    test('should not show single-channel guests row when limit is zero', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 0,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.queryByText('SINGLE-CHANNEL GUESTS:')).not.toBeInTheDocument();
+    });
+
+    test('should highlight single-channel guests when count exceeds limit', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 1500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).toHaveClass('legend--over-seats-purchased');
+        const valueSpan = document.querySelector('.value--over-seats-purchased');
+        expect(valueSpan).toBeInTheDocument();
+        expect(valueSpan).toHaveTextContent('(Limit reached)');
+    });
+
+    test('should not highlight single-channel guests when count is within limit', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 500,
+                        singleChannelGuestLimit: 1000,
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('SINGLE-CHANNEL GUESTS:')).not.toHaveClass('legend--over-seats-purchased');
+        expect(screen.getByText('500')).not.toHaveClass('value--over-seats-purchased');
+    });
+
+    test('should disable upload button for Entry license when license is set by env var', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+            isLicenseSetByEnvVar: true,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeDisabled();
     });
 });

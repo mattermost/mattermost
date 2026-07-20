@@ -11,16 +11,16 @@
       </mj-section>
       <mj-section  padding="0 60px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column>
-          <mj-text align="left" css-class="title" font-family="Open Sans, sans-serif" padding="10px 0px" padding-left="25px">
+          <mj-text align="left" css-class="title" font-family="sans-serif" padding="10px 0px" padding-left="25px">
             {{.Props.Title}}
           </mj-text>
-          <mj-text align="left" padding-bottom="14px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="Open Sans, sans-serif">
+          <mj-text align="left" padding-bottom="14px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="sans-serif">
             {{.Props.SubTitle1}}
           </mj-text>
-          <mj-text align="left" padding-bottom="24px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="Open Sans, sans-serif">
+          <mj-text align="left" padding-bottom="24px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="sans-serif">
             {{.Props.SubTitle2}}
           </mj-text>
-          <mj-text align="left" padding-left="60px" padding-right="118px" padding-top="0px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="Open Sans, sans-serif">
+          <mj-text align="left" padding-left="60px" padding-right="118px" padding-top="0px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" color="#000000" font-family="sans-serif">
             <mj-raw>
                 <ul padding-left="118px" padding-right="118px">
                     {{ range .Props.BulletListItems}}
@@ -32,7 +32,7 @@
           <mj-button color="#1C58D9" padding-bottom="30px" align="left" href="{{.Props.SiteURL}}/admin_console/billing/subscription">
             {{.Props.LimitsDocs}}
           </mj-button>
-          <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription" padding="0px" padding-bottom="24px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
+          <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription" padding="0px" padding-bottom="24px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="sans-serif">
             {{.Props.Button}}
           </mj-button>
         </mj-column>

@@ -6,10 +6,11 @@ import React from 'react';
 import type {ReactNode, MouseEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import CloseIcon from 'components/widgets/icons/close_icon';
 import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -24,7 +25,6 @@ export type Props = {
     showActions?: boolean; //used for showing jump actions
     width: number;
     extraClasses?: string;
-    overlayPlacement?: string;
     jumpDirection?: 'up' | 'down';
 };
 
@@ -37,7 +37,6 @@ export default function Toast({
     showActions,
     width,
     extraClasses = '',
-    overlayPlacement = 'bottom',
     jumpDirection = 'down',
 }: Props) {
     function handleDismiss() {
@@ -70,8 +69,6 @@ export default function Toast({
                 {children}
             </div>
             <WithTooltip
-                id='toast-close__tooltip'
-                placement={overlayPlacement}
                 title={
                     <>
                         <FormattedMessage
@@ -81,7 +78,7 @@ export default function Toast({
                         <div className='tooltip__shortcut--txt'>
                             <FormattedMessage
                                 id='general_button.esc'
-                                defaultMessage='esc'
+                                defaultMessage='Esc'
                             />
                         </div>
                     </>

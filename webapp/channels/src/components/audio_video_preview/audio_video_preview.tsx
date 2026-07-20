@@ -13,11 +13,11 @@ type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
     isMobileView: boolean;
-}
+};
 
 type State = {
     canPlay: boolean;
-}
+};
 
 export default class AudioVideoPreview extends React.PureComponent<Props, State> {
     sourceRef = React.createRef<HTMLSourceElement>();

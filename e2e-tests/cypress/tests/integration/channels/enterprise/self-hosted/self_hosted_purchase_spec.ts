@@ -20,7 +20,9 @@
 // * Change mattermost-server utils/license.go to test public key
 //     * e.g. see (https://github.com/mattermost/mattermost-server/pull/16778/files)
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import type {UserProfile} from '@mattermost/types/users';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 function verifyPurchaseModal() {
     cy.contains('Provide your payment details');
@@ -63,7 +65,7 @@ const defaultSuccessForm: PurchaseForm = {
     agree: true,
 };
 
-const prefilledProvinceCountryRegions = {
+const prefilledProvinceCountryRegions: Record<string, boolean> = {
     'United States of America': true,
     Canada: true,
 };
@@ -136,7 +138,7 @@ function getCurrentUsers(): Cypress.Chainable<number> {
 }
 
 describe('Self hosted Purchase', () => {
-    let adminUser: Cypress.UserProfile | undefined;
+    let adminUser: UserProfile;
 
     beforeEach(() => {
         // prevent failed tests from bleeding over
@@ -145,9 +147,9 @@ describe('Self hosted Purchase', () => {
 
     before(() => {
         cy.apiInitSetup().then(() => {
-            cy.apiAdminLogin().then((result) => {
+            cy.apiAdminLogin().then(({user}) => {
                 // assertion because current typings are wrong.
-                adminUser = (result as unknown as {user: Cypress.UserProfile}).user;
+                adminUser = user;
                 cy.apiDeleteLicense();
                 cy.visit('/');
 
@@ -182,7 +184,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -257,14 +259,13 @@ describe('Self hosted Purchase', () => {
         cy.contains(todayPadded);
         cy.contains('Self-Hosted Professional');
 
-        // eslint-disable-next-line new-cap
-        const dollarUSLocale = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', minimumFractionDigits: 2});
+        const dollarUSLocale = new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', minimumFractionDigits: 2});
 
         // * Verify payment matches what the user was told they would pay
         getCurrentUsers().then((userCount) => {
             cy.contains(`${userCount + additionalSeatsToPurchase} users`);
             cy.wait('@products').then((res) => {
-                const product = res.response.body.find((product: Cypress.Product) => product.sku === 'professional');
+                const product = res.response!.body.find((product: Cypress.Product) => product.sku === 'professional');
                 const purchaseAmount = dollarUSLocale.format((userCount + additionalSeatsToPurchase) * (product).price_per_seat * 12);
                 cy.contains(purchaseAmount);
             });
@@ -287,10 +288,10 @@ describe('Self hosted Purchase', () => {
                         expect(prodLine.length).to.be.equal(1);
                         getCurrentUsers().then((userCount) => {
                             cy.wait('@products').then((res) => {
-                                const product = res.response.body.find((product: Cypress.Product) => product.sku === 'professional');
+                                const product = res.response!.body.find((product: Cypress.Product) => product.sku === 'professional');
                                 const purchaseAmount = dollarUSLocale.format((userCount + additionalSeatsToPurchase) * (product).price_per_seat * 12);
                                 const amountLine = allLines.find((line: string) => line.includes('Amount paid'));
-                                if (!amountLine.includes(purchaseAmount)) {
+                                if (!amountLine!.includes(purchaseAmount)) {
                                     throw new Error(`Expected purchase amount ${purchaseAmount}, but amount line was ${amountLine}`);
                                 }
                             });
@@ -326,7 +327,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -373,7 +374,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -430,7 +431,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -460,7 +461,7 @@ describe('Self hosted Purchase', () => {
         cy.get('#UpgradeButton').should('exist').click();
         cy.wait('@airGappedCheck');
         cy.wait('@products');
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal

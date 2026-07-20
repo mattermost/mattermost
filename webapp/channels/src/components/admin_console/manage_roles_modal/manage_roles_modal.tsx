@@ -5,14 +5,13 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -33,7 +32,7 @@ export type Props = {
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     show: boolean;
@@ -43,7 +42,7 @@ type State = {
     hasPostAllPublicRole: boolean;
     hasUserAccessTokenRole: boolean;
     isSystemAdmin: boolean;
-}
+};
 
 function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
@@ -104,26 +103,6 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         });
     };
 
-    trackRoleChanges = (roles: string, oldRoles: string) => {
-        if (UserUtils.hasUserAccessTokenRole(roles) && !UserUtils.hasUserAccessTokenRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
-        } else if (!UserUtils.hasUserAccessTokenRole(roles) && UserUtils.hasUserAccessTokenRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
-        }
-
-        if (UserUtils.hasPostAllRole(roles) && !UserUtils.hasPostAllRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_ROLE});
-        } else if (!UserUtils.hasPostAllRole(roles) && UserUtils.hasPostAllRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_ROLE});
-        }
-
-        if (UserUtils.hasPostAllPublicRole(roles) && !UserUtils.hasPostAllPublicRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
-        } else if (!UserUtils.hasPostAllPublicRole(roles) && UserUtils.hasPostAllPublicRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
-        }
-    };
-
     onHide = () => {
         this.setState({show: false});
     };
@@ -145,7 +124,6 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         }
 
         const result = await this.props.actions.updateUserRoles(this.props.user!.id, roles);
-        this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
             this.props.onSuccess(roles);
@@ -234,6 +212,16 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             />
                         </label>
                     </div>
+                    <p>
+                        <FormattedMessage
+                            id='admin.manage_roles.additionalRoles_warning'
+                            defaultMessage='<strong>Note:</strong><span>The permissions granted above apply to the account as a whole, regardless of whether it is authenticated using a session cookie or a personal access token. For example, selecting post:all will allow the account to post to channels it is not a member of, even without using a personal access token.</span>'
+                            values={{
+                                strong: (text) => <strong>{text}</strong>,
+                                span: (text) => <span className='pt-2 pb-2 light'>{text}</span>,
+                            }}
+                        />
+                    </p>
                 </div>
             );
         }
@@ -356,8 +344,9 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
-                role='dialog'
+                role='none'
                 aria-labelledby='manageRolesModalLabel'
+                id='manageRolesModal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
@@ -375,26 +364,26 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                     {this.state.error}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

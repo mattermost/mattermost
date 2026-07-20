@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -15,7 +17,6 @@ import type TextboxClass from 'components/textbox/textbox';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
@@ -45,7 +46,7 @@ type State = {
     show: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
-}
+};
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
     private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
@@ -214,7 +215,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 onHide={this.hideModal}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='editChannelHeaderModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -227,12 +228,15 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 </Modal.Header>
                 <Modal.Body bsClass='modal-body edit-modal-body'>
                     <div>
-                        <p>
+                        <label
+                            htmlFor='edit_textbox'
+                            className='textarea-label'
+                        >
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
                                 defaultMessage='Edit the text appearing next to the channel name in the header.'
                             />
-                        </p>
+                        </label>
                         <div className='textarea-wrapper'>
                             <Textbox
                                 value={this.state.header!}
@@ -269,27 +273,27 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.hideModal}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         disabled={this.state.saving}
                         type='button'
-                        className='btn btn-primary save-button'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

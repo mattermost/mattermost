@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
 import {ChannelBookmarkTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 
-export function deleteBookmark(channelId: string, id: string, connectionId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteBookmark(channelId: string, id: string, connectionId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
         const state = getState();
         const bookmark = getChannelBookmark(state, channelId, id);
 
@@ -34,7 +34,7 @@ export function deleteBookmark(channelId: string, id: string, connectionId: stri
     };
 }
 
-export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreate, connectionId: string) {
+export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreate, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch: DispatchFunc) => {
         try {
             const createdBookmark = await Client4.createChannelBookmark(channelId, bookmark, connectionId);
@@ -54,7 +54,7 @@ export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreat
     };
 }
 
-export function editBookmark(channelId: string, id: string, patch: ChannelBookmarkPatch, connectionId: string) {
+export function editBookmark(channelId: string, id: string, patch: ChannelBookmarkPatch, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch: DispatchFunc) => {
         try {
             const {updated, deleted} = await Client4.updateChannelBookmark(channelId, id, patch, connectionId);
@@ -83,8 +83,28 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
     };
 }
 
-export function fetchChannelBookmarks(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function reorderBookmark(channelId: string, id: string, newOrder: number, connectionId: string): ActionFuncAsync<boolean> {
+    return async (dispatch: DispatchFunc) => {
+        try {
+            const bookmarks = await Client4.updateChannelBookmarkSortOrder(channelId, id, newOrder, connectionId);
+
+            dispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+                data: {channelId, bookmarks},
+            });
+        } catch (error) {
+            return {
+                data: false,
+                error,
+            };
+        }
+
+        return {data: true};
+    };
+}
+
+export function fetchChannelBookmarks(channelId: string): ActionFuncAsync<ChannelBookmark[]> {
+    return async (dispatch, getState) => {
         let bookmarks;
         try {
             bookmarks = await Client4.getChannelBookmarks(channelId);

@@ -7,7 +7,7 @@ type Props = {
     email?: string;
     haveOverrideProp?: boolean;
     isBot?: boolean;
-}
+};
 const ProfilePopoverEmail = ({
     email,
     haveOverrideProp,
@@ -15,6 +15,11 @@ const ProfilePopoverEmail = ({
 }: Props) => {
     if (!email || isBot || haveOverrideProp) {
         return null;
+    }
+
+    function handleEmailClick(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        window.open(`mailto:${email}`);
     }
 
     return (
@@ -28,7 +33,8 @@ const ProfilePopoverEmail = ({
                 aria-hidden='true'
             />
             <a
-                href={'mailto:' + email}
+                href={`mailto:${email}`}
+                onClick={handleEmailClick}
             >
                 {email}
             </a>

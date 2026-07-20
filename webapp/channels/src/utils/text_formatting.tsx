@@ -5,6 +5,7 @@ import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
+import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
@@ -16,7 +17,6 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -36,6 +36,28 @@ export type ChannelNamesMap = {
         team_name?: string;
     } | string;
 };
+
+export function isChannelNamesMap(v: unknown): v is ChannelNamesMap {
+    return isRecordOf(v, (e) => {
+        if (typeof e === 'string') {
+            return true;
+        }
+
+        if (typeof e !== 'object' || !e) {
+            return false;
+        }
+
+        if (!('display_name' in e) || typeof e.display_name !== 'string') {
+            return false;
+        }
+
+        if ('team_name' in e && typeof e.team_name !== 'string') {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 export type SearchPattern = {
     pattern: RegExp;
@@ -146,20 +168,6 @@ export interface TextFormattingOptionsBase {
     team: Team;
 
     /**
-     * If specified, images are proxied.
-     *
-     * Defaults to `false`.
-     */
-    proxyImages: boolean;
-
-    /**
-     * An array of url schemes that will be allowed for autolinking.
-     *
-     * Defaults to autolinking with any url scheme.
-     */
-    autolinkedUrlSchemes: string[];
-
-    /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
      * external link that will not by handled by react-router.
      *
@@ -188,25 +196,16 @@ export interface TextFormattingOptionsBase {
     postId: string;
 
     /**
-     * Whether or not to render sum of members mentions e.g. "5 members..." into spans with a data-sum-of-members-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atSumOfMembersMentions: boolean;
-
-    /**
-     * Whether or not to render plan mentions e.g. "Professional plan, Enterprise plan, Starter plan" into spans with a data-plan-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atPlanMentions: boolean;
-
-    /**
      * If true, the renderer will assume links are not safe.
      *
      * Defaults to `false`.
      */
     unsafeLinks: boolean;
+
+    /**
+     * Whether or not to render text emoticons (:D) as emojis
+     */
+    renderEmoticonsAsEmoji: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -228,13 +227,11 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     emoticons: true,
     markdown: true,
     atMentions: false,
-    atSumOfMembersMentions: false,
-    atPlanMentions: false,
     minimumHashtagLength: 3,
-    proxyImages: false,
     editedAt: 0,
     postId: '',
     unsafeLinks: false,
+    renderEmoticonsAsEmoji: true,
 };
 
 /**
@@ -252,9 +249,10 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 * Hangul Compatibility Jamo: \u3130-\u318f
 * Cyrillic characters: \u0400-\u04ff, \u0500-\u052f
 * Additional CJK and Hangul compatibility characters: \u2de0-\u2dff
+* Thai characters: \u0e00-\u0e7f
 **/
 // eslint-disable-next-line no-misleading-character-class
-export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
+export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff\u0e00-\u0e7f]/;
 
 export function formatText(
     text: string,
@@ -356,14 +354,6 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
             output = autolinkAtMentions(output, tokens);
         }
 
-        if (options.atSumOfMembersMentions) {
-            output = autoLinkSumOfMembersMentions(output, tokens);
-        }
-
-        if (options.atPlanMentions) {
-            output = autoPlanMentions(output, tokens);
-        }
-
         if (options.channelNamesMap) {
             output = autolinkChannelMentions(
                 output,
@@ -377,7 +367,7 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
         output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
 
         if (!('emoticons' in options) || options.emoticons) {
-            output = Emoticons.handleEmoticons(output, tokens);
+            output = Emoticons.handleEmoticons(output, tokens, options.renderEmoticonsAsEmoji);
         }
 
         if (options.searchPatterns) {
@@ -448,50 +438,6 @@ function autolinkEmails(text: string, tokens: Tokens) {
     return text.replace(emailRegex, replaceEmailWithToken);
 }
 
-export function autoLinkSumOfMembersMentions(text: string, tokens: Tokens): string {
-    function replaceSumOfMembersMentionWithToken(fullMatch: string) {
-        const index = tokens.size;
-        const alias = `$MM_SUMOFMEMBERSMENTION${index}$`;
-
-        tokens.set(alias, {
-            value: `<span data-sum-of-members-mention="${fullMatch}">${fullMatch}</span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    let output = text;
-    output = output.replace(
-        Constants.SUM_OF_MEMBERS_MENTION_REGEX,
-        replaceSumOfMembersMentionWithToken,
-    );
-
-    return output;
-}
-
-export function autoPlanMentions(text: string, tokens: Tokens): string {
-    function replacePlanMentionWithToken(fullMatch: string) {
-        const index = tokens.size;
-        const alias = `$MM_PLANMENTION${index}$`;
-
-        tokens.set(alias, {
-            value: `<span data-plan-mention="${fullMatch}">${fullMatch}</span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    let output = text;
-    output = output.replace(
-        Constants.PLAN_MENTIONS,
-        replacePlanMentionWithToken,
-    );
-
-    return output;
-}
-
 export function autolinkAtMentions(text: string, tokens: Tokens): string {
     function replaceAtMentionWithToken(fullMatch: string, username: string) {
         let originalText = fullMatch;
@@ -521,17 +467,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     );
 
     // handle all other mentions (supports trailing punctuation)
-    let match = output.match(AT_MENTION_PATTERN);
+    let match = output.match(Constants.MENTIONS_REGEX);
     while (match && match.length > 0) {
-        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
-        match = output.match(AT_MENTION_PATTERN);
+        output = output.replace(Constants.MENTIONS_REGEX, replaceAtMentionWithToken);
+        match = output.match(Constants.MENTIONS_REGEX);
     }
 
     return output;
 }
 
 export function allAtMentions(text: string): string[] {
-    return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
+    return text.match(Constants.SPECIAL_MENTIONS_REGEX && Constants.MENTIONS_REGEX) || [];
 }
 
 export function autolinkChannelMentions(
@@ -541,7 +487,7 @@ export function autolinkChannelMentions(
     team?: Team,
 ) {
     function channelMentionExists(c: string) {
-        return channelNamesMap.hasOwnProperty(c);
+        return Object.hasOwn(channelNamesMap, c);
     }
     function addToken(channelName: string, teamName: string, mention: string, displayName: string) {
         const index = tokens.size;
@@ -641,10 +587,6 @@ export function autolinkChannelMentions(
     return output;
 }
 
-export function escapeRegex(text?: string): string {
-    return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
-}
-
 export function escapeReplaceSpecialPatterns(text?: string): string {
     return text?.replace(/[$]/g, '$$$$') || '';
 }
@@ -733,10 +675,10 @@ export function highlightCurrentMentions(
         let pattern;
         if (cjkrPattern.test(mention.key)) {
             // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-            pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+            pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
         } else {
             pattern = new RegExp(
-                `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
                 flags,
             );
         }
@@ -806,10 +748,10 @@ export function highlightWithoutNotificationKeywords(
             let pattern;
             if (cjkrPattern.test(key)) {
             // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
-                pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
+                pattern = new RegExp(`()(${RegExp.escape(key)})()`, 'gi');
             } else {
             // If the key contains only English characters, mark word boundaries
-                pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
+                pattern = new RegExp(`(^|\\W)(${RegExp.escape(key)})(\\b|_+\\b)`, 'gi');
             }
 
             // Replace the key with the token for each occurrence of the key
@@ -951,14 +893,14 @@ function convertSearchTermToRegex(term: string): SearchPattern {
 
     if (cjkrPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
+        pattern = '()(' + RegExp.escape(term.replace(/\*/g, '')) + ')';
     } else if ((/[^\s][*]$/).test(term)) {
-        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
+        pattern = '\\b()(' + RegExp.escape(term.substring(0, term.length - 1)) + ')';
     } else if (term.startsWith('@') || term.startsWith('#')) {
         // needs special handling of the first boundary because a word boundary doesn't work before a symbol
-        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
+        pattern = '(\\W|^)(' + RegExp.escape(term) + ')\\b';
     } else {
-        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
+        pattern = '\\b()(' + RegExp.escape(term) + ')\\b';
     }
 
     return {
@@ -987,7 +929,7 @@ export function highlightSearchTerms(
         const alias = `$MM_SEARCHTERM${index}$`;
 
         tokens.set(alias, {
-            value: `<span class="search-highlight">${word}</span>`,
+            value: `<span class="search-highlight" data-testid="search-highlight">${word}</span>`,
             originalText: word,
         });
 
@@ -1021,7 +963,7 @@ export function highlightSearchTerms(
                 const newAlias = `$MM_SEARCHTERM${index}$`;
 
                 newTokens.set(newAlias, {
-                    value: `<span class="search-highlight">${alias}</span>`,
+                    value: `<span class="search-highlight" data-testid="search-highlight">${alias}</span>`,
                     originalText: token.originalText,
                 });
 
@@ -1094,7 +1036,7 @@ export function handleUnicodeEmoji(text: string, emojiMap: EmojiMap, searchPatte
         }
 
         // wrap unsupported unicode emoji in span to style as needed
-        return `<span class="emoticon emoticon--unicode">${emojiMatch}</span>`;
+        return `<span class="emoticon emoticon--unicode" data-testid="channel-banner-unicode-emoji">${emojiMatch}</span>`;
     });
 
     return output;

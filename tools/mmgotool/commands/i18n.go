@@ -26,8 +26,8 @@ const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
 
 type Translation struct {
-	Id          string      `json:"id"`
-	Translation interface{} `json:"translation"`
+	Id          string `json:"id"`
+	Translation any    `json:"translation"`
 }
 
 type Item struct {
@@ -117,6 +117,14 @@ func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
 	return translations, err
 }
 
+// resolveSymlink resolves a path if it's a symlink, otherwise returns the original path
+func resolveSymlink(path string) string {
+	if realPath, err := filepath.EvalSymlinks(path); err == nil {
+		return realPath
+	}
+	return path
+}
+
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
 	i18nStrings := map[string]bool{}
 	walkFunc := func(p string, info os.FileInfo, err error) error {
@@ -125,13 +133,14 @@ func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portal
 		}
 		return extractFromPath(p, info, err, i18nStrings)
 	}
+
 	if portalDir != "" {
-		_ = filepath.Walk(portalDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(portalDir), walkFunc)
 	} else {
-		_ = filepath.Walk(mattermostDir, walkFunc)
-		_ = filepath.Walk(enterpriseDir, walkFunc)
-		_ = filepath.Walk(modelDir, walkFunc)
-		_ = filepath.Walk(pluginDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(mattermostDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(enterpriseDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(modelDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(pluginDir), walkFunc)
 	}
 	return i18nStrings
 }
@@ -374,6 +383,16 @@ func extractByFuncName(name string, args []ast.Expr) *string {
 			return nil
 		}
 		return &key.Value
+	} else if name == "TranslationId" {
+		if len(args) == 0 {
+			return nil
+		}
+
+		key, ok := args[0].(*ast.BasicLit)
+		if !ok {
+			return nil
+		}
+		return &key.Value
 	} else if name == "NewAppError" {
 		if len(args) < 2 {
 			return nil
@@ -448,26 +467,28 @@ func extractByFuncName(name string, args []ast.Expr) *string {
 
 func extractForConstants(name string, valueNode ast.Expr) *string {
 	validConstants := map[string]bool{
-		"MISSING_CHANNEL_ERROR":        true,
-		"MISSING_CHANNEL_MEMBER_ERROR": true,
-		"CHANNEL_EXISTS_ERROR":         true,
-		"MISSING_STATUS_ERROR":         true,
-		"TEAM_MEMBER_EXISTS_ERROR":     true,
-		"MISSING_AUTH_ACCOUNT_ERROR":   true,
-		"MISSING_ACCOUNT_ERROR":        true,
-		"EXPIRED_LICENSE_ERROR":        true,
-		"INVALID_LICENSE_ERROR":        true,
-		"MissingChannelError":          true,
-		"MissingChannelMemberError":    true,
-		"ChannelExistsError":           true,
-		"MissingStatusError":           true,
-		"TeamMemberExistsError":        true,
-		"MissingAuthAccountError":      true,
-		"MissingAccountError":          true,
-		"ExpiredLicenseError":          true,
-		"InvalidLicenseError":          true,
-		"NoTranslation":                true,
-		"PayloadParseError":            true,
+		"MISSING_CHANNEL_ERROR":                  true,
+		"MISSING_CHANNEL_MEMBER_ERROR":           true,
+		"CHANNEL_EXISTS_ERROR":                   true,
+		"MISSING_STATUS_ERROR":                   true,
+		"TEAM_MEMBER_EXISTS_ERROR":               true,
+		"MISSING_AUTH_ACCOUNT_ERROR":             true,
+		"MISSING_ACCOUNT_ERROR":                  true,
+		"EXPIRED_LICENSE_ERROR":                  true,
+		"INVALID_LICENSE_ERROR":                  true,
+		"MissingChannelError":                    true,
+		"MissingChannelMemberError":              true,
+		"ChannelExistsError":                     true,
+		"MissingStatusError":                     true,
+		"TeamMemberExistsError":                  true,
+		"MissingAuthAccountError":                true,
+		"MissingAccountError":                    true,
+		"ExpiredLicenseError":                    true,
+		"InvalidLicenseError":                    true,
+		"WrongEnvironmentProductionLicenseError": true,
+		"WrongEnvironmentTestLicenseError":       true,
+		"NoTranslation":                          true,
+		"PayloadParseError":                      true,
 	}
 
 	if _, ok := validConstants[name]; !ok {
@@ -730,7 +751,7 @@ func removeEmptyTranslations(oldList []Item) ([]Item, int) {
 	return newList, count
 }
 
-func JSONMarshal(t interface{}) ([]byte, error) {
+func JSONMarshal(t any) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)

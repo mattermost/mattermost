@@ -1,201 +1,156 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
     <button
-      aria-expanded="false"
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
       aria-label="actions"
-      className="post-menu__item post-menu__item--active"
+      class="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
-      key="more-actions-button"
       type="button"
     >
       <i
-        className="icon icon-apps"
+        class="icon icon-apps"
       />
     </button>
-  </WithTooltip>
-  <Menu
-    ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-    />
-    <Connect(Pluggable)
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-  </Menu>
-</MenuWrapper>
+    <div
+      aria-label="Post extra options"
+      class="a11y__popup Menu"
+    >
+      <ul
+        class="Menu__content dropdown-menu openLeft"
+        id="center_actions_dropdown_post_id_1"
+        role="menu"
+      >
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Some text
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
     <button
-      aria-expanded="false"
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
       aria-label="actions"
-      className="post-menu__item post-menu__item--active"
+      class="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
-      key="more-actions-button"
       type="button"
     >
       <i
-        className="icon icon-apps"
+        class="icon icon-apps"
       />
     </button>
-  </WithTooltip>
-  <Menu
-    ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-    />
-    <Connect(Pluggable)
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-    <li
-      className="MenuItem__divider"
-      id="divider_post_post_id_1_marketplace"
-      role="menuitem"
-    />
-    <MenuItemAction
-      icon={
-        <ActionsMenuIcon
-          name="icon-view-grid-plus-outline"
+    <div
+      aria-label="Post extra options"
+      class="a11y__popup Menu"
+    >
+      <ul
+        class="Menu__content dropdown-menu openLeft"
+        id="center_actions_dropdown_post_id_1"
+        role="menu"
+      >
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Some text
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem__divider"
+          id="divider_post_post_id_1_marketplace"
+          role="menuitem"
         />
-      }
-      id="marketplace_icon_post_id_1"
-      key="marketplace_post_id_1"
-      onClick={[Function]}
-      show={true}
-      text="App Marketplace"
-    />
-  </Menu>
-</MenuWrapper>
+        <li
+          class="MenuItem MenuItem--with-icon"
+          id="marketplace_icon_post_id_1"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="marketplace_icon_post_id_1-button"
+            id="marketplace_icon_post_id_1-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              <span
+                class="icon"
+              >
+                <span
+                  aria-hidden="true"
+                  class="icon-view-grid-plus-outline MenuItem__compass-icon"
+                />
+              </span>
+              <div
+                class="text"
+              >
+                App Marketplace
+              </div>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 `;
 
-exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `""`;
+exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `<div />`;
 
 exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should show visit marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Message actions"
-        id="post_info.tooltip.actions"
-      />
-    }
+<div>
+  <button
+    aria-controls="center_actions_dropdown_post_id_1"
+    aria-expanded="true"
+    aria-haspopup="true"
+    aria-label="actions"
+    class="post-menu__item post-menu__item--active"
+    id="center_actions_button_post_id_1"
+    type="button"
   >
-    <button
-      aria-expanded="false"
-      aria-label="actions"
-      className="post-menu__item post-menu__item--active"
-      id="center_actions_button_post_id_1"
-      key="more-actions-button"
-      type="button"
-    >
-      <i
-        className="icon icon-apps"
-      />
-    </button>
-  </WithTooltip>
-  <Menu
-    ariaLabel="Post extra options"
-    id="center_actions_dropdown_post_id_1"
-    key="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
-  >
-    <Memo(SystemPermissionGate)
-      key="visit-marketplace-permissions"
-      permissions={
-        Array [
-          "manage_system",
-        ]
-      }
-    >
-      <div
-        className="visit-marketplace-text"
-      >
-        <FormattedMarkdownMessage
-          defaultMessage="No Actions currently\\\\nconfigured for this server"
-          id="post_info.actions.noActions"
-        />
-      </div>
-      <div
-        className="visit-marketplace"
-      >
-        <button
-          className="btn btn-primary visit-marketplace-button"
-          id="marketPlaceButton"
-          onClick={[Function]}
-        >
-          <ActionsMenuIcon
-            name="icon-view-grid-plus-outline visit-marketplace-button-icon"
-          />
-          <span
-            className="visit-marketplace-button-text"
-          >
-            <FormattedMarkdownMessage
-              defaultMessage="Visit the Marketplace"
-              id="post_info.actions.visitMarketplace"
-            />
-          </span>
-        </button>
-      </div>
-    </Memo(SystemPermissionGate)>
-  </Menu>
-</MenuWrapper>
+    <i
+      class="icon icon-apps"
+    />
+  </button>
+  <div
+    data-testid="mock-popover"
+  />
+</div>
 `;

@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Profile > Profile Settings> Full Name', () => {
-    let firstUser;
-    let secondUser;
+    let firstUser: Cypress.UserProfile;
+    let secondUser: Cypress.UserProfile;
     const firstName = 'This Is a Long Name';
     const lastName = 'That Should Truncate';
 
@@ -70,7 +70,7 @@ describe('Profile > Profile Settings> Full Name', () => {
 
     it('MM-T2048 Empty full name: @ still displays before username', () => {
         // # Open any user list ("View Members", "Add Members", "Manage Members", ..)
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // # Find a user who hasn't set their full name
         cy.get('.modal-title').should('be.visible');

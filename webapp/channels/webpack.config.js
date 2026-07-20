@@ -9,21 +9,22 @@ const url = require('url');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
-
-// const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
+const targetIsBuild = NPM_TARGET?.startsWith('build');
 const targetIsRun = NPM_TARGET?.startsWith('run');
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
-const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
+const targetIsEsLint = !targetIsBuild && !targetIsRun && !targetIsDevServer;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
@@ -97,7 +98,7 @@ var config = {
                         loader: 'sass-loader',
                         options: {
                             sassOptions: {
-                                includePaths: ['src', 'src/sass'],
+                                loadPaths: ['src/sass'],
                             },
                         },
                     },
@@ -106,12 +107,6 @@ var config = {
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
-                use: [
-                    {
-                        loader: 'image-webpack-loader',
-                        options: {},
-                    },
-                ],
             },
             {
                 test: /\.apng$/,
@@ -149,7 +144,8 @@ var config = {
     target: 'web',
     plugins: [
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
+            Buffer: ['buffer', 'Buffer'],
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -181,6 +177,7 @@ var config = {
                 {from: 'src/images/logo_email_blue.png', to: 'images'},
                 {from: 'src/images/logo_email_dark.png', to: 'images'},
                 {from: 'src/images/logo_email_gray.png', to: 'images'},
+                {from: 'src/images/license_illustration.png', to: 'images'},
                 {from: 'src/images/forgot_password_illustration.png', to: 'images'},
                 {from: 'src/images/invite_illustration.png', to: 'images'},
                 {from: 'src/images/channel_icon.png', to: 'images'},
@@ -188,14 +185,20 @@ var config = {
                 {from: 'src/images/c_download.png', to: 'images'},
                 {from: 'src/images/c_socket.png', to: 'images'},
                 {from: 'src/images/admin-onboarding-background.jpg', to: 'images'},
+                {from: 'src/images/logo.svg', to: 'images'},
+                {from: 'src/images/alert.svg', to: 'images'},
                 {from: 'src/images/cloud-laptop.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-error.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
                 {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
-                {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
-                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
+                {from: 'src/fonts/Metropolis-SemiBold.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2', to: 'fonts'},
+                {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff', to: 'fonts'},
+                {from: path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'cmaps'), to: 'cmaps'},
             ],
         }),
 
@@ -265,21 +268,53 @@ var config = {
                 sizes: '96x96',
             }],
         }),
+        new MonacoWebpackPlugin({
+            languages: [],
 
-        // Disabling this plugin until we come up with better bundle analysis ci
-        // new BundleAnalyzerPlugin({
-        //     analyzerMode: 'disabled',
-        //     generateStatsFile: true,
-        //     statsFilename: 'bundlestats.json',
-        // }),
+            // don't include features we disable. these generally correspond to the options
+            // passed to editor initialization in note-content-editor.tsx
+            // @see https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+            features: [
+                '!bracketMatching',
+                '!codeAction',
+                '!codelens',
+                '!colorPicker',
+                '!comment',
+                '!diffEditor',
+                '!diffEditorBreadcrumbs',
+                '!folding',
+                '!gotoError',
+                '!gotoLine',
+                '!gotoSymbol',
+                '!gotoZoom',
+                '!inspectTokens',
+                '!multicursor',
+                '!parameterHints',
+                '!quickCommand',
+                '!quickHelp',
+                '!quickOutline',
+                '!referenceSearch',
+                '!rename',
+                '!snippet',
+                '!stickyScroll',
+                '!suggest',
+                '!toggleHighContrast',
+                '!unicodeHighlighter',
+            ],
+        }),
     ],
+    watchOptions: {
+
+        // By default, Webpack doesn't watch node_modules for changes, but we want it to watch packages in the monorepo
+        ignored: /node_modules([\\]+|\/)(?!@mattermost\/(client|components|types|shared))/,
+    },
 };
 
 function generateCSP() {
-    let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
+    let csp = 'script-src \'self\' js.stripe.com/v3';
 
     if (DEV) {
-        // react-hot-loader and development source maps require eval
+        // Development source maps require eval
         csp += ' \'unsafe-eval\'';
     }
 
@@ -381,6 +416,49 @@ if (DEV) {
     // Production mode configuration
     config.mode = 'production';
     config.devtool = 'source-map';
+
+    // Optimize SVGs from src/ at module-build time so vendor SVG fonts (e.g. font-awesome)
+    // are never passed to svgo. Vendor SVGs get content-hashed names at emit time, making
+    // them indistinguishable from src/ assets in the optimization.minimizer phase.
+    config.module.rules.push({
+        test: /\.svg$/i,
+        include: [path.resolve(__dirname, 'src')],
+        enforce: 'pre',
+        loader: ImageMinimizerPlugin.loader,
+        options: {
+            minimizer: {
+                implementation: ImageMinimizerPlugin.svgoMinify,
+                options: {
+                    encodeOptions: {
+                        multipass: true,
+                        plugins: ['preset-default'],
+                    },
+                },
+            },
+        },
+    });
+
+    // Optimize images in production builds.
+    // GIFs are excluded from sharp: animated GIFs (e.g. Customize-Your-Experience.gif)
+    // lose frames or grow in size when re-encoded by sharp.
+    config.optimization = {
+        ...config.optimization,
+        minimizer: [
+            '...',
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.sharpMinify,
+                    filter: (source, sourcePath) => !sourcePath.endsWith('.gif'),
+                    options: {
+                        encodeOptions: {
+                            jpeg: {mozjpeg: true},
+                            png: {},
+                        },
+                    },
+                },
+            }),
+        ],
+    };
 }
 
 const env = {};
@@ -406,16 +484,21 @@ if (targetIsDevServer) {
         devtool: 'eval-cheap-module-source-map',
         devServer: {
             liveReload: true,
-            proxy: {
-
-                // Forward these requests to the server
-                '/api': {
+            proxy: [
+                {
+                    context: '/api',
                     ...proxyToServer,
                     ws: true,
                 },
-                '/plugins': proxyToServer,
-                '/static/plugins': proxyToServer,
-            },
+                {
+                    context: '/plugins',
+                    ...proxyToServer,
+                },
+                {
+                    context: '/static/plugins',
+                    ...proxyToServer,
+                },
+            ],
             port: 9005,
             devMiddleware: {
                 writeToDisk: false,
@@ -428,13 +511,6 @@ if (targetIsDevServer) {
         optimization: {
             ...config.optimization,
             splitChunks: false,
-        },
-        resolve: {
-            ...config.resolve,
-            alias: {
-                ...config.resolve.alias,
-                'react-dom': '@hot-loader/react-dom',
-            },
         },
     };
 }
@@ -455,7 +531,7 @@ if (process.env.PRODUCTION_PERF_DEBUG) {
     };
 }
 
-if (targetIsEslint) {
+if (targetIsEsLint) {
     // ESLint can't handle setting an async config, so just skip the async part
     module.exports = config;
 } else {

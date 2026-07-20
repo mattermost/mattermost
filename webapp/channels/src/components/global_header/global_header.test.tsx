@@ -1,40 +1,58 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import * as redux from 'react-redux';
 
 import GlobalHeader from 'components/global_header/global_header';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as productUtils from 'utils/products';
 
+import * as hooks from './hooks';
+
+jest.mock('./hooks');
+jest.mock('utils/products');
+
+// Mock child components to avoid deep dependency issues
+jest.mock('./left_controls/left_controls', () => () => <div id='mock-left-controls'/>);
+jest.mock('./center_controls/center_controls', () => ({productId}: {productId?: string | null}) => (
+    <div id='mock-center-controls'>{productId}</div>
+));
+jest.mock('./right_controls/right_controls', () => ({productId}: {productId?: string | null}) => (
+    <div id='mock-right-controls'>{productId}</div>
+));
+
 describe('components/global/global_header', () => {
-    test('should be disabled when global header is disabled', () => {
-        const spy = jest.spyOn(redux, 'useSelector');
-        spy.mockReturnValue(false);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+    test('should not render when user is not logged in', () => {
+        jest.spyOn(hooks, 'useIsLoggedIn').mockReturnValue(false);
+        jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
 
-        const wrapper = shallow(
-            <GlobalHeader/>,
-        );
+        const {container} = renderWithContext(<GlobalHeader/>);
 
-        // Global header should render null
-        expect(wrapper.type()).toEqual(null);
+        expect(container.firstChild).toBeNull();
     });
 
-    test('should be enabled when global header is enabled', () => {
-        const spy = jest.spyOn(redux, 'useSelector');
-        spy.mockReturnValue(true);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+    describe('when user is logged in', () => {
+        beforeEach(() => {
+            jest.spyOn(hooks, 'useIsLoggedIn').mockReturnValue(true);
+            jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
+        });
 
-        const wrapper = shallow(
-            <GlobalHeader/>,
-        );
+        test('should render header', () => {
+            renderWithContext(<GlobalHeader/>);
 
-        // Global header should not be null
-        expect(wrapper.type()).not.toEqual(null);
+            expect(screen.getByRole('banner')).toBeInTheDocument();
+        });
+
+        test('should pass product id to child components', () => {
+            jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue('product_id');
+
+            renderWithContext(<GlobalHeader/>);
+
+            expect(screen.getByRole('banner')).toBeInTheDocument();
+
+            // productId is passed to both CenterControls and RightControls
+            expect(screen.getAllByText('product_id')).toHaveLength(2);
+        });
     });
 });

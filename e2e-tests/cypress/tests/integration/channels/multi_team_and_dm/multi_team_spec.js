@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -142,7 +142,7 @@ describe('Send a DM', () => {
         // * Dot appears, with no number (just unread, not a mention)
         cy.apiLogin(userA);
         cy.visit(offTopicUrlB);
-        cy.get(`#${teamA.name}TeamButton`).parent('.unread').should('be.visible');
+        cy.get(`#${teamA.name}TeamButton`).children('.unread').should('be.visible');
         cy.get(`#${teamA.name}TeamButton`).should('be.visible').within(() => {
             cy.get('.badge').should('not.exist');
         });

@@ -1,0 +1,9 @@
+- menu:
+  - menuitem "Invite people Add or invite people to the team"
+  - menuitem "Team settings"
+  - menuitem "Manage members"
+  - menuitem "Leave team"
+  - separator
+  - menuitem "Create a team"
+  - separator
+  - menuitem "Learn about teams"

@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .Menu {
     .MenuHeader {
@@ -11,7 +11,7 @@
         clear: both;
         color: inherit;
         cursor: default;
-        font-weight: $font-weight--semibold;
+        font-weight: variables.$font-weight--semibold;
         text-align: left;
         text-overflow: ellipsis;
         white-space: nowrap;

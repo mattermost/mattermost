@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Integrations', () => {
     let user1;
@@ -41,7 +41,7 @@ describe('Integrations', () => {
             team1 = team;
             offTopicUrl1 = offTopicUrl;
             cy.apiGetChannelByName(team1.name, 'off-topic').then(({channel}) => {
-                commandURL = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
+                commandURL = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
             });
 
             cy.apiCreateUser().then(({user: otherUser}) => {
@@ -152,7 +152,7 @@ describe('Integrations', () => {
         cy.uiWaitUntilMessagePostedIncludes(firstMessage);
 
         // * The user stays in the same team
-        cy.get(`#${team1.name}TeamButton`).parent().should('have.class', 'active');
+        cy.get(`#${team1.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
         cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');
@@ -168,7 +168,7 @@ describe('Integrations', () => {
         cy.uiWaitUntilMessagePostedIncludes(secondMessage);
 
         // * The user stays in the same team
-        cy.get(`#${team2.name}TeamButton`).parent().should('have.class', 'active');
+        cy.get(`#${team2.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
         cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');

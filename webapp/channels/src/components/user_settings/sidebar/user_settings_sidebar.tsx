@@ -24,7 +24,11 @@ export interface Props {
 
 export default function UserSettingsSidebar(props: Props): JSX.Element {
     return (
-        <div>
+        <div
+            id='sidebarSettings'
+            aria-labelledby='sidebarButton'
+            role='tabpanel'
+        >
             <SettingMobileHeader
                 closeModal={props.closeModal}
                 collapseModal={props.collapseModal}

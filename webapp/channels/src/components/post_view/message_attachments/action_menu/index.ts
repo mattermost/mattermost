@@ -6,6 +6,8 @@ import type {ConnectedProps} from 'react-redux';
 
 import type {PostAction} from '@mattermost/types/integration_actions';
 
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
+
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
 import {selectAttachmentMenuAction} from 'actions/views/posts';
@@ -18,11 +20,11 @@ export type OwnProps = {
     postId: string;
     action: PostAction;
     disabled?: boolean;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const actions = state.views.posts.menuActions[ownProps.postId];
-    const selected = (ownProps.action && ownProps.action.id) ? actions && actions[ownProps.action && ownProps.action.id] : undefined;
+    const selected = (ownProps.action?.id) ? secureGetFromRecord(actions, ownProps.action.id) : undefined;
 
     return {
         selected,

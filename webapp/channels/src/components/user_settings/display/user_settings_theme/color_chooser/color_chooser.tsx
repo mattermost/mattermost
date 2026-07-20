@@ -10,7 +10,7 @@ type Props = {
     label: React.ReactNode;
     value: string;
     onChange?: (id: string, newColor: string) => void;
-}
+};
 
 export default function ColorChooser(props: Props) {
     const handleChange = (newColor: string) => {
@@ -18,13 +18,18 @@ export default function ColorChooser(props: Props) {
     };
 
     return (
-        <React.Fragment>
-            <label className='custom-label'>{props.label}</label>
+        <>
+            <label
+                className='custom-label'
+                htmlFor={`${props.id}-inputColorValue`}
+            >
+                {props.label}
+            </label>
             <ColorInput
                 id={props.id}
                 value={props.value}
                 onChange={handleChange}
             />
-        </React.Fragment>
+        </>
     );
 }

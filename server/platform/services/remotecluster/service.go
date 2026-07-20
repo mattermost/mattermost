@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -34,10 +35,6 @@ const (
 	ResponseStatusOK              = model.StatusOk
 	ResponseStatusFail            = model.StatusFail
 	InviteExpiresAfter            = time.Hour * 48
-)
-
-var (
-	disablePing bool // override for testing
 )
 
 type ServerIface interface {
@@ -68,10 +65,11 @@ type RemoteClusterServiceIFace interface {
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
 	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
-	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string) (*model.RemoteCluster, error)
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
 	PingNow(rc *model.RemoteCluster)
+	NotifySyncFailed(remoteId string)
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
@@ -83,19 +81,30 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
 // Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
-	server     ServerIface
-	app        AppIface
-	httpClient *http.Client
-	send       []chan any
+	server      ServerIface
+	app         AppIface
+	httpClient  *http.Client
+	send        []chan any
+	done        chan struct{} // signals sendLoop workers to stop; lifecycle: Start -> Shutdown
+	active      atomic.Bool   // true after Start(), false after Shutdown()
+	disablePing bool          // when true, pingStart skips launching the ping loop; for testing
+
+	syncFailedSinceLastPing sync.Map // set of remoteIds (string) with a pending sync failure; presence is the marker
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
-	active                   bool
 	leaderListenerId         string
 	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
-	done                     chan struct{}
+	pingDone                 chan struct{}                       // signals ping workers to stop; lifecycle: pingStart -> pingStop
 	pingFreq                 time.Duration
+}
+
+// NotifySyncFailed records that a sync has failed for the given remote. On the next
+// successful ping, PingNow will fire a connection-state-change event so the shared
+// channel service re-syncs any affected channels.
+func (rcs *Service) NotifySyncFailed(remoteId string) {
+	rcs.syncFailedSinceLastPing.Store(remoteId, struct{}{})
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
@@ -140,6 +149,14 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 
 // Start is called by the server on server start-up.
 func (rcs *Service) Start() error {
+	if !rcs.active.CompareAndSwap(false, true) {
+		return nil
+	}
+	rcs.done = make(chan struct{})
+	for i := range rcs.send {
+		go rcs.sendLoop(i, rcs.done)
+	}
+
 	rcs.mux.Lock()
 	rcs.leaderListenerId = rcs.server.AddClusterLeaderChangedListener(rcs.onClusterLeaderChange)
 	rcs.mux.Unlock()
@@ -151,17 +168,22 @@ func (rcs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (rcs *Service) Shutdown() error {
-	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
-	rcs.pause()
+	if !rcs.active.CompareAndSwap(true, false) {
+		return nil
+	}
+	rcs.mux.Lock()
+	id := rcs.leaderListenerId
+	rcs.mux.Unlock()
+
+	rcs.server.RemoveClusterLeaderChangedListener(id)
+	rcs.pingStop()
+	close(rcs.done)
 	return nil
 }
 
-// Active returns true if this instance of the remote cluster service is active.
-// The active instance is responsible for pinging and sending messages to remotes.
+// Active returns true if this instance of the remote cluster service has been started.
 func (rcs *Service) Active() bool {
-	rcs.mux.Lock()
-	defer rcs.mux.Unlock()
-	return rcs.active
+	return rcs.active.Load()
 }
 
 // GetPingFreq gets the frequency of pings to each remote.
@@ -244,48 +266,41 @@ func (rcs *Service) RemoveConnectionStateListener(listenerId string) {
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (rcs *Service) onClusterLeaderChange() {
 	if rcs.server.IsLeader() {
-		rcs.resume()
+		rcs.pingStart()
 	} else {
-		rcs.pause()
+		rcs.pingStop()
 	}
 }
 
-func (rcs *Service) resume() {
+func (rcs *Service) pingStart() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	if rcs.active {
-		return // already active
+	if rcs.pingDone != nil {
+		return
 	}
-	rcs.active = true
-	rcs.done = make(chan struct{})
+	rcs.pingDone = make(chan struct{})
 
-	if !disablePing {
+	if !rcs.disablePing {
 		// first ping all the plugin remotes immediately, synchronously.
 		rcs.pingAllNow(model.RemoteClusterQueryFilter{OnlyPlugins: true})
 
 		// start the async ping loop
-		rcs.pingLoop(rcs.done)
+		rcs.pingLoop(rcs.pingDone)
 	}
 
-	// create thread pool for concurrent message sending.
-	for i := range rcs.send {
-		go rcs.sendLoop(i, rcs.done)
-	}
-
-	rcs.server.Log().Debug("Remote Cluster Service active")
+	rcs.server.Log().Debug("Remote Cluster Service ping active")
 }
 
-func (rcs *Service) pause() {
+func (rcs *Service) pingStop() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	if !rcs.active {
-		return // already inactive
+	if rcs.pingDone == nil {
+		return
 	}
-	rcs.active = false
-	close(rcs.done)
-	rcs.done = nil
+	close(rcs.pingDone)
+	rcs.pingDone = nil
 
-	rcs.server.Log().Debug("Remote Cluster Service inactive")
+	rcs.server.Log().Debug("Remote Cluster Service ping inactive")
 }

@@ -6,9 +6,11 @@ import {FormattedMessage} from 'react-intl';
 
 import {useMeasurePunchouts} from '@mattermost/components';
 
+import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU} from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
+
 import OnboardingTourTip from './onboarding_tour_tip';
 
-const translate = {x: 0, y: 70};
+const translate = {x: -3, y: 13};
 
 export const CreateAndJoinChannelsTour = () => {
     const title = (
@@ -21,12 +23,12 @@ export const CreateAndJoinChannelsTour = () => {
         <p>
             <FormattedMessage
                 id='onboardingTour.CreateAndJoinChannels.Description'
-                defaultMessage={'Create new channels or browse available channels to see what your team is discussing. As you join channels, organize them into  categories based on how you work.'}
+                defaultMessage={'Create new channels or browse available channels to see what your team is discussing. As you join channels, organize them into categories based on how you work.'}
             />
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['showMoreChannels', 'showNewChannel'], [], {y: -8, height: 16, x: 0, width: 0});
+    const overlayPunchOut = useMeasurePunchouts([ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU], [], {x: -2.5, y: -2.5, width: 5, height: 5});
 
     return (
         <OnboardingTourTip

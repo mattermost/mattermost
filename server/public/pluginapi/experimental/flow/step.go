@@ -24,7 +24,7 @@ const (
 
 type Step struct {
 	name        Name
-	template    *model.SlackAttachment
+	template    *model.MessageAttachment
 	forwardTo   Name
 	autoForward bool
 	terminal    bool
@@ -50,13 +50,13 @@ type Button struct {
 	// Function that is called when the dialog box is submitted. It can return a
 	// general error, or field-specific errors. On success it returns the name
 	// of the next step, and the state updates to apply.
-	OnDialogSubmit func(f *Flow, submitted map[string]interface{}) (Name, State, map[string]string, error)
+	OnDialogSubmit func(f *Flow, submitted map[string]any) (Name, State, map[string]string, error)
 }
 
 func NewStep(name Name) Step {
 	return Step{
 		name:     name,
-		template: &model.SlackAttachment{},
+		template: &model.MessageAttachment{},
 	}
 }
 
@@ -103,7 +103,7 @@ func (s Step) WithPretext(text string) Step {
 }
 
 func (s Step) WithField(title, value string) Step {
-	s.template.Fields = append(s.template.Fields, &model.SlackAttachmentField{
+	s.template.Fields = append(s.template.Fields, &model.MessageAttachmentField{
 		Title: title,
 		Value: value,
 	})
@@ -136,7 +136,7 @@ func (s Step) done(f *Flow, selectedButton int) (*model.Post, error) {
 func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool, error) {
 	sa := f.processAttachment(s.template)
 	post := model.Post{}
-	model.ParseSlackAttachment(&post, []*model.SlackAttachment{sa})
+	model.ParseMessageAttachment(&post, []*model.MessageAttachment{sa})
 
 	if s.terminal {
 		// Nothing else to do, do not display buttons on terminal posts.
@@ -145,9 +145,9 @@ func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool,
 
 	buttons := processButtons(s.buttons, f.state.AppState)
 
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	if !ok || len(attachments) != 1 {
-		return nil, false, errors.New("expected 1 slack attachment")
+		return nil, false, errors.New("expected 1 message attachment")
 	}
 	var actions []*model.PostAction
 	if done {
@@ -165,9 +165,9 @@ func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool,
 	return &post, false, nil
 }
 
-func (f *Flow) processAttachment(attachment *model.SlackAttachment) *model.SlackAttachment {
+func (f *Flow) processAttachment(attachment *model.MessageAttachment) *model.MessageAttachment {
 	if attachment == nil {
-		return &model.SlackAttachment{Text: "ERROR"}
+		return &model.MessageAttachment{Text: "ERROR"}
 	}
 	a := *attachment
 	a.Pretext = formatState(attachment.Pretext, f.state.AppState)
@@ -224,11 +224,12 @@ func processDialog(in *model.Dialog, state State) model.Dialog {
 
 func renderButton(b Button, stepName Name, i int, state State) *model.PostAction {
 	return &model.PostAction{
+		Type:     model.PostActionTypeButton,
 		Name:     formatState(b.Name, state),
 		Disabled: b.Disabled,
 		Style:    string(b.Color),
 		Integration: &model.PostActionIntegration{
-			Context: map[string]interface{}{
+			Context: map[string]any{
 				contextStepKey:   string(stepName),
 				contextButtonKey: strconv.Itoa(i),
 			},

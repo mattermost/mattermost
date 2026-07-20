@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import FileAttachment from './file_attachment';
 
@@ -41,6 +42,7 @@ describe('FileAttachment', () => {
         height: 80,
         has_preview_image: true,
         user_id: '',
+        channel_id: 'channel_id',
         create_at: 0,
         update_at: 0,
         delete_at: 0,
@@ -57,6 +59,8 @@ describe('FileAttachment', () => {
         enableSVGs: false,
         enablePublicLink: false,
         pluginMenuItems: [],
+        currentChannel: TestHelper.getChannelMock(),
+        isFileRejected: false,
         handleFileDropdownOpened: jest.fn(() => null),
         actions: {
             openModal: jest.fn(),
@@ -64,8 +68,8 @@ describe('FileAttachment', () => {
     };
 
     test('should match snapshot, regular file', () => {
-        const wrapper = shallow(<FileAttachment {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('non archived file does not show archived elements', () => {
@@ -102,8 +106,8 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, small image', () => {
@@ -116,8 +120,8 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, svg image', () => {
@@ -130,8 +134,8 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, after change from file to image', () => {
@@ -143,40 +147,40 @@ describe('FileAttachment', () => {
             height: 400,
             size: 100,
         };
-        const wrapper = shallow(<FileAttachment {...baseProps}/>);
-        wrapper.setProps({...baseProps, fileInfo});
-        expect(wrapper).toMatchSnapshot();
+        const {rerender, container} = renderWithContext(<FileAttachment {...baseProps}/>);
+        rerender(<FileAttachment {...{...baseProps, fileInfo}}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with compact display', () => {
         const props = {...baseProps, compactDisplay: true};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, without compact display and without can download', () => {
         const props = {...baseProps, canDownloadFiles: false};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when file is not loaded', () => {
-        const wrapper = shallow(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should blur file attachment link after click', () => {
+    test('should blur file attachment link after click', async () => {
         const props = {...baseProps, compactDisplay: true};
         renderWithContext(<FileAttachment {...props}/>);
 
         const link = screen.getByText(baseProps.fileInfo.name);
         const blur = jest.spyOn(link, 'blur');
-        screen.getByText(baseProps.fileInfo.name).click();
+        await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
     });
 
     describe('archived file', () => {
-        test('shows archived image instead of real image and explanatory test in compact mode', () => {
+        test('shows archived image instead of real image and explanatory text in compact mode', () => {
             const props = {
                 ...baseProps,
                 fileInfo: {
@@ -191,7 +195,7 @@ describe('FileAttachment', () => {
             screen.getByText(/archived/);
         });
 
-        test('shows archived image instead of real image and explanatory test in full mode', () => {
+        test('shows archived image instead of real image and explanatory text in full mode', () => {
             const props = {
                 ...baseProps,
                 fileInfo: {
@@ -205,5 +209,35 @@ describe('FileAttachment', () => {
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/This file is archived/);
         });
+    });
+
+    test('should match snapshot when file is deleted', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: {
+                ...baseFileInfo,
+                delete_at: 10000000,
+            },
+        };
+        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with thumbnail disabled', () => {
+        const {container} = renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                disableThumbnail={true}
+            />);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should not render menu items when disable actions is set', () => {
+        const {container} = renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                disableActions={true}
+            />);
+        expect(container).toMatchSnapshot();
     });
 });

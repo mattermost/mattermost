@@ -22,9 +22,184 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
+func TestHandleIncomingWebhookRootId(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	root := th.CreatePost(t, th.BasicChannel)
+	reply := th.CreatePostReply(t, root)
+	otherChannel := th.CreateChannel(t, th.BasicTeam)
+	otherPost := th.CreatePost(t, otherChannel)
+
+	t.Run("creates reply in thread when root_id is the thread root", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "webhook thread reply",
+			RootId: root.Id,
+		})
+		require.Nil(t, err)
+		list, err2 := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 5)
+		require.Nil(t, err2)
+		var found *model.Post
+		for _, p := range list.Posts {
+			if p.Message == "webhook thread reply" {
+				found = p
+				break
+			}
+		}
+		require.NotNil(t, found)
+		assert.Equal(t, root.Id, found.RootId)
+	})
+
+	t.Run("rejects root_id pointing at a reply post", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "webhook via reply id",
+			RootId: reply.Id,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects non-existent root_id", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "missing root",
+			RootId: model.NewId(),
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects root_id in a different channel", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "wrong channel",
+			RootId: otherPost.Id,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.channel_root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects invalid root_id", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "bad id",
+			RootId: "not-a-valid-id",
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+}
+
+func TestHandleIncomingWebhookInteractiveContentWithoutText(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	blockText := "webhook mm_blocks only " + model.NewId()
+
+	t.Run("allows mm_blocks without text when feature flag enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": blockText},
+				},
+			},
+		})
+		require.Nil(t, err)
+
+		list, err2 := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 5)
+		require.Nil(t, err2)
+		var found *model.Post
+		for _, p := range list.Posts {
+			if p.Message == "" {
+				if blocks, ok := p.GetProps()[model.PostPropsMmBlocks].([]any); ok && len(blocks) > 0 {
+					if block, ok := blocks[0].(map[string]any); ok && block["text"] == blockText {
+						found = p
+						break
+					}
+				}
+			}
+		}
+		require.NotNil(t, found)
+	})
+
+	t.Run("rejects mm_blocks without text when feature flag disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "ignored when flag off"},
+				},
+			},
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "web.incoming_webhook.text.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects empty payload", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{})
+		require.NotNil(t, err)
+		assert.Equal(t, "web.incoming_webhook.text.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+}
+
+func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: false})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	t.Run("rejects DM to a user the owner shares no team with", func(t *testing.T) {
+		stranger := th.CreateUser(t)
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "out of team dm",
+			ChannelName: "@" + stranger.Username,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows DM to a user the owner shares a team with", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "team dm",
+			ChannelName: "@" + th.BasicUser2.Username,
+		})
+		require.Nil(t, err)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -129,14 +304,17 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			})
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
 
-			createdHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &tc.IncomingWebhook)
+			createdHook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &tc.IncomingWebhook)
 			if tc.ExpectedError {
-				require.NotNil(t, err, "should have failed")
+				require.NotNil(t, appErr, "should have failed")
 			} else {
-				require.Nil(t, err, "should not have failed")
+				require.Nil(t, appErr, "should not have failed")
 			}
 			if createdHook != nil {
-				defer th.App.DeleteIncomingWebhook(createdHook.Id)
+				defer func() {
+					appErr := th.App.DeleteIncomingWebhook(createdHook.Id)
+					require.Nil(t, appErr, "Error cleaning up webhook")
+				}()
 			}
 			if tc.ExpectedIncomingWebhook == nil {
 				assert.Nil(t, createdHook, "expected nil webhook")
@@ -152,8 +330,8 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 }
 
 func TestUpdateIncomingWebhook(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -254,11 +432,15 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-			hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+			hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
 				ChannelId: th.BasicChannel.Id,
 			})
-			require.Nil(t, err)
-			defer th.App.DeleteIncomingWebhook(hook.Id)
+			require.Nil(t, appErr)
+			defer func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+				appErr = th.App.DeleteIncomingWebhook(hook.Id)
+				require.Nil(t, appErr, "Error cleaning up webhook")
+			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -266,11 +448,11 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			})
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
 
-			updatedHook, err := th.App.UpdateIncomingWebhook(hook, &tc.IncomingWebhook)
+			updatedHook, appErr := th.App.UpdateIncomingWebhook(hook, &tc.IncomingWebhook)
 			if tc.ExpectedError {
-				require.NotNil(t, err, "should have failed")
+				require.NotNil(t, appErr, "should have failed")
 			} else {
-				require.Nil(t, err, "should not have failed")
+				require.Nil(t, appErr, "should not have failed")
 			}
 			if tc.ExpectedIncomingWebhook == nil {
 				assert.Nil(t, updatedHook, "expected nil webhook")
@@ -286,58 +468,61 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateWebhookPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr, "Error cleaning up webhook")
+	}()
 
-	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
+	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
 		model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					Text: "text",
 				},
 			},
-			"webhook_display_name": hook.DisplayName,
+			model.PostPropsWebhookDisplayName: hook.DisplayName,
 		},
-		model.PostTypeSlackAttachment,
-		"", nil)
-	require.Nil(t, err)
+		model.PostTypeMessageAttachment,
+		"", nil, false)
+	require.Nil(t, appErr)
 
-	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
-	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
-	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsAttachments, "missing attachments prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsWebhookDisplayName, "missing webhook_display_name prop")
 
-	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil)
-	require.NotNil(t, err, "Should have failed - bad post type")
+	_, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil, false)
+	require.NotNil(t, appErr, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
-	require.Nil(t, err)
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
+	}, model.PostTypeMessageAttachment, "", nil, false)
+	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
-	require.Nil(t, err)
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
+	}, model.PostTypeMessageAttachment, "", nil, false)
+	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = `commit bc95839e4a430ace453e8b209a3723c000c1729a
@@ -357,20 +542,49 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 
  test | 3 +++
  1 file changed, 3 insertions(+)`
-	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
-	require.Nil(t, err)
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
+	}, model.PostTypeMessageAttachment, "", nil, false)
+	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
+
+	t.Run("should add silent notification prop when requested", func(t *testing.T) {
+		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "silent ping", "user", "http://iconurl", "",
+			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+			model.PostTypeDefault,
+			"", nil, true)
+		require.Nil(t, appErr)
+		require.True(t, post.HasSilentNotification())
+	})
+
+	t.Run("should add silent notification prop from incoming webhook Silent field", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "silent via json field",
+			Silent: true,
+		})
+		require.Nil(t, err)
+
+		list, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 10)
+		require.Nil(t, appErr)
+		var found *model.Post
+		for _, p := range list.Posts {
+			if p.Message == "silent via json field" {
+				found = p
+				break
+			}
+		}
+		require.NotNil(t, found)
+		require.True(t, found.HasSilentNotification())
+	})
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
 		testCluster.ClearMessages()
-		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "", nil)
+		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "", nil, false)
 		require.Nil(t, appErr)
 
 		msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -384,61 +598,179 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	})
 }
 
+func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+	})
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+
+	t.Run("should set props based on icon_url", func(t *testing.T) {
+		post, appErr := th.App.CreateWebhookPost(
+			th.Context,
+			hook.UserId,
+			th.BasicChannel,
+			"test post",
+			"",
+			"https://example.com/icon.png",
+			"",
+			nil,
+			"",
+			"",
+			nil,
+			false,
+		)
+
+		require.Nil(t, appErr)
+		assert.Equal(t, "https://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
+
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+
+		assert.Equal(t, "https://example.com/icon.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+
+	t.Run("should set props based on icon_emoji", func(t *testing.T) {
+		post, appErr := th.App.CreateWebhookPost(
+			th.Context,
+			hook.UserId,
+			th.BasicChannel,
+			"test post",
+			"",
+			"",
+			"smile",
+			nil,
+			"",
+			"",
+			nil,
+			false,
+		)
+
+		require.Nil(t, appErr)
+		assert.Equal(t, "smile", post.GetProp(model.PostPropsOverrideIconEmoji))
+
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+
+		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+
+	t.Run("should set props based on icon_emoji (using a custom emoji)", func(t *testing.T) {
+		emoji := th.CreateEmoji(t)
+
+		post, appErr := th.App.CreateWebhookPost(
+			th.Context,
+			hook.UserId,
+			th.BasicChannel,
+			"test post",
+			"",
+			"",
+			emoji.Name,
+			nil,
+			"",
+			"",
+			nil,
+			false,
+		)
+
+		require.Nil(t, appErr)
+		assert.Equal(t, emoji.Name, post.GetProp(model.PostPropsOverrideIconEmoji))
+
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+
+		assert.Equal(t, fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), clientPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+
+	t.Run("should set props based on icon_emoji (with colons around emoji name)", func(t *testing.T) {
+		post, appErr := th.App.CreateWebhookPost(
+			th.Context,
+			hook.UserId,
+			th.BasicChannel,
+			"test post",
+			"",
+			"",
+			":smile:",
+			nil,
+			"",
+			"",
+			nil,
+			false,
+		)
+
+		require.Nil(t, appErr)
+		assert.Equal(t, ":smile:", post.GetProp(model.PostPropsOverrideIconEmoji))
+
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+
+		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+}
+
 func TestCreateWebhookPostWithPriority(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr, "Error cleaning up webhook")
+	}()
 
 	testConditions := []model.PostPriority{
 		{
-			Priority:                model.NewPointer("high"),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new("high"),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 		{
-			Priority:                model.NewPointer(""),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new(""),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 		{
-			Priority:                model.NewPointer("urgent"),
-			RequestedAck:            model.NewPointer(false),
-			PersistentNotifications: model.NewPointer(true),
+			Priority:                new("urgent"),
+			RequestedAck:            new(false),
+			PersistentNotifications: new(true),
 		},
 	}
 
 	for _, conditions := range testConditions {
-		post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo @"+th.BasicUser.Username, "user", "http://iconurl", "",
-			model.StringInterface{"webhook_display_name": hook.DisplayName},
-			model.PostTypeSlackAttachment,
+		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo @"+th.BasicUser.Username, "user", "http://iconurl", "",
+			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+			model.PostTypeMessageAttachment,
 			"",
 			&conditions,
+			false,
 		)
 
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
 		assert.Equal(t, post.Message, "foo @"+th.BasicUser.Username)
-		assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
+		assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
 		assert.Equal(t, *conditions.Priority, *post.GetPriority().Priority)
 		assert.Equal(t, *conditions.RequestedAck, *post.GetPriority().RequestedAck)
 		assert.Equal(t, *conditions.PersistentNotifications, *post.GetPriority().PersistentNotifications)
 	}
 }
+
 func TestCreateWebhookPostLinks(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr, "Error cleaning up webhook")
+	}()
 
 	for name, tc := range map[string]struct {
 		input          string
@@ -454,17 +786,69 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "", nil)
-			require.Nil(t, err)
+			post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "", nil, false)
+			require.Nil(t, appErr)
 			require.Equal(t, tc.expectedOutput, post.Message)
 		})
 	}
 }
 
+func TestValidateWebhookPostInteractiveActions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("orphan mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocksActions: map[string]any{
+					"act": map[string]any{"type": "external", "url": "http://example.com"},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.NotNil(t, err)
+	})
+
+	t.Run("button without mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.NotNil(t, err)
+	})
+
+	t.Run("disabled button without mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{
+						"type":      "button",
+						"text":      "Disabled",
+						"action_id": "act",
+						"disabled":  true,
+					},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.Nil(t, err)
+	})
+}
+
 func TestSplitWebhookPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	type TestCase struct {
 		Post     *model.Post
 		Expected []*model.Post
+
+		// ExpectSplitError: props/message cannot be split to fit.
+		ExpectSplitError bool
 	}
 
 	maxPostSize := 10000
@@ -487,7 +871,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			Post: &model.Post{
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: strings.Repeat("本", 1000),
 						},
@@ -507,7 +891,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]any{
-						"attachments": []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", 1000),
 							},
@@ -519,7 +903,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				},
 				{
 					Props: map[string]any{
-						"attachments": []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 							},
@@ -535,37 +919,245 @@ func TestSplitWebhookPost(t *testing.T) {
 					"foo": strings.Repeat("x", model.PostPropsMaxUserRunes*2),
 				},
 			},
+			ExpectSplitError: true,
+		},
+		"NoSplitFastPath": {
+			Post: &model.Post{
+				Message: "hello",
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+					},
+					model.PostPropsMmBlocksActions: map[string]any{
+						"act": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: "hello",
+					Props: map[string]any{
+						model.PostPropsMmBlocks: []any{
+							map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+						},
+						model.PostPropsMmBlocksActions: map[string]any{
+							"act": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"MessageMmactionWithActions": {
+			// Message exceeds maxPostSize so splitWebhookPost uses the slow path; interactive
+			// content lands on the final chunk where the mmaction link lives.
+			Post: &model.Post{
+				Message: strings.Repeat("x", maxPostSize) + "Click [go](mmaction://go1)",
+				Props: map[string]any{
+					model.PostPropsMmBlocksActions: map[string]any{
+						"go1": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("x", maxPostSize),
+				},
+				{
+					Message: "Click [go](mmaction://go1)",
+					Props: map[string]any{
+						model.PostPropsMmBlocksActions: map[string]any{
+							"go1": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"BlockKitWithActions": {
+			Post: &model.Post{
+				Message: strings.Repeat("x", maxPostSize) + "hi",
+				Props: map[string]any{
+					model.PostPropsBlockKitBlocks: []any{
+						map[string]any{
+							"type": "actions",
+							"elements": []any{
+								map[string]any{
+									"type":      "button",
+									"text":      map[string]any{"type": "plain_text", "text": "Go"},
+									"action_id": "bk1",
+								},
+							},
+						},
+					},
+					model.PostPropsMmBlocksActions: map[string]any{
+						"bk1": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("x", maxPostSize),
+				},
+				{
+					Message: "hi",
+					Props: map[string]any{
+						model.PostPropsBlockKitBlocks: []any{
+							map[string]any{
+								"type": "actions",
+								"elements": []any{
+									map[string]any{
+										"type":      "button",
+										"text":      map[string]any{"type": "plain_text", "text": "Go"},
+										"action_id": "bk1",
+									},
+								},
+							},
+						},
+						model.PostPropsMmBlocksActions: map[string]any{
+							"bk1": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"LongPostWithMmBlocks": {
+			Post: &model.Post{
+				Message: strings.Repeat("本", maxPostSize*3/2),
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "block-a"},
+						map[string]any{"type": "text", "text": "block-b"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("本", maxPostSize),
+				},
+				{
+					Message: strings.Repeat("本", maxPostSize/2),
+					Props: map[string]any{
+						model.PostPropsMmBlocks: []any{
+							map[string]any{"type": "text", "text": "block-a"},
+							map[string]any{"type": "text", "text": "block-b"},
+						},
+					},
+				},
+			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.Post, maxPostSize)
-			if tc.Expected == nil {
+			splits, err := splitWebhookPost(tc.Post, maxPostSize, true)
+			if tc.ExpectSplitError {
 				require.NotNil(t, err)
-			} else {
-				require.Nil(t, err)
+				return
 			}
+			require.Nil(t, err)
 			assert.Equal(t, len(tc.Expected), len(splits))
 			for i, split := range splits {
 				if i < len(tc.Expected) {
 					assert.Equal(t, tc.Expected[i].Message, split.Message)
-					assert.Equal(t, tc.Expected[i].GetProp("attachments"), split.GetProp("attachments"))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsAttachments), split.GetProp(model.PostPropsAttachments))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsMmBlocks), split.GetProp(model.PostPropsMmBlocks))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsBlockKitBlocks), split.GetProp(model.PostPropsBlockKitBlocks))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsMmBlocksActions), split.GetProp(model.PostPropsMmBlocksActions))
 				}
 			}
 		})
 	}
+
+	t.Run("mm blocks disabled does not distribute deferred mm_blocks", func(t *testing.T) {
+		post := &model.Post{
+			Message: strings.Repeat("本", maxPostSize*3/2),
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "block-a"},
+					map[string]any{"type": "text", "text": "block-b"},
+				},
+			},
+		}
+
+		splits, err := splitWebhookPost(post, maxPostSize, false)
+		require.Nil(t, err)
+		require.Len(t, splits, 2)
+		for _, split := range splits {
+			assert.Nil(t, split.GetProp(model.PostPropsMmBlocks))
+		}
+	})
+}
+
+func TestCreateWebhookPostFeatureFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		cfg.FeatureFlags.MmBlocksEnabled = false
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+	require.False(t, th.App.Config().FeatureFlags.MmBlocksEnabled)
+
+	t.Run("mm blocks disabled", func(t *testing.T) {
+		hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, hookErr)
+		defer func() { _ = th.App.DeleteIncomingWebhook(hook.Id) }()
+
+		t.Run("skips interactive validation for orphan mm_blocks_actions", func(t *testing.T) {
+			post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "hello", "user", "http://iconurl", "",
+				model.StringInterface{
+					model.PostPropsMmBlocksActions: map[string]any{
+						"act": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+				"", "", nil, false)
+			require.Nil(t, appErr)
+			require.NotNil(t, post)
+		})
+
+		t.Run("does not distribute mm_blocks on message split", func(t *testing.T) {
+			marker := "mm-blocks-off-" + model.NewId()
+			longMessage := marker + strings.Repeat("x", th.App.MaxPostSize()+100)
+
+			_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, longMessage, "user", "http://iconurl", "",
+				model.StringInterface{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "interactive body"},
+						map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+					},
+					model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
+						"actx",
+						"http://127.0.0.1/plugins/myplugin/x",
+						nil,
+					),
+				},
+				"", "", nil, false)
+			require.Nil(t, appErr)
+
+			list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 20)
+			require.Nil(t, listErr)
+			for _, p := range list.Posts {
+				if strings.Contains(p.Message, marker) || p.Message == "" {
+					assert.Nil(t, p.GetProp(model.PostPropsMmBlocks), "mm_blocks must not be placed when feature flag is off")
+				}
+			}
+		})
+	})
 }
 
 func makePost(message int, attachments []int) *model.Post {
 	var props model.StringInterface
 	if len(attachments) > 0 {
-		sa := make([]*model.SlackAttachment, 0, len(attachments))
+		sa := make([]*model.MessageAttachment, 0, len(attachments))
 		for _, a := range attachments {
-			attach := &model.SlackAttachment{
+			attach := &model.MessageAttachment{
 				Text: strings.Repeat("那", a),
 			}
 			sa = append(sa, attach)
 		}
-		props = map[string]any{"attachments": sa}
+		props = map[string]any{model.PostPropsAttachments: sa}
 	}
 	post := &model.Post{
 		Message: strings.Repeat("那", message),
@@ -575,6 +1167,7 @@ func makePost(message int, attachments []int) *model.Post {
 }
 
 func TestSplitWebhookPostAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
 	maxPostSize := 10000
 	testCases := []struct {
 		name     string
@@ -617,7 +1210,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.post, maxPostSize)
+			splits, err := splitWebhookPost(tc.post, maxPostSize, true)
 			if tc.expected == nil {
 				require.NotNil(t, err)
 			} else {
@@ -627,7 +1220,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 			for i, split := range splits {
 				if i < len(tc.expected) {
 					assert.Equal(t, tc.expected[i].Message, split.Message, i)
-					assert.Equal(t, tc.expected[i].GetProp("attachments"), split.GetProp("attachments"), i)
+					assert.Equal(t, tc.expected[i].GetProp(model.PostPropsAttachments), split.GetProp(model.PostPropsAttachments), i)
 				}
 			}
 		})
@@ -635,8 +1228,8 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 }
 
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	outgoingWebhook := model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
@@ -666,6 +1259,7 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 }
 
 func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -685,9 +1279,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
 		go func() {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				posts, _ := th.App.GetPosts(th.Context, channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {
 					for _, post := range posts.Posts {
 						createdPost <- post
@@ -726,7 +1320,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	getTestCases := func() map[string]TestCaseOutgoing {
 		webHookResponse := "sample response text from test server"
 		testCasesOutgoing := map[string]TestCaseOutgoing{
-
 			"Should override username and Icon": {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
@@ -748,8 +1341,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		return testCasesOutgoing
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -768,14 +1360,16 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				if testCase.WebhookResponse != nil {
 					js, jsonErr := json.Marshal(testCase.WebhookResponse)
 					require.NoError(t, jsonErr)
-					w.Write(js)
+					_, err := w.Write(js)
+					require.NoError(t, err)
 				} else {
-					w.Write([]byte(`{"text": "sample response text from test server"}`))
+					_, err := w.Write([]byte(`{"text": "sample response text from test server"}`))
+					require.NoError(t, err)
 				}
 			}))
 			defer ts.Close()
 
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
@@ -786,17 +1380,17 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			select {
 			case webhookPost := <-createdPost:
 				assert.Equal(t, webhookPost.Message, "sample response text from test server")
-				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
+				assert.Equal(t, webhookPost.GetProp(model.PostPropsFromWebhook), "true")
 				if testCase.ExpectedIconURL != "" {
-					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconURL)
+					assert.Equal(t, webhookPost.GetProp(model.PostPropsOverrideIconURL), testCase.ExpectedIconURL)
 				} else {
-					assert.Nil(t, webhookPost.GetProp("override_icon_url"))
+					assert.Nil(t, webhookPost.GetProp(model.PostPropsOverrideIconURL))
 				}
 
 				if testCase.ExpectedUsername != "" {
-					assert.Equal(t, webhookPost.GetProp("override_username"), testCase.ExpectedUsername)
+					assert.Equal(t, webhookPost.GetProp(model.PostPropsOverrideUsername), testCase.ExpectedUsername)
 				} else {
-					assert.Nil(t, webhookPost.GetProp("override_username"))
+					assert.Nil(t, webhookPost.GetProp(model.PostPropsOverrideUsername))
 				}
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
@@ -806,6 +1400,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 }
 
 func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
+	mainHelper.Parallel(t)
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -852,8 +1447,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	}))
 	defer ts2.Close()
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -873,7 +1467,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
 			payload := getPayload(hook, th, channel)
 
@@ -913,17 +1507,18 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
 		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
 	t.Run("with a valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -937,7 +1532,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with an invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader("aaaaaaaa"))
+			_, err := io.Copy(w, strings.NewReader("aaaaaaaa"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -948,7 +1544,9 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a large, valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			// Don't check the error here as the client may disconnect after hitting
+			// the response size limit, causing a broken pipe error that we can't avoid
+			_, _ = io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
 		}))
 		defer server.Close()
 
@@ -959,7 +1557,9 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, InfiniteReader{})
+			// Don't check the error here as the client may disconnect after hitting
+			// the response size limit, causing a broken pipe error that we can't avoid
+			_, _ = io.Copy(w, InfiniteReader{})
 		}))
 		defer server.Close()
 
@@ -979,7 +1579,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer close(releaseHandler)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
@@ -991,12 +1591,13 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(2))
 		})
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
@@ -1018,7 +1619,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with auth token", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+			_, err := io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 

@@ -1,0 +1,429 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal {
+    &__permissionsPolicyTab {
+        display: flex;
+        max-height: 100%;
+        flex: 1;
+        flex-direction: column;
+        padding-bottom: 60px;
+        gap: 16px;
+        overflow-y: auto;
+    }
+
+    &__permissionsPolicyBanner {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--button-bg-rgb), 0.16);
+        border-radius: 4px;
+        background-color: rgba(var(--button-bg-rgb), 0.06);
+        color: var(--center-channel-color);
+        font-size: 13px;
+        gap: 10px;
+        line-height: 18px;
+
+        i {
+            color: var(--button-bg);
+            font-size: 18px;
+        }
+    }
+
+    &__permissionsPolicyHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
+
+    &__permissionsPolicyTitle {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__permissionsPolicyAddRule {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        gap: 4px;
+
+        i {
+            font-size: 16px;
+        }
+    }
+
+    &__permissionsPolicySearch {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        i {
+            position: absolute;
+            left: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .form-control {
+            padding-left: 36px;
+        }
+    }
+
+    &__permissionsPolicyOrHint {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        border-left: 3px solid var(--button-bg);
+        background-color: rgba(var(--button-bg-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 6px;
+
+        i {
+            color: var(--button-bg);
+            font-size: 16px;
+        }
+    }
+
+    &__permissionsPolicyTable {
+        width: 100%;
+        border-collapse: collapse;
+
+        thead th {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            text-transform: none;
+        }
+
+        tbody td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+    }
+
+    &__permissionsPolicyRow {
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__permissionsPolicyRowName {
+        font-weight: 600;
+    }
+
+    &__permissionsPolicyRowNamePlaceholder {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-style: italic;
+        font-weight: 400;
+    }
+
+    &__permissionsPolicyRowControls {
+        width: 48px;
+        text-align: right;
+    }
+
+    &__permissionsPolicyRowMenuButton {
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
+    &__permissionsPolicyEmpty td {
+        padding: 24px 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+        text-align: center;
+    }
+
+    &__permissionsPolicyPagination {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        gap: 6px;
+
+        .btn-tertiary {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+
+            i {
+                font-size: 18px;
+            }
+
+            &:disabled {
+                opacity: 0.4;
+            }
+        }
+    }
+
+    /* ── Editor view ────────────────────────────────────────────────── */
+    &__permissionsPolicyEditor {
+        display: flex;
+        max-height: 100%;
+        flex: 1;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+    }
+
+    /* Header is left-aligned with the rest of the form fields. The back arrow
+     * sits flush to the title text with no extra horizontal indent so users
+     * read "‹ Edit permission rule" as a single visual unit, matching the
+     * system-console wizard. */
+    &__permissionsPolicyEditorHeader {
+        display: flex;
+        align-items: center;
+        margin-left: -8px; /* visually align the back arrow with the form's left edge */
+        gap: 4px;
+
+        h3 {
+            margin: 0;
+            color: var(--center-channel-color);
+            font-family: 'Metropolis', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 24px;
+        }
+    }
+
+    &__permissionsPolicyEditorBack {
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--center-channel-color);
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        i {
+            font-size: 22px;
+        }
+    }
+
+    &__permissionsPolicyEditorFields {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    &__permissionsPolicyField {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .form-control {
+            min-height: 40px;
+        }
+    }
+
+    &__permissionsPolicyFieldLabel {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__permissionsPolicyFieldHint {
+        margin-top: -2px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    /* Role dropdown: matches the system-console policy editor look. */
+    &__permissionsPolicyDropdownButton {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
+            outline: none;
+        }
+
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 18px;
+        }
+    }
+
+    /* Permission list: styled identically to the system-console policy
+     * editor's "What permissions are modified" table so an admin moving
+     * between the two screens has a consistent mental model. */
+    &__permissionsPolicyPermsTable {
+        overflow: hidden;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+
+    &__permissionsPolicyPermsTableHeader {
+        padding: 10px 16px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &__permissionsPolicyPermsTableEmpty {
+        padding: 24px 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-size: 14px;
+        text-align: center;
+    }
+
+    &__permissionsPolicyPermsTableRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    &__permissionsPolicyPermsTableLabel {
+        color: var(--center-channel-color);
+        font-size: 14px;
+    }
+
+    &__permissionsPolicyPermsTableRemove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--error-text);
+        }
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    &__permissionsPolicyAddPermissionButton {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        padding: 6px 12px;
+        border: 1px solid var(--button-bg);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--button-bg);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 6px;
+
+        .icon {
+            font-size: 16px;
+        }
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    &__permissionsPolicyExpression {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        // Match the neutral gray hover used by the other policy editors
+        .table-editor__cell {
+            button {
+                color: var(--center-channel-color) !important;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                }
+            }
+        }
+
+        // Vertically center the help text with the test-access-rule button
+        .table-editor__actions-row {
+            align-items: center;
+            gap: 16px;
+        }
+    }
+
+    &__permissionsPolicyError {
+        padding: 8px 12px;
+        border-radius: 4px;
+        background-color: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text);
+        font-size: 13px;
+    }
+
+    &__permissionsPolicyEditorActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

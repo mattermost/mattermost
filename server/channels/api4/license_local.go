@@ -11,16 +11,16 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitLicenseLocal() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods(http.MethodDelete)
+	api.BaseRoutes.APIRoot.Handle("/license/client", api.APILocal(localGetClientLicense)).Methods(http.MethodGet)
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localAddLicense", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalAddLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -30,9 +30,15 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := r.MultipartForm
+	defer func() {
+		if r.MultipartForm != nil {
+			if err = r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
 
-	fileArray, ok := m.File["license"]
+	fileArray, ok := r.MultipartForm.File["license"]
 	if !ok {
 		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
@@ -44,7 +50,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
-	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {
@@ -54,7 +60,10 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
+	if _, err := io.Copy(buf, file); err != nil {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
 	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
@@ -78,7 +87,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localRemoveLicense", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalRemoveLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -91,4 +100,24 @@ func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	ReturnStatusOK(w)
+}
+
+func localGetClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("localGetClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	clientLicense := c.App.Srv().ClientLicense()
+
+	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

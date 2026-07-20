@@ -2,21 +2,30 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
+import type {IntlShape} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import type {WebSocketClient} from '@mattermost/client';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {PluginAnalyticsRow} from '@mattermost/types/admin';
-import type {Channel} from '@mattermost/types/channels';
+import type {Board} from '@mattermost/types/boards';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ClientPluginManifest} from '@mattermost/types/plugins';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {ClientPluginManifest, NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
+import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {ChannelSettingsSchema, ChannelSettingsTabBodyProps, ChannelSettingsTabShouldRender} from 'types/plugins/channel_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -24,26 +33,59 @@ export type PluginsState = {
     plugins: IDMappedObjects<ClientPluginManifest>;
 
     components: {
-        [componentName: string]: PluginComponent[];
+        CallButton: CallButtonAction[];
+        PostDropdownMenu: PostDropdownMenuAction[];
+        MainMenu: MainMenuAction[];
+        ChannelHeader: ChannelHeaderAction[];
+        ChannelHeaderIcon: ChannelHeaderIconComponent[];
+        ChannelHeaderButton: ChannelHeaderButtonAction[];
+        MobileChannelHeaderButton: MobileChannelHeaderButtonAction[];
+        AppBar: AppBarAction[];
+        UserGuideDropdown: UserGuideDropdownAction[];
+        FileUploadMethod: FileUploadMethodAction[];
+        ChannelIntroButton: ChannelIntroButtonAction[];
+        FilesDropdown: FilesDropdownAction[];
         Product: ProductComponent[];
-        CallButton: PluginComponent[];
-        PostDropdownMenu: PluginComponent[];
-        PostAction: PluginComponent[];
-        PostEditorAction: PluginComponent[];
-        CodeBlockAction: PluginComponent[];
-        NewMessagesSeparatorAction: PluginComponent[];
-        FilePreview: PluginComponent[];
-        MainMenu: PluginComponent[];
-        LinkTooltip: PluginComponent[];
-        RightHandSidebarComponent: PluginComponent[];
-        ChannelHeaderButton: PluginComponent[];
-        MobileChannelHeaderButton: PluginComponent[];
-        AppBar: AppBarComponent[];
-        UserGuideDropdownItem: PluginComponent[];
-        FilesWillUploadHook: PluginComponent[];
+        PostDropdownMenuItem: PostDropdownMenuItemComponent[];
+        PostAction: PostActionComponent[];
+        PostEditorAction: PostEditorActionComponent[];
+        AIActionMenuItem: AIActionMenuItemComponent[];
+        CodeBlockAction: CodeBlockActionComponent[];
+        NewMessagesSeparatorAction: NewMessagesSeparatorActionComponent[];
+        FilePreview: FilePreviewComponent[];
+        LinkTooltip: LinkTooltipComponent[];
+        RightHandSidebarComponent: RightHandSidebarComponent[];
         NeedsTeamComponent: NeedsTeamComponent[];
-        CreateBoardFromTemplate: PluginComponent[];
+        CreateBoardFromTemplate: CreateBoardFromTemplateComponent[];
+        SearchHints: SearchHintsComponent[];
+        SearchSuggestions: SearchSuggestionsComponent[];
+        SearchButtons: SearchButtonsComponent[];
+        PostWillRenderEmbedComponent: PostWillRenderEmbedComponent[];
+        PopoverUserAttributes: PopoverUserAttributesComponent[];
+        PopoverUserActions: PopoverUserActionsComponent[];
+        LeftSidebarHeader: LeftSidebarHeaderComponent[];
+        Root: RootComponent[];
+        BottomTeamSidebar: BottomTeamSidebarComponent[];
+        PostMessageAttachment: PostMessageAttachmentComponent[];
+        CustomRouteComponent: CustomRouteComponent[];
+        Global: GlobalComponent[];
+        ChannelToast: ChannelToastComponent[];
+        SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
+        SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
+        ChannelTypeOption: ChannelTypeOptionComponent[];
+        ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelComposerBanner: ChannelComposerBannerComponent[];
+        ChannelIntro: ChannelIntroRegistration[];
+        PostHeader: PostHeaderComponent[];
+        ComposerPlaceholder: ComposerPlaceholderRegistration[];
+        ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
+        FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
+        MessageWillFormat: MessageWillFormatHook[];
+        MessageWillBePosted: MessageWillBePostedHook[];
+        SlashCommandWillBePosted: SlashCommandWillBePostedHook[];
+        MessageWillBeUpdated: MessageWillBeUpdatedHook[];
+        SystemConsoleGroupTable: SystemConsoleGroupTableComponent[];
     };
 
     postTypes: {
@@ -77,122 +119,173 @@ export type PluginsState = {
     userSettings: {
         [pluginId: string]: PluginConfiguration;
     };
+
+    channelSettingsTabs: ChannelSettingsTabComponent[];
 };
 
 export type Menu = {
     id: string;
     parentMenuId?: string;
-    text?: React.ReactElement | string;
+    text?: PluggableText;
     selectedValueText?: string;
     subMenu?: Menu[];
-    filter?: (id?: string) => boolean;
+    filter?: (id: string) => boolean;
     action?: (...args: any) => void;
-    icon?: React.ReactElement;
+    icon?: React.ReactNode;
     direction?: 'left' | 'right';
     isHeader?: boolean;
-}
+};
 
 export type PluginComponent = {
     id: string;
     pluginId: string;
-    title?: string;
-
-    /** @default null - which means 'channels'*/
-    supportedProductIds?: ProductScope;
-    component?: React.ComponentType;
-    subMenu?: Menu[];
-    text?: string;
-    dropdownText?: string;
-    tooltipText?: string;
-    button?: React.ReactElement;
-    dropdownButton?: React.ReactElement;
-    icon?: React.ReactElement;
-    iconUrl?: string;
-    mobileIcon?: React.ReactElement;
-    filter?: (id: string) => boolean;
-    action?: (...args: any) => void; // TODO Add more concrete types?
-    shouldRender?: (state: GlobalState) => boolean;
-    hook?: (post: Post, message?: string) => string;
 };
 
-export type AppBarComponent = PluginComponent & {
-    rhsComponentId?: string;
-}
+type BasePluggableProps = {
+    webSocketClient: WebSocketClient;
+    theme: Theme;
+};
 
-export type NeedsTeamComponent = PluginComponent & {
-    route: string;
-}
+export type PluggableText = string | React.ReactNode;
 
-export type FilesWillUploadHook = {
-    hook: (files: File[], uploadFiles: (files: File[]) => void) => { message?: string; files?: File[] };
-}
+export type AppBarChannelAction = (channel: Channel, member: ChannelMembership) => void;
+export type AppBarAction = PluginComponent & {
+    iconUrl: string;
+    supportedProductIds: ProductScope;
+    tooltipText: PluggableText;
+} & ({
+    action: AppBarChannelAction;
+} | {
+    rhsComponentId: string;
+    action: () => {data: boolean};
+});
 
-export type FilePreviewComponent = {
-    id: string;
-    pluginId: string;
-    override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{ fileInfo: FileInfo; post?: Post; onModalDismissed: () => void }>;
-}
-
-export type FileDropdownPluginComponent = {
-    id: string;
-    pluginId: string;
-    text: string | React.ReactElement;
+export type FilesDropdownAction = PluginComponent & {
+    text: PluggableText;
     match: (fileInfo: FileInfo) => boolean;
     action: (fileInfo: FileInfo) => void;
 };
 
-export type PostPluginComponent = {
-    id: string;
-    pluginId: string;
-    type: string;
-    component: React.ElementType;
+export type PostDropdownMenuAction = PluginComponent & {
+    parentMenuId?: string;
+    subMenu?: PostDropdownMenuAction[];
+    text: PluggableText;
+    action: (postId: string) => void;
+    filter: (postId: string) => boolean;
 };
 
-export type AdminConsolePluginComponent = {
-    pluginId: string;
-    key: string;
-    component: React.Component;
-    options: {
-        showTitle: boolean;
-    };
+export type ChannelHeaderAction = PluginComponent & {
+    text: PluggableText;
+    action: (channelId: string) => void;
+    shouldRender: (state: GlobalState) => boolean;
 };
 
-export type AdminConsolePluginCustomSection = {
-    pluginId: string;
-    key: string;
-    component: React.Component;
+export type ChannelHeaderButtonAction = PluginComponent & {
+    icon: React.ReactNode;
+    dropdownText: PluggableText;
+    tooltipText: PluggableText;
+    action: (channel: Channel, member?: ChannelMembership) => void;
 };
 
-export type PostWillRenderEmbedPluginComponent = {
-    id: string;
-    pluginId: string;
-    component: React.ComponentType<{ embed: PostEmbed; webSocketClient?: WebSocketClient }>;
-    match: (arg: PostEmbed) => boolean;
-    toggleable: boolean;
-}
+export type ChannelHeaderIconComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        channel: Channel;
+        channelMember: ChannelMembership;
+    }>;
+};
 
-export type ProductComponent = {
+export type FileUploadMethodAction = PluginComponent & {
+    text: PluggableText;
+    action: (checkPluginHooksAndUploadFiles: ((files: FileList | File[]) => void)) => void;
+    icon: React.ReactNode;
+};
+
+export type MainMenuAction = PluginComponent & {
+    text: PluggableText;
+    action: () => void;
+    mobileIcon: React.ReactNode;
+};
+
+export type ChannelIntroButtonAction = PluginComponent & {
+    text: PluggableText;
+    action: (channel: Channel, member: ChannelMembership) => void;
+    icon: React.ReactNode;
+};
+
+type ChannelSettingsTabBaseComponent = PluginComponent & {
+    uiName: string;
+    icon?: string;
+    shouldRender: ChannelSettingsTabShouldRender;
+};
+
+export type ChannelSettingsSchemaTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'schema';
+    schema: ChannelSettingsSchema;
+};
+
+export type ChannelSettingsCustomTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'custom';
+    component: React.ComponentType<ChannelSettingsTabBodyProps>;
+};
+
+export type ChannelSettingsTabComponent = ChannelSettingsSchemaTabComponent | ChannelSettingsCustomTabComponent;
+
+export type UserGuideDropdownAction = PluginComponent & {
+    text: PluggableText;
+    action: (fileInfo: FileInfo) => void;
+};
+
+export type CallButtonAction = PluginComponent & {
+    button: React.ReactNode;
+    dropdownButton: React.ReactNode;
+    action: (channel?: Channel | null, member?: ChannelMembership) => void;
+};
+
+export type MobileChannelHeaderButtonAction = PluginComponent & {
+    button?: CallButtonAction['button'];
+    dropdownButton?: CallButtonAction['dropdownButton'];
+    icon: ChannelHeaderButtonAction['icon'];
+    action: ChannelHeaderButtonAction['action'];
+    dropdownText?: ChannelHeaderButtonAction['dropdownText'];
+    tooltipText?: ChannelHeaderButtonAction['tooltipText'];
+};
+
+export type DesktopNotificationArgs = {
+    title: string;
+    body: string;
+    silent: boolean;
+    soundName: string;
+    url: string;
+    notify: boolean;
+};
+
+export type DesktopNotificationHook = PluginComponent & {
+    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
+        error?: string;
+        args?: DesktopNotificationArgs;
+    }>;
+};
+
+export type FilesWillUploadHook = PluginComponent & {
+    hook: (files: File[], uploadFiles: (files: File[]) => void) => {message?: string; files?: File[]};
+};
+
+type ProductBaseProps = {theme: Theme};
+export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
+export type ProductComponent = PluginComponent & {
 
     /**
-     * The main uuid of the product.
+     * A compass-icon glyph name or React element to display as the icon in the product switcher.
+     * Accepts either:
+     * - IconGlyphTypes: A string name from the Compass Icons library (e.g., 'product-channels')
+     * - React.ReactNode: A custom React element to render as the icon
      */
-    id: string;
-
-    /**
-     * The plain identifier of the source plugin
-     */
-    pluginId: string;
-
-    /**
-     * A compass-icon glyph to display as the icon in the product switcher
-     */
-    switcherIcon: IconGlyphTypes;
+    switcherIcon: IconGlyphTypes | React.ReactNode;
 
     /**
      * A string or React element to display in the product switcher
      */
-    switcherText: React.ReactNode | React.ElementType;
+    switcherText: React.ReactNode;
 
     /**
      * The route to be displayed at starting from the siteURL
@@ -207,24 +300,26 @@ export type ProductComponent = {
     /**
      * The component to be displayed below the global header when your route is active.
      */
-    mainComponent: React.ComponentType;
+    mainComponent: React.ComponentType<ProductBaseProps & {
+        webSocketClient: WebSocketClient;
+    }>;
 
     /**
      * The public component to be displayed when a public route is active.
      */
-    publicComponent: React.ComponentType | null;
+    publicComponent: React.ComponentType<ProductBaseProps & RouteComponentProps>;
 
     /**
      * A component to fill the generic area in the center of
      * the global header when your route is active.
      */
-    headerCentreComponent: React.ComponentType;
+    headerCentreComponent: React.ComponentType<ProductBaseProps>;
 
     /**
      * A component to fill the generic area in the right of
      * the global header when your route is active.
      */
-    headerRightComponent: React.ComponentType;
+    headerRightComponent: React.ComponentType<ProductBaseProps>;
 
     /**
      * A flag to display or hide the team sidebar in products.
@@ -243,20 +338,280 @@ export type ProductComponent = {
      * @default true
      */
     wrapped: boolean;
+
+    /**
+     * When `true`, the host owns team handling for the product so the plugin doesn't have to:
+     * mounted under `/:team{baseURL}`, it resolves/selects the team and renders only once the
+     * current team matches the URL. When `false`, it mounts at `baseURL` globally.
+     * @default false
+     */
+    isTeamScoped: boolean;
 };
 
-export type DesktopNotificationArgs = {
-    title: string;
-    body: string;
-    silent: boolean;
-    soundName: string;
-    url: string;
-    notify: boolean;
+export type NeedsTeamComponent = PluginComponent & {
+    route: string;
+    component: React.ComponentType<BasePluggableProps>;
 };
 
-export type DesktopNotificationHook = PluginComponent & {
-    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
-        error?: string;
-        args?: DesktopNotificationArgs;
+export type FilePreviewComponent = PluginComponent & {
+    override: (fileInfo: FileInfo, post?: Post) => boolean;
+    component: React.ComponentType<{
+        fileInfo: FileInfo;
+        post?: Post;
+        onModalDismissed: () => void;
     }>;
-}
+};
+
+export type PostWillRenderEmbedComponent = PluginComponent & {
+    component: React.ComponentType<{
+        embed: PostEmbed;
+        webSocketClient?: WebSocketClient;
+    }>;
+    match: (arg: PostEmbed) => boolean;
+    toggleable: boolean;
+};
+
+export type PostDropdownMenuItemComponent = PluginComponent & {
+    text: PluggableText;
+    component: React.ComponentType<BasePluggableProps & {postId: string}>;
+};
+
+export type RightHandSidebarComponent = PluginComponent & {
+    title: PluggableText;
+    component: React.ComponentType<BasePluggableProps>;
+    showPopout?: boolean;
+};
+
+export type SearchHintsComponent = PluginComponent & {
+    component: React.ComponentType<{
+        onChangeSearch: (value: string, matchedPretext: string) => void;
+        searchTerms: string;
+    }>;
+};
+
+export type SearchSuggestionsComponent = PluginComponent & {
+    component: React.ComponentType<{
+        searchTerms: string;
+        onChangeSearch: (value: string, matchedPretext: string) => void;
+        onRunSearch: (searchTerms: string) => void;
+    }>;
+};
+
+export type SearchButtonsComponent = PluginComponent & {
+    component: React.ComponentType; // Review the props
+    action: (terms: string) => void;
+};
+
+export type PostActionComponent = PluginComponent & {
+    component: React.ComponentType<{
+        post: Post;
+        handleDropdownOpened?: (open: boolean) => void;
+    }>;
+};
+
+export type NewMessagesSeparatorActionComponent = PluginComponent & {
+    component: React.ComponentType<{
+        lastViewedAt: number;
+        channelId?: string;
+        threadId?: string;
+    }>;
+};
+
+export type PopoverUserAttributesComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        user: UserProfile;
+        hide?: () => void;
+        status: string | null;
+        fromWebhook?: boolean;
+    }>;
+};
+
+export type PopoverUserActionsComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        user: UserProfile;
+        hide?: () => void;
+        status: string | null;
+    }>;
+};
+
+export type LeftSidebarHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};
+
+export type RootComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};
+
+export type BottomTeamSidebarComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};
+
+export type SidebarChannelLinkLabelComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        channel: Channel;
+    }>;
+};
+
+export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
+    text: PluggableText;
+    action: (teamId: string) => void;
+    icon: React.ReactNode;
+};
+
+export type ChannelIconOverrideRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    iconName: IconGlyphTypes;
+};
+
+export type ChannelComposerBannerComponent = PluginComponent & {
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelIntroRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type PostHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {post: Post}>;
+};
+
+export type ComposerPlaceholderRegistration = PluginComponent & {
+    transform: (placeholder: string, channel: Channel, state: GlobalState, intl: IntlShape) => string;
+};
+
+export type ProductSwitcherMenuItemRegistration = PluginComponent & {
+    text: string;
+    icon: IconGlyphTypes | React.ReactNode;
+    action: () => void;
+    isHidden?: (state: GlobalState) => boolean;
+};
+
+export type ChannelTypeOptionComponent = PluginComponent & {
+    label: PluggableText;
+    description: PluggableText;
+    icon: React.ReactNode;
+    createButtonText?: PluggableText;
+
+    /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
+    isAvailable: (state: GlobalState) => boolean;
+
+    /**
+     * Optional component rendered inline when this option is selected in the channel-creation modal.
+     * Receives a read-only snapshot of the form state and `setCanCreate` to gate the Create button
+     * while its own inputs are invalid.
+     */
+    extraContent?: React.ComponentType<{
+        formState: NewChannelFormState;
+        setCanCreate: (v: boolean) => void;
+    }>;
+
+    onCreate: (formState: NewChannelFormState) => Promise<NewChannelFormResult>;
+};
+
+export type PostMessageAttachmentComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        postId: string;
+        onHeightChange: (height: number) => void;
+    }>;
+};
+
+export type LinkTooltipComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        href: string;
+        show: boolean;
+    }>;
+};
+
+export type PostEditorActionComponent = PluginComponent & {
+    component: React.ComponentType;
+};
+
+export type AIActionMenuItemProps = {
+    draft: PostDraft;
+    getSelectedText: () => {start: number; end: number};
+    updateText: (message: string) => void;
+    channelId: string;
+    isRHS: boolean;
+};
+
+export type AIActionMenuItemComponent = PluginComponent & {
+    component?: React.ComponentType<AIActionMenuItemProps>;
+    action?: (props: AIActionMenuItemProps) => void;
+    icon: React.ReactNode;
+    text: React.ReactNode;
+    sortOrder: number;
+};
+
+export type CodeBlockActionComponent = PluginComponent & {
+    component: React.ComponentType;
+};
+
+export type CustomRouteComponent = PluginComponent & {
+    component: React.ComponentType;
+    route: string;
+};
+
+export type GlobalComponent = PluginComponent & {
+    component: React.ComponentType;
+};
+
+export type ChannelToastComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};
+
+export type CreateBoardFromTemplateComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        setCanCreate: (v: boolean) => void;
+        setAction: (action: ((currentTeamId: string, channelId: string) => Promise<Board>) | undefined) => void;
+        newBoardInfoIcon: React.JSX.Element;
+    }>;
+    action: () => void;
+};
+
+export type MessageWillFormatHook = PluginComponent & {
+    hook: (post: Post, message: string) => string;
+};
+
+export type MessageWillBePostedHook = PluginComponent & {
+    hook: (post: Post) => Promise<{error: {message: string}} | {post: Post}>;
+};
+
+export type SlashCommandWillBePostedHook = PluginComponent & {
+    hook: (message: string, args: CommandArgs) => Promise<{error: {message: string}} | {message: string; args: CommandArgs} | Record<string, never>>;
+};
+
+export type MessageWillBeUpdatedHook = PluginComponent & {
+    hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
+};
+
+export type PostPluginComponent = {
+    id: string;
+    pluginId: string;
+    type: string;
+    component: React.ComponentType<{
+        post: Post;
+        compactDisplay?: boolean;
+        isRHS?: boolean;
+        theme?: Theme;
+    }>;
+};
+
+export type AdminConsolePluginComponent = {
+    pluginId: string;
+    key: string;
+    component: React.Component;
+    options: {
+        showTitle: boolean;
+    };
+};
+
+export type AdminConsolePluginCustomSection = {
+    pluginId: string;
+    key: string;
+    component: React.Component;
+};
+
+export type SystemConsoleGroupTableComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
+};

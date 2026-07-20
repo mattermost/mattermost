@@ -14,92 +14,280 @@ on:
       logsartifact:
         required: true
         type: string
+      fullyparallel:
+        required: false
+        type: boolean
+        default: true
+      allow-failure:
+        required: false
+        type: boolean
+        default: false
+      enablecoverage:
+        required: false
+        type: boolean
+        default: false
+      go-version:
+        required: true
+        type: string
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      opensearch-version:
+        required: false
+        type: string
+        default: "3.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
+      # -- Test sharding inputs (leave defaults for non-sharded callers) --
+      shard-index:
+        required: false
+        type: number
+        default: -1 # -1 = no sharding; run all tests
+      shard-total:
+        required: false
+        type: number
+        default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
+      race-enabled:
+        description: "Run tests with Go race detector (-race)"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      # Only if enablecoverage is true
+      CODECOV_TOKEN:
+        required: false
+      # Only if fips-enabled is true
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  actions: read    # for load-buildenv artifact listing
 
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.runner }}
+    continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
+      INPUT_DATASOURCE: ${{ inputs.datasource }}
+      INPUT_DRIVERNAME: ${{ inputs.drivername }}
+      INPUT_ENABLECOVERAGE: ${{ inputs.enablecoverage }}
+      INPUT_FIPS_ENABLED: ${{ inputs.fips-enabled }}
+      INPUT_FULLYPARALLEL: ${{ inputs.fullyparallel }}
+      INPUT_GO_VERSION: ${{ inputs.go-version }}
+      INPUT_LOGSARTIFACT: ${{ inputs.logsartifact }}
+      INPUT_NAME: ${{ inputs.name }}
+      INPUT_PR_NUMBER: ${{ github.event.pull_request.number }}
+      INPUT_RACE_ENABLED: ${{ inputs.race-enabled }}
+      INPUT_SHARD_TOTAL: ${{ inputs.shard-total }}
+      INPUT_TEST_TARGET: ${{ inputs.test-target }}
     steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: Calculate Golang Version
-        id: go
-        working-directory: ./server
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      - name: buildenv/docker-login
+        # Only FIPS requires login for private build container. (Forks won't have credentials.)
+        if: inputs.fips-enabled
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: server/go.sum
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: buildenv/load
+        id: buildenv
+        uses: ./.github/actions/load-buildenv
+        with:
+          go-version: ${{ inputs.go-version }}
+          fips-enabled: ${{ inputs.fips-enabled }}
+
+      - name: Restore test timing data
+        if: inputs.shard-total > 1
+        id: timing-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
+          # Always restore from master — timing is only saved on the default
+          # branch and is stable enough for shard balancing.
+          # NOTE: the v2 prefix invalidates pre-existing caches that were
+          # poisoned by shard failures (a killed shard loses its gotestsum.json,
+          # so the merged report was missing those packages' timings; on the
+          # next run they all defaulted to 1ms and bin-packed onto the lightest
+          # shard, overloading it and perpetuating the cycle). See also the
+          # all-shards-passed guard in server-test-merge-template.yml.
+          key: server-test-timing-v2-master
+          restore-keys: |
+            server-test-timing-v2-
+
+      - name: Setup log artifact name
+        id: log-artifact
+        run: |
+          if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
+          else
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Store required variables for publishing results
+        run: |
+          echo "$INPUT_NAME" > server/test-name
+          echo "$INPUT_PR_NUMBER" > server/pr-number
+
       - name: Run docker compose
+        env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
+          OPENSEARCH_VERSION: ${{ inputs.opensearch-version }}
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
+          cat ../tests/custom-schema-objectID.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+
+      # ── Test-level sharding ────────────────────────────────────────────
+      # When shard-total > 1, we split tests across N parallel runners.
+      #
+      # Two-tier splitting strategy:
+      #   - "Light" packages (< 5 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 5 min, e.g. api4, app): individual tests
+      #     are distributed across shards using -run regex filters
+      #
+      # See server/scripts/shard-split.js for the full algorithm.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Setup Go for test discovery
+        if: inputs.shard-total > 1
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Split tests across shards
+        if: inputs.shard-total > 1
+        id: test_split
+        working-directory: server
+        env:
+          SHARD_INDEX: ${{ inputs.shard-index }}
+          SHARD_TOTAL: ${{ inputs.shard-total }}
+        run: |
+          set -euo pipefail
+
+          # ── List all test packages ──
+          echo "::group::Listing test packages"
+          TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
+            | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
+          EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
+          ALL_PKGS=$(printf '%s\n%s' "$TE_PKGS" "$EE_PKGS" | grep -v '^$' | sort -u)
+          TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
+          echo "Found $TOTAL_PKGS test packages"
+          echo "::endgroup::"
+
+          if [[ "$TOTAL_PKGS" -eq 0 ]]; then
+            echo "WARNING: No test packages found"
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$ALL_PKGS" > all-packages.txt
+
+          # ── Create go.work for test discovery ──
+          # Without it, `go test -list` in shard-split.js resolves
+          # github.com/mattermost/mattermost/server/public against the published
+          # module version from server/go.mod, which lags HEAD and causes build
+          # failures when heavy packages reference new symbols in ./public.
+          go work init
+          go work use . ./public
+
+          # ── Run shard solver ──
+          node scripts/shard-split.js
+
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
+
       - name: Run Tests
         env:
-          BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          BUILD_IMAGE: ${{ steps.buildenv.outputs.image }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' ]]; then
-            export RACE_MODE="-race"
+          RACE_MODE=""
+          if [[ "$INPUT_RACE_ENABLED" == "true" ]]; then
+            RACE_MODE="-race"
           fi
+
+          TEST_TARGET="${INPUT_TEST_TARGET}${RACE_MODE}"
+          BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${TEST_TARGET}"
+
+          # When sharding is active, use the multi-run wrapper script.
+          # run-shard-tests.sh detects heavy runs itself and falls back to
+          # light-only mode when shard-heavy-runs.txt is absent or empty.
+          if [[ "$INPUT_SHARD_TOTAL" -gt 1 && -f server/shard-te-packages.txt ]]; then
+            cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
+            chmod +x server/run-shard-tests.sh
+            DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
-            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
-            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            -v $(go env GOCACHE):/go/cache \
-            -e GOCACHE=/go/cache \
+            --env MM_SQLSETTINGS_DRIVERNAME="$INPUT_DRIVERNAME" \
+            --env MM_SQLSETTINGS_DATASOURCE="$INPUT_DATASOURCE" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="$INPUT_DATASOURCE" \
+            --env ENABLE_FULLY_PARALLEL_TESTS="$INPUT_FULLYPARALLEL" \
+            --env ENABLE_COVERAGE="$INPUT_ENABLECOVERAGE" \
+            --env FIPS_ENABLED="$INPUT_FIPS_ENABLED" \
+            --env RACE_MODE \
+            --env TEST_TARGET \
+            --env BUILD_NUMBER \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            $DOCKER_CMD
+      - name: Upload coverage to Codecov
+        if: ${{ inputs.enablecoverage }}
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: server/cover.out
+          flags: server
+
       - name: Stop docker compose
         run: |
           cd server/build
           docker compose --ansi never stop
+
       - name: Archive logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: ${{ inputs.logsartifact }}
+          name: ${{ steps.log-artifact.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml
-      - name: Publish test report
-        id: report
-        uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
-        if: success() || failure() # always run even if the previous step fails
-        with:
-          report_paths: server/report.xml
-          check_name: ${{ inputs.name }} (Results)
-          require_tests: true
-      - name: Report retried tests via webhook (master || release-*)
-        if: ${{ steps.report.outputs.retried > 0 && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
-        uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a # v2.0.0
-        with:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
-          TEXT: |-
-            #### ⚠️ One or more flaky tests detected ⚠️
-            * Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            * Ideally, this would have been caught in a pull request, but now a volunteer is required. If you're willing to help, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.
-            * Finally, reply to this message with a link to the created JIRA ticket.
-      - name: Report retried tests (pull request)
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
-        if: ${{ steps.report.outputs.retried > 0 && !(github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
-        with:
-          script: |
-            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.`
+            server/cover.out
+            server/test-name
+            server/pr-number
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            })

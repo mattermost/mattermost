@@ -1,16 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
 import {CollapsedThreads} from '@mattermost/types/config';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import FollowButton from 'components/threading/common/follow_button';
-
-import {mockStore} from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -75,12 +72,12 @@ describe('rhs_header_post', () => {
                     42: {
                         id: '42',
                         reply_count: 0,
-                        is_following: null as any, // This is supposed to be boolean based on the type definitions, but this relies on this being null in some cases
+                        is_following: null as any,
                     },
                     43: {
                         id: '43',
                         reply_count: 0,
-                        is_following: null as any, // This is supposed to be boolean based on the type definitions, but this relies on this being null in some cases
+                        is_following: null as any,
                     },
                 },
             },
@@ -108,35 +105,29 @@ describe('rhs_header_post', () => {
     };
 
     test('should not crash when no root', () => {
-        const {mountOptions} = mockStore(initialState);
-        const wrapper = mount(
+        renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='41'
-            />, mountOptions);
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find(FollowButton).prop('isFollowing')).toBe(false);
+            />, initialState);
+        expect(screen.getByRole('button', {name: 'Follow'})).toBeInTheDocument();
     });
 
     test('should not show following when no replies and not mentioned', () => {
-        const {mountOptions} = mockStore(initialState);
-        const wrapper = mount(
+        renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='43'
-            />, mountOptions);
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find(FollowButton).prop('isFollowing')).toBe(false);
+            />, initialState);
+        expect(screen.getByRole('button', {name: 'Follow'})).toBeInTheDocument();
     });
 
     test('should show following when no replies but user is  mentioned', () => {
-        const {mountOptions} = mockStore(initialState);
-        const wrapper = mount(
+        renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='42'
-            />, mountOptions);
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find(FollowButton).prop('isFollowing')).toBe(true);
+            />, initialState);
+        expect(screen.getByRole('button', {name: 'Following'})).toBeInTheDocument();
     });
 });

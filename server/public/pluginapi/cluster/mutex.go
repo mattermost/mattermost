@@ -26,7 +26,7 @@ const (
 // MutexPluginAPI is the plugin API interface required to manage mutexes.
 type MutexPluginAPI interface {
 	KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	LogError(msg string, keyValuePairs ...interface{})
+	LogError(msg string, keyValuePairs ...any)
 }
 
 // Mutex is similar to sync.Mutex, except usable by multiple plugin instances across a cluster.

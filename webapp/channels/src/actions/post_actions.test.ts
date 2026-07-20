@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
+import type {FileInfo, FilesState} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
@@ -10,11 +10,14 @@ import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
 
+import test_helper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
+
+import {sendDesktopNotification} from './notification_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
@@ -26,6 +29,8 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     pinPost: (...args: any[]) => ({type: 'MOCK_PIN_POST', args}),
     unpinPost: (...args: any[]) => ({type: 'MOCK_UNPIN_POST', args}),
     receivedNewPost: (...args: any[]) => ({type: 'MOCK_RECEIVED_NEW_POST', args}),
+    setUnreadPost: (...args: any[]) => ({type: 'MOCK_SET_UNREAD_POST', args}),
+    getPosts: (...args: any[]) => ({type: 'MOCK_GET_POSTS', args}),
 }));
 
 jest.mock('actions/emoji_actions', () => ({
@@ -34,7 +39,7 @@ jest.mock('actions/emoji_actions', () => ({
 }));
 
 jest.mock('actions/notification_actions', () => ({
-    sendDesktopNotification: jest.fn().mockReturnValue({type: 'MOCK_SEND_DESKTOP_NOTIFICATION'}),
+    sendDesktopNotification: jest.fn().mockReturnValue(() => ({data: {}})),
 }));
 
 jest.mock('actions/storage', () => {
@@ -45,8 +50,7 @@ jest.mock('actions/storage', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => ({
-    isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
 
@@ -57,6 +61,8 @@ jest.mock('utils/post_utils', () => ({
 
 const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
 const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
+
+const mockedSendDesktopNotification = jest.mocked(sendDesktopNotification);
 
 const POST_CREATED_TIME = Date.now();
 
@@ -71,7 +77,7 @@ describe('Actions.Posts', () => {
         user_id: 'current_user_id',
         message: 'test msg',
         channel_id: 'current_channel_id',
-        type: 'normal,',
+        type: 'normal',
     };
     const initialState = {
         entities: {
@@ -192,8 +198,12 @@ describe('Actions.Posts', () => {
             },
             rhs: {
                 searchTerms: '',
+                searchType: '',
                 filesSearchExtFilter: [],
             },
+        },
+        storage: {
+            storage: {},
         },
     } as unknown as GlobalState;
 
@@ -212,10 +222,8 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('handleNewPostOtherChannel', async () => {
@@ -237,7 +245,7 @@ describe('Actions.Posts', () => {
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
                             onlyMentions: undefined,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                     {
@@ -256,27 +264,25 @@ describe('Actions.Posts', () => {
                             amountUrgent: 0,
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('unsetEditingPost', async () => {
         // should allow to edit and should fire an action
         const testStore = mockStore({...initialState});
-        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test', 'title'));
+        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test'));
         expect(dataSet).toEqual(true);
 
         // matches the action to set editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // clear actions
@@ -284,11 +290,11 @@ describe('Actions.Posts', () => {
 
         // dispatch action to unset the editingPost
         const {data: dataUnset} = testStore.dispatch(Actions.unsetEditingPost());
-        expect(dataUnset).toEqual({show: false});
+        expect(dataUnset).toEqual(true);
 
         // matches the action to unset editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // editingPost value is empty object, as it should
@@ -296,13 +302,59 @@ describe('Actions.Posts', () => {
     });
 
     test('setEditingPost', async () => {
+        const state = JSON.parse(JSON.stringify(initialState)) as GlobalState;
+
+        state.entities.posts.posts[latestPost.id] = {
+            ...latestPost,
+            file_ids: ['file_id_1', 'file_id_2'],
+        } as Post;
+
+        state.entities.files = {
+            files: {
+                file_id_1: test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                file_id_2: test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+            },
+            fileIdsByPostId: {
+                [latestPost.id]: ['file_id_1', 'file_id_2'],
+            },
+        } as unknown as FilesState;
+
         // should allow to edit and should fire an action
-        let testStore = mockStore({...initialState});
-        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        let testStore = mockStore({...state});
+        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        let actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(2);
+
+        expect(actions[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
+        expect(actions[0].payload[1]).toEqual(
+            {
+                args: [
+                    'edit_draft_latest_post_id',
+                    {
+                        id: 'latest_post_id',
+                        user_id: 'current_user_id',
+                        message: 'test msg',
+                        channel_id: 'current_channel_id',
+                        type: 'normal',
+                        file_ids: [
+                            'file_id_1',
+                            'file_id_2',
+                        ],
+                        metadata: {
+                            files: [
+                                test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                                test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+                            ],
+                        },
+                    },
+                ],
+                type: 'MOCK_SET_GLOBAL_ITEM',
+            },
         );
 
         const general = {
@@ -310,7 +362,7 @@ describe('Actions.Posts', () => {
             serverVersion: '5.4.0',
             config: {PostEditTimeLimit: -1},
         } as unknown as GlobalState['entities']['general'];
-        const withLicenseState = {...initialState};
+        const withLicenseState = {...state};
         withLicenseState.entities.general = {
             ...withLicenseState.entities.general,
             ...general,
@@ -318,22 +370,53 @@ describe('Actions.Posts', () => {
 
         testStore = mockStore(withLicenseState);
 
-        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withLicenseData).toEqual(true);
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // should not allow edit for pending post
         const newLatestPost = {...latestPost, pending_post_id: latestPost.id} as Post;
-        const withPendingPostState = {...initialState};
+        const withPendingPostState = {...state};
         withPendingPostState.entities.posts.posts[latestPost.id] = newLatestPost;
 
         testStore = mockStore(withPendingPostState);
 
-        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withPendingPostData).toEqual(false);
         expect(testStore.getActions()).toEqual([]);
+
+        // should not save draft when it already exists
+        const stateWithDraft = {
+            ...state,
+            storage: {
+                ...state.storage,
+                storage: {
+                    ...state.storage.storage,
+                    edit_draft_latest_post_id: {
+                        timestamp: new Date(),
+                        value: {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        stateWithDraft.entities.posts.posts[latestPost.id] = latestPost as Post;
+
+        testStore = mockStore(stateWithDraft);
+
+        const {data: dataExisting} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
+        expect(dataExisting).toEqual(true);
+
+        actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(1);
+
+        expect(actions[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
     });
 
     test('searchForTerm', async () => {
@@ -344,9 +427,98 @@ describe('Actions.Posts', () => {
             {terms: 'hello', type: 'UPDATE_RHS_SEARCH_TERMS'},
             {state: 'search', type: 'UPDATE_RHS_STATE'},
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
+            {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
+            {data: {firstInaccessiblePostTime: 0, searchType: 'posts'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
+            {data: {firstInaccessiblePostTime: 0, searchType: 'files'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
         ]);
+    });
+
+    describe('markMostRecentPostInChannelAsUnread', () => {
+        const systemPost = {id: 'system_post_id', channel_id: 'unread_channel_id', type: Posts.POST_TYPES.ADD_TO_CHANNEL, create_at: 3000} as Post;
+        const regularPost = {id: 'regular_post_id', channel_id: 'unread_channel_id', type: '', create_at: 2000} as Post;
+        const joinPost = {id: 'join_post_id', channel_id: 'unread_channel_id', type: Posts.POST_TYPES.JOIN_CHANNEL, create_at: 1000} as Post;
+
+        const stateWithPosts = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities.posts,
+                    posts: {
+                        [systemPost.id]: systemPost,
+                        [regularPost.id]: regularPost,
+                        [joinPost.id]: joinPost,
+                    },
+                    postsInChannel: {
+                        unread_channel_id: [
+                            {order: [systemPost.id, regularPost.id, joinPost.id], recent: true},
+                        ],
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        test('marks the most recent non-system post as unread when the latest post is a system message', async () => {
+            const testStore = mockStore(stateWithPosts);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            expect(testStore.getActions().some((action) => action.type === 'MOCK_GET_POSTS')).toBe(false);
+            const setUnreadAction = testStore.getActions().find((action) => action.type === 'MOCK_SET_UNREAD_POST');
+            expect(setUnreadAction).toBeDefined();
+            expect(setUnreadAction!.args).toEqual(['current_user_id', regularPost.id]);
+        });
+
+        test('fetches posts when the channel is loaded but contains only system messages', async () => {
+            const systemOnlyState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        posts: {
+                            [systemPost.id]: systemPost,
+                            [joinPost.id]: joinPost,
+                        },
+                        postsInChannel: {
+                            unread_channel_id: [
+                                {order: [systemPost.id, joinPost.id], recent: true},
+                            ],
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+            const testStore = mockStore(systemOnlyState);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            const actions = testStore.getActions();
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(true);
+            expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
+        });
+
+        test('fetches posts when none are loaded and does not mark a system post as unread', async () => {
+            const emptyState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        posts: {},
+                        postsInChannel: {},
+                    },
+                },
+            } as unknown as GlobalState;
+            const testStore = mockStore(emptyState);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            const actions = testStore.getActions();
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(true);
+            expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
+        });
     });
 
     describe('createPost', () => {

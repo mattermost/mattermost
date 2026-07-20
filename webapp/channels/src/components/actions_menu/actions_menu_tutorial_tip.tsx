@@ -13,7 +13,7 @@ type Props = {
     handleOpen: (e: React.MouseEvent) => void;
     handleDismiss: () => void;
     showTip: boolean;
-}
+};
 
 const title = (
     <FormattedMessage
@@ -24,7 +24,7 @@ const title = (
 const screen = (
     <FormattedMessage
         id='post_info.actions.tutorialTip'
-        defaultMessage='Message actions that are provided\nthrough apps, integrations or plugins\nhave moved to this menu item.'
+        defaultMessage={'Message actions that are provided\nthrough apps, integrations or plugins\nhave moved to this menu item.'}
     />
 );
 const nextBtn = (

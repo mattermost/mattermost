@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .do-verify-body {
     display: flex;
@@ -21,8 +21,8 @@
             justify-content: center;
 
             .do-verify-body-content-button-return {
-                @include primary-button;
-                @include button-medium;
+                @include mixins.primary-button;
+                @include mixins.button-medium;
             }
         }
     }

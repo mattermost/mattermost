@@ -5,9 +5,9 @@ import React, {useEffect} from 'react';
 import {useIntl, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Input from 'components/widgets/inputs/input/input';
-import WithTooltip from 'components/with_tooltip';
 
 import {ItemStatus} from 'utils/constants';
 
@@ -190,10 +190,9 @@ export default function SeatsCalculator(props: Props) {
                     <div className='SeatsCalculator__seats-tooltip'>
                         <div className='icon'>
                             <WithTooltip
-                                id='userCount__tooltip'
                                 title={messages.tooltipTitle}
                                 hint={messages.tooltipText}
-                                placement='right'
+                                isVertical={false}
                             >
                                 <InformationOutlineIcon
                                     size={18}

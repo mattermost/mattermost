@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {FileTypes} from 'utils/constants';
@@ -29,31 +31,27 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     fileInputRef,
     handleChange,
 }: StarterEditionProps) => {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const intl = useIntl();
 
-    const viewPlansButton = (
-        <button
+    const viewPlansButton = isAirGapped ? null : (
+        <Button
             id='starter_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            onClick={openPricingModal}
+            emphasis='tertiary'
+            size='sm'
+            className='PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     return (
         <div className='StarterLeftPanel'>
             {viewPlansButton}
-            <div className='pre-title'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition'
-                    defaultMessage='Enterprise Edition'
-                />
-            </div>
             <div className='title'>
                 <FormattedMessage
                     id='admin.license.freeEdition.title'
@@ -81,7 +79,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
@@ -94,8 +92,8 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                     <FormattedMessage {...messages.key}/>
                 </div>
                 <div className='uploadButtons'>
-                    <button
-                        className='btn btn-upload light-blue-btn'
+                    <Button
+                        emphasis='primary'
                         onClick={() => fileInputRef.current?.click()}
                         id='open-modal'
                     >
@@ -103,7 +101,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                             id='admin.license.uploadFile'
                             defaultMessage='Upload File'
                         />
-                    </button>
+                    </Button>
                     <input
                         ref={fileInputRef}
                         type='file'

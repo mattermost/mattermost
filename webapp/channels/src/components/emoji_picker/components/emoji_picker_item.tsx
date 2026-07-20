@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -26,7 +26,7 @@ interface Props {
 function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Props) {
     const {formatMessage} = useIntl();
 
-    const handleMouseOver = () => {
+    const handleMouseOver = useCallback(() => {
         if (!isSelected) {
             let emojiId = '';
             if (isSystemEmoji(emoji)) {
@@ -36,17 +36,17 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             }
             onMouseOver({rowIndex, emojiId, emoji});
         }
-    };
+    }, [emoji, isSelected, onMouseOver, rowIndex]);
 
-    const throttledMouseOver = useCallback(
-        throttle(handleMouseOver, EMOJI_SCROLL_THROTTLE_DELAY, {
+    const throttledMouseOver = useMemo(
+        () => throttle(handleMouseOver, EMOJI_SCROLL_THROTTLE_DELAY, {
             leading: true,
             trailing: false,
-        }), []);
+        }), [handleMouseOver]);
 
-    const handleClick = () => {
+    const handleClick = useCallback(() => {
         onClick(emoji);
-    };
+    }, [emoji, onClick]);
 
     const itemClassName = classNames('emoji-picker__item', {
         selected: isSelected,
@@ -55,32 +55,21 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
     let content;
 
     if (isSystemEmoji(emoji)) {
-        const emojiName = emoji.short_name ? emoji.short_name : emoji.name;
         const emojiUnified = emoji.unified ? emoji.unified.toLowerCase() : emoji.name.toLowerCase();
 
         content = (
             <img
-                alt={'emoji image'}
+                alt={`${emoji.name.toLocaleLowerCase()} emoji`}
                 data-testid={emoji.short_names}
                 src={imgTrans}
                 className={`emojisprite emoji-category-${emoji.category} emoji-${emojiUnified}`}
                 id={`emoji-${emojiUnified}`}
-                aria-label={formatMessage(
-                    {
-                        id: 'emoji_picker_item.emoji_aria_label',
-                        defaultMessage: '{emojiName} emoji',
-                    },
-                    {
-                        emojiName: (emojiName).replace(/_/g, ' '),
-                    },
-                )}
-                role='button'
             />
         );
     } else {
         content = (
             <img
-                alt={'custom emoji image'}
+                alt={'custom emoji'}
                 data-testid={emoji.name}
                 src={getEmojiImageUrl(emoji)}
                 className={'emoji-category--custom'}
@@ -89,15 +78,26 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
     }
 
     return (
-        <div
+        <button
             className={itemClassName}
             onClick={handleClick}
             onMouseOver={throttledMouseOver}
+            data-testid='emojiItem'
+            tabIndex={-1}
+            type='button'
+            id={emoji.name.toLocaleLowerCase().replaceAll(' ', '_')}
+            aria-label={formatMessage(
+                {
+                    id: 'emoji_picker_item.emoji_aria_label',
+                    defaultMessage: '{emojiName} emoji',
+                },
+                {
+                    emojiName: (isSystemEmoji(emoji) ? emoji.short_name : emoji.name).replace(/_/g, ' '),
+                },
+            )}
         >
-            <div data-testid='emojiItem'>
-                {content}
-            </div>
-        </div>
+            {content}
+        </button>
     );
 }
 

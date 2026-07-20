@@ -21,9 +21,9 @@ func NewEmptySetting(id, title, description string) Setting {
 	}
 }
 
-func (s *emptySetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
+func (s *emptySetting) GetMessageAttachments(userID, settingHandler string, disabled bool) (*model.MessageAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
-	sa := model.SlackAttachment{
+	sa := model.MessageAttachment{
 		Title:    title,
 		Text:     s.description,
 		Fallback: fmt.Sprintf("%s: %s", title, s.description),
@@ -32,10 +32,10 @@ func (s *emptySetting) GetSlackAttachments(userID, settingHandler string, disabl
 	return &sa, nil
 }
 
-func (s *emptySetting) Get(userID string) (interface{}, error) {
+func (s *emptySetting) Get(userID string) (any, error) {
 	return nil, nil
 }
 
-func (s *emptySetting) Set(userID string, value interface{}) error {
+func (s *emptySetting) Set(userID string, value any) error {
 	return nil
 }

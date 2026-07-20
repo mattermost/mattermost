@@ -3,19 +3,21 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ReactNode} from 'react';
-import type {IntlShape} from 'react-intl';
+import type {ComponentProps, ReactNode} from 'react';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {getOptionValue} from 'react-select/src/builtins';
-import type {InputActionMeta} from 'react-select/src/types';
+import type {GetOptionValue, InputActionMeta, MultiValueRemoveProps, SelectInstance} from 'react-select';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';
-import {imageURLForUser, getDisplayName, localizeMessage} from 'utils/utils';
+import {formatAsComponent, formatAsString} from 'utils/i18n';
+import {imageURLForUser, getDisplayName} from 'utils/utils';
 
 import MultiSelectList from './multiselect_list';
 
@@ -29,12 +31,11 @@ export type Value = {
 };
 
 export type Props<T extends Value> = {
-    ariaLabelRenderer: getOptionValue<T>;
+    ariaLabelRenderer: GetOptionValue<T>;
     backButtonClick?: () => void;
-    backButtonClass?: string;
-    backButtonText?: string;
-    buttonSubmitLoadingText?: ReactNode;
-    buttonSubmitText?: ReactNode;
+    backButtonText?: string | MessageDescriptor;
+    buttonSubmitLoadingText?: ReactNode | MessageDescriptor;
+    buttonSubmitText?: ReactNode | MessageDescriptor;
     handleAdd: (value: T) => void;
     handleDelete: (values: T[]) => void;
     handleInput: (input: string, multiselect: MultiSelect<T>) => void;
@@ -45,17 +46,17 @@ export type Props<T extends Value> = {
     saveButtonPosition?: string;
     maxValues?: number;
     noteText?: ReactNode;
-    numRemainingText?: ReactNode;
+    numRemainingText?: ReactNode | MessageDescriptor;
     optionRenderer: (
         option: T,
         isSelected: boolean,
         add: (value: T) => void,
-        select: (value: T) => void
-    ) => void;
+        select: (value: T) => void,
+    ) => React.ReactNode;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
     perPage: number;
-    placeholderText?: string;
+    placeholderText?: string | MessageDescriptor;
     saving?: boolean;
     submitImmediatelyOn?: (value: T) => boolean;
     totalCount?: number;
@@ -67,19 +68,21 @@ export type Props<T extends Value> = {
     savingEnabled?: boolean;
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
-}
+    required?: boolean;
+};
 
 export type State = {
     a11yActive: boolean;
     input: string;
     page: number;
-}
+    hasError: boolean;
+};
 
 const KeyCodes = Constants.KeyCodes;
 
 export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
-    private reactSelectRef = React.createRef<ReactSelect>();
+    private reactSelectRef = React.createRef<SelectInstance<T>>();
     private selected: T | null = null;
 
     public static defaultProps = {
@@ -88,6 +91,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         valueWithImage: false,
         focusOnLoad: true,
         savingEnabled: true,
+        required: false,
     };
 
     public constructor(props: Props<T>) {
@@ -97,11 +101,18 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             a11yActive: false,
             page: 0,
             input: '',
+            hasError: false,
         };
     }
 
+    public componentDidUpdate(prevProps: Props<T>) {
+        if (prevProps.values !== this.props.values) {
+            this.validateInput();
+        }
+    }
+
     public componentDidMount() {
-        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.select.inputRef;
+        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.inputRef;
 
         document.addEventListener<'keydown'>('keydown', this.handleEnterPress);
         if (inputRef && typeof (inputRef as HTMLElement).addEventListener === 'function') {
@@ -118,7 +129,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     }
 
     public componentWillUnmount() {
-        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.select.inputRef;
+        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.inputRef;
 
         if (inputRef && typeof (inputRef as HTMLElement).addEventListener === 'function') {
             (inputRef as HTMLElement).removeEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
@@ -184,7 +195,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         this.selected = null;
 
         if (this.reactSelectRef.current) {
-            this.reactSelectRef.current.select.handleInputChange(
+            this.reactSelectRef.current.handleInputChange(
                 {currentTarget: {value: ''}} as React.KeyboardEvent<HTMLInputElement>,
             );
             this.reactSelectRef.current.focus();
@@ -248,7 +259,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         this.props.handleSubmit();
     };
 
-    private onChange: ReactSelect['onChange'] = (_, change) => {
+    private onChange: ComponentProps<ReactSelect>['onChange'] = (_, change) => {
         if (change.action !== 'remove-value' && change.action !== 'pop-value') {
             return;
         }
@@ -264,12 +275,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
         this.props.handleDelete(values);
     };
-
-    MultiValueRemove = ({children, innerProps}: any) => (
-        <div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>
-    );
 
     formatOptionLabel = (user: any) => {
         const profileImg = imageURLForUser(user.id, user.last_picture_update);
@@ -292,13 +297,40 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return this.props.valueWithImage ? <components.MultiValueLabel {...props}/> : this.props.valueRenderer;
     };
 
+    private MultiValueRemove = ({children, innerProps, data}: MultiValueRemoveProps<T>) => (
+        <div
+            {...innerProps}
+            role='button'
+            tabIndex={0}
+            aria-label={this.props.intl.formatMessage({
+                id: 'multiselect.remove',
+                defaultMessage: 'Remove {label}',
+            }, {
+                label: this.props.ariaLabelRenderer(data),
+            })}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                }
+            }}
+        >
+            {children || <CloseCircleSolidIcon/>}
+        </div>
+    );
+
+    private validateInput = () => {
+        this.setState({hasError: Boolean(this.props.required && this.props.values.length === 0)});
+    };
+
     public render() {
         const options = Object.assign([...this.props.options]);
         const {totalCount, users, values} = this.props;
 
         let numRemainingText;
         if (this.props.numRemainingText) {
-            numRemainingText = this.props.numRemainingText;
+            numRemainingText = formatAsComponent(this.props.numRemainingText);
         } else if (this.props.maxValues != null && this.props.maxValues !== undefined) {
             numRemainingText = (
                 <FormattedMessage
@@ -314,12 +346,24 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
         let buttonSubmitText: ReactNode;
         if (this.props.buttonSubmitText) {
-            buttonSubmitText = this.props.buttonSubmitText;
+            buttonSubmitText = formatAsComponent(this.props.buttonSubmitText);
         } else if (this.props.maxValues != null) {
             buttonSubmitText = (
                 <FormattedMessage
                     id='multiselect.go'
                     defaultMessage='Go'
+                />
+            );
+        }
+
+        let backButtonText: ReactNode;
+        if (this.props.backButtonText) {
+            backButtonText = formatAsComponent(this.props.backButtonText);
+        } else {
+            backButtonText = (
+                <FormattedMessage
+                    id='multiselect.backButton'
+                    defaultMessage='Back'
                 />
             );
         }
@@ -361,29 +405,33 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
                     nextButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.next'
                                 defaultMessage='Next'
                             />
-                        </button>
+                        </Button>
                     );
                 }
 
                 if (this.state.page > 0) {
                     previousButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.prev'
                                 defaultMessage='Previous'
                             />
-                        </button>
+                        </Button>
                     );
                 }
             }
@@ -401,9 +449,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         options={optionsToDisplay}
                         optionRenderer={this.props.optionRenderer}
                         ariaLabelRenderer={this.props.ariaLabelRenderer}
-                        page={this.state.page}
-                        perPage={this.props.perPage}
-                        onPageChange={this.props.handlePageChange}
                         onAdd={this.onAdd}
                         onSelect={this.onSelect}
                         loading={this.props.loading}
@@ -420,9 +465,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     options={optionsToDisplay}
                     optionRenderer={this.props.optionRenderer}
                     ariaLabelRenderer={this.props.ariaLabelRenderer}
-                    page={this.state.page}
-                    perPage={this.props.perPage}
-                    onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
                     loading={this.props.loading}
@@ -450,8 +492,12 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return (
             <>
                 <div className='filtered-user-list'>
-                    <div className='filter-row filter-row--full'>
-                        <div className='multi-select__container react-select'>
+                    <div className='filter-row'>
+                        <div
+                            className={classNames('multi-select__container react-select', {
+                                'has-error': this.state.hasError,
+                            })}
+                        >
                             <ReactSelect
                                 id='selectItems'
                                 ref={this.reactSelectRef as React.RefObject<any>} // type of ref on @types/react-select is outdated
@@ -472,13 +518,16 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 onChange={this.onChange}
                                 value={this.props.values}
                                 formatOptionLabel={this.props.valueWithImage ? this.formatOptionLabel : undefined}
-                                placeholder={this.props.placeholderText}
+                                placeholder={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 inputValue={this.state.input}
                                 getOptionValue={(option: Value) => option.id}
                                 getOptionLabel={this.props.ariaLabelRenderer}
-                                aria-label={this.props.placeholderText}
+                                aria-label={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 className={this.state.a11yActive ? 'multi-select__focused' : ''}
                                 classNamePrefix='react-select-auto react-select'
+                                aria-invalid={this.state.hasError}
+                                aria-describedby={this.state.hasError ? 'multiSelectMessageError' : undefined}
+                                onBlur={this.validateInput}
                             />
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
@@ -487,7 +536,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                     disabled={this.props.saving}
                                     onClick={this.handleOnClick}
                                     defaultMessage={buttonSubmitText}
-                                    savingMessage={this.props.buttonSubmitLoadingText}
+                                    savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}
                                 />
                             }
                         </div>
@@ -506,7 +555,19 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {noteTextContainer}
                     </div>
-                    {this.props.saveButtonPosition === 'top' &&
+                    {this.state.hasError && (
+                        <div
+                            className='multi-select__error'
+                            role='alert'
+                            id='multiSelectMessageError'
+                        >
+                            <i className='icon icon-alert-circle-outline'/>
+                            <span>
+                                {this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
+                            </span>
+                        </div>
+                    )}
+                    {this.props.saveButtonPosition === 'top' && (previousButton || nextButton) &&
                         <div className='filter-controls'>
                             {previousButton}
                             {nextButton}
@@ -517,17 +578,17 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     <div className='multi-select__footer modal-footer'>
                         {
                             this.props.backButtonClick &&
-                            <button
+                            <Button
                                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                                     e.preventDefault();
                                     if (this.props.backButtonClick) {
                                         this.props.backButtonClick();
                                     }
                                 }}
-                                className={classNames('btn btn-tertiary', this.props.backButtonClass)}
+                                emphasis='tertiary'
                             >
-                                {this.props.backButtonText || localizeMessage('multiselect.backButton', 'Back')}
-                            </button>
+                                {backButtonText}
+                            </Button>
                         }
                         <SaveButton
                             id='saveItems'
@@ -535,7 +596,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             disabled={this.props.saving || !this.props.savingEnabled}
                             onClick={this.handleOnClick}
                             defaultMessage={buttonSubmitText}
-                            savingMessage={this.props.buttonSubmitLoadingText}
+                            savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}
                         />
                     </div>
                 }

@@ -10,11 +10,11 @@ import MentionsIcon from 'components/widgets/icons/mentions_icon';
 type Props = {
     name?: string;
     title: MessageDescriptor;
-    customID?: string;
+    customID: string;
     isDisabled?: boolean;
     showAtMention: boolean;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
-}
+};
 
 const GroupProfile = ({
     name,
@@ -29,7 +29,10 @@ const GroupProfile = ({
         id={customID}
     >
         <div className='group-profile-field form-group mb-0'>
-            <label className='control-label col-sm-4'>
+            <label
+                className='control-label col-sm-4'
+                htmlFor={customID + 'Input'}
+            >
                 <FormattedMessage {...title}/>
             </label>
             <div className='col-sm-8'>
@@ -42,6 +45,7 @@ const GroupProfile = ({
                     )}
                 </div>
                 <input
+                    id={customID + 'Input'}
                     type='text'
                     className='form-control group-at-mention-input'
                     value={name}

@@ -5,11 +5,11 @@ import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip';
 
 import {durationValues} from 'utils/constants';
 
@@ -43,14 +43,12 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const clearButton = handleClear ? (
         <div className='suggestion-clear'>
             <WithTooltip
-                placement='top'
                 title={
                     <FormattedMessage
                         id='custom_status.suggestions.clear'
                         defaultMessage='Clear'
                     />
                 }
-                id='clear-recent-custom-status'
             >
                 <button
                     className='style--none input-clear-x'
@@ -78,7 +76,6 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             </div>
             <CustomStatusText
                 text={text}
-                tooltipDirection='top'
                 className={classNames('statusSuggestion__text', {
                     with_duration: duration,
                 })}

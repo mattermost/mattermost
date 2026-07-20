@@ -1,3 +1,5 @@
+@use "utils/functions";
+
 .channel-header__icon {
     position: relative;
     z-index: 5;
@@ -43,23 +45,23 @@
     &--active.btn.btn-icon,
     &--active:hover {
         background: rgba(var(--button-bg-rgb), 0.08);
-        color: v(button-bg);
-        fill: v(button-bg);
+        color: functions.v(button-bg);
+        fill: functions.v(button-bg);
 
         .icon__text {
-            color: v(button-bg);
+            color: functions.v(button-bg);
         }
 
         .icon {
-            color: v(button-bg);
+            color: functions.v(button-bg);
         }
     }
 
     &--active-inverted,
     &--active-inverted:hover {
-        background: v(button-bg);
-        color: v(button-color);
-        fill: v(button-color);
+        background: functions.v(button-bg);
+        color: functions.v(button-color);
+        fill: functions.v(button-color);
     }
 
     .icon__text {

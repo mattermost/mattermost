@@ -7,12 +7,11 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @toast
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {scrollToTop} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('unread_with_bottom_start_toast', () => {
     let otherUser;

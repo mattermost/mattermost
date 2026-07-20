@@ -11,7 +11,7 @@ const ANIMATION_DURATION = 80;
 type Props = {
     children?: React.ReactNode;
     show: boolean;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.

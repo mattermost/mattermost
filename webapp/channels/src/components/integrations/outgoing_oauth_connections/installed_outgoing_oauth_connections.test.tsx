@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
-import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
@@ -12,8 +10,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import InstalledOutgoingOAuthConnections from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connections';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
@@ -50,7 +47,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
         team,
     };
 
-    test('should match snapshot', async () => {
+    test('should match snapshot', () => {
         const state = {
             entities: {
                 general: {
@@ -80,18 +77,14 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
         };
 
         const props = {...baseProps};
-        const store = mockStore(state);
 
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Router>
-                    <Provider store={store}>
-                        <InstalledOutgoingOAuthConnections {...props}/>
-                    </Provider>
-                </Router>,
-            );
+        const {container} = renderWithContext(
+            <Router>
+                <InstalledOutgoingOAuthConnections {...props}/>
+            </Router>,
+            state,
+        );
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        expect(container).toMatchSnapshot();
     });
 });

@@ -6,9 +6,9 @@ import React from 'react';
 type Props = {
     className?: string;
     status?: string;
-}
+};
 
-const statusToIconMap: { [key: string]: string } = {
+const statusToIconMap: {[key: string]: string} = {
     online: 'icon-check-circle',
     away: 'icon-clock',
     dnd: 'icon-minus-circle',

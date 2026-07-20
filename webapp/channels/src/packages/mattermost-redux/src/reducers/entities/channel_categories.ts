@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
@@ -9,10 +8,11 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
-export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: AnyAction) {
+export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: MMReduxAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORIES: {
         const categories: ChannelCategory[] = action.data;
@@ -132,7 +132,7 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: AnyAc
     }
 }
 
-export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: AnyAction) {
+export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORY_ORDER: {
         const teamId: string = action.data.teamId;
@@ -177,7 +177,54 @@ export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory[
     }
 }
 
+export function managedCategoryMappings(state: RelationOneToOne<Team, Record<Channel['id'], string>> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ChannelCategoryTypes.RECEIVED_MANAGED_CATEGORY_MAPPINGS: {
+        return {
+            ...state,
+            [action.data.team_id]: action.data.mappings,
+        };
+    }
+    case ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_SET: {
+        return {
+            ...state,
+            [action.data.team_id]: {
+                ...state[action.data.team_id],
+                [action.data.id]: action.data.category_name,
+            },
+        };
+    }
+    case ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_REMOVED:
+    case ChannelTypes.LEAVE_CHANNEL: {
+        if (!(action.data.team_id && action.data.id) || !state[action.data.team_id]) {
+            return state;
+        }
+        const nextTeam = {...state[action.data.team_id]};
+        Reflect.deleteProperty(nextTeam, action.data.id);
+        return {
+            ...state,
+            [action.data.team_id]: nextTeam,
+        };
+    }
+    case TeamTypes.LEAVE_TEAM: {
+        if (!state[action.data.id]) {
+            return state;
+        }
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.data.id);
+
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     byId,
     orderByTeam,
+    managedCategoryMappings,
 });

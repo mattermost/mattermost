@@ -10,8 +10,6 @@
 // Stage: @prod
 // Group: @channels @channel_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 describe('Channel settings', () => {
     let mainUser: Cypress.UserProfile;
     let otherUser: Cypress.UserProfile;
@@ -52,48 +50,41 @@ describe('Channel settings', () => {
         cy.apiLogin(mainUser);
         cy.visit(`/${myTeam.name}/channels/off-topic`);
 
-        // # Post message as the second user, in a channel near the top of the list
-        cy.apiGetChannelByName(myTeam.name, channelNames[firstChannelIndex]).then(({channel}) => {
-            cy.postMessageAs({
-                sender: otherUser,
-                message: 'Bleep bloop I am a robot',
-                channelId: channel.id,
-            });
+        // # Wait for channels to load
+        cy.get(`#sidebarItem_${channelNames[firstChannelIndex]}`).should('be.visible');
 
-            // # Scroll down in channels list until last created channel is visible
-            cy.get(`#sidebarItem_${channelNames[lastChannelIndex]}`).scrollIntoView({duration: TIMEOUTS.TWO_SEC});
-            cy.get('.scrollbar--view').scrollTo('bottom');
-        });
+        // # Nudge the scrollbar slightly to make the "More Unreads" pills appear
+        // @hmhealey - They seem to appear automatically on a regular browser, but not when running under Cypress
+        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo(0, 1);
 
-        // * After scrolling is complete, "More Unreads" pill should be visible at the top of the channels list
-        cy.get('#unreadIndicatorBottom').should('not.be.visible');
-
-        // * "More Unreads" pill should be visible at the top of the channels list
-        // # Click on "More Unreads" pill
-        cy.get('#unreadIndicatorTop').should('be.visible').click();
-
-        // # Post as another user in a channel near the bottom of the list, scroll channels list to view it (should be in bold)
-        cy.apiGetChannelByName(myTeam.name, channelNames[lastChannelIndex]).then(({channel}) => {
-            cy.postMessageAs({
-                sender: otherUser,
-                message: 'Bleep bloop I am a robot',
-                channelId: channel.id,
-            });
-
-            // # Scroll down in channels list until last created channel is visible
-            cy.get(`#sidebarItem_${channelNames[firstChannelIndex]}`).scrollIntoView({duration: TIMEOUTS.TWO_SEC});
-            cy.get('.scrollbar--view').scrollTo('top');
-        });
-
-        // * After scrolling is complete, "More Unreads" pill should not be visible at the top of the channels list
+        // * The bottom "More Unreads" pill should be visible and the top one should not
         cy.get('#unreadIndicatorTop').should('not.be.visible');
+        cy.get('#unreadIndicatorBottom').should('be.visible');
 
-        // * "More Unreads" pill should be visible at the bottom of the channels list
-        // # Click on "More Unreads" pill
-        cy.get('#unreadIndicatorBottom').should('be.visible').click();
+        // # Click on the "More Unreads" pill to scroll down to the bottom
+        cy.get('#unreadIndicatorBottom').click();
 
-        // * "More Unreads" pill should not be visible at the bottom of the channels list & visible at the top
-        cy.get('#unreadIndicatorBottom').should('not.be.visible');
+        // * The list should have scrolled down to the bottom
+        cy.get(`#sidebarItem_${channelNames[firstChannelIndex]}`).should('not.be.visible');
+        cy.get(`#sidebarItem_${channelNames[lastChannelIndex]}`).should('be.visible');
+
+        // * The top "More Unreads" pill should now be visible and the bottom one should not
         cy.get('#unreadIndicatorTop').should('be.visible');
+        cy.get('#unreadIndicatorBottom').should('not.be.visible');
+
+        // * The "More Unreads" pill should now be visible at the top of the channels list
+        // # Click on the "More Unreads" pill to scroll up to the top
+        cy.get('#unreadIndicatorTop').click();
+
+        // * The list should have scrolled up to the top
+        cy.get(`#sidebarItem_${channelNames[firstChannelIndex]}`).should('be.visible');
+        cy.get(`#sidebarItem_${channelNames[lastChannelIndex]}`).should('not.be.visible');
+
+        // # Scroll somewhere to the middle of the list
+        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo(0, 200);
+
+        // * Both "More Unreads" pills should now be visible
+        cy.get('#unreadIndicatorTop').should('be.visible');
+        cy.get('#unreadIndicatorBottom').should('be.visible');
     });
 });

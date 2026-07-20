@@ -9,7 +9,7 @@ import type {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {AdminConfig, AllowedIPRange} from '@mattermost/types/config';
+import type {AdminConfig, AllowedIPRange, LdapSettings} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
     DataRetentionCustomPolicies,
@@ -121,9 +121,23 @@ export function testSiteURL(siteURL: string) {
     });
 }
 
+/**
+ * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+ * endpoint is kept for backwards compatibility but is no longer
+ * backend-specific.
+ */
 export function testS3Connection(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testS3Connection,
+        params: [
+            config,
+        ],
+    });
+}
+
+export function testFileStoreConnection(config?: AdminConfig) {
+    return bindClientFunc({
+        clientFunc: Client4.testFileStoreConnection,
         params: [
             config,
         ],
@@ -200,6 +214,42 @@ export function getClusterStatus() {
 export function testLdap() {
     return bindClientFunc({
         clientFunc: Client4.testLdap,
+    });
+}
+
+export function testLdapConnection(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapConnection,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapFilters(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapFilters,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapAttributes(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapAttributes,
+        params: [
+            settings,
+        ],
+    });
+}
+
+export function testLdapGroupAttributes(settings: LdapSettings) {
+    return bindClientFunc({
+        clientFunc: Client4.testLdapGroupAttributes,
+        params: [
+            settings,
+        ],
     });
 }
 
@@ -319,6 +369,21 @@ export function uploadIdpSamlCertificate(fileData: File) {
     });
 }
 
+export function uploadAuditCertificate(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadAuditLogCertificate,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function removeAuditCertificate() {
+    return bindClientFunc({
+        clientFunc: Client4.removeAuditLogCertificate,
+    });
+}
+
 export function removePublicSamlCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePublicSamlCertificate,
@@ -370,6 +435,15 @@ export function purgeElasticsearchIndexes(indexes?: string[]) {
 export function uploadLicense(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadLicense,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function previewLicense(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.previewLicense,
         params: [
             fileData,
         ],

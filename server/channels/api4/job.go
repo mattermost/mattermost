@@ -6,13 +6,16 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -55,7 +58,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FilePath = "export"
+	const oldFilePath = "export"
 	const FileMime = "application/zip"
 
 	c.RequireJobId()
@@ -90,19 +93,53 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileName := job.Id + ".zip"
-	filePath := filepath.Join(FilePath, fileName)
-	fileReader, err := c.App.FileReader(filePath)
-	if err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+	exportDir, ok := job.Data["export_dir"]
+	fileName := path.Base(exportDir)
+	if !ok || exportDir == "" || fileName == "/" || fileName == "." {
+		// Could be a pre-overhaul job. Try the old method:
+		fileName = job.Id + ".zip"
+		filePath := filepath.Join(oldFilePath, fileName)
+		var fileReader filestore.ReadCloseSeeker
+		fileReader, err = c.App.ExportFileReader(filePath)
+		if err != nil {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+				http.StatusNotFound).Wrap(err)
+			return
+		}
+		defer fileReader.Close()
+
+		// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+		// already sets that for us
+		web.WriteFileResponse(fileName, FileMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
-	defer fileReader.Close()
 
-	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
-	// already sets that for us
-	web.WriteFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	// We have a base directory, we're using that as the exported filename:
+	fileName += ".zip"
+
+	cleanedExportDir := filepath.Clean(exportDir)
+	if !filepath.IsLocal(cleanedExportDir) {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+			http.StatusNotFound)
+		return
+	}
+
+	zipReader, err := c.App.ExportZipReader(cleanedExportDir, false)
+	if err != nil {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"error creating zip reader", http.StatusNotFound).Wrap(err)
+		return
+	}
+	defer zipReader.Close()
+
+	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"failure to WriteStreamResponse", http.StatusInternalServerError).
+			Wrap(err)
+		return
+	}
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,9 +149,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "job", &job)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
@@ -125,6 +162,19 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !hasPermission {
 		c.SetPermissionError(permissionRequired)
 		return
+	}
+
+	// Inject requester context for self-inclusion resolution.
+	if job.Type == model.JobTypeAccessControlSync {
+		if job.Data == nil {
+			job.Data = make(model.StringMap)
+		}
+		job.Data["requester_id"] = c.AppContext.Session().UserId
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			job.Data["requester_is_admin"] = "true"
+		} else {
+			delete(job.Data, "requester_is_admin")
+		}
 	}
 
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
@@ -189,6 +239,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	isValidStatus := model.IsValidJobStatus(status)
 	if status != "" && !isValidStatus {
 		c.Err = model.NewAppError("getJobs", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	var jobs []*model.Job
@@ -197,7 +248,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	if status == "" {
 		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
 	} else {
-		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
+		jobs, appErr = c.App.GetJobsByTypesAndStatuses(c.AppContext, validJobTypes, []string{status}, c.Params.Page, c.Params.PerPage)
 	}
 
 	if appErr != nil {
@@ -210,7 +261,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -224,15 +277,78 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
 		return
 	}
-	if !hasPermission {
+
+	// Team admin path: allow reading access_control_sync jobs scoped to their team.
+	teamID := r.URL.Query().Get("team_id")
+	hasTeamFilter := false
+	if teamID != "" {
+		if !model.IsValidId(teamID) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+		hasTeamFilter = true
+	}
+	isTeamScopedSyncRequest := !hasPermission &&
+		c.Params.JobType == model.JobTypeAccessControlSync &&
+		hasTeamFilter &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+
+	if !hasPermission && !isTeamScopedSyncRequest {
 		c.SetPermissionError(permissionRequired)
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	var jobs []*model.Job
+
+	policyID := r.URL.Query().Get("policy_id")
+	if hasTeamFilter {
+		// When team_id is provided, return only jobs scoped to that team.
+		// Sorted by CreateAt DESC; limited to the requested page size.
+		teamJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType, map[string]string{"team_id": teamID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		sort.Slice(teamJobs, func(i, j int) bool {
+			return teamJobs[i].CreateAt > teamJobs[j].CreateAt
+		})
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(teamJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(teamJobs))
+			jobs = teamJobs[start:end]
+		}
+	} else if policyID != "" && (c.Params.JobType == model.JobTypeAccessControlSync || c.Params.JobType == model.JobTypeAccessControlTeamSync) {
+		// Only system admins may filter by policy_id to prevent job enumeration across policies.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		policyJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
+			map[string]string{"policy_id": policyID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		sort.Slice(policyJobs, func(i, j int) bool {
+			return policyJobs[i].CreateAt > policyJobs[j].CreateAt
+		})
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(policyJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(policyJobs))
+			jobs = policyJobs[start:end]
+		}
+	} else {
+		// Store returns jobs ordered by CreateAt DESC; pagination applied at the store level.
+		var appErr *model.AppError
+		jobs, appErr = c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	js, err := json.Marshal(jobs)
@@ -241,7 +357,9 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -250,9 +368,9 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCancelJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
@@ -291,9 +409,9 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateJobStatus", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateJobStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	props := model.StringInterfaceFromJSON(r.Body)
 	status, ok := props["status"].(string)

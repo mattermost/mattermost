@@ -1,0 +1,138 @@
+---
+title: "Manage channel bookmarks"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+From Mattermost v10.1, you can bookmark up to 50 links or files to the top of channels for quick and easy access, unless your system admin has disabled your ability to do so. Bookmarks display directly under channel headers. Files added as channel bookmarks are also [searchable](/end-user-guide/collaborate/search-for-messages) in Mattermost.
+
+## Open a bookmark
+
+Opening a channel bookmark works the same way as selecting a file link or attachment in a message. Select or tap a bookmark to view the file or link.
+
+From Mattermost v10.11, bookmarks containing `mattermost://` links open directly in the desktop app using deep linking. This turns bookmarks into one-click shortcuts to channels, threads, or messages, letting you jump straight to key assets in Mattermost quickly and easily.
+
+## Add a bookmark
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+1.  From Mattermost v10.5, select the channel name at the top of the center pane to access the drop-down menu, and select **Bookmarks Bar** to add a link or attach a file. In Mattermost versions prior to v10.5, select **Add a bookmark** in the bookmarks bar instead.
+
+> - Select **Add a link** to specify the link URL, specify bookmark text, and an optional bookmark icon.
+> - Select **Attach a file** to select a file, specify bookmark text, and an optional bookmark icon.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+The bookmarks bar is hidden when a channel has no bookmarks.
+
+1.  In a channel, select the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon.
+
+![Tap on More options to access available options for the channel.](/images/mobile-select-more-options-for-a-channel.jpg)
+
+2.  Select **View info**.
+
+![Tap on View info to view additional information about the channel.](/images/mobile-select-view-info-for-a-channel.jpg)
+
+3.  Tap on **Add a bookmark** to add the first bookmark.
+
+![Tap on Add a bookmark to add the first bookmark.](/images/mobile-add-first-channel-bookmark.jpg)
+
+For subsequent bookmarks, select the **Plus** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon in the bookmarks bar.
+
+![Tap on the Plus icon to add more bookmarks to the channel.](/images/mobile-add-subsequent-channel-bookmarks.jpg)
+
+4.  You can either select **Add a link** to specify the link URL, specify bookmark text, and an optional bookmark icon.
+
+![Tap on Add a link to add a Bookmark link.](/images/mobile-attach-a-channel-bookmark-link.jpg)
+
+Or you can select **Add a file** to select a file, specify bookmark text, and an optional bookmark icon.
+
+![Tap on Add a file to add a file as Bookmark.](/images/mobile-attach-a-channel-bookmark-file.jpg)
+
+5.  Tap on **Save**.
+
+</TabItem>
+</Tabs>
+
+
+## Manage bookmarks
+
+You can [edit](#edit-bookmarks) and [delete](#delete-bookmarks) bookmarks, as well as [copy bookmark links](#copy-bookmark-links). Additionally, web and desktop users can [reorder bookmarks](#reorder-bookmarks), and mobile users can [share bookmarks](#share-bookmarks). Changes to bookmarks are visible to all channel members.
+
+### Reorder bookmarks
+
+Using Mattermost in a web browser or the desktop app, drag bookmarks to reorder them in the bookmarks bar. Reordering channel bookmarks changes the display order for all channel members.
+
+<Note>
+
+You can't reorder channel bookmarks using the mobile app.
+
+</Note>
+
+### Edit bookmarks
+
+You can make changes to the bookmark link or file, the bookmark title, or the optional bookmark icon. Editing a bookmark changes the bookmark for all channel members.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a bookmark and select **Edit**.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Long-press on a bookmark and select **Edit**.
+
+![Tap and hold a bookmark name to explore more options.](/images/mobile-edit-a-channel-bookmark.gif)
+
+</TabItem>
+</Tabs>
+
+
+### Share bookmarks
+
+Using the mobile app, long-press on a bookmark and select **Share**.
+
+### Copy bookmark links
+
+You can copy bookmark links when your system admin has [enabled your ability to do so](/administration-guide/configure/site-configuration-settings#enable-public-file-links).
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a bookmark and select **Copy link**.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Long-press on a bookmark and select **Copy link**.
+
+![Tap and hold a bookmark name to explore more options.](/images/mobile-copy-a-channel-bookmark-link.gif)
+
+</TabItem>
+</Tabs>
+
+
+### Delete bookmarks
+
+Deleting a channel bookmark deletes it for all channel members.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a bookmark and select **Delete**.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Long-press on a bookmark and select **Delete**.
+
+![Tap and hold a bookmark name to explore more options.](/images/mobile-delete-a-channel-bookmark.gif)
+
+</TabItem>
+</Tabs>
+

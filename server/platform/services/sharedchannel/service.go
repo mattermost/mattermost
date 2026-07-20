@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -23,13 +25,16 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
+	TopicChannelMembership       = "sharedchannel_membership"
+	TopicGlobalUserSync          = "sharedchannel_global_user_sync"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 50 // a bit more than 4 typical screenfulls of posts
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	SyncRetryDelay               = time.Second * 15
+	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -50,28 +55,37 @@ type PlatformIface interface {
 }
 
 type AppIface interface {
-	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
-	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
-	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
-	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
-	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
-	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
-	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
-	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
-	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
+	SendEphemeralPost(rctx request.CTX, userId string, post *model.Post) (*model.Post, bool)
+	CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	GetOrCreateDirectChannel(rctx request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	CreateGroupChannel(rctx request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	AddUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	AddUserToTeamByTeamId(rctx request.CTX, teamId string, user *model.User) *model.AppError
+	RemoveUserFromChannel(rctx request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
+	PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *model.AppError
+	CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError)
+	GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError)
+	UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError)
+	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
+	SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError
+	SaveAndBroadcastStatus(status *model.Status)
+	PatchChannelModerationsForChannel(rctx request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
+	MentionsToTeamMembers(rctx request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	NotifySharedChannelUserUpdate(user *model.User)
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError)
+	DeleteAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError
+	SaveAcknowledgementsForPost(rctx request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
+	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
+	PreparePostForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -87,15 +101,17 @@ type Service struct {
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
-	mux                       sync.RWMutex
-	active                    bool
-	leaderListenerId          string
+	mux              sync.RWMutex
+	active           bool
+	leaderListenerId string
+
 	connectionStateListenerId string
 	done                      chan struct{}
 	tasks                     map[string]syncTask
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
+	globalSyncTopicListenerId string
 	siteURL                   *url.URL
 }
 
@@ -128,8 +144,11 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	scs.globalSyncTopicListenerId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
+
+	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
 
 	scs.onClusterLeaderChange()
 
@@ -215,13 +234,21 @@ func (scs *Service) pause() {
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }
 
+// GetMemberSyncBatchSize returns the configured batch size for member synchronization
+func (scs *Service) GetMemberSyncBatchSize() int {
+	if scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize != nil {
+		return *scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize
+	}
+	return model.ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
+}
+
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
 func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
 	createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 	updateMap := model.ChannelModeratedRolesPatch{
-		Guests:  model.NewPointer(false),
-		Members: model.NewPointer(false),
+		Guests:  new(false),
+		Members: new(false),
 	}
 
 	readonlyChannelModerations := []*model.ChannelModerationPatch{
@@ -244,7 +271,12 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool) {
 	if online {
 		// when a previously offline remote comes back online force a sync.
+		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
+		scs.ForceMembershipSyncForRemote(rc)
+
+		// Schedule global user sync if feature is enabled
+		scs.scheduleGlobalUserSync(rc)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -256,8 +288,17 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 
 func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channel) {
 	scs.platform.InvalidateCacheForChannel(channel)
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
-	messageWs.Add("channel_id", channel.Id)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
+	channelJSON, err := json.Marshal(channel)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+	messageWs.Add("channel", string(channelJSON))
+
 	scs.app.Publish(messageWs)
 }
 
@@ -265,4 +306,183 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+func remoteClusterDisplayName(rc *model.RemoteCluster) string {
+	if rc == nil {
+		return ""
+	}
+	if rc.DisplayName != "" {
+		return rc.DisplayName
+	}
+	if rc.Name != "" {
+		return rc.Name
+	}
+	return rc.RemoteId
+}
+
+// messageForSharedChannelStatePost returns the server-default-locale (i18n.T) copy for Post.Message so clients
+// without a renderer still show the same sentence as the webapp (shared_channel.system_message.*).
+func messageForSharedChannelStatePost(props model.StringInterface) string {
+	raw := props[model.PostPropsSharedChannelState]
+	state, _ := raw.(string)
+	switch state {
+	case model.SharedChannelStatePostValueShared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		return i18n.T("shared_channel.system_message.now_shared", map[string]any{"WorkspaceName": wn})
+	case model.SharedChannelStatePostValueUnshared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		if wn == "" {
+			return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+		}
+		return i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": wn})
+	default:
+		return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+	}
+}
+
+// postSharedChannelStatePost creates a system_shared_chan_state post. Message uses the system locale (i18n.T);
+// capable clients still render from props in the viewer's language (not replicated via shared-channel post sync).
+func (scs *Service) postSharedChannelStatePost(channel *model.Channel, props model.StringInterface) {
+	if channel == nil {
+		return
+	}
+
+	rctx := request.EmptyContext(scs.server.Log())
+	systemBot, botErr := scs.app.GetSystemBot(rctx)
+	if botErr != nil {
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
+			"Could not get system bot for shared channel state post",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(botErr),
+		)
+		return
+	}
+
+	post := &model.Post{
+		UserId:    systemBot.UserId,
+		ChannelId: channel.Id,
+		Message:   messageForSharedChannelStatePost(props),
+		Type:      model.PostTypeSharedChannelState,
+		Props:     props,
+	}
+
+	_, _, appErr := scs.app.CreatePost(rctx, post, channel, model.CreatePostFlags{})
+	if appErr != nil {
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
+			"Error creating shared channel state notification post",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(appErr),
+		)
+	}
+}
+
+func (scs *Service) postChannelSharedWithWorkspace(channel *model.Channel, peer *model.RemoteCluster) {
+	if channel == nil || peer == nil {
+		return
+	}
+	workspaceName := remoteClusterDisplayName(peer)
+	if workspaceName == "" {
+		workspaceName = peer.RemoteId
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState:         model.SharedChannelStatePostValueShared,
+		model.PostPropsSharedChannelWorkspaceName: workspaceName,
+	}
+	scs.postSharedChannelStatePost(channel, props)
+}
+
+func (scs *Service) postChannelUnsharedWithWorkspace(channel *model.Channel, workspaceName string) {
+	if channel == nil {
+		return
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState: model.SharedChannelStatePostValueUnshared,
+	}
+	if workspaceName != "" {
+		props[model.PostPropsSharedChannelWorkspaceName] = workspaceName
+	}
+	scs.postSharedChannelStatePost(channel, props)
+}
+
+// IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
+func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if remoteId == "" {
+		return true // Local server is always "directly connected"
+	}
+
+	// Check if the remote cluster exists and confirmed
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
+	if err != nil {
+		return false
+	}
+
+	isConfirmed := rc.IsConfirmed()
+	hasCreator := rc.CreatorId != ""
+
+	// For a direct connection, the remote cluster must be confirmed AND have a creator
+	// (someone on this server initiated or accepted the connection)
+	// Remote clusters known only through synthetic users won't have a creator
+	directConnection := isConfirmed && hasCreator
+
+	return directConnection
+}
+
+// OnReceiveSyncMessageForTesting is a wrapper to expose onReceiveSyncMessage for testing purposes
+// isGlobalUserSyncEnabled checks if the global user sync feature is enabled
+func (scs *Service) isGlobalUserSyncEnabled() bool {
+	cfg := scs.server.Config()
+
+	return cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster ||
+		(cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil && *cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen)
+}
+
+// scheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
+	if !scs.isGlobalUserSyncEnabled() {
+		return
+	}
+
+	// Schedule the sync task
+	go func() {
+		// Create a special sync task with empty channelID
+		// This empty channelID is a deliberate marker for a global user sync task
+		task := newSyncTask("", "", rc.RemoteId, nil, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+		)
+	}()
+}
+
+// HasPendingTasksForTesting returns true if there are pending sync tasks in the queue
+func (scs *Service) HasPendingTasksForTesting() bool {
+	scs.mux.RLock()
+	defer scs.mux.RUnlock()
+	return len(scs.tasks) > 0
+}
+
+// HandleSyncAllUsersForTesting exposes syncAllUsers for testing
+func (scs *Service) HandleSyncAllUsersForTesting(rc *model.RemoteCluster) error {
+	return scs.syncAllUsers(rc)
+}
+
+// OnReceiveSyncMessageForTesting exposes onReceiveSyncMessage for testing
+func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	return scs.onReceiveSyncMessage(msg, rc, response)
+}
+
+// HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
+func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	scs.handleChannelNotSharedError(msg, rc)
+}
+
+// TransformMentionsOnReceiveForTesting allows testing the full mention transformation flow
+func (scs *Service) TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) {
+	scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 }

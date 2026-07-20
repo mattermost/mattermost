@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @search_date_filter
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Negative search filters will omit results', () => {
     const message = 'negative' + Date.now();
@@ -65,6 +65,7 @@ describe('Negative search filters will omit results', () => {
 
 function search(query) {
     cy.reload();
+    cy.uiGetSearchContainer().should('be.visible').click();
     cy.uiGetSearchBox().clear().wait(TIMEOUTS.HALF_SEC).type(query).wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
     cy.get('#loadingSpinner').should('not.exist');

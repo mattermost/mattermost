@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging @benchmark
 
-import {reportBenchmarkResults} from '../../../utils/benchmark';
+import {reportBenchmarkResults} from '@/utils/benchmark';
 
 describe('Message', () => {
     before(() => {

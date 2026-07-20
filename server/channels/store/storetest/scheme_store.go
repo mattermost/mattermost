@@ -174,6 +174,28 @@ func testSchemeStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
+	role7, err := ss.Role().GetByName(context.Background(), d1.DefaultPlaybookAdminRole)
+	assert.NoError(t, err)
+	assert.True(t, role7.SchemeManaged)
+
+	role8, err := ss.Role().GetByName(context.Background(), d1.DefaultPlaybookMemberRole)
+	assert.NoError(t, err)
+	assert.True(t, role8.SchemeManaged)
+
+	role9, err := ss.Role().GetByName(context.Background(), d1.DefaultRunAdminRole)
+	assert.NoError(t, err)
+	assert.True(t, role9.SchemeManaged)
+
+	role10, err := ss.Role().GetByName(context.Background(), d1.DefaultRunMemberRole)
+	assert.NoError(t, err)
+	assert.True(t, role10.SchemeManaged)
+
+	// Every role created for a scheme must carry the scheme's ID.
+	for _, role := range []*model.Role{role1, role2, role3, role4, role5, role6, role7, role8, role9, role10} {
+		require.NotNil(t, role.SchemeId)
+		assert.Equal(t, d1.Id, *role.SchemeId)
+	}
+
 	// Change the scheme description and update.
 	d1.Description = model.NewId()
 

@@ -5,13 +5,13 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPoliciesActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
     getChannel as fetchChannel,
     getChannelModerations as fetchChannelModerations,
+    getChannelMembers,
     membersMinusGroupMembers,
     patchChannel,
     patchChannelModerations,
@@ -26,8 +26,10 @@ import {
     patchGroupSyncable,
     unlinkGroupSyncable,
 } from 'mattermost-redux/actions/groups';
+import {createJob} from 'mattermost-redux/actions/jobs';
 import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
 import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
@@ -35,8 +37,11 @@ import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 
-import {LicenseSkus} from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense, isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelDetails from './channel_details';
 
@@ -46,7 +51,7 @@ type OwnProps = {
             channel_id: string;
         };
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
@@ -54,11 +59,16 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     const isLicensed = license?.IsLicensed === 'true';
 
-    // Channel Moderation is only available for Professional, Enterprise and backward compatible with E20
-    const channelModerationEnabled = isLicensed && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20);
+    // Channel Moderation is only available for Professional and above
+    const channelModerationEnabled = isLicensed && isMinimumProfessionalLicense(license);
 
-    // Channel Groups is only available for Enterprise and backward compatible with E20
-    const channelGroupsEnabled = isLicensed && (license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20);
+    // Channel Groups is only available for Enterprise and above
+    const channelGroupsEnabled = isLicensed && isMinimumEnterpriseLicense(license);
+
+    // ABAC must be licensed (Enterprise Advanced) and enabled via the
+    // AccessControlSettings.EnableAttributeBasedAccessControl config setting,
+    // which is now the sole switch for the feature.
+    const abacSupported = isLicensed && isMinimumEnterpriseAdvancedLicense(license) && isChannelAccessControlEnabled(state);
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
@@ -81,10 +91,14 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         guestAccountsEnabled,
         channelModerationEnabled,
         channelGroupsEnabled,
+        abacSupported,
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const assignChannelToAccessControlPolicy = (policyId: string, channelId: string) => {
+        return assignChannelsToAccessControlPolicy(policyId, [channelId]);
+    };
     return {
         actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
@@ -105,6 +119,22 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateChannelMemberSchemeRoles,
             deleteChannel,
             unarchiveChannel,
+            getAccessControlPolicy,
+            assignChannelToAccessControlPolicy,
+            unassignChannelsFromAccessControlPolicy,
+            deleteAccessControlPolicy,
+            searchPolicies: searchAccessControlPolicies,
+
+            // Channel-level access rules actions
+            getAccessControlFields,
+            getVisualAST,
+            saveChannelAccessPolicy: createAccessControlPolicy,
+            validateChannelExpression: validateExpressionAgainstRequester,
+            createAccessControlSyncJob: createJob,
+            updateAccessControlPoliciesActive,
+            searchUsersForExpression,
+            getChannelMembers,
+            getProfilesByIds,
         }, dispatch),
     };
 }

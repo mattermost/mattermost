@@ -10,14 +10,14 @@
 // Stage: @prod @smoke
 // Group: @channels @channel_sidebar
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Channel sidebar', () => {
     const SpaceKeyCode = 32;
     const DownArrowKeyCode = 40;
 
-    let teamName;
-    let channelName;
+    let teamName: string;
+    let channelName: string;
 
     before(() => {
         cy.apiCreateCustomAdmin({loginAfter: true});

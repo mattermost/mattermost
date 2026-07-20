@@ -47,7 +47,7 @@ describe('Multi Team and DM', () => {
         cy.findByText('Previous').should('exist');
 
         // # Enter a search term
-        cy.findByRole('textbox', {name: 'Search for people'}).typeWithForce(searchTerm);
+        cy.findByRole('combobox', {name: 'Search for people'}).typeWithForce(searchTerm);
 
         // * Assert that the previous / next links do not appear since there should only be 1 record displayed
         cy.findByText('Next').should('not.exist');

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import CodeBlock from 'components/code_block/code_block';
 
-type Katex = typeof import('katex');
+type Katex = typeof import('katex').default;
 
 type Props = {
     content: string;
@@ -35,25 +35,18 @@ const LatexBlock = ({
         );
     }
 
+    const katexOptions: KatexOptions = {
+        throwOnError: false,
+        displayMode: true,
+        maxSize: 200,
+        maxExpand: 100,
+        fleqn: true,
+    };
+
+    let html;
     try {
-        const katexOptions: KatexOptions = {
-            throwOnError: false,
-            displayMode: true,
-            maxSize: 200,
-            maxExpand: 100,
-            fleqn: true,
-        };
-
-        const html = katex.renderToString(content, katexOptions);
-
-        return (
-            <div
-                className='post-body--code tex'
-                dangerouslySetInnerHTML={{__html: html}}
-                data-testid='latex-enabled'
-            />
-        );
-    } catch (e) {
+        html = katex.renderToString(content, katexOptions);
+    } catch {
         // This is never run because throwOnError is false
         return (
             <div
@@ -62,11 +55,19 @@ const LatexBlock = ({
             >
                 <FormattedMessage
                     id='katex.error'
-                    defaultMessage={'Couldn\'t compile your Latex code. Please review the syntax and try again.'}
+                    defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
                 />
             </div>
         );
     }
+
+    return (
+        <div
+            className='post-body--code tex'
+            dangerouslySetInnerHTML={{__html: html}}
+            data-testid='latex-enabled'
+        />
+    );
 };
 
 export default React.memo(LatexBlock);

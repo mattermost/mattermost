@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('Teams Suite', () => {
     let testTeam;
@@ -41,7 +41,7 @@ describe('Teams Suite', () => {
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Manage Members"
-        cy.uiOpenTeamMenu('Leave Team');
+        cy.uiOpenTeamMenu('Leave team');
 
         // * Check that the "leave team modal" opened up
         cy.get('#leaveTeamModal').should('be.visible');
@@ -75,8 +75,8 @@ describe('Teams Suite', () => {
 
             // # Open team menu and click "Invite People"
             cy.uiOpenTeamMenu();
-            cy.uiGetLHSTeamMenu().findByText('Add people to the team');
-            cy.uiGetLHSTeamMenu().findByText('Invite People').click().wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetLHSTeamMenu().find('div.label-elements > span:nth-child(2)').should('have.text', 'Add or invite people to the team');
+            cy.uiGetLHSTeamMenu().find("li span:contains('Invite people')").should('have.text', 'Invite people').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Check that the Invitation Modal opened up
             cy.findByTestId('invitationModal', {timeout: TIMEOUTS.HALF_SEC}).should('be.visible');
@@ -139,6 +139,9 @@ describe('Teams Suite', () => {
             });
 
             cy.get('#sidebarItem_off-topic').should('be.visible').click({force: true});
+
+            cy.findAllByTestId('postView').last().scrollIntoView();
+
             cy.getLastPost().wait(TIMEOUTS.HALF_SEC).then(($el) => {
                 cy.wrap($el).get('.user-popover').
                     should('be.visible').
@@ -184,7 +187,7 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // # Go to Access section
         cy.get('#accessButton').click();
@@ -208,7 +211,7 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // # Click on the team name menu item
         cy.findByText('Team Name').should('be.visible').click();
@@ -236,7 +239,7 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // # Change team description in the input
         cy.get('#teamDescription').should('be.visible').clear().type(teamDescription);
@@ -245,8 +248,10 @@ describe('Teams Suite', () => {
         // Save and close
         cy.uiSaveAndClose();
 
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Verify team description is updated
         cy.get('#teamDescription').should('have.text', teamDescription);
@@ -257,15 +262,13 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // # Go to Access section
         cy.get('#accessButton').click();
 
-        cy.get('.access-invite-domains-section').should('exist').within(() => {
-            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
-            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
-        });
+        // # Click 'Public Team' card to allow any user to join this team
+        cy.get('#public-private-selector-button-O').should('exist').and('not.have.class', 'selected').click();
 
         // # Save and close
         cy.uiSaveAndClose();
@@ -296,15 +299,13 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // # Go to Access section
         cy.get('#accessButton').click();
 
-        cy.get('.access-invite-domains-section').should('exist').within(() => {
-            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
-            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked');
-        });
+        // * Verify Private Team card is selected (open joining disabled by default)
+        cy.get('#public-private-selector-button-P').should('exist').and('have.class', 'selected');
 
         // # Save and close
         cy.uiClose();
@@ -314,7 +315,7 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "Join Another Team"
-        cy.uiOpenTeamMenu('Join Another Team');
+        cy.uiOpenTeamMenu('Join another team');
 
         // # Verify the original test team isn't on the list
         cy.get('.signup-team-dir').children().should('not.contain', `#${testTeam.name.charAt(0).toUpperCase() + testTeam.name.slice(1)}`);
@@ -329,7 +330,7 @@ describe('Teams Suite', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click "View Members"
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#searchUsersInput').should('be.visible').type('sysadmin');
         cy.get('.more-modal__list').should('be.visible').children().should('have.length', 1);
@@ -341,7 +342,7 @@ function removeTeamMember(teamName, username) {
     cy.visit(`/${teamName}`);
 
     // # Open team menu and click "Manage Members"
-    cy.uiOpenTeamMenu('Manage Members');
+    cy.uiOpenTeamMenu('Manage members');
 
     cy.get(`#teamMembersDropdown_${username}`).should('be.visible').click();
     cy.get('#removeFromTeam').should('be.visible').click();

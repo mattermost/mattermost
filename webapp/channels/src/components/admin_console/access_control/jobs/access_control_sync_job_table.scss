@@ -1,0 +1,77 @@
+.AccessControlSyncJobTable {
+    overflow: auto;
+
+    .policy-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        
+        &-text {
+            h1 {
+                margin-bottom: 8px;
+                font-size: 20px;
+                font-weight: 600;
+            }
+            
+            p {
+                margin: 0;
+                color: rgba(63, 67, 80, 0.72);
+            }
+        }
+        
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 8px;
+            
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+
+    .job-table__access-control {
+        .job-table__table {
+            max-height: 400px;
+            padding: 0px;
+            border: none;
+        }
+
+        .table > thead > tr > th,
+        .table > tbody > tr > th,
+        .table > tfoot > tr > th,
+        .table > thead > tr > td,
+        .table > tbody > tr > td,
+        .table > tfoot > tr > td {
+            border-top: none;
+            padding-block: 10px;
+        }
+
+        .table > thead > tr > th {
+            border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .cancel-button-field {
+            width: 30px;
+        }
+        
+        .table-row {
+            min-height: 40px;
+            cursor: pointer;
+        }
+    }
+
+    .DataGrid_footer {
+        border-bottom: 0;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    }
+    
+    .actions-column {
+        justify-content: flex-end !important;
+        text-align: right;
+    }
+}

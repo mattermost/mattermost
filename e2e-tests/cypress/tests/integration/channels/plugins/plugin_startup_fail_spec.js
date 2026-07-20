@@ -14,11 +14,10 @@
  * under fixtures folder.
  */
 
-// Stage: @prod
 // Group: @channels @system_console @plugin @not_cloud @timeout_error
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {gitlabPlugin} from '../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {gitlabPlugin} from '@/utils/plugins';
 
 describe('If plugins fail to start, they can be disabled', () => {
     before(() => {

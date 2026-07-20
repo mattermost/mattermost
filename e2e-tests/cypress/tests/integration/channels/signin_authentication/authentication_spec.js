@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @signin_authentication
 
-import timeouts from '../../../fixtures/timeouts';
-
 import {fillCredentialsForUser} from './helpers';
+
+import timeouts from '@/fixtures/timeouts';
 
 describe('Authentication', () => {
     let testTeam;
@@ -55,7 +55,7 @@ describe('Authentication', () => {
         cy.url().should('contain', '/reset_password');
 
         // # Enter an email that doesn't have an account on the server (but that you CAN receive email at)
-        cy.findByPlaceholderText('Email').type('test@test.com');
+        cy.get('#passwordResetEmailInput').type('test@test.com');
 
         cy.findByText('Reset my password').should('be.visible').click();
 

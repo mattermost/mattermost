@@ -25,7 +25,7 @@ Examples
 
 ::
 
-    ldap idmigrate objectGUID
+  mmctl ldap idmigrate objectGUID
 
 Options
 ~~~~~~~

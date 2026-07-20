@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AppCallResponse} from '@mattermost/types/apps';
 import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
@@ -16,7 +17,6 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
@@ -26,30 +26,30 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import LeaveChannelModal from 'components/leave_channel_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import {AppCommandParser} from 'components/suggestion/command_provider/app_command_parser/app_command_parser';
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {isUrlSafe, getSiteURL} from 'utils/url';
-import * as UserAgent from 'utils/user_agent';
-import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
+import {getIntl} from 'utils/i18n';
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
+import {isUrlSafe} from 'utils/url';
+import {getUserIdFromChannelName} from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
-import {trackEvent} from './telemetry_actions';
 
 export type ExecuteCommandReturnType = {
     frontendHandled?: boolean;
     silentFailureReason?: Error;
     commandResponse?: CommandResponse;
     appResponse?: AppCallResponse;
-}
+};
 
-export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType, GlobalState> {
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const intl = getIntl();
+        const state = getState();
 
         let msg = message;
 
@@ -58,23 +58,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             cmdLength = msg.length;
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
-        if (cmd === '/code') {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trimEnd();
-        } else {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
-        }
-
-        // Add track event for certain slash commands
-        const commandsWithTelemetry = [
-            {command: '/help', telemetry: 'slash-command-help'},
-            {command: '/marketplace', telemetry: 'slash-command-marketplace'},
-        ];
-        for (const command of commandsWithTelemetry) {
-            if (msg.startsWith(command.command)) {
-                trackEvent('slash-commands', command.telemetry);
-                break;
-            }
-        }
+        msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
 
         switch (cmd) {
         case '/search':
@@ -82,7 +66,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             return {data: {frontendHandled: true}};
         case '/shortcuts':
             if (UserAgent.isMobile()) {
-                const error = {message: localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
+                const error = {message: intl.formatMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device.'})};
                 return {error};
             }
 
@@ -98,7 +82,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             if (!channel) {
                 return {data: {silentFailureReason: new Error('cannot find current channel')}};
             }
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
+            if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
                 return {data: {frontendHandled: true}};
             }
@@ -136,15 +120,15 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/marketplace':
             // check if user has permissions to access the read plugins
             if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
-                return {error: {message: localizeMessage('marketplace_command.no_permission', 'You do not have the appropriate permissions to access the marketplace.')}};
+                return {error: {message: intl.formatMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
             }
 
             // check config to see if marketplace is enabled
             if (!isMarketplaceEnabled(state)) {
-                return {error: {message: localizeMessage('marketplace_command.disabled', 'The marketplace is disabled. Please contact your System Administrator for details.')}};
+                return {error: {message: intl.formatMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
             }
 
-            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
+            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal}));
             return {data: {frontendHandled: true}};
         case '/collapse':
         case '/expand':
@@ -153,11 +137,11 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (appsEnabled(state)) {
-            const getGlobalState = () => getState() as GlobalState;
+            const getGlobalState = () => getState();
             const createErrorMessage = (errMessage: string) => {
                 return {error: {message: errMessage}};
             };
-            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intlShim, args.channel_id, args.team_id, args.root_id);
+            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intl, args.channel_id, args.team_id, args.root_id);
             if (parser.isAppCommand(msg)) {
                 try {
                     const {creq, errorMessage} = await parser.composeCommandSubmitCall(msg);
@@ -165,11 +149,11 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                         return createErrorMessage(errorMessage!);
                     }
 
-                    const res = await dispatch(doAppSubmit(creq, intlShim));
+                    const res = await dispatch(doAppSubmit(creq, intl));
 
                     if (res.error) {
                         const errorResponse = res.error;
-                        return createErrorMessage(errorResponse.text || intlShim.formatMessage({
+                        return createErrorMessage(errorResponse.text || intl.formatMessage({
                             id: 'apps.error.unknown',
                             defaultMessage: 'Unknown error occurred.',
                         }));
@@ -190,7 +174,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                     case AppCallResponseTypes.NAVIGATE:
                         return {data: {appResponse: callResp}};
                     default:
-                        return createErrorMessage(intlShim.formatMessage(
+                        return createErrorMessage(intl.formatMessage(
                             {
                                 id: 'apps.error.responses.unknown_type',
                                 defaultMessage: 'App response type not supported. Response type: {type}.',
@@ -201,7 +185,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                         ));
                     }
                 } catch (err: any) {
-                    const message = err.message || intlShim.formatMessage({
+                    const message = err.message || intl.formatMessage({
                         id: 'apps.error.unknown',
                         defaultMessage: 'Unknown error occurred.',
                     });
@@ -225,17 +209,15 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (data.trigger_id) {
+            const dialogArguments = {
+                channel_id: args.channel_id,
+            };
+            dispatch({type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS, data: dialogArguments});
             dispatch({type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID, data: data.trigger_id});
         }
 
         if (hasGotoLocation) {
-            if (data.goto_location.startsWith('/')) {
-                getHistory().push(data.goto_location);
-            } else if (data.goto_location.startsWith(getSiteURL())) {
-                getHistory().push(data.goto_location.substr(getSiteURL().length));
-            } else {
-                window.open(data.goto_location);
-            }
+            applyIntegrationGotoLocation(data.goto_location);
         }
 
         return {data: {response: data}};

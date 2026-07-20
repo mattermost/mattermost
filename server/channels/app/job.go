@@ -6,14 +6,38 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store().Job().Get(c, id)
+// getChannelIDFromJobData extracts channel ID from access control sync job data.
+// Returns channel ID if the job is for a specific channel, empty string if it's a system-wide job.
+func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
+	policyID, ok := jobData["policy_id"]
+	if !ok || policyID == "" {
+		return ""
+	}
+
+	// In the access control system:
+	// - Channel policies have ID == channelID
+	// - Parent policies have their own system-wide ID
+	//
+	// For channel admin jobs: policy_id is channelID (since channel policy ID equals channel ID)
+	// For system admin jobs: policy_id could be either channel policy ID or parent policy ID
+	//
+	// We return the parent_id as channelID because:
+	// 1. If it's a channel policy ID, it equals the channel ID
+	// 2. If it's a parent policy ID, the permission check will fail safely
+	// 3. This maintains security: only users with permission to that specific ID can create the job
+	return policyID
+}
+
+func (a *App) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
+	job, err := a.Srv().Store().Job().Get(rctx, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -27,53 +51,171 @@ func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 	return job, nil
 }
 
-func (a *App) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByType(c, jobType, page*perPage, perPage)
-}
-
-func (a *App) GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, offset, limit)
-	if err != nil {
-		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return jobs, nil
-}
-
-func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return a.GetJobsByTypes(c, jobType, page*perPage, perPage)
-}
-
-func (a *App) GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobTypes, offset, limit)
+func (a *App) GetJobsByTypePage(rctx request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypePage(rctx, jobType, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypeAndStatusPage(c, jobTypes, status, page*perPage, perPage)
+func (a *App) GetJobsByTypesPage(rctx request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(rctx, jobType, page, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetAllByTypeAndStatusPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError) {
-	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
+func (a *App) GetJobsByTypeAndData(rctx request.CTX, jobType string, data map[string]string) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, jobType, data, false)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByTypeAndData", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return jobs, nil
 }
 
-func (a *App) CancelJob(c request.CTX, jobId string) *model.AppError {
-	return a.Srv().Jobs.RequestCancellation(c, jobId)
+func (a *App) GetJobsByTypesAndStatuses(rctx request.CTX, jobTypes []string, status []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesAndStatusesPage(rctx, jobTypes, status, page*perPage, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetAllByTypesAndStatusesPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return jobs, nil
 }
 
-func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError {
+func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.AppError) {
+	switch job.Type {
+	case model.JobTypeAccessControlSync:
+		// Route ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlSyncJob(rctx, job.Data)
+	case model.JobTypeAccessControlTeamSync:
+		// Route team ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
+	default:
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	}
+}
+
+func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	policyID := jobData["policy_id"]
+	teamID := jobData["team_id"]
+	requesterID := jobData["requester_id"]
+	isAdmin := jobData["requester_is_admin"] == "true"
+
+	// Remove transient fields before persisting.
+	delete(jobData, "requester_id")
+	delete(jobData, "requester_is_admin")
+
+	if policyID != "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlSync, map[string]string{"policy_id": policyID}, "policy_id", policyID)
+	}
+
+	if teamID != "" && policyID == "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlSync, map[string]string{"team_id": teamID}, "team_id", teamID)
+	}
+
+	// For team-scoped syncs by non-admins, resolve which channels the
+	// requester can sync based on self-inclusion (attribute match).
+	if teamID != "" && policyID == "" && requesterID != "" && !isAdmin {
+		channelIDs, appErr := a.resolveTeamSyncChannelIDs(rctx, teamID, requesterID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if len(channelIDs) > 0 {
+			jobData["channel_ids"] = strings.Join(channelIDs, ",")
+		}
+	}
+
+	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
+}
+
+// CreateAccessControlTeamSyncJob creates a team membership sync job, first
+// canceling any pending/in-progress sync for the same policy so two never run
+// concurrently. A team-type policy's ID equals its team ID, so deduplicating on
+// policy_id deduplicates per team. Without this, overlapping syncs on separate
+// HA nodes emit duplicate removal/addition DMs and audit records for one change.
+func (a *App) CreateAccessControlTeamSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	policyID := jobData["policy_id"]
+
+	// Strip transient fields before persisting. Only channel syncs inject these,
+	// so this is defensive against a hand-crafted request body.
+	delete(jobData, "requester_id")
+	delete(jobData, "requester_is_admin")
+
+	if policyID != "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlTeamSync, map[string]string{"policy_id": policyID}, "policy_id", policyID)
+	}
+
+	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlTeamSync, jobData)
+}
+
+// cancelExistingAccessControlSyncJobs cancels pending/in-progress sync jobs of
+// the given type matching the data filter, for deduplication.
+func (a *App) cancelExistingAccessControlSyncJobs(rctx request.CTX, jobType string, dataFilter map[string]string, logKey, logValue string) {
+	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, jobType, dataFilter, true, model.JobStatusPending, model.JobStatusInProgress)
+	if err != nil {
+		rctx.Logger().Warn("Failed to query existing sync jobs for deduplication", mlog.Err(err))
+		return
+	}
+
+	for _, job := range existingJobs {
+		rctx.Logger().Info("Canceling existing access control sync job before creating new one",
+			mlog.String("job_id", job.Id),
+			mlog.String(logKey, logValue),
+			mlog.String("status", job.Status))
+		if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
+			rctx.Logger().Warn("Failed to cancel existing access control sync job",
+				mlog.String("job_id", job.Id),
+				mlog.String(logKey, logValue),
+				mlog.Err(err))
+		}
+	}
+}
+
+// resolveTeamSyncChannelIDs returns channel IDs the requester can sync,
+// filtered by self-inclusion (same logic as SearchTeamAccessPolicies).
+func (a *App) resolveTeamSyncChannelIDs(rctx request.CTX, teamID, requesterID string) ([]string, *model.AppError) {
+	policies, _, appErr := a.SearchTeamAccessPolicies(rctx, teamID, requesterID, model.AccessControlPolicySearch{
+		Limit: teamPoliciesMaxFetch,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var channelIDs []string
+	for _, policy := range policies {
+		if policy.Props == nil {
+			continue
+		}
+		childIDs, ok := policy.Props["child_ids"].([]string)
+		if !ok {
+			// Handle []any from JSON unmarshaling
+			if rawIDs, ok2 := policy.Props["child_ids"].([]any); ok2 {
+				for _, raw := range rawIDs {
+					if id, ok3 := raw.(string); ok3 {
+						channelIDs = append(channelIDs, id)
+					}
+				}
+				continue
+			}
+			continue
+		}
+		channelIDs = append(channelIDs, childIDs...)
+	}
+
+	return channelIDs, nil
+}
+
+func (a *App) CancelJob(rctx request.CTX, jobId string) *model.AppError {
+	return a.Srv().Jobs.RequestCancellation(rctx, jobId)
+}
+
+func (a *App) UpdateJobStatus(rctx request.CTX, job *model.Job, newStatus string) *model.AppError {
 	switch newStatus {
 	case model.JobStatusPending:
 		return a.Srv().Jobs.SetJobPending(job)
 	case model.JobStatusCancelRequested:
-		return a.Srv().Jobs.RequestCancellation(c, job.Id)
+		return a.Srv().Jobs.RequestCancellation(rctx, job.Id)
 	case model.JobStatusCanceled:
 		return a.Srv().Jobs.SetJobCanceled(job)
 	default:
@@ -83,8 +225,6 @@ func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
 	switch job.Type {
-	case model.JobTypeBlevePostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreatePostBleveIndexesJob), model.PermissionCreatePostBleveIndexesJob
 	case model.JobTypeDataRetention:
 		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
 	case model.JobTypeMessageExport:
@@ -106,8 +246,61 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens,
+		model.JobTypeNotifyExpiringAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		// Team-type policies use the team ID as the policy ID.
+		// Allow a team admin to trigger a sync job for their own team's policy.
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
+	case model.JobTypeAccessControlSync:
+		// Allow system admins to create access control sync jobs
+		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
+		if hasSystemPermission {
+			return true, model.PermissionManageSystem
+		}
+
+		// For channel admins, check if they have permission for the specific channel/policy
+		channelID := a.getChannelIDFromJobData(job.Data)
+		if channelID != "" {
+			// Check specific channel permission
+			ctx := request.EmptyContext(a.Srv().Log())
+			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			if hasChannelPermission {
+				return true, model.PermissionManageChannelAccessRules
+			}
+		}
+
+		// Check team admin permission. This is needed for jobs that are scoped to a team but don't specify a channel (i.e. team-level syncs).
+		teamID, hasTeamID := job.Data["team_id"]
+		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
+			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+
+		// Check team admin permission for policy-scoped syncs (e.g. triggered after policy creation).
+		// Verify the team admin owns the policy via ValidateTeamAdminPolicyOwnership.
+		policyID, hasPolicyID := job.Data["policy_id"]
+		if hasPolicyID && policyID != "" && model.IsValidId(policyID) && hasTeamID && teamID != "" && model.IsValidId(teamID) {
+			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
+				ctx := request.EmptyContext(a.Srv().Log())
+				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(ctx, teamID, policyID); appErr == nil && owned {
+					return true, model.PermissionManageTeamAccessRules
+				}
+			}
+		}
+
+		return false, model.PermissionManageSystem
 	}
 
 	return false, nil
@@ -117,8 +310,6 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 	var permission *model.Permission
 
 	switch job.Type {
-	case model.JobTypeBlevePostIndexing:
-		permission = model.PermissionManagePostBleveIndexesJob
 	case model.JobTypeDataRetention:
 		permission = model.PermissionManageDataRetentionJob
 	case model.JobTypeMessageExport:
@@ -140,8 +331,21 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionManageJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -164,7 +368,6 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 	case model.JobTypeLdapSync:
 		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
 	case
-		model.JobTypeBlevePostIndexing,
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
 		model.JobTypeProductNotices,
@@ -175,8 +378,17 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeMobileSessionMetadata,
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
 	}
 
 	return false, nil

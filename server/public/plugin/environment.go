@@ -8,6 +8,7 @@ import (
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -38,10 +39,10 @@ type registeredPlugin struct {
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
 type PrepackagedPlugin struct {
-	Path      string
-	IconData  string
-	Manifest  *model.Manifest
-	Signature []byte
+	Path          string
+	IconData      string
+	Manifest      *model.Manifest
+	SignaturePath string
 }
 
 // Environment represents the execution environment of active plugins.
@@ -445,30 +446,55 @@ func (env *Environment) RemovePlugin(id string) {
 	}
 }
 
-// Deactivates the plugin with the given id.
+// deactivateAndTeardown runs OnDeactivate (with a 10-second timeout), then marks the plugin
+// as not running and closes its RPC connection. The plugin remains reachable via
+// RunMultiPluginHook* throughout OnDeactivate so it can dispatch hooks back to itself.
+//
+// If the plugin is not currently active, there's nothing to tear down: its state is reconciled
+// to not running and no OnDeactivate is dispatched, avoiding a spurious RPC call to an
+// already-closed connection.
+//
+// Deactivation always reconciles the plugin to PluginStateNotRunning, intentionally clearing any
+// error state (e.g. PluginStateFailedToStayRunning): once deactivated, the plugin is no longer
+// meant to be running, so the error no longer applies. Callers that want to record a more specific
+// state deactivate first and set it afterward, as the health check job does when a plugin exceeds
+// its restart limit.
+func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
+	id := rp.BundleInfo.Manifest.Id
+
+	if rp.supervisor == nil || !env.IsActive(id) {
+		env.setPluginState(id, model.PluginStateNotRunning)
+		return false
+	}
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", id), mlog.Err(err))
+		}
+	}()
+
+	select {
+	case <-time.After(10 * time.Second):
+		env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", id))
+	case <-done:
+	}
+
+	env.setPluginState(id, model.PluginStateNotRunning)
+	rp.supervisor.Shutdown()
+
+	return true
+}
+
+// Deactivate the plugin with the given id.
 func (env *Environment) Deactivate(id string) bool {
 	p, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return false
 	}
 
-	isActive := env.IsActive(id)
-
-	env.setPluginState(id, model.PluginStateNotRunning)
-
-	if !isActive {
-		return false
-	}
-
-	rp := p.(registeredPlugin)
-	if rp.supervisor != nil {
-		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
-		}
-		rp.supervisor.Shutdown()
-	}
-
-	return true
+	return env.deactivateAndTeardown(p.(registeredPlugin))
 }
 
 // RestartPlugin deactivates, then activates the plugin with the given id.
@@ -483,34 +509,10 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value any) bool {
+	env.registeredPlugins.Range(func(_, value any) bool {
 		rp := value.(registeredPlugin)
 
-		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
-			return true
-		}
-
-		wg.Add(1)
-
-		done := make(chan bool)
-		go func() {
-			defer close(done)
-			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-
-			select {
-			case <-time.After(10 * time.Second):
-				env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id))
-			case <-done:
-			}
-
-			rp.supervisor.Shutdown()
-		}()
+		wg.Go(func() { env.deactivateAndTeardown(rp) })
 
 		return true
 	})
@@ -595,11 +597,40 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
+// HooksForPluginWithRPCErr returns the full *WithRPCErr hook surface for the named plugin.
+// Returns an error if the plugin is not found or not active.
+func (env *Environment) HooksForPluginWithRPCErr(id string) (HooksWithRPCErr, error) {
+	if p, ok := env.registeredPlugins.Load(id); ok {
+		rp := p.(registeredPlugin)
+		if rp.supervisor != nil && env.IsActive(id) {
+			return rp.supervisor.HooksWithRPCErr(), nil
+		}
+	}
+
+	return nil, fmt.Errorf("plugin not found: %v", id)
+}
+
+// HasPluginImplementing reports whether any active plugin implements hookId. Use this to avoid
+// expensive setup when no plugin will actually be called by RunMultiPluginHook.
+func (env *Environment) HasPluginImplementing(hookId int) bool {
+	found := false
+	env.registeredPlugins.Range(func(_, value any) bool {
+		rp := value.(registeredPlugin)
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+		found = true
+		return false // stop on first match
+	})
+
+	return found
+}
+
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, manifest *model.Manifest) bool, hookId int) {
 	startTime := time.Now()
 
 	env.registeredPlugins.Range(func(key, value any) bool {
@@ -610,7 +641,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		}
 
 		hookStartTime := time.Now()
-		result := hookRunnerFunc(rp.supervisor.Hooks())
+		result := hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
 
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
@@ -624,6 +655,80 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
 	}
+}
+
+// RunMultiPluginHookExcluding is like RunMultiPluginHook but skips plugins whose IDs appear in
+// excludePluginIDs, otherwise the semantics are the same as RunMultiPluginHook. The exclusion check
+// is a linear scan.
+func (env *Environment) RunMultiPluginHookExcluding(
+	excludePluginIDs []string,
+	hookRunnerFunc func(hooks Hooks, manifest *model.Manifest) bool,
+	hookId int,
+) {
+	startTime := time.Now()
+
+	env.registeredPlugins.Range(func(key, value any) bool {
+		rp := value.(registeredPlugin)
+		id := rp.BundleInfo.Manifest.Id
+		if slices.Contains(excludePluginIDs, id) {
+			return true
+		}
+
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(id) {
+			return true
+		}
+
+		hookStartTime := time.Now()
+		cont := hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(id, elapsedTime)
+		}
+
+		return cont
+	})
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
+}
+
+// RunMultiPluginHookWithRPCErr is like RunMultiPluginHook but surfaces RPC transport errors. The
+// closure receives a HooksWithRPCErr so it can call any *WithRPCErr variant. Iteration stops on the
+// first non-nil error returned by the closure.
+func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+	startTime := time.Now()
+	var retErr error
+
+	env.registeredPlugins.Range(func(key, value any) bool {
+		rp := value.(registeredPlugin)
+
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+
+		hookStartTime := time.Now()
+		cont, err := hookRunnerFunc(rp.supervisor.HooksWithRPCErr(), rp.BundleInfo.Manifest)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
+		}
+
+		if err != nil {
+			retErr = err
+			return false
+		}
+		return cont
+	})
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
+	return retErr
 }
 
 // PerformHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.

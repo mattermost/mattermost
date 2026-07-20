@@ -102,13 +102,6 @@ func (pluginAPI *mockPluginAPI) KVList(page, count int) ([]string, *model.AppErr
 	return keys[start:end], nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	pluginAPI.lock.Lock()
 	defer pluginAPI.lock.Unlock()
@@ -136,14 +129,14 @@ func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, optio
 	return true, nil
 }
 
-func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
+func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...any) {
 	if pluginAPI.t == nil {
 		return
 	}
 
 	pluginAPI.t.Helper()
 
-	params := []interface{}{msg}
+	params := []any{msg}
 	params = append(params, keyValuePairs...)
 
 	pluginAPI.t.Log(params...)

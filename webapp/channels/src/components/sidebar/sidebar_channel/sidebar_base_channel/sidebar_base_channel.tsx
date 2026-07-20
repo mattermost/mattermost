@@ -6,8 +6,6 @@ import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
@@ -31,27 +29,24 @@ const SidebarBaseChannel = ({
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
-        trackEvent('ui', 'ui_public_channel_x_button_clicked');
         callback();
     }, [channel.id, actions.leaveChannel]);
 
-    const handleLeavePrivateChannel = useCallback((callback: () => void) => {
+    const handleLeaveWithConfirmation = useCallback((callback: () => void) => {
         actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
-        trackEvent('ui', 'ui_private_channel_x_button_clicked');
         callback();
     }, [channel, actions.openModal]);
 
     let channelLeaveHandler = null;
     if (channel.type === Constants.OPEN_CHANNEL && channel.name !== Constants.DEFAULT_CHANNEL) {
-        channelLeaveHandler = handleLeavePublicChannel;
+        channelLeaveHandler = channel.policy_enforced ? handleLeaveWithConfirmation : handleLeavePublicChannel;
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-        channelLeaveHandler = handleLeavePrivateChannel;
+        channelLeaveHandler = handleLeaveWithConfirmation;
     }
 
     const channelIcon = (
         <SidebarBaseChannelIcon
-            isSharedChannel={Boolean(channel.shared)}
-            channelType={channel.type}
+            channel={channel}
         />
     );
 
@@ -70,6 +65,7 @@ const SidebarBaseChannel = ({
             ariaLabelPrefix={ariaLabelPrefix}
             channelLeaveHandler={channelLeaveHandler!}
             icon={channelIcon}
+            isSharedChannel={channel.shared}
         />
     );
 };

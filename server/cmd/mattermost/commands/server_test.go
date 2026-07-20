@@ -27,9 +27,9 @@ type ServerTestHelper struct {
 }
 
 //nolint:golint,unused
-func SetupServerTest(t testing.TB) *ServerTestHelper {
+func SetupServerTest(tb testing.TB) *ServerTestHelper {
 	if testing.Short() {
-		t.SkipNow()
+		tb.SkipNow()
 	}
 	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
@@ -78,16 +78,13 @@ func TestRunServerSystemdNotification(t *testing.T) {
 
 	// Get a random temporary filename for using as a mock systemd socket
 	socketFile, err := os.CreateTemp("", "mattermost-systemd-mock-socket-")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
+
 	socketPath := socketFile.Name()
 	os.Remove(socketPath)
 
-	// Set the socket path in the process environment
-	originalSocket := os.Getenv("NOTIFY_SOCKET")
-	os.Setenv("NOTIFY_SOCKET", socketPath)
-	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+	// t.Setenv prevents t.Parallel — env var has no config equivalent
+	t.Setenv("NOTIFY_SOCKET", socketPath)
 
 	// Open the socket connection
 	addr := &net.UnixAddr{
@@ -95,9 +92,8 @@ func TestRunServerSystemdNotification(t *testing.T) {
 		Net:  "unixgram",
 	}
 	connection, err := net.ListenUnixgram("unixgram", addr)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
+
 	defer connection.Close()
 	defer os.Remove(socketPath)
 
@@ -106,9 +102,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	go func(ch chan string) {
 		buffer := make([]byte, 512)
 		count, readErr := connection.Read(buffer)
-		if readErr != nil {
-			panic(readErr)
-		}
+		require.NoError(t, readErr)
 		data := buffer[0:count]
 		ch <- string(data)
 	}(socketReader)
@@ -135,9 +129,8 @@ func TestRunServerNoSystemd(t *testing.T) {
 	defer th.TearDownServerTest()
 
 	// Temporarily remove any Systemd socket defined in the environment
-	originalSocket := os.Getenv("NOTIFY_SOCKET")
-	os.Unsetenv("NOTIFY_SOCKET")
-	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+	// t.Setenv prevents t.Parallel — env var has no config equivalent
+	t.Setenv("NOTIFY_SOCKET", "")
 
 	configStore := config.NewTestMemoryStore()
 

@@ -1,0 +1,144 @@
+---
+title: "Deploy Mattermost on Ubuntu or Debian"
+sidebar_label: "Ubuntu / Debian"
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted" />
+
+Install Mattermost Server on Ubuntu or Debian from the signed Mattermost APT repository. The same `.deb` packages cover single-host installs and clustered deployments via tools like Packer.
+
+:::info Minimum requirements
+- **Operating system**: Ubuntu 20.04 / 22.04 / 24.04 LTS, or Debian (current stable). Other Debian-family distributions usually work but aren't tested by Mattermost.
+- **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
+- **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
+- **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
+:::
+
+## Step 1: Get a PostgreSQL database
+
+Mattermost requires PostgreSQL. Choose one of:
+
+- **Install PostgreSQL locally** on the same host. Follow the [PostgreSQL installation documentation](https://www.postgresql.org/download/).
+- **Use an external PostgreSQL server**. Collect the connection credentials (hostname, port, database, username, password) before starting Step 2.
+- **Use a managed database service** (AWS RDS, Azure Database for PostgreSQL, etc.).
+
+## Step 2: Prepare the database
+
+Follow the [database preparation](/deployment-guide/server/preparations#database-preparation) instructions to create the Mattermost database, user, and grants.
+
+## Step 3: Add the Mattermost APT repository
+
+:::important GPG key change
+The GPG public key has changed. Either [import the new public key](https://deb.packages.mattermost.com/pubkey.gpg) or run the repository setup script in the next step (recommended). Existing installations should remove the old key before adding the new one:
+
+For Ubuntu 22.04 LTS and 24.04 LTS:
+
+```sh
+sudo rm /usr/share/keyrings/mattermost-archive-keyring.gpg
+curl -sL -o- https://deb.packages.mattermost.com/pubkey.gpg \
+  | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/mattermost-archive-keyring.gpg > /dev/null
+```
+:::
+
+Run the repository setup script:
+
+```sh
+curl -o- https://deb.packages.mattermost.com/repo-setup.sh | sudo bash -s mattermost
+```
+
+This configures the Mattermost APT repository, a PostgreSQL repository, an NGINX web server (used as a reverse proxy), and certbot for issuing and renewing SSL certificates.
+
+## Step 4: Install Mattermost Server
+
+Update your APT cache and any pending system packages:
+
+```sh
+sudo apt update
+```
+
+Install the latest Mattermost Server:
+
+```sh
+sudo apt install mattermost -y
+```
+
+Mattermost installs to `/opt/mattermost`. The package creates a `mattermost` user and group and a systemd unit file. The service is **not** enabled or started at this point.
+
+:::note systemd dependencies
+The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add the following to the `[Unit]` section of `/lib/systemd/system/mattermost.service`:
+
+```ini
+After=postgresql.service
+BindsTo=postgresql.service
+```
+:::
+
+## Step 5: Configure the server
+
+Copy the default configuration to the active config file with the right ownership and permissions:
+
+```sh
+sudo install -C -m 600 -o mattermost -g mattermost \
+  /opt/mattermost/config/config.defaults.json \
+  /opt/mattermost/config/config.json
+```
+
+Edit `/opt/mattermost/config/config.json` and set:
+
+- `SqlSettings.DriverName`: `"postgres"`
+- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
+- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
+- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
+
+:::note TLS mode for `DataSource`
+The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
+:::
+
+Start the server:
+
+```sh
+sudo systemctl start mattermost
+```
+
+Verify it's running:
+
+```sh
+curl http://localhost:8065
+```
+
+You should see the Mattermost HTML response. Enable the service on boot:
+
+```sh
+sudo systemctl enable mattermost.service
+```
+
+## Step 6: Update Mattermost
+
+When a new release is published, update through APT:
+
+```sh
+sudo systemctl stop mattermost
+sudo apt update && sudo apt upgrade
+sudo systemctl start mattermost
+```
+
+:::important Stop the server before upgrading
+`apt upgrade` will replace the Mattermost binary while it's running. Stop the systemd service first to avoid corrupt state.
+:::
+
+## Remove Mattermost
+
+```sh
+sudo systemctl stop mattermost
+sudo apt remove --purge mattermost
+```
+
+This removes the package but leaves `/opt/mattermost/data`, `/opt/mattermost/logs`, `/opt/mattermost/plugins`, and `/opt/mattermost/config` in place. Back these up before deleting if you may need to restore.
+
+## Next steps
+
+- [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
+- [Set up TLS](/deployment-guide/server/setup-tls)
+- [Server deployment planning](/deployment-guide/server/server-deployment-planning) for the full post-install checklist

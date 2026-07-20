@@ -12,7 +12,7 @@ type Props = {
     icon: string;
     parentLink?: string;
     children?: ReactNode[];
-}
+};
 
 const BackstageCategory = ({name, title, icon, parentLink, children = []}: Props) => {
     const link = parentLink + '/' + name;

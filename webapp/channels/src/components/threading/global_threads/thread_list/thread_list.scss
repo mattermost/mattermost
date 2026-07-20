@@ -13,6 +13,10 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         grid-area: header;
 
+        .tab-buttons-list {
+            display: flex;
+        }
+
         .tab-button-wrapper {
             position: relative;
             display: flex;
@@ -86,5 +90,11 @@
     .virtualized-thread-list {
         scrollbar-color: var(--center-channel-color-32) #fff0;
         scrollbar-width: thin;
+
+        .no-results__icon svg {
+            width: 92px;
+            height: 73px;
+            margin-bottom: 0px;
+        }
     }
 }

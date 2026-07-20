@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/http/pprof"
 	"path"
 	"runtime"
-	rpprof "runtime/pprof"
 	"strings"
 	"sync"
 	"text/template"
@@ -21,11 +21,13 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
+	prommodel "github.com/prometheus/common/model"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -165,7 +167,9 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, pm.metricsImpl != nil)
+		if err := metricsPageTmpl.Execute(w, pm.metricsImpl != nil); err != nil {
+			pm.logger.Error("Failed to execute template", mlog.Err(err))
+		}
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -204,7 +208,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -225,7 +231,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -237,9 +245,105 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
-	if ps.metrics != nil {
-		ps.metrics.router.Handle(route, h)
+	if ps.metrics == nil {
+		return
 	}
+
+	if route == "/metrics" && ps.Config().FeatureFlags.AggregatePluginMetrics {
+		h = ps.wrapMetricsHandler(h)
+	}
+
+	ps.metrics.router.Handle(route, h)
+}
+
+func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+
+		// Strip Accept-Encoding to force plaintext response (no gzip)
+		plainReq := r.Clone(r.Context())
+		plainReq.Header.Del("Accept-Encoding")
+
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, plainReq)
+		buf.Write(rec.Body.Bytes())
+
+		if ps.pluginEnv != nil {
+			if env := ps.pluginEnv.GetPluginsEnvironment(); env != nil {
+				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+					pluginRec := httptest.NewRecorder()
+					pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
+					if err != nil {
+						return true
+					}
+
+					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+						if labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id); labeledMetrics != "" {
+							buf.WriteString("\n")
+							buf.WriteString(labeledMetrics)
+						}
+					}
+
+					return true
+				}, plugin.ServeMetricsID)
+			}
+		}
+
+		// Copy content type from main metrics response
+		if contentType := rec.Header().Get("Content-Type"); contentType != "" {
+			w.Header().Set("Content-Type", contentType)
+		}
+		w.WriteHeader(rec.Code)
+		if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+			mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+		}
+	})
+}
+
+// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format.
+// It parses using expfmt, mutates the label sets in-place, then re-encodes.
+// Returns an empty string and logs a warning if any parsing or encoding error occurs.
+func addPluginLabelToMetrics(metricsText, pluginID string) string {
+	parser := expfmt.NewTextParser(prommodel.LegacyValidation)
+	families, err := parser.TextToMetricFamilies(strings.NewReader(metricsText))
+	if err != nil {
+		mlog.Warn("Failed to parse plugin metrics", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		return ""
+	}
+
+	pluginIDLabel := &dto.LabelPair{
+		Name:  new("plugin_id"),
+		Value: new(pluginID),
+	}
+
+	var result strings.Builder
+	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
+	for name, family := range families {
+		for _, metric := range family.Metric {
+			replaced := false
+			for _, l := range metric.Label {
+				if l.GetName() == "plugin_id" {
+					l.Value = new(pluginID)
+					replaced = true
+					break
+				}
+			}
+			if !replaced {
+				metric.Label = append(metric.Label, pluginIDLabel)
+			}
+		}
+		if encErr := enc.Encode(family); encErr != nil {
+			mlog.Warn("Failed to encode plugin metrics", mlog.String("plugin_id", pluginID), mlog.String("family", name), mlog.Err(encErr))
+			return ""
+		}
+	}
+	if closer, ok := enc.(expfmt.Closer); ok {
+		closer.Close()
+	}
+
+	return result.String()
 }
 
 func (ps *PlatformService) RestartMetrics() error {
@@ -252,53 +356,4 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 	}
 
 	return ps.metricsIFace
-}
-
-func (ps *PlatformService) CreateCPUProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.StartCPUProfile(&b)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start CPU profile")
-	}
-
-	time.Sleep(cpuProfileDuration)
-
-	rpprof.StopCPUProfile()
-
-	fileData := &model.FileData{
-		Filename: "cpu.prof",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
-}
-
-func (ps *PlatformService) CreateHeapProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.Lookup("heap").WriteTo(&b, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup heap profile")
-	}
-
-	fileData := &model.FileData{
-		Filename: "heap.prof",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
-}
-
-func (ps *PlatformService) CreateGoroutineProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.Lookup("goroutine").WriteTo(&b, 2)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
-	}
-
-	fileData := &model.FileData{
-		Filename: "goroutines",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
 }

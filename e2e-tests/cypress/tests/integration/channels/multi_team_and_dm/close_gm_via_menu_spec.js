@@ -44,7 +44,7 @@ describe('Multi-user group messages', () => {
         cy.get('#saveItems').click();
 
         // # Click channel dropdown icon to open menu
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
 
         // # Click 'close' item
         cy.findByText('Close Group Message').should('be.visible').click();

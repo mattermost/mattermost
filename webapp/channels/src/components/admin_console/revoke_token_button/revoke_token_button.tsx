@@ -4,14 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {Button} from '@mattermost/shared/components/button';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface RevokeTokenButtonProps {
     actions: {
         revokeUserAccessToken: (
-            tokenId: string
+            tokenId: string,
         ) => Promise<ActionResult>;
     };
     tokenId: string;
@@ -23,7 +23,6 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
         e.preventDefault();
 
         const response = await props.actions.revokeUserAccessToken(props.tokenId);
-        trackEvent('system_console', 'revoke_user_access_token');
 
         if ('error' in response) {
             props.onError(response.error.message);
@@ -31,16 +30,16 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     };
 
     return (
-        <button
+        <Button
             type='button'
-            className='btn btn-danger'
+            variant='destructive'
             onClick={handleClick}
         >
             <FormattedMessage
                 id='admin.revoke_token_button.delete'
                 defaultMessage='Delete'
             />
-        </button>
+        </Button>
     );
 };
 

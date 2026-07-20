@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     attachFile,
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Upload Files - Video', () => {
     before(() => {
@@ -126,12 +126,12 @@ export function testVideoFile(properties) {
 
     // * Download button should exist
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-        expect(downloadLink.attr('download')).to.equal(fileName);
+        cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
+            const fileAttachmentURL = link.attr('href');
 
-        const fileAttachmentURL = downloadLink.attr('href');
-
-        // * Verify that download link has correct name
-        downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+            // * Verify that download link has correct name
+            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+        });
     });
 
     // # Close modal

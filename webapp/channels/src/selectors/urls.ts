@@ -33,7 +33,7 @@ export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: 
     return `${getTeamRelativeUrl(team)}/pl/${postId}`;
 }
 
-export function getChannelURL(state: GlobalState, channel: Channel, teamId: string): string {
+export function getChannelURL(state: GlobalState, channel: Pick<Channel, 'type' | 'name'>, teamId: string): string {
     let notificationURL;
     if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
         notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;

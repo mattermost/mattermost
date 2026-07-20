@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import FeatureRestrictedModal from './feature_restricted_modal';
@@ -15,6 +15,31 @@ jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
     useDispatch: () => mockDispatch,
+}));
+
+jest.mock('components/common/hooks/useOpenPricingModal', () => () => ({
+    openPricingModal: jest.fn(),
+    isAirGapped: false,
+}));
+
+jest.mock('components/notify_admin_cta/notify_admin_cta', () => ({
+    useNotifyAdmin: () => {
+        const {NotifyStatus} = require('components/common/hooks/useGetNotifyAdmin');
+        return ['Notify admin', jest.fn(), NotifyStatus.None];
+    },
+}));
+
+jest.mock('components/learn_more_trial_modal/start_trial_btn', () => (props: {onClick: () => void}) => (
+    <button onClick={props.onClick}>{'Try free for 30 days'}</button>
+));
+
+jest.mock('@mattermost/components', () => ({
+    GenericModal: ({children, modalHeaderText}: {children: React.ReactNode; modalHeaderText?: string}) => (
+        <div>
+            <h1>{modalHeaderText}</h1>
+            {children}
+        </div>
+    ),
 }));
 
 describe('components/global/product_switcher_menu', () => {
@@ -78,36 +103,34 @@ describe('components/global/product_switcher_menu', () => {
     });
 
     test('should show with end user pre trial', () => {
-        const wrapper = shallow(<FeatureRestrictedModal {...defaultProps}/>);
+        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
-        expect(wrapper.find('.FeatureRestrictedModal__description').text()).toEqual(defaultProps.messageEndUser);
-        expect(wrapper.find('.FeatureRestrictedModal__terms').length).toEqual(0);
-        expect(wrapper.find('.FeatureRestrictedModal__buttons').hasClass('single')).toEqual(true);
-        expect(wrapper.find('.button-plans').length).toEqual(1);
-        expect(wrapper.find('CloudStartTrialButton').length).toEqual(0);
-        expect(wrapper.find('StartTrialBtn').length).toEqual(0);
+        expect(screen.getByText(defaultProps.messageEndUser)).toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__terms')).not.toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__buttons')).toHaveClass('single');
+        expect(screen.getByRole('button', {name: /notify admin/i})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /try free/i})).not.toBeInTheDocument();
     });
 
     test('should show with end user post trial', () => {
-        const wrapper = shallow(<FeatureRestrictedModal {...defaultProps}/>);
+        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
-        expect(wrapper.find('.FeatureRestrictedModal__description').text()).toEqual(defaultProps.messageEndUser);
-        expect(wrapper.find('.FeatureRestrictedModal__terms').length).toEqual(0);
-        expect(wrapper.find('.FeatureRestrictedModal__buttons').hasClass('single')).toEqual(true);
-        expect(wrapper.find('.button-plans').length).toEqual(1);
-        expect(wrapper.find('CloudStartTrialButton').length).toEqual(0);
-        expect(wrapper.find('StartTrialBtn').length).toEqual(0);
+        expect(screen.getByText(defaultProps.messageEndUser)).toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__terms')).not.toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__buttons')).toHaveClass('single');
+        expect(screen.getByRole('button', {name: /notify admin/i})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /try free/i})).not.toBeInTheDocument();
     });
 
     test('should show with system admin pre trial for self hosted', () => {
         mockState.entities.users.profiles.user1.roles = 'system_admin';
 
-        const wrapper = shallow(<FeatureRestrictedModal {...defaultProps}/>);
+        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
-        expect(wrapper.find('.FeatureRestrictedModal__description').text()).toEqual(defaultProps.messageAdminPreTrial);
-        expect(wrapper.find('.FeatureRestrictedModal__terms').length).toEqual(1);
-        expect(wrapper.find('.FeatureRestrictedModal__buttons').hasClass('single')).toEqual(false);
-        expect(wrapper.find('.button-plans').length).toEqual(1);
-        expect(wrapper.find('StartTrialBtn').length).toEqual(1);
+        expect(screen.getByText(defaultProps.messageAdminPreTrial)).toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__terms')).toBeInTheDocument();
+        expect(container.querySelector('.FeatureRestrictedModal__buttons')).not.toHaveClass('single');
+        expect(screen.getByRole('button', {name: /view plans/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /try free/i})).toBeInTheDocument();
     });
 });

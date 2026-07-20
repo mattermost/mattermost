@@ -15,16 +15,16 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants} from 'utils/constants';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {CallButtonAction} from 'types/store/plugins';
 
 import './call_button.scss';
 
 type Props = {
     currentChannel?: Channel;
     channelMember?: ChannelMembership;
-    pluginCallComponents: PluginComponent[];
+    pluginCallComponents: CallButtonAction[];
     sidebarOpen: boolean;
-}
+};
 
 export default function CallButton({pluginCallComponents, currentChannel, channelMember, sidebarOpen}: Props) {
     const [active, setActive] = useState(false);

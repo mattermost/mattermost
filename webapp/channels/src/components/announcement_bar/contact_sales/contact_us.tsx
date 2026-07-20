@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {Button, type ButtonEmphasis} from '@mattermost/shared/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import './contact_us.scss';
-
 export interface Props {
     buttonTextElement?: JSX.Element;
-    eventID?: string;
+    emphasis?: ButtonEmphasis;
     customClass?: string;
 }
 
@@ -21,22 +20,22 @@ const ContactUsButton: React.FC<Props> = (props: Props) => {
 
     const handleContactUsLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('admin', props.eventID || 'in_trial_contact_sales');
         openContactSales();
     };
 
     return (
-        <button
-            className={`contact-us ${props.customClass ? props.customClass : ''}`}
+        <Button
+            emphasis={props.emphasis}
+            className={classNames('contact-us', props.customClass)}
             onClick={(e) => handleContactUsLinkClick(e)}
         >
             {props.buttonTextElement || (
                 <FormattedMessage
                     id={'admin.license.trialCard.contactSales'}
-                    defaultMessage={'Contact sales'}
+                    defaultMessage={'Contact Sales'}
                 />
             )}
-        </button>
+        </Button>
     );
 };
 

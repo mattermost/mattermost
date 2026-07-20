@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {MaxLengthInput} from 'components/quick_input/index';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 describe('components/MaxLengthInput', () => {
     const requiredProps = {
@@ -17,13 +18,13 @@ describe('components/MaxLengthInput', () => {
         ['less than 20'],
         ['Where is Jessica Hyde?'],
     ])('should match snapshot', (defaultValue) => {
-        const wrapper = shallow(
+        const {container} = render(
             <MaxLengthInput
                 {...requiredProps}
                 defaultValue={defaultValue}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test.each([
@@ -31,15 +32,16 @@ describe('components/MaxLengthInput', () => {
         ['less than 20', false, false],
         ['Where is Jessica Hyde?', true, true],
     ])('defaultValue: %s .has-error: %s, .MaxLengthInput__validation: %s', (defaultValue, hasError, maxLengthExists) => {
-        const wrapper = shallow(
+        const {container} = render(
             <MaxLengthInput
                 {...requiredProps}
                 defaultValue={defaultValue}
             />,
         );
 
-        expect(wrapper.find('input').hasClass('has-error')).toBe(hasError);
-        expect(wrapper.exists('.MaxLengthInput__validation')).toBe(maxLengthExists);
+        const input = screen.getByRole('textbox');
+        expect(input.classList.contains('has-error')).toBe(hasError);
+        expect(container.querySelector('.MaxLengthInput__validation') !== null).toBe(maxLengthExists);
     });
 
     test('should display the number of times value length exceeds maxLength', () => {
@@ -48,10 +50,10 @@ describe('components/MaxLengthInput', () => {
             ...requiredProps,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <MaxLengthInput {...props}/>,
         );
 
-        expect(wrapper.find('.MaxLengthInput__validation').text()).toBe('-2');
+        expect(container.querySelector('.MaxLengthInput__validation')!.textContent).toBe('-2');
     });
 });

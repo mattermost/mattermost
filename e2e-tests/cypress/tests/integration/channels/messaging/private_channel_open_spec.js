@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Messaging - Opening a private channel using keyboard shortcuts', () => {
     let testTeam;
@@ -32,7 +32,7 @@ describe('Messaging - Opening a private channel using keyboard shortcuts', () =>
             // # Type the first letter of a private channel in the "Switch Channels" modal message box
             // # Use up/down arrow keys to highlight a private channel
             // # Press ENTER
-            cy.findByRole('textbox', {name: 'quick switch input'}).type('Pr').type('{downarrow}').type('{enter}');
+            cy.findByRole('combobox', {name: 'quick switch input'}).type('Pr').type('{downarrow}').type('{enter}');
 
             // * Private channel opens
             cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'Private').wait(TIMEOUTS.HALF_SEC);

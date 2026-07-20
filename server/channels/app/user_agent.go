@@ -13,7 +13,7 @@ import (
 const maxUserAgentVersionLength = 128
 
 var platformNames = map[uasurfer.Platform]string{
-	uasurfer.PlatformUnknown:      "Windows",
+	uasurfer.PlatformUnknown:      "Unknown",
 	uasurfer.PlatformWindows:      "Windows",
 	uasurfer.PlatformMac:          "Macintosh",
 	uasurfer.PlatformLinux:        "Linux",
@@ -24,8 +24,18 @@ var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformWindowsPhone: "Windows Phone",
 }
 
-func getPlatformName(ua *uasurfer.UserAgent) string {
+func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 	platform := ua.OS.Platform
+
+	if platform == uasurfer.PlatformUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			platform = uasurfer.PlatformiPhone
+		} else if strings.Contains(userAgentString, "iPad") {
+			platform = uasurfer.PlatformiPad
+		} else {
+			platform = uasurfer.PlatformLinux
+		}
+	}
 
 	name, ok := platformNames[platform]
 	if !ok {
@@ -48,7 +58,7 @@ var osNames = map[uasurfer.OSName]string{
 	uasurfer.OSLinux:        "Linux",
 }
 
-func getOSName(ua *uasurfer.UserAgent) string {
+func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	os := ua.OS
 
 	if os.Name == uasurfer.OSWindows {
@@ -77,7 +87,19 @@ func getOSName(ua *uasurfer.UserAgent) string {
 		}
 	}
 
-	name, ok := osNames[os.Name]
+	osName := os.Name
+
+	if osName == uasurfer.OSUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			osName = uasurfer.OSiOS
+		} else if strings.Contains(userAgentString, "iPad") {
+			osName = uasurfer.OSiOS
+		} else {
+			osName = uasurfer.OSAndroid
+		}
+	}
+
+	name, ok := osNames[osName]
 	if ok {
 		return name
 	}
@@ -85,28 +107,39 @@ func getOSName(ua *uasurfer.UserAgent) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+const desktopAppVersionPrefix = "Mattermost/"
+
+var versionPrefixes = []string{
+	"Mattermost Mobile/",
+	desktopAppVersionPrefix,
+	"mmctl/",
+	"Franz/",
+}
+
+func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
+	idx := strings.Index(userAgentString, desktopAppVersionPrefix)
+	if idx == -1 {
+		return "", false
+	}
+	if idx > 0 && userAgentString[idx-1] != ' ' {
+		return "", false
+	}
+	after := userAgentString[idx+len(desktopAppVersionPrefix):]
+	if fields := strings.Fields(after); len(fields) > 0 {
+		return limitStringLength(fields[0], maxUserAgentVersionLength), true
+	}
+	return "", false
+}
+
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
-	if index := strings.Index(userAgentString, "Mattermost Mobile/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost Mobile/"):]
-		// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
+	for _, prefix := range versionPrefixes {
+		if _, after, ok := strings.Cut(userAgentString, prefix); ok {
+			if fields := strings.Fields(after); len(fields) > 0 {
+				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
+				return limitStringLength(fields[0], maxUserAgentVersionLength)
+			}
+		}
 	}
-
-	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
-		afterVersion := userAgentString[index+len("mmctl/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
-		afterVersion := userAgentString[index+len("Franz/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
 	return getUAVersion(ua.Browser.Version)
 }
 

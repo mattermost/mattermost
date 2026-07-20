@@ -3,7 +3,6 @@
 
 import partition from 'lodash/partition';
 import React from 'react';
-import type {ReactNode} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -20,7 +19,7 @@ import {useCurrentProduct, useCurrentProductId, inScope} from 'utils/products';
 
 import AppBarBinding, {isAppBinding} from './app_bar_binding';
 import AppBarMarketplace from './app_bar_marketplace';
-import AppBarPluginComponent, {isAppBarPluginComponent} from './app_bar_plugin_component';
+import AppBarPluginComponent, {isAppBarComponent} from './app_bar_plugin_component';
 
 import './app_bar.scss';
 
@@ -44,24 +43,36 @@ export default function AppBar() {
     }
 
     const coreProductsPluginIds = [suitePluginIds.focalboard, suitePluginIds.playbooks];
+    const agentsPluginId = suitePluginIds.agents;
 
+    // Partition app bar components: Playbooks/Boards vs other plugins
     const [coreProductComponents, pluginComponents] = partition(appBarPluginComponents, ({pluginId}) => {
         return coreProductsPluginIds.includes(pluginId);
     });
 
-    const items: ReactNode[] = [
+    // Partition channel header components: Agents vs others
+    const [agentsComponents, otherChannelHeaderComponents] = partition(channelHeaderComponents, ({pluginId}) => {
+        return pluginId === agentsPluginId;
+    });
+
+    const items = [
+        ...agentsComponents,
         ...coreProductComponents,
-        getDivider(coreProductComponents.length, (pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
+        getDivider(
+            agentsComponents.length + coreProductComponents.length,
+            pluginComponents.length + otherChannelHeaderComponents.length + appBarBindings.length,
+        ),
         ...pluginComponents,
-        ...channelHeaderComponents,
+        ...otherChannelHeaderComponents,
         ...appBarBindings,
     ].map((x) => {
         if (!x) {
             return x;
         }
 
-        if (isAppBarPluginComponent(x)) {
-            if (!inScope(x.supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
+        if (isAppBarComponent(x)) {
+            const supportedProductIds = 'supportedProductIds' in x ? x.supportedProductIds : undefined;
+            if (!inScope(supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
                 return null;
             }
             return (
@@ -85,7 +96,10 @@ export default function AppBar() {
     });
 
     return (
-        <div className={'app-bar'}>
+        <div
+            className={'app-bar'}
+            data-testid='app-bar'
+        >
             <div className={'app-bar__top'}>
                 {items}
             </div>

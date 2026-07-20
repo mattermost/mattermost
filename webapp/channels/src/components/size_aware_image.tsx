@@ -5,10 +5,12 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {CSSProperties, KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -16,15 +18,15 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import WithTooltip from 'components/with_tooltip';
 
-import {localizeMessage, copyToClipboard} from 'utils/utils';
+import {FileTypes} from 'utils/constants';
+import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
 
-export type Props = {
+export type Props = WrappedComponentProps & {
 
     /*
     * The source URL of the image
@@ -46,11 +48,17 @@ export type Props = {
     height?: string;
     width?: string;
     title?: string;
+    style?: CSSProperties;
 
     /*
     * Boolean value to pass for showing a loader when image is being loaded
     */
     showLoader?: boolean;
+
+    /*
+    * Keeps the dimension placeholder mounted without rendering image content
+    */
+    renderPlaceholderOnly?: boolean;
 
     /*
     * A callback that is called as soon as the image component has a height value
@@ -91,7 +99,12 @@ export type Props = {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
-}
+
+    /*
+    * Indicates whether the file has been rejected and should not show preview
+    */
+    isFileRejected?: boolean;
+};
 
 type State = {
     loaded: boolean;
@@ -100,14 +113,14 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
-}
+};
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.
-export default class SizeAwareImage extends React.PureComponent<Props, State> {
+export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
-    public timeout: NodeJS.Timeout|null = null;
+    public timeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -120,7 +133,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopiedRecently: false,
             linkCopyInProgress: false,
             error: false,
-            imageWidth: 0,
+            imageWidth: dimensions?.width ?? 0,
         };
 
         this.heightTimeout = 0;
@@ -169,17 +182,25 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
+        if (!this.state.loaded) {
+            return;
+        }
+
+        e.stopPropagation();
         this.props.onClick?.(e, this.props.src);
     };
 
     onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
+            e.stopPropagation();
             this.props.onClick?.(e, this.props.src);
         }
     };
 
     renderImageLoaderIfNeeded = () => {
-        if (!this.state.loaded && this.props.showLoader && !this.state.error) {
+        const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
+
+        if (!renderPlaceholderOnly && !this.state.loaded && this.props.showLoader && !this.state.error) {
             return (
                 <div style={{position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', left: '50%'}}>
                     <LoadingImagePreview
@@ -194,9 +215,12 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
     renderImageWithContainerIfNeeded = () => {
         const {
             fileInfo,
+            dimensions,
             src,
             fileURL,
             enablePublicLink,
+            intl,
+            renderPlaceholderOnly,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -208,10 +232,28 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'onClick');
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
+        Reflect.deleteProperty(props, 'isFileRejected');
+        Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'style');
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
+        }
+
+        const fileType = getFileType(fileInfo?.extension ?? '');
+
+        let conditionalSVGStyleAttribute: CSSProperties | undefined;
+        if (fileType === FileTypes.SVG) {
+            conditionalSVGStyleAttribute = {
+                width: dimensions?.width || MIN_IMAGE_SIZE,
+                height: 'auto',
+            };
+        }
+
+        let mergedImgStyle: CSSProperties | undefined = this.props.style;
+        if (conditionalSVGStyleAttribute) {
+            mergedImgStyle = {...conditionalSVGStyleAttribute, ...this.props.style};
         }
 
         const image = (
@@ -228,6 +270,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
+                style={mergedImgStyle}
             />
         );
 
@@ -248,15 +291,13 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
         const copyLink = (
             <WithTooltip
-                id='single_image_view.copy_link_tooltip.text'
                 title={copyLinkTooltipText}
-                placement='top'
             >
                 <button
                     className={classNames('style--none', 'size-aware-image__copy_link', {
                         'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
                     })}
-                    aria-label={localizeMessage('single_image_view.copy_link_tooltip', 'Copy link')}
+                    aria-label={intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
@@ -282,8 +323,6 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
         const download = (
             <WithTooltip
-                id='single_image_view.download_tooltip.text'
-                placement='top'
                 title={downloadTooltipText}
             >
                 <a
@@ -293,7 +332,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className='style--none size-aware-image__download'
                     download={true}
                     role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={localizeMessage('single_image_view.download_tooltip', 'Download')}
+                    aria-label={intl.formatMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
                 >
                     <DownloadOutlineIcon
                         className={'style--none'}
@@ -303,12 +342,8 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
+        let utilityButtons;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            let className = 'small-image__container cursor--pointer a11y--active';
-            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
-                className += ' small-image__container--min-width';
-            }
-
             // 24 is the offset on a 48px wide image, for every pixel added to the width of the image, it's added to the left offset to buttons
             const wideImageButtonsOffset = (24 + this.state.imageWidth) - MIN_IMAGE_SIZE;
 
@@ -324,39 +359,23 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
 
             // since there is a max-width constraint on images, a max-left clause follows.
             const leftStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px)`,
+                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px))`,
             } : {};
 
-            const wideSmallImageStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                width: this.state.imageWidth + 2, // 2px to account for the border
-            } : {};
-            return (
-                <div
-                    className='small-image-utility-buttons-wrapper'
+            utilityButtons = (
+                <span
+                    className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
+                        'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
+                    })}
+                    style={leftStyle}
                 >
-                    <div
-                        onClick={this.handleImageClick}
-                        className={classNames(className)}
-                        style={wideSmallImageStyle}
-                    >
-                        {image}
-                    </div>
-                    <span
-                        className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
-                            'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
-                        })}
-                        style={leftStyle}
-                    >
-                        {enablePublicLink && copyLink}
-                        {download}
-                    </span>
-                </div>
+                    {enablePublicLink && copyLink}
+                    {download}
+                </span>
             );
-        }
-
-        // handling external small images (OR) handling all large internal / large external images
-        const utilityButtonsWrapper = this.props.hideUtilities || (this.state.isSmallImage && !this.isInternalImage) ? null :
-            (
+        } else if (!this.props.hideUtilities && (!this.state.isSmallImage || this.isInternalImage)) {
+            // handling external small images (OR) handling all large internal / large external images
+            utilityButtons = (
                 <span
                     className={classNames('image-preview-utility-buttons-container', {
 
@@ -369,11 +388,16 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     {download}
                 </span>
             );
-        return (
-            <figure className={classNames('image-loaded-container')}>
+        }
+
+        const shouldShowImg = !renderPlaceholderOnly && (!this.dimensionsAvailable(dimensions) || this.state.loaded);
+
+        return this.renderImageContainer(
+            <>
                 {image}
-                {utilityButtonsWrapper}
-            </figure>
+                {utilityButtons}
+            </>,
+            shouldShowImg ? 'block' : 'none',
         );
     };
 
@@ -382,66 +406,79 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             fileInfo,
         } = this.props;
+        const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
 
         let fallback;
 
-        if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
+        if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
             const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
             const height = (dimensions?.height ?? 0) * ratio;
             const width = (dimensions?.width ?? 0) * ratio;
 
-            const miniPreview = getFileMiniPreviewUrl(fileInfo);
+            // Placeholder-only mode reserves layout without rendering image-derived content;
+            // rejected files should also avoid preview content.
+            const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
+            const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
-            if (miniPreview) {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
-                    >
-                        <img
-                            aria-label={ariaLabelImage}
-                            className={this.props.className}
-                            src={miniPreview}
-                            tabIndex={0}
-                            height={height}
-                            width={width}
-                        />
-                    </div>
-                );
-            } else {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
-                    >
-                        {this.renderImageLoaderIfNeeded()}
-                        <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox={`0 0 ${width} ${height}`}
-                            style={{maxHeight: height, maxWidth: width, verticalAlign: 'middle'}}
-                        />
-                    </div>
-                );
-            }
+            const fallbackSrc = miniPreview ?? emptyImageForDimensions(width, height);
+
+            fallback = this.renderImageContainer(
+                <div className={'image-loading__container'}>
+                    {this.renderImageLoaderIfNeeded()}
+                    <img
+                        role='presentation'
+                        aria-label={ariaLabelImage}
+                        className={classNames('image-loading__placeholder', this.props.className)}
+                        src={fallbackSrc}
+                        height={height}
+                        width={width}
+                    />
+                </div>,
+            );
         }
 
-        const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
+        return (
+            <>
+                {fallback}
+                {!renderPlaceholderOnly && this.renderImageWithContainerIfNeeded()}
+            </>
+        );
+    };
+
+    renderImageContainer = (children: React.ReactNode, display?: string) => {
+        let containerClass;
+        let containerStyle;
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+            containerClass = 'small-image__container cursor--pointer a11y--active';
+            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
+                containerClass += ' small-image__container--min-width';
+            }
+
+            containerStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
+                width: this.state.imageWidth + 2, // 2px to account for the border
+            } : {};
+        } else {
+            containerClass = 'image-loaded-container';
+        }
 
         return (
-            <React.Fragment>
-                {fallback}
-                <div
-                    className='file-preview__button'
-                    style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+            <div
+                className='file-preview__button'
+                onClick={this.handleImageClick}
+                style={{display}}
+            >
+                <figure
+                    className={containerClass}
+                    style={containerStyle}
                 >
-                    {this.renderImageWithContainerIfNeeded()}
-                </div>
-            </React.Fragment>
+                    {children}
+                </figure>
+            </div>
         );
     };
 
@@ -487,3 +524,15 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
     }
 }
+
+// Returns a transparent SVG data URI with the given intrinsic dimensions. Used as the src of the
+// placeholder image so it reserves exactly the same space (once clamped by CSS) as the real image.
+// The viewBox is required in addition to width/height: without it Firefox doesn't give the SVG an
+// intrinsic aspect ratio when used as an <img>, so the placeholder collapses instead of reserving the
+// image's box (Chrome infers the ratio from width/height alone, but Firefox does not).
+function emptyImageForDimensions(width: number, height: number): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"/>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+export default injectIntl(SizeAwareImage);

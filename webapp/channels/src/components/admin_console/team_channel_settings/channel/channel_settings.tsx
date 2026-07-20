@@ -8,9 +8,9 @@ import ChannelsList from 'components/admin_console/team_channel_settings/channel
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-interface Props {
+type Props = {
     siteName?: string;
-}
+};
 
 export const ChannelsSettings = ({siteName}: Props) => {
     return (

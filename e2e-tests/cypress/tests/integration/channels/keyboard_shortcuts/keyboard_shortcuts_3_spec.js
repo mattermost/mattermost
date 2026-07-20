@@ -9,7 +9,7 @@
 
 // Group: @channels @keyboard_shortcuts
 
-import {isMac} from '../../../utils';
+import {isMac} from '@/utils';
 
 describe('Keyboard Shortcuts', () => {
     const count = 5;

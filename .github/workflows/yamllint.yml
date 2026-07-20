@@ -1,0 +1,28 @@
+name: YAML Lint
+
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".yamllint"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Lint workflow YAML files
+        run: yamllint .github/workflows/

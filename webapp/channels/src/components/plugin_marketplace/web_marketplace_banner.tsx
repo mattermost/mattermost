@@ -46,7 +46,7 @@ const ExternalBannerLink = styled(ExternalLink)`
     &&,
     &&:hover,
     &&:focus {
-        color: var(--denim-center-channel-bg, #FFF);
+        color: var(--center-channel-bg, #FFF);
         text-decoration: none;
     }
     && {
@@ -75,6 +75,7 @@ const Title = styled.div`
     line-height: 24px;
     margin: 4px 0;
     grid-column: 1;
+    color: var(--neutral-0, #FFF);
 
     svg {
         vertical-align: middle;
@@ -91,6 +92,7 @@ const Description = styled.p`
     line-height: 20px;
     grid-column: 1;
     margin-bottom: 4px;
+    color: var(--neutral-0, #FFF);
 `;
 
 const PluginIcon = styled.img`

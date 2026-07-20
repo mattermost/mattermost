@@ -1,0 +1,300 @@
+---
+title: "Deploy Mattermost with the Mattermost Operator"
+sidebar_label: "Mattermost Operator"
+---
+You can use the Mattermost Kubernetes Operator to deploy Mattermost on Kubernetes using S3-compatible storage and a managed database service. While the operator supports a range of configurations, we strongly recommend using a cloud-native approach for production environments.
+
+<Tip>
+
+**Need a FIPS / STIG-compliant image?** Point the Operator manifest's `version`/image field at `mattermost/mattermost-enterprise-fips-edition` image and the rest of this procedure is unchanged. See [FIPS / STIG container builds](/deployment-guide/server/containers/fips-stig).
+
+</Tip>
+
+Before you begin, ensure you have the following:
+
+- A functioning Kubernetes cluster (see the [Kubernetes setup guide](https://kubernetes.io/docs/setup/)). Your cluster should be running a [supported Kubernetes version](https://kubernetes.io/releases/).
+- The <code>kubectl</code> command-line tool installed on your local machine (see the [kubectl installation guide](https://kubernetes.io/docs/reference/kubectl/)).
+- A fundamental understanding of Kubernetes concepts, such as deployments, pods, and applying manifests.
+- Sufficient Kubernetes resources allocated based on your expected user load. Consult the [scaling for Enterprise](/administration-guide/scale/scaling-for-enterprise#available-reference-architectures) documentation for resource requirements at different scales.
+
+## Installation steps
+
+The installation process involves setting up necessary operators and then deploying Mattermost itself.
+
+### Step 1: Install the NGINX Ingress Controller
+
+Follow the instructions in the [Kubernetes deployment documentation](https://kubernetes.github.io/ingress-nginx/deploy/) to install the NGINX ingress controller on your Kubernetes cluster. Mattermost recommends installing the Nginx Operator via helm, regardless of platform you are installing to.
+
+### Step 2: Install the Mattermost Operator
+
+The Mattermost Kubernetes Operator can be installed using Helm.
+
+1.  Install Helm (version 3.13.0 or later). See the [Helm quickstart documentation](https://helm.sh/docs/using_helm/) for installation instructions.
+2.  Add the Mattermost Helm repository:
+
+> ``` sh
+> helm repo add mattermost https://helm.mattermost.com
+> ```
+
+3.  Create a file named `config.yaml` and populate it with the contents of the [Mattermost operator values file](https://github.com/mattermost/mattermost-helm/blob/master/charts/mattermost-operator/values.yaml). This file allows for customization of the operator.
+4.  Create a namespace for the Mattermost Operator:
+
+> ``` sh
+> kubectl create ns mattermost-operator
+> ```
+
+5.  Install the Mattermost Operator. If you don't specify a version, the latest version of the Mattermost Operator will be installed. We recommend using the latest version of the Mattermost Operator.
+
+> ``` sh
+> helm install &lt;your-release-name&gt; mattermost/mattermost-operator -n <namespace_name>
+> ```
+>
+> For example:
+>
+> ``` sh
+> helm install mattermost-operator mattermost/mattermost-operator -n mattermost-operator
+> ```
+>
+> To use your custom `config.yaml` file:
+>
+> ``` sh
+> helm install mattermost-operator mattermost/mattermost-operator -n mattermost-operator -f config.yaml
+> ```
+
+### Step 3: Deploy Mattermost
+
+<Note>
+
+- A Mattermost Enterprise license is required for multi-server deployments.
+- For single-server deployments without an Enterprise license, add `Replicas: 1` to the `spec` section in step 2 below. See the [high availability documentation](/administration-guide/scale/high-availability-cluster-based-deployment) for more on highly-available deployments.
+
+</Note>
+
+1.  **(Mattermost Enterprise only)** Create a Mattermost license secret. Create a file named `mattermost-license-secret.yaml` with the following content, replacing `[LICENSE_FILE_CONTENTS]` with your actual license:
+
+> ``` yaml
+> apiVersion: v1
+> kind: Secret
+> metadata:
+>   name: my-mattermost-license
+> type: Opaque
+> stringData:
+>   license: <LICENSE_FILE_CONTENTS>
+> ```
+
+2.  Create a Mattermost installation manifest file named `mattermost-installation.yaml`. File names in this guide are suggestions; you can use different names. Use the following template, adjusting the values as needed:
+
+> ``` yaml
+> apiVersion: installation.mattermost.com/v1beta1
+> kind: Mattermost
+> metadata:
+>   name: <INSTALLATION_NAME_HERE>        # Example: mm-example-full
+> spec:
+>   size: <SIZE_VALUE_HERE>               # Example: 5000users
+>   ingress:
+>     enabled: true
+>     host: <FULL_DOMAIN_NAME_HERE>       # Example: example.mattermost-example.com
+>     annotations:
+>       kubernetes.io/ingress.class: nginx
+> version: <VERSION_HERE>               # Example: 9.3.0
+> licenseSecret: ""                     # If you created a license secret, put the name here
+> ```
+>
+> Key fields in the manifest include:
+>
+> - `metadata.name`: The name of your Mattermost deployment in Kubernetes.
+> - `spec.size`: The size of your installation (e.g., "100users", "1000users", etc.).
+> - `spec.ingress.host`: The DNS name for your Mattermost installation.
+> - `spec.version`: The Mattermost version. See the [server version archive](/product-overview/version-archive) for available versions. You should use a [supported version](/product-overview/release-policy) of Mattermost in conjunction with the latest version of the Mattermost Operator.
+> - `spec.licenseSecret`: The name of the Kubernetes secret containing your license (required for Enterprise).
+>
+> For a full list of configurable fields, see the [example manifest](https://github.com/mattermost/mattermost-operator/blob/master/docs/examples/mattermost_full.yaml) and the [Custom Resource Definition](https://github.com/mattermost/mattermost-operator/blob/master/config/crd/bases/installation.mattermost.com_mattermosts.yaml).
+
+3.  Create a file named `mattermost-database-secret.yaml` for database credentials. This secret must be in the same namespace as the Mattermost installation.
+
+> ``` yaml
+> apiVersion: v1
+> data:
+>   DB_CONNECTION_CHECK_URL: <DB_CONNECTION_CHECK_URL>
+>   DB_CONNECTION_STRING: <DB_CONNECTION_STRING>
+>   MM_SQLSETTINGS_DATASOURCEREPLICAS: <MM_SQLSETTINGS_DATASOURCEREPLICAS>
+> kind: Secret
+> metadata:
+>   name: my-postgres-connection
+> type: Opaque
+> ```
+>
+> Example for AWS Aurora with PostgreSQL (`DB_CONNECTION_CHECK_URL`, `DB_CONNECTION_STRING`, and `MM_SQLSETTINGS_DATASOURCEREPLICAS` are the base64-encoded form of your Aurora connection URL, e.g. `postgres://user:password@host:5432/mattermost`):
+>
+> ``` yaml
+> apiVersion: v1
+> data:
+>   DB_CONNECTION_CHECK_URL: cG9zdGdyZXM6Ly91c2Vy...  # base64-encoded connection URL
+>   DB_CONNECTION_STRING: cG9zdGdyZXM6Ly91c2Vy...     # base64-encoded connection URL
+>   MM_SQLSETTINGS_DATASOURCEREPLICAS: cG9zdGdyZXM6...  # base64-encoded replica URL
+> kind: Secret
+> metadata:
+>   name: my-postgres-connection
+> type: Opaque
+> ```
+
+<Note>
+
+The `DB_CONNECTION_CHECK_URL` value is consumed by the operator's legacy `postgres:13` + `pg_isready` readiness init container (the default `external` mode of `spec.database.readinessCheck`). New deployments are encouraged to set `spec.database.readinessCheck.mode: builtin` (see Step 5 below), in which case the readiness init container runs the in-image `mattermost db ping` command and the `DB_CONNECTION_CHECK_URL` field is no longer required. The legacy `external` mode remains the default for backward compatibility but is slated for deprecation in a future operator release.
+
+</Note>
+
+### Step 4: Create the Filestore Secret
+
+Create a file named `mattermost-filestore-secret.yaml` to store the credentials for your object storage service (e.g., AWS S3 or any S3-compatible service). This secret must be created in the same namespace where you intend to install Mattermost. The file should contain the following YAML structure:
+
+``` yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <secret-name>  # Choose a descriptive name (e.g., my-s3-credentials)
+type: Opaque
+data:
+  accesskey: <base64-encoded-access-key>
+  secretkey: <base64-encoded-secret-key>
+```
+
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>accesskey</td>
+<td>Base64-encoded access key for your storage service.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>secretkey</td>
+<td>Base64-encoded secret key for your storage service.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>metadata.name</td>
+<td>The name of the Kubernetes secret.</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+
+<Important>
+
+The `accesskey` and `secretkey` values must be **base64-encoded**. Do not enter the raw keys directly. Use a command-line tool to generate the base64 strings.
+
+**Example (AWS S3):**
+
+``` yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-s3-credentials
+type: Opaque
+data:
+  accesskey: QUNDRVNTX0tFWQo=  # Example: Replace with your actual encoded key
+  secretkey: U1VQRVJfU0VDUkVUX0tFWQo=  # Example: Replace with your actual encoded key
+```
+
+</Important>
+
+### Step 5: Configure the Mattermost Installation Manifest
+
+1.  Modify the `mattermost-installation.yaml` file (created in step 2) to connect Mattermost to your external database and object storage. Refer to the supported fields for guidance on where to add these configurations within the YAML structure.
+2.  Connect to the database:
+
+> 1.  Add the following to the `spec` section of your manifest:
+>
+> > ``` yaml
+> > spec:
+> >   database:
+> >     external:
+> >       secret: &lt;database-secret-name&gt;  # The name of the database secret (e.g., my-postgres-connection)
+> > ```
+>
+> 2.  **(Recommended)** Configure the database-readiness init container to use the in-image `mattermost db ping` command instead of the legacy `postgres:13` + `pg_isready` flow. This avoids the need to pull a separate `postgres:13` image (the primary motivation for air-gapped clusters that can't mirror it) and keeps your readiness check in sync with the Mattermost release you're running.
+>
+> > ``` yaml
+> > spec:
+> >   database:
+> >     external:
+> >       secret: <database-secret-name>
+> >     readinessCheck:
+> >       mode: builtin
+> >       timeout: 5m   # optional; default is 5m
+> > ```
+>
+> Using `builtin` mode requires a Mattermost release that ships the `mattermost db ping` command (see the [Mattermost server pull request](https://github.com/mattermost/mattermost/pull/36406) for availability).
+>
+> Omitting `readinessCheck` (or setting `mode: external`) preserves the legacy `postgres:13` + `pg_isready` behavior. The legacy mode is the current default for backward compatibility and will be deprecated in a future operator release. See the [Mattermost CRD reference](https://github.com/mattermost/mattermost-operator/blob/master/docs/mattermost_v1beta1_crd.md) for the full `readinessCheck` field schema.
+
+3.  Connect to Object Storage:
+
+> 1.  Add the following to the `spec` section of your manifest:
+>
+> > ``` yaml
+> > spec:
+> >   fileStore:
+> >     external:
+> >       url: &lt;storage-service-url&gt;  # The URL of your storage service (e.g., s3.amazonaws.com)
+> >       bucket: &lt;bucket-name&gt;      # The name of your storage bucket
+> >       secret: &lt;filestore-secret-name&gt; # The name of the filestore secret (e.g., my-s3-credentials)
+> > ```
+
+4.  If you are using Amazon S3, it's recommended to enable server-side encryption (SSE) and SSL. Add the following environment variables to the `mattermostEnv` section:
+
+> ``` yaml
+> spec:
+>   mattermostEnv:
+>     MM_FILESETTINGS_AMAZONS3SSL: true
+>     MM_FILESETTINGS_AMAZONS3SSE: true
+> ```
+
+## Review Mattermost Resource Status
+
+After a Mattermost installation has been created with the Operator, you can review its status with the following:
+
+``` sh
+kubectl -n [namespace] get mattermost
+```
+
+The `kubectl describe` command can be used to obtain more information about the Mattermost server pods:
+
+``` sh
+kubectl -n [namespace] describe pod
+```
+
+**Follow logs**
+
+The following command can be used to follow logs on any kubernetes pod:
+
+``` sh
+kubectl -n [namespace] logs -f [pod name]
+```
+
+If the `-n [namespace]` is omitted, then the default namespace of the current context is used. We recommend specifying the namespace based on your deployment.
+
+This command can be used to review the Mattermost Operator or Mattermost server logs as needed.
+
+<Note>
+
+- If you're new to Kubernetes or prefer a managed solution, consider using a service like [Amazon EKS](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-ca/products/kubernetes-service/), [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/), or [DigitalOcean Kubernetes](https://www.digitalocean.com/products/kubernetes/). While this guidance focuses on using external, managed services for your database and file storage, the Mattermost Operator *does* offer the flexibility to use other solutions. For example, you could choose to deploy a PostgreSQL database within your Kubernetes cluster using the CloudNative PG operator (or externally however you wish), or use any self-hosted S3-compatible storage service.
+- While using managed cloud services is generally simpler to maintain and our recommended approach for production deployments, using self-managed S3-compatible storage services and CloudNative PG for PostgreSQL are also valid options if you have the expertise to manage them.
+- If you choose to use self-managed components, you'll need to adapt the instructions accordingly, pointing to your internal services instead.
+- To customize your production deployment, refer to the [configuration settings documentation](/administration-guide/configure/configuration-settings).
+- If you encounter issues during deployment, consult the [deployment troubleshooting guide](/deployment-guide/deployment-troubleshooting).
+
+</Note>
+
+## Frequently Asked Questions
+
+### What is the Operator's version compatibility with Mattermost Server?
+
+While generally speaking, the Operator should be compatible with most, or all versions of Mattermost Server, we recommend always using the latest version of the Operator in conjunction with a [supported version](/product-overview/release-policy) of Mattermost Server.

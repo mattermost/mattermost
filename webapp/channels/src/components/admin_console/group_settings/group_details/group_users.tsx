@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-
-import {getSiteURL} from 'utils/url';
 
 const GROUP_MEMBERS_PAGE_SIZE = 20;
 
@@ -21,10 +22,11 @@ type Props = {
     groupID: string;
     members: UserProfile[];
     total: number;
+    source?: string;
     getMembers: (
         id: string,
         page?: number,
-        perPage?: number
+        perPage?: number,
     ) => Promise<ActionResult>;
 };
 
@@ -132,41 +134,64 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                         }}
                     />
                 </div>
-                <button
+                <Button
                     type='button'
-                    className={
-                        'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')
-                    }
+                    emphasis='tertiary'
+                    className={classNames('prev', {disabled: firstPage})}
                     onClick={this.previousPage}
                     disabled={firstPage}
                 >
                     <PreviousIcon/>
-                </button>
-                <button
+                </Button>
+                <Button
                     type='button'
-                    className={
-                        'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')
-                    }
+                    emphasis='tertiary'
+                    className={classNames('next', {disabled: lastPage})}
                     onClick={this.nextPage}
                     disabled={lastPage}
                 >
                     <NextIcon/>
-                </button>
+                </Button>
             </div>
         );
+    };
+
+    renderHeader = () => {
+        if (this.props.source === GroupSource.Ldap) {
+            return (
+                <FormattedMessage
+                    id='admin.group_settings.group_profile.group_users.ldapConnectorText'
+                    defaultMessage={
+                        'AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>'
+                    }
+                    values={{
+                        a: (chunks) => (
+                            <Link to='/admin_console/authentication/ldap'>
+                                {chunks}
+                            </Link>
+                        ),
+                    }}
+                />
+            );
+        }
+
+        if (this.props.source?.startsWith(PluginGroupSourcePrefix.Plugin)) {
+            return (
+                <FormattedMessage
+                    id='admin.group_settings.group_profile.group_users.pluginGroupText'
+                    defaultMessage='This group is managed by a plugin.'
+                />
+            );
+        }
+
+        return null;
     };
 
     render = () => {
         return (
             <div className='group-users'>
                 <div className='group-users--header'>
-                    <FormattedMarkdownMessage
-                        id='admin.group_settings.group_profile.group_users.ldapConnector'
-                        defaultMessage={
-                            'AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)'
-                        }
-                        values={{siteURL: getSiteURL()}}
-                    />
+                    {this.renderHeader()}
                 </div>
                 <div className='group-users--body'>
                     <div

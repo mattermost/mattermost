@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
-
 import icon50 from 'images/icon50x50.png';
-import iconWS from 'images/icon_WS.png';
-import * as UserAgent from 'utils/user_agent';
+
+import type {ThunkActionFunc} from 'types/store';
 
 export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
     reason?: string;
     data?: string;
-}
+};
 
 let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
@@ -25,6 +23,14 @@ let requestedNotificationPermission = Boolean('Notification' in window && Notifi
 export interface ShowNotificationParams {
     title: string;
     body: string;
+
+    /**
+     * Opaque, non-content identifier used as the Web Notifications API tag.
+     * Callers may pass a stable id when they need replacement semantics. When
+     * omitted, the tag is left empty so no user-visible notification text reaches
+     * the tag field (see #36297 / MM-68537).
+     */
+    tag?: string;
     requireInteraction: boolean;
     silent: boolean;
     onClick?: (this: Notification, e: Event) => any | null;
@@ -34,6 +40,7 @@ export function showNotification(
     {
         title,
         body,
+        tag,
         requireInteraction,
         silent,
         onClick,
@@ -45,11 +52,6 @@ export function showNotification(
     },
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
     return async () => {
-        let icon = icon50;
-        if (UserAgent.isEdge()) {
-            icon = iconWS;
-        }
-
         if (!isNotificationAPISupported()) {
             throw new Error('Notification API is not supported');
         }
@@ -78,8 +80,16 @@ export function showNotification(
 
         const notification = new Notification(title, {
             body,
-            tag: body,
-            icon,
+
+            // Use the explicit opaque tag when the caller provides one; otherwise keep it empty.
+            // Notification text must never reach the tag field:
+            // Chromium-based browsers serialise tag into the notification
+            // activation command line via --notification-launch-id
+            // (https://notifications.spec.whatwg.org/#dom-notification-tag), where endpoint
+            // detection tools log it and ship it to customer SIEM pipelines that were never in
+            // scope to receive chat content. See #36297 / MM-68537.
+            tag: tag ?? '',
+            icon: icon50,
             requireInteraction,
             silent,
         });
@@ -105,7 +115,15 @@ export function isNotificationAPISupported() {
     return ('Notification' in window) && (typeof Notification.requestPermission === 'function');
 }
 
-export async function requestNotificationPermission() {
+export function getNotificationPermission(): NotificationPermission | null {
+    if (!isNotificationAPISupported()) {
+        return null;
+    }
+
+    return Notification.permission;
+}
+
+export async function requestNotificationPermission(): Promise<NotificationPermission | null> {
     if (!isNotificationAPISupported()) {
         return null;
     }
@@ -113,7 +131,11 @@ export async function requestNotificationPermission() {
     try {
         const notificationPermission = await Notification.requestPermission();
         return notificationPermission;
-    } catch (error) {
+    } catch {
         return null;
     }
 }
+
+export const NotificationPermissionNeverGranted = 'default';
+export const NotificationPermissionGranted = 'granted';
+export const NotificationPermissionDenied = 'denied';

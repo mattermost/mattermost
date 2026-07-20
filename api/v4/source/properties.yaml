@@ -1,0 +1,757 @@
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields":
+    post:
+      tags:
+        - properties
+      summary: Create a property field
+      description: >
+        Create a new property field for a specific group and object type.
+      operationId: CreatePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+                - target_type
+              properties:
+                name:
+                  type: string
+                  description: The name of the property field
+                type:
+                  type: string
+                  description: The type of property field
+                  enum: [text, select, multiselect, date, user, multiuser]
+                attrs:
+                  type: object
+                  description: Additional attributes for the property field
+                target_type:
+                  type: string
+                  description: The scope level of the property
+                target_id:
+                  type: string
+                  description: The ID of the target
+                permission_field:
+                  type: string
+                  enum: [none, sysadmin, member, admin]
+                  description: >
+                    Permission level for editing the field definition.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_values:
+                  type: string
+                  enum: [none, sysadmin, member, admin]
+                  description: >
+                    Permission level for setting values on objects.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_options:
+                  type: string
+                  enum: [none, sysadmin, member, admin]
+                  description: >
+                    Permission level for managing options on select/multiselect fields.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+                linked_field_id:
+                  type: string
+                  description: >
+                    The ID of a template field to link to. The source must be a
+                    template field in the same group, must not itself be linked, and must
+                    not be deleted. When set, the created field inherits the source's type,
+                    options, and security attributes; the `type` field in the request body
+                    is ignored. Can only be set at creation time.
+        description: Property field object to create
+        required: true
+      responses:
+        "201":
+          description: Property field creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: >
+            A property field with the same name already exists at the same or a
+            conflicting hierarchy level.
+          $ref: "#/components/responses/Conflict"
+    get:
+      tags:
+        - properties
+      summary: Get property fields
+      description: >
+        Get a list of property fields for a specific group and object type. Uses cursor-based pagination.
+
+
+        **Scope modes (mutually exclusive):**
+
+
+        - **Hierarchical scope** (`channel_id` and/or `team_id`): returns fields scoped to the named resource *and every ancestor scope above it*. System-level rows are always included; team-level rows are included when `team_id` is set; channel-level rows are included only when `channel_id` is set. When `channel_id` is provided, the channel's team is resolved server-side, so any `team_id` the caller passes is ignored. For DM and GM channels there is no parent team, so the hierarchy collapses to `system → channel` and no team-scoped rows are returned. Requires the caller to have `read_channel` for the channel and/or `view_team` for the team.
+
+
+        - **Single-target scope** (`target_type` + `target_id`): returns fields scoped to exactly one resource. `target_type` must be `system`, `team`, or `channel`; `target_id` is required for `team` and `channel`.
+
+
+        Mixing the two modes (any of `channel_id`/`team_id` together with any of `target_type`/`target_id`) returns 400. Omitting both modes also returns 400, except for the system case below.
+
+
+        **System-object:** when `object_type` is `system`, the endpoint always resolves to `target_type=system` and ignores any `channel_id`, `team_id`, `target_type`, or `target_id` the caller may have passed. System-object fields can only live at the system scope by invariant, so any other scope is a semantic no-op rather than an error.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns rows whose `update_at` is **greater than or equal to** the cutoff, *including* tombstoned rows (`delete_at > 0`). The inclusive boundary lets clients safely re-use the highest `update_at` seen on a previous page as the next `since` value without missing rows that happened to share that millisecond. Rows within a delta page are ordered by `(update_at, id)` and the cursor disambiguates same-millisecond rows across pages.
+
+
+        **Cursor source:** the client owns the cursor. The initial delta-sync request omits `since` (or sends `since=0`). For subsequent requests the client persists the `update_at` and `id` of the last row in the response and passes them back as `cursor_update_at` and `cursor_id` alongside the same `since` value. This mirrors the cursor convention used by the shared-channel post-sync API.
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`. Passing the wrong key for the active mode returns 400.
+      operationId: GetPropertyFields
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object to retrieve property fields for
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: query
+          description: >
+            Hierarchical scope. When set, the response includes system-level
+            rows, team-level rows for the channel's team, and channel-level
+            rows for this channel. Mutually exclusive with `target_type` and
+            `target_id`. Requires `read_channel` on the channel.
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: >
+            Hierarchical scope. When set without `channel_id`, the response
+            includes system-level and team-level rows for this team. When
+            `channel_id` is also set, this value is ignored — the channel's
+            team is resolved server-side and used instead. Mutually exclusive
+            with `target_type` and `target_id`. Requires `view_team` on the
+            team.
+          schema:
+            type: string
+        - name: target_type
+          in: query
+          description: >
+            Single-target scope. One of `system`, `team`, or `channel`.
+            Required in single-target mode. Mutually exclusive with `channel_id`
+            and `team_id`.
+          schema:
+            type: string
+            enum:
+              - system
+              - team
+              - channel
+        - name: target_id
+          in: query
+          description: >
+            Single-target scope. Required when `target_type` is `channel` or
+            `team`. Mutually exclusive with `channel_id` and `team_id`.
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns
+            fields with `update_at` greater than or equal to this value,
+            including tombstones.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_id
+          in: query
+          description: The ID of the last property field from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: >
+            The `create_at` timestamp of the last property field from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property field from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property fields per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Property fields retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/properties/groups/{group_name}/fields/search":
+    post:
+      tags:
+        - properties
+      summary: Search property fields across multiple object types
+      description: >
+        Returns matching fields across every requested object type in one
+        response. The request body is a `PropertyFieldSearch` object whose
+        `object_types` field lists the object types to include.
+
+        Scope, `since`, cursor, and permission semantics are identical to the
+        get property fields endpoint, including the system-object collapse:
+        when `object_types` is exactly `["system"]`, any scope or target
+        params in the body are ignored and the endpoint resolves to
+        `target_type=system`. Any other combination without an explicit
+        scope returns 400.
+
+        Requesting a single value in `object_types` is equivalent to calling
+        the singular endpoint and is supported for client uniformity.
+      operationId: SearchPropertyFields
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - object_types
+              properties:
+                object_types:
+                  type: array
+                  minItems: 1
+                  description: >
+                    One or more object types to include in the response. At
+                    least one value is required; unknown values return 400.
+                  items:
+                    type: string
+                    enum:
+                      - post
+                      - channel
+                      - user
+                      - template
+                      - system
+                channel_id:
+                  type: string
+                  description: >
+                    Hierarchical scope. When set, the response includes
+                    system-level rows, team-level rows for the channel's
+                    team, and channel-level rows for this channel across
+                    every requested `object_types`. Mutually exclusive with
+                    `target_type`/`target_id`. Requires `read_channel` on
+                    the channel.
+                team_id:
+                  type: string
+                  description: >
+                    Hierarchical scope. When set without `channel_id`, the
+                    response includes system-level and team-level rows for
+                    this team across every requested `object_types`. When
+                    `channel_id` is also set, this value is ignored — the
+                    channel's team is resolved server-side and used instead.
+                    Mutually exclusive with `target_type`/`target_id`.
+                    Requires `view_team` on the team.
+                target_type:
+                  type: string
+                  enum:
+                    - system
+                    - team
+                    - channel
+                  description: >
+                    Single-target scope. Mutually exclusive with `channel_id`
+                    and `team_id`. Required if no hierarchical scope is
+                    given, except when `object_types` is exactly `["system"]`
+                    — in that case any scope or target params are ignored
+                    and the endpoint resolves to `target_type=system`.
+                target_id:
+                  type: string
+                  description: >
+                    Single-target scope. Required when `target_type` is
+                    `channel` or `team`. Mutually exclusive with `channel_id`
+                    and `team_id`.
+                since:
+                  type: integer
+                  format: int64
+                  description: >
+                    Unix timestamp in milliseconds. When greater than 0,
+                    returns fields with `update_at` greater than or equal
+                    to this value, including tombstones.
+                cursor_id:
+                  type: string
+                  description: The ID of the last property field from the previous page, for cursor-based pagination.
+                cursor_create_at:
+                  type: integer
+                  format: int64
+                  description: >
+                    The `create_at` timestamp of the last property field
+                    from the previous page. Required alongside `cursor_id`
+                    when `since` is absent. Mutually exclusive with
+                    `cursor_update_at`.
+                cursor_update_at:
+                  type: integer
+                  format: int64
+                  description: >
+                    The `update_at` timestamp of the last property field
+                    from the previous page. Required alongside `cursor_id`
+                    when `since` is present. Mutually exclusive with
+                    `cursor_create_at`.
+                per_page:
+                  type: integer
+                  default: 60
+                  description: The number of property fields per page.
+      responses:
+        "200":
+          description: Property fields retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
+    patch:
+      tags:
+        - properties
+      summary: Update a property field
+      description: >
+        Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
+        The `attrs` object uses merge semantics: only the keys present in the patch are updated; omitted keys are preserved. Setting a key to `null` removes it from attrs.
+
+
+        **Immutable fields:** `target_type`, `target_id`, and `object_type` cannot be changed after creation and are ignored if included in the patch.
+
+
+        **Linked fields:** Fields with a `linked_field_id` cannot have their `type` or `attrs.options` modified (returns 400).
+        The `linked_field_id` can only be cleared (set to empty string `""`) to unlink the field; it cannot be changed to a different value.
+        For non-linked fields, `linked_field_id` cannot be set to a new value (linking is only allowed at creation time).
+
+
+        **Propagation:** When a template field's options are updated, the changes propagate atomically to all fields that link to it.
+      operationId: UpdatePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyFieldPatch"
+        description: Property field patch object
+        required: true
+      responses:
+        "200":
+          description: Property field update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            Name conflict with an existing field, or cannot change type of a
+            field that has active linked dependents.
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags:
+        - properties
+      summary: Delete a property field
+      description: >
+        Deletes a property field and all its associated values.
+        Returns 409 Conflict if the field has active linked dependents;
+        unlink or delete dependent fields first.
+      operationId: DeletePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Property field deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            The field has active linked dependents. Unlink or delete dependent
+            fields before deleting the source.
+          $ref: "#/components/responses/Conflict"
+  "/api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}":
+    get:
+      tags:
+        - properties
+      summary: Get property values for a target
+      description: >
+        Get all property values for a specific target within a group. Uses cursor-based pagination.
+        The `template` object type cannot have values and will return 400.
+        The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows.
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
+      operationId: GetPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns
+            values with `update_at` greater than or equal to this value,
+            including tombstones.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_id
+          in: query
+          description: The ID of the last property value from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: >
+            The `create_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property values per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Property values retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - properties
+      summary: Update property values for a target
+      description: >
+        Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
+        The `template` object type cannot have values and will return 400.
+        The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
+      operationId: UpdatePropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - field_id
+                  - value
+                properties:
+                  field_id:
+                    type: string
+                    description: The ID of the property field
+                  value:
+                    description: The value to set for this property. Can be any JSON type.
+        description: Array of property values to update
+        required: true
+      responses:
+        "200":
+          description: Property values update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/properties/groups/{group_name}/system/values":
+    get:
+      tags:
+        - properties
+      summary: Get property values for the system
+      description: >
+        Get all property values attached to the Mattermost instance itself
+        within a group. System-scoped values are readable by any authenticated
+        user. This endpoint is the dedicated route for `system` object type;
+        the `{object_type}/values/{target_id}` route returns 400 for `system`.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstones.
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
+      operationId: GetSystemPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns
+            values with `update_at` greater than or equal to this value,
+            including tombstones.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_id
+          in: query
+          description: The ID of the last property value from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: >
+            The `create_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property values per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: System property values retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags:
+        - properties
+      summary: Update property values for the system
+      description: >
+        Update one or more property values attached to the Mattermost instance
+        itself. Uses upsert semantics: creates the value if it doesn't exist,
+        updates it if it does. Requires system administrator access. All field
+        IDs must reference `system` object-type fields in the specified group;
+        template field IDs are rejected with 400.
+      operationId: UpdateSystemPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - field_id
+                  - value
+                properties:
+                  field_id:
+                    type: string
+                    description: The ID of the property field
+                  value:
+                    description: The value to set for this property. Can be any JSON type.
+        description: Array of property values to update
+        required: true
+      responses:
+        "200":
+          description: System property values update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 type Props = {
     username: string;
     haveOverrideProp: boolean;
-}
+};
 const ProfilePopoverOverrideDisclaimer = ({
     username,
     haveOverrideProp,

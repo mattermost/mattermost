@@ -1,0 +1,49 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.KeepRemoveFlaggedMessageConfirmationModal {
+    width: 704px;
+
+    .modal-content {
+        width: 704px;
+    }
+
+    .modal-footer {
+        // Allow the custom footer row to span the full width and use space-between layout.
+        justify-content: stretch;
+    }
+
+    .body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .request_error {
+            display: flex;
+            width: 90%;
+            align-items: center;
+            color: var(--error-text);
+            font-size: 12px;
+        }
+    }
+
+    .ModalFooterRow {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+
+        &__left,
+        &__right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skipReportBtn,
+        .skipReportBtn:hover {
+            color: var(--error-text);
+        }
+    }
+}

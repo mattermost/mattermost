@@ -27,7 +27,7 @@ type Props = {
     customStyles?: CSSProperties;
     className?: string;
     listId?: string;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -128,9 +128,9 @@ export default class Menu extends React.PureComponent<Props> {
                 aria-label={ariaLabel}
                 className='a11y__popup Menu'
                 id={id}
-                role='menu'
             >
                 <ul
+                    role='menu'
                     id={listId}
                     ref={this.node}
                     style={styles}

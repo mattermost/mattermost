@@ -36,18 +36,14 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 		Columns("Id", "CreateAt", "Bytes").
 		Values(license.Id, license.CreateAt, license.Bytes)
 
-	if ls.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (Id) DO NOTHING"))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (Id) DO NOTHING"))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return errors.Wrap(err, "license_tosql")
 	}
 
-	if _, err := ls.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := ls.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrapf(err, "failed to insert License with licenseId=%s", license.Id)
 	}
 
@@ -57,7 +53,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 // Get obtains the license with the provided id parameter from the database.
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
-func (ls SqlLicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, error) {
+func (ls SqlLicenseStore) Get(rctx request.CTX, id string) (*model.LicenseRecord, error) {
 	query := ls.getQueryBuilder().
 		Select("Id, CreateAt, Bytes").
 		From("Licenses").
@@ -69,7 +65,7 @@ func (ls SqlLicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, e
 	}
 
 	license := &model.LicenseRecord{}
-	if err := ls.DBXFromContext(c.Context()).Get(license, queryString, args...); err != nil {
+	if err := ls.DBXFromContext(rctx.Context()).Get(license, queryString, args...); err != nil {
 		return nil, store.NewErrNotFound("License", id)
 	}
 	return license, nil
@@ -86,7 +82,7 @@ func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 	}
 
 	licenses := []*model.LicenseRecord{}
-	if err := ls.GetReplicaX().Select(&licenses, queryString); err != nil {
+	if err := ls.GetReplica().Select(&licenses, queryString); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch licenses")
 	}
 

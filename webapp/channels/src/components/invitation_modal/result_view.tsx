@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
@@ -14,7 +17,7 @@ import type {InviteResult} from './result_table';
 export type InviteResults = {
     sent: InviteResult[];
     notSent: InviteResult[];
-}
+};
 
 export type ResultState = {
     sent: InviteResult[];
@@ -86,20 +89,20 @@ export default function ResultView(props: Props) {
                     />
                 )}
             </Modal.Body>
-            <Modal.Footer className={props.footerClass}>
-                <button
+            <Modal.Footer className={classNames('InviteView__footer', props.footerClass)}>
+                <Button
                     onClick={props.inviteMore}
-                    className='btn btn-tertiary ResultView__inviteMore'
+                    emphasis='tertiary'
                     data-testid='invite-more'
                 >
                     <FormattedMessage
                         id='invitation_modal.invite.more'
                         defaultMessage='Invite More People'
                     />
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={props.onDone}
-                    className='btn btn-primary'
+                    emphasis='primary'
                     data-testid='confirm-done'
                     aria-label='Close'
                     title='Close'
@@ -108,7 +111,7 @@ export default function ResultView(props: Props) {
                         id='invitation_modal.confirm.done'
                         defaultMessage='Done'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </>
     );

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import UpdateUserGroupModal from './update_user_group_modal';
 
@@ -33,11 +34,11 @@ describe('component/update_user_group_modal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <UpdateUserGroupModal
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

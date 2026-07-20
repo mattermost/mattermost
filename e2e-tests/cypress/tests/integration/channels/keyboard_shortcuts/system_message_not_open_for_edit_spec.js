@@ -11,8 +11,12 @@
 // Group: @channels @keyboard_shortcuts
 
 describe('Keyboard Shortcuts', () => {
+    let testTeam;
+
     before(() => {
-        cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+        cy.apiInitSetup({loginAfter: true}).then(({team, offTopicUrl}) => {
+            testTeam = team;
+
             // # Visit off-topic channel
             cy.visit(offTopicUrl);
         });
@@ -25,14 +29,9 @@ describe('Keyboard Shortcuts', () => {
         // # Post message in the channel from User
         cy.postMessage(message);
 
-        // # Open the edit the channel header modal
-        cy.get('[aria-label="Set header dialog"]').click();
-
-        // * Verify modal is open
-        cy.findByRole('dialog', {name: 'Edit Header for Off-Topic'}).within(() => {
-            // # Enter new header and save
-            cy.findByRole('textbox', {name: 'edit the channel header...'}).type(newHeader);
-            cy.uiSave();
+        // # Update channel header via API to generate a system message
+        cy.apiGetChannelByName(testTeam.name, 'off-topic').then(({channel}) => {
+            cy.apiPatchChannel(channel.id, {header: newHeader});
         });
 
         // * Wait for the system message to be posted

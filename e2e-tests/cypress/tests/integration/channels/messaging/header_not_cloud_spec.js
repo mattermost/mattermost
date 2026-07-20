@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @messaging @plugin @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {matterpollPlugin} from '../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {matterpollPlugin} from '@/utils/plugins';
 
 describe('Header', () => {
     before(() => {
@@ -51,7 +51,7 @@ describe('Header', () => {
         // # Open a DM with the bot
         cy.uiAddDirectMessage().click().wait(TIMEOUTS.ONE_SEC);
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             typeWithForce('matterpoll').wait(TIMEOUTS.ONE_SEC).
             typeWithForce('{enter}');
         cy.get('#selectItems').contains('matterpoll');

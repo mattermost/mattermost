@@ -3,13 +3,16 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-mme2e_log "Loading variables from .env.cypress"
-if ! [ -f .env.cypress ]; then
-  mme2e_log "Error: .env.cypress is required to exist, for the test cycle to be generated. Aborting." >&2
+TEST_ENV_FILE=".env.$TEST"
+
+mme2e_log "Loading variables from $TEST_ENV_FILE"
+if ! [ -f "$TEST_ENV_FILE" ]; then
+  mme2e_log "Error: $TEST_ENV_FILE is required to exist, for the test cycle to be generated. Aborting." >&2
   exit 1
 fi
 set -a
-. .env.cypress
+# shellcheck disable=SC1090
+. "$TEST_ENV_FILE"
 
 if [ -z "${AUTOMATION_DASHBOARD_URL:-}" ]; then
   mme2e_log "AUTOMATION_DASHBOARD_URL is unset. Skipping test cycle generation."
@@ -17,7 +20,7 @@ if [ -z "${AUTOMATION_DASHBOARD_URL:-}" ]; then
 fi
 
 mme2e_log "Generating the test cycle on the Automation Dashboard"
-cd ../cypress
+cd "../$TEST"
 npm i
 # shellcheck disable=SC2086
 exec node --trace-warnings generate_test_cycle.js $TEST_FILTER

@@ -2,16 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {Parser, ProcessNodeDefinitions} from 'html-to-react';
+import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
+
 import AtMention from 'components/at_mention';
-import AtPlanMention from 'components/at_plan_mention';
-import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineActionButton from 'components/inline_action_button';
+import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
-import LinkTooltip from 'components/link_tooltip/link_tooltip';
 import MarkdownImage from 'components/markdown_image';
+import MarkdownListOrdered from 'components/markdown_list_ordered';
+import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
@@ -27,21 +31,31 @@ export type Options = Partial<{
     inlinelatex: boolean;
     postType: string;
     imageProps: {[key: string]: any};
-    atSumOfMembersMentions: boolean;
-    userIds: string[];
     imagesMetadata: any;
     emoji: boolean;
-    messageMetadata: any;
     images: boolean;
-    atPlanMentions: boolean;
     channelId: string;
-}>
+    allowInlineActions: boolean;
+
+    /**
+     * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
+     * something that looks like an at-mention. This defaults to false because the web app currently loads at-mentioned
+     * users automatically for all posts.
+     */
+    fetchMissingUsers: boolean;
+
+    /** Encrypted mm_blocks_actions cookie (ephemeral posts). */
+    mmBlocksActionCookie: string;
+
+    /** integration_format when using mmBlocksActionCookie. */
+    integrationFormat: PostActionIntegrationFormat;
+}>;
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
-}
+};
 
 /*
  * Converts HTML to React components using html-to-react.
@@ -57,7 +71,7 @@ type ProcessingInstruction = {
  * - hasPluginTooltips - If specified, the LinkTooltip component is placed inside links. Defaults to false.
  * - channelId = If specified, to be passed along to ProfilePopover via AtMention
  */
-export function messageHtmlToComponent(html: string, options: Options = {}) {
+export default function messageHtmlToComponent(html: string, options: Options = {}) {
     if (!html) {
         return null;
     }
@@ -97,21 +111,83 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
                 ) : null;
             },
         },
-    ];
-
-    if (options.hasPluginTooltips) {
-        const hrefAttrib = 'href';
-        processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
-            processNode: (node: any, children: any) => {
+        {
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'ol',
+            processNode: (node: any, children: React.ReactNode, index?: number) => {
                 return (
-                    <LinkTooltip
-                        href={node.attribs[hrefAttrib]}
-                        attributes={node.attribs}
+                    <MarkdownListOrdered
+                        key={index}
+                        className={node.attribs.class}
+                        start={node.attribs.start ? parseInt(node.attribs.start, 10) : undefined}
                     >
                         {children}
-                    </LinkTooltip>
+                    </MarkdownListOrdered>
+                );
+            },
+        },
+    ];
+
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) => {
+            if (node.type !== 'tag' || node.name !== 'a' || !node.attribs.href) {
+                return false;
+            }
+            const url = node.attribs.href;
+
+            try {
+                // Use dummy base for relative URLs
+                const urlObj = new URL(url, 'http://mattermost.com');
+                return urlObj.searchParams.get('view') === 'citation';
+            } catch {
+                return false;
+            }
+        },
+        processNode: (node: any, children: any, index?: number) => {
+            return (
+                <InlineEntityLink
+                    key={`inline-entity-${index}`}
+                    url={node.attribs.href}
+                    text={children}
+                />
+            );
+        },
+    });
+
+    if (options.allowInlineActions) {
+        // replaceChildren: false replaces the entire <a> tag (not just its
+        // children) — without it the anchor would remain as a wrapper around
+        // the button, leaving the original mmaction:// href clickable.
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) =>
+                node.type === 'tag' && node.name === 'a' &&
+                typeof node.attribs?.href === 'string' &&
+                node.attribs.href.startsWith('mmaction://'),
+            processNode: (node: any, children: any, index?: number) => (
+                <InlineActionButton
+                    key={`inline-action-${index}`}
+                    href={node.attribs.href}
+                    postId={options.postId || ''}
+                    mmBlocksActionCookie={options.mmBlocksActionCookie}
+                    integrationFormat={options.integrationFormat}
+                >
+                    {children}
+                </InlineActionButton>
+            ),
+        });
+    }
+
+    if (options.hasPluginTooltips) {
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
+            processNode: (node: any, children: any) => {
+                return (
+                    <PluginLinkTooltip nodeAttributes={convertPropsToReactStandard(node.attribs)}>
+                        {children}
+                    </PluginLinkTooltip>
                 );
             },
         });
@@ -132,46 +208,12 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
                         disableHighlight={!mentionHighlight}
                         disableGroupHighlight={disableGroupHighlight}
                         channelId={options.channelId}
+                        fetchMissingUsers={options.fetchMissingUsers}
                     >
                         {children}
                     </AtMention>
                 );
                 return callAtMention;
-            },
-        });
-    }
-
-    if (options.atSumOfMembersMentions) {
-        const mentionAttrib = 'data-sum-of-members-mention';
-        processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node: any) => {
-                const mentionName = node.attribs[mentionAttrib];
-                const sumOfMembersMention = (
-                    <AtSumOfMembersMention
-                        postId={options.postId || ''}
-                        userIds={options.userIds || []}
-                        messageMetadata={options.messageMetadata}
-                        text={mentionName}
-                    />);
-                return sumOfMembersMention;
-            },
-        });
-    }
-
-    if (options.atPlanMentions) {
-        const mentionAttrib = 'data-plan-mention';
-        processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node: any) => {
-                const mentionName = node.attribs[mentionAttrib];
-                const sumOfMembersMention = (
-                    <AtPlanMention
-                        plan={mentionName}
-                    />);
-                return sumOfMembersMention;
             },
         });
     }
@@ -277,4 +319,32 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     return parser.parseWithInstructions(html, isValidNode, processingInstructions);
 }
 
-export default messageHtmlToComponent;
+/**
+ * This function converts HTML attributes to React-specific props.
+ * For example, it changes 'class' to 'className'. Note that this function
+ * is not exhaustive and may not cover all HTML attributes. Add more cases as needed.
+ */
+export function convertPropsToReactStandard(propsToConvert: AllHTMLAttributes<HTMLElement>): Record<string, unknown> {
+    const newProps: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(propsToConvert)) {
+        switch (key) {
+        case 'class':
+            newProps.className = value;
+            break;
+        case 'for':
+            newProps.htmlFor = value;
+            break;
+        case 'tabindex':
+            newProps.tabIndex = value;
+            break;
+        case 'readonly':
+            newProps.readOnly = value;
+            break;
+        default:
+            newProps[key] = value;
+        }
+    }
+
+    return newProps;
+}

@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {newTestPassword} from '@/utils';
 
 export type SimpleUser = Pick<Cypress.UserProfile, 'username' | 'first_name' | 'last_name' | 'nickname' | 'password' | 'email'>;
 
-function createPrivateChannel(teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createPrivateChannel(teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a private channel as sysadmin
     return createChannel('P', teamId, userToAdd);
 }
 
-function createPublicChannel(teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createPublicChannel(teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a public channel as sysadmin
     return createChannel('O', teamId, userToAdd);
 }
@@ -36,46 +37,9 @@ function createSearchData(prefix: string) {
     });
 }
 
-function enableElasticSearch() {
-    // # Enable elastic search via the API
-    cy.apiUpdateConfig({
-        ElasticsearchSettings: {
-            EnableIndexing: true,
-            EnableSearching: true,
-        },
-    } as Cypress.AdminConfig);
-
-    // # Navigate to the elastic search setting page
-    cy.visit('/admin_console/environment/elasticsearch');
-    cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
-
-    // * Test the connection and verify that we are successful
-    cy.contains('button', 'Test Connection').click();
-    cy.get('.alert-success').should('have.text', 'Test successful. Configuration saved.');
-
-    // # Index so we are up to date
-    cy.contains('button', 'Index Now').click();
-
-    // # Small wait to ensure new row is added
-    cy.wait(TIMEOUTS.ONE_SEC).get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
-
-    // * Newest row should eventually result in Success
-    const checkFirstRow = () => {
-        return cy.get('@firstRow').then((el) => {
-            return el.find('.status-icon-success').length > 0;
-        });
-    };
-    const options = {
-        timeout: TIMEOUTS.TWO_MIN,
-        interval: TIMEOUTS.TWO_SEC,
-        errorMsg: 'Reindex did not succeed in time',
-    };
-    cy.waitUntil(checkFirstRow, options);
-}
-
 function getTestUsers(prefix = ''): Record<string, SimpleUser> {
-    if (Cypress.env('searchTestUsers')) {
-        return JSON.parse(Cypress.env('searchTestUsers'));
+    if (Cypress.expose('searchTestUsers')) {
+        return JSON.parse(Cypress.expose('searchTestUsers'));
     }
 
     return {
@@ -156,7 +120,7 @@ function getPostTextboxInput() {
 }
 
 function getQuickChannelSwitcherInput() {
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear();
@@ -195,7 +159,7 @@ function searchForChannel(name: string) {
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
     // # Clear out and type in the name
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear().
@@ -225,7 +189,7 @@ function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     });
 }
 
-function createChannel(channelType: string, teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createChannel(channelType: string, teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a channel as sysadmin
     return cy.externalRequest({
         user: getAdminAccount(),
@@ -243,13 +207,8 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
         if (userToAdd) {
             // # Get user profile by email
             return cy.apiGetUserByEmail(userToAdd.email).then(({user}) => {
-                // # Add user to team
-                cy.externalRequest({
-                    user: getAdminAccount(),
-                    method: 'post',
-                    path: `channels/${channel.id}/members`,
-                    data: {user_id: user.id},
-                }).then(() => {
+                // # Add user to channel
+                cy.externalAddUserToChannel(user.id, channel.id).then(() => {
                     // # Explicitly wait to give some time to index before searching
                     cy.wait(TIMEOUTS.TWO_SEC);
                     return cy.wrap(channel);
@@ -266,7 +225,7 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
 function generatePrefixedUser(user: Omit<SimpleUser, 'password' | 'email'>, prefix: string) {
     return {
         username: withPrefix(user.username, prefix),
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: withPrefix(user.first_name, prefix),
         last_name: withPrefix(user.last_name, prefix),
         email: createEmail(user.username, prefix),
@@ -286,7 +245,6 @@ export {
     createPrivateChannel,
     createPublicChannel,
     createSearchData,
-    enableElasticSearch,
     getTestUsers,
     getPostTextboxInput,
     getQuickChannelSwitcherInput,

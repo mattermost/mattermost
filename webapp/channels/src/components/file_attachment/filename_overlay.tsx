@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import ExternalLink from 'components/external_link';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
@@ -45,7 +46,9 @@ type Props = {
      * Optional class like for icon
      */
     iconClass?: string;
-}
+
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+};
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
     render() {
@@ -56,6 +59,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             fileInfo,
             handleImageClick,
             iconClass,
+            overrideGenerateFileDownloadUrl,
         } = this.props;
 
         const fileName = fileInfo.name;
@@ -65,18 +69,16 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
         if (compactDisplay) {
             filenameOverlay = (
                 <WithTooltip
-                    id='file-name__tooltip'
                     title={fileName}
-                    placement='top'
                 >
                     <a
                         href='#'
                         onClick={handleImageClick}
-                        className='post-image__name'
+                        className='post-image__name btn btn-icon btn-sm'
                         rel='noopener noreferrer'
                     >
                         <AttachmentIcon className='icon'/>
-                        {trimmedFilename}
+                        <span className='post-image__filename'>{trimmedFilename}</span>
                     </a>
                 </WithTooltip>
             );
@@ -84,13 +86,12 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             filenameOverlay = (
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
-                        id='file-name__tooltip'
-                        title={localizeMessage('view_image_popover.download', 'Download')}
-                        placement='top'
+                        title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                     >
                         <ExternalLink
-                            href={getFileDownloadUrl(fileInfo.id)}
-                            aria-label={localizeMessage('view_image_popover.download', 'Download').toLowerCase()}
+                            href={(overrideGenerateFileDownloadUrl || getFileDownloadUrl)(fileInfo.id)}
+                            aria-label={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}).toLowerCase()}
+                            className='btn btn-icon btn-sm'
                             download={fileName}
                             location='filename_overlay'
                         >

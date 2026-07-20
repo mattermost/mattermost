@@ -6,9 +6,10 @@ import React, {useCallback, type ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
@@ -32,7 +33,7 @@ type Props = {
     ctaExtraContent?: ReactNode;
     clickCallback?: () => void;
     customSecondaryButtonInModal?: {msg: string; action: () => void};
-}
+};
 
 function capitalizeFirstLetter(s: string) {
     return s?.charAt(0)?.toUpperCase() + s?.slice(1);
@@ -88,7 +89,6 @@ const RestrictedIndicator = ({
     return (
         <span className='RestrictedIndicator__icon-tooltip-container'>
             <WithTooltip
-                id={`${feature}-tooltip`}
                 title={
                     <div className='RestrictedIndicator__icon-tooltip'>
                         <span className='title'>
@@ -103,7 +103,6 @@ const RestrictedIndicator = ({
                         </span>
                     </div>
                 }
-                placement='right'
             >
                 {useModal && blocked ? (
                     <span>

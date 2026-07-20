@@ -5,9 +5,8 @@ import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import GroupsUsers from './group/group_users';
 
@@ -44,10 +43,13 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
     const handleHide = useCallback(() => setShow(false), []);
 
     const title = (
-        <FormattedMarkdownMessage
-            id='admin.team_channel_settings.usersToBeRemovedModal.title'
-            defaultMessage='**{total, number} {total, plural, one {User} other {Users}}** To Be Removed'
-            values={{total}}
+        <FormattedMessage
+            id='admin.teamChannelSettings.usersToBeRemovedModal.title'
+            defaultMessage='<b>{total, number} {total, plural, one {User} other {Users}}</b> To Be Removed'
+            values={{
+                total,
+                b: (chunks) => <b>{chunks}</b>,
+            }}
         />
     );
 
@@ -81,7 +83,7 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             onHide={handleHide}
             onExited={onExited}
             id='confirmModal'
-            role='dialog'
+            role='none'
             aria-labelledby='confirmModalLabel'
         >
             <Modal.Header closeButton={true}>
@@ -102,15 +104,15 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
                 />
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
                     autoFocus={true}
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={handleHide}
                     id='closeModalButton'
                 >
                     {button}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

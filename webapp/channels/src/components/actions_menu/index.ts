@@ -47,7 +47,6 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const {post} = ownProps;
 
     const systemMessage = isSystemMessage(post);
-
     const apps = appsEnabled(state);
     const showBindings = apps && !systemMessage && !isCombinedUserActivityPost(post.id);
     let appBindings: AppBinding[] | null = emptyBindings;
@@ -60,7 +59,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     return {
         appBindings,
         appsEnabled: apps,
-        components: state.plugins.components,
+        pluginMenuItemComponents: state.plugins.components.PostDropdownMenuItem,
         isSysAdmin,
         pluginMenuItems: state.plugins.components.PostDropdownMenu,
         teamId: getCurrentTeamId(state),

@@ -31,7 +31,7 @@ export type Props = {
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
     const [error, setError] = React.useState<JSX.Element | null>(null);
@@ -191,8 +191,9 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
             onHide={onModalDismissed}
             onExited={onExited}
             dialogClassName='a11y__modal manage-teams modal--overflow-visible'
-            role='dialog'
+            role='none'
             aria-labelledby='manageTeamsModalLabel'
+            id='manageTeamsModal'
         >
             <Modal.Header closeButton={true}>
                 <Modal.Title

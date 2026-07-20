@@ -26,7 +26,16 @@ const (
 	// with the push notifications
 	CategoryCanReply = "CAN_REPLY"
 
-	MHPNS = "https://push.mattermost.com"
+	// Push notification server URLs
+	// Legacy URLs are DNS aliases that automatically route to the regional endpoints
+	MHPNSLegacyUS = "https://push.mattermost.com"
+	MHPNSLegacyDE = "https://hpns-de.mattermost.com"
+	// Current regional URLs
+	MHPNSGlobal = "https://global.push.mattermost.com"
+	MHPNSUS     = "https://us.push.mattermost.com"
+	MHPNSEU     = "https://eu.push.mattermost.com"
+	MHPNSAP     = "https://ap.push.mattermost.com"
+	MHPNS       = MHPNSUS // Legacy constant for backwards compatibility
 
 	PushSendPrepare = "Prepared to send"
 	PushSendSuccess = "Successful"
@@ -41,6 +50,14 @@ type PushSubType string
 // PushSubTypeCalls is used by the Calls plugin
 const PushSubTypeCalls PushSubType = "calls"
 
+// PushTransport selects which delivery path the push proxy uses.
+type PushTransport string
+
+const (
+	PushTransportStandard PushTransport = ""
+	PushTransportVoIP     PushTransport = "voip"
+)
+
 type PushNotificationAck struct {
 	Id               string `json:"id"`
 	ClientReceivedAt int64  `json:"received_at"`
@@ -51,33 +68,34 @@ type PushNotificationAck struct {
 }
 
 type PushNotification struct {
-	AckId            string      `json:"ack_id"`
-	Platform         string      `json:"platform"`
-	ServerId         string      `json:"server_id"`
-	DeviceId         string      `json:"device_id"`
-	PostId           string      `json:"post_id"`
-	Category         string      `json:"category,omitempty"`
-	Sound            string      `json:"sound,omitempty"`
-	Message          string      `json:"message,omitempty"`
-	Badge            int         `json:"badge,omitempty"`
-	ContentAvailable int         `json:"cont_ava,omitempty"`
-	TeamId           string      `json:"team_id,omitempty"`
-	ChannelId        string      `json:"channel_id,omitempty"`
-	RootId           string      `json:"root_id,omitempty"`
-	ChannelName      string      `json:"channel_name,omitempty"`
-	Type             string      `json:"type,omitempty"`
-	SubType          PushSubType `json:"sub_type,omitempty"`
-	SenderId         string      `json:"sender_id,omitempty"`
-	SenderName       string      `json:"sender_name,omitempty"`
-	OverrideUsername string      `json:"override_username,omitempty"`
-	OverrideIconURL  string      `json:"override_icon_url,omitempty"`
-	FromWebhook      string      `json:"from_webhook,omitempty"`
-	Version          string      `json:"version,omitempty"`
-	IsCRTEnabled     bool        `json:"is_crt_enabled"`
-	IsIdLoaded       bool        `json:"is_id_loaded"`
-	PostType         string      `json:"-"`
-	ChannelType      ChannelType `json:"-"`
-	Signature        string      `json:"signature"`
+	AckId            string        `json:"ack_id"`
+	Platform         string        `json:"platform"`
+	ServerId         string        `json:"server_id"`
+	DeviceId         string        `json:"device_id"`
+	PostId           string        `json:"post_id"`
+	Category         string        `json:"category,omitempty"`
+	Sound            string        `json:"sound,omitempty"`
+	Message          string        `json:"message,omitempty"`
+	Badge            int           `json:"badge,omitempty"`
+	ContentAvailable int           `json:"cont_ava,omitempty"`
+	TeamId           string        `json:"team_id,omitempty"`
+	ChannelId        string        `json:"channel_id,omitempty"`
+	RootId           string        `json:"root_id,omitempty"`
+	ChannelName      string        `json:"channel_name,omitempty"`
+	Type             string        `json:"type,omitempty"`
+	SubType          PushSubType   `json:"sub_type,omitempty"`
+	Transport        PushTransport `json:"transport,omitempty"`
+	SenderId         string        `json:"sender_id,omitempty"`
+	SenderName       string        `json:"sender_name,omitempty"`
+	OverrideUsername string        `json:"override_username,omitempty"`
+	OverrideIconURL  string        `json:"override_icon_url,omitempty"`
+	FromWebhook      string        `json:"from_webhook,omitempty"`
+	Version          string        `json:"version,omitempty"`
+	IsCRTEnabled     bool          `json:"is_crt_enabled"`
+	IsIdLoaded       bool          `json:"is_id_loaded"`
+	PostType         string        `json:"-"`
+	ChannelType      ChannelType   `json:"-"`
+	Signature        string        `json:"signature"`
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
@@ -86,10 +104,8 @@ func (pn *PushNotification) DeepCopy() *PushNotification {
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-	index := strings.Index(deviceId, ":")
-
-	if index > -1 {
-		pn.Platform = deviceId[:index]
-		pn.DeviceId = deviceId[index+1:]
+	if platform, id, ok := strings.Cut(deviceId, ":"); ok {
+		pn.Platform = platform
+		pn.DeviceId = id
 	}
 }

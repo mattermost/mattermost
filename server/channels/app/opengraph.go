@@ -10,9 +10,13 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	ogImage "github.com/dyatlov/go-opengraph/opengraph/types/image"
+	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 )
 
 const (
@@ -58,6 +62,8 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
 	openGraphDecodeHTMLEntities(og)
+
+	og = filterSVGImagesFromOpenGraph(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -140,7 +146,47 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	return ogdata
 }
 
+// filterSVGImagesFromOpenGraph removes SVG images from OpenGraph metadata.
+func filterSVGImagesFromOpenGraph(og *opengraph.OpenGraph) *opengraph.OpenGraph {
+	if og == nil || len(og.Images) == 0 {
+		return og
+	}
+
+	og.Images = model.FilterSVGImages(og.Images)
+	return og
+}
+
 func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 	og.Title = html.UnescapeString(og.Title)
 	og.Description = html.UnescapeString(og.Description)
+}
+
+func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*opengraph.OpenGraph, error) {
+	oEmbedResponse, err := oembed.ResponseFromJSON(io.LimitReader(body, MaxOpenGraphResponseSize))
+	if err != nil {
+		return nil, errors.Wrap(err, "parseOpenGraphFromOEmbed: Unable to parse oEmbed response")
+	}
+
+	og := &opengraph.OpenGraph{
+		Type:  "opengraph",
+		Title: oEmbedResponse.Title,
+		URL:   requestURL,
+	}
+
+	if oEmbedResponse.ThumbnailURL != "" {
+		og.Images = append(og.Images, &ogImage.Image{
+			Type:   "image",
+			URL:    oEmbedResponse.ThumbnailURL,
+			Width:  uint64(oEmbedResponse.ThumbnailWidth),
+			Height: uint64(oEmbedResponse.ThumbnailHeight),
+		})
+	}
+
+	og = filterSVGImagesFromOpenGraph(og)
+
+	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
+		og = openGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
+	}
+
+	return og, nil
 }

@@ -3,76 +3,230 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
+import "time"
 
 const (
-	SupportPacketErrorFile = "warning.txt"
+	CurrentSupportPacketVersion = 2
+	SupportPacketErrorFile      = "warning.txt"
 )
 
-type SupportPacket struct {
-	/* Build information */
+type SupportPacketDiagnostics struct {
+	Version int `yaml:"version"`
 
-	ServerOS           string `yaml:"server_os"`
-	ServerArchitecture string `yaml:"server_architecture"`
-	ServerVersion      string `yaml:"server_version"`
-	BuildHash          string `yaml:"build_hash"`
+	License struct {
+		Company      string `yaml:"company"`
+		Users        int    `yaml:"users"`
+		SkuShortName string `yaml:"sku_short_name"`
+		IsTrial      bool   `yaml:"is_trial,omitempty"`
+		IsGovSKU     bool   `yaml:"is_gov_sku,omitempty"`
+	} `yaml:"license"`
 
-	/* DB */
+	Server struct {
+		// Machine
+		OS               string `yaml:"os"`
+		Architecture     string `yaml:"architecture"`
+		Hostname         string `yaml:"hostname"`
+		InstallationType string `yaml:"installation_type"`
 
-	DatabaseType          string `yaml:"database_type"`
-	DatabaseVersion       string `yaml:"database_version"`
-	DatabaseSchemaVersion string `yaml:"database_schema_version"`
-	WebsocketConnections  int    `yaml:"websocket_connections"`
-	MasterDbConnections   int    `yaml:"master_db_connections"`
-	ReplicaDbConnections  int    `yaml:"read_db_connections"`
+		// Capacity
+		CPUCores               int     `yaml:"cpu_cores"`
+		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
+		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
 
-	/* Cluster */
+		// Process lifecycle
+		ProcessID           int       `yaml:"process_id"`
+		StartedAt           time.Time `yaml:"started_at"`
+		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
+		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
 
-	ClusterID string `yaml:"cluster_id"`
+		// Software
+		Version   string `yaml:"version"`
+		BuildHash string `yaml:"build_hash"`
+		GoVersion string `yaml:"go_version"`
+	} `yaml:"server"`
 
-	/* File store */
+	Config struct {
+		Source string `yaml:"store_type"`
+	} `yaml:"config"`
 
-	FileDriver string `yaml:"file_driver"`
-	FileStatus string `yaml:"file_status"`
+	Database struct {
+		Type                                string     `yaml:"type"`
+		Version                             string     `yaml:"version"`
+		SchemaVersion                       string     `yaml:"schema_version"`
+		MasterConnections                   int        `yaml:"master_connections"`
+		ReplicaConnections                  int        `yaml:"replica_connections"`
+		SearchConnections                   int        `yaml:"search_connections"`
+		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
+		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
+		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
+		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
+		MasterConnectionsClosedMaxIdle      int64      `yaml:"master_connections_closed_max_idle"`
+		MasterConnectionsClosedMaxLifetime  int64      `yaml:"master_connections_closed_max_lifetime"`
+		ReplicaConnectionsInUse             int        `yaml:"replica_connections_in_use"`
+		ReplicaConnectionsIdle              int        `yaml:"replica_connections_idle"`
+		ReplicaPoolWaitCount                int64      `yaml:"replica_pool_wait_count"`
+		ReplicaPoolWaitDurationMs           int64      `yaml:"replica_pool_wait_duration_ms"`
+		ReplicaConnectionsClosedMaxIdle     int64      `yaml:"replica_connections_closed_max_idle"`
+		ReplicaConnectionsClosedMaxLifetime int64      `yaml:"replica_connections_closed_max_lifetime"`
+		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
+		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
+		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
+		TempBytesMB                         *float64   `yaml:"temp_bytes_mb,omitempty"`
+		Rollbacks                           *int64     `yaml:"rollbacks,omitempty"`
+		IdleInTransactionCount              *int64     `yaml:"idle_in_transaction_count,omitempty"`
+		LongestQueryDurationSeconds         *float64   `yaml:"longest_query_duration_seconds,omitempty"`
+		WaitingForLockCount                 *int64     `yaml:"waiting_for_lock_count,omitempty"`
+		PostsDeadTuples                     *int64     `yaml:"posts_dead_tuples,omitempty"`
+		PostsLastAutovacuum                 *time.Time `yaml:"posts_last_autovacuum,omitempty"`
+	} `yaml:"database"`
 
-	/* LDAP */
+	FileStore struct {
+		Status         string `yaml:"file_status"`
+		Error          string `yaml:"error,omitempty"`
+		Driver         string `yaml:"file_driver"`
+		FilesystemType string `yaml:"filesystem_type,omitempty"`
+		TotalMB        uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
+	} `yaml:"file_store"`
 
-	LdapVendorName    string `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion string `yaml:"ldap_vendor_version,omitempty"`
+	Websocket struct {
+		Connections int `yaml:"connections"`
+	} `yaml:"websocket"`
 
-	/* Elastic Search */
+	Cluster struct {
+		ID            string `yaml:"id"`
+		NumberOfNodes int    `yaml:"number_of_nodes"`
+	} `yaml:"cluster"`
 
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+	Notifications struct {
+		Email struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"email,omitempty"`
+		Push struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"push,omitempty"`
+	} `yaml:"notifications,omitempty"`
 
-	/* License */
+	LDAP struct {
+		Status        string `yaml:"status,omitempty"`
+		Error         string `yaml:"error,omitempty"`
+		ServerName    string `yaml:"server_name,omitempty"`
+		ServerVersion string `yaml:"server_version,omitempty"`
+	} `yaml:"ldap"`
 
-	LicenseTo             string `yaml:"license_to"`
-	LicenseSupportedUsers int    `yaml:"license_supported_users"`
-	LicenseIsTrial        bool   `yaml:"license_is_trial,omitempty"`
+	SAML struct {
+		ProviderType string `yaml:"provider_type,omitempty"`
+		Status       string `yaml:"status,omitempty"`
+		Error        string `yaml:"error,omitempty"`
+	} `yaml:"saml"`
 
-	/* Server stats */
+	ElasticSearch struct {
+		Status        string   `yaml:"status,omitempty"`
+		Backend       string   `yaml:"backend,omitempty"`
+		ServerVersion string   `yaml:"server_version,omitempty"`
+		ServerPlugins []string `yaml:"server_plugins,omitempty"`
+		Error         string   `yaml:"error,omitempty"`
+	} `yaml:"elastic"`
 
-	ActiveUsers        int `yaml:"active_users"`
-	DailyActiveUsers   int `yaml:"daily_active_users"`
-	MonthlyActiveUsers int `yaml:"monthly_active_users"`
-	InactiveUserCount  int `yaml:"inactive_user_count"`
-	TotalPosts         int `yaml:"total_posts"`
-	TotalChannels      int `yaml:"total_channels"`
-	TotalTeams         int `yaml:"total_teams"`
+	OAuthProviders OAuthProviders `yaml:"oauth_providers,omitempty"`
+}
 
-	/* Jobs */
+// OAuthProviderStatus reports the connectivity status of a single OAuth2/OpenID Connect provider.
+type OAuthProviderStatus struct {
+	Status string `yaml:"status,omitempty"` // ok / fail / disabled
+	Error  string `yaml:"error,omitempty"`
+}
 
+// OAuthProviders aggregates the connectivity status for the configured OAuth2/OpenID Connect providers.
+type OAuthProviders struct {
+	GitLab    OAuthProviderStatus `yaml:"gitlab,omitempty"`
+	Google    OAuthProviderStatus `yaml:"google,omitempty"`
+	Office365 OAuthProviderStatus `yaml:"office365,omitempty"`
+	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
+}
+
+type SupportPacketStats struct {
+	RegisteredUsers     int64 `yaml:"registered_users"`
+	ActiveUsers         int64 `yaml:"active_users"`
+	DailyActiveUsers    int64 `yaml:"daily_active_users"`
+	MonthlyActiveUsers  int64 `yaml:"monthly_active_users"`
+	DeactivatedUsers    int64 `yaml:"deactivated_users"`
+	Guests              int64 `yaml:"guests"`
+	SingleChannelGuests int64 `yaml:"single_channel_guests"`
+	BotAccounts         int64 `yaml:"bot_accounts"`
+	Posts               int64 `yaml:"posts"`
+	Channels            int64 `yaml:"channels"`
+	Teams               int64 `yaml:"teams"`
+	SlashCommands       int64 `yaml:"slash_commands"`
+	IncomingWebhooks    int64 `yaml:"incoming_webhooks"`
+	OutgoingWebhooks    int64 `yaml:"outgoing_webhooks"`
+}
+
+// SupportPacketJobList contains the list of latest run enterprise job runs.
+// It is included in the Support Packet.
+type SupportPacketJobList struct {
+	LDAPSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
 	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
-	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
-	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
+}
+
+// SupportPacketPermissionInfo contains the list of schemes and the list of roles.
+// It is included in the Support Packet.
+type SupportPacketPermissionInfo struct {
+	Roles   []*Role   `yaml:"roles"`
+	Schemes []*Scheme `yaml:"schemes"`
+}
+
+// SupportPacketConfig contains the Mattermost configuration. In contrast to [Config], it also contains the list of Feature Flags.
+// It is included in the Support Packet.
+type SupportPacketConfig struct {
+	*Config
+	FeatureFlags FeatureFlags `json:"FeatureFlags"`
+}
+
+// SupportPacketPluginList contains the list of enabled and disabled plugins.
+// It is included in the Support Packet.
+type SupportPacketPluginList struct {
+	Enabled  []Manifest `json:"enabled"`
+	Disabled []Manifest `json:"disabled"`
+}
+
+// SupportPacketDatabaseSchema contains the database schema information.
+// It is included in the Support Packet.
+type SupportPacketDatabaseSchema struct {
+	DatabaseCollation string          `yaml:"database_collation,omitempty"`
+	DatabaseEncoding  string          `yaml:"database_encoding,omitempty"`
+	Tables            []DatabaseTable `yaml:"tables"`
+}
+
+// DatabaseTable represents a table in the database schema.
+type DatabaseTable struct {
+	Name      string            `yaml:"name"`
+	Collation string            `yaml:"collation,omitempty"`
+	Options   map[string]string `yaml:"options,omitempty"`
+	Columns   []DatabaseColumn  `yaml:"columns"`
+	Indexes   []DatabaseIndex   `yaml:"indexes,omitempty"`
+}
+
+// DatabaseColumn represents a column in a database table.
+type DatabaseColumn struct {
+	Name       string `yaml:"name"`
+	DataType   string `yaml:"data_type"`
+	MaxLength  int64  `yaml:"max_length,omitempty"`
+	IsNullable bool   `yaml:"is_nullable"`
+}
+
+// DatabaseIndex represents an index in a database table.
+type DatabaseIndex struct {
+	Name       string `yaml:"name"`
+	Definition string `yaml:"definition"`
 }
 
 type FileData struct {
@@ -81,17 +235,10 @@ type FileData struct {
 }
 
 type SupportPacketOptions struct {
-	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
-	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
-}
-
-// SupportPacketOptionsFromReader decodes a json-encoded request from the given io.Reader.
-func SupportPacketOptionsFromReader(reader io.Reader) (*SupportPacketOptions, error) {
-	var r *SupportPacketOptions
-	err := json.NewDecoder(reader).Decode(&r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
+	IncludeLogs   bool     // IncludeLogs is the option to include server logs
+	PluginPackets []string // PluginPackets is a list of pluginids to call hooks
+	// CPUProfileDuration lets programmatic callers (e.g. tests) override how long to sample
+	// the CPU profile for. It is not exposed via the HTTP API.
+	// nil leaves the server default in place; 0 skips CPU profile generation entirely.
+	CPUProfileDuration *time.Duration
 }

@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @system_console @with_feature_flag
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Data Retention', () => {
     let testTeam;

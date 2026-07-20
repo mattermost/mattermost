@@ -19,7 +19,7 @@ const (
 	LogConfigSrcTypeFile LogConfigSrcType = "file"
 )
 
-type LogSrcListener func(old, new mlog.LoggerConfiguration)
+type LogSrcListener func(oldCfg, newCfg mlog.LoggerConfiguration)
 type LogConfigSrcType string
 
 // LogConfigSrc abstracts the Advanced Logging configuration so that implementations can

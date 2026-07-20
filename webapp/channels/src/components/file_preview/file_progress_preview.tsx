@@ -16,7 +16,7 @@ type Props = {
     handleRemove: (id: string) => void;
     clientId: string;
     fileInfo: FilePreviewInfo;
-}
+};
 
 export default class FileProgressPreview extends React.PureComponent<Props> {
     handleRemove = () => {
@@ -37,7 +37,7 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
             previewImage = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
 
             fileNameComponent = (
-                <React.Fragment>
+                <>
                     <FilenameOverlay
                         fileInfo={fileInfo}
                         compactDisplay={false}
@@ -50,16 +50,16 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
                                 defaultMessage='Processing...'
                             />
                         ) : (
-                            <React.Fragment>
+                            <>
                                 <FormattedMessage
                                     id='admin.plugin.uploading'
                                     defaultMessage='Uploading...'
                                 />
                                 <span>{percentTxt}</span>
-                            </React.Fragment>
+                            </>
                         )}
                     </span>
-                </React.Fragment>
+                </>
             );
 
             if (percent) {

@@ -1,0 +1,21 @@
+.inline-entity-link {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 50%;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.64) !important;
+    cursor: pointer;
+    line-height: 1;
+    text-decoration: none;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+        color: rgba(var(--center-channel-color-rgb), 0.72) !important;
+        text-decoration: none;
+    }
+}

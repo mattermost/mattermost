@@ -32,15 +32,31 @@ const (
 
 type SqlSchemeStore struct {
 	*SqlStore
+	schemeSelectQuery sq.SelectBuilder
 }
 
 func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
-	return &SqlSchemeStore{sqlStore}
+	s := &SqlSchemeStore{
+		SqlStore: sqlStore,
+	}
+
+	s.schemeSelectQuery = s.getQueryBuilder().
+		Select(
+			"Id", "Name", "DisplayName", "Description", "Scope",
+			"DefaultTeamAdminRole", "DefaultTeamUserRole", "DefaultTeamGuestRole",
+			"DefaultChannelAdminRole", "DefaultChannelUserRole", "DefaultChannelGuestRole",
+			"CreateAt", "UpdateAt", "DeleteAt",
+			"DefaultPlaybookAdminRole", "DefaultPlaybookMemberRole",
+			"DefaultRunAdminRole", "DefaultRunMemberRole",
+		).
+		From("Schemes")
+
+	return s
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, terr := s.GetMasterX().Beginx()
+		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}
@@ -62,13 +78,12 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 
 	scheme.UpdateAt = model.GetMillis()
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
+	res, err := s.GetMaster().NamedExec(`UPDATE Schemes
 		SET UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole,
 		 DefaultPlaybookMemberRole=:DefaultPlaybookMemberRole, DefaultPlaybookAdminRole=:DefaultPlaybookAdminRole, DefaultRunMemberRole=:DefaultRunMemberRole, DefaultRunAdminRole=:DefaultRunAdminRole
 		 WHERE Id=:Id`, scheme)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Scheme")
 	}
@@ -85,6 +100,12 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 }
 
 func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
+	// Generate the scheme ID up front so it can be recorded on each created role.
+	scheme.Id = model.NewId()
+	if scheme.Name == "" {
+		scheme.Name = model.NewId()
+	}
+
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{
 		model.TeamAdminRoleId,
@@ -120,6 +141,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.TeamAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction)
@@ -134,6 +156,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamUser, scheme.Name),
 			Permissions:   defaultRoles[model.TeamUserRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction)
@@ -148,6 +171,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamGuest, scheme.Name),
 			Permissions:   defaultRoles[model.TeamGuestRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction)
@@ -162,6 +186,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNamePlaybookAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.PlaybookAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookAdminRole, transaction)
 		if err != nil {
@@ -175,6 +200,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNamePlaybookMember, scheme.Name),
 			Permissions:   defaultRoles[model.PlaybookMemberRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookMemberRole, transaction)
 		if err != nil {
@@ -188,6 +214,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameRunAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.RunAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runAdminRole, transaction)
 		if err != nil {
@@ -201,6 +228,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameRunMember, scheme.Name),
 			Permissions:   defaultRoles[model.RunMemberRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runMemberRole, transaction)
 		if err != nil {
@@ -216,6 +244,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel Admin Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -234,6 +263,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel User Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelUserRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -252,6 +282,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelGuestRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -265,10 +296,6 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 		scheme.DefaultChannelGuestRole = savedRole.Name
 	}
 
-	scheme.Id = model.NewId()
-	if scheme.Name == "" {
-		scheme.Name = model.NewId()
-	}
 	scheme.CreateAt = model.GetMillis()
 	scheme.UpdateAt = scheme.CreateAt
 
@@ -299,33 +326,32 @@ func filterModerated(permissions []string) []string {
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	var scheme model.Scheme
-	if err := s.GetReplicaX().Get(&scheme, "SELECT * from Schemes WHERE Id = ?", schemeId); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
+	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
 		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
 	}
-
 	return &scheme, nil
 }
 
 func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
-
-	if err := s.GetReplicaX().Get(&scheme, "SELECT * from Schemes WHERE Name = ?", schemeName); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Name": schemeName})
+	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}
 		return nil, errors.Wrapf(err, "failed to get Scheme with schemeName=%s", schemeName)
 	}
-
 	return &scheme, nil
 }
 
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
-	// Get the scheme
 	scheme := model.Scheme{}
-	if err := s.GetMasterX().Get(&scheme, `SELECT * from Schemes WHERE Id = ?`, schemeId); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
+	if err := s.GetMaster().GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
@@ -334,13 +360,13 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SchemeScopeTeam {
-		if _, err := s.GetMasterX().Exec(`UPDATE Teams SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
+		if _, err := s.GetMaster().Exec(`UPDATE Teams SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
 			return nil, errors.Wrapf(err, "failed to update Teams with schemeId=%s", schemeId)
 		}
 
 		s.Team().ClearCaches()
 	} else if scheme.Scope == model.SchemeScopeChannel {
-		if _, err := s.GetMasterX().Exec(`UPDATE Channels SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
+		if _, err := s.GetMaster().Exec(`UPDATE Channels SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
 			return nil, errors.Wrapf(err, "failed to update Channels with schemeId=%s", schemeId)
 		}
 	}
@@ -349,51 +375,36 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	s.Channel().ClearCaches()
 
 	// Delete the roles belonging to the scheme.
-	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
-	if scheme.Scope == model.SchemeScopeTeam {
-		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
-	}
-	if scheme.Scope == model.SchemeScopePlaybook {
-		roleNames = append(roleNames, scheme.DefaultPlaybookAdminRole, scheme.DefaultPlaybookMemberRole)
-	}
-
-	if scheme.Scope == model.SchemeScopeRun {
-		roleNames = append(roleNames, scheme.DefaultRunAdminRole, scheme.DefaultRunMemberRole)
-	}
-
 	time := model.GetMillis()
 
 	updateQuery, args, err := s.getQueryBuilder().
 		Update("Roles").
-		Where(sq.Eq{"Name": roleNames}).
+		Where(sq.Eq{"SchemeId": schemeId}).
 		Set("UpdateAt", time).
 		Set("DeleteAt", time).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(updateQuery, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", roleNames)
+	if _, err = s.GetMaster().Exec(updateQuery, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Roles with SchemeId=%s", schemeId)
 	}
 
 	// Delete the scheme itself.
 	scheme.UpdateAt = time
 	scheme.DeleteAt = time
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
+	res, err := s.GetMaster().NamedExec(`UPDATE Schemes
 		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole
 		 WHERE Id=:Id`, &scheme)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Scheme with schemeId=%s", schemeId)
 	}
 
 	rowsChanged, err := res.RowsAffected()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get RowsAffected while updating scheme with schemeId=%s", schemeId)
 	}
@@ -407,7 +418,26 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	schemes := []*model.Scheme{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Id",
+			"Name",
+			"DisplayName",
+			"Description",
+			"Scope",
+			"DefaultTeamAdminRole",
+			"DefaultTeamUserRole",
+			"DefaultTeamGuestRole",
+			"DefaultChannelAdminRole",
+			"DefaultChannelUserRole",
+			"DefaultChannelGuestRole",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+			"DefaultPlaybookAdminRole",
+			"DefaultPlaybookMemberRole",
+			"DefaultRunAdminRole",
+			"DefaultRunMemberRole",
+		).
 		From("Schemes").
 		Where(sq.Eq{"DeleteAt": 0}).
 		OrderBy("CreateAt DESC").
@@ -423,7 +453,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&schemes, queryString, args...); err != nil {
+	if err := s.GetReplica().Select(&schemes, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
@@ -431,7 +461,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 }
 
 func (s *SqlSchemeStore) PermanentDeleteAll() error {
-	if _, err := s.GetMasterX().Exec("DELETE from Schemes"); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
 		return errors.Wrap(err, "failed to delete Schemes")
 	}
 
@@ -440,8 +470,7 @@ func (s *SqlSchemeStore) PermanentDeleteAll() error {
 
 func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	var count int64
-	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
-
+	err := s.GetReplica().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Schemes by scope")
 	}
@@ -462,7 +491,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	`, joinCol, schemeScope, permissionID)
 
 	var count int64
-	err := s.GetReplicaX().Get(&count, query)
+	err := s.GetReplica().Get(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Schemes without permission")
 	}

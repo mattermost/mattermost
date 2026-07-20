@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -14,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) createInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
-	categories, nErr := a.Srv().Store().Channel().CreateInitialSidebarCategories(c, userID, opts)
+func (a *App) createInitialSidebarCategories(rctx request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	categories, nErr := a.Srv().Store().Channel().CreateInitialSidebarCategories(rctx, userID, teamID)
 	if nErr != nil {
 		return nil, model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -23,15 +24,12 @@ func (a *App) createInitialSidebarCategories(c request.CTX, userID string, opts 
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *App) GetSidebarCategoriesForTeamForUser(rctx request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(c, userID, &store.SidebarCategorySearchOpts{
-			TeamID:      teamID,
-			ExcludeTeam: false,
-		})
+		categories, appErr = a.createInitialSidebarCategories(rctx, userID, teamID)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -50,12 +48,12 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
-	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, opts)
+	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, teamID)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(c, userID, opts)
+		categories, appErr = a.createInitialSidebarCategories(rctx, userID, teamID)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -74,7 +72,7 @@ func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.Sid
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]string, *model.AppError) {
+func (a *App) GetSidebarCategoryOrder(rctx request.CTX, userID, teamID string) ([]string, *model.AppError) {
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoryOrder(userID, teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -89,7 +87,7 @@ func (a *App) GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]s
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().GetSidebarCategory(categoryId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -104,7 +102,7 @@ func (a *App) GetSidebarCategory(c request.CTX, categoryId string) (*model.Sideb
 	return category, nil
 }
 
-func (a *App) CreateSidebarCategory(c request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -121,7 +119,7 @@ func (a *App) CreateSidebarCategory(c request.CTX, userID, teamID string, newCat
 	return category, nil
 }
 
-func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, categoryOrder []string) *model.AppError {
+func (a *App) UpdateSidebarCategoryOrder(rctx request.CTX, userID, teamID string, categoryOrder []string) *model.AppError {
 	err := a.Srv().Store().Channel().UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -141,7 +139,7 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 	return nil
 }
 
-func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *App) UpdateSidebarCategories(rctx request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	updatedCategories, originalCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -158,12 +156,12 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 
 	a.Publish(message)
 
-	a.muteChannelsForUpdatedCategories(c, userID, updatedCategories, originalCategories)
+	a.muteChannelsForUpdatedCategories(rctx, userID, updatedCategories, originalCategories)
 
 	return updatedCategories, nil
 }
 
-func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
+func (a *App) muteChannelsForUpdatedCategories(rctx request.CTX, userID string, updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
 	var channelsToMute []string
 	var channelsToUnmute []string
 
@@ -211,9 +209,9 @@ func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, upd
 	}
 
 	if len(channelsToMute) > 0 {
-		_, err := a.setChannelsMuted(c, channelsToMute, userID, true)
+		_, err := a.setChannelsMuted(rctx, channelsToMute, userID, true)
 		if err != nil {
-			c.Logger().Error(
+			rctx.Logger().Error(
 				"Failed to mute channels to match category",
 				mlog.String("user_id", userID),
 				mlog.Err(err),
@@ -222,9 +220,9 @@ func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, upd
 	}
 
 	if len(channelsToUnmute) > 0 {
-		_, err := a.setChannelsMuted(c, channelsToUnmute, userID, false)
+		_, err := a.setChannelsMuted(rctx, channelsToUnmute, userID, false)
 		if err != nil {
-			c.Logger().Error(
+			rctx.Logger().Error(
 				"Failed to unmute channels to match category",
 				mlog.String("user_id", userID),
 				mlog.Err(err),
@@ -268,7 +266,7 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	return channelsDiff
 }
 
-func (a *App) DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError {
+func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId string) *model.AppError {
 	err := a.Srv().Store().Channel().DeleteSidebarCategory(categoryId)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -285,4 +283,101 @@ func (a *App) DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId st
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryName string) *model.AppError {
+	categoryName = strings.TrimSpace(categoryName)
+	if categoryName == "" {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.empty_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return appErr
+	}
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.dm_gm_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	nameJSON, _ := json.Marshal(categoryName)
+
+	value := &model.PropertyValue{
+		GroupID:    a.Channels().managedCategoryGroupID,
+		FieldID:    a.Channels().managedCategoryFieldID,
+		TargetID:   channelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		Value:      nameJSON,
+	}
+
+	if _, appErr := a.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.set.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *model.AppError {
+	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+		FieldID:   a.Channels().managedCategoryFieldID,
+		TargetIDs: []string{channelID},
+		PerPage:   1,
+	})
+	if appErr != nil {
+		return model.NewAppError("ClearChannelManagedCategory", "app.managed_category.search.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	if len(values) == 0 {
+		return nil
+	}
+
+	if appErr := a.DeletePropertyValue(rctx, a.Channels().managedCategoryGroupID, values[0].ID); appErr != nil {
+		return model.NewAppError("ClearChannelManagedCategory", "app.managed_category.clear.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+// GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
+// the user is a member of (within the given team) that have a managed category assigned.
+func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string) (map[string]string, *model.AppError) {
+	channels, appErr := a.GetChannelsForTeamForUser(rctx, teamID, rctx.Session().UserId, &model.ChannelSearchOpts{})
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return map[string]string{}, nil
+		}
+		return nil, appErr
+	}
+
+	if len(channels) == 0 {
+		return map[string]string{}, nil
+	}
+
+	channelIDs := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		channelIDs = append(channelIDs, ch.Id)
+	}
+
+	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+		FieldID:   a.Channels().managedCategoryFieldID,
+		TargetIDs: channelIDs,
+		PerPage:   len(channelIDs),
+	})
+	if appErr != nil {
+		return nil, model.NewAppError("GetVisibleManagedCategoryMappings", "app.managed_category.get_mappings.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	result := make(map[string]string, len(values))
+	for _, v := range values {
+		var name string
+		if err := json.Unmarshal(v.Value, &name); err != nil {
+			rctx.Logger().Warn("Failed to unmarshal managed category name",
+				mlog.String("channel_id", v.TargetID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		result[v.TargetID] = name
+	}
+
+	return result, nil
 }

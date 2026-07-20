@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostTypes} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes} from 'mattermost-redux/action_types';
 import {
     files as filesReducer,
     filesFromSearch as filesFromSearchReducer,
@@ -11,7 +11,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 describe('reducers/entities/files', () => {
     describe('files', () => {
-        const testForSinglePost = (actionType: string) => () => {
+        const testForSinglePost = (actionType: typeof PostTypes['RECEIVED_NEW_POST'] | typeof PostTypes['RECEIVED_POST']) => () => {
             it('no post metadata attribute', () => {
                 const state = deepFreeze({});
                 const action = {
@@ -268,7 +268,7 @@ describe('reducers/entities/files', () => {
     describe('filesFromSearch', () => {
         const state = deepFreeze({});
         const action = {
-            type: 'RECEIVED_FILES_FOR_SEARCH',
+            type: FileTypes.RECEIVED_FILES_FOR_SEARCH,
             data: {
                 file1: {id: 'file1', post_id: 'post'},
                 file2: {id: 'file2', post_id: 'post'},
@@ -282,7 +282,7 @@ describe('reducers/entities/files', () => {
     });
 
     describe('fileIdsByPostId', () => {
-        const testForSinglePost = (actionType: string) => () => {
+        const testForSinglePost = (actionType: typeof PostTypes['RECEIVED_NEW_POST'] | typeof PostTypes['RECEIVED_POST']) => () => {
             describe('no post metadata', () => {
                 const action = {
                     type: actionType,

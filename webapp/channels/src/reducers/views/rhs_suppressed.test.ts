@@ -7,7 +7,7 @@ import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.views.rhsSuppressed', () => {
     test('initialState', () => {
-        expect(rhsSuppressed(undefined, {type: undefined})).toBe(false);
+        expect(rhsSuppressed(undefined, {type: 'testinit'})).toBe(false);
     });
 
     test('should handle SUPPRESS_RHS', () => {

@@ -1,8 +1,7 @@
 # Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 # See License.txt for license information.
-FROM postgres:12
+FROM postgres:14
 
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
 RUN apt-get update && apt-get install -y ca-certificates
 
 ARG MATTERMOST_VERSION

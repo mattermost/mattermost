@@ -5,7 +5,6 @@ package api4
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"testing"
 
@@ -13,10 +12,76 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetRemoteClustersWithSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "test-remote",
+		SiteURL:   "http://example.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, rcs)
+	})
+}
+
+func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("system_shared_channel_manager should be denied create", func(t *testing.T) {
+		rcPayload := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:          "test-from-scm",
+				DefaultTeamId: th.BasicTeam.Id,
+			},
+			Password: model.NewTestPassword(),
+		}
+		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
 func TestGetRemoteClusters(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 		rcs, resp, err := th.SystemAdminClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
 		CheckNotImplementedStatus(t, resp)
 		require.Error(t, err)
@@ -24,7 +89,6 @@ func TestGetRemoteClusters(t *testing.T) {
 	})
 
 	th := setupForSharedChannels(t)
-	defer th.TearDown()
 
 	newRCs := []*model.RemoteCluster{
 		{
@@ -47,6 +111,13 @@ func TestGetRemoteClusters(t *testing.T) {
 			SiteURL:   "http://example3.com",
 			CreatorId: th.SystemAdminUser.Id,
 			PluginID:  model.NewId(),
+		},
+		{
+			RemoteId:  model.NewId(),
+			Name:      "remote4",
+			SiteURL:   "http://example4.com",
+			CreatorId: th.SystemAdminUser.Id,
+			DeleteAt:  123,
 		},
 	}
 
@@ -95,6 +166,16 @@ func TestGetRemoteClusters(t *testing.T) {
 			ExpectedNames:      []string{"remote1", "remote2", "remote3"},
 		},
 		{
+			Name:               "Should return all remote clusters including deleted",
+			Client:             th.SystemAdminClient,
+			Page:               0,
+			PerPage:            999999,
+			Filter:             model.RemoteClusterQueryFilter{IncludeDeleted: true},
+			ExpectedStatusCode: 200,
+			ExpectedError:      false,
+			ExpectedNames:      []string{"remote1", "remote2", "remote3", "remote4"},
+		},
+		{
 			Name:               "Should return all remote clusters but those belonging to plugins",
 			Client:             th.SystemAdminClient,
 			Page:               0,
@@ -103,6 +184,16 @@ func TestGetRemoteClusters(t *testing.T) {
 			ExpectedStatusCode: 200,
 			ExpectedError:      false,
 			ExpectedNames:      []string{"remote1", "remote2"},
+		},
+		{
+			Name:               "Should return all remote clusters but those belonging to plugins, including deleted",
+			Client:             th.SystemAdminClient,
+			Page:               0,
+			PerPage:            999999,
+			Filter:             model.RemoteClusterQueryFilter{ExcludePlugins: true, IncludeDeleted: true},
+			ExpectedStatusCode: 200,
+			ExpectedError:      false,
+			ExpectedNames:      []string{"remote1", "remote2", "remote4"},
 		},
 		{
 			Name:               "Should return only remote clusters belonging to plugins",
@@ -156,19 +247,18 @@ func TestGetRemoteClusters(t *testing.T) {
 }
 
 func TestCreateRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
 			Name:          "remotecluster",
-			SiteURL:       "http://example.com",
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithTeamAndPassword)
 		CheckNotImplementedStatus(t, resp)
@@ -176,8 +266,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.Empty(t, rcWithInvite)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	t.Run("Should not work if the user doesn't have the right permissions", func(t *testing.T) {
 		rcWithInvite, resp, err := th.Client.CreateRemoteCluster(context.Background(), rcWithTeamAndPassword)
@@ -196,13 +285,29 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
+	t.Run("Should not work if no default team id is provided", func(t *testing.T) {
+		rcWithoutDefaultTeamId := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:  "remotecluster-nodefaultteamid",
+				Token: model.NewId(),
+			},
+			Password: "",
+		}
+
+		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithoutDefaultTeamId)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "remote_cluster.default_team_id")
+		require.Zero(t, rcWithInvite)
+	})
+
 	t.Run("Should generate a password if none is given", func(t *testing.T) {
 		// clean the password and check the response
 		rcWithTeamNoPassword := &model.RemoteClusterWithPassword{
 			RemoteCluster: &model.RemoteCluster{
-				Name:    "remotecluster-nopasswd",
-				SiteURL: "http://no-passwd.example.com",
-				Token:   model.NewId(),
+				Name:          "remotecluster-nopasswd",
+				DefaultTeamId: model.NewId(),
+				Token:         model.NewId(),
 			},
 			Password: "",
 		}
@@ -216,14 +321,14 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.NotZero(t, rcWithInvite.Password)
 		require.Len(t, rcWithInvite.Password, 16)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamNoPassword.Name, rc.Name)
 
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
@@ -240,28 +345,29 @@ func TestCreateRemoteCluster(t *testing.T) {
 		// by the endpoint
 		require.Zero(t, rcWithInvite.Password)
 
-		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId)
+		rc, appErr := th.App.GetRemoteCluster(rcWithInvite.RemoteCluster.RemoteId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, rcWithTeamAndPassword.Name, rc.Name)
 
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithTeamAndPassword.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 }
 
 func TestRemoteClusterAcceptinvite(t *testing.T) {
+	mainHelper.Parallel(t)
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
-		Name:     "remotecluster",
-		Invite:   "myinvitecode",
-		Password: "mysupersecret",
+		Name:          "remotecluster",
+		Invite:        "myinvitecode",
+		Password:      model.NewTestPassword(),
+		DefaultTeamId: "",
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckNotImplementedStatus(t, resp)
@@ -269,8 +375,9 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Empty(t, rc)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
 
 	remoteId := model.NewId()
 	invite := &model.RemoteClusterInvite{
@@ -278,8 +385,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -294,9 +400,29 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	t.Run("should fail if the parameters are not valid", func(t *testing.T) {
+	t.Run("should fail if the name parameter is not valid", func(t *testing.T) {
 		rcAcceptInvite.Name = ""
 		defer func() { rcAcceptInvite.Name = "remotecluster" }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team parameter is empty", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = ""
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team provided doesn't exist", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = model.NewId()
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
 
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckBadRequestStatus(t, resp)
@@ -328,17 +454,17 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 }
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
-	password := "mysupersecret"
+	mainHelper.Parallel(t)
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
-		SiteURL: "http://example.com",
+		SiteURL: model.SiteURLPending + model.NewId(),
 		Token:   model.NewId(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -352,8 +478,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Zero(t, inviteCode)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -403,18 +528,31 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Equal(t, rc.RemoteId, invite.RemoteId)
 		require.Equal(t, rc.Token, invite.Token)
 	})
+
+	t.Run("should return bad request if the cluster is already confirmed", func(t *testing.T) {
+		rc.SiteURL = "http://example.com"
+		savedRC, appErr := th.App.UpdateRemoteCluster(rc)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.SiteURL, savedRC.SiteURL)
+
+		inviteCode, resp, err := th.SystemAdminClient.GenerateRemoteClusterInvite(context.Background(), rc.RemoteId, password)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, inviteCode)
+	})
 }
 
 func TestGetRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
-		Name:    "remotecluster",
-		SiteURL: "http://example.com",
-		Token:   model.NewId(),
+		Name:        "remotecluster",
+		SiteURL:     "http://example.com",
+		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -429,8 +567,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Empty(t, fetchedRC)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC.CreatorId = th.SystemAdminUser.Id
 	newRC.DefaultTeamId = th.BasicTeam.Id
@@ -460,22 +597,64 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Equal(t, rc.RemoteId, fetchedRC.RemoteId)
 		require.Equal(t, th.BasicTeam.Id, fetchedRC.DefaultTeamId)
 		require.Empty(t, fetchedRC.Token)
+		require.Empty(t, fetchedRC.RemoteToken)
+	})
+}
+
+func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:      model.NewId(),
+		Name:          "test-remote",
+		SiteURL:       "http://example.com",
+		CreatorId:     th.SystemAdminUser.Id,
+		DefaultTeamId: th.BasicTeam.Id,
+		Token:         model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	sharedChannelUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, sharedChannelUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	sharedChannelClient := th.CreateClient()
+	_, _, err := sharedChannelClient.Login(context.Background(), sharedChannelUser.Email, sharedChannelUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		fetchedRC, resp, err := sharedChannelClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, newRC.RemoteId, fetchedRC.RemoteId)
+		require.Empty(t, fetchedRC.Token)
 	})
 }
 
 func TestPatchRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
 		Name:        "remotecluster",
 		DisplayName: "initialvalue",
 		SiteURL:     "http://example.com",
 		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: new("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -489,8 +668,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		require.Empty(t, patchedRC)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -515,8 +693,8 @@ func TestPatchRemoteCluster(t *testing.T) {
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
 		newTeamId := model.NewId()
 		rcp := &model.RemoteClusterPatch{
-			DisplayName:   model.NewPointer("patched!"),
-			DefaultTeamId: model.NewPointer(newTeamId),
+			DisplayName:   new("patched!"),
+			DefaultTeamId: new(newTeamId),
 		}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
@@ -524,10 +702,13 @@ func TestPatchRemoteCluster(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "patched!", patchedRC.DisplayName)
 		require.Equal(t, newTeamId, patchedRC.DefaultTeamId)
+		require.Empty(t, patchedRC.Token)
+		require.Empty(t, patchedRC.RemoteToken)
 	})
 }
 
 func TestDeleteRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
 		Name:        "remotecluster",
 		DisplayName: "initialvalue",
@@ -537,7 +718,6 @@ func TestDeleteRemoteCluster(t *testing.T) {
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -550,8 +730,7 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	newRC.CreatorId = th.SystemAdminUser.Id
 
@@ -572,18 +751,126 @@ func TestDeleteRemoteCluster(t *testing.T) {
 	})
 
 	t.Run("should correctly delete the remote cluster", func(t *testing.T) {
+		// ensure the remote cluster is not deleted
+		initialRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, false)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, initialRC)
+		require.Zero(t, initialRC.DeleteAt)
+
 		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), rc.RemoteId)
-		CheckNoContentStatus(t, resp)
+		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedRC, err := th.App.GetRemoteCluster(rc.RemoteId)
-		require.ErrorIs(t, err, sql.ErrNoRows)
-		require.Empty(t, deletedRC)
+		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, deletedRC)
+		require.NotZero(t, deletedRC.DeleteAt)
 	})
+}
 
-	t.Run("should return not found if the remote cluster is already deleted", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DeleteRemoteCluster(context.Background(), rc.RemoteId)
-		CheckNotFoundStatus(t, resp)
-		require.Error(t, err)
+func TestDeleteRemoteClusterUnsharesOrphanSharedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "orphan-unshare-remote",
+		DisplayName: "orphan-unshare-remote",
+		SiteURL:     "http://orphan-unshare.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
 	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "orphan_unshare_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scr := &model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		CreatorId:         th.SystemAdminUser.Id,
+		RemoteId:          rc.RemoteId,
+		IsInviteConfirmed: true,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	chShared, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chShared.IsShared())
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.Error(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.False(t, chAfter.IsShared())
+}
+
+func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc1, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-a",
+		DisplayName: "keep-shared-a",
+		SiteURL:     "http://keep-shared-a.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	rc2, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-b",
+		DisplayName: "keep-shared-b",
+		SiteURL:     "http://keep-shared-b.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "keep_shared_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	for _, rc := range []*model.RemoteCluster{rc1, rc2} {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         channel.Id,
+			CreatorId:         th.SystemAdminUser.Id,
+			RemoteId:          rc.RemoteId,
+			IsInviteConfirmed: true,
+		}
+		_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+	}
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc1.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.NoError(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chAfter.IsShared())
 }

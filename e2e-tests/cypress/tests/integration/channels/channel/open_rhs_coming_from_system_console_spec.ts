@@ -7,11 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel @rhs
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Channel RHS', () => {
     let testAdmin: Cypress.UserProfile;
@@ -133,7 +132,8 @@ describe('Channel RHS', () => {
         cy.postMessage(MESSAGES.SMALL);
 
         // # Enter the search terms and hit enter to start the search
-        cy.get('#searchBox').clear().type(MESSAGES.TINY).type('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().clear().type(MESSAGES.TINY).type('{enter}');
 
         // * Verify that the search results is opened in RHS
         verifyRHSisOpenAndHasTitle('Search Results');

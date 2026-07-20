@@ -48,5 +48,5 @@ export function useControlModal<T>(modalData: ModalData<T>): ControlModal {
         close: () => {
             dispatch(closeModal(modalData.modalId));
         },
-    }), [modalData]);
+    }), [modalData, dispatch]);
 }

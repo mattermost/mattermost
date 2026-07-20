@@ -18,13 +18,13 @@ export enum ZendeskFormFieldIDs {
     BILLING_SALES_CATEGORY = '360031056451',
     EMAIL = 'anonymous_requester_email',
     SUBJECT = 'subject',
-    DESCRIPTION = 'description'
+    DESCRIPTION = 'description',
 }
 
 export type PrefillFieldFormFieldIDs = {
     id: ZendeskFormFieldIDs;
     val: string;
-}
+};
 
 export const buildZendeskSupportForm = (form: ZendeskSupportForm, formFieldIDs: PrefillFieldFormFieldIDs[]): string => {
     let formUrl = `${baseZendeskFormURL}?ticket_form_id=${form}`;
@@ -38,24 +38,6 @@ export const buildZendeskSupportForm = (form: ZendeskSupportForm, formFieldIDs: 
     }
 
     return formUrl;
-};
-
-export const goToSelfHostedSupportForm = (email: string, subject: string) => {
-    const form = ZendeskSupportForm.SELF_HOSTED_SUPPORT_FORM;
-    const url = buildZendeskSupportForm(form, [
-        {id: ZendeskFormFieldIDs.EMAIL, val: email},
-        {id: ZendeskFormFieldIDs.SUBJECT, val: subject},
-    ]);
-    window.open(url, '_blank');
-};
-
-export const getSelfHostedSupportLink = (email: string, subject: string) => {
-    const form = ZendeskSupportForm.SELF_HOSTED_SUPPORT_FORM;
-    const url = buildZendeskSupportForm(form, [
-        {id: ZendeskFormFieldIDs.EMAIL, val: email},
-        {id: ZendeskFormFieldIDs.SUBJECT, val: subject},
-    ]);
-    return url;
 };
 
 export const goToCloudSupportForm = (email: string, subject: string, description: string, workspaceURL: string) => {

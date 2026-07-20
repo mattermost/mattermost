@@ -36,12 +36,12 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) TelemetryId() string {
-	return a.Srv().TelemetryId()
+func (a *App) ServerId() string {
+	return a.Srv().ServerId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
-	return s.htmlTemplateWatcher
+	return s.htmlTemplates
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
@@ -65,9 +65,6 @@ func (a *App) Srv() *Server {
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
 }
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
-}
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.ch.AccountMigration
@@ -87,6 +84,9 @@ func (a *App) SearchEngine() *searchengine.Broker {
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap
 }
+func (a *App) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return a.ch.srv.platform.LdapDiagnostic()
+}
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
@@ -96,8 +96,14 @@ func (a *App) Metrics() einterfaces.MetricsInterface {
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification
 }
+func (a *App) AutoTranslation() einterfaces.AutoTranslationInterface {
+	return a.Srv().AutoTranslation
+}
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.ch.Saml
+}
+func (a *App) Intune() einterfaces.IntuneInterface {
+	return a.ch.Intune
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud

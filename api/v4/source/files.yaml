@@ -126,6 +126,31 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get file metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a file, but returns headers only.
+      operationId: HeadFile
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/files/{file_id}/thumbnail":
     get:
       tags:
@@ -163,6 +188,31 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get thumbnail metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a thumbnail, but returns headers only.
+      operationId: HeadFileThumbnail
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/files/{file_id}/preview":
     get:
       tags:
@@ -196,6 +246,31 @@
               schema:
                 type: integer
               description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get preview metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a preview, but returns headers only.
+      operationId: HeadFilePreview
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -334,6 +409,37 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get public file metadata headers
+      description: |
+        Performs the same validation checks as getting a public file, but returns headers only.
+      operationId: HeadFilePublic
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+        - name: h
+          in: query
+          description: File hash
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
 
   "/api/v4/teams/{team_id}/files/search":
     post:
@@ -375,7 +481,7 @@
                     from a user include `from:someusername`, using a user's
                     username. To search in a specific channel include
                     `in:somechannel`, using the channel name (not the display
-                    name). To search for specific extensions included `ext:extension`.
+                    name). To search for specific extensions include `ext:extension`.
                 is_or_search:
                   type: boolean
                   description: Set to true if an Or search should be performed vs an And
@@ -411,3 +517,72 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/files/search":
+    post:
+      tags:
+        - files
+        - search
+      summary: Search files across the teams of the current user
+      description: >
+        Search for files in the teams of the current user based on file name,
+        extention and file content (if file content extraction is enabled and
+        supported for the files).
+
+        __Minimum server version__: 10.2
+
+        ##### Permissions
+
+        Must be authenticated and have the `view_team` permission.
+      operationId: SearchFiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - terms
+                - is_or_search
+              properties:
+                terms:
+                  type: string
+                  description: The search terms as entered by the user. To search for files
+                    from a user include `from:someusername`, using a user's
+                    username. To search in a specific channel include
+                    `in:somechannel`, using the channel name (not the display
+                    name). To search for specific extensions include `ext:extension`.
+                is_or_search:
+                  type: boolean
+                  description: Set to true if an Or search should be performed vs an And
+                    search.
+                time_zone_offset:
+                  type: integer
+                  default: 0
+                  description: Offset from UTC of user timezone for date searches.
+                include_deleted_channels:
+                  type: boolean
+                  description: Set to true if deleted channels should be included in the
+                    search. (archived channels)
+                page:
+                  type: integer
+                  default: 0
+                  description: The page to select. (Only works with Elasticsearch)
+                per_page:
+                  type: integer
+                  default: 60
+                  description: The number of posts per page. (Only works with Elasticsearch)
+        description: The search terms and logic to use in the search.
+        required: true
+      responses:
+        "200":
+          description: Files list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileInfoList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+

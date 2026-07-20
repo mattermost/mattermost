@@ -16,7 +16,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Set(time.Minute)
 	defer s.th.App.Srv().Platform().Busy.Clear()
@@ -43,8 +43,88 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestNukeUsersCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.Run("Delete all users as unprivileged user should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := nukeUsersCmdF(s.th.Client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		}, true)
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all users as system admin through the port API should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := nukeUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		}, true)
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all users through local mode should work correctly", func() {
+		printer.Clean()
+
+		// populate with some user
+		for range 10 {
+			userData := model.User{
+				Username: "fakeuser" + model.NewRandomString(10),
+				Password: model.NewTestPassword(),
+				Email:    s.th.GenerateTestEmail(),
+			}
+			_, err := s.th.App.CreateUser(s.th.Context, &userData)
+			s.Require().Nil(err)
+		}
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		// delete all users only works on local mode
+		err := nukeUsersCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+
+		// expect users deleted
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		}, true)
+		s.Require().Nil(err)
+		s.Require().Zero(len(users))
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Clear()
 	cmd := &cobra.Command{}
@@ -76,7 +156,7 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Set(time.Minute)
 	defer s.th.App.Srv().Platform().Busy.Clear()
@@ -107,15 +187,13 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
 
 	s.Run("Download Support Packet with default filename", func() {
 		printer.Clean()
-
-		s.T().Cleanup(cleanupSupportPacket(s.T()))
 
 		err := systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
@@ -129,11 +207,16 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 		entries, err := os.ReadDir(".")
 		s.Require().NoError(err)
 		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+			if strings.HasPrefix(e.Name(), "mm_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
 				b, err := os.ReadFile(e.Name())
 				s.NoError(err)
 
 				s.NotEmpty(b, b)
+
+				s.T().Cleanup(func() {
+					err = os.Remove(e.Name())
+					s.Require().NoError(err)
+				})
 
 				found = true
 			}
@@ -144,14 +227,16 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
-		s.T().Cleanup(func() {
+		defer func() {
 			s.Require().NoError(os.Remove("foo.zip"))
-		})
+		}()
 
-		err = systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.th.SystemAdminClient, systemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)

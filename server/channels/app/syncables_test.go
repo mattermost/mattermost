@@ -17,8 +17,8 @@ import (
 
 //nolint:govet // The setup code leads to a lot of variable shadowing.
 func TestCreateDefaultMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	singersTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "Singers",
@@ -61,9 +61,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: "Glee Club",
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -71,9 +71,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: "Science Club",
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -302,9 +302,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	timeAfterLeaving := model.GetMillis() + 1
 
+	retentionPolicyBatchConfigs := model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeBeforeLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr := th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -320,9 +326,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("Expected channel member to remain deleted")
 	}
 
+	retentionPolicyBatchConfigs = model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeAfterLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr = th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -340,7 +352,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
-		restrictedUser := th.CreateUser()
+		restrictedUser := th.CreateUser(t)
 		restrictedUser.Email = "restricted@mattermost.org"
 		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
@@ -403,9 +415,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		}
 
 		group1, err := th.App.CreateGroup(&model.Group{
-			Name:        model.NewPointer(model.NewId()),
+			Name:        new(model.NewId()),
 			DisplayName: "Group 1",
-			RemoteId:    model.NewPointer(model.NewId()),
+			RemoteId:    new(model.NewId()),
 			Source:      model.GroupSourceLdap,
 		})
 		if err != nil {
@@ -489,11 +501,11 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	})
 
 	t.Run("error should contain a information about all users that failed", func(t *testing.T) {
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user1.Id)
 		require.Nil(t, err)
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -530,10 +542,10 @@ func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) 
 }
 
 func TestDeleteGroupMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
 
@@ -549,14 +561,14 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// make team group-constrained
 	team := th.BasicTeam
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	require.True(t, *team.GroupConstrained)
 
 	// make channel group-constrained
 	channel := th.BasicChannel
-	channel.GroupConstrained = model.NewPointer(true)
+	channel.GroupConstrained = new(true)
 	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
@@ -597,19 +609,19 @@ func TestDeleteGroupMemberships(t *testing.T) {
 }
 
 func TestSyncSyncableRoles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
-	channel := th.CreateChannel(th.Context, team)
-	channel.GroupConstrained = model.NewPointer(true)
+	channel := th.CreateChannel(t, team)
+	channel.GroupConstrained = new(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
-	group := th.CreateGroup()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	group := th.CreateGroup(t)
 
 	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		SyncableId: team.Id,
@@ -634,7 +646,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, tm.SchemeAdmin)
 
-		cm := th.AddUserToChannel(user, channel)
+		cm := th.AddUserToChannel(t, user, channel)
 		require.False(t, cm.SchemeAdmin)
 	}
 
@@ -661,4 +673,148 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, cm.SchemeAdmin)
 	}
+}
+
+func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
+		t.Helper()
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+		group := th.CreateGroup(t)
+
+		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: team.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: channel.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		directAdmin := th.CreateUser(t)
+		_, appErr := th.App.AddTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, directAdmin, channel, false)
+		require.Nil(t, appErr)
+
+		tm, storeErr := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, directAdmin.Id)
+		require.NoError(t, storeErr)
+		tm.SchemeAdmin = true
+		_, storeErr = th.App.Srv().Store().Team().UpdateMember(th.Context, tm)
+		require.NoError(t, storeErr)
+
+		cm, storeErr := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, directAdmin.Id)
+		require.NoError(t, storeErr)
+		cm.SchemeAdmin = true
+		_, storeErr = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm)
+		require.NoError(t, storeErr)
+
+		return team, channel, group, directAdmin
+	}
+
+	t.Run("syncRoles=false preserves the existing SchemeAdmin on team members", func(t *testing.T) {
+		team, _, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, false)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.True(t, tm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=false preserves the existing SchemeAdmin on channel members", func(t *testing.T) {
+		_, channel, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, false)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.True(t, cm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=true reconciles team SchemeAdmin against PermittedSyncableAdmins", func(t *testing.T) {
+		team, _, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, true)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.False(t, tm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=true reconciles channel SchemeAdmin against PermittedSyncableAdmins", func(t *testing.T) {
+		_, channel, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, true)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.False(t, cm.SchemeAdmin)
+	})
+}
+
+func TestSyncRolesAndMembership_AlwaysSyncsMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
+		t.Helper()
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+		group := th.CreateGroup(t)
+
+		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: team.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: channel.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		groupMember := th.CreateUser(t)
+		_, err = th.App.UpsertGroupMember(group.Id, groupMember.Id)
+		require.Nil(t, err)
+
+		return team, channel, group, groupMember
+	}
+
+	t.Run("syncRoles=false still adds group members to the team", func(t *testing.T) {
+		team, _, group, groupMember := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, false)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, groupMember.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, groupMember.Id, tm.UserId)
+	})
+
+	t.Run("syncRoles=false still adds group members to the channel", func(t *testing.T) {
+		_, channel, group, groupMember := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, false)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, groupMember.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, groupMember.Id, cm.UserId)
+	})
 }

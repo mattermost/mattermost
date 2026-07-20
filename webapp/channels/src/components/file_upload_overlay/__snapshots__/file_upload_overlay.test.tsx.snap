@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with no overlay type 1`] = `
+<div>
+  <div
+    class="file-overlay hidden"
+    id="fileUploadOverlay"
+  >
+    <div
+      class="overlay__indent"
+    >
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of center 1`] = `
+<div>
+  <div
+    class="file-overlay hidden center-file-overlay"
+    id="fileUploadOverlay"
+  >
+    <div
+      class="overlay__indent"
+    >
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of right 1`] = `
+<div>
+  <div
+    class="file-overlay hidden right-file-overlay"
+    id="fileUploadOverlay"
+  >
+    <div
+      class="overlay__indent"
+    >
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
+    </div>
+  </div>
+</div>
+`;

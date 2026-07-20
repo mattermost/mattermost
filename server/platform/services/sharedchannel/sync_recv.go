@@ -21,13 +21,13 @@ var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
 	ErrUserDMPermission  = errors.New("users cannot DM each other")
+	ErrChannelNotShared  = errors.New("channel is no longer shared")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	if msg.Topic != TopicSync {
-		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
+	if msg.Topic != TopicSync && msg.Topic != TopicChannelMembership && msg.Topic != TopicGlobalUserSync {
+		return fmt.Errorf("wrong topic, expected sync-related topic, got `%s`", msg.Topic)
 	}
-
 	if len(msg.Payload) == 0 {
 		return errors.New("empty sync message")
 	}
@@ -40,23 +40,58 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	}
 
 	var sm model.SyncMsg
-
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
-	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
+	return scs.processSyncMessageForRemote(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+// processGlobalUserSync processes a global user sync message from a remote cluster or plugin.
+// Returns the SyncResponse directly.
+func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	syncResp := model.SyncResponse{
+		UserErrors: make([]string, 0),
+		UsersSyncd: make([]string, 0),
+	}
+
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync",
+		mlog.String("remote", rc.Name),
+		mlog.Int("user_count", len(syncMsg.Users)),
+	)
+
+	// Process all users in the sync message
+	for _, user := range syncMsg.Users {
+		if userSaved, err := scs.upsertSyncUser(rctx, user, nil, rc); err != nil {
+			syncResp.UserErrors = append(syncResp.UserErrors, user.Id)
+		} else {
+			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
+			if syncResp.UsersLastUpdateAt < user.UpdateAt {
+				syncResp.UsersLastUpdateAt = user.UpdateAt
+			}
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Global user upserted via sync",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", user.Id),
+			)
+		}
+	}
+
+	return syncResp, nil
+}
+
+// ProcessSyncMessage processes an inbound sync message from a remote cluster or plugin.
+// Returns the SyncResponse directly.
+func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
 	var targetChannel *model.Channel
 	var team *model.Team
 
 	var err error
 	syncResp := model.SyncResponse{
-		UserErrors:     make([]string, 0),
-		UsersSyncd:     make([]string, 0),
-		PostErrors:     make([]string, 0),
-		ReactionErrors: make([]string, 0),
+		UserErrors:            make([]string, 0),
+		UsersSyncd:            make([]string, 0),
+		PostErrors:            make([]string, 0),
+		ReactionErrors:        make([]string, 0),
+		AcknowledgementErrors: make([]string, 0),
+		MembershipErrors:      make([]string, 0),
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
@@ -65,26 +100,49 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("user_count", len(syncMsg.Users)),
 		mlog.Int("post_count", len(syncMsg.Posts)),
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
+		mlog.Int("acknowledgement_count", len(syncMsg.Acknowledgements)),
+		mlog.Int("status_count", len(syncMsg.Statuses)),
+		mlog.Int("membership_change_count", len(syncMsg.MembershipChanges)),
 	)
 
+	// Check if this is a global user sync message (no channel ID and only users)
+	if syncMsg.ChannelId == "" {
+		if len(syncMsg.Posts) != 0 ||
+			len(syncMsg.Reactions) != 0 ||
+			len(syncMsg.Statuses) != 0 {
+			return syncResp, fmt.Errorf("global user sync message should not contain posts, reactions or statuses")
+		}
+
+		if len(syncMsg.Users) == 0 {
+			return syncResp, nil
+		}
+		// Check if feature flag is enabled
+		if !scs.isGlobalUserSyncEnabled() {
+			return syncResp, nil
+		}
+		return scs.processGlobalUserSync(rctx, syncMsg, rc)
+	}
+
+	// For regular sync messages, we need a specific channel
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
-		return fmt.Errorf("channel not found processing sync message: %w", err)
+		return syncResp, fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
 	// make sure target channel is shared with the remote
 	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
 	if err != nil {
-		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+		return syncResp, fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
+		return syncResp, fmt.Errorf("cannot process sync message; %w: %s",
+			ErrChannelNotShared, syncMsg.ChannelId)
 	}
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(c, user, targetChannel, rc); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
+		if userSaved, err := scs.upsertSyncUser(rctx, user, targetChannel, rc); err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync user",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
 				mlog.String("user_id", user.Id),
@@ -103,8 +161,12 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	for _, post := range syncMsg.Posts {
+		if post.Type == model.PostTypeCard {
+			continue
+		}
+
 		if syncMsg.ChannelId != post.ChannelId {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
 				mlog.String("sm.ChannelId", syncMsg.ChannelId),
 				mlog.String("sm.Post.ChannelId", post.ChannelId),
@@ -114,11 +176,11 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 			continue
 		}
 
-		if targetChannel.Type != model.ChannelTypeDirect && team == nil {
+		if (targetChannel.Type != model.ChannelTypeDirect && targetChannel.Type != model.ChannelTypeGroup) && team == nil {
 			var err2 error
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error getting Team for Channel",
 					mlog.String("ChannelId", post.ChannelId),
 					mlog.String("PostId", post.Id),
 					mlog.String("remote", rc.Name),
@@ -135,10 +197,10 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 
 		// add/update post
-		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
+		rpost, err := scs.upsertSyncPost(post, targetChannel, rc, syncMsg.MentionTransforms)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync post",
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("remote", rc.Name),
@@ -152,7 +214,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	// add/remove reactions
 	for _, reaction := range syncMsg.Reactions {
 		if _, err := scs.upsertSyncReaction(reaction, targetChannel, rc); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync reaction",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync reaction",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
@@ -175,12 +237,68 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 	}
 
-	response.SetPayload(syncResp)
+	// add/remove acknowledgements
+	for _, acknowledgement := range syncMsg.Acknowledgements {
+		if _, err := scs.upsertSyncAcknowledgement(acknowledgement, targetChannel, rc); err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync acknowledgement",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", acknowledgement.UserId),
+				mlog.String("post_id", acknowledgement.PostId),
+				mlog.Int("acknowledged_at", acknowledgement.AcknowledgedAt),
+				mlog.Err(err),
+			)
+			syncResp.AcknowledgementErrors = append(syncResp.AcknowledgementErrors, acknowledgement.PostId)
+		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Acknowledgement upserted via sync",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", acknowledgement.UserId),
+				mlog.String("post_id", acknowledgement.PostId),
+				mlog.Int("acknowledged_at", acknowledgement.AcknowledgedAt),
+			)
 
-	return nil
+			if syncResp.AcknowledgementsLastUpdateAt < acknowledgement.AcknowledgedAt {
+				syncResp.AcknowledgementsLastUpdateAt = acknowledgement.AcknowledgedAt
+			}
+		}
+	}
+
+	for _, status := range syncMsg.Statuses {
+		if err := scs.upsertSyncUserStatus(rctx, status, rc); err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error upserting sync user status",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", status.UserId),
+				mlog.Err(err))
+			syncResp.StatusErrors = append(syncResp.StatusErrors, status.UserId)
+		}
+	}
+
+	// Process membership changes after users have been synced
+	if len(syncMsg.MembershipChanges) > 0 {
+		if err := scs.onReceiveMembershipChanges(syncMsg, rc); err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error processing membership changes",
+				mlog.String("remote", rc.Name),
+				mlog.String("channel_id", syncMsg.ChannelId),
+				mlog.Int("change_count", len(syncMsg.MembershipChanges)),
+				mlog.Err(err),
+			)
+			syncResp.MembershipErrors = append(syncResp.MembershipErrors, err.Error())
+			// Don't fail the entire sync if membership changes fail
+		}
+	}
+
+	return syncResp, nil
 }
 
-func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+// processSyncMessageForRemote wraps ProcessSyncMessage for the remote cluster transport layer.
+func (scs *Service) processSyncMessageForRemote(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	syncResp, err := scs.ProcessSyncMessage(rctx, syncMsg, rc)
+	if err != nil {
+		return err
+	}
+	return response.SetPayload(syncResp)
+}
+
+func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 
 	// Check if user already exists
@@ -194,14 +312,22 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	var userSaved *model.User
 	if euser == nil {
 		// new user.  Make sure the remoteID is correct and insert the record
-		user.RemoteId = model.NewPointer(rc.RemoteId)
-		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
+		// Preserve original remote ID before overwriting RemoteId
+		originalRemoteId := user.GetRemoteID()
+		user.RemoteId = new(rc.RemoteId)
+		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
+			if originalRemoteId == "" {
+				originalRemoteId = rc.RemoteId // If no original RemoteId, use current sync sender
+			}
+			user.SetProp(model.UserPropsKeyOriginalRemoteId, originalRemoteId)
+		}
+		if userSaved, err = scs.insertSyncUser(rctx, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
 		if euser.GetRemoteID() != rc.RemoteId {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", user.Id),
 				mlog.String("existing_user_remote_id", euser.GetRemoteID()),
@@ -223,7 +349,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
-		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
+		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
 	}
@@ -234,13 +360,13 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
-	if channel.TeamId != "" {
+	if channel != nil && channel.TeamId != "" {
 		// add user to team
 		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
 		// add user to channel
-		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
+		if _, err := scs.app.AddUserToChannel(rctx, userSaved, channel, false); err != nil {
 			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 		}
 	}
@@ -279,7 +405,7 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 			}
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision inserting sync user",
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Collision inserting sync user",
 					mlog.String("field", field),
 					mlog.String("username", user.Username),
 					mlog.String("email", user.Email),
@@ -333,7 +459,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 			}
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision updating sync user",
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Collision updating sync user",
 					mlog.String("field", field),
 					mlog.String("username", user.Username),
 					mlog.String("email", user.Email),
@@ -350,12 +476,11 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {
 	var appErr *model.AppError
 
-	post.RemoteId = model.NewPointer(rc.RemoteId)
+	post.RemoteId = new(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
-
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -380,7 +505,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
-		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, true, true)
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
+
+		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -388,6 +515,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.DeleteAt > 0 {
+		// make sure the post being deleted is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
 		// delete post
 		rpost, appErr = scs.app.DeletePost(rctx, post.Id, post.UserId)
 		if appErr == nil {
@@ -396,14 +527,42 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("channel_id", post.ChannelId),
 			)
 		}
-	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
-		// update post
-		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, false)
-		if appErr == nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			)
+	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
+		// make sure the post being edited is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
+		var priority *model.PostPriority
+		var acknowledgements []*model.PostAcknowledgement
+
+		if post.Metadata != nil {
+			// Save the received priority
+			if post.Metadata.Priority != nil {
+				priority = post.Metadata.Priority
+			}
+
+			// Save the received acknowledgements
+			if post.Metadata.Acknowledgements != nil {
+				acknowledgements = post.Metadata.Acknowledgements
+			}
+		}
+
+		// First update the basic post
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
+		if appErr != nil {
+			rerr := errors.New(appErr.Error())
+			return nil, rerr
+		}
+
+		// Handle priority metadata separately if needed
+		if priority != nil {
+			rpost = scs.syncRemotePriorityMetadata(rctx, post, priority, rpost)
+		}
+
+		// Handle acknowledgements metadata separately if needed
+		if acknowledgements != nil {
+			rpost = scs.syncRemoteAcknowledgementsMetadata(rctx, post, acknowledgements, rpost)
 		}
 	} else {
 		// nothing to update
@@ -418,6 +577,105 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		rerr = errors.New(appErr.Error())
 	}
 	return rpost, rerr
+}
+
+// syncRemotePriorityMetadata handles syncing priority metadata from a remote post.
+// It completely replaces existing priority settings with the ones from the remote post,
+// regardless of update type.
+func (scs *Service) syncRemotePriorityMetadata(rctx request.CTX, post *model.Post, priority *model.PostPriority, rpost *model.Post) *model.Post {
+	// First, create a new priority object with proper post and channel IDs
+	newPriority := &model.PostPriority{
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+	}
+
+	// Copy the priority values from the remote post
+	if priority.Priority != nil {
+		newPriority.Priority = priority.Priority
+	}
+
+	if priority.RequestedAck != nil {
+		newPriority.RequestedAck = priority.RequestedAck
+	}
+
+	if priority.PersistentNotifications != nil {
+		newPriority.PersistentNotifications = priority.PersistentNotifications
+	}
+
+	// Save the new priority - this will replace any existing priority for the post
+	savedPriority, priorityErr := scs.server.GetStore().PostPriority().Save(newPriority)
+	if priorityErr != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error saving post priority from remote",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.Err(priorityErr),
+		)
+	} else {
+		// If the priority is successfully saved, ensure it's in the returned post
+		if rpost.Metadata == nil {
+			rpost.Metadata = &model.PostMetadata{}
+		}
+		// Use the saved priority from the database operation
+		rpost.Metadata.Priority = savedPriority
+	}
+
+	return rpost
+}
+
+// syncRemoteAcknowledgementsMetadata handles syncing acknowledgements metadata from a remote post.
+// It replaces all existing acknowledgements with the ones from the remote post.
+func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *model.Post, acknowledgements []*model.PostAcknowledgement, rpost *model.Post) *model.Post {
+	// When syncing from remote, we completely replace the existing acknowledgements
+	// with the ones received from the remote, regardless of update type
+
+	// Get existing acknowledgements and delete them using batch operation
+	existingAcks, appErrGet := scs.app.GetAcknowledgementsForPost(post.Id)
+	if appErrGet != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error getting existing acknowledgements for remote sync",
+			mlog.String("post_id", post.Id),
+			mlog.Err(appErrGet),
+		)
+	} else if len(existingAcks) > 0 {
+		// Use batch delete for better performance
+		if nErr := scs.server.GetStore().PostAcknowledgement().BatchDelete(existingAcks); nErr != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error batch deleting acknowledgements for remote sync",
+				mlog.String("post_id", post.Id),
+				mlog.Int("count", len(existingAcks)),
+				mlog.Err(nErr),
+			)
+		}
+	}
+
+	// Extract all user IDs from acknowledgements for batch processing
+	userIDs := make([]string, 0, len(acknowledgements))
+	for _, ack := range acknowledgements {
+		userIDs = append(userIDs, ack.UserId)
+	}
+
+	// Use batch operation to save all acknowledgements at once
+	var savedAcks []*model.PostAcknowledgement
+
+	if len(userIDs) > 0 {
+		var appErrAck *model.AppError
+		savedAcks, appErrAck = scs.app.SaveAcknowledgementsForPost(rctx, post.Id, userIDs)
+		if appErrAck != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error syncing remote post acknowledgements",
+				mlog.String("post_id", post.Id),
+				mlog.Int("count", len(userIDs)),
+				mlog.Err(appErrAck),
+			)
+			// Fall back to original acknowledgements if batch save fails
+			savedAcks = acknowledgements
+		}
+	}
+
+	// Update acknowledgements in the returned post
+	if rpost.Metadata == nil {
+		rpost.Metadata = &model.PostMetadata{}
+	}
+	rpost.Metadata.Acknowledgements = savedAcks
+
+	return rpost
 }
 
 func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Reaction, error) {
@@ -450,7 +708,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
 		}
-		reaction.RemoteId = model.NewPointer(rc.RemoteId)
+		reaction.RemoteId = new(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
 		// make sure the reaction being deleted is owned by the remote
@@ -465,4 +723,116 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		retErr = errors.New(appErr.Error())
 	}
 	return savedReaction, retErr
+}
+
+func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowledgement, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.PostAcknowledgement, error) {
+	savedAcknowledgement := acknowledgement
+	var appErr *model.AppError
+
+	// check that the acknowledgement's post is in the target channel. This ensures the acknowledgement can only be associated with a post
+	// that is in a channel shared with the remote.
+	rctx := request.EmptyContext(scs.server.Log())
+	post, err := scs.server.GetStore().Post().GetSingle(rctx, acknowledgement.PostId, true)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching post for acknowledgement sync: %w", err)
+	}
+	if post.ChannelId != targetChannel.Id {
+		return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrChannelIDMismatch)
+	}
+
+	existingAcknowledgement, err := scs.server.GetStore().PostAcknowledgement().GetSingle(acknowledgement.UserId, acknowledgement.PostId, rc.RemoteId)
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error fetching acknowledgement for sync: %w", err)
+	}
+
+	if existingAcknowledgement == nil {
+		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
+		// this is not done for delete since deletion can be done by admins on the remote
+		user, err := scs.server.GetStore().User().Get(context.TODO(), acknowledgement.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching user for acknowledgement sync: %w", err)
+		}
+		if user.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
+		}
+		acknowledgement.RemoteId = new(rc.RemoteId)
+		acknowledgement.ChannelId = targetChannel.Id
+		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
+	} else {
+		// make sure the acknowledgement being deleted is owned by the remote
+		if existingAcknowledgement.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
+		}
+		if acknowledgement.AcknowledgedAt == 0 {
+			// Delete the acknowledgement
+			appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
+		}
+	}
+
+	var retErr error
+	if appErr != nil {
+		retErr = errors.New(appErr.Error())
+	}
+	return savedAcknowledgement, retErr
+}
+
+func (scs *Service) upsertSyncUserStatus(rctx request.CTX, status *model.Status, rc *model.RemoteCluster) error {
+	user, err := scs.server.GetStore().User().Get(rctx.Context(), status.UserId)
+	if err != nil {
+		return fmt.Errorf("error getting user when syncing status: %w", err)
+	}
+
+	if user.GetRemoteID() != rc.RemoteId {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "RemoteID mismatch sync'ing user status",
+			mlog.String("remote", rc.Name),
+			mlog.String("user_id", status.UserId),
+			mlog.String("user_remote_id", user.GetRemoteID()),
+		)
+		return fmt.Errorf("error updating user status: %w", ErrRemoteIDMismatch)
+	}
+
+	scs.app.SaveAndBroadcastStatus(status)
+
+	return nil
+}
+
+// transformMentionsOnReceive transforms mentions in received posts using explicit mentionTransforms.
+func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) {
+	if post.Message == "" || len(mentionTransforms) == 0 {
+		return
+	}
+
+	// Process mentions directly using mentionTransforms - no need to re-parse with regex
+	for mention, userID := range mentionTransforms {
+		oldMention := "@" + mention
+		var newMention string
+
+		// Get the user to determine transformation type
+		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+			// User exists in receiver's database
+			if strings.Contains(mention, ":") {
+				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username
+				newMention = "@" + user.Username
+			} else {
+				// Simple mention (e.g., "@admin")
+				if user.GetRemoteID() == "" {
+					// This is a local user, keep as-is
+					newMention = "@" + mention
+				} else {
+					// This is a remote user that was synced, use their synced username
+					newMention = "@" + user.Username
+				}
+			}
+		} else {
+			// User doesn't exist in receiver's database
+			if strings.Contains(mention, ":") {
+				// Colon mention for unknown user - keep as-is
+				newMention = oldMention
+			} else {
+				// Simple mention for unknown user - add cluster suffix to indicate it's from remote
+				newMention = "@" + mention + ":" + rc.Name
+			}
+		}
+		post.Message = strings.ReplaceAll(post.Message, oldMention, newMention)
+	}
 }

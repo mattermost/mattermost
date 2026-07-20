@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
@@ -11,15 +12,18 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import AlertBanner from 'components/alert_banner';
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
-import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
+
+// The server clamps per_page to PerPageMaximum (200), so bots must be fetched
+// in pages of that size and accumulated rather than in a single large request.
+const BOTS_PER_PAGE = 200;
 
 type Props = {
 
@@ -52,6 +56,7 @@ type Props = {
     *  Map from botUserId to user.
     */
     users: Record<string, UserProfile>;
+    pluginDisplayNames?: Record<string, string>;
     createBots?: boolean;
 
     actions: {
@@ -100,11 +105,16 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+};
+
+// Distinguishes a clean load from a total failure (no bots fetched) and a
+// partial failure (a later page failed, so the list is incomplete).
+type LoadError = 'none' | 'full' | 'partial';
 
 type State = {
     loading: boolean;
-}
+    loadError: LoadError;
+};
 
 export default class Bots extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -112,36 +122,93 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
+            loadError: 'none',
         };
     }
 
     public componentDidMount(): void {
-        this.props.actions.loadBots(
-            Constants.Integrations.START_PAGE_NUM,
-            Constants.Integrations.PAGE_SIZE,
-        ).then(
-            (result) => {
-                if (result.data) {
-                    const promises = [];
+        this.loadAllBots();
 
-                    for (const bot of result.data) {
-                        // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
-                        this.props.actions.getUser(bot.owner_id);
-
-                        // We want to wait for these.
-                        promises.push(this.props.actions.getUser(bot.user_id));
-                        promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
-                    }
-
-                    Promise.all(promises).then(() => {
-                        this.setState({loading: false});
-                    });
-                }
-            },
-        );
         if (this.props.appsEnabled) {
             this.props.actions.fetchAppsBotIDs();
         }
+    }
+
+    private async loadAllBots(): Promise<void> {
+        const allBots: BotType[] = [];
+        let page = Constants.Integrations.START_PAGE_NUM;
+        let loadError: LoadError = 'none';
+
+        // Fetch successive pages until one comes back short, since the server
+        // caps each request at BOTS_PER_PAGE and never returns every bot at once.
+        for (;;) {
+            // eslint-disable-next-line no-await-in-loop
+            const result = await this.props.actions.loadBots(page, BOTS_PER_PAGE);
+
+            // A failed fetch returns an error rather than data. Surface it so the
+            // user knows the list failed to load (first page) or is incomplete
+            // (a later page), instead of silently showing an empty/truncated list.
+            if (result.error) {
+                loadError = allBots.length > 0 ? 'partial' : 'full';
+                break;
+            }
+
+            if (!result.data) {
+                break;
+            }
+
+            allBots.push(...result.data);
+
+            if (result.data.length < BOTS_PER_PAGE) {
+                break;
+            }
+            page++;
+        }
+
+        const promises = [];
+        for (const bot of allBots) {
+            // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
+            this.props.actions.getUser(bot.owner_id);
+
+            // We want to wait for these.
+            promises.push(this.props.actions.getUser(bot.user_id));
+            promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
+        }
+
+        await Promise.all(promises);
+        this.setState({loading: false, loadError});
+    }
+
+    private renderLoadError(): JSX.Element | null {
+        if (this.state.loadError === 'none') {
+            return null;
+        }
+
+        if (this.state.loadError === 'partial') {
+            return (
+                <AlertBanner
+                    mode='warning'
+                    message={
+                        <FormattedMessage
+                            id='bots.manage.load_error.partial'
+                            defaultMessage='Some bot accounts could not be loaded, so this list may be incomplete. Refresh the page to try again.'
+                        />
+                    }
+                />
+            );
+        }
+
+        return (
+            <AlertBanner
+                mode='danger'
+                message={
+                    <FormattedMessage
+                        id='bots.manage.load_error.full'
+                        defaultMessage='Bot accounts could not be loaded. Refresh the page to try again.'
+                    />
+                }
+            />
+        );
     }
 
     DisabledSection(props: {hasDisabled: boolean; disabledBots: JSX.Element[]; filter?: string}): JSX.Element | null {
@@ -152,7 +219,7 @@ export default class Bots extends React.PureComponent<Props, State> {
             return React.cloneElement(child, {filter: props.filter});
         });
         return (
-            <React.Fragment>
+            <>
                 <div className='bot-disabled'>
                     <FormattedMessage
                         id='bots.disabled'
@@ -162,7 +229,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 <div className='bot-list__disabled'>
                     {botsToDisplay}
                 </div>
-            </React.Fragment>
+            </>
         );
     }
 
@@ -184,6 +251,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 bot={bot}
                 owner={this.props.owners[bot.user_id]}
                 user={this.props.users[bot.user_id]}
+                pluginDisplayName={this.props.pluginDisplayNames?.[bot.user_id]}
                 accessTokens={(this.props.accessTokens && this.props.accessTokens[bot.user_id]) || {}}
                 actions={this.props.actions}
                 team={this.props.team}
@@ -236,13 +304,17 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='bots.manage.emptySearch'
-                        defaultMessage='No bot accounts match **{searchTerm}**'
+                    <FormattedMessage
+                        id='bots.emptySearch'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
+                        defaultMessage='No bot accounts match <b>{searchTerm}</b>'
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
                     />
                 }
                 helpText={
-                    <React.Fragment>
+                    <>
                         <FormattedMessage
                             id='bots.manage.help1'
                             defaultMessage='Use {botAccounts} to integrate with Mattermost through plugins or the API. Bot accounts are available to everyone on your server. '
@@ -260,17 +332,18 @@ export default class Bots extends React.PureComponent<Props, State> {
                                 ),
                             }}
                         />
-                        <FormattedMarkdownMessage
-                            id='bots.manage.help2'
-                            defaultMessage={'Enable bot account creation in the [System Console]({siteURL}/admin_console/integrations/bot_accounts).'}
+                        <FormattedMessage
+                            id='bots.help2'
+                            defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
                             values={{
-                                siteURL: getSiteURL(),
+                                a: (chunks) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
                             }}
                         />
-                    </React.Fragment>
+                    </>
                 }
-                searchPlaceholder={Utils.localizeMessage('bots.manage.search', 'Search Bot Accounts')}
+                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
+                error={this.renderLoadError()}
             >
                 {this.bots}
             </BackstageList>

@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -85,8 +84,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewPointer("Team Guest Role for Scheme"),
-				SchemeManaged: model.NewPointer(true),
+				DisplayName:   new("Team Guest Role for Scheme"),
+				SchemeManaged: new(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
@@ -108,8 +107,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewPointer("Channel Guest Role for Scheme"),
-				SchemeManaged: model.NewPointer(true),
+				DisplayName:   new("Channel Guest Role for Scheme"),
+				SchemeManaged: new(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
@@ -140,7 +139,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 
 	rctx.Logger().Info("Importing role", fields...)
 
-	role, err := a.GetRoleByName(context.Background(), *data.Name)
+	role, err := a.GetRoleByName(rctx, *data.Name)
 	if err != nil {
 		role = new(model.Role)
 	}
@@ -189,15 +188,16 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 	}
 
 	rctx.Logger().Info("Importing team", fields...)
+	teamName := strings.ToLower(*data.Name)
 
 	var team *model.Team
-	team, err := a.Srv().Store().Team().GetByName(*data.Name)
-
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 	if err != nil {
-		team = &model.Team{}
+		team = &model.Team{
+			Name: teamName,
+		}
 	}
 
-	team.Name = *data.Name
 	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
@@ -264,22 +264,26 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 		return nil
 	}
 
+	teamName := strings.ToLower(*data.Team)
+	channelName := strings.ToLower(*data.Name)
+
 	rctx.Logger().Info("Importing channel", fields...)
 
-	team, err := a.Srv().Store().Team().GetByName(*data.Team)
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": *data.Team}, "", http.StatusBadRequest).Wrap(err)
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": teamName}, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var channel *model.Channel
-	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); gErr == nil {
+	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true); gErr == nil {
 		channel = result
 	} else {
-		channel = &model.Channel{}
+		channel = &model.Channel{
+			Name: channelName,
+		}
 	}
 
 	channel.TeamId = team.Id
-	channel.Name = *data.Name
 	channel.DisplayName = *data.DisplayName
 	channel.Type = *data.Type
 
@@ -623,41 +627,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		savedUser = user
 	}
 
-	if data.ProfileImage != nil {
-		var file io.ReadSeeker
-		var err error
-		if data.ProfileImageData != nil {
-			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
-			var f io.ReadCloser
-			f, err = data.ProfileImageData.Open()
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
-			} else {
-				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
-				var b []byte
-				b, err = io.ReadAll(limitedReader)
-				if err != nil {
-					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
-				} else {
-					file = bytes.NewReader(b)
-				}
-			}
-		} else {
-			file, err = os.Open(*data.ProfileImage)
-			if err != nil {
-				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-			} else {
-				defer file.(*os.File).Close()
-			}
-		}
-
-		if file != nil {
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
-			}
-			if err := a.SetProfileImageFromFile(rctx, savedUser.Id, file); err != nil {
-				rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
-			}
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedUser.Id, &data.Avatar)
+		if appErr != nil {
+			return appErr
 		}
 	}
 
@@ -722,7 +695,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PreferenceCategoryDisplaySettings,
-			Name:     "channel_display_mode",
+			Name:     model.PreferenceNameChannelDisplayMode,
 			Value:    *data.ChannelDisplayMode,
 		})
 	}
@@ -763,6 +736,69 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		})
 	}
 
+	if data.SendOnCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "send_on_ctrl_enter",
+			Value:    *data.SendOnCtrlEnter,
+		})
+	}
+
+	if data.CodeBlockCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "code_block_ctrl_enter",
+			Value:    *data.CodeBlockCtrlEnter,
+		})
+	}
+
+	if data.ShowJoinLeave != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "join_leave",
+			Value:    *data.ShowJoinLeave,
+		})
+	}
+
+	if data.ShowUnreadScrollPosition != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "unread_scroll_position",
+			Value:    *data.ShowUnreadScrollPosition,
+		})
+	}
+
+	if data.SyncDrafts != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "sync_drafts",
+			Value:    *data.SyncDrafts,
+		})
+	}
+
+	if data.LimitVisibleDmsGms != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategorySidebarSettings,
+			Name:     model.PreferenceLimitVisibleDmsGms,
+			Value:    *data.LimitVisibleDmsGms,
+		})
+	}
+
+	if data.NameFormat != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameNameFormat,
+			Value:    *data.NameFormat,
+		})
+	}
+
 	if data.EmailInterval != nil || savedUser.NotifyProps[model.EmailNotifyProp] == "false" {
 		var intervalSeconds string
 		if value := savedUser.NotifyProps[model.EmailNotifyProp]; value == "false" {
@@ -796,6 +832,201 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	return a.importUserTeams(rctx, savedUser, data.Teams)
 }
 
+func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
+	var fields []mlog.Field
+	if data != nil && data.Username != nil {
+		fields = append(fields, mlog.String("user_name", *data.Username))
+	}
+	rctx.Logger().Info("Validating bot", fields...)
+
+	if err := imports.ValidateBotImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	rctx.Logger().Info("Importing bot", fields...)
+
+	// We want to avoid database writes if nothing has changed.
+	hasBotChanged := false
+
+	var bot *model.Bot
+	var nErr error
+	bot, nErr = a.Srv().Store().Bot().GetByUsername(*data.Username)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("importBot", "app.import.import_bot.lookup_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		bot = &model.Bot{}
+		hasBotChanged = true
+	}
+
+	bot.Username = *data.Username
+
+	if data.Description != nil && bot.Description != *data.Description {
+		bot.Description = *data.Description
+		hasBotChanged = true
+	}
+
+	if data.DisplayName != nil && bot.DisplayName != *data.DisplayName {
+		bot.DisplayName = *data.DisplayName
+		hasBotChanged = true
+	}
+
+	var owner *model.User
+	if data.Owner != nil {
+		owner, nErr = a.Srv().Store().User().GetByUsername(*data.Owner)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				// If the owner does not exist, we assume the owner is a plugin hence keeping the owner username as is.
+				bot.OwnerId = *data.Owner
+			default:
+				return model.NewAppError("importBot", "app.import.import_bot.owner_could_not_found.error", map[string]any{"Owner": *data.Owner}, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		} else {
+			bot.OwnerId = owner.Id
+		}
+	}
+
+	var savedBot *model.Bot
+	if bot.UserId == "" {
+		var appErr *model.AppError
+		if savedBot, appErr = a.CreateBot(rctx, bot); appErr != nil {
+			// CreateBot failed — check if it's because the user already exists.
+			// CreateBot wraps store.ErrInvalidInput inside a *model.AppError when
+			// the username is taken, so we unwrap via errors.As to detect this case.
+			// This can happen when a user with this username was created (e.g. by a
+			// previous partial import) but has no bot record yet.
+			var invErr *store.ErrInvalidInput
+			if !errors.As(appErr, &invErr) || invErr.Field != "username" {
+				return appErr
+			}
+
+			rctx.Logger().Info("CreateBot failed with username conflict during import, recovering by linking existing user",
+				mlog.String("bot_username", *data.Username))
+
+			// The user already exists; look it up and create only the bot record.
+			existingUser, userErr := a.Srv().Store().User().GetByUsername(*data.Username)
+			if userErr != nil {
+				return model.NewAppError("importBot", "app.import.import_bot.user_not_found.error", nil, "", http.StatusInternalServerError).Wrap(userErr)
+			}
+			bot.UserId = existingUser.Id
+
+			rctx.Logger().Info("Found existing user for bot import recovery",
+				mlog.String("bot_username", *data.Username),
+				mlog.String("user_id", existingUser.Id))
+
+			var saveErr error
+			savedBot, saveErr = a.Srv().Store().Bot().Save(bot)
+			if saveErr != nil {
+				// Bot().Save failed — this can happen if the bot record was
+				// concurrently created between the GetByUsername check at the
+				// top of this function and now (race condition). Fall back to
+				// updating the existing record.
+				rctx.Logger().Warn("Bot record save failed during import recovery, attempting update",
+					mlog.String("user_id", bot.UserId),
+					mlog.Err(saveErr))
+				var updateErr error
+				savedBot, updateErr = a.Srv().Store().Bot().Update(bot)
+				if updateErr != nil {
+					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
+				}
+			}
+		}
+	} else if hasBotChanged {
+		var err error
+		if savedBot, err = a.Srv().Store().Bot().Update(bot); err != nil {
+			return model.NewAppError("importBot", "app.bot.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if savedBot == nil {
+		savedBot = bot
+	}
+
+	// DisplayName is stored as Users.FirstName, not in the Bots table,
+	// so Bot().Update() alone doesn't persist it. Update the user record
+	// if the DisplayName has diverged.
+	if data.DisplayName != nil && savedBot.UserId != "" {
+		botUser, userErr := a.Srv().Store().User().Get(rctx.Context(), savedBot.UserId)
+		if userErr != nil {
+			rctx.Logger().Warn("Failed to fetch bot user for DisplayName update",
+				mlog.String("user_id", savedBot.UserId),
+				mlog.Err(userErr))
+		} else if botUser.FirstName != *data.DisplayName {
+			botUser.FirstName = *data.DisplayName
+			if _, appErr := a.UpdateUser(rctx, botUser, false); appErr != nil {
+				return appErr
+			}
+		}
+	}
+
+	if data.Avatar.ProfileImage != nil {
+		appErr := a.importProfileImage(rctx, savedBot.UserId, &data.Avatar)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.Avatar) *model.AppError {
+	var file io.ReadSeeker
+	var err error
+	if data.ProfileImageData != nil {
+		// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+		var f io.ReadCloser
+		f, err = data.ProfileImageData.Open()
+		if err != nil {
+			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", map[string]any{"FileName": data.ProfileImageData.Name}, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		defer func() {
+			if closeErr := f.Close(); closeErr != nil {
+				rctx.Logger().Warn("Unable to close profile image data.", mlog.String("filename", data.ProfileImageData.Name), mlog.Err(closeErr))
+			}
+		}()
+
+		limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+		var b []byte
+		b, err = io.ReadAll(limitedReader)
+		if err != nil {
+			return model.NewAppError("importProfileImage", "app.import.profile_image.read_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		file = bytes.NewReader(b)
+	} else {
+		path := *data.ProfileImage
+		file, err = os.Open(path)
+		if err != nil {
+			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		defer func() {
+			if closeErr := file.(*os.File).Close(); closeErr != nil {
+				rctx.Logger().Warn("Unable to close profile image file.", mlog.String("filepath", path), mlog.Err(closeErr))
+			}
+		}()
+	}
+
+	if file != nil {
+		if err := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
+			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if appErr := a.SetProfileImageFromFile(rctx, userID, file); appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
 func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
@@ -805,9 +1036,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	for _, tdata := range *data {
 		teamNames = append(teamNames, *tdata.Name)
 	}
-	allTeams, err := a.getTeamsByNames(teamNames)
-	if err != nil {
-		return err
+	allTeams, appErr := a.getTeamsByNames(teamNames)
+	if appErr != nil {
+		return appErr
 	}
 
 	var (
@@ -853,7 +1084,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		} else {
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.TeamGuestRoleId {
 					isGuestByTeamID[team.Id] = true
 					isUserByTeamId[team.Id] = false
@@ -878,9 +1109,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
-			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
-			if err != nil {
-				return err
+			userShouldBeAdmin, appErr = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			if appErr != nil {
+				return appErr
 			}
 			member.SchemeAdmin = userShouldBeAdmin
 		}
@@ -903,7 +1134,6 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 
 	oldMembers, nErr := a.Srv().Store().Team().UpdateMultipleMembers(oldTeamMembers)
 	if nErr != nil {
-		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return appErr
@@ -917,7 +1147,6 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		var nErr error
 		newMembers, nErr = a.Srv().Store().Team().SaveMultipleMembers(newTeamMembers, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
-			var appErr *model.AppError
 			var conflictErr *store.ErrConflict
 			var limitExceededErr *store.ErrLimitExceeded
 			switch {
@@ -935,12 +1164,15 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); err != nil {
-				return err
+			// Bulk import uses internal function to support two-phase role updates.
+			if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
+				return appErr
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId])
+		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); appErr != nil {
+			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+		}
 	}
 
 	for _, team := range allTeams {
@@ -1010,7 +1242,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.ChannelGuestRoleId {
 					isGuestByChannelId[channel.Id] = true
 					isUserByChannelId[channel.Id] = false
@@ -1125,12 +1357,15 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			if _, err = a.UpdateChannelMemberRoles(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
+			// Bulk import uses internal function to support two-phase role updates.
+			if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
+		if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
+			rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
+		}
 	}
 
 	for _, channel := range allChannels {
@@ -1179,11 +1414,13 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
-		replyData := replyData
 		if err = imports.ValidateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
 		usernames = append(usernames, *replyData.User)
+		if replyData.FlaggedBy != nil {
+			usernames = append(usernames, *replyData.FlaggedBy...)
+		}
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
@@ -1191,14 +1428,20 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		return err
 	}
 
+	type postAndReactions struct {
+		post      *model.Post
+		reactions *[]imports.ReactionImportData
+	}
+
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
 		postsForOverwriteList = []*model.Post{}
+		reactionsForCreateMap = make(map[string]postAndReactions)
+		interimReactionsMap   = map[int64]*[]imports.ReactionImportData{}
 	)
 
 	for _, replyData := range data {
-		replyData := replyData
 		user := users[strings.ToLower(*replyData.User)]
 
 		// Check if this post already exists.
@@ -1227,17 +1470,25 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
+		if replyData.Props != nil {
+			reply.Props = *replyData.Props
+		}
 		if replyData.Type != nil {
 			reply.Type = *replyData.Type
 		}
 		if replyData.EditAt != nil {
 			reply.EditAt = *replyData.EditAt
 		}
+		if replyData.IsPinned != nil {
+			reply.IsPinned = *replyData.IsPinned
+		}
 
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID, extractContent)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
+				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+				}
 			}
 		}
 		reply.FileIds = make([]string, 0)
@@ -1247,14 +1498,25 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 		if reply.Id == "" {
 			postsForCreateList = append(postsForCreateList, reply)
+			if replyData.Reactions != nil && len(*replyData.Reactions) > 0 {
+				// although createAt is not unique, I think it is safe to
+				// assume that it could be near-unique especially for the same thread.
+				// If this assumption fails, the last reactions would be used for the
+				// posts that share same createAt value.
+				interimReactionsMap[reply.CreateAt] = replyData.Reactions
+			}
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, reply)
+			if replyData.Reactions != nil && len(*replyData.Reactions) > 0 {
+				reactionsForCreateMap[reply.Id] = postAndReactions{post: reply, reactions: replyData.Reactions}
+			}
 		}
 		postsWithData = append(postsWithData, postAndData{post: reply, replyData: &replyData})
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, _, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList); err != nil {
+		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
+		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -1266,14 +1528,51 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 				return model.NewAppError("importReplies", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
+		for _, created := range postsCreated {
+			reactions, ok := interimReactionsMap[created.CreateAt]
+			if !ok || reactions == nil {
+				continue
+			}
+
+			reactionsForCreateMap[created.Id] = postAndReactions{post: created, reactions: reactions}
+		}
 	}
 
-	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); nErr != nil {
+	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); nErr != nil {
 		return model.NewAppError("importReplies", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, postAndReactions := range reactionsForCreateMap {
+		for _, reaction := range *postAndReactions.reactions {
+			if err := a.importReaction(&reaction, postAndReactions.post); err != nil {
+				return err
+			}
+		}
 	}
 
 	for _, postWithData := range postsWithData {
 		a.updateFileInfoWithPostId(rctx, postWithData.post)
+
+		if postWithData.replyData.FlaggedBy != nil {
+			var preferences model.Preferences
+
+			for _, username := range *postWithData.replyData.FlaggedBy {
+				user := users[strings.ToLower(username)]
+
+				preferences = append(preferences, model.Preference{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryFlaggedPost,
+					Name:     postWithData.post.Id,
+					Value:    "true",
+				})
+			}
+
+			if len(preferences) > 0 {
+				if err := a.Srv().Store().Preference().Save(preferences); err != nil {
+					return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+		}
 	}
 
 	return nil
@@ -1374,7 +1673,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 	if post.Id != "" {
 		oldFiles, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
 		if err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
 		}
 		for _, oldFile := range oldFiles {
 			if oldFile.Name != path.Base(name) || oldFile.Size != fileSize {
@@ -1383,7 +1682,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 
 			oldFileReader, appErr := a.FileReader(oldFile.Path)
 			if appErr != nil {
-				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(appErr)
 			}
 			defer oldFileReader.Close()
 
@@ -1405,13 +1704,19 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 				}
 			} else if data.Data != nil {
 				rctx.Logger().Info("File is from ZIP, can't seek, opening again", mlog.String("file_name", name))
-				file.Close()
+				if err := file.Close(); err != nil {
+					rctx.Logger().Warn("Error closing file", mlog.String("file_name", name), mlog.Err(err))
+				}
 
 				f, err := data.Data.Open()
 				if err != nil {
 					return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
 				}
-				defer f.Close()
+				defer func() {
+					if err := f.Close(); err != nil {
+						rctx.Logger().Warn("Error closing zip file reader", mlog.String("file_name", name), mlog.Err(err))
+					}
+				}()
 
 				file = f
 			}
@@ -1633,7 +1938,9 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id, extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
+				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+				}
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -1653,7 +1960,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	if len(postsForCreateList) > 0 {
-		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
 		if nErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -1707,7 +2014,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
@@ -1727,7 +2034,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	for _, postWithData := range postsWithData {
-		postWithData := postWithData
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
@@ -1751,7 +2057,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
@@ -1776,7 +2081,6 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
-		attachment := attachment
 		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID, extractContent)
 		if err != nil {
 			if attachment.Path != nil {
@@ -1802,6 +2106,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 		}
 	}
 }
+
 func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {
@@ -1844,7 +2149,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		}
 		channel = ch
 	} else {
-		ch, err2 := a.createGroupChannel(rctx, userIDs)
+		ch, err2 := a.createGroupChannel(rctx, userIDs, "")
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
@@ -1856,7 +2161,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	var ems = make([]model.ChannelMember, 0, totalMembers)
+	ems := make([]model.ChannelMember, 0, totalMembers)
 	var page int
 
 	for int64(len(ems)) < totalMembers {
@@ -1875,8 +2180,15 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	newChannelMembers := make([]*model.ChannelMember, 0)
 	for _, member := range data.Participants {
+		u := userMap[strings.ToLower(*member.Username)]
+		// Default scheme flags so that imports omitting them still produce a
+		// usable role on the resulting channel member, matching the regular
+		// user-channel import path. Explicit values in the import data still
+		// override these defaults below.
 		m := &model.ChannelMember{
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: u.IsGuest(),
+			SchemeUser:  !u.IsGuest(),
 		}
 		if member.LastViewedAt != nil {
 			m.LastViewedAt = *member.LastViewedAt
@@ -1944,12 +2256,39 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 			}
 		}
 
-		u := userMap[strings.ToLower(*member.Username)]
 		if existing, ok := existingMembers[u.Id]; ok {
 			// Decide which membership is newer. We have LastViewedAt in the import data, which should
 			// give us a good idea of which membership is newer.
 			if existing.LastViewedAt > m.LastViewedAt {
 				continue
+			}
+		} else {
+			// The channel pre-existed (either from a concurrent worker that committed the Channels
+			// row but had not finished its SaveMember loop yet, an earlier import that crashed
+			// mid-loop, or a GM whose membership has since drifted) without this participant.
+			// Insert the ChannelMembers row first so UpdateMultipleMembers below has something
+			// to UPDATE — otherwise it returns ErrNotFound and aborts the import.
+			toInsert := &model.ChannelMember{
+				UserId:      u.Id,
+				ChannelId:   channel.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  !u.IsGuest(),
+				SchemeGuest: u.IsGuest(),
+			}
+			if _, nErr := a.Srv().Store().Channel().SaveMember(rctx, toInsert); nErr != nil {
+				var cErr *store.ErrConflict
+				// A concurrent importer may have inserted the row in the meantime — the row
+				// exists, which is all we need before the UPDATE.
+				if !errors.As(nErr, &cErr) {
+					return model.NewAppError("BulkImport", "app.import.import_direct_channel.save_member.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			} else {
+				if histErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(u.Id, channel.Id, model.GetMillis()); histErr != nil {
+					rctx.Logger().Warn("Failed to log channel member history join event during import",
+						mlog.String("user_id", u.Id),
+						mlog.String("channel_id", channel.Id),
+						mlog.Err(histErr))
+				}
 			}
 		}
 		m.UserId = u.Id
@@ -2088,12 +2427,15 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
-		} else {
-			ch, err = a.createGroupChannel(rctx, userIDs)
+		} else if len(userIDs) > 2 {
+			ch, err = a.createGroupChannel(rctx, userIDs, "")
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
+		} else {
+			rctx.Logger().Warn("Not enough users to create a direct channel", mlog.Int("line_number", line.LineNumber))
+			continue
 		}
 
 		user := users[strings.ToLower(*line.DirectPost.User)]
@@ -2150,7 +2492,9 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam", extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
+				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+				}
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -2169,7 +2513,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, idx, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList); err != nil {
+		if _, idx, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
@@ -2217,7 +2561,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
@@ -2255,7 +2599,6 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
@@ -2322,9 +2665,13 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 		file, err = os.Open(*data.Image)
 	}
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]any{"EmojiName": *data.Name}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]any{"EmojiName": *data.Name}, "", http.StatusBadRequest).Wrap(err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			rctx.Logger().Warn("Error closing emoji file", mlog.String("emoji_name", *data.Name), mlog.Err(err))
+		}
+	}()
 
 	reader := utils.NewLimitedReaderWithError(file, MaxEmojiFileSize)
 	if _, err := a.WriteFile(reader, getEmojiImagePath(emoji.Id)); err != nil {

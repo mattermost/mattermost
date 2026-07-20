@@ -78,7 +78,6 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
             return (
                 <div
                     id='teamIconImage'
-                    alt='team image preview'
                     style={imageStyles}
                     className='team-img-preview'
                     onClick={handleInputFile}

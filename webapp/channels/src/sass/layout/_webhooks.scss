@@ -1,4 +1,5 @@
-@charset "utf-8";
+@use "utils/mixins";
+@use "utils/variables";
 
 .webhooks__container {
     padding: 0 13px 15px;
@@ -6,7 +7,7 @@
     border-radius: 4px;
     margin-top: 10px;
 
-    @include alpha-property(background, $black, 0.1);
+    @include mixins.alpha-property(background, variables.$black, 0.1);
 }
 
 .post-attachment-dropdown {
@@ -100,13 +101,17 @@
             }
         }
 
+        &.attachment--prevent-click,
+        &.attachment--prevent-click:hover {
+            cursor: default;
+        }
+
         .attachment__content {
             border-width: 1px;
             border-style: solid;
             border-radius: 0 4px 4px 0;
             border-left: none;
             margin: 5px 0 5px 20px;
-            background: var(--center-channel-bg);
 
             &.permalink--opengraph {
                 margin: 5px 0 0 20px;
@@ -371,25 +376,15 @@
             }
 
             button {
-                border: none;
+                max-width: 100%;
                 margin-top: 8px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
-                font-size: 13px;
-                outline: 0;
+                overflow-wrap: anywhere;
+                white-space: normal;
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
-                    text-decoration: none;
-                }
-
-                &[disabled] {
-                    cursor: auto;
-                    opacity: 0.5;
-                }
-
-                a {
-                    color: inherit;
+                    background: rgba(var(--center-channel-color-rgb), 0.16);
                 }
             }
 

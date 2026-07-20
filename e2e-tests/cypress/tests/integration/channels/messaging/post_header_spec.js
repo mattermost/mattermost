@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Post Header', () => {
     let testTeam;
@@ -44,17 +44,14 @@ describe('Post Header', () => {
             // * Check if url include the permalink
             cy.url().should('include', `/${testTeam.name}/channels/off-topic/${postId}`);
 
-            // * Check if url redirects back to parent path eventually
-            cy.wait(TIMEOUTS.FIVE_SEC).url().should('include', `/${testTeam.name}/channels/off-topic`).and('not.include', `/${postId}`);
-
             // * Check that the post is highlighted on permalink view
             cy.get(divPostId).should('be.visible').and('have.class', 'post--highlight');
 
-            // * Check that the highlight is removed after a period of time
-            cy.wait(TIMEOUTS.HALF_SEC).get(divPostId).should('be.visible').and('not.have.class', 'post--highlight');
+            // * Check if url redirects back to parent path eventually
+            cy.url({timeout: TIMEOUTS.TEN_SEC}).should('include', `/${testTeam.name}/channels/off-topic`).and('not.include', `/${postId}`);
 
-            // * Check the said post not highlighted
-            cy.get(divPostId).should('be.visible').should('not.have.class', 'post--highlight');
+            // * Check that the highlight is removed after redirect
+            cy.get(divPostId).should('be.visible').and('not.have.class', 'post--highlight');
         });
     });
 
@@ -74,7 +71,7 @@ describe('Post Header', () => {
             // * Check that the center dot menu button and dropdown are visible
             cy.get(`#post_${postId}`).should('be.visible');
             cy.get(`#CENTER_button_${postId}`).should('be.visible');
-            cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
+            cy.get('body').type('{esc}');
 
             // # Click to other location like post textbox
             cy.uiGetPostTextBox().click();

@@ -3,11 +3,15 @@
 
 import React from 'react';
 
-import type {AppBinding} from '@mattermost/types/apps';
+import {isAppBinding, type AppBinding} from '@mattermost/types/apps';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
+import {isArrayOf} from '@mattermost/types/utilities';
 
+import {validateBindings} from 'mattermost-redux/utils/apps';
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
+import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
 import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostImage from 'components/post_view/post_image';
@@ -15,19 +19,22 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
 import webSocketClient from 'client/web_websocket_client';
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
-import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
+import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
 import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
+import InteractiveMessages from '../interactive_messages';
 
 export type Props = {
     post: Post;
-    pluginPostWillRenderEmbedComponents?: PostWillRenderEmbedPluginComponent[];
+    pluginPostWillRenderEmbedComponents?: PostWillRenderEmbedComponent[];
     children?: JSX.Element;
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;
     appsEnabled: boolean;
+    mmBlocksEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
@@ -61,10 +68,12 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (c.match(embed)) {
                 const Component = c.component;
                 return this.props.isEmbedVisible && (
-                    <Component
-                        embed={embed}
-                        webSocketClient={webSocketClient}
-                    />
+                    <PluggableErrorBoundary pluginId={c.pluginId}>
+                        <Component
+                            embed={embed}
+                            webSocketClient={webSocketClient}
+                        />
+                    </PluggableErrorBoundary>
                 );
             }
         }
@@ -83,10 +92,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             );
 
         case 'message_attachment': {
-            let attachments = [];
-            if (this.props.post.props && this.props.post.props.attachments) {
-                attachments = this.props.post.props.attachments;
-            }
+            const attachments = isMessageAttachmentArray(this.props.post.props?.attachments) ? this.props.post.props?.attachments : [];
 
             return (
                 <MessageAttachmentList
@@ -152,17 +158,34 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
     render() {
         const embed = this.getEmbed();
 
+        // New Interactive Messages framework — checked first per priority order.
+        // When the feature flag is on, mm_blocks/blocks/cards/attachments are all
+        // handled here. The existing paths below are only reached when the flag is off.
+        if (this.props.mmBlocksEnabled) {
+            const props = this.props.post.props as Record<string, unknown>;
+
+            if (hasInteractiveMessageProps(props)) {
+                return (
+                    <>
+                        {this.props.children}
+                        <InteractiveMessages post={this.props.post}/>
+                    </>
+                );
+            }
+        }
+
         if (this.props.appsEnabled) {
-            if (hasValidEmbeddedBinding(this.props.post.props)) {
+            const appEmbeds = isArrayOf<AppBinding>(this.props.post.props?.app_bindings, isAppBinding) ? validateBindings(this.props.post.props?.app_bindings) : [];
+            if (appEmbeds.length) {
                 // TODO Put some log / message if the form is not valid?
                 return (
-                    <React.Fragment>
+                    <>
                         {this.props.children}
                         <EmbeddedBindings
-                            embeds={this.props.post.props.app_bindings}
+                            embeds={appEmbeds}
                             post={this.props.post}
                         />
-                    </React.Fragment>
+                    </>
                 );
             }
         }
@@ -183,22 +206,4 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
 
         return this.props.children;
     }
-}
-
-function hasValidEmbeddedBinding(props: Record<string, any>) {
-    if (!props) {
-        return false;
-    }
-
-    if (!props.app_bindings) {
-        return false;
-    }
-
-    const embeds = props.app_bindings as AppBinding[];
-
-    if (!embeds.length) {
-        return false;
-    }
-
-    return true;
 }

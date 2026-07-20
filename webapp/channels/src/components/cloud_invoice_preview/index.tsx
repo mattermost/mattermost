@@ -53,8 +53,9 @@ function CloudInvoicePreview(props: Props) {
                 <div className={'subtitle'}>
                     <FormattedMessage
                         id='cloud.invoice_pdf_preview.download'
+                        defaultMessage='<downloadLink>Download</downloadLink> this page for your records'
                         values={{
-                            downloadLink: (msg: string) => (
+                            downloadLink: (msg) => (
                                 <ExternalLink
                                     href={props.url || ''}
                                     location='cloud_invoice_preview'

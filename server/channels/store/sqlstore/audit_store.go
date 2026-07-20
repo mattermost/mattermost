@@ -13,17 +13,35 @@ import (
 
 type SqlAuditStore struct {
 	*SqlStore
+
+	auditQuery sq.SelectBuilder
 }
 
 func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
-	return &SqlAuditStore{sqlStore}
+	s := &SqlAuditStore{
+		SqlStore: sqlStore,
+	}
+
+	s.auditQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UserId",
+			"Action",
+			"ExtraInfo",
+			"IpAddress",
+			"SessionId",
+		).
+		From("Audits")
+
+	return s
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) error {
 	audit.Id = model.NewId()
 	audit.CreateAt = model.GetMillis()
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Audits
+	if _, err := s.GetMaster().NamedExec(`INSERT INTO Audits
 (Id, CreateAt, UserId, Action, ExtraInfo, IpAddress, SessionId)
 VALUES
 (:Id, :CreateAt, :UserId, :Action, :ExtraInfo, :IpAddress, :SessionId)`, audit); err != nil {
@@ -37,9 +55,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 		return nil, store.NewErrOutOfBounds(limit)
 	}
 
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Audits").
+	query := s.auditQuery.
 		OrderBy("CreateAt DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -54,14 +70,14 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 	}
 
 	var audits model.Audits
-	if err := s.GetReplicaX().Select(&audits, queryString, args...); err != nil {
+	if err := s.GetReplica().Select(&audits, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Audit list for userId=%s", userId)
 	}
 	return audits, nil
 }
 
 func (s SqlAuditStore) PermanentDeleteByUser(userId string) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM Audits WHERE UserId = ?", userId); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to delete Audit with userId=%s", userId)
 	}
 	return nil

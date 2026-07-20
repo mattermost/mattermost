@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import classNames from 'classnames';
+import React, {forwardRef, memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import styled from 'styled-components';
@@ -18,13 +19,13 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -76,6 +77,7 @@ interface FormattingIconProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
+    isActive?: boolean;
 }
 
 const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<IconProps>> = {
@@ -114,12 +116,15 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
     ol: KEYBOARD_SHORTCUTS.msgMarkdownOl,
 };
 
-const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
+const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props, ref) => {
     /**
      * by passing in the otherProps spread we guarantee that accessibility
      * properties like aria-label, etc. get added to the DOM
      */
-    const {mode, onClick, ...otherProps} = props;
+    const {mode, onClick, isActive, className, ...otherProps} = props;
+    const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+    }, []);
 
     /* get the correct Icon from the IconMap */
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
@@ -129,10 +134,14 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
 
     const bodyAction = (
         <IconContainer
+            ref={ref}
             type='button'
             id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
+            onMouseDown={handleMouseDown}
             aria-label={buttonAriaLabel}
+            aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
+            className={classNames(className, {active: isActive})}
             {...otherProps}
         >
             <Icon
@@ -147,8 +156,6 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
 
     return (
         <WithTooltip
-            id='formatting-icon-tooltip'
-            placement='top'
             title={
                 <KeyboardShortcutSequence
                     shortcut={shortcut}
@@ -160,6 +167,8 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
             {bodyAction}
         </WithTooltip>
     );
-};
+});
+
+FormattingIcon.displayName = 'FormattingIcon';
 
 export default memo(FormattingIcon);

@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {installApp} from 'actions/marketplace';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 import {getInstalling, getError} from 'selectors/views/marketplace';
 
@@ -18,7 +17,7 @@ import MarketplaceItemApp from './marketplace_item_app';
 
 type Props = {
     id: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const installing = getInstalling(state, props.id);
@@ -27,7 +26,6 @@ function mapStateToProps(state: GlobalState, props: Props) {
     return {
         installing,
         error,
-        trackEvent,
     };
 }
 

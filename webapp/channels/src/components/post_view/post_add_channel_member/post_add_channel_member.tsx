@@ -26,6 +26,7 @@ export interface Props {
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];
+    isPolicyEnforced: boolean;
     actions: Actions;
 }
 
@@ -146,11 +147,33 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames} = this.props;
+        const {channelType, postId, usernames, noGroupsUsernames, isPolicyEnforced} = this.props;
         if (!postId || !channelType) {
             return null;
         }
 
+        // For ABAC channels (policy enforced), NEVER show invite links - only show notification message
+        if (isPolicyEnforced) {
+            // Combine all users into a single message without any invite functionality
+            const allUsers = [...usernames, ...noGroupsUsernames];
+            const allUsersAtMentions = this.generateAtMentions(allUsers);
+
+            if (allUsers.length === 0) {
+                return null;
+            }
+
+            const messageText = 'did not get notified by this mention because they are not in the channel.';
+
+            return (
+                <p>
+                    {allUsersAtMentions}
+                    {' '}
+                    {messageText}
+                </p>
+            );
+        }
+
+        // Regular flow for non-ABAC channels
         let link;
         if (channelType === Constants.PRIVATE_CHANNEL) {
             link = (
@@ -168,44 +191,32 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             );
         }
 
-        let outOfChannelMessagePart;
-        const outOfChannelAtMentions = this.generateAtMentions(usernames);
-        if (usernames.length === 1) {
-            outOfChannelMessagePart = (
+        // Separate invitable users from group-constrained users
+        const invitableUsers = usernames.filter((username) => !noGroupsUsernames.includes(username));
+        const outOfGroupsUsers = noGroupsUsernames;
+
+        const messages = [];
+
+        // Handle invitable users with invite functionality
+        if (invitableUsers.length > 0) {
+            const invitableAtMentions = this.generateAtMentions(invitableUsers);
+            const invitableMessagePart = invitableUsers.length === 1 ? (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.message.one'
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
                 />
-            );
-        } else if (usernames.length > 1) {
-            outOfChannelMessagePart = (
+            ) : (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.message.multiple'
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
                 />
             );
-        }
 
-        let outOfGroupsMessagePart;
-        const outOfGroupsAtMentions = this.generateAtMentions(noGroupsUsernames);
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessagePart = (
-                <FormattedMessage
-                    id='post_body.check_for_out_of_channel_groups_mentions.message'
-                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
-                />
-            );
-        }
-
-        let outOfChannelMessage = null;
-        let outOfGroupsMessage = null;
-
-        if (usernames.length) {
-            outOfChannelMessage = (
-                <p>
-                    {outOfChannelAtMentions}
+            messages.push(
+                <p key='invitable'>
+                    {invitableAtMentions}
                     {' '}
-                    {outOfChannelMessagePart}
+                    {invitableMessagePart}
                     <a
                         className='PostBody_addChannelMemberLink'
                         onClick={this.handleAddChannelMember}
@@ -213,27 +224,35 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                         {link}
                     </a>
                     <FormattedMessage
-                        id={'post_body.check_for_out_of_channel_mentions.message_last'}
-                        defaultMessage={'? They will have access to all message history.'}
+                        id='post_body.check_for_out_of_channel_mentions.message_last'
+                        defaultMessage='? They will have access to all message history.'
                     />
-                </p>
+                </p>,
             );
         }
 
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessage = (
-                <p>
+        // Handle users not in required groups with specific messaging
+        if (outOfGroupsUsers.length > 0) {
+            const outOfGroupsAtMentions = this.generateAtMentions(outOfGroupsUsers);
+            const outOfGroupsMessagePart = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_groups_mentions.message'
+                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
+                />
+            );
+
+            messages.push(
+                <p key='out-of-groups'>
                     {outOfGroupsAtMentions}
                     {' '}
                     {outOfGroupsMessagePart}
-                </p>
+                </p>,
             );
         }
 
         return (
             <>
-                {outOfChannelMessage}
-                {outOfGroupsMessage}
+                {messages}
             </>
         );
     }

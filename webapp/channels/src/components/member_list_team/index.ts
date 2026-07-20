@@ -22,7 +22,7 @@ import MemberListTeam from './member_list_team';
 
 type Props = {
     teamId?: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const canManageTeamMembers = haveITeamPermission(state, ownProps.teamId, Permissions.MANAGE_TEAM_ROLES);

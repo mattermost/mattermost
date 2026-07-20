@@ -9,7 +9,7 @@ describe('i18n utils', () => {
     });
 
     it('should return default message', () => {
-        expect(localizeMessage('someting.string', 'defaultString')).toBe('defaultString');
+        expect(localizeMessage({id: 'someting.string', defaultMessage: 'defaultString'})).toBe('defaultString');
     });
 
     it('should return previously set Localized function return value', () => {
@@ -18,6 +18,6 @@ describe('i18n utils', () => {
         }
 
         setLocalizeFunction(mockFunc);
-        expect(localizeMessage('someting.string', 'defaultString')).toBe('test');
+        expect(localizeMessage({id: 'someting.string', defaultMessage: 'defaultString'})).toBe('test');
     });
 });

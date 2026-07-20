@@ -12,8 +12,7 @@ import {
     CloseIcon,
     InformationOutlineIcon,
 } from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './alert_banner.scss';
 
@@ -34,7 +33,7 @@ export type AlertBannerProps = {
     closeBtnTooltip?: string;
     onDismiss?: () => void;
     variant?: 'sys' | 'app';
-}
+};
 
 const AlertBanner = ({
     id,
@@ -81,6 +80,7 @@ const AlertBanner = ({
 
     return (
         <div
+            id={id}
             data-testid={id}
             className={classNames(
                 'AlertBanner',
@@ -122,9 +122,8 @@ const AlertBanner = ({
             </div>
             {onDismiss && closeBtnTooltip && (
                 <WithTooltip
-                    id={`alertBannerTooltip_${id}`}
                     title={closeBtnTooltip}
-                    placement='left'
+                    isVertical={false}
                 >
                     {dismissButton}
                 </WithTooltip>

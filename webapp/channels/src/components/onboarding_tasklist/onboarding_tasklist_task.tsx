@@ -8,7 +8,6 @@ import {CompletedAnimation} from './onboarding_tasklist_animations';
 
 export interface TaskProps {
     label: React.ReactElement;
-    icon?: React.ReactNode;
     onClick?: () => void;
     completedStatus: boolean;
 }
@@ -37,7 +36,7 @@ const StyledTask = styled.div`
     }
 
     &.completed {
-        color: var(--denim-status-online);
+        color: var(--online-indicator);
 
         span {
             span {

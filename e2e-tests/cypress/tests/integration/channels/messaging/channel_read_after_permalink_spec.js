@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Messaging', () => {
     let testTeam;
@@ -18,7 +17,7 @@ describe('Messaging', () => {
     let testUser;
     let otherUser;
 
-    before(() => {
+    beforeEach(() => {
         cy.apiInitSetup().then(({team, channel, user}) => {
             testTeam = team;
             testChannel = channel;

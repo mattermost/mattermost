@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/variables";
 
 .emoji-picker {
     pointer-events: auto;
@@ -28,18 +28,19 @@
         a {
             width: max-content;
             padding-top: 7px !important;
+            border-bottom-color: var(--button-bg) !important;
 
             svg,
             div {
                 color: var(--button-bg);
-                fill: var(--mention-bg-rgb);
+                fill: var(--mention-bg);
             }
 
             &:hover {
                 svg,
                 div {
                     color: var(--button-bg);
-                    fill: var(--mention-bg-rgb);
+                    fill: var(--mention-bg);
                 }
             }
         }
@@ -49,6 +50,11 @@
         width: fit-content;
         width: -moz-fit-content;
     }
+}
+
+.emoji-picker-overlay {
+    z-index: variables.$z-index-popover;
+    pointer-events: none;
 }
 
 .custom-emoji-tab__icon__text {
@@ -64,4 +70,36 @@
 
 .custom-emoji-tab__icon {
     margin-right: 7px;
+}
+
+#emoji-picker-tabs {
+    display: flex;
+
+    // These prevent a flex element from overflowing its parent
+    min-width: 0;
+    min-height: 0;
+
+    flex: 1;
+    flex-direction: column;
+
+    .tab-content {
+        display: flex;
+
+        // These prevent a flex element from overflowing its parent
+        min-width: 0;
+        min-height: 0;
+
+        flex: 1;
+
+        .tab-pane {
+            display: flex;
+
+            // These prevent a flex element from overflowing its parent
+            min-width: 0;
+            min-height: 0;
+
+            flex: 1;
+            flex-direction: column;
+        }
+    }
 }

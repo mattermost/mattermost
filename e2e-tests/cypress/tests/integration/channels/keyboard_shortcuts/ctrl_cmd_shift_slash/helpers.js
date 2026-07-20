@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 /**
  * Fires off keyboard shortcut for "React to last message"
@@ -33,11 +33,11 @@ export function checkReactionFromPost(postId, emoji = 'smile') {
     if (postId) {
         cy.get(`#${postId}_message`).within(() => {
             cy.findByLabelText('reactions').should('exist');
-            cy.findByLabelText(`remove reaction ${emoji}`).should('exist');
+            cy.findByLabelText(`You reacted with :${emoji}:. Click to remove.`).should('exist');
         });
     } else {
         cy.findByLabelText('reactions').should('exist');
-        cy.findByLabelText(`remove reaction ${emoji}}`).should('exist');
+        cy.findByLabelText(`You reacted with :${emoji}:. Click to remove.`).should('exist');
     }
 }
 

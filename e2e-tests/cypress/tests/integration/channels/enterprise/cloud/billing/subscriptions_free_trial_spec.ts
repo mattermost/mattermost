@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-import billing from '../../../../../fixtures/client_billing.json';
+import billing from '@/fixtures/client_billing.json';
 
 function simulateSubscription() {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
@@ -111,8 +111,9 @@ describe('System Console - Subscriptions section', () => {
         // * Check for User count
         cy.request('/api/v4/analytics/old?name=standard&team_id=').then((response) => {
             cy.get('.PlanDetails__userCount > span').invoke('text').then((text) => {
-                const userCount = response.body.find((obj) => obj.name === 'unique_user_count');
-                expect(text).to.contain(userCount.value);
+                const userCount = response.body.find((obj: {name: string; value: number}) => obj.name === 'unique_user_count');
+                expect(userCount, 'unique_user_count metric should exist').to.exist;
+                expect(text).to.contain(String(userCount!.value));
             });
         });
 

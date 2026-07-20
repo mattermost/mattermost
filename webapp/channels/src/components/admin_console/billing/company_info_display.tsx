@@ -5,11 +5,10 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CompanySvg from 'components/common/svg_images_components/company_svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import type {GlobalState} from 'types/store';
 
@@ -19,8 +18,7 @@ const addInfoButton = (
     <div className='CompanyInfoDisplay__addInfo'>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='CompanyInfoDisplay__addInfoButton'
-            onClick={() => trackEvent('cloud_admin', 'click_add_company_info')}
+            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__addInfoButton')}
         >
             <i className='icon icon-plus'/>
             <FormattedMessage
@@ -34,8 +32,8 @@ const addInfoButton = (
 const noCompanyInfoSection = (
     <div className='CompanyInfoDisplay__noCompanyInfo'>
         <CompanySvg
-            width={300}
-            height={210}
+            width={170}
+            height={149}
         />
         <div className='CompanyInfoDisplay__noCompanyInfo-message'>
             <FormattedMessage
@@ -45,8 +43,7 @@ const noCompanyInfoSection = (
         </div>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='CompanyInfoDisplay__noCompanyInfo-link'
-            onClick={() => trackEvent('cloud_admin', 'click_add_company_info')}
+            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__noCompanyInfo-link')}
         >
             <FormattedMessage
                 id='admin.billing.company_info.add'
@@ -65,7 +62,7 @@ const CompanyInfoDisplay: React.FC = () => {
 
     let body = noCompanyInfoSection;
     const address = companyInfo?.company_address?.line1 ? companyInfo.company_address : companyInfo?.billing_address;
-    const isCompanyBillingFilled = address?.line1 !== undefined;
+    const isCompanyBillingFilled = address?.line1 !== undefined && address?.line1 !== '';
     if (isCompanyBillingFilled) {
         body = (
             <div className='CompanyInfoDisplay__companyInfo'>
@@ -75,7 +72,7 @@ const CompanyInfoDisplay: React.FC = () => {
                     </div>
                     {Boolean(companyInfo.num_employees) &&
                         <div className='CompanyInfoDisplay__companyInfo-numEmployees'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='admin.billing.company_info.employees'
                                 defaultMessage='{employees} employees'
                                 values={{employees: companyInfo.num_employees}}
@@ -99,7 +96,6 @@ const CompanyInfoDisplay: React.FC = () => {
                     <BlockableLink
                         to='/admin_console/billing/company_info_edit'
                         className='CompanyInfoDisplay__companyInfo-editButton'
-                        onClick={() => trackEvent('cloud_admin', 'click_edit_company_info')}
                     >
                         <i className='icon icon-pencil-outline'/>
                     </BlockableLink>

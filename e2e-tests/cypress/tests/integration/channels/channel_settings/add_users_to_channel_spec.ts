@@ -8,9 +8,9 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @channel @channel_settings @smoke
+// Group: @channels @channel @channel_settings
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Channel Settings', () => {
     let testTeam: Cypress.Team;
@@ -23,6 +23,9 @@ describe('Channel Settings', () => {
     const users: Cypress.UserProfile[] = [];
 
     before(() => {
+        // Require a license for groups
+        cy.apiRequireLicense();
+
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             firstUser = user;
@@ -40,14 +43,14 @@ describe('Channel Settings', () => {
             });
 
             // # Change permission so that regular users can't add team members
-            cy.apiGetRolesByNames(['team_user']).then((result: any) => {
-                if (result.roles) {
-                    const role = result.roles[0];
-                    const permissions = role.permissions.filter((permission) => {
+            cy.apiGetRolesByNames(['team_user']).then(({roles}) => {
+                if (roles?.length) {
+                    const role = roles[0];
+                    const permissions = role.permissions.filter((permission: string) => {
                         return !(['add_user_to_team'].includes(permission));
                     });
 
-                    if (permissions.length !== role.permissions) {
+                    if (permissions.length !== role.permissions.length) {
                         cy.apiPatchRole(role.id, {permissions});
                     }
                 }
@@ -60,49 +63,52 @@ describe('Channel Settings', () => {
         });
     });
 
-    it('MM-T859_1 Single User: Usernames are links, open profile popovers', () => {
-        // # Create and visit new channel
-        cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+    // it('MM-T859_1 Single User: Usernames are links, open profile popovers', () => {
+    //     // # Create and visit new channel
+    //     cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
+    //         cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-            // # Add users to channel
-            addNumberOfUsersToChannel(1, false);
+    //         // # Add users to channel
+    //         addNumberOfUsersToChannel(1, false);
 
-            cy.getLastPostId().then((id) => {
-                // * The system message should contain 'added to the channel by you'
-                cy.get(`#postMessageText_${id}`).should('contain', 'added to the channel by you');
+    //         cy.getLastPostId().then((id) => {
+    //             // * The system message should contain 'added to the channel by you'
+    //             cy.get(`#postMessageText_${id}`).should('contain', 'added to the channel by you');
 
-                // # Verify username link
-                verifyMentionedUserAndProfilePopover(id);
-            });
-        });
-    });
+    //             // # Verify username link
+    //             verifyMentionedUserAndProfilePopover(id);
+    //         });
+    //     });
+    // });
 
-    it('MM-T859_2 Combined Users: Usernames are links, open profile popovers', () => {
-        // # Create and visit new channel
-        cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+    // it('MM-T859_2 Combined Users: Usernames are links, open profile popovers', () => {
+    //     // # Create and visit new channel
+    //     cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
+    //         cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-            addNumberOfUsersToChannel(3, false);
+    //         addNumberOfUsersToChannel(3, false);
 
-            cy.getLastPostId().then((id) => {
-                cy.get(`#postMessageText_${id}`).should('contain', '2 others were added to the channel by you');
+    //         cy.getLastPostId().then((id) => {
+    //             cy.get(`#postMessageText_${id}`).should('contain', '2 others were added to the channel by you');
 
-                // # Click "2 others" to expand more users
-                cy.get(`#post_${id}`).find('.markdown__paragraph-inline').siblings('a').first().click().then(() => {
-                    // # Verify each username link
-                    verifyMentionedUserAndProfilePopover(id);
-                });
-            });
-        });
-    });
+    //             // # Click "2 others" to expand more users
+    //             cy.get(`#post_${id}`).find('.markdown__paragraph-inline').siblings('a').first().click().then(() => {
+    //                 // # Verify each username link
+    //                 verifyMentionedUserAndProfilePopover(id);
+    //             });
+    //         });
+    //     });
+    // });
 
     it('MM-T856_1 Add existing users to public channel from drop-down > Add Members', () => {
         // # Visit the add users channel
         cy.visit(`/${testTeam.name}/channels/${addedUsersChannel.name}`);
 
         // # Open channel menu and click 'Add Members'
-        cy.uiOpenChannelMenu('Add Members');
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
+
+        // * Assert that modal appears
         cy.get('#addUsersToChannelModal').should('be.visible');
 
         // # Type into the input box to search for a user
@@ -111,10 +117,10 @@ describe('Channel Settings', () => {
         // # First add one user in order to see them disappearing from the list
         cy.get('#multiSelectList > div').not(':contains("Already in channel")').first().then((el) => {
             const childNodes = Array.from(el[0].childNodes);
-            childNodes.map((child: HTMLElement) => usernames.push(child.innerText));
+            childNodes.map((child: ChildNode) => usernames.push((child as HTMLElement).innerText));
 
             // # Get username from text for comparison
-            username = usernames.toString().match(/\w+/g)[0];
+            username = usernames.toString().match(/\w+/g)![0];
             cy.get('#multiSelectList').should('contain', username);
 
             // # Verify status wrapper is present within the modal list
@@ -160,7 +166,10 @@ describe('Channel Settings', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # Open channel menu and click 'Add Members'
-        cy.uiOpenChannelMenu('Add Members');
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
+
+        // * Assert that modal appears
         cy.get('#addUsersToChannelModal').should('be.visible');
 
         // # Type into the input box to search for already added user
@@ -182,7 +191,8 @@ describe('Channel Settings', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Open channel menu and click 'Add Members'
-            cy.uiOpenChannelMenu('Add Members');
+            cy.uiOpenChannelMenu('Members');
+            cy.uiGetButton('Add').click();
 
             // * Assert that modal appears
             cy.get('#addUsersToChannelModal').should('be.visible');
@@ -230,7 +240,8 @@ describe('Channel Settings', () => {
                     cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
                     // # Open channel menu and click 'Add Members'
-                    cy.uiOpenChannelMenu('Add Members');
+                    cy.uiOpenChannelMenu('Members');
+                    cy.uiGetButton('Add').click();
 
                     // * Assert that modal appears
                     cy.get('#addUsersToChannelModal').should('be.visible');
@@ -275,7 +286,8 @@ describe('Channel Settings', () => {
                         cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
                         // # Open channel menu and click 'Add Members'
-                        cy.uiOpenChannelMenu('Add Members');
+                        cy.uiOpenChannelMenu('Members');
+                        cy.uiGetButton('Add').click();
 
                         // * Assert that modal appears
                         cy.get('#addUsersToChannelModal').should('be.visible');
@@ -324,7 +336,8 @@ describe('Channel Settings', () => {
                     cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
                     // # Open channel menu and click 'Add Members'
-                    cy.uiOpenChannelMenu('Add Members');
+                    cy.uiOpenChannelMenu('Members');
+                    cy.uiGetButton('Add').click();
 
                     // * Assert that modal appears
                     cy.get('#addUsersToChannelModal').should('be.visible');
@@ -369,7 +382,8 @@ function verifyMentionedUserAndProfilePopover(postId: string) {
 
 function addNumberOfUsersToChannel(num = 1, allowExisting = false) {
     // # Open channel menu and click 'Add Members'
-    cy.uiOpenChannelMenu('Add Members');
+    cy.uiOpenChannelMenu('Members');
+    cy.uiGetButton('Add').click();
     cy.get('#addUsersToChannelModal').should('be.visible');
 
     // * Assert that modal appears

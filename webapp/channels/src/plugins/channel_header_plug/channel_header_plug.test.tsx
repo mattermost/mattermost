@@ -6,8 +6,6 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {PluginComponent} from 'types/store/plugins';
-
 import ChannelHeaderPlug, {maxComponentsBeforeDropdown} from './channel_header_plug';
 
 describe('plugins/ChannelHeaderPlug', () => {
@@ -26,7 +24,7 @@ describe('plugins/ChannelHeaderPlug', () => {
         shouldShowAppBar: false,
     };
 
-    function makeTestPlug(n = 1): PluginComponent {
+    function makeTestPlug(n = 1) {
         return {
             id: 'someid' + n,
             pluginId: 'pluginid' + n,

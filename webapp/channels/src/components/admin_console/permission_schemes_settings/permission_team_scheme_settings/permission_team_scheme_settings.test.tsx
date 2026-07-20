@@ -3,17 +3,58 @@
 
 import React from 'react';
 
-import PermissionTeamSchemeSettings from 'components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings';
+import Permissions from 'mattermost-redux/constants/permissions';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, act, userEvent, waitFor} from 'tests/react_testing_utils';
 
-function getAnyInstance(wrapper: any) {
-    return wrapper.instance() as any;
+import PermissionTeamSchemeSettings from './permission_team_scheme_settings';
+
+// Store the latest props passed to each mocked tree component keyed by identifier
+const mockPermissionsTreeProps: Record<string, any> = {};
+const mockGuestTreeProps: Record<string, any> = {};
+const mockPlaybookTreeProps: Record<string, any> = {};
+
+// Identify PermissionsTree instances by scope + parentRole presence
+function mockGetPermissionsTreeId(props: any): string {
+    if (!props.parentRole && props.scope === 'team_scope') {
+        return 'all_users';
+    }
+    if (props.scope === 'channel_scope') {
+        return 'channel_admin';
+    }
+    if (props.parentRole && props.scope === 'team_scope') {
+        return 'team_admin';
+    }
+    return 'unknown';
 }
 
-function getAnyState(wrapper: any) {
-    return wrapper.state() as any;
-}
+jest.mock('../permissions_tree', () => ({
+    __esModule: true,
+    default: (props: any) => {
+        const id = mockGetPermissionsTreeId(props);
+        mockPermissionsTreeProps[id] = props;
+        return <div data-testid={`permissions-tree-${id}`}/>;
+    },
+    EXCLUDED_PERMISSIONS: [],
+}));
+
+jest.mock('../guest_permissions_tree', () => ({
+    __esModule: true,
+    default: (props: any) => {
+        mockGuestTreeProps.guests = props;
+        return <div data-testid='guest-permissions-tree-guests'/>;
+    },
+    GUEST_INCLUDED_PERMISSIONS: [],
+}));
+
+jest.mock('../permissions_tree_playbooks', () => ({
+    __esModule: true,
+    default: (props: any) => {
+        mockPlaybookTreeProps.playbook_admin = props;
+        return <div data-testid='playbook-permissions-tree-playbook_admin'/>;
+    },
+}));
+
 describe('components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings', () => {
     const defaultProps = {
         config: {
@@ -24,7 +65,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             CustomPermissionsSchemes: 'true',
             GuestAccountsPermissions: 'true',
         },
-        location: {},
+        location: {search: ''},
         schemeId: '',
         scheme: null,
         isDisabled: false,
@@ -117,17 +158,31 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         },
     } as any;
 
-    test('should match snapshot on new with default roles without permissions', (done) => {
-        const wrapper = shallowWithIntl(
-            <PermissionTeamSchemeSettings {...defaultProps}/>,
-        );
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
-            done();
-        });
+    beforeEach(() => {
+        // Clear captured props between tests
+        Object.keys(mockPermissionsTreeProps).forEach((key) => delete mockPermissionsTreeProps[key]);
+        Object.keys(mockGuestTreeProps).forEach((key) => delete mockGuestTreeProps[key]);
+        Object.keys(mockPlaybookTreeProps).forEach((key) => delete mockPlaybookTreeProps[key]);
     });
 
-    test('should match snapshot on new with default roles with permissions', (done) => {
+    test('should match snapshot on new with default roles without permissions', async () => {
+        renderWithContext(
+            <PermissionTeamSchemeSettings {...defaultProps}/>,
+        );
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
+        });
+
+        // Verify the tree components receive correct role data with empty permissions
+        expect(mockPermissionsTreeProps.all_users).toBeDefined();
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual([]);
+        expect(mockPermissionsTreeProps.channel_admin).toBeDefined();
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).toEqual([]);
+        expect(mockPermissionsTreeProps.team_admin).toBeDefined();
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).toEqual([]);
+    });
+
+    test('should match snapshot on new with default roles with permissions', async () => {
         const roles = {
             system_guest: {
                 permissions: ['create_post'],
@@ -156,19 +211,33 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             channel_admin: {
                 permissions: ['delete_post'],
             },
+            playbook_admin: {
+                permissions: [],
+            },
+            playbook_member: {
+                permissions: [],
+            },
+            run_member: {
+                permissions: [],
+            },
         };
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 roles={roles}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyState(wrapper)).toMatchSnapshot();
-            done();
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
         });
+
+        // Verify role data passed to trees includes permissions
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual(
+            expect.arrayContaining(['invite_user', 'add_reaction']),
+        );
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).toEqual(['delete_post']);
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).toEqual(['add_user_to_team']);
     });
 
     test('should save each role on handleSubmit except system_admin role', async () => {
@@ -189,31 +258,47 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        await getAnyInstance(wrapper).handleSubmit();
-        expect(editRole).toHaveBeenCalledTimes(9);
+        // Type in the name field to enable save
+        const nameInput = screen.getByRole('textbox', {name: /scheme name/i});
+        await userEvent.type(nameInput, 'Test Scheme');
+
+        // Click save
+        const saveButton = screen.getByTestId('saveSetting');
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(editRole).toHaveBeenCalledTimes(9);
+        });
     });
 
     test('should show error if createScheme fails', async () => {
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({}));
         const createScheme = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
             />,
         );
 
-        await getAnyInstance(wrapper).handleSubmit();
-        expect(getAnyState(wrapper).serverError).toBe('test error');
+        // Type in the name field to enable save
+        const nameInput = screen.getByRole('textbox', {name: /scheme name/i});
+        await userEvent.type(nameInput, 'Test Scheme');
+
+        // Click save
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => {
+            expect(screen.getByText('test error')).toBeInTheDocument();
+        });
     });
 
     test('should show error if editRole fails', async () => {
@@ -234,48 +319,75 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
             />,
         );
 
-        await getAnyInstance(wrapper).handleSubmit();
-        expect(getAnyState(wrapper).serverError).toBe('test error');
+        // Type in the name field to enable save
+        const nameInput = screen.getByRole('textbox', {name: /scheme name/i});
+        await userEvent.type(nameInput, 'Test Scheme');
+
+        // Click save
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => {
+            expect(screen.getByText('test error')).toBeInTheDocument();
+        });
     });
 
-    test('should open and close correctly roles blocks', () => {
-        const wrapper = shallowWithIntl(
+    test('should open and close correctly roles blocks', async () => {
+        renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
-        const instance = getAnyInstance(wrapper);
-        expect(getAnyState(wrapper).openRoles.guests).toBe(true);
-        instance.toggleRole('guests');
-        expect(getAnyState(wrapper).openRoles.guests).toBe(false);
-        instance.toggleRole('guests');
-        expect(getAnyState(wrapper).openRoles.guests).toBe(true);
 
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
-        instance.toggleRole('all_users');
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(false);
-        instance.toggleRole('all_users');
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
+        // All sections should be open initially (no 'closed' class)
+        const guestsPanel = screen.getByTestId('guest-permissions-tree-guests').closest('.AdminPanelTogglable');
+        const allUsersPanel = screen.getByTestId('permissions-tree-all_users').closest('.AdminPanelTogglable');
+        const channelAdminPanel = screen.getByTestId('permissions-tree-channel_admin').closest('.AdminPanelTogglable');
+        const teamAdminPanel = screen.getByTestId('permissions-tree-team_admin').closest('.AdminPanelTogglable');
 
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
-        instance.toggleRole('channel_admin');
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(false);
-        instance.toggleRole('channel_admin');
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
+        expect(guestsPanel).not.toHaveClass('closed');
+        expect(allUsersPanel).not.toHaveClass('closed');
+        expect(channelAdminPanel).not.toHaveClass('closed');
+        expect(teamAdminPanel).not.toHaveClass('closed');
 
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
-        instance.toggleRole('team_admin');
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(false);
-        instance.toggleRole('team_admin');
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
+        // Toggle guests closed
+        await userEvent.click(screen.getByText('Guests'));
+        expect(guestsPanel).toHaveClass('closed');
+
+        // Toggle guests open
+        await userEvent.click(screen.getByText('Guests'));
+        expect(guestsPanel).not.toHaveClass('closed');
+
+        // Toggle all_users closed
+        await userEvent.click(screen.getByText('All Members'));
+        expect(allUsersPanel).toHaveClass('closed');
+
+        // Toggle all_users open
+        await userEvent.click(screen.getByText('All Members'));
+        expect(allUsersPanel).not.toHaveClass('closed');
+
+        // Toggle channel_admin closed
+        await userEvent.click(screen.getByText('Channel Administrators'));
+        expect(channelAdminPanel).toHaveClass('closed');
+
+        // Toggle channel_admin open
+        await userEvent.click(screen.getByText('Channel Administrators'));
+        expect(channelAdminPanel).not.toHaveClass('closed');
+
+        // Toggle team_admin closed
+        await userEvent.click(screen.getByText('Team Administrators'));
+        expect(teamAdminPanel).toHaveClass('closed');
+
+        // Toggle team_admin open
+        await userEvent.click(screen.getByText('Team Administrators'));
+        expect(teamAdminPanel).not.toHaveClass('closed');
     });
 
-    test('should match snapshot on edit without permissions', (done) => {
+    test('should match snapshot on edit without permissions', async () => {
         const props = {
             ...defaultProps,
             schemeId: 'xyz',
@@ -297,17 +409,23 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
-            done();
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
         });
+
+        // Verify the component renders with the scheme data
+        expect(screen.getByDisplayValue('Test scheme')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Test scheme description')).toBeInTheDocument();
+
+        // Verify role trees are rendered with empty permissions
+        expect(mockPermissionsTreeProps.all_users).toBeDefined();
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual([]);
     });
 
-    test('should match snapshot on edit with permissions', (done) => {
+    test('should match snapshot on edit with permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -335,12 +453,14 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
                     permissions: ['invite_user'],
                 },
                 bbb: {
+                    name: 'team_admin',
                     permissions: ['add_user_to_team'],
                 },
                 ccc: {
                     permissions: ['add_reaction'],
                 },
                 ddd: {
+                    name: 'channel_admin',
                     permissions: ['delete_post'],
                 },
                 eee: {
@@ -349,20 +469,65 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
                 fff: {
                     permissions: ['delete_post'],
                 },
+                ggg: {
+                    permissions: ['delete_post'],
+                },
+                hhh: {
+                    permissions: ['delete_post'],
+                },
+                iii: {
+                    permissions: ['delete_post'],
+                },
+                jjj: {
+                    permissions: ['delete_post'],
+                },
             },
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
-            done();
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
         });
+
+        // Verify role data is passed to trees
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual(
+            expect.arrayContaining(['invite_user', 'add_reaction']),
+        );
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).toEqual(['delete_post']);
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).toEqual(['add_user_to_team']);
+
+        // Toggle a moderated permission on channel_admin
+        act(() => {
+            mockPermissionsTreeProps.channel_admin.onToggle('channel_admin', [Permissions.CREATE_POST]);
+        });
+
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).toContain(Permissions.CREATE_POST);
+
+        // Toggle again to disable
+        act(() => {
+            mockPermissionsTreeProps.channel_admin.onToggle('channel_admin', [Permissions.CREATE_POST]);
+        });
+
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).not.toContain(Permissions.CREATE_POST);
+
+        // Toggle team_admin
+        act(() => {
+            mockPermissionsTreeProps.team_admin.onToggle('team_admin', [Permissions.CREATE_POST]);
+        });
+
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).toContain(Permissions.CREATE_POST);
+
+        // Toggle again to disable
+        act(() => {
+            mockPermissionsTreeProps.team_admin.onToggle('team_admin', [Permissions.CREATE_POST]);
+        });
+
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).not.toContain(Permissions.CREATE_POST);
     });
 
-    test('should match snapshot on edit without guest permissions', (done) => {
+    test('should match snapshot on edit without guest permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -387,17 +552,23 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
-            done();
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
         });
+
+        // Guests section should NOT be rendered when EnableGuestAccounts is 'false'
+        expect(screen.queryByTestId('guest-permissions-tree-guests')).not.toBeInTheDocument();
+
+        // Other sections should still be present
+        expect(screen.getByTestId('permissions-tree-all_users')).toBeInTheDocument();
+        expect(screen.getByTestId('permissions-tree-channel_admin')).toBeInTheDocument();
+        expect(screen.getByTestId('permissions-tree-team_admin')).toBeInTheDocument();
     });
 
-    test('should match snapshot on edit without license', (done) => {
+    test('should match snapshot on edit without license', async () => {
         const props = {
             ...defaultProps,
             license: {
@@ -422,13 +593,61 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
-            done();
+        await waitFor(() => {
+            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
         });
+
+        // Verify the form still renders
+        expect(screen.getByDisplayValue('Test scheme')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Test scheme description')).toBeInTheDocument();
+
+        // All Members, Channel Admin, and Team Admin sections still render
+        expect(screen.getByTestId('permissions-tree-all_users')).toBeInTheDocument();
+        expect(screen.getByTestId('permissions-tree-channel_admin')).toBeInTheDocument();
+        expect(screen.getByTestId('permissions-tree-team_admin')).toBeInTheDocument();
+    });
+
+    test('should set moderated permissions on team/channel admins', () => {
+        renderWithContext(
+            <PermissionTeamSchemeSettings {...defaultProps}/>,
+        );
+
+        // A moderated permission should set team/channel admins
+        act(() => {
+            mockPermissionsTreeProps.all_users.onToggle('all_users', [Permissions.CREATE_POST]);
+        });
+
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toContain(Permissions.CREATE_POST);
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).toContain(Permissions.CREATE_POST);
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).toContain(Permissions.CREATE_POST);
+        expect(mockPlaybookTreeProps.playbook_admin.role.permissions).not.toContain(Permissions.CREATE_POST);
+
+        // Changing a non-moderated permission should NOT set team/channel admins
+        act(() => {
+            mockPermissionsTreeProps.all_users.onToggle('all_users', [Permissions.EDIT_OTHERS_POSTS]);
+        });
+
+        expect(mockPermissionsTreeProps.all_users.role.permissions).toContain(Permissions.EDIT_OTHERS_POSTS);
+        expect(mockPermissionsTreeProps.channel_admin.role.permissions).not.toContain(Permissions.EDIT_OTHERS_POSTS);
+        expect(mockPermissionsTreeProps.team_admin.role.permissions).not.toContain(Permissions.EDIT_OTHERS_POSTS);
+        expect(mockPlaybookTreeProps.playbook_admin.role.permissions).not.toContain(Permissions.EDIT_OTHERS_POSTS);
+    });
+
+    test('should render the Playbook Administrators role heading as plural', () => {
+        renderWithContext(
+            <PermissionTeamSchemeSettings {...defaultProps}/>,
+        );
+
+        // Regression test for MM-60599: the Playbook role heading must be plural
+        // ("Playbook Administrators") to stay consistent with the other role headings.
+        expect(screen.getByRole('heading', {name: 'Playbook Administrators'})).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Playbook Administrator'})).not.toBeInTheDocument();
+
+        for (const roleName of ['Channel Administrators', 'Team Administrators']) {
+            expect(screen.getByRole('heading', {name: roleName})).toBeInTheDocument();
+        }
     });
 });

@@ -5,6 +5,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import MemberListGroup from 'components/admin_console/member_list_group';
@@ -13,7 +14,7 @@ type Props = {
     group: Group;
     onExited: () => void;
     onLoad?: () => void;
-}
+};
 
 const GroupMembersModal: React.FC<Props> = ({
     group, onExited, onLoad,
@@ -45,7 +46,7 @@ const GroupMembersModal: React.FC<Props> = ({
             show={show}
             onHide={handleHide}
             onExited={handleExit}
-            role='dialog'
+            role='none'
             aria-labelledby='groupMemberModalLabel'
             id='groupMembersModal'
         >
@@ -63,15 +64,15 @@ const GroupMembersModal: React.FC<Props> = ({
                 />
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     autoFocus={true}
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={handleHide}
                     id='closeModalButton'
                 >
                     {button}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

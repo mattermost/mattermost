@@ -1,40 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useDispatch, useSelector} from 'react-redux';
+import {useCallback} from 'react';
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {useExternalLink} from './use_external_link';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvailabilityCheck';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
+export type UseOpenPricingModalReturn = {
+    openPricingModal: () => void;
+    isAirGapped: boolean;
+};
 
-import PricingModal from 'components/pricing_modal';
+export default function useOpenPricingModal(): UseOpenPricingModalReturn {
+    const cwsAvailability = useCWSAvailabilityCheck();
+    const [externalLink] = useExternalLink('https://mattermost.com/pricing');
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+    const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
 
-export type TelemetryProps = {
-    trackingLocation: string;
-}
+    const openPricingModal = useCallback(() => {
+        window.open(externalLink, '_blank', 'noopener,noreferrer');
+    }, [externalLink]);
 
-export default function useOpenPricingModal() {
-    const dispatch = useDispatch();
-    const isCloud = useSelector(isCurrentLicenseCloud);
-    let category;
-    return (telemetryProps?: TelemetryProps) => {
-        if (isCloud) {
-            category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
-        } else {
-            category = 'self_hosted_pricing';
-        }
-        trackEvent(category, 'click_open_pricing_modal', {
-            callerInfo: telemetryProps?.trackingLocation,
-        });
-        dispatch(openModal({
-            modalId: ModalIdentifiers.PRICING_MODAL,
-            dialogType: PricingModal,
-            dialogProps: {
-                callerCTA: telemetryProps?.trackingLocation,
-            },
-        }));
+    return {
+        openPricingModal,
+        isAirGapped,
     };
 }

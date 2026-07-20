@@ -81,9 +81,16 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
         url: '/api/v4/trial-license',
         method: 'POST',
         body: {
-            trialreceive_emails_accepted: true,
+            receive_emails_accepted: true,
             terms_accepted: true,
-            users: Cypress.env('numberOfTrialUsers'),
+            users: Cypress.expose('numberOfTrialUsers'),
+
+            // Enriched fields required for trial license as of v10.7
+            company_country: 'US',
+            company_name: 'mattermost',
+            contact_email: 'test@mattermost.com',
+            company_size: '1-10',
+            contact_name: 'John Doe',
         },
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -103,7 +110,7 @@ Cypress.Commands.add('apiDeleteLicense', () => {
 });
 
 export const getDefaultConfig = () => {
-    const cypressEnv = Cypress.env();
+    const cypressEnv = Cypress.expose();
 
     const fromCypressEnv = {
         ElasticsearchSettings: {
@@ -146,7 +153,7 @@ const expectConfigToBeUpdatable = (currentConfig, newConfig) => {
 
         if (setting) {
             Object.keys(newSubSetting).forEach((newSubKey) => {
-                const isAvailable = setting.hasOwnProperty(newSubKey);
+                const isAvailable = Object.hasOwn(setting, newSubKey);
                 const name = `${newMainKey}.${newSubKey}`;
                 expect(isAvailable, isAvailable ? `${name} setting can be updated.` : errorMessage(name)).to.equal(true);
             });
@@ -166,14 +173,21 @@ Cypress.Commands.add('apiUpdateConfig', (newConfig = {}) => {
         const config = merge.all([currentConfig, getDefaultConfig(), newConfig]);
 
         // # Set the modified config
-        return cy.request({
-            url: '/api/v4/config',
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            method: 'PUT',
-            body: config,
-        }).then((updateResponse) => {
-            expect(updateResponse.status).to.equal(200);
-            return cy.apiGetConfig();
+        return cy.getCookie('MMCSRF').then((csrfCookie) => {
+            let headers;
+            if (csrfCookie?.value) {
+                headers = {'X-CSRF-Token': csrfCookie.value};
+            }
+
+            return cy.request({
+                url: '/api/v4/config',
+                method: 'PUT',
+                body: config,
+                headers,
+            }).then((updateResponse) => {
+                expect(updateResponse.status).to.equal(200);
+                return cy.apiGetConfig();
+            });
         });
     });
 });
@@ -289,8 +303,8 @@ Cypress.Commands.add('shouldHaveClusterEnabled', () => {
         const {Enable, ClusterName} = config.ClusterSettings;
         expect(Enable, Enable ? '' : 'Should have cluster enabled').to.equal(true);
 
-        const sameClusterName = ClusterName === Cypress.env('serverClusterName');
-        expect(sameClusterName, sameClusterName ? '' : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${Cypress.env('serverClusterName')}"`).to.equal(true);
+        const sameClusterName = ClusterName === Cypress.expose('serverClusterName');
+        expect(sameClusterName, sameClusterName ? '' : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${Cypress.expose('serverClusterName')}"`).to.equal(true);
     });
 });
 
@@ -304,9 +318,7 @@ Cypress.Commands.add('shouldRunWithSubpath', () => {
 Cypress.Commands.add('shouldHaveFeatureFlag', (key, expectedValue) => {
     return cy.apiGetConfig().then(({config}) => {
         const actualValue = config.FeatureFlags[key];
-        const message = actualValue === expectedValue ?
-            `Matches feature flag - "${key}: ${expectedValue}"` :
-            `Expected feature flag "${key}" to be "${expectedValue}", but was "${actualValue}"`;
+        const message = actualValue === expectedValue ? `Matches feature flag - "${key}: ${expectedValue}"` : `Expected feature flag "${key}" to be "${expectedValue}", but was "${actualValue}"`;
         expect(actualValue, message).to.equal(expectedValue);
     });
 });

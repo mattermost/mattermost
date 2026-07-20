@@ -1,0 +1,89 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.UserSettingsModal {
+
+    .GenericModal__wrapper {
+        display: flex;
+        overflow: hidden;
+        max-height: 90vh;
+        flex-direction: column;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
+        box-shadow: var(--elevation-6);
+
+        .modal-body {
+            display: flex;
+            width: 100%;
+            max-width: 1024px;
+            min-height: 150px;
+            flex-direction: column;
+            padding: 28px 32px;
+            gap: 24px;
+            overflow-x: hidden;
+            overflow-y: auto;
+
+            main {
+                display: flex;
+                width: 100%;
+                max-width: 1024px;
+                min-height: 150px;
+                flex-direction: column;
+                gap: 24px;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+        }
+    }
+
+    &__headerWrapper{
+        display: flex;
+        justify-content: space-between;
+
+        .adminModeBadge {
+            display: flex;
+            width: 86px;
+            min-width: 86px;
+            height: 22px;
+            align-items: center;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: auto;
+            margin-left: 24px;
+            background: var(--error-text);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 6px;
+
+            span {
+                margin: 0 auto;
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+        margin: 0;
+
+        .modal-content {
+            display: flex;
+            height: 100vh;
+            max-height: unset;
+            flex-direction: column;
+            border-radius: unset;
+        }
+    }
+
+    @media screen and (max-height: 900px) and (min-width: 768px) {
+        .modal-content {
+            max-height: 90vh;
+        }
+    }
+
+    @media screen and (max-height: 600px) {
+        .modal-content, .GenericModal__wrapper {
+            max-height: 85vh !important;
+        }
+    }
+}

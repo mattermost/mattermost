@@ -1,35 +1,36 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/admin_user_card/admin_user_card should match default snapshot 1`] = `
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <span
+      <button
         aria-expanded="false"
         aria-haspopup="dialog"
-        class="status-wrapper admin-user-card"
+        class="status-wrapper style--none admin-user-card"
+        style="border-radius: 50%; width: 128px; height: 128px;"
       >
-        <button
-          class="RoundButton-dvlhqG gnYSKj style--none"
+        <span
+          class="profile-icon "
+          data-testid="profile-icon"
         >
-          <span
-            class="profile-icon "
-          >
-            <img
-              alt="user profile image"
-              class="Avatar Avatar-xxl"
-              loading="lazy"
-              src="/api/v4/users/1234/image"
-            />
-          </span>
-        </button>
-      </span>
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xxl"
+            loading="lazy"
+            src="/api/v4/users/1234/image"
+          />
+        </span>
+      </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
           Jim
@@ -41,21 +42,25 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -65,53 +70,58 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <span
+      <button
         aria-expanded="false"
         aria-haspopup="dialog"
-        class="status-wrapper admin-user-card"
+        class="status-wrapper style--none admin-user-card"
+        style="border-radius: 50%; width: 128px; height: 128px;"
       >
-        <button
-          class="RoundButton-dvlhqG gnYSKj style--none"
+        <span
+          class="profile-icon "
+          data-testid="profile-icon"
         >
-          <span
-            class="profile-icon "
-          >
-            <img
-              alt="user profile image"
-              class="Avatar Avatar-xxl"
-              loading="lazy"
-              src="/api/v4/users/1234/image"
-            />
-          </span>
-        </button>
-      </span>
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xxl"
+            loading="lazy"
+            src="/api/v4/users/1234/image"
+          />
+        </span>
+      </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -121,51 +131,56 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <span
+      <button
         aria-expanded="false"
         aria-haspopup="dialog"
-        class="status-wrapper admin-user-card"
+        class="status-wrapper style--none admin-user-card"
+        style="border-radius: 50%; width: 128px; height: 128px;"
       >
-        <button
-          class="RoundButton-dvlhqG gnYSKj style--none"
+        <span
+          class="profile-icon "
+          data-testid="profile-icon"
         >
-          <span
-            class="profile-icon "
-          >
-            <img
-              alt="user profile image"
-              class="Avatar Avatar-xxl"
-              loading="lazy"
-              src="/api/v4/users/1234/image"
-            />
-          </span>
-        </button>
-      </span>
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xxl"
+            loading="lazy"
+            src="/api/v4/users/1234/image"
+          />
+        </span>
+      </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -175,32 +190,33 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <span
+      <button
         aria-expanded="false"
         aria-haspopup="dialog"
-        class="status-wrapper admin-user-card"
+        class="status-wrapper style--none admin-user-card"
+        style="border-radius: 50%; width: 128px; height: 128px;"
       >
-        <button
-          class="RoundButton-dvlhqG gnYSKj style--none"
+        <span
+          class="profile-icon "
+          data-testid="profile-icon"
         >
-          <span
-            class="profile-icon "
-          >
-            <img
-              alt="user profile image"
-              class="Avatar Avatar-xxl"
-              loading="lazy"
-              src="/api/v4/users/1234/image"
-            />
-          </span>
-        </button>
-      </span>
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xxl"
+            loading="lazy"
+            src="/api/v4/users/1234/image"
+          />
+        </span>
+      </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
           Jim
@@ -209,19 +225,23 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>

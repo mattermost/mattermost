@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-
-import AtMention from 'components/at_mention';
-import MarkdownImage from 'components/markdown_image';
+import React from 'react';
+import type {AnchorHTMLAttributes} from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
-import messageHtmlToComponent from 'utils/message_html_to_component';
+import messageHtmlToComponent, {convertPropsToReactStandard} from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
@@ -19,7 +17,8 @@ describe('messageHtmlToComponent', () => {
         const input = 'Hello, world!';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('latex', () => {
@@ -35,7 +34,8 @@ F_m - 2 = F_0 F_1 \\dots F_{m-1}
 That was some latex!`;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('typescript', () => {
@@ -47,7 +47,8 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('html', () => {
@@ -57,21 +58,24 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('link without enabled tooltip plugins', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('link with enabled a tooltip plugin', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {hasPluginTooltips: true})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('Inline markdown image', () => {
@@ -83,8 +87,12 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(MarkdownImage).prop('imageIsLink')).toBe(false);
+        const {container} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // imageIsLink=false means the img is NOT wrapped in an <a> tag
+        const img = container.querySelector('img');
+        expect(img?.closest('a')).toBeNull();
     });
 
     test('Inline markdown image where image is link', () => {
@@ -96,8 +104,12 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(MarkdownImage).prop('imageIsLink')).toBe(true);
+        const {container} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // imageIsLink=true means the img IS wrapped in an <a> tag
+        const img = container.querySelector('img');
+        expect(img?.closest('a')).not.toBeNull();
     });
 
     test('At mention', () => {
@@ -105,16 +117,24 @@ const myFunction = () => {
         let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {mentionHighlight: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
+        expect(container.querySelector('.mention--highlight')).toBeInTheDocument();
+
+        unmount();
 
         options.mentionHighlight = false;
 
         html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {mentionHighlight: false});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
+
+        // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
+        expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
     test('At mention with group highlight disabled', () => {
@@ -122,16 +142,43 @@ const myFunction = () => {
         let html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {disableGroupHighlight: false});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(false);
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        unmount();
 
         options.disableGroupHighlight = true;
 
         html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {disableGroupHighlight: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(true);
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
+    });
+
+    test('Remote at mention', () => {
+        const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
+        let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        let component = messageHtmlToComponent(html, {mentionHighlight: true});
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
+        expect(container.querySelector('.mention--highlight')).toBeInTheDocument();
+
+        unmount();
+
+        options.mentionHighlight = false;
+
+        html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
+
+        component = messageHtmlToComponent(html, {mentionHighlight: false});
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
+
+        // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
+        expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
     test('typescript', () => {
@@ -145,7 +192,37 @@ const myFunction = () => {
 
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
+    });
+
+    describe('citation links', () => {
+        test('should render citation link using InlineEntityLink', () => {
+            const input = '[post](http://localhost:8065/team/pl/postid?view=citation)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const component = messageHtmlToComponent(html);
+            const {container} = renderWithContext(<>{component}</>);
+            expect(container).toMatchSnapshot();
+
+            // InlineEntityLink renders an anchor with the citation URL and class 'inline-entity-link'
+            const link = container.querySelector('a.inline-entity-link');
+            expect(link).toBeInTheDocument();
+            expect(link?.getAttribute('href')).toBe('http://localhost:8065/team/pl/postid?view=citation');
+        });
+
+        test('should not render normal links as InlineEntityLink', () => {
+            const input = '[post](http://localhost:8065/team/pl/postid)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const component = messageHtmlToComponent(html);
+            const {container} = renderWithContext(<>{component}</>);
+            expect(container).toMatchSnapshot();
+
+            // Normal links should NOT have the inline-entity-link class
+            expect(container.querySelector('a.inline-entity-link')).not.toBeInTheDocument();
+            expect(container.querySelector('a')).toBeInTheDocument();
+        });
     });
 
     describe('emojis', () => {
@@ -185,5 +262,108 @@ const myFunction = () => {
 
             expect(container).toHaveTextContent('These are emojis: 🌮 🧑‍🚀');
         });
+    });
+});
+
+describe('messageHtmlToComponent — mmaction:// → InlineActionButton', () => {
+    // The renderer leaves mmaction:// links as plain anchors;
+    // messageHtmlToComponent intercepts them and replaces with the button
+    // component. Without this conversion, clicking the link would attempt
+    // to navigate to "mmaction://..." (which the browser cannot handle).
+    test('converts <a href="mmaction://..."> to a button when allowInlineActions is set', () => {
+        const html = '<a href="mmaction://mx?tail=214">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {allowInlineActions: true, postId: 'p1'})}</>,
+        );
+
+        const button = container.querySelector('button.InlineActionButton');
+        expect(button).not.toBeNull();
+        expect(button).toHaveTextContent('Click');
+
+        // The original anchor element must be gone — otherwise we'd render
+        // both a button and a clickable link.
+        expect(container.querySelector('a[href^="mmaction://"]')).toBeNull();
+    });
+
+    test('leaves <a href="mmaction://..."> as plain anchor when allowInlineActions is unset', () => {
+        // Posts that don't carry the bot/webhook/plugin marker (set by
+        // post_markdown.tsx) must not render the button — the integration
+        // session check upstream rejects clicks anyway, but the UI shouldn't
+        // surface a non-functional affordance.
+        const html = '<a href="mmaction://mx?tail=214">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {postId: 'p1'})}</>,
+        );
+
+        expect(container.querySelector('button.InlineActionButton')).toBeNull();
+        expect(container.querySelector('a[href^="mmaction://"]')).not.toBeNull();
+    });
+
+    test('does not convert <a> tags with non-mmaction schemes', () => {
+        const html = '<a href="https://example.com">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {allowInlineActions: true, postId: 'p1'})}</>,
+        );
+
+        expect(container.querySelector('button.InlineActionButton')).toBeNull();
+        expect(container.querySelector('a[href="https://example.com"]')).not.toBeNull();
+    });
+});
+
+describe('convertPropsToReactStandard', () => {
+    test('converts class to className', () => {
+        const inputProps = {class: 'button-class'} as AnchorHTMLAttributes<HTMLAnchorElement>;
+        const expected = {className: 'button-class'};
+
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+
+    test('converts for to htmlFor', () => {
+        const inputProps = {for: 'input-id'} as AnchorHTMLAttributes<HTMLAnchorElement>;
+        const expected = {htmlFor: 'input-id'};
+
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+
+    test('converts tabindex to tabIndex', () => {
+        const inputProps = {tabindex: '0'} as AnchorHTMLAttributes<HTMLAnchorElement>;
+        const expected = {tabIndex: '0'};
+
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+
+    test('converts readonly to readOnly', () => {
+        const inputProps = {readonly: true} as AnchorHTMLAttributes<HTMLAnchorElement>;
+        const expected = {readOnly: true};
+
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+
+    test('keeps other properties unchanged', () => {
+        const inputProps = {id: 'unique-id', type: 'text'} as AnchorHTMLAttributes<HTMLAnchorElement>;
+        const expected = {id: 'unique-id', type: 'text'};
+
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+
+    test('handles multiple conversions and keeps other properties', () => {
+        const inputProps = {
+            class: 'button-class',
+            for: 'input-id',
+            tabindex: '0',
+            readonly: true,
+            id: 'unique-id',
+        };
+        const expected = {
+            className: 'button-class',
+            htmlFor: 'input-id',
+            tabIndex: '0',
+            readOnly: true,
+            id: 'unique-id',
+        };
+        expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
     });
 });

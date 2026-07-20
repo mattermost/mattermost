@@ -5,22 +5,23 @@ import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
 import {getActiveRhsComponent} from 'selectors/rhs';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {suitePluginIds} from 'utils/constants';
 
-import type {PluginComponent, AppBarComponent} from 'types/store/plugins';
+import type {AppBarAction, ChannelHeaderButtonAction} from 'types/store/plugins';
 
 import NewChannelWithBoardTourTip from './new_channel_with_board_tour_tip';
 
-type PluginComponentProps = {
-    component: AppBarComponent;
-}
+type AppBarComponentProps = {
+    component: ChannelHeaderButtonAction | AppBarAction;
+};
 
 enum ImageLoadState {
     LOADING = 'loading',
@@ -28,22 +29,27 @@ enum ImageLoadState {
     ERROR = 'error',
 }
 
-export const isAppBarPluginComponent = (x: Record<string, any> | undefined): x is PluginComponent => {
+export const isAppBarComponent = (x: Record<string, any> | undefined): x is (ChannelHeaderButtonAction | AppBarAction) => {
     return Boolean(x?.id && x?.pluginId);
 };
 
-const AppBarPluginComponent = (props: PluginComponentProps) => {
-    const {component} = props;
-
+const AppBarPluginComponent = ({
+    component,
+}: AppBarComponentProps) => {
     const channel = useSelector(getCurrentChannel);
     const channelMember = useSelector(getMyCurrentChannelMembership);
     const activeRhsComponent = useSelector(getActiveRhsComponent);
 
     const [imageLoadState, setImageLoadState] = useState<ImageLoadState>(ImageLoadState.LOADING);
 
+    const iconUrl = 'iconUrl' in component ? component.iconUrl : undefined;
+    const icon = 'icon' in component ? component.icon : undefined;
+    const dropdownText = 'dropdownText' in component ? component.dropdownText : undefined;
+    const rhsComponentId = 'rhsComponentId' in component ? component.rhsComponentId : undefined;
+
     useEffect(() => {
         setImageLoadState(ImageLoadState.LOADING);
-    }, [component.iconUrl]);
+    }, [iconUrl]);
 
     const onImageLoadComplete = () => {
         setImageLoadState(ImageLoadState.LOADED);
@@ -54,9 +60,8 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
     };
 
     const buttonId = `app-bar-icon-${component.pluginId}`;
-    const tooltipText = component.tooltipText || component.dropdownText || component.pluginId;
+    const tooltipText = component.tooltipText || dropdownText || component.pluginId;
 
-    const iconUrl = component.iconUrl;
     let content: React.ReactNode = (
         <div
             role='button'
@@ -72,7 +77,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
         </div>
     );
 
-    const isButtonActive = component.rhsComponentId ? activeRhsComponent?.id === component.rhsComponentId : component.pluginId === activeRhsComponent?.pluginId;
+    const isButtonActive = rhsComponentId ? activeRhsComponent?.id === rhsComponentId : component.pluginId === activeRhsComponent?.pluginId;
 
     if (!iconUrl) {
         content = (
@@ -81,7 +86,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
                 tabIndex={0}
                 className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
             >
-                {component.icon}
+                {icon}
             </div>
         );
     }
@@ -96,15 +101,20 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
 
     return (
         <WithTooltip
-            id={'pluginTooltip-' + buttonId}
             title={tooltipText}
-            placement='left'
+            isVertical={false}
         >
             <div
                 id={buttonId}
                 className={classNames('app-bar__icon', {'app-bar__icon--active': isButtonActive})}
                 onClick={() => {
-                    component.action?.(channel, channelMember);
+                    if (channel && channelMember) {
+                        component.action?.(channel, channelMember);
+                        return;
+                    }
+                    if ('rhsComponentId' in component) {
+                        component.action();
+                    }
                 }}
             >
                 {content}

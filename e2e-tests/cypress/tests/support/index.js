@@ -5,15 +5,13 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-/* eslint-disable no-loop-func */
-
 import dayjs from 'dayjs';
 import localforage from 'localforage';
-
 import '@testing-library/cypress/add-commands';
 import 'cypress-file-upload';
 import 'cypress-wait-until';
 import 'cypress-plugin-tab';
+import 'cypress-real-events';
 import addContext from 'mochawesome/addContext';
 
 import './api';
@@ -28,6 +26,7 @@ import './fetch_commands';
 import './keycloak_commands';
 import './ldap_commands';
 import './ldap_server_commands';
+import './notification_commands';
 import './okta_commands';
 import './saml_commands';
 import './shell';
@@ -35,7 +34,6 @@ import './task_commands';
 import './ui';
 import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
-
 import {getDefaultConfig} from './api/system';
 
 Cypress.dayjs = dayjs;
@@ -121,7 +119,7 @@ before(() => {
             });
         }
 
-        switch (Cypress.env('serverEdition')) {
+        switch (Cypress.expose('serverEdition')) {
         case 'Cloud':
             cy.apiRequireLicenseForFeature('Cloud');
             break;
@@ -132,14 +130,14 @@ before(() => {
             break;
         }
 
-        if (Cypress.env('serverClusterEnabled')) {
+        if (Cypress.expose('serverClusterEnabled')) {
             cy.log('Checking cluster information...');
 
             // * Ensure cluster is set up properly when enabled
             cy.shouldHaveClusterEnabled();
             cy.apiGetClusterStatus().then(({clusterInfo}) => {
-                const sameCount = clusterInfo?.length === Cypress.env('serverClusterHostCount');
-                expect(sameCount, sameCount ? '' : `Should match number of hosts in a cluster as expected. Got "${clusterInfo?.length}" but expected "${Cypress.env('serverClusterHostCount')}"`).to.equal(true);
+                const sameCount = clusterInfo?.length === Cypress.expose('serverClusterHostCount');
+                expect(sameCount, sameCount ? '' : `Should match number of hosts in a cluster as expected. Got "${clusterInfo?.length}" but expected "${Cypress.expose('serverClusterHostCount')}"`).to.equal(true);
 
                 clusterInfo.forEach((info) => cy.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`));
             });
@@ -188,18 +186,18 @@ function printServerDetails() {
 }
 
 function sysadminSetup(user) {
-    if (Cypress.env('firstTest')) {
+    if (Cypress.expose('firstTest')) {
         // Sends dummy call to update the config to server
         // Without this, first call to `cy.apiUpdateConfig()` consistently getting time out error in CI against remote server.
         cy.externalRequest({user, method: 'put', path: 'config', data: getDefaultConfig(), failOnStatusCode: false});
     }
 
+    // # Reset config to default
+    cy.apiUpdateConfig();
+
     if (!user.email_verified) {
         cy.apiVerifyUserEmailById(user.id);
     }
-
-    // # Reset config to default
-    cy.apiUpdateConfig();
 
     // # Reset admin preference, online status and locale
     resetUserPreference(user.id);
@@ -231,7 +229,7 @@ function sysadminSetup(user) {
 
         if (!defaultTeam) {
             cy.apiCreateTeam(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false);
-        } else if (defaultTeam && Cypress.env('resetBeforeTest')) {
+        } else if (defaultTeam && Cypress.expose('resetBeforeTest')) {
             teams.forEach((team) => {
                 if (team.name !== DEFAULT_TEAM.name) {
                     cy.apiDeleteTeam(team.id);
@@ -254,6 +252,7 @@ function sysadminSetup(user) {
 
 function resetUserPreference(userId) {
     cy.apiSaveTeammateNameDisplayPreference('username');
+    cy.apiSaveMessageDisplayPreference('clean');
     cy.apiSaveLinkPreviewsPreference('true');
     cy.apiSaveCollapsePreviewsPreference('false');
     cy.apiSaveClockDisplayModeTo24HourPreference(false);
@@ -264,5 +263,4 @@ function resetUserPreference(userId) {
     cy.apiSaveSkipStepsPreference(userId, 'true');
     cy.apiSaveStartTrialModal(userId, 'true');
     cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');
-    cy.apiSaveDraftsTourTipPreference(userId, 'true');
 }

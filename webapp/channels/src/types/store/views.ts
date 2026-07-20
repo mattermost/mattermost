@@ -20,6 +20,19 @@ export type ModalFilters = {
     team_roles?: string[];
 };
 
+export type UserGridSearchFilters = {
+    roles?: string[];
+    channel_roles?: string[];
+    team_roles?: string[];
+};
+
+export type ChannelListSearchFilters = {
+    public?: boolean;
+    private?: boolean;
+    deleted?: boolean;
+    team_ids?: string[];
+};
+
 export type AdminConsoleUserManagementTableProperties = {
     sortColumn: string;
     sortIsDescending: boolean;
@@ -35,6 +48,13 @@ export type AdminConsoleUserManagementTableProperties = {
     filterStatus: string;
     filterRole: string;
     dateRange?: ReportDuration;
+};
+
+export type EditingPostDetails = {
+    postId: string;
+    refocusId: string;
+    isRHS: boolean;
+    show: boolean;
 };
 
 export type ViewsState = {
@@ -92,11 +112,7 @@ export type ViewsState = {
     rhsSuppressed: boolean;
 
     posts: {
-        editingPost: {
-            postId: string;
-            show: boolean;
-            isRHS: boolean;
-        };
+        editingPost: EditingPostDetails;
         menuActions: {
             [postId: string]: {
                 [actionId: string]: {
@@ -127,6 +143,10 @@ export type ViewsState = {
 
     lhs: LhsViewState;
 
+    readout: {
+        message: string | null;
+    };
+
     search: {
         modalSearch: string;
         popoverSearch: string;
@@ -134,21 +154,12 @@ export type ViewsState = {
         modalFilters: ModalFilters;
         userGridSearch: {
             term: string;
-            filters: {
-                roles?: string[];
-                channel_roles?: string[];
-                team_roles?: string[];
-            };
+            filters: UserGridSearchFilters;
         };
         teamListSearch: string;
         channelListSearch: {
             term: string;
-            filters: {
-                public?: boolean;
-                private?: boolean;
-                deleted?: boolean;
-                team_ids?: string[];
-            };
+            filters: ChannelListSearchFilters;
         };
     };
 
@@ -191,14 +202,6 @@ export type ViewsState = {
         lastSelectedChannel: string;
     };
 
-    statusDropdown: {
-        isOpen: boolean;
-    };
-
-    addChannelDropdown: {
-        isOpen: boolean;
-    };
-
     addChannelCtaDropdown: {
         isOpen: boolean;
     };
@@ -212,6 +215,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
@@ -221,5 +225,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import * as MESSAGES from '../../../fixtures/messages';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Notifications', () => {
     let testTeam;
@@ -67,8 +67,10 @@ describe('Notifications', () => {
             });
 
             // # Enter "in:town-square" in the search bar and hit ENTER
-            cy.get('#searchBox').
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().
                 typeWithForce('in:town-square').
+                wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('{enter}').
                 typeWithForce('{enter}');
 

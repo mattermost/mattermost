@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @not_cloud @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {stubClipboard} from '../../../utils';
-
 import {downloadAttachmentAndVerifyItsProperties} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {stubClipboard} from '@/utils';
 
 describe('Upload Files', () => {
     let testTeam;
@@ -71,8 +71,8 @@ describe('Upload Files', () => {
             cy.uiGetFilePreviewModal();
 
             // # Hover over the downlink button and verify that tooltip is shown
-            cy.uiGetDownloadLinkFilePreviewModal().trigger('mouseover');
-            cy.uiGetToolTip('Get a public link');
+            cy.uiGetDownloadLinkFilePreviewModal().trigger('mouseenter');
+            cy.findByText('Get a public link').should('exist');
 
             // # Copy download link
             cy.uiGetDownloadLinkFilePreviewModal().click();
@@ -178,8 +178,8 @@ describe('Upload Files', () => {
             cy.uiGetFilePreviewModal();
 
             // # Hover over the downlink button and verify that tooltip is shown
-            cy.uiGetDownloadLinkFilePreviewModal().trigger('mouseover');
-            cy.uiGetToolTip('Get a public link');
+            cy.uiGetDownloadLinkFilePreviewModal().trigger('mouseenter');
+            cy.findByText('Get a public link').should('exist');
 
             // # Click to copy download link
             cy.uiGetDownloadLinkFilePreviewModal().click({force: true});

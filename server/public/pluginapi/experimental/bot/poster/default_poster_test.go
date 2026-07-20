@@ -30,7 +30,7 @@ func TestInterface(t *testing.T) {
 
 func TestDM(t *testing.T) {
 	format := "test format, string: %s int: %d value: %v"
-	args := []interface{}{"some string", 5, 8.423}
+	args := []any{"some string", 5, 8.423}
 	expectedMessage := "test format, string: some string int: 5 value: 8.423"
 
 	expectedPostID := "expected-post-id"
@@ -91,22 +91,22 @@ func TestDM(t *testing.T) {
 func TestDMWithAttachments(t *testing.T) {
 	expectedPostID := "expected-post-id"
 
-	attachments := []*model.SlackAttachment{
+	attachments := []*model.MessageAttachment{
 		{},
 		{},
 	}
 
 	post := &model.Post{}
 
-	model.ParseSlackAttachment(post, attachments)
+	model.ParseMessageAttachment(post, attachments)
 
 	postWithID := model.Post{
 		Id:        expectedPostID,
 		UserId:    botID,
 		ChannelId: dmChannelID,
-		Type:      model.PostTypeSlackAttachment,
+		Type:      model.PostTypeMessageAttachment,
 		Props: model.StringInterface{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 	}
 
@@ -153,7 +153,7 @@ func TestDMWithAttachments(t *testing.T) {
 
 func TestEphemeral(t *testing.T) {
 	format := "test format, string: %s int: %d value: %v"
-	args := []interface{}{"some string", 5, 8.423}
+	args := []any{"some string", 5, 8.423}
 	expectedMessage := "test format, string: some string int: 5 value: 8.423"
 
 	channelID := "some-channel"
@@ -194,7 +194,7 @@ func TestEphemeral(t *testing.T) {
 
 func TestUpdatePostByID(t *testing.T) {
 	format := "test format, string: %s int: %d value: %v"
-	args := []interface{}{"some string", 5, 8.423}
+	args := []any{"some string", 5, 8.423}
 	expectedMessage := "test format, string: some string int: 5 value: 8.423"
 
 	postID := "some-post-id"
@@ -364,7 +364,7 @@ func TestUpdatePost(t *testing.T) {
 
 func TestUpdatePosterID(t *testing.T) {
 	format := "test format, string: %s int: %d value: %v"
-	args := []interface{}{"some string", 5, 8.423}
+	args := []any{"some string", 5, 8.423}
 	expectedMessage := "test format, string: some string int: 5 value: 8.423"
 
 	expectedPostID := "expected-post-id"

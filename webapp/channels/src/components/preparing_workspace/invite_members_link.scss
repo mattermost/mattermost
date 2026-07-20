@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .InviteMembersLink {
     display: flex;
@@ -55,7 +55,7 @@
     }
 
     &__button--single {
-        @include tertiary-button;
+        @include mixins.tertiary-button;
 
         height: 40px;
         border-radius: 4px;

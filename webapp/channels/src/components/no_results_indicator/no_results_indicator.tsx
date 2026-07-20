@@ -6,7 +6,7 @@ import React from 'react';
 import type {ReactNode, CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG, UserGroupMembersSVG} from 'components/common/svg_images_components';
+import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG} from 'components/common/svg_images_components';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
 import './no_results_indicator.scss';
@@ -25,7 +25,7 @@ interface Props {
     subtitleClassName?: string;
 }
 
-const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
+const iconMap: {[key in NoResultsVariant]: React.ReactNode} = {
     [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
     [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
@@ -35,7 +35,7 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
     [NoResultsVariant.ChannelFiles]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelFilesFiltered]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroups]: <UserGroupsSVG className='no-results__icon'/>,
-    [NoResultsVariant.UserGroupMembers]: <UserGroupMembersSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroupMembers]: <UserGroupsSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroupsArchived]: <UserGroupsSVG className='no-results__icon'/>,
 };
 
@@ -163,6 +163,7 @@ const NoResultsIndicator = ({
     let content = (
         <div
             className={classNames('no-results__wrapper', {'horizontal-layout': layout === NoResultsLayout.Horizontal})}
+            data-testid='no-results-wrapper'
             style={style}
         >
             {iconGraphic}
@@ -171,7 +172,10 @@ const NoResultsIndicator = ({
                 className='no-results__text-container'
             >
                 {title && (
-                    <h3 className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}>
+                    <h3
+                        className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}
+                        data-testid='no-results-title'
+                    >
                         {title}
                     </h3>
                 )}

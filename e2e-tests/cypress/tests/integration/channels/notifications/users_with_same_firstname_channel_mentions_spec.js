@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Notifications', () => {
     let testTeam;
@@ -78,7 +78,7 @@ describe('Notifications', () => {
             cy.uiOpenUserMenu().findByText(`@${firstUser.username}`);
 
             // # Close the user menu
-            cy.uiGetSetStatusButton().click();
+            cy.get('body').type('{esc}');
 
             // * Check that 'Town Square' is currently being selected
             cy.get('.active').within(() => {
@@ -104,7 +104,7 @@ describe('Notifications', () => {
         return {
             email: `${username}${randomId}@sample.mattermost.com`,
             username,
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: `First${randomId}`,
             last_name: `Last${randomId}`,
             nickname: `Nickname${randomId}`,

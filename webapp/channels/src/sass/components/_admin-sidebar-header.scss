@@ -1,3 +1,6 @@
+@use "utils/mixins";
+@use "utils/variables";
+
 .AdminSidebarHeader {
 
     > div {
@@ -18,12 +21,12 @@
         }
 
         .header__info {
-            @include clearfix;
+            @include mixins.clearfix;
 
             position: relative;
             width: 100%;
             flex-grow: 1;
-            color: --sys-sidebar-text-rgb;
+            color: var(--sys-sidebar-text);
 
             .team__name {
                 display: flex;
@@ -49,7 +52,6 @@
             padding: 8px;
             margin-right: -8px;
             fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
-
         }
 
         &:hover {

@@ -78,7 +78,9 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -105,15 +107,20 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
-		c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
+	if err != nil {
+		c.Logger.Warn("Failed to get current status", mlog.Err(err))
+	} else if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
+		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
+		if err != nil {
+			c.Logger.Warn("Failed to disable auto-responder", mlog.Err(err))
+		}
 	}
 
 	switch status.Status {
 	case "online":
 		c.App.SetStatusOnline(c.Params.UserId, true)
 	case "offline":
-		c.App.SetStatusOffline(c.Params.UserId, true)
+		c.App.SetStatusOffline(c.Params.UserId, true, false)
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":

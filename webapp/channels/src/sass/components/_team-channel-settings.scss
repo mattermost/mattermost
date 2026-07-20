@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 span.greyed-out {
     opacity: 0.4;
 }
@@ -58,6 +56,15 @@ span.greyed-out {
 .team-desc-col,
 .channel-desc-col {
     line-height: 20px;
+}
+
+.team-desc-col--edit {
+    max-width: 520px;
+    flex: 1 1 auto;
+
+    .Input_container {
+        width: 100%;
+    }
 }
 
 .center-row > div {

@@ -9,7 +9,7 @@
 
 // Group: @channels @notifications
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Notifications', () => {
     let user1;
@@ -108,7 +108,7 @@ describe('Notifications', () => {
 
         // # Invites User 1
         cy.get('#member_popover').should('be.visible').click();
-        cy.contains('Manage Members').click();
+        cy.contains('Manage members').click();
         cy.contains('Add Members').click();
         cy.get('.channel-invite__content').
             should('be.visible').

@@ -40,6 +40,8 @@ type UserGetOptions struct {
 	Page int
 	// Page size
 	PerPage int
+	// Filters the users that have been updated after the given time
+	UpdatedAfter int64
 }
 
 type UserGetByIdsOptions struct {

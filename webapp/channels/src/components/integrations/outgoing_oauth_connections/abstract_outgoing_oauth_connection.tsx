@@ -9,6 +9,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -31,7 +32,7 @@ type Props = {
     initialConnection?: OutgoingOAuthConnection;
 
     submitAction: (connection: OutgoingOAuthConnection) => Promise<void>;
-}
+};
 
 type State = {
     name: string;
@@ -501,7 +502,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             errors={[props.serverError, storedError]}
                         />
                         <Link
-                            className='btn btn-tertiary'
+                            className={buttonClassNames({emphasis: 'tertiary'})}
                             to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
                         >
                             <FormattedMessage
@@ -510,7 +511,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </Link>
                         <SpinnerButton
-                            className='btn btn-primary'
                             type='submit'
                             spinning={isSubmitting}
                             spinningText={intl.formatMessage(props.loading)}
@@ -531,7 +531,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     id={'add_outgoing_oauth_connection.documentation_link'}
                     defaultMessage={'Get help with <link>configuring outgoing OAuth connections</link>.'}
                     values={{
-                        link: (text: string) => (
+                        link: (text) => (
                             <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                         ),
                     }}
@@ -563,7 +563,7 @@ type ValidateButtonProps = {
     status: ValidationStatus;
     onClick: (e: FormEvent) => void;
     setUnvalidated: (e: FormEvent) => void;
-}
+};
 
 const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) => {
     if (status === ValidationStatus.ERROR) {
@@ -576,7 +576,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                     id={'add_outgoing_oauth_connection.validation_error'}
                     defaultMessage={'Connection not validated. Please check the server logs for details or <link>try again</link>.'}
                     values={{
-                        link: (text: string) => <a onClick={setUnvalidated}>{text}</a>,
+                        link: (text) => <a onClick={setUnvalidated}>{text}</a>,
                     }}
                 />
             </span>
@@ -615,8 +615,9 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     }
 
     const validateButton = (
-        <button
-            className='btn btn-tertiary btn-sm'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             type='button'
             onClick={onClick}
             id='validateConnection'
@@ -625,7 +626,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                 id={'add_outgoing_oauth_connection.validate'}
                 defaultMessage={'Validate Connection'}
             />
-        </button>
+        </Button>
     );
 
     return validateButton;

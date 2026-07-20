@@ -34,10 +34,10 @@ func (*LeaveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LeaveProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
-	if channel, noChannelErr = a.GetChannel(c, args.ChannelId); noChannelErr != nil {
+	if channel, noChannelErr = a.GetChannel(rctx, args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -46,7 +46,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandAr
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	err = a.LeaveChannel(c, args.ChannelId, args.UserId)
+	err = a.LeaveChannel(rctx, args.ChannelId, args.UserId)
 	if err != nil {
 		if channel.Name == model.DefaultChannelName {
 			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]any{"Channel": model.DefaultChannelName}), ResponseType: model.CommandResponseTypeEphemeral}
@@ -54,7 +54,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandAr
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	member, err := a.GetTeamMember(c, team.Id, args.UserId)
+	member, err := a.GetTeamMember(rctx, team.Id, args.UserId)
 	if err != nil || member.DeleteAt != 0 {
 		return &model.CommandResponse{GotoLocation: args.SiteURL + "/"}
 	}
@@ -65,11 +65,11 @@ func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandAr
 	}
 
 	if user.IsGuest() {
-		members, err := a.GetChannelMembersForUser(c, team.Id, args.UserId)
+		members, err := a.GetChannelMembersForUser(rctx, team.Id, args.UserId)
 		if err != nil || len(members) == 0 {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-		channel, err := a.GetChannel(c, members[0].ChannelId)
+		channel, err := a.GetChannel(rctx, members[0].ChannelId)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

@@ -4,7 +4,7 @@
 import {defineMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
+import type {TeamMemberWithError, TeamInviteWithError, MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -13,7 +13,6 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
@@ -22,8 +21,11 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+import {filterProfilesForEmails} from 'utils/member_invite_profiles';
 
-export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
+import type {DispatchFunc, ActionFuncAsync} from 'types/store';
+
+export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[], profiles?: Record<string, MemberInviteProfile>): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
@@ -84,8 +86,8 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
-            } catch (e) {
+                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails, filterProfilesForEmails(profiles, emails)));
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -120,6 +122,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
                             email,
                             reason: defineMessage({
                                 id: 'admin.environment.smtp.smtpFailure',
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                 defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                             }),
                             path: ConsolePages.SMTP,
@@ -200,7 +203,7 @@ export async function sendGuestInviteForUser(
                 await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
             }
         }
-    } catch (e) {
+    } catch {
         return {
             notSent: {
                 user,
@@ -228,6 +231,7 @@ export async function sendGuestInviteForUser(
             user,
             reason: defineMessage({
                 id: 'invite.guests.new-member',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- count provided via values property, consumed by FormattedMessage in result_table
                 defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
                 values: {
                     count: channels.length,
@@ -243,6 +247,7 @@ export function sendGuestsInvites(
     users: UserProfile[],
     emails: string[],
     message: string,
+    guestMagicLink = false,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -263,8 +268,8 @@ export function sendGuestsInvites(
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message));
-            } catch (e) {
+                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message, guestMagicLink));
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -299,6 +304,7 @@ export function sendGuestsInvites(
                                 email: res.email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,
@@ -336,6 +342,7 @@ export function sendMembersInvitesToChannels(
     users: UserProfile[],
     emails: string[],
     message: string,
+    profiles?: Record<string, MemberInviteProfile>,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
@@ -408,9 +415,10 @@ export function sendMembersInvitesToChannels(
                         channels.map((x) => x.id),
                         emails,
                         message,
+                        filterProfilesForEmails(profiles, emails),
                     ),
                 );
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -443,6 +451,7 @@ export function sendMembersInvitesToChannels(
                                 email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,

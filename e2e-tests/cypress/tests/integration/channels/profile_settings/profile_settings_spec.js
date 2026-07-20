@@ -71,7 +71,7 @@ describe('Profile Settings', () => {
     fileTypes.forEach((fileType, index) => {
         it(`MM-T2078_${index + 1} Profile picture: file ${fileType.extension} type accepted`, () => {
             // # Save the default profile picture link so it can be compared to the new one
-            cy.uiGetProfileHeader().findByRole('img').invoke('attr', 'src').as('defaultProfilePictureLink');
+            cy.uiGetSetStatusButton().get('img').invoke('attr', 'src').as('defaultProfilePictureLink');
 
             cy.uiOpenProfileModal('Profile Settings');
 
@@ -79,13 +79,13 @@ describe('Profile Settings', () => {
             cy.get('#pictureEdit').should('be.visible').click();
 
             // # Confirm the 'Save' button is blocked when no picture selected
-            cy.findByTestId('saveSettingPicture').should('have.class', 'disabled');
+            cy.findByTestId('saveSettingPicture').should('be.disabled');
 
             // # Insert the file profile picture - keep in mind that using the hidden input field is needed
             cy.findByTestId('uploadPicture').attachFile(fileType.fileName);
 
             // # Click the 'Save' button after the image is uploaded
-            cy.findByTestId('saveSettingPicture').should('not.have.class', 'disabled').click();
+            cy.findByTestId('saveSettingPicture').should('not.be.disabled').click();
 
             // # Confirm the user was returned to the Profile modal with the 'Profile Picture' description changed and 'Edit' button visible again
             cy.get('#pictureDesc').should('include.text', 'Image last updated');
@@ -95,7 +95,7 @@ describe('Profile Settings', () => {
             cy.uiClose();
 
             // # Save the new custom profile picture link so it can be compared to the old one
-            cy.uiGetProfileHeader().findByRole('img').invoke('attr', 'src').as('customProfilePictureLink');
+            cy.uiGetSetStatusButton().get('img').invoke('attr', 'src').as('customProfilePictureLink');
 
             cy.then(function() {
                 expect(this.customProfilePictureLink).to.not.equal(this.defaultProfilePictureLink);

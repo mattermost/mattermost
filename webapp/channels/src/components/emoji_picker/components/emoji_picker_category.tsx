@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import WithTooltip from 'components/with_tooltip';
 
 export interface Props {
     category: Category;
@@ -38,20 +38,18 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
 
     return (
         <WithTooltip
-            id={`emojiPickerCategoryTooltip-${category.name}`}
-            placement='bottom'
             title={
                 <FormattedMessage {...category.label}/>
             }
         >
-            <a
-                className={className}
-                href='#'
+            <button
+                aria-pressed={selected}
+                className={classNames('style--none', className)}
                 onClick={handleClick}
                 aria-label={intl.formatMessage(category.label)}
             >
                 <i className={category.iconClassName}/>
-            </a>
+            </button>
         </WithTooltip>
     );
 }

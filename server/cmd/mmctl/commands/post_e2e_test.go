@@ -5,6 +5,7 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -13,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPostListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var createNewChannelAndPosts = func() (string, *model.Post, *model.Post) {
 		channelName := model.NewRandomString(10)
@@ -22,10 +23,10 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channel, err := s.th.App.CreateChannel(s.th.Context, &model.Channel{Name: channelName, DisplayName: channelDisplayName, Type: model.ChannelTypePrivate, TeamId: s.th.BasicTeam.Id}, false)
 		s.Require().Nil(err)
 
-		post1, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post1, _, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
-		post2, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post2, _, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
 		return channelName, post1, post2
@@ -109,7 +110,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Create a post for System Admin Client", func() {
 		printer.Clean()
@@ -144,9 +145,103 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Send a direct message for System Admin Client", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{"@" + s.th.BasicUser2.Username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+
+		dmChannel, appErr := s.th.App.GetOrCreateDirectChannel(s.th.Context, s.th.SystemAdminUser.Id, s.th.BasicUser2.Id)
+		s.Require().Nil(appErr)
+
+		posts, appErr := s.th.App.GetPosts(s.th.Context, dmChannel.Id, 0, 10)
+		s.Require().Nil(appErr)
+
+		var matched []*model.Post
+		for _, post := range posts.Posts {
+			if post.Message == msgArg {
+				matched = append(matched, post)
+			}
+		}
+		s.Require().Len(matched, 1, "expected exactly one direct message with the sent text")
+		s.Require().Equal(s.th.SystemAdminUser.Id, matched[0].UserId)
+		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
+	})
+
+	s.Run("Send a direct message for Client", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		err := postCreateCmdF(s.th.Client, cmd, []string{"@" + s.th.BasicUser2.Username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+
+		dmChannel, appErr := s.th.App.GetOrCreateDirectChannel(s.th.Context, s.th.BasicUser.Id, s.th.BasicUser2.Id)
+		s.Require().Nil(appErr)
+
+		posts, appErr := s.th.App.GetPosts(s.th.Context, dmChannel.Id, 0, 10)
+		s.Require().Nil(appErr)
+
+		var matched []*model.Post
+		for _, post := range posts.Posts {
+			if post.Message == msgArg {
+				matched = append(matched, post)
+			}
+		}
+		s.Require().Len(matched, 1, "expected exactly one direct message with the sent text")
+		s.Require().Equal(s.th.BasicUser.Id, matched[0].UserId)
+		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
+	})
+
+	s.Run("Send a direct message for Local Client should fail", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+
+		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Send a direct message to a non-existing user should fail", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+		missingUsername := model.NewUsername()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{"@" + missingUsername})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), missingUsername)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -186,9 +281,13 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
 		s.Len(printer.GetErrorLines(), 0)
 	})
 }

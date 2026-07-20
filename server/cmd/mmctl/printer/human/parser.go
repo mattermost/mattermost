@@ -92,7 +92,7 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 			result.Caller = s
 
 		default:
-			var p interface{}
+			var p any
 			if err2 := dec.Decode(&p); err2 != nil {
 				return result, err2
 			}
@@ -167,7 +167,7 @@ func numberToTime(v json.Number) (time.Time, error) {
 
 // Decodes a value from JSON, coercing it to a string value as necessary
 func decodeAsString(dec *json.Decoder) (s string, err error) {
-	var v interface{}
+	var v any
 	if err = dec.Decode(&v); err != nil {
 		return s, err
 	}

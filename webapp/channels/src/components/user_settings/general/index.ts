@@ -11,10 +11,17 @@ import {
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
+    saveCustomProfileAttribute,
+    getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {normalizeLockProfileFieldsSetting} from 'utils/constants';
+import {isEnterpriseLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -22,6 +29,7 @@ import UserSettingsGeneralTab from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
+    const customProfileAttributeFields = getCustomProfileAttributes(state);
 
     const requireEmailVerification = config.RequireEmailVerification === 'true';
     const maxFileSize = parseInt(config.MaxFileSize!, 10);
@@ -34,11 +42,17 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
+    const lockProfileFieldsForEmailUsers = normalizeLockProfileFieldsSetting(config.LockProfileFieldsForEmailUsers);
+
+    const license = getLicense(state);
+    const isEnterprise = isEnterpriseLicense(license);
+    const enableCustomProfileAttributes = isEnterprise && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
 
     return {
         isMobileView: getIsMobileView(state),
         requireEmailVerification,
         maxFileSize,
+        customProfileAttributeFields,
         ldapFirstNameAttributeSet,
         ldapLastNameAttributeSet,
         samlFirstNameAttributeSet,
@@ -48,6 +62,9 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
+        lockProfileFieldsForEmailUsers,
+        canEditOtherUsers: haveISystemPermission(state, {permission: Permissions.EDIT_OTHER_USERS}),
+        enableCustomProfileAttributes,
     };
 }
 
@@ -60,6 +77,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             sendVerificationEmail,
             setDefaultProfileImage,
             uploadProfileImage,
+            saveCustomProfileAttribute,
+            getCustomProfileAttributeValues,
         }, dispatch),
     };
 }

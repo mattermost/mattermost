@@ -8,8 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
 
-import {pageVisited} from 'actions/telemetry_actions';
-
 import CloudFetchError from 'components/cloud_fetch_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -31,8 +29,6 @@ const CompanyInfo: React.FC<Props> = () => {
 
     useEffect(() => {
         dispatch(getCloudCustomer());
-
-        pageVisited('cloud_admin', 'pageview_billing_company_info');
     }, []);
 
     return (

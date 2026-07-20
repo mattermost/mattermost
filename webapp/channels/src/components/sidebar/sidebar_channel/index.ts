@@ -25,14 +25,14 @@ type OwnProps = {
      * Sets the ref for the sidebar channel div element, so that it can be used by parent components
      */
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
-}
+};
 
 function makeMapStateToProps() {
     const getChannel = makeGetChannel();
     const getUnreadCount = makeGetChannelUnreadCount();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const channel = getChannel(state, {id: ownProps.channelId});
+        const channel = getChannel(state, ownProps.channelId);
         const currentTeam = getCurrentTeam(state);
 
         const currentChannelId = getCurrentChannelId(state);

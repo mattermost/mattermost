@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @te_only @onboarding
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
-
 import {inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from '../team_settings/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Onboarding', () => {
     const sysadmin = getAdminAccount();
@@ -24,7 +24,7 @@ describe('Onboarding', () => {
     const emailOne = `${usernameOne}@sample.mattermost.com`;
     const emailTwo = `${usernameTwo}@sample.mattermost.com`;
     const emailThree = `${usernameThree}@sample.mattermost.com`;
-    const password = 'passwd';
+    const password = newTestPassword();
 
     let testTeam;
     let siteName;
@@ -64,7 +64,7 @@ describe('Onboarding', () => {
         cy.reload();
 
         // # Open the 'Invite People' modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -92,7 +92,7 @@ describe('Onboarding', () => {
         cy.get('#name').should('be.visible').type(usernameTwo);
         cy.get('#password').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
+        // # Attempt to create an account by clicking on the 'Create account' button
         cy.get('#createAccountButton').click();
 
         // * Ensure that since the invite was invalidated, the correct error message should be shown
@@ -100,7 +100,7 @@ describe('Onboarding', () => {
     });
 
     function inviteNewUser(email) {
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).
+        cy.findByRole('textbox', {name: 'Invite People'}).
             typeWithForce(email).wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
         cy.findByTestId('inviteButton').click();

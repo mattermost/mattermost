@@ -8,7 +8,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -59,10 +64,67 @@ func fileBytes(t *testing.T, path string) []byte {
 	return bb
 }
 
-func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
-	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
+var updateImageFixtures = flag.Bool("update-fixtures", false, "overwrite image fixture files with actual server output")
+
+// compareImageBytes decodes both byte slices as images and compares them
+// pixel-by-pixel. For JPEG a small per-channel tolerance absorbs encoder
+// drift across Go versions; PNG comparisons are exact.
+// When -update-fixtures is set, actual is written over the fixture file instead.
+func compareImageBytes(t *testing.T, name string, actual []byte) {
+	t.Helper()
+
+	fixturePath := filepath.Join(testDir, name)
+
+	if *updateImageFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, actual, 0600), "updating fixture %s", name)
+		return
+	}
+
+	expected, err := os.ReadFile(fixturePath)
+	require.NoError(t, err, "reading fixture %s", name)
+
+	wantImg, _, err := image.Decode(bytes.NewReader(expected))
+	require.NoError(t, err, "decoding expected %s", name)
+	gotImg, _, err := image.Decode(bytes.NewReader(actual))
+	require.NoError(t, err, "decoding actual %s", name)
+
+	require.Equal(t, wantImg.Bounds(), gotImg.Bounds(), "image bounds mismatch for %s", name)
+
+	ext := strings.ToLower(filepath.Ext(name))
+	var tolerance uint32
+	if ext == ".jpg" || ext == ".jpeg" {
+		tolerance = 514 // ±2 in 8-bit space (16-bit RGBA values: 2*257=514)
+	}
+
+	b := gotImg.Bounds()
+	total := b.Dx() * b.Dy()
+	var diffCount int
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := wantImg.At(x, y).RGBA()
+			gr, gg, gb, ga := gotImg.At(x, y).RGBA()
+			if absDiff32(wr, gr) > tolerance || absDiff32(wg, gg) > tolerance || absDiff32(wb, gb) > tolerance || absDiff32(wa, ga) > tolerance {
+				diffCount++
+			}
+		}
+	}
+	if diffCount > 0 {
+		t.Errorf("image %s: %d/%d pixels (%.2f%%) differ beyond tolerance", name, diffCount, total, 100*float64(diffCount)/float64(total))
+	}
+}
+
+func absDiff32(a, b uint32) uint32 {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}
+
+func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
+	contentLength int64,
+) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	if contentLength != 0 {
 		req.ContentLength = contentLength
@@ -73,8 +135,8 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 
 	resp, err := c.HTTPClient.Do(req)
-	require.NoError(t, err)
-	require.NotNil(t, resp)
+	require.NoError(tb, err)
+	require.NotNil(tb, resp)
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
@@ -89,7 +151,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 }
 
 func testUploadFilesPost(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -101,9 +163,9 @@ func testUploadFilesPost(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	fileUploadResponse := &model.FileUploadResponse{}
 	for i, blob := range blobs {
@@ -125,7 +187,7 @@ func testUploadFilesPost(
 			postURL += "&bookmark=true"
 		}
 
-		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
+		fur, resp, err := testDoUploadFileRequest(tb, c, postURL, blob, ct, cl)
 		if err != nil {
 			return nil, resp, err
 		}
@@ -144,7 +206,7 @@ func testUploadFilesPost(
 }
 
 func testUploadFilesMultipart(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -159,21 +221,21 @@ func testUploadFilesMultipart(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	mwBody := &bytes.Buffer{}
 	mw := multipart.NewWriter(mwBody)
 
 	err := mw.WriteField("channel_id", channelId)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	for i, blob := range blobs {
 		ct := http.DetectContentType(blob)
 		if len(clientIds) > i {
 			err = mw.WriteField("client_ids", clientIds[i])
-			require.NoError(t, err)
+			require.NoError(tb, err)
 		}
 
 		h := textproto.MIMEHeader{}
@@ -184,18 +246,18 @@ func testUploadFilesMultipart(
 		// If we error here, writing to mw, the deferred handler
 		var part io.Writer
 		part, err = mw.CreatePart(h)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
-		require.NoError(t, err)
+		require.NoError(tb, err)
 	}
 
-	require.NoError(t, mw.Close())
+	require.NoError(tb, mw.Close())
 	url := ""
 	if isBookmark {
 		url += "?bookmark=true"
 	}
-	fur, resp, err := testDoUploadFileRequest(t, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
+	fur, resp, err := testDoUploadFileRequest(tb, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -204,8 +266,8 @@ func testUploadFilesMultipart(
 }
 
 func TestUploadFiles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
@@ -239,7 +301,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageHasPreview     []bool
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
-		checkResponse               func(t testing.TB, resp *model.Response)
+		checkResponse               func(tb testing.TB, resp *model.Response)
 		uploadAsBookmark            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
@@ -386,6 +448,19 @@ func TestUploadFiles(t *testing.T) {
 			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// 5MB+ JPEG
+		{
+			title:                       "Happy image thumbnail/preview 5MB+",
+			names:                       []string{"orientation_test_9.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_9_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_9_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{4000},
+			expectedImageHeights:        []int{2667},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
@@ -728,13 +803,16 @@ func TestUploadFiles(t *testing.T) {
 
 					if !tc.skipPayloadValidation {
 						compare := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
-							data, _, err := get(context.Background(), ri.Id)
+							var data []byte
+							data, _, err = get(context.Background(), ri.Id)
 							require.NoError(t, err)
 
-							expected, err := os.ReadFile(filepath.Join(testDir, name))
+							var expected []byte
+							expected, err = os.ReadFile(filepath.Join(testDir, name))
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
-								tf, err := os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
+								var tf *os.File
+								tf, err = os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.NoError(t, err)
 								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
@@ -742,20 +820,26 @@ func TestUploadFiles(t *testing.T) {
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
+						compareImage := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
+							data, _, getErr := get(context.Background(), ri.Id)
+							require.NoError(t, getErr)
+							compareImageBytes(t, name, data)
+						}
 						if len(tc.expectedPayloadNames) == 0 {
 							tc.expectedPayloadNames = tc.names
 						}
 
 						compare(client.GetFile, tc.expectedPayloadNames[i])
 						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
+							compareImage(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
-						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
+						if len(tc.expectedImagePreviewNames) > i {
+							compareImage(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}
 
-					th.cleanupTestFile(dbInfo)
+					err = th.cleanupTestFile(dbInfo)
+					require.NoError(t, err)
 				}
 			})
 		}
@@ -763,10 +847,126 @@ func TestUploadFiles(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	t.Run("base case", func(t *testing.T) {
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+		require.NoError(t, err)
+
+		fileId := fileResp.FileInfos[0].Id
+
+		data, _, err := client.GetFile(context.Background(), fileId)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(data), "should not be empty")
+
+		for i := range data {
+			require.Equal(t, sent[i], data[i], "received file didn't match sent one")
+		}
+
+		_, resp, err := client.GetFile(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetFile(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
+		_, resp, err = client.GetFile(context.Background(), fileId)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("content reviewer should be able to get file of channel and team they are not a member of", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		newChannel := th.CreatePrivateChannel(t)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+		require.NoError(t, err)
+
+		post := th.CreatePostWithFilesWithClient(t, client, newChannel, fileResp.FileInfos[0])
+
+		reviewer := th.CreateUser(t)
+		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: new(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: new(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{reviewer.Id},
+				},
+			},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		response, err = client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive content",
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		reviewerClient := th.CreateClient()
+		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, reviewer.Password)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		_, response, err = reviewerClient.GetFileAsContentReviewer(context.Background(), fileResp.FileInfos[0].Id, post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Try again after removing the user from content reviewers
+		response, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: new(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: new(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{th.BasicUser.Id},
+				},
+			},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		_, response, err = reviewerClient.GetFileAsContentReviewer(context.Background(), fileResp.FileInfos[0].Id, post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+}
+
+func TestGetFileAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
@@ -775,40 +975,83 @@ func TestGetFile(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
-	require.NoError(t, err)
+	t.Run("public channel without membership", func(t *testing.T) {
+		publicChannel := th.CreateChannelWithClient(t, th.Client, model.ChannelTypeOpen)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	fileId := fileResp.FileInfos[0].Id
+	t.Run("public channel with membership", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel(t)
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, publicChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	data, _, err := client.GetFile(context.Background(), fileId)
-	require.NoError(t, err)
-	require.NotEqual(t, 0, len(data), "should not be empty")
+	t.Run("private channel without membership", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	for i := range data {
-		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
-	}
+	t.Run("private channel with membership", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, privateChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	_, resp, err := client.GetFile(context.Background(), "junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("direct message without membership", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	_, resp, err = client.GetFile(context.Background(), model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	t.Run("direct message with membership", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.SystemAdminUser.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	client.Logout(context.Background())
-	_, resp, err = client.GetFile(context.Background(), fileId)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("group message without membership", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gmChannel, _, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 
-	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
-	require.NoError(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("group message with membership", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.SystemAdminUser.Id, th.BasicUser.Id, user3.Id})
+		require.NoError(t, err)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetFileHeaders(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -869,14 +1112,14 @@ func TestGetFileHeaders(t *testing.T) {
 	// t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
-	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
+	// t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
 	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false, false))
 	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false, false))
 }
 
 func TestGetFileThumbnail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -904,26 +1147,116 @@ func TestGetFileThumbnail(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	otherUser := th.CreateUser(t)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	t.Run("public channel without membership", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
+		publicChannel := th.CreateChannelWithClient(t, th.Client, model.ChannelTypeOpen)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("public channel with membership", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		publicChannel := th.CreateChannelWithClient(t, th.Client, model.ChannelTypeOpen)
+		th.AddUserToChannel(t, th.SystemAdminUser, publicChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel without membership", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel with membership", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
+		th.AddUserToChannel(t, th.SystemAdminUser, privateChannel)
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message without membership", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message with membership", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.SystemAdminUser.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message without membership", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gmChannel, _, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message with membership", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.SystemAdminUser.Id, th.BasicUser.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+}
+
 func TestGetFileLink(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -968,29 +1301,33 @@ func TestGetFileLink(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	otherUser := th.CreateUser(t)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileLink(context.Background(), fileId)
 	require.NoError(t, err)
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
 	require.NoError(t, err)
-	th.cleanupTestFile(fileInfo)
+	err = th.cleanupTestFile(fileInfo)
+	require.NoError(t, err)
 }
 
 func TestGetFilePreview(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1017,26 +1354,29 @@ func TestGetFilePreview(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	otherUser := th.CreateUser(t)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileInfo(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	channel := th.BasicChannel
@@ -1071,26 +1411,29 @@ func TestGetFileInfo(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	otherUser := th.CreateUser(t)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPublicFile(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1143,33 +1486,21 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
+	err = th.cleanupTestFile(info)
 	require.NoError(t, err)
-	require.NoError(t, th.cleanupTestFile(fileInfo))
-
-	th.cleanupTestFile(info)
 	link = th.App.GeneratePublicLink(client.URL, info)
 	resp, err = http.Get(link)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
 
-func TestSearchFiles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
+func TestSearchFilesInTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	client := th.Client
 
 	filename := "search for fileInfo1"
@@ -1196,7 +1527,7 @@ func TestSearchFiles(t *testing.T) {
 	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
-	archivedChannel := th.CreatePublicChannel()
+	archivedChannel := th.CreatePublicChannel(t)
 	fileInfo5, appErr := th.App.UploadFile(th.Context, data, archivedChannel.Id, "tagged for fileInfo3")
 	require.Nil(t, appErr)
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
@@ -1204,7 +1535,8 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
-	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
+	_, err = th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
+	require.NoError(t, err)
 
 	terms := "search"
 	isOrSearch := false
@@ -1269,13 +1601,10 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-	})
-
+	// Archived channels are always included now, so this should return the same result
 	fileInfos, _, err = client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
-	require.Len(t, fileInfos.Order, 2, "wrong search")
+	require.Len(t, fileInfos.Order, 3, "wrong search")
 
 	fileInfos, _, _ = client.SearchFiles(context.Background(), th.BasicTeam.Id, "*", false)
 	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
@@ -1296,8 +1625,154 @@ func TestSearchFiles(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSearchFilesAcrossTeams(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	th.LoginBasic(t)
+	client := th.Client
+
+	var teams [2]*model.Team
+	var channels [2]*model.Channel
+	for i := range 2 {
+		teams[i] = th.CreateTeam(t)
+		channels[i] = th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, teams[i].Id)
+
+		th.LinkUserToTeam(t, th.BasicUser, teams[i])
+		th.AddUserToChannel(t, th.BasicUser, channels[i])
+
+		filename := "search for fileInfo"
+		fileInfo, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
+		require.Nil(t, appErr)
+
+		th.CreatePostInChannelWithFiles(t, channels[i], fileInfo)
+	}
+
+	terms := "search"
+
+	// BasicUser should have access to all the files
+	fileInfos, _, err := client.SearchFilesAcrossTeams(context.Background(), terms, false)
+	require.NoError(t, err)
+	require.Len(t, fileInfos.Order, 2, "wrong search")
+
+	// a new user that only belongs to the first team should only get one result
+	newUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, newUser, teams[0])
+	th.AddUserToChannel(t, newUser, channels[0])
+	th.UnlinkUserFromTeam(t, th.BasicUser, teams[1])
+
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	_, _, err = th.Client.Login(context.Background(), newUser.Email, newUser.Password)
+	require.NoError(t, err)
+
+	fileInfos, _, err = client.SearchFilesAcrossTeams(context.Background(), terms, false)
+	require.NoError(t, err)
+	require.Len(t, fileInfos.Order, 1, "wrong search")
+	require.Equal(t, fileInfos.FileInfos[fileInfos.Order[0]].ChannelId, channels[0].Id, "wrong search")
+}
+
+// TestHeadRequestsFileEndpoints tests that HEAD requests work correctly for file endpoints
+func TestHeadRequestsFileEndpoints(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Upload a test file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+	require.NoError(t, err)
+	fileId := fileResp.FileInfos[0].Id
+
+	// Helper function to make HEAD requests
+	makeHeadRequest := func(url string) (*http.Response, error) {
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		req.Header.Set(model.HeaderAuth, client.AuthType+" "+client.AuthToken)
+
+		return client.HTTPClient.Do(req)
+	}
+
+	t.Run("HEAD request to file endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("HEAD request to thumbnail endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/thumbnail", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request to preview endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/preview", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request returns no body", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Empty(t, body, "HEAD response should not contain a body")
+	})
+
+	t.Run("HEAD request requires authentication", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		// Don't set auth header
+		resp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("HEAD request with invalid file ID returns 400", func(t *testing.T) {
+		// Use an ID that matches the route pattern [A-Za-z0-9]+ but is invalid (not 26 characters)
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, "invalidid")
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("HEAD request for non-existent file returns 404", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, model.NewId())
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
 }

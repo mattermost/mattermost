@@ -16,23 +16,13 @@ import (
 	"time"
 
 	"github.com/klauspost/compress/gzhttp"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
-)
-
-const (
-	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -58,9 +48,15 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
-	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
+	// Determine the CSP SHA directives needed for the inline scripts injected into root.html.
+	// These values are fixed on server start and intentionally require a restart to take effect.
+	cfg := w.srv.Config()
+	subpath, _ := utils.GetSubpathFromConfig(cfg)
+
+	enableConcurrentReact := false
+	if cfg.FeatureFlags != nil {
+		enableConcurrentReact = cfg.FeatureFlags.EnableConcurrentReact
+	}
 
 	return &Handler{
 		Srv:            w.srv,
@@ -71,7 +67,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireMfa:     false,
 		IsStatic:       true,
 
-		cspShaDirective: utils.GetSubpathScriptHash(subpath),
+		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
 	}
 }
 
@@ -108,7 +104,7 @@ func generateDevCSP(c Context) string {
 
 	// Add supported flags for debugging during development, even if not on a dev build.
 	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
-		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+		for devFlagKVStr := range strings.SplitSeq(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
 			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
 			if len(devFlagKVSplit) != 2 {
 				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
@@ -171,8 +167,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
 		}
-		// if there is a session then include the user_id
-		if c.AppContext.Session() != nil {
+		// if there is a valid session and userID then include the user_id
+		if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
 
@@ -201,6 +197,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t,
 	)
 
+	if connectionId := r.Header.Get(model.ConnectionId); connectionId != "" {
+		c.AppContext = c.AppContext.WithConnectionId(connectionId)
+	}
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -208,32 +208,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		h.handleContextError(c, w, r)
 		return
-	}
-
-	if *c.App.Config().ServiceSettings.EnableOpenTracing {
-		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
-		carrier := opentracing.HTTPHeadersCarrier(r.Header)
-		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
-		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, c.AppContext.Path())
-		ext.PeerAddress.Set(span, c.AppContext.IPAddress())
-		span.SetTag("request_id", c.AppContext.RequestId())
-		span.SetTag("user_agent", c.AppContext.UserAgent())
-
-		defer func() {
-			if c.Err != nil {
-				span.LogFields(spanlog.Error(c.Err))
-				ext.HTTPStatusCode.Set(span, uint16(c.Err.StatusCode))
-				ext.Error.Set(span, true)
-			}
-			span.Finish()
-		}()
-		c.AppContext = c.AppContext.WithContext(ctx)
-
-		tmpSrv := *c.App.Srv()
-		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
-		c.App.SetServer(&tmpSrv)
-		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
 	var maxBytes int64
@@ -274,8 +248,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s",
-			frameAncestors,
+			"frame-ancestors 'self' %s; script-src 'self'%s%s",
+			*c.App.Config().ServiceSettings.FrameAncestors,
 			h.cspShaDirective,
 			devCSP,
 		))
@@ -292,7 +266,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
-		defer c.App.ReturnSessionToPool(session)
 
 		if err != nil {
 			c.Logger.Info("Invalid session", mlog.Err(err))
@@ -310,13 +283,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Rate limit by UserID
 		if c.App.Srv().RateLimiter != nil {
-			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w)
+			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(r.Context(), c.AppContext.Session().UserId, w)
 			if rateLimitExceeded {
 				return
 			}
 		}
 
-		h.checkCSRFToken(c, r, token, tokenLocation, session)
+		csrfChecked, csrfPassed := h.checkCSRFToken(c, r, tokenLocation, session)
+		if csrfChecked && !csrfPassed {
+			c.AppContext = c.AppContext.WithSession(&model.Session{})
+			c.RemoveSessionCookie(w, r)
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+		}
 	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
@@ -351,6 +329,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("method", r.Method),
 	)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
+	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -425,6 +404,19 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		c.Err = newErr
 	}
 
+	// Detect and fix AppError with missing StatusCode to prevent panics
+	if c.Err.StatusCode == 0 {
+		c.Logger.Error("AppError with zero StatusCode detected",
+			mlog.String("error_id", c.Err.Id),
+			mlog.String("error_message", c.Err.Message),
+			mlog.String("error_where", c.Err.Where),
+			mlog.String("request_path", r.URL.Path),
+			mlog.String("request_method", r.Method),
+			mlog.String("detailed_error", c.Err.DetailedError),
+		)
+		c.Err.StatusCode = http.StatusInternalServerError
+	}
+
 	c.Err.RequestId = c.AppContext.RequestId()
 	c.LogErrorByCode(c.Err)
 	// The locale translation needs to happen after we have logged it.
@@ -450,7 +442,9 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(c.Err.StatusCode)
-		w.Write([]byte(c.Err.ToJSON()))
+		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
+			c.Logger.Warn("Failed to write error response", mlog.Err(err))
+		}
 	} else {
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 	}
@@ -504,7 +498,7 @@ func GetOriginClient(r *http.Request) OriginClient {
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether
 // a CSRF check occurred and whether it succeeded.
-func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
+func (h *Handler) checkCSRFToken(c *Context, r *http.Request, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
@@ -530,11 +524,6 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
-		}
-
-		if !csrfCheckPassed {
-			c.AppContext = c.AppContext.WithSession(&model.Session{})
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}
 

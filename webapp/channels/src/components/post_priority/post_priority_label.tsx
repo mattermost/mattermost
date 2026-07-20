@@ -10,10 +10,10 @@ import Tag from 'components/widgets/tag/tag';
 import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
-    priority?: PostPriority|'';
+    priority?: PostPriority | '';
     size?: TagSize;
     uppercase?: boolean;
-}
+};
 
 export default function PriorityLabel({
     priority,
@@ -29,6 +29,7 @@ export default function PriorityLabel({
                 icon={'alert-outline'}
                 text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'Urgent'})}
                 uppercase={true}
+                data-testid='post-priority-label'
             />
         );
     }
@@ -41,6 +42,7 @@ export default function PriorityLabel({
                 icon={'alert-circle-outline'}
                 text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
                 uppercase={true}
+                data-testid='post-priority-label'
             />
         );
     }

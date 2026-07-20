@@ -1,0 +1,2 @@
+-- This migration is converted to be no-op due to an error in the original migration.
+-- The new migration for this change is 000137_update_attribute_view.up.sql.

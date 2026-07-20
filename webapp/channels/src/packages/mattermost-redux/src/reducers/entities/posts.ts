@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-
 import type {
     OpenGraphMetadata,
     Post,
@@ -21,10 +19,11 @@ import type {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import type {MMReduxAction} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
-import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
+import {comparePosts, isPermalink, isPostEphemeral, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -99,7 +98,7 @@ export function removeUnneededMetadata(post: Post) {
     };
 }
 
-export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: AnyAction) {
+export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -158,7 +157,53 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
-export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction) {
+// Helper function to remove posts and permalink embeds for a set of channel IDs.
+function removePostsAndEmbedsForChannels(state: IDMappedObjects<Post>, channelIds: Set<string>): IDMappedObjects<Post> {
+    let postModified = false;
+    const nextState = {...state};
+
+    for (const post of Object.values(state)) {
+        // Remove posts from the channels
+        if (channelIds.has(post.channel_id)) {
+            Reflect.deleteProperty(nextState, post.id);
+            postModified = true;
+            continue;
+        }
+
+        // Remove permalink embeds referencing those channels (matches server behavior)
+        if (post.metadata?.embeds?.length) {
+            const newEmbeds: PostEmbed[] = [];
+            let embedRemoved = false;
+
+            for (const embed of post.metadata.embeds) {
+                if (embed.type === 'permalink' && embed.data && channelIds.has((embed.data as PostPreviewMetadata).channel_id)) {
+                    embedRemoved = true;
+                } else {
+                    newEmbeds.push(embed);
+                }
+            }
+
+            if (embedRemoved) {
+                nextState[post.id] = {
+                    ...nextState[post.id],
+                    metadata: {
+                        ...nextState[post.id].metadata,
+                        embeds: newEmbeds,
+                    },
+                };
+                postModified = true;
+            }
+        }
+    }
+
+    if (!postModified) {
+        return state;
+    }
+
+    return nextState;
+}
+
+export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -188,12 +233,19 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction
             return state;
         }
 
+        if (state[post.id].type === PostTypeConstants.BURN_ON_READ) {
+            const nextState = {...state};
+            Reflect.deleteProperty(nextState, post.id);
+            return nextState;
+        }
+
         // Mark the post as deleted
         const nextState = {
             ...state,
             [post.id]: {
                 ...state[post.id],
                 state: Posts.POST_DELETED,
+                message: '',
                 file_ids: [],
                 has_reactions: false,
             },
@@ -280,33 +332,92 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
+    case PostTypes.REVEAL_BURN_ON_READ_SUCCESS: {
+        const {post, expireAt} = action.data;
+
+        if (!state[post.id]) {
+            return state;
+        }
+
+        const currentPost = state[post.id];
+        const currentMetadata = currentPost.metadata || {};
+        const newMetadata = post.metadata || {};
+
+        return {
+            ...state,
+            [post.id]: {
+                ...currentPost,
+                ...post,
+                metadata: {
+                    ...currentMetadata,
+                    ...newMetadata,
+                    expire_at: expireAt,
+                },
+            },
+        };
+    }
+
+    case PostTypes.POST_RECIPIENTS_UPDATED: {
+        const {postId, recipients} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+        const currentRecipients = currentMetadata.recipients || [];
+
+        // Merge new recipients with existing ones (don't replace).
+        // Server sends incremental updates (only the revealing user), so we must merge.
+        const mergedRecipients = [...new Set([...currentRecipients, ...recipients])];
+
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    recipients: mergedRecipients,
+                },
+            },
+        };
+    }
+
+    case PostTypes.BURN_ON_READ_ALL_REVEALED: {
+        const {postId, senderExpireAt} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        // Set sender's expiration time to trigger timer display
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    expire_at: senderExpireAt,
+                },
+            },
+        };
+    }
+
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
+        return removePostsAndEmbedsForChannels(state, new Set([channelId]));
+    }
 
-        let postDeleted = false;
-
-        // Remove any posts in the deleted channel
-        const nextState = {...state};
-        for (const post of Object.values(state)) {
-            if (post.channel_id === channelId) {
-                Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing changed
+    case TeamTypes.LEAVE_TEAM: {
+        const channelIds: string[] = action.data.channelIds || [];
+        if (channelIds.length === 0) {
             return state;
         }
-
-        return nextState;
+        return removePostsAndEmbedsForChannels(state, new Set(channelIds));
     }
 
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
@@ -321,6 +432,40 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction
         };
     }
 
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: {
+            object_id: string;
+            language: string;
+            state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+            translation?: string;
+            src_lang?: string;
+        } = action.data;
+        if (!state[data.object_id]) {
+            return state;
+        }
+
+        const existingTranslations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {
+            ...existingTranslations,
+            [data.language]: {
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            },
+        };
+
+        return {
+            ...state,
+            [data.object_id]: {
+                ...state[data.object_id],
+                metadata: {
+                    ...state[data.object_id].metadata,
+                    translations: newTranslations,
+                },
+            },
+        };
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -328,12 +473,35 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction
     }
 }
 
-function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
+// Integration action `update` payloads deserialize as a partial Post (often create_at=0).
+// Thread RHS order uses create_at via comparePosts; zero makes the ephemeral sort as oldest (above the root).
+// Ephemeral updates may omit user_id; keep the displayed author from the post already in state.
+function maintainEphemeralPostFields(incoming: Post, stored: Post): Post {
+    const out: Post = {...incoming};
+    if (!out.create_at && stored.create_at) {
+        out.create_at = stored.create_at;
+    }
+    if (!out.root_id && stored.root_id) {
+        out.root_id = stored.root_id;
+    }
+    if (!out.user_id && stored.user_id) {
+        out.user_id = stored.user_id;
+    }
+    return out;
+}
+
+function handlePostReceived(nextState: any, receivedPost: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
     // Check if post already exists in state or if nested permalink
-    if (!shouldUpdatePost(post, currentState[post.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
+    if (!shouldUpdatePost(receivedPost, currentState[receivedPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
         return currentState;
+    }
+
+    const storedPost = currentState[receivedPost.id];
+    let post = receivedPost;
+    if (storedPost && isPostEphemeral(storedPost)) {
+        post = maintainEphemeralPostFields(receivedPost, storedPost);
     }
 
     // If post is a permalink and not nested (it links directly to the original message),
@@ -342,9 +510,19 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         currentState[post.id] = {...currentState[post.id], ...post.metadata};
     }
 
-    // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
-        post.is_following = currentState[post.id].is_following;
+    // Posts that don't have CRT fields specified should maintain existing state.
+    // This happens when posts are returned via GetPostsByIds (e.g. translation
+    // supplement) which doesn't JOIN the Threads/ThreadMemberships tables.
+    if (post.update_at > 0 && currentState[post.id]) {
+        if (post.is_following == null) {
+            post.is_following = currentState[post.id].is_following;
+        }
+        if (post.participants == null && currentState[post.id].participants) {
+            post.participants = currentState[post.id].participants;
+        }
+        if (!post.last_reply_at && currentState[post.id].last_reply_at) {
+            post.last_reply_at = currentState[post.id].last_reply_at;
+        }
     }
 
     if (post.delete_at > 0) {
@@ -398,7 +576,7 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
     return currentState;
 }
 
-export function handlePendingPosts(state: string[] = [], action: AnyAction) {
+export function handlePendingPosts(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data;
@@ -464,15 +642,21 @@ export function handlePendingPosts(state: string[] = [], action: AnyAction) {
     }
 }
 
-export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: AnyAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
+export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
 
-        if (action.features?.crtEnabled && post.root_id && post.type !== PostConstant.EPHEMERAL) {
+        if (action.features?.crtEnabled && post.root_id) {
             return state;
         }
 
@@ -605,8 +789,8 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
                 const recentBlock = postsForChannel[recentBlockIndex];
 
                 if (recentBlock.order.length === order.length &&
-                    recentBlock.order[0] === order[0] &&
-                    recentBlock.order[recentBlock.order.length - 1] === order[order.length - 1]) {
+                        recentBlock.order[0] === order[0] &&
+                        recentBlock.order[recentBlock.order.length - 1] === order[order.length - 1]) {
                     // The newly received posts are identical to the most recent block, so there's nothing to do
                     return state;
                 }
@@ -759,21 +943,30 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.POST_DELETED: {
         const post = action.data;
 
-        // Deleting a post removes its comments from the order, but does not remove the post itself
-
         const postsForChannel = state[post.channel_id] || [];
         if (postsForChannel.length === 0) {
             return state;
         }
 
         let changed = false;
-
         let nextPostsForChannel = [...postsForChannel];
+
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
+        const shouldRemovePost = (postId: string) => {
+            const isTheDeletedPost = postId === post.id;
+            const isReplyToDeletedPost = prevPosts[postId]?.root_id === post.id;
+
+            if (isBoRPost) {
+                return isTheDeletedPost;
+            }
+
+            return isReplyToDeletedPost;
+        };
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
-
-            // Remove any comments for this post
-            const nextOrder = block.order.filter((postId: string) => prevPosts[postId].root_id !== post.id);
+            const nextOrder = block.order.filter((postId) => !shouldRemovePost(postId));
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -810,12 +1003,16 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
         let changed = false;
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
         // Remove the post and its comments from the channel
         let nextPostsForChannel = [...postsForChannel];
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 
-            const nextOrder = block.order.filter((postId: string) => postId !== post.id && prevPosts[postId].root_id !== post.id);
+            // For BoR posts: only remove the post itself (BoR doesn't support threads)
+            // For regular posts: remove the post and its thread replies
+            const nextOrder = isBoRPost ? block.order.filter((postId: string) => postId !== post.id) : block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -840,14 +1037,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
 
         if (!state[channelId]) {
@@ -954,7 +1144,7 @@ export function mergePostOrder(left: string[], right: string[], posts: Record<st
     return result;
 }
 
-export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: AnyAction, prevPosts: Record<string, Post>) {
+export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: MMReduxAction, prevPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1117,14 +1307,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         return nextState;
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
 
         let postDeleted = false;
@@ -1153,7 +1336,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-export function postEditHistory(state: Post[] = [], action: AnyAction) {
+export function postEditHistory(state: Post[] = [], action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
         return action.data;
@@ -1164,7 +1347,7 @@ export function postEditHistory(state: Post[] = [], action: AnyAction) {
     }
 }
 
-function currentFocusedPostId(state = '', action: AnyAction) {
+function currentFocusedPostId(state = '', action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_FOCUSED_POST:
         return action.data;
@@ -1175,7 +1358,7 @@ function currentFocusedPostId(state = '', action: AnyAction) {
     }
 }
 
-export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
+export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
@@ -1236,7 +1419,7 @@ export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>
     }
 }
 
-export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: AnyAction) {
+export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.CREATE_ACK_POST_SUCCESS: {
         const ack = action.data as PostAcknowledgement;
@@ -1348,7 +1531,7 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
     };
 }
 
-export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: AnyAction) {
+export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1412,7 +1595,7 @@ function messagesHistory(state: Partial<MessageHistory> = {
         post: -1,
         comment: -1,
     },
-}, action: AnyAction) {
+}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.ADD_MESSAGE_INTO_HISTORY: {
         const nextIndex: Record<string, number> = {};
@@ -1494,7 +1677,7 @@ export const zeroStateLimitedViews = {
 
 export function limitedViews(
     state: PostsState['limitedViews'] = zeroStateLimitedViews,
-    action: AnyAction,
+    action: MMReduxAction,
 ): PostsState['limitedViews'] {
     switch (action.type) {
     case PostTypes.RECEIVED_POSTS:
@@ -1535,14 +1718,17 @@ export function limitedViews(
         }
         return state;
     }
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
-    case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
+    case LimitsTypes.RECEIVED_APP_LIMITS: {
+        const serverLimits = action.data;
 
+        // If server limits change and there is no post history limit any more (e.g. upgrade to unlimited plan),
+        // this state is stale and should be dumped.
+        if (!serverLimits?.postHistoryLimit || serverLimits.postHistoryLimit <= 0) {
+            return zeroStateLimitedViews;
+        }
+        return state;
+    }
+    case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
         if (!state.channels[channelId]) {
             return state;
@@ -1560,7 +1746,7 @@ export function limitedViews(
     }
 }
 
-export default function reducer(state: Partial<PostsState> = {}, action: AnyAction) {
+export default function reducer(state: Partial<PostsState> = {}, action: MMReduxAction) {
     const nextPosts = handlePosts(state.posts, action);
     const nextPostsInChannel = postsInChannel(state.postsInChannel, action, state.posts!, nextPosts);
 

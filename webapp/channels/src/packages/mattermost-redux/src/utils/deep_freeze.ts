@@ -1,3 +1,5 @@
+/* eslint-disable headers/header-format */
+
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -7,8 +9,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
-/* eslint-disable header/header */
 
 /**
  * If your application is accepting different values for the same field over
@@ -36,7 +36,7 @@ export default function deepFreezeAndThrowOnMutation(object: any): any {
     }
 
     for (const key in object) {
-        if (object.hasOwnProperty(key)) {
+        if (Object.hasOwn(object, key)) {
             object.__defineGetter__(key, identity.bind(null, object[key])); // eslint-disable-line no-underscore-dangle
             object.__defineSetter__(key, throwOnImmutableMutation.bind(null, key)); // eslint-disable-line no-underscore-dangle
         }
@@ -46,7 +46,7 @@ export default function deepFreezeAndThrowOnMutation(object: any): any {
     Object.seal(object);
 
     for (const key in object) {
-        if (object.hasOwnProperty(key)) {
+        if (Object.hasOwn(object, key)) {
             deepFreezeAndThrowOnMutation(object[key]);
         }
     }

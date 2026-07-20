@@ -5,12 +5,13 @@ import React, {PureComponent} from 'react';
 import type {CSSProperties, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import statusGreen from 'images/status_green.png';
 import statusYellow from 'images/status_yellow.png';
-import * as Utils from 'utils/utils';
 
 type Props = {
     clusterInfos: Array<{
@@ -21,13 +22,13 @@ type Props = {
         schema_version: string;
     }>;
     reload: (e: MouseEvent<HTMLButtonElement>) => void;
-}
+};
 
 type Style = {
     clusterTable: CSSProperties;
     clusterCell: CSSProperties;
     warning: CSSProperties;
-}
+};
 
 export default class ClusterTable extends PureComponent<Props> {
     render() {
@@ -75,7 +76,7 @@ export default class ClusterTable extends PureComponent<Props> {
                         <WarningIcon/>
                         <FormattedMessage
                             id='admin.cluster.version_mismatch_warning'
-                            defaultMessage='WARNING: Multiple versions of Mattermost has been detected in your HA cluster. Unless you are currently performing an upgrade please ensure all nodes in your cluster are running the same Mattermost version to avoid platform disruption.'
+                            defaultMessage='WARNING: Multiple Mattermost versions have been detected in your HA cluster, or the running versions cannot be properly identified. Unless upgrading, ensure all nodes are on the same version and can communicate via Gossip to prevent platform issues.'
                         />
                     </div>
                 );
@@ -95,21 +96,43 @@ export default class ClusterTable extends PureComponent<Props> {
         });
 
         const items = this.props.clusterInfos.map((clusterInfo) => {
+            let hasUnknownFields = false;
             let status = null;
 
-            if (clusterInfo.hostname === '') {
-                clusterInfo.hostname = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let hostname: React.ReactNode = clusterInfo.hostname;
+            if (hostname === '') {
+                hasUnknownFields = true;
+                hostname = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
-            if (clusterInfo.version === '') {
-                clusterInfo.version = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let version: React.ReactNode = clusterInfo.version;
+            if (version === '') {
+                hasUnknownFields = true;
+                version = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
-            if (clusterInfo.config_hash === '') {
-                clusterInfo.config_hash = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let configHash: React.ReactNode = clusterInfo.config_hash;
+            if (configHash === '') {
+                hasUnknownFields = true;
+                configHash = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
-            if (singleItem) {
+            if (singleItem || hasUnknownFields) {
                 status = (
                     <img
                         alt='Cluster status'
@@ -130,9 +153,9 @@ export default class ClusterTable extends PureComponent<Props> {
             return (
                 <tr key={clusterInfo.ipaddress}>
                     <td style={style.clusterCell}>{status}</td>
-                    <td style={style.clusterCell}>{clusterInfo.hostname}</td>
-                    <td style={style.clusterCell}>{versionMismatch} {clusterInfo.version}</td>
-                    <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
+                    <td style={style.clusterCell}>{hostname}</td>
+                    <td style={style.clusterCell}>{versionMismatch} {version}</td>
+                    <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {configHash}</div></td>
                     <td style={style.clusterCell}>{clusterInfo.ipaddress}</td>
                     <td style={style.clusterCell}>{clusterInfo.schema_version}</td>
                 </tr>
@@ -145,9 +168,9 @@ export default class ClusterTable extends PureComponent<Props> {
                 style={style.clusterTable}
             >
                 <div className='text-right'>
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.props.reload}
                     >
                         <ReloadIcon/>
@@ -155,7 +178,7 @@ export default class ClusterTable extends PureComponent<Props> {
                             id='admin.cluster.status_table.reload'
                             defaultMessage=' Reload Cluster Status'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <table className='table'>
                     <thead>
@@ -181,7 +204,7 @@ export default class ClusterTable extends PureComponent<Props> {
                             <th>
                                 <FormattedMessage
                                     id='admin.cluster.status_table.config_hash'
-                                    defaultMessage='Config File MD5'
+                                    defaultMessage='Config File Hash'
                                 />
                             </th>
                             <th>

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -28,12 +28,12 @@ type Props = {
     /**
      * The function to call when Regenerate Token link is clicked
      */
-    onRegenToken: (command: Command) => void ;
+    onRegenToken: (command: Command) => void;
 
     /**
      * The function to call when Delete link is clicked
      */
-    onDelete: (command: Command) => void ;
+    onDelete: (command: Command) => void;
 
     /**
      * Set to filter command, comes from BackstageList
@@ -49,7 +49,7 @@ type Props = {
      * Set to show edit link
      */
     canChange: boolean;
-}
+};
 
 export function matchesFilter(command: Command, filter?: string) {
     if (!filter) {
@@ -166,10 +166,14 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
                                 values={{
-                                    token: commandToken,
+                                    token: <code>{commandToken}</code>,
                                 }}
                             />
                             <CopyText
+                                label={defineMessage({
+                                    id: 'integrations.copy_token',
+                                    defaultMessage: 'Copy Token',
+                                })}
                                 value={commandToken}
                             />
                         </span>

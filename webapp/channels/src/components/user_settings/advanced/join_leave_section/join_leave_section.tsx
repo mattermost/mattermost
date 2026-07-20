@@ -5,7 +5,7 @@ import React from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -16,11 +16,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
 
-export type OwnProps = {
-    adminMode?: boolean;
-    userId: string;
-    userPreferences?: PreferencesType;
-}
+import type {OwnProps} from './index';
 
 type Props = OwnProps & {
     active: boolean;
@@ -31,13 +27,13 @@ type Props = OwnProps & {
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
-}
+};
 
 type State = {
     joinLeaveState: string;
     isSaving?: boolean;
     serverError?: string;
-}
+};
 
 export default class JoinLeaveSection extends React.PureComponent<Props, State> {
     minRef: RefObject<SettingItemMinComponent>;

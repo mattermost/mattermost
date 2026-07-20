@@ -3,38 +3,42 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
 
 describe('components/TeamSettings', () => {
-    const getTeam = jest.fn().mockResolvedValue({data: true});
     const patchTeam = jest.fn().mockReturnValue({data: true});
     const regenerateTeamInviteId = jest.fn().mockReturnValue({data: true});
-    const removeTeamIcon = jest.fn().mockReturnValue({data: true});
-    const setTeamIcon = jest.fn().mockReturnValue({data: true});
+    const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 10, active_member_count: 10}});
+    const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
+    const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
+    const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
     const baseActions = {
-        getTeam,
         patchTeam,
         regenerateTeamInviteId,
-        removeTeamIcon,
-        setTeamIcon,
+        getTeamStats,
+        getTeamAccessControlPolicy,
+        searchUsersForExpression,
+        createAccessControlTeamSyncJob,
     };
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
-        closeModal: jest.fn(),
         actions: baseActions,
-        hasChanges: true,
-        hasChangeTabError: false,
-        setHasChanges: jest.fn(),
-        setHasChangeTabError: jest.fn(),
-        collapseModal: jest.fn(),
+        teamMembershipAccessControlEnabled: false,
+        areThereUnsavedChanges: true,
+        showTabSwitchError: false,
+        setAreThereUnsavedChanges: jest.fn(),
+        setShowTabSwitchError: jest.fn(),
     };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     test('should not render team invite section if no permissions for team inviting', () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
@@ -100,7 +104,7 @@ describe('components/TeamSettings', () => {
     test('should call patchTeam on handleAllowedDomainsSubmit', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
         renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsInput = screen.getAllByRole('textbox')[0];
+        const allowedDomainsInput = screen.getAllByRole('combobox')[0];
         const newDomain = 'best.com';
         await act(async () => {
             await allowedDomainsInput.focus();
@@ -110,14 +114,93 @@ describe('components/TeamSettings', () => {
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        await userEvent.click(saveButton);
         expect(baseActions.patchTeam).toHaveBeenCalledTimes(1);
         expect(baseActions.patchTeam).toHaveBeenCalledWith({
             allowed_domains: 'test.com, best.com',
             id: defaultProps.team?.id,
         });
+    });
+
+    test('should render Public Team and Private Team discoverability cards', () => {
+        renderWithContext(<AccessTab {...defaultProps}/>);
+        expect(screen.getByText('Public Team')).toBeInTheDocument();
+        expect(screen.getByText('Private Team')).toBeInTheDocument();
+    });
+
+    test('should mark save panel dirty when discoverability card is clicked', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        expect(defaultProps.setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+    });
+
+    test('non-ABAC team: selecting Private patches allow_open_invite=false', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: false}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+    });
+
+    test('non-ABAC team: selecting Public patches allow_open_invite=true', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: false, policy_enforced: false}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Public Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: true});
+    });
+
+    test('ABAC-governed team: Public to Private confirms and patches allow_open_invite=false', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        // Public -> Private on a governed team opens the mode-flip confirmation.
+        await userEvent.click(await screen.findByText('Switch to Private'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+
+        // Privacy is written via patchTeam on every path — team.type is never synced.
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+    });
+
+    test('ABAC-governed team: selecting Public patches allow_open_invite=true', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'I', allow_open_invite: false, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Public Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: true});
+    });
+
+    test('stale policy but team ABAC disabled: patches allow_open_invite=false', async () => {
+        // policy_enforced is a pure DB-existence flag; with the feature off (license
+        // downgrade / flag off) a leftover policy row still uses the same patchTeam path.
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: false,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
     });
 });

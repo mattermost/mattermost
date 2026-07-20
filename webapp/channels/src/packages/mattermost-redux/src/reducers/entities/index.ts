@@ -4,12 +4,14 @@
 import {combineReducers} from 'redux';
 
 import admin from './admin';
+import agents from './agents';
 import apps from './apps';
 import bots from './bots';
 import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
 import channels from './channels';
 import cloud from './cloud';
+import contentFlagging from './content_flagging';
 import emojis from './emojis';
 import files from './files';
 import general from './general';
@@ -20,9 +22,13 @@ import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
+import properties from './properties';
+import recaps from './recaps';
 import roles from './roles';
+import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
 import search from './search';
+import sharedChannels from './shared_channels';
 import teams from './teams';
 import threads from './threads';
 import typing from './typing';
@@ -31,6 +37,7 @@ import users from './users';
 
 export default combineReducers({
     general,
+    agents,
     users,
     limits,
     teams,
@@ -38,6 +45,7 @@ export default combineReducers({
     posts,
     files,
     preferences,
+    recaps,
     typing,
     integrations,
     emojis,
@@ -55,4 +63,8 @@ export default combineReducers({
     usage,
     hostedCustomer,
     channelBookmarks,
+    scheduledPosts,
+    sharedChannels,
+    contentFlagging,
+    properties,
 });

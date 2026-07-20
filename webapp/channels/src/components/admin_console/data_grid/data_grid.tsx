@@ -27,14 +27,14 @@ export type Column = {
     width?: number;
     textAlign?: '-moz-initial' | 'inherit' | 'initial' | 'revert' | 'unset' | 'center' | 'end' | 'justify' | 'left' | 'match-parent' | 'right' | 'start' | undefined;
     overflow?: string;
-}
+};
 
 export type Row = {
     cells: {
         [key: string]: JSX.Element | string | null;
     };
     onClick?: () => void;
-}
+};
 
 type Props = {
     rows: Row[];
@@ -46,7 +46,6 @@ type Props = {
 
     minimumColumnWidth?: number;
 
-    page: number;
     startCount: number;
     endCount: number;
     total?: number;
@@ -57,7 +56,6 @@ type Props = {
 
     onSearch?: (term: string) => void;
     term?: string;
-    searchPlaceholder?: string;
     extraComponent?: JSX.Element;
     filterProps?: {
         options: FilterOptions;
@@ -66,6 +64,7 @@ type Props = {
     };
 
     className?: string;
+    disabled?: boolean;
 };
 
 type State = {
@@ -82,7 +81,6 @@ class DataGrid extends React.PureComponent<Props, State> {
 
     static defaultProps = {
         term: '',
-        searchPlaceholder: '',
     };
 
     public constructor(props: Props) {
@@ -186,6 +184,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className='DataGrid_rows'
+                data-testid='dataGrid-rows'
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -206,10 +205,10 @@ class DataGrid extends React.PureComponent<Props, State> {
             return (
                 <DataGridSearch
                     onSearch={this.search}
-                    placeholder={this.props.searchPlaceholder}
                     term={this.props.term}
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}
+                    disabled={this.props.disabled}
                 />
             );
         }
@@ -253,18 +252,24 @@ class DataGrid extends React.PureComponent<Props, State> {
             }
 
             footer = (
-                <div className='DataGrid_footer'>
+                <div
+                    className='DataGrid_footer'
+                    data-testid='dataGrid-footer'
+                >
                     <div className='DataGrid_cell'>
-                        <FormattedMessage
-                            id='admin.data_grid.paginatorCount'
-                            defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
-                            values={{
-                                startCount,
-                                endCount,
-                                total,
-                            }}
-                        />
+                        <span data-testid='dataGrid-footer-paginationInfo'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount,
+                                    endCount,
+                                    total,
+                                }}
+                            />
+                        </span>
                         <button
+                            aria-label='Previous page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
@@ -273,6 +278,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <PreviousIcon/>
                         </button>
                         <button
+                            aria-label='Next page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}
@@ -292,6 +298,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
+                data-testid='dataGrid'
                 ref={this.ref}
             >
                 {this.renderSearch()}

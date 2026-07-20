@@ -1,0 +1,109 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package sqlstore
+
+import (
+	sq "github.com/mattermost/squirrel"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+)
+
+var propertyGroupColumns = []string{"ID", "Name", "Version", "SchemaVersion"}
+
+type SqlPropertyGroupStore struct {
+	*SqlStore
+}
+
+func newPropertyGroupStore(sqlStore *SqlStore) store.PropertyGroupStore {
+	return &SqlPropertyGroupStore{sqlStore}
+}
+
+func (s *SqlPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
+	if group == nil {
+		return nil, store.NewErrInvalidInput("PropertyGroup", "name", "")
+	}
+
+	group.PreSave()
+
+	if err := group.IsValid(); err != nil {
+		return nil, errors.Wrap(err, "property_group_register_isvalid")
+	}
+
+	builder := s.getQueryBuilder().
+		Insert("PropertyGroups").
+		Columns("ID", "Name", "Version", "SchemaVersion").
+		Values(group.ID, group.Name, group.Version, group.SchemaVersion)
+
+	builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (Name) DO NOTHING"))
+
+	r, err := s.GetMaster().ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_register_insert")
+	}
+
+	rowsAffected, err := r.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_register_rows_affected")
+	}
+
+	// there was a conflict during the insert, so we need to fetch the
+	// group to get its data
+	if rowsAffected == 0 {
+		return s.Get(group.Name)
+	}
+
+	return group, nil
+}
+
+func (s *SqlPropertyGroupStore) IncrementVersion(name string) error {
+	builder := s.getQueryBuilder().
+		Update("PropertyGroups").
+		Set("Version", sq.Expr("Version + 1")).
+		Where(sq.Eq{"Name": name})
+
+	_, err := s.GetMaster().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrap(err, "property_group_increment_version_exec")
+	}
+
+	return nil
+}
+
+func (s *SqlPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
+	queryString, args, err := s.getQueryBuilder().
+		Select(propertyGroupColumns...).
+		From("PropertyGroups").
+		Where(sq.Eq{"Name": name}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_get_tosql")
+	}
+
+	var propertyGroup model.PropertyGroup
+	if err := s.GetReplica().Get(&propertyGroup, queryString, args...); err != nil {
+		return nil, store.NewErrNotFound("PropertyGroup", name)
+	}
+
+	return &propertyGroup, nil
+}
+
+func (s *SqlPropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error) {
+	queryString, args, err := s.getQueryBuilder().
+		Select(propertyGroupColumns...).
+		From("PropertyGroups").
+		Where(sq.Eq{"ID": id}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_get_by_id_tosql")
+	}
+
+	var propertyGroup model.PropertyGroup
+	if err := s.GetReplica().Get(&propertyGroup, queryString, args...); err != nil {
+		return nil, store.NewErrNotFound("PropertyGroup", id)
+	}
+
+	return &propertyGroup, nil
+}

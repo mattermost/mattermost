@@ -9,9 +9,13 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+
 import PriorityLabels from 'components/advanced_text_editor/priority_labels';
+import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
+import ShowMore from 'components/post_view/show_more';
 import ProfilePicture from 'components/profile_picture';
 
 import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
@@ -21,16 +25,18 @@ import type {PostDraft} from 'types/store/draft';
 import './panel_body.scss';
 
 type Props = {
-    channelId: string;
+    channelId?: string;
     displayName: string;
     fileInfos: PostDraft['fileInfos'];
     message: string;
     priority?: PostPriorityMetadata;
+    burnOnRead?: {enabled: boolean};
+    burnOnReadDurationMinutes?: number;
     status: UserStatus['status'];
     uploadsInProgress: PostDraft['uploadsInProgress'];
     userId: UserProfile['id'];
     username: UserProfile['username'];
-}
+};
 
 const OPTIONS = {
     disableGroupHighlight: true,
@@ -43,21 +49,29 @@ function PanelBody({
     fileInfos,
     message,
     priority,
+    burnOnRead,
+    burnOnReadDurationMinutes = 10,
     status,
     uploadsInProgress,
     userId,
     username,
 }: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const isBorFeatureEnabled = useSelector(isBurnOnReadEnabled);
 
     const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
 
     return (
-
-        <div className='DraftPanelBody post'>
-            <div className='DraftPanelBody__left post__img'>
+        <div
+            className='DraftPanelBody post'
+            data-testid='draft-panel-body'
+        >
+            <div
+                className='DraftPanelBody__left post__img'
+                data-testid='draft-post-img'
+            >
                 <ProfilePicture
                     status={status}
                     channelId={channelId}
@@ -67,37 +81,55 @@ function PanelBody({
                     src={imageURLForUser(userId)}
                 />
             </div>
-            <div
-                onClick={handleClick}
-                className='post__content'
-            >
-                <div className='DraftPanelBody__right'>
-                    <div className='post__header'>
-                        <strong>{displayName}</strong>
-                        {priority && (
-                            <PriorityLabels
-                                canRemove={false}
-                                padding='0 0 0 8px'
-                                hasError={false}
-                                persistentNotifications={priority.persistent_notifications}
-                                priority={priority.priority}
-                                requestedAck={priority.requested_ack}
-                            />
-                        )}
+            <div className='DraftPanelBody__post_body'>
+                <ShowMore
+                    text={message}
+                >
+                    <div
+                        onClick={handleClick}
+                        className='post__content'
+                    >
+                        <div className='DraftPanelBody__right'>
+                            <div
+                                className='post__header'
+                                data-testid='draft-post-header'
+                            >
+                                <strong>{displayName}</strong>
+                                {priority && (
+                                    <PriorityLabels
+                                        canRemove={false}
+                                        hasError={false}
+                                        persistentNotifications={priority.persistent_notifications}
+                                        priority={priority.priority}
+                                        requestedAck={priority.requested_ack}
+                                    />
+                                )}
+                                {burnOnRead?.enabled && isBorFeatureEnabled && (
+                                    <BurnOnReadLabel
+                                        canRemove={false}
+                                        onRemove={() => {}}
+                                        durationMinutes={burnOnReadDurationMinutes}
+                                    />
+                                )}
+                            </div>
+                            <div
+                                className='post__body'
+                                data-testid='draft-post-body'
+                            >
+                                <Markdown
+                                    options={OPTIONS}
+                                    message={message}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div className='post__body'>
-                        <Markdown
-                            options={OPTIONS}
-                            message={message}
-                        />
-                    </div>
-                    {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
-                        <FilePreview
-                            fileInfos={fileInfos}
-                            uploadsInProgress={uploadsInProgress}
-                        />
-                    )}
-                </div>
+                </ShowMore>
+                {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
+                    <FilePreview
+                        fileInfos={fileInfos}
+                        uploadsInProgress={uploadsInProgress}
+                    />
+                )}
             </div>
         </div>
     );

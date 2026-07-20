@@ -8,6 +8,8 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
+
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
@@ -15,15 +17,21 @@ import type {SuggestionProps} from './suggestion';
 
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 
-const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Channel>>((props, ref) => {
+export const GenericChannelSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Channel>>((props, ref) => {
     const {item} = props;
 
     const channelName = item.display_name;
     const purpose = item.purpose;
 
     const icon = (
-        <span className='suggestion-list__icon suggestion-list__icon--large'>
-            <i className='icon icon--standard icon--no-spacing icon-globe'/>
+        <span
+            className='suggestion-list__icon suggestion-list__icon--large'
+            aria-hidden={true}
+        >
+            <ChannelTypeIcon
+                channel={item}
+                className='icon--standard icon--no-spacing'
+            />
         </span>
     );
 
@@ -36,7 +44,10 @@ const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProp
         >
             {icon}
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    data-testid='suggestion-list__main'
+                    className='suggestion-list__main'
+                >
                     {channelName}
                 </span>
                 {description}

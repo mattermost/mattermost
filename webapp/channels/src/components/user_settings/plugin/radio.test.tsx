@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
@@ -9,7 +8,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 
 import type {GlobalState} from 'types/store';
@@ -57,11 +56,11 @@ describe('radio', () => {
         expect(screen.queryByText(props.setting.title!)).toBeInTheDocument();
     });
 
-    it('inform change is called', () => {
+    it('inform change is called', async () => {
         const props = getBaseProps();
         renderWithContext(<RadioInput {...props}/>);
 
-        fireEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByText(OPTION_1_TEXT));
 
         expect(props.informChange).toHaveBeenCalledWith(SETTING_NAME, '1');
     });
@@ -122,7 +121,7 @@ describe('radio', () => {
         expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
     });
 
-    it('properly persist changes', () => {
+    it('properly persist changes', async () => {
         renderWithContext(<RadioInput {...getBaseProps()}/>);
 
         const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
@@ -132,7 +131,7 @@ describe('radio', () => {
         expect((option0Radio as HTMLInputElement).checked).toBeTruthy();
         expect((option1Radio as HTMLInputElement).checked).toBeFalsy();
 
-        fireEvent.click(option1Radio);
+        await userEvent.click(option1Radio);
         expect((option0Radio as HTMLInputElement).checked).toBeFalsy();
         expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
     });

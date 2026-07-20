@@ -88,7 +88,6 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
 }
-
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	printer.Clean()
 

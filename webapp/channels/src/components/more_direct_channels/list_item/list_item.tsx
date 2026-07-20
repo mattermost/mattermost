@@ -3,7 +3,9 @@
 
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
+import {useUserIdsInGroupChannel} from 'components/common/hooks/useUserIdsInGroupChannel';
 import Timestamp from 'components/timestamp';
 
 import UserDetails from './user_details';
@@ -33,7 +35,7 @@ export type Props = {
     isSelected: boolean;
     add: (value: OptionValue) => void;
     select: (value: OptionValue) => void;
-}
+};
 
 const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
     const {
@@ -43,6 +45,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
         add,
         select,
     } = props;
+    const intl = useIntl();
 
     const {last_post_at: lastPostAt} = option;
 
@@ -59,6 +62,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
     return (
         <div
             ref={ref}
+            data-testid={isGroupChannel(option) ? 'group-message-row' : 'direct-message-row'}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
@@ -75,9 +79,15 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
             }
 
             <div className='more-modal__actions'>
-                <div className='more-modal__actions--round'>
+                <button
+                    className='more-modal__actions--round'
+                    aria-label={intl.formatMessage({
+                        id: 'more_direct_channels.new_convo_add.label',
+                        defaultMessage: 'Add option {label}',
+                    }, {label: option.label})}
+                >
                     <i className='icon icon-plus'/>
-                </div>
+                </button>
             </div>
         </div>
     );
@@ -88,6 +98,9 @@ export default ListItem;
 
 function GMDetails(props: {option: GroupChannel}) {
     const {option} = props;
+
+    // Indirectly populate option.profiles when needed
+    useUserIdsInGroupChannel(option.id);
 
     return (
         <>

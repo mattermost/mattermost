@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {
@@ -15,9 +14,10 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectedPostId(state = '', action: AnyAction) {
+function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return action.postId;
@@ -41,7 +41,7 @@ function selectedPostId(state = '', action: AnyAction) {
 
 // selectedPostFocussedAt keeps track of the last time a post was selected, whether or not it
 // is currently selected.
-function selectedPostFocussedAt(state = 0, action: AnyAction) {
+function selectedPostFocussedAt(state = 0, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return action.timestamp || 0;
@@ -54,7 +54,7 @@ function selectedPostFocussedAt(state = 0, action: AnyAction) {
     }
 }
 
-function highlightedPostId(state = '', action: AnyAction) {
+function highlightedPostId(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.HIGHLIGHT_REPLY:
         return action.postId;
@@ -70,7 +70,7 @@ function highlightedPostId(state = '', action: AnyAction) {
 }
 
 // filesSearchExtFilter keeps track of the extension filters used for file search.
-function filesSearchExtFilter(state: string[] = [], action: AnyAction) {
+function filesSearchExtFilter(state: string[] = [], action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_FILES_FILTER_BY_EXT:
         return action.data;
@@ -82,7 +82,7 @@ function filesSearchExtFilter(state: string[] = [], action: AnyAction) {
     }
 }
 
-function selectedPostCardId(state = '', action: AnyAction) {
+function selectedPostCardId(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST_CARD:
         return action.postId;
@@ -103,7 +103,7 @@ function selectedPostCardId(state = '', action: AnyAction) {
     }
 }
 
-function selectedChannelId(state = '', action: AnyAction) {
+function selectedChannelId(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return action.channelId;
@@ -128,7 +128,7 @@ function selectedChannelId(state = '', action: AnyAction) {
     }
 }
 
-function previousRhsStates(state: any = [], action: AnyAction) {
+function previousRhsStates(state: any = [], action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         if (action.previousRhsState) {
@@ -166,7 +166,7 @@ function previousRhsStates(state: any = [], action: AnyAction) {
     }
 }
 
-function rhsState(state: RhsState = null, action: AnyAction) {
+function rhsState(state: RhsState = null, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_STATE:
         return action.state;
@@ -184,7 +184,7 @@ function rhsState(state: RhsState = null, action: AnyAction) {
     }
 }
 
-function size(state: SidebarSize = SidebarSize.MEDIUM, action: AnyAction) {
+function size(state: SidebarSize = SidebarSize.MEDIUM, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_RHS_SIZE:
         return action.size;
@@ -193,7 +193,7 @@ function size(state: SidebarSize = SidebarSize.MEDIUM, action: AnyAction) {
     }
 }
 
-function searchTerms(state = '', action: AnyAction) {
+function searchTerms(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TERMS:
         return action.terms;
@@ -209,7 +209,23 @@ function searchTerms(state = '', action: AnyAction) {
     }
 }
 
-function searchType(state = '', action: AnyAction) {
+function searchTeam(state = null, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
+        return action.teamId;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.SEARCH) {
+            return null;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
+function searchType(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TYPE:
         return action.searchType;
@@ -225,7 +241,7 @@ function searchType(state = '', action: AnyAction) {
     }
 }
 
-function pluggableId(state = '', action: AnyAction) {
+function pluggableId(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_STATE:
         if (action.state === RHSStates.PLUGIN) {
@@ -243,7 +259,7 @@ function pluggableId(state = '', action: AnyAction) {
     }
 }
 
-function searchResultsTerms(state = '', action: AnyAction) {
+function searchResultsTerms(state = '', action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS:
         return action.terms;
@@ -255,7 +271,19 @@ function searchResultsTerms(state = '', action: AnyAction) {
     }
 }
 
-function isSearchingFlaggedPost(state = false, action: AnyAction) {
+function searchResultsType(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE:
+        return action.searchType;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
+function isSearchingFlaggedPost(state = false, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
         return true;
@@ -270,7 +298,7 @@ function isSearchingFlaggedPost(state = false, action: AnyAction) {
     }
 }
 
-function isSearchingPinnedPost(state = false, action: AnyAction) {
+function isSearchingPinnedPost(state = false, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_PINNED_POSTS_REQUEST:
         return true;
@@ -285,7 +313,7 @@ function isSearchingPinnedPost(state = false, action: AnyAction) {
     }
 }
 
-function isSidebarOpen(state = false, action: AnyAction) {
+function isSidebarOpen(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_STATE:
         return Boolean(action.state);
@@ -309,7 +337,7 @@ function isSidebarOpen(state = false, action: AnyAction) {
     }
 }
 
-function isSidebarExpanded(state = false, action: AnyAction) {
+function isSidebarExpanded(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_RHS_EXPANDED:
         return action.expanded;
@@ -341,7 +369,7 @@ function isSidebarExpanded(state = false, action: AnyAction) {
     }
 }
 
-function isMenuOpen(state = false, action: AnyAction) {
+function isMenuOpen(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.TOGGLE_RHS_MENU:
         return !state;
@@ -363,7 +391,7 @@ function isMenuOpen(state = false, action: AnyAction) {
     }
 }
 
-function editChannelMembers(state = false, action: AnyAction) {
+function editChannelMembers(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_EDIT_CHANNEL_MEMBERS:
         return action.active;
@@ -380,7 +408,7 @@ function editChannelMembers(state = false, action: AnyAction) {
     }
 }
 
-function shouldFocusRHS(state = false, action: AnyAction) {
+function shouldFocusRHS(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return Boolean(action.postId);
@@ -405,8 +433,10 @@ export default combineReducers({
     filesSearchExtFilter,
     rhsState,
     searchTerms,
+    searchTeam,
     searchType,
     searchResultsTerms,
+    searchResultsType,
     size,
     pluggableId,
     isSearchingFlaggedPost,

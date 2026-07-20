@@ -10,15 +10,15 @@
 // Stage: @prod
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getCustomEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
     let otherUser;
-    let townsquareLink;
+    let townsquareLink: string;
 
     const largeEmojiFile = 'gif-image-file.gif';
     before(() => {
@@ -128,11 +128,11 @@ describe('Custom emojis', () => {
             cy.findByText('Custom').should('exist').and('is.visible');
 
             // * Verify that first custom emoji exists and is visible to user
-            cy.findAllByAltText('custom emoji image').should('exist').eq(0).and('is.visible');
+            cy.findAllByAltText('custom emoji').should('exist').eq(0).and('is.visible');
 
             // * Verify second custom emoji exists and is visible to user,
             // if both custom emojis are visible we can conclude that they are not overlapping
-            cy.findAllByAltText('custom emoji image').should('exist').eq(1).and('is.visible');
+            cy.findAllByAltText('custom emoji').should('exist').eq(1).and('is.visible');
         });
     });
 });

@@ -12,6 +12,10 @@ import (
 )
 
 func TestContextMaster(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	ctx := context.Background()
 
 	m := WithMaster(ctx)
@@ -19,6 +23,10 @@ func TestContextMaster(t *testing.T) {
 }
 
 func TestRequestContextWithMaster(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	t.Run("set and get", func(t *testing.T) {
 		var rctx request.CTX = request.TestContext(t)
 

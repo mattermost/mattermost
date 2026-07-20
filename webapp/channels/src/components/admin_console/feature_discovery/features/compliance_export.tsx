@@ -24,7 +24,11 @@ const ComplianceExportFeatureDiscovery: React.FC = () => {
                 defaultMessage: 'Run daily compliance reports and export them to a variety of formats consumable by third-party integration tools such as Smarsh (Actiance).',
             })}
             learnMoreURL={DocLinks.COMPILANCE_EXPORT}
-            featureDiscoveryImage={<ComplianceExportSVG/>}
+            featureDiscoveryImage={
+                <ComplianceExportSVG
+                    width={283}
+                    height={174}
+                />}
         />
     );
 };

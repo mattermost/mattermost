@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-console, camelcase */
+/* eslint-disable no-console */
 
 const axios = require('axios');
 const fse = require('fs-extra');
@@ -9,7 +9,7 @@ const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
-const {MOCHAWESOME_REPORT_DIR} = require('./constants');
+const {MOCHAWESOME_REPORT_DIR, AD_CYCLE_FILE} = require('./constants');
 
 const MAX_FAILED_TITLES = 5;
 
@@ -76,6 +76,16 @@ function generateShortSummary(report) {
     const failedFullTitles = tests.filter((t) => t.fail).map((t) => t.fullTitle);
     const statsFieldValue = generateStatsFieldValue(stats, failedFullTitles);
 
+    // If AD Cycle file is found, we have data from the Automation Dashboard available
+    // We are able to override the run stats with enriched information
+    const adCycle = readJsonFromFile(AD_CYCLE_FILE);
+    if (!(adCycle instanceof Error)) {
+        stats.passes = adCycle.pass;
+        stats.failures = adCycle.fail;
+        stats.tests = adCycle.pass + adCycle.fail;
+        stats.passPercent = 100 * (stats.passes / stats.tests);
+    }
+
     return {
         stats,
         statsFieldValue,
@@ -122,13 +132,13 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
     } = process.env;
     const {statsFieldValue, stats} = summary;
     const {
-        cypress_version,
-        browser_name,
-        browser_version,
+        cypress_version: cypressVersion,
+        browser_name: browserName,
+        browser_version: browserVersion,
         headless,
-        os_name,
-        os_version,
-        node_version,
+        os_name: osName,
+        os_version: osVersion,
+        node_version: nodeVersion,
     } = environment;
 
     let testResult;
@@ -140,7 +150,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
     }
 
     const title = generateTitle();
-    const runnerEnvValue = `cypress@${cypress_version} | node@${node_version} | ${browser_name}@${browser_version}${headless ? ' (headless)' : ''} | ${os_name}@${os_version}`;
+    const runnerEnvValue = `cypress@${cypressVersion} | node@${nodeVersion} | ${browserName}@${browserVersion}${headless ? ' (headless)' : ''} | ${osName}@${osVersion}`;
 
     if (FULL_REPORT === 'true') {
         let reportField;

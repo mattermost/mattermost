@@ -20,9 +20,9 @@ type Props = {
     otherOption?: boolean;
     leadingIcon?: string;
     additionalMarkup?: React.ReactNode | React.ReactNodeArray;
-}
+};
 
-const StyledChip = styled.button<{ otherOption?: boolean }>`
+const StyledChip = styled.button<{otherOption?: boolean}>`
     display: flex;
     flex-shrink: 0;
     align-items: center;

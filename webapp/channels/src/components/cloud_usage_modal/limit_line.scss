@@ -1,10 +1,10 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .WorkspaceLimitLine {
     display: flex;
     align-items: center;
     padding-bottom: 16px;
-    font-weight: $font-weight--semibold;
+    font-weight: variables.$font-weight--semibold;
 
     &:last-child {
         padding-bottom: 0;

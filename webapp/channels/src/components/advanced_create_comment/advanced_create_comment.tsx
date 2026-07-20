@@ -26,7 +26,7 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
-}
+};
 
 const AdvancedCreateComment = ({
     channelId,
@@ -39,7 +39,7 @@ const AdvancedCreateComment = ({
         <AdvancedTextEditor
             location={Locations.RHS_COMMENT}
             channelId={channelId}
-            postId={rootId}
+            rootId={rootId}
             isThreadView={isThreadView}
             placeholder={placeholder}
             afterSubmit={afterSubmit}

@@ -5,7 +5,7 @@ import fs from 'fs';
 
 import nock from 'nock';
 
-import type {Team} from '@mattermost/types/teams';
+import type {Team, TeamsWithCount} from '@mattermost/types/teams';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
@@ -355,7 +355,7 @@ describe('Actions.Teams', () => {
         const member = members[TestHelper.basicTeam!.id];
 
         expect(member).toBeTruthy();
-        expect(Object.prototype.hasOwnProperty.call(member, 'mention_count')).toBeTruthy();
+        expect(Object.hasOwn(member, 'mention_count')).toBeTruthy();
     });
 
     it('getTeamMembersForUser', async () => {
@@ -783,6 +783,6 @@ describe('Actions.Teams', () => {
             throw new Error(JSON.stringify(paginatedRequest.error));
         }
 
-        expect(response.data.teams.length === 2).toBeTruthy();
+        expect((response.data as unknown as TeamsWithCount).teams.length === 2).toBeTruthy();
     });
 });

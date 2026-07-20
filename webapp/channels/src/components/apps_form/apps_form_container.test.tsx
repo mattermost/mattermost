@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 
 import {RawAppsFormContainer} from './apps_form_container';
@@ -13,7 +13,7 @@ import {RawAppsFormContainer} from './apps_form_container';
 describe('components/apps_form/AppsFormContainer', () => {
     const emojiMap = new EmojiMap(new Map());
 
-    const context = {
+    const appContext = {
         app_id: 'app',
         channel_id: 'channel',
         team_id: 'team',
@@ -51,7 +51,7 @@ describe('components/apps_form/AppsFormContainer', () => {
                 path: '/form_url',
             },
         },
-        context,
+        appContext,
         actions: {
             doAppSubmit: jest.fn().mockResolvedValue({}),
             doAppFetchForm: jest.fn(),
@@ -65,8 +65,8 @@ describe('components/apps_form/AppsFormContainer', () => {
     test('should match snapshot', () => {
         const props = baseProps;
 
-        const wrapper = shallow(<RawAppsFormContainer {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {baseElement} = renderWithContext(<RawAppsFormContainer {...props}/>);
+        expect(baseElement).toMatchSnapshot();
     });
 
     describe('submitForm', () => {
@@ -85,8 +85,14 @@ describe('components/apps_form/AppsFormContainer', () => {
                 },
             };
 
-            const wrapper = shallow<RawAppsFormContainer>(<RawAppsFormContainer {...props}/>);
-            const result = await wrapper.instance().submitForm({
+            const ref = React.createRef<RawAppsFormContainer>();
+            renderWithContext(
+                <RawAppsFormContainer
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const result = await ref.current!.submitForm({
                 values: {
                     field1: 'value1',
                     field2: {label: 'label2', value: 'value2'},
@@ -143,8 +149,14 @@ describe('components/apps_form/AppsFormContainer', () => {
 
             const form = props.form;
 
-            const wrapper = shallow<RawAppsFormContainer>(<RawAppsFormContainer {...props}/>);
-            const result = await wrapper.instance().performLookupCall(
+            const ref = React.createRef<RawAppsFormContainer>();
+            renderWithContext(
+                <RawAppsFormContainer
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const result = await ref.current!.performLookupCall(
                 form.fields[1],
                 {
                     field1: 'value1',

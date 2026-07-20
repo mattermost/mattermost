@@ -3,41 +3,21 @@
 
 import React from 'react';
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+import ChannelTypeIcon from 'components/channel_type_icon';
 
 import Constants from 'utils/constants';
 
 type Props = {
-    isSharedChannel: boolean;
-    channelType: ChannelType;
-}
+    channel: Channel;
+};
 
-const SidebarBaseChannelIcon = ({
-    isSharedChannel,
-    channelType,
-}: Props) => {
-    if (isSharedChannel) {
-        return (
-            <SharedChannelIndicator
-                className='icon'
-                channelType={channelType}
-                withTooltip={true}
-            />
-        );
+const SidebarBaseChannelIcon = ({channel}: Props) => {
+    if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
+        return null;
     }
-    if (channelType === Constants.OPEN_CHANNEL) {
-        return (
-            <i className='icon icon-globe'/>
-        );
-    }
-    if (channelType === Constants.PRIVATE_CHANNEL) {
-        return (
-            <i className='icon icon-lock-outline'/>
-        );
-    }
-    return null;
+    return <ChannelTypeIcon channel={channel}/>;
 };
 
 export default SidebarBaseChannelIcon;

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitExport() {
@@ -38,13 +38,15 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("deleteExport", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteExport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -87,10 +89,10 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("generatePresignURLExport", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGeneratePresignURLExport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	audit.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -109,6 +111,8 @@ func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write(data)
 	auditRec.Success()
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

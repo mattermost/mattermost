@@ -27,7 +27,7 @@ export type Index = {
      * @param query string to be used for search.
      */
     search(query: string): string[];
-}
+};
 
 function pushText(texts: string[], value: string | MessageDescriptor | JSX.Element, intl: IntlShape, values?: Record<string, any>) {
     if (typeof value === 'string') {
@@ -95,6 +95,7 @@ export function adminDefinitionsToUrlsAndTexts(adminDefinition: typeof AdminDefi
         adminDefinition.about,
         adminDefinition.reporting,
         adminDefinition.user_management,
+        adminDefinition.system_attributes,
         adminDefinition.environment,
         adminDefinition.site,
         adminDefinition.authentication,

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -13,7 +14,6 @@ import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
 import {isValidPassword} from 'utils/password';
-import {localizeMessage} from 'utils/utils';
 
 import type {SubmitOptions} from './email_to_ldap';
 import ErrorLabel from './error_label';
@@ -24,7 +24,7 @@ type Props = {
     email: string | null;
     switchLdapToEmail: (ldapPassword: string, email: string, password: string, token: string) => Promise<ActionResult<AuthChangeResponse>>;
     passwordConfig?: PasswordConfig;
-}
+};
 
 const LDAPToEmail = (props: Props) => {
     const [passwordError, setPasswordError] = useState<string | JSX.Element>('');
@@ -46,7 +46,7 @@ const LDAPToEmail = (props: Props) => {
 
         const ldapPassword = ldapPasswordInput.current?.value;
         if (!ldapPassword) {
-            setLdapPasswordError(localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your AD/LDAP password.'));
+            setLdapPasswordError(formatMessage({id: 'claim.ldap_to_email.ldapPasswordError', defaultMessage: 'Please enter your AD/LDAP password.'}));
             setPasswordError('');
             setConfirmError('');
             setServerError('');
@@ -55,7 +55,7 @@ const LDAPToEmail = (props: Props) => {
 
         const password = passwordInput.current?.value;
         if (!password) {
-            setPasswordError(localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.'));
+            setPasswordError(formatMessage({id: 'claim.ldap_to_email.pwdError', defaultMessage: 'Please enter your password.'}));
             setConfirmError('');
             setLdapPasswordError('');
             setServerError('');
@@ -75,7 +75,7 @@ const LDAPToEmail = (props: Props) => {
 
         const confirmPassword = passwordConfirmInput.current?.value;
         if (!confirmPassword || password !== confirmPassword) {
-            setConfirmError(localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.'));
+            setConfirmError(formatMessage({id: 'claim.ldap_to_email.pwdNotMatch', defaultMessage: 'Passwords do not match.'}));
             setPasswordError('');
             setLdapPasswordError('');
             setServerError('');
@@ -185,15 +185,15 @@ const LDAPToEmail = (props: Props) => {
                     />
                 </div>
                 <ErrorLabel errorText={confirmError}/>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='claim.ldap_to_email.switchTo'
                         defaultMessage='Switch account to email/password'
                     />
-                </button>
+                </Button>
                 <ErrorLabel errorText={serverError}/>
             </form>
         </>

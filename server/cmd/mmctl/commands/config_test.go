@@ -61,7 +61,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(*(printer.GetLines()[0].(*int)), 20)
+		s.Require().Equal(*(printer.GetLines()[0].(*int)), 50)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -186,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 	s.Run("Get value if the key points to a map element", func() {
 		outputConfig := &model.Config{}
 		pluginState := &model.PluginState{Enable: true}
-		pluginSettings := map[string]interface{}{
+		pluginSettings := map[string]any{
 			"test1": 1,
 			"test2": []string{"a", "b"},
 			"test3": map[string]string{"a": "b"},
@@ -194,7 +194,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		outputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": pluginState,
 		}
-		outputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		outputConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 
@@ -499,12 +499,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": {Enable: false},
 		}
-		pluginSettings := map[string]interface{}{
+		pluginSettings := map[string]any{
 			"test1": 1,
 			"test2": []string{"a", "b"},
-			"test3": map[string]interface{}{"a": "b"},
+			"test3": map[string]any{"a": "b"},
 		}
-		defaultConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		defaultConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 
@@ -513,7 +513,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		inputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": {Enable: true},
 		}
-		inputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		inputConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 		s.client.
@@ -600,10 +600,10 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 	pluginFile, err := os.CreateTemp(os.TempDir(), "plugin_config_*.json")
 	s.Require().NoError(err)
 
-	_, err = tmpFile.Write([]byte(configFilePayload))
+	_, err = tmpFile.WriteString(configFilePayload)
 	s.Require().NoError(err)
 
-	_, err = pluginFile.Write([]byte(configFilePluginPayload))
+	_, err = pluginFile.WriteString(configFilePluginPayload)
 	s.Require().NoError(err)
 
 	defer func() {
@@ -896,8 +896,8 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 func TestCloudRestricted(t *testing.T) {
 	cfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			GoogleDeveloperKey: model.NewPointer("test"),
-			SiteURL:            model.NewPointer("test"),
+			GoogleDeveloperKey: new("test"),
+			SiteURL:            new("test"),
 		},
 	}
 
@@ -937,40 +937,40 @@ func TestSetConfigValue(t *testing.T) {
 			path: "LogSettings.EnableConsole",
 			args: []string{"true"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(false),
+				EnableConsole: new(false),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(true),
+				EnableConsole: new(true),
 			}},
 		},
 		"string": {
 			path: "LogSettings.ConsoleLevel",
 			args: []string{"foo"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("ConsoleLevel"),
+				ConsoleLevel: new("ConsoleLevel"),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("foo"),
+				ConsoleLevel: new("foo"),
 			}},
 		},
 		"int": {
 			path: "LogSettings.MaxFieldSize",
 			args: []string{"123"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(0),
+				MaxFieldSize: new(0),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(123),
+				MaxFieldSize: new(123),
 			}},
 		},
 		"int64": {
 			path: "ServiceSettings.TLSStrictTransportMaxAge",
 			config: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(0)),
+				TLSStrictTransportMaxAge: new(int64(0)),
 			}},
 			args: []string{"123"},
 			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(123)),
+				TLSStrictTransportMaxAge: new(int64(123)),
 			}},
 		},
 		"string slice": {
@@ -1001,4 +1001,27 @@ func TestSetConfigValue(t *testing.T) {
 
 		assert.Equal(t, tc.expectedConfig, tc.config, name)
 	}
+}
+
+func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
+	s.Run("Should get the config as-is", func() {
+		// there is not much to test as the config is returned as-is
+		// adding a test to make sure future changes are not breaking this
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetConfigWithOptions(context.TODO(), model.GetConfigOptions{}).
+			Return(map[string]any{
+				"SqlSettings": map[string]any{
+					"DriverName": "postgres",
+				},
+			}, &model.Response{}, nil).
+			Times(1)
+
+		err := configExportCmdF(s.client, &cobra.Command{}, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }

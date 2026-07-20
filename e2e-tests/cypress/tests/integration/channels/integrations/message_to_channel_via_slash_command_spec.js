@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @integrations
 
 /**
@@ -44,7 +43,7 @@ describe('Integrations', () => {
             method: 'P',
             team_id: testTeam.id,
             trigger: 'error_handling',
-            url: `${Cypress.env().webhookBaseUrl}/send_message_to_channel?type=system_message&channel_id=${offTopicChannel.id}`,
+            url: `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?type=system_message&channel_id=${offTopicChannel.id}`,
             username: '',
         };
 
@@ -86,7 +85,7 @@ describe('Integrations', () => {
             method: 'P',
             team_id: testTeam.id,
             trigger: 'send_message_from_different_channel',
-            url: `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${offTopicChannel.id}`,
+            url: `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${offTopicChannel.id}`,
             username: '',
         };
 

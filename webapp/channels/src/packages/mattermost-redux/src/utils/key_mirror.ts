@@ -1,3 +1,5 @@
+/* eslint-disable headers/header-format */
+
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7,7 +9,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-/* eslint-disable header/header */
 
 /**
  * Constructs an enumeration with keys equal to their value.
@@ -27,14 +28,14 @@
  * @param {object} obj
  * @return {object}
  */
-export default function keyMirror<T extends Record<string, unknown>>(obj: T): { [K in keyof T]: K } {
+export default function keyMirror<T extends Record<string, unknown>>(obj: T): {[K in keyof T]: K} {
     if (!(obj instanceof Object && !Array.isArray(obj))) {
         throw new Error('keyMirror(...): Argument must be an object.');
     }
 
     const ret: any = {};
     for (const key in obj) {
-        if (!obj.hasOwnProperty(key)) {
+        if (!Object.hasOwn(obj, key)) {
             continue;
         }
 

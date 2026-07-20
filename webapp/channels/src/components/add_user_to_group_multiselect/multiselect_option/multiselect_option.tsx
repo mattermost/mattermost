@@ -25,7 +25,7 @@ type Props = {
     onMouseMove: (user: UserProfileValue) => void;
     userStatuses: RelationOneToOne<UserProfile, string>;
     isSelected: boolean;
-}
+};
 
 const MultiSelectOption = React.forwardRef(({
     option,
@@ -56,11 +56,14 @@ const MultiSelectOption = React.forwardRef(({
                 </div>
             </div>
             <div className='more-modal__actions'>
-                <div className='more-modal__actions--round'>
+                <button
+                    className='more-modal__actions--round'
+                    aria-label={`Select Option ${option.label}`}
+                >
                     <i
                         className='icon icon-plus'
                     />
-                </div>
+                </button>
             </div>
         </div>
     );

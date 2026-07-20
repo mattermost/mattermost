@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 @use 'sass:color';
 
 // Color Variables
@@ -23,10 +21,11 @@ $font-weight--semibold: 600;
 // Page Variables
 $border-gray: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 $announcement-bar-height: 40px;
+$channel-banner-height: 24px;
 $backstage-bar-height: 43px;
 
 // Random variables
-$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in emoji_picker.jsx
+$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in components/emoji_picker/constants/index.ts
 
 // Transition timing defaults
 $transition-quick: 0.12s;
@@ -38,3 +37,14 @@ $elevation-3: var(--elevation-3);
 $elevation-4: var(--elevation-4);
 $elevation-5: var(--elevation-5);
 $elevation-6: var(--elevation-6);
+
+// Z-indices (see _css_variables.scss for more details
+$z-index-tooltip: var(--z-index-tooltip);
+$z-index-tour-tips-popover: var(--z-index-tour-tips-popover);
+$z-index-tour-tips-backdrop: var(--z-index-tour-tips-backdrop);
+$z-index-menu: var(--z-index-menu);
+$z-index-modal: var(--z-index-modal);
+$z-index-popover: var(--z-index-popover);
+$z-index-user-group-popover: var(--z-index-user-group-popover);
+$z-index-global-header: var(--z-index-global-header);
+$z-index-channel-header: var(--z-index-channel-header);

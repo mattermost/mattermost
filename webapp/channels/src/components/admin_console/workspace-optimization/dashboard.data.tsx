@@ -31,7 +31,7 @@ import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
 import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runUpdateChecks} from './dashboard_checks/updates';
 
-import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
+import {daysToLicenseExpire, getIsStarterLicense, isEnterpriseLicense} from '../../../utils/license_utils';
 
 export const impactModifiers: Record<ItemStatus, number> = {
     [ItemStatus.NONE]: 1,
@@ -232,7 +232,7 @@ const useMetricsData = (
     const isLicensed = license?.IsLicensed === 'true' && daysUntilExpiration >= 0;
 
     const isCloud = license?.Cloud === 'true';
-    const isEnterpriseLicense = isEnterpriseOrE20License(license);
+    const isEnterprise = isEnterpriseLicense(license);
     const isStarterLicense = getIsStarterLicense(license);
 
     const [, contactSalesLink] = useOpenSalesLink();
@@ -244,13 +244,13 @@ const useMetricsData = (
 
     const options: Options = useMemo(() => ({
         isLicensed,
-        isEnterpriseLicense,
+        isEnterpriseLicense: isEnterprise,
         trialOrEnterpriseCtaConfig,
         isStarterLicense,
         isCloud,
         analytics,
         installedVersion,
-    }), [isLicensed, isEnterpriseLicense, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
+    }), [isLicensed, isEnterprise, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
 
     useEffect(() => {
         setLoading(true);

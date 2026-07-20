@@ -1,79 +1,81 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/ChannelInfoModal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="postDeletedModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  data-testid="postDeletedModal"
-  dialogClassName="a11y__modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="dialog"
-  show={true}
+exports[`components/PostDeletedModal should match snapshot 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="postDeletedModalLabel"
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="postDeletedModalLabel"
+      class="fade in modal"
+      data-testid="postDeletedModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Comment could not be posted"
-        id="post_delete.notPosted"
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <p>
-      <MemoizedFormattedMessage
-        defaultMessage="Someone deleted the message on which you tried to post a comment."
-        id="post_delete.someone"
-      />
-    </p>
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      autoFocus={true}
-      className="btn btn-primary"
-      data-testid="postDeletedModalOkButton"
-      onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Okay"
-        id="post_delete.okay"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="postDeletedModalLabel"
+            >
+              Comment could not be posted
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              Someone deleted the message on which you tried to post a comment.
+            </p>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-primary"
+              data-testid="postDeletedModalOkButton"
+              type="button"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

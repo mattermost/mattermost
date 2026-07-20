@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitDataRetention() {
@@ -46,7 +45,9 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getGlobalPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -69,7 +70,9 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -111,7 +114,9 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -120,9 +125,9 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
-	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "policy", &policy)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "policy", &policy)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -144,7 +149,9 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -156,9 +163,9 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	patch.ID = c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "patch", &patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &patch)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -180,16 +187,18 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("deletePolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
 		return
@@ -220,13 +229,16 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+	c.App.SanitizeTeams(*c.AppContext.Session(), teams.Teams)
 
 	b, err := json.Marshal(teams)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getTeamsForPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -243,8 +255,8 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props.PolicyID = model.NewPointer(c.Params.PolicyId)
-	props.IncludePolicyID = model.NewPointer(true)
+	props.PolicyID = new(c.Params.PolicyId)
+	props.IncludePolicyID = new(true)
 
 	teams, _, appErr := c.App.SearchAllTeams(&props)
 	if appErr != nil {
@@ -258,7 +270,9 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("searchTeamsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -269,10 +283,10 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamsToPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "policy_id", policyId)
-	audit.AddEventParameter(auditRec, "team_ids", teamIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
 		return
@@ -296,10 +310,10 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamsFromPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "policy_id", policyId)
-	audit.AddEventParameter(auditRec, "team_ids", teamIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -338,7 +352,9 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getChannelsForPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -377,7 +393,9 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write(channelsJSON)
+	if _, err := w.Write(channelsJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -388,10 +406,10 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddChannelsToPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "policy_id", policyId)
-	audit.AddEventParameter(auditRec, "channel_ids", channelIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -416,10 +434,10 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveChannelsFromPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "policy_id", policyId)
-	audit.AddEventParameter(auditRec, "channel_ids", channelIDs)
+	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -461,7 +479,9 @@ func getTeamPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("getTeamPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -489,5 +509,7 @@ func getChannelPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = model.NewAppError("getChannelPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -15,16 +15,17 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from '../admin_settings';
-import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
+import OLDAdminSettings from '../old_admin_settings';
+import type {BaseProps, BaseState} from '../old_admin_settings';
+import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
+import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 
@@ -174,10 +175,14 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
+    plugin?: {
+        homepage_url?: string;
+        release_notes_url?: string;
+    };
     removing: boolean;
     handleEnable: (e: any) => any;
     handleDisable: (e: any) => any;
@@ -189,7 +194,7 @@ type PluginItemProps = {
 };
 
 const messages = defineMessages({
-    title: {id: 'admin.plugin.management.title', defaultMessage: 'Management'},
+    title: {id: 'admin.plugin.management.title', defaultMessage: 'Plugin Management'},
     enable: {id: 'admin.plugins.settings.enable', defaultMessage: 'Enable Plugins: '},
     enableDesc: {id: 'admin.plugins.settings.enableDesc', defaultMessage: 'When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'},
     uploadTitle: {id: 'admin.plugin.uploadTitle', defaultMessage: 'Upload Plugin: '},
@@ -228,6 +233,7 @@ export const searchableStrings = [
 
 const PluginItem = ({
     pluginStatus,
+    plugin,
     removing,
     handleEnable,
     handleDisable,
@@ -430,14 +436,13 @@ const PluginItem = ({
 
     return (
         <div data-testid={pluginStatus.id}>
-            <div>
-                <strong>{pluginStatus.name}</strong>
-                {' ('}
-                {pluginStatus.id}
-                {' - '}
-                {pluginStatus.version}
-                {')'}
-            </div>
+            <PluginMetadataPanel
+                name={pluginStatus.name}
+                id={pluginStatus.id}
+                version={pluginStatus.version}
+                homepageUrl={plugin?.homepage_url}
+                releaseNotesUrl={plugin?.release_notes_url}
+            />
             {description}
             <div className='pt-2'>
                 {activateButton}
@@ -476,7 +481,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
@@ -485,7 +490,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -495,8 +500,8 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
-class PluginManagement extends AdminSettings<Props, State> {
+};
+export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
         super(props);
@@ -556,6 +561,10 @@ class PluginManagement extends AdminSettings<Props, State> {
             );
         }
     }
+
+    handleChooseFileClick = () => {
+        this.fileInput.current?.click();
+    };
 
     handleUpload = () => {
         this.setState({lastMessage: null, serverError: null});
@@ -822,7 +831,7 @@ class PluginManagement extends AdminSettings<Props, State> {
 
     renderOverwritePluginModal = (
         {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void}) => {
         const title = (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_modal.title'
@@ -849,7 +858,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={overwriteButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -885,7 +894,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -928,8 +937,8 @@ class PluginManagement extends AdminSettings<Props, State> {
     renderSettings = () => {
         const {enableUploads} = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
-        let serverError = <React.Fragment/>;
-        let lastMessage = <React.Fragment/>;
+        let serverError = <></>;
+        let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
         const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);
@@ -939,11 +948,6 @@ class PluginManagement extends AdminSettings<Props, State> {
         }
         if (this.state.lastMessage) {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
-        }
-
-        let btnClass = 'btn btn-primary';
-        if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
         }
 
         let fileName;
@@ -998,6 +1002,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                     <PluginItem
                         key={pluginStatus.id}
                         pluginStatus={pluginStatus}
+                        plugin={p}
                         removing={this.state.removing === pluginStatus.id}
                         handleEnable={this.handleEnable}
                         handleDisable={this.handleDisable}
@@ -1019,18 +1024,15 @@ class PluginManagement extends AdminSettings<Props, State> {
 
         if (enable) {
             pluginsContainer = (
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.installedTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <p className='help-text'>
-                            <FormattedMessage {...messages.installedDesc}/>
-                        </p>
-                        <br/>
-                        {pluginsListContainer}
-                    </div>
-                </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.installedTitle}/>}
+                >
+                    <p className='help-text'>
+                        <FormattedMessage {...messages.installedDesc}/>
+                    </p>
+                    <br/>
+                    {pluginsListContainer}
+                </SettingSet>
             );
         }
 
@@ -1072,7 +1074,7 @@ class PluginManagement extends AdminSettings<Props, State> {
             uploadHelpText = (
                 <FormattedMessage
                     id='admin.plugin.uploadAndPluginDisabledDesc'
-                    defaultMessage='To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more.'
+                    defaultMessage='To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.'
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -1082,6 +1084,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                                 {msg}
                             </ExternalLink>
                         ),
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                     }}
                 />
             );
@@ -1148,48 +1151,44 @@ class PluginManagement extends AdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
                                 />
-                                <div className='form-group'>
-                                    <label className='control-label col-sm-4'>
-                                        <FormattedMessage {...messages.uploadTitle}/>
-                                    </label>
-                                    <div className='col-sm-8'>
-                                        <div className='file__upload'>
-                                            <button
-                                                type='button'
-                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            >
-                                                <FormattedMessage
-                                                    id='admin.plugin.choose'
-                                                    defaultMessage='Choose File'
-                                                />
-                                            </button>
-                                            <input
-                                                ref={this.fileInput}
-                                                type='file'
-                                                accept='.gz'
-                                                onChange={this.handleUpload}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            />
-                                        </div>
-                                        <button
-                                            className={btnClass}
-                                            id='uploadPlugin'
-                                            disabled={!this.state.fileSelected}
-                                            onClick={this.handleSubmitUpload}
+                                <SettingSet
+                                    helpText={uploadHelpText}
+                                    label={<FormattedMessage {...messages.uploadTitle}/>}
+                                >
+                                    <div className='file__upload'>
+                                        <Button
+                                            type='button'
+                                            emphasis='tertiary'
+                                            onClick={this.handleChooseFileClick}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
                                         >
-                                            {uploadButtonText}
-                                        </button>
-                                        <div className='help-text m-0'>
-                                            {fileName}
-                                        </div>
-                                        {serverError}
-                                        {lastMessage}
-                                        <p className='help-text'>
-                                            {uploadHelpText}
-                                        </p>
+                                            <FormattedMessage
+                                                id='admin.plugin.choose'
+                                                defaultMessage='Choose File'
+                                            />
+                                        </Button>
+                                        <input
+                                            ref={this.fileInput}
+                                            type='file'
+                                            accept='.gz'
+                                            onChange={this.handleUpload}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
+                                        />
                                     </div>
-                                </div>
+                                    <Button
+                                        emphasis='primary'
+                                        id='uploadPlugin'
+                                        disabled={!this.state.fileSelected}
+                                        onClick={this.handleSubmitUpload}
+                                    >
+                                        {uploadButtonText}
+                                    </Button>
+                                    <div className='help-text m-0'>
+                                        {fileName}
+                                    </div>
+                                    {serverError}
+                                    {lastMessage}
+                                </SettingSet>
                                 <BooleanSetting
                                     id='enableMarketplace'
                                     label={<FormattedMessage {...messages.enableMarketplace}/>}
@@ -1216,7 +1215,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                                 <BooleanSetting
                                     id='enableRemoteMarketplace'
                                     label={<FormattedMessage {...messages.enableRemoteMarketplace}/>}
-                                    helpText={<FormattedMarkdownMessage {...messages.enableRemoteMarketplaceDesc}/>}
+                                    helpText={<FormattedMessage {...messages.enableRemoteMarketplaceDesc}/>}
                                     value={this.state.enableRemoteMarketplace}
                                     disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
                                     onChange={this.handleChange}

@@ -16,7 +16,6 @@ import {makeAsyncComponent} from 'components/async_load';
 import {canDownloadFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
-import type {FilePreviewComponent} from 'types/store/plugins';
 
 import type {Props} from './file_preview_modal';
 
@@ -25,7 +24,7 @@ const FilePreviewModal = makeAsyncComponent('FilePreviewModal', React.lazy<React
 type OwnProps = {
     post?: Post;
     postId?: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
@@ -34,7 +33,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         canDownloadFiles: canDownloadFiles(config),
         enablePublicLink: config.EnablePublicLink === 'true',
         isMobileView: getIsMobileView(state),
-        pluginFilePreviewComponents: state.plugins.components.FilePreview as unknown as FilePreviewComponent[],
+        pluginFilePreviewComponents: state.plugins.components.FilePreview,
         post: ownProps.post || getPost(state, ownProps.postId || ''),
     };
 }

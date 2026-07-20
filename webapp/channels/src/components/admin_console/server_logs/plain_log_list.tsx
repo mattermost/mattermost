@@ -4,11 +4,15 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import NextIcon from 'components/widgets/icons/fa_next_icon';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
 interface Props extends WrappedComponentProps {
+    loading: boolean;
     logs: string[];
     page: number;
     perPage: number;
@@ -65,15 +69,24 @@ class PlainLogList extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (this.props.loading) {
+            return (
+                <div className='log__panel'>
+                    <LoadingSpinner/>
+                </div>
+            );
+        }
+
         let content = null;
         let nextButton;
         let previousButton;
 
         if (this.props.logs.length >= this.props.perPage) {
             nextButton = (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary filter-control filter-control__next pull-right'
+                    emphasis='tertiary'
+                    className='filter-control filter-control__next pull-right'
                     onClick={this.nextPage}
                     disabled={this.state.nextDisabled}
                 >
@@ -82,15 +95,16 @@ class PlainLogList extends React.PureComponent<Props, State> {
                         defaultMessage='Next'
                     />
                     <NextIcon additionalClassName='ml-2'/>
-                </button>
+                </Button>
             );
         }
 
         if (this.props.page > 0) {
             previousButton = (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary filter-control filter-control__prev'
+                    emphasis='tertiary'
+                    className='filter-control filter-control__prev'
                     onClick={this.previousPage}
                 >
                     <i
@@ -101,7 +115,7 @@ class PlainLogList extends React.PureComponent<Props, State> {
                         id='admin.logs.prev'
                         defaultMessage='Previous'
                     />
-                </button>
+                </Button>
             );
         }
 
@@ -128,7 +142,7 @@ class PlainLogList extends React.PureComponent<Props, State> {
             );
         }
         return (
-            <div>
+            <div className='plain-log-list'>
                 <div
                     tabIndex={-1}
                     ref={this.logPanel}

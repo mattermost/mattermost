@@ -1,0 +1,94 @@
+---
+title: "Team settings"
+---
+<PlanAvailability slug="all-commercial" />
+
+Team settings enable system and team administrators to adjust settings applied to a specific team. Using Mattermost in a web browser or the desktop app, select the team name to access **Team Settings**.
+
+![Access team settings from the team name.](/images/team-settings.png)
+
+## Info settings
+
+Info settings provide configuration options for how teams are displayed to users.
+
+### Team name
+
+Your **Team Name** is displayed on the login screen, and in the top of the channel sidebar for your team.
+
+Team names can contain any letters, numbers, or symbols, must be 2 - 64 characters in length, and are case-sensitive.
+
+<Note>
+
+Team names don't support [some unicode characters](https://www.w3.org/TR/unicode-xml/#Charlist).
+
+</Note>
+
+### Team description
+
+Your **Team Description** is displayed when viewing the list of teams available to join and in the tooltip when hovering over the team name in the team sidebar.
+
+You can enter a description up to 50 characters in length.
+
+<Note>
+
+Team descriptions don't support [some unicode characters](https://www.w3.org/TR/unicode-xml/#Charlist).
+
+</Note>
+
+### Team icon
+
+A **Team Icon** displays in the team sidebar. By default, the team icon contains the first two letters of the team name.
+
+To customize the team icon:
+
+1.  Select **Team Settings**.
+2.  Select the Team Icon **Edit** option.
+
+![Manage the team icon from Team Settings.](/images/edit-team-icon.png)
+
+3.  Select an icon image in BMP, JPG, or PNG format. We recommend using square images with a solid background color since transparency in PNG icons fills with a white background in the team sidebar.
+4.  Select **Save**.
+
+<Tip>
+
+When a team icon is configured, select **Remove image** to reset the team icon to the default icon containing the first two letters of the team name.
+
+</Tip>
+
+## Access settings
+
+Access settings enable the ability to control who can join the team.
+
+### Users with a specific email domain
+
+System and team administrators can limit who can join the team based on their email domain. Enable this option to specify approved email domains. Separate multiple email domains using spaces, commas, pressing <kbd>Tab</kbd>, or pressing <kbd>Enter</kbd>.
+
+When enabled, only users that have an email domain from the approved domain list is able to join the team. The setting's intent is solely to gate joining a team. Once joined, team members will be able to update their email to a non-approved domain without any restrictions. Additionally, team members who joined prior to approved domains being specified won't be removed from the team once approved email domains are configured and enforced.
+
+<Important>
+
+Mattermost deployments using [email authentication](/administration-guide/configure/authentication-configuration-settings#enable-sign-in-with-email) must also enable the [require email verification configuration setting](/administration-guide/configure/authentication-configuration-settings#require-email-verification) for domain restrictions to be effective.
+
+</Important>
+
+### Users on this server
+
+System and team administrators can include the team in a list of teams to join for new Mattermost users who aren't yet members of a team. Enable this option to allow any user with a Mattermost account on this instance to join this team from the **Teams you can join** page.
+
+<Tip>
+
+When you enable this option, users looking for more teams to join will also see this team in the list when they select the <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon in the team sidebar.
+
+</Tip>
+
+### Invite code
+
+The **Invite Code** is used as part of the URL in team invitation links. Select **Regenerate** to create a new invitation link and invalidate any previous link.
+
+## Membership Policies
+
+<PlanAvailability slug="entry-adv" />
+
+The **Membership Policies** tab is available to Team Admins when [Attribute-Based Access Control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) is enabled by a System Admin. It allows Team Admins to create and manage attribute-based membership policies that control access to private channels within the team.
+
+See [Team-level channel membership policies](/administration-guide/manage/admin/abac-team-channel-policies) for full details.

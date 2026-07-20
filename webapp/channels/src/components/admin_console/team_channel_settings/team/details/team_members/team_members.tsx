@@ -4,13 +4,12 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {TeamMembership, Team} from '@mattermost/types/teams';
 import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AddUsersToTeamModal from 'components/add_users_to_team_modal';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
@@ -49,11 +48,11 @@ type Props = {
         setUserGridSearch: (term: string) => void;
         setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 const PROFILE_CHUNK_SIZE = 10;
 
@@ -160,9 +159,6 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 filters = {...filters, team_roles: teamRoles};
             }
 
-            [...systemRoles, ...teamRoles].forEach((role) => {
-                trackEvent('admin_team_config_page', `${role}_filter_applied_to_members_block`, {team_id: this.props.teamId});
-            });
             this.props.actions.setUserGridFilters(filters);
             this.props.actions.getFilteredUsersStats({in_team: this.props.teamId, include_bots: true, ...filters});
         } else {
@@ -245,7 +241,7 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'
-                        className='btn btn-primary'
+                        className={buttonClassNames({emphasis: 'primary'})}
                         modalId={ModalIdentifiers.ADD_USER_TO_TEAM}
                         dialogType={AddUsersToTeamModal}
                         disabled={isDisabled}

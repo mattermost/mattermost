@@ -1,0 +1,57 @@
+---
+title: "Deploy Mattermost on Linux"
+---
+
+Mattermost Server runs on any 64-bit Linux system. For production, run Mattermost and the PostgreSQL database on separate hosts. A single-host install is suitable for development and testing.
+
+## Choose an install method
+
+<CardGrid columns={4} cards={[
+  {
+    title: 'Ubuntu / Debian',
+    description: 'Install from the signed Mattermost APT repository (deb). Recommended for Ubuntu 20.04 / 22.04 / 24.04 LTS and Debian — provides automatic security updates via apt.',
+    to: '/deployment-guide/server/linux/deploy-ubuntu',
+  },
+  {
+    title: 'Red Hat (RHEL)',
+    description: 'Install from the release tarball with manual systemd setup, including SELinux contexts. Covers RHEL, Rocky, Alma, Oracle Linux 7+.',
+    to: '/deployment-guide/server/linux/deploy-rhel',
+  },
+  {
+    title: 'Manual (tarball)',
+    description: 'Install on any 64-bit Linux distribution from the release tarball. Maximum flexibility — typically chosen by advanced administrators and air-gapped environments.',
+    to: '/deployment-guide/server/linux/deploy-tar',
+  },
+  {
+    title: 'Azure Native VM',
+    description: 'Deploy a production-ready Mattermost stack from the Azure Marketplace, provisioned into your own Azure subscription with managed compute, database, storage, and load balancing.',
+    to: '/deployment-guide/server/linux/deploy-azure-native-vm',
+  },
+]} />
+
+## Before you install
+
+The Ubuntu/Debian, Red Hat (RHEL), and manual (tarball) methods all require you to bring your own host and database:
+
+- A 64-bit Linux host with at least **1 vCPU and 2 GB RAM** (supports up to ~1,000 users)
+- **PostgreSQL 14+** — either local to the host, on a separate server, or a managed service. See [PostgreSQL Migration](/deployment-guide/postgres-migration) if you're moving from MySQL.
+- Inbound ports **80** and **443** (HTTPS) and **8065** (System Console). See [Preparations](/deployment-guide/server/preparations) for the full pre-install checklist.
+- Outbound port **10025** if you'll send notification email through a relay.
+
+The Azure Native VM method provisions its own compute, managed PostgreSQL, and storage from the Azure Marketplace — see its [prerequisites](/deployment-guide/server/linux/deploy-azure-native-vm#prerequisites) instead.
+
+## After you install
+
+Once Mattermost is running, complete these steps before exposing it to users:
+
+- [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy) and [terminate TLS](/deployment-guide/server/setup-tls) at the proxy. Don't run Mattermost as an internet-facing service without a proxy.
+- Configure [pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) if your environment requires them.
+- Review the [post-install configuration checklist](/deployment-guide/server/server-deployment-planning) under Server deployment planning.
+
+:::tip Air-gapped environments
+If you're deploying into a network-isolated enclave, use the [Air-Gapped Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook) instead of the connected install paths above. The runbook adds package mirroring, offline license activation, and the phone-home-disable inventory on top of the standard install.
+:::
+
+:::note Troubleshooting
+See [Deployment Troubleshooting](/deployment-guide/deployment-troubleshooting) for common install failures.
+:::

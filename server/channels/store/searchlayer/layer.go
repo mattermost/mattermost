@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -109,6 +110,35 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 			})
 		}
 	}
+}
+
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+	const perPage = 100
+	var (
+		channels []*model.Channel
+	)
+
+	channels, err := utils.Pager(func(page int) ([]*model.Channel, error) {
+		return s.channel.GetPublicChannelsForTeam(teamID, page*perPage, perPage)
+	}, perPage)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retrieving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+		return
+	}
+
+	if len(channels) == 0 {
+		return
+	}
+
+	// Use master context to avoid replica lag issues when reading team members
+	masterRctx := store.RequestContextWithMaster(rctx)
+	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(masterRctx, channels[0].Id)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retrieving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
+		return
+	}
+
+	s.channel.bulkIndexChannels(rctx, channels, teamMemberIDs)
 }
 
 // Runs an indexing function synchronously or asynchronously depending on the engine

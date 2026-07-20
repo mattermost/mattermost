@@ -9,12 +9,12 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 
-import StatusDropdown from 'components/status_dropdown';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers} from 'components/tours';
 import {
     CustomizeYourExperienceTour,
     useShowOnboardingTutorialStep,
 } from 'components/tours/onboarding_tour';
+import UserAccountMenu from 'components/user_account_menu';
 
 import Pluggable from 'plugins/pluggable';
 import {isChannels} from 'utils/products';
@@ -46,13 +46,9 @@ const StyledCustomizeYourExperienceTour = styled.div`
     height: 100%
 `;
 
-const StyledStatusDropdown = styled.div`
-    margin-left: 8px;
-`;
-
 export type Props = {
     productId?: ProductIdentifier;
-}
+};
 
 const RightControls = ({productId = null}: Props): JSX.Element => {
     // guest validation to see which point the messaging tour tip starts
@@ -87,9 +83,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                         </>
                     ) : null
                 }
-                <StyledStatusDropdown>
-                    <StatusDropdown/>
-                </StyledStatusDropdown>
+                <UserAccountMenu/>
             </StyledCustomizeYourExperienceTour>
         </RightControlsContainer>
     );

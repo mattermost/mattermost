@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @emoji @keyboard_shortcuts
 
-import * as MESSAGES from '../../../../fixtures/messages';
-
 import {
     doReactToLastMessageShortcut,
     pressEscapeKey,
 } from './helpers';
+
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last message', () => {
     let testUser;
@@ -23,13 +23,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
     let emptyChannel;
 
     before(() => {
-        // # Enable Experimental View Archived Channels
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, channel, user}) => {
             testUser = user;
             testTeam = team;
@@ -108,15 +101,22 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         cy.uiOpenProductMenu('About Mattermost');
         verifyEmojiPickerNotOpen();
 
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         verifyEmojiPickerNotOpen();
 
         cy.uiOpenProfileModal('Profile Settings');
         verifyEmojiPickerNotOpen();
 
-        ['Edit Channel Header', 'Rename Channel'].forEach((modal) => {
-            // # Open the modal and do keyboard shortcut
-            cy.uiOpenChannelMenu(modal);
+        // # Open Channel Settings Modal
+        cy.uiOpenChannelMenu('Channel Settings');
+        verifyEmojiPickerNotOpen();
+
+        ['Channel Purpose', 'Channel Header'].forEach((modal) => {
+            // # Open channel menu and click View Info
+            cy.uiOpenChannelMenu('View Info');
+
+            cy.findByText(modal).parent().findAllByRole('button', {name: 'Edit'}).click();
+
             doReactToLastMessageShortcut();
 
             // * Verify emoji picker is not open
@@ -124,6 +124,9 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
             // # Close the modal
             pressEscapeKey();
+
+            // # Close channel info
+            cy.uiOpenChannelMenu('Close Info');
         });
     });
 
@@ -134,6 +137,9 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
         // # Verify emoji picker is not open
         cy.get('#emojiPicker').should('not.exist');
+
+        // close channel Menu
+        pressEscapeKey();
 
         // * Open the main menu dropdown and do keyboard shortcut
         cy.uiOpenTeamMenu();
@@ -158,9 +164,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
         // # Close the expanded RHS
         cy.findByLabelText('Collapse Sidebar Icon').click();
-
-        // # Open the pinned posts
-        cy.uiGetChannelPinButton().click();
 
         // # Expand RHS
         cy.findByLabelText('Expand Sidebar Icon').click();

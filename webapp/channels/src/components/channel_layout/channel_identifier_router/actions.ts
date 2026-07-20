@@ -11,9 +11,7 @@ import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actio
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
+import {getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import * as GlobalActions from 'actions/global_actions';
@@ -21,6 +19,8 @@ import * as GlobalActions from 'actions/global_actions';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {ActionFuncAsync} from 'types/store';
 
 import type {Match, MatchAndHistory} from './channel_identifier_router';
 
@@ -185,19 +185,16 @@ export function goToChannelByChannelName(match: Match, history: History): Action
         }
 
         if (!channel || !member) {
-            // Prompt system admin before joining the private channel
-            const user = getCurrentUser(getState());
-            const isSystemAdmin = UserUtils.isSystemAdmin(user?.roles);
-            if (isSystemAdmin) {
-                if (channel?.type === Constants.PRIVATE_CHANNEL) {
-                    const joinPromptResult = await dispatch(joinPrivateChannelPrompt(teamObj, channel.display_name));
-                    if ('data' in joinPromptResult && !joinPromptResult.data!.join) {
-                        return {data: undefined};
-                    }
+            if (channel?.type === Constants.PRIVATE_CHANNEL) {
+                // If we are here, we have permissions to join the channel
+                // and the channel is private. Therefore prompt always.
+                const joinPromptResult = await dispatch(joinPrivateChannelPrompt(teamObj, channel.display_name));
+                if ('data' in joinPromptResult && !joinPromptResult.data!.join) {
+                    return {data: undefined};
                 }
             }
 
-            const joinChannelDispatchResult = await dispatch(joinChannel(getCurrentUserId(state), teamObj!.id, '', channelName));
+            const joinChannelDispatchResult = await dispatch(joinChannel(getCurrentUserId(state), teamObj!.id, channel?.id || '', channelName));
             if ('error' in joinChannelDispatchResult) {
                 if (!channel) {
                     const getChannelDispatchResult = await dispatch(getChannelByNameAndTeamName(team, channelName, true));

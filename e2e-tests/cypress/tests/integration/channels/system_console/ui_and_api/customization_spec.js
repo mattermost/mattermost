@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Customization', () => {
     let origConfig;
@@ -36,7 +36,7 @@ describe('Customization', () => {
 
         cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
-            cy.get('label').should('be.visible').and('have.text', 'Custom Brand Image:');
+            cy.get('legend').should('be.visible').and('have.text', 'Custom Brand Image:');
 
             // * Verify that help setting is visible and matches text content
             const contents = 'Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.';
@@ -49,10 +49,28 @@ describe('Customization', () => {
         // # Save setting
         saveSetting();
 
-        // # Verify that after page reload image exist
         cy.reload();
         cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+            // * Verify that after page reload image exist
             cy.get('img').should('have.attr', 'src').and('include', '/api/v4/brand/image?t=');
+
+            // * Verify that there's an option to delete the image.
+            cy.findByTestId('remove-image__btn').should('be.visible');
+
+            // # delete the image
+            cy.findByTestId('remove-image__btn').click();
+        });
+
+        // # Save setting
+        saveSetting();
+
+        cy.reload();
+        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+            // * Verify that after page reload, the image doesn't exist.
+            cy.findByAltText('brand image').should('not.exist');
+
+            // * Verify there's no option to delete the image.
+            cy.findByTestId('remove-image__btn').should('not.exist');
         });
     });
 
@@ -138,7 +156,7 @@ describe('Customization', () => {
 
         cy.findByTestId('TeamSettings.EnableCustomBrand').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
-            cy.get('label:first').should('be.visible').and('have.text', 'Enable Custom Branding: ');
+            cy.get('legend:contains("Enable Custom Branding: ")').should('be.visible');
 
             // * Verify that help setting is visible and matches text content
             const content = 'Enable custom branding to show an image of your choice, uploaded below, and some help text, written below, on the login page.';

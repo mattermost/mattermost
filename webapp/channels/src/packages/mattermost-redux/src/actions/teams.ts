@@ -4,12 +4,13 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ServerError} from '@mattermost/types/errors';
-import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts, NotPagedTeamSearchOpts, PagedTeamSearchOpts} from '@mattermost/types/teams';
+import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts, NotPagedTeamSearchOpts, PagedTeamSearchOpts, MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
-import {selectChannel} from 'mattermost-redux/actions/channels';
+import {markMultipleChannelsAsRead, selectChannel} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
@@ -21,6 +22,8 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
+
+import {handleAllMarkedRead} from './threads';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
     const state = getState();
@@ -42,7 +45,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
             statusesToLoad.push(userId);
         }
     });
-    const requests: Array<Promise<ActionResult|ActionResult[]>> = [];
+    const requests: Array<Promise<ActionResult | ActionResult[]>> = [];
 
     if (profilesToLoad.length) {
         requests.push(dispatch(getProfilesByIds(profilesToLoad)));
@@ -70,10 +73,7 @@ export function getMyTeams() {
     });
 }
 
-// The argument skipCurrentTeam is a (not ideal) workaround for CRT mention counts. Unread mentions are stored in the reducer per
-// team but we do not track unread mentions for DMs/GMs independently. This results in a bit of funky logic and edge case bugs
-// that need workarounds like this. In the future we should fix the root cause with better APIs and redux state.
-export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): ActionFuncAsync {
+export function getMyTeamUnreads(collapsedThreads: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         let unreads;
         try {
@@ -82,16 +82,6 @@ export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = fa
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
-        }
-
-        if (skipCurrentTeam) {
-            const currentTeamId = getCurrentTeamId(getState());
-            if (currentTeamId) {
-                const index = unreads.findIndex((member) => member.team_id === currentTeamId);
-                if (index >= 0) {
-                    unreads.splice(index, 1);
-                }
-            }
         }
 
         dispatch(
@@ -125,14 +115,14 @@ export function getTeamByName(teamName: string) {
     });
 }
 
-export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): ActionFuncAsync {
+export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false, forDirectory = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
 
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data});
 
         try {
-            data = await Client4.getTeams(page, perPage, includeTotalCount, excludePolicyConstrained);
+            data = await Client4.getTeams(page, perPage, includeTotalCount, excludePolicyConstrained, forDirectory);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: TeamTypes.GET_TEAMS_FAILURE, data});
@@ -315,6 +305,17 @@ export function patchTeam(team: Partial<Team> & {id: string}) {
     });
 }
 
+export function updateTeamPrivacy(teamId: string, privacy: string) {
+    return bindClientFunc({
+        clientFunc: Client4.updateTeamPrivacy,
+        onSuccess: TeamTypes.PATCHED_TEAM,
+        params: [
+            teamId,
+            privacy,
+        ],
+    });
+}
+
 export function regenerateTeamInviteId(teamId: string) {
     return bindClientFunc({
         clientFunc: Client4.regenerateTeamInviteId,
@@ -323,6 +324,21 @@ export function regenerateTeamInviteId(teamId: string) {
             teamId,
         ],
     });
+}
+
+export function getTeamAccessControlAttributes(teamId: string): ActionFuncAsync<AccessControlAttributes> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getTeamAccessControlAttributes(teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        return {data};
+    };
 }
 
 export function getMyTeamMembers(): ActionFuncAsync<TeamMembership[]> {
@@ -589,17 +605,18 @@ export function sendEmailGuestInvitesToChannels(teamId: string, channelIds: stri
         ],
     });
 }
-export function sendEmailInvitesToTeamGracefully(teamId: string, emails: string[]) {
+export function sendEmailInvitesToTeamGracefully(teamId: string, emails: string[], profiles?: MemberInviteProfile[]) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailInvitesToTeamGracefully,
         params: [
             teamId,
             emails,
+            profiles,
         ],
     });
 }
 
-export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channelIds: string[], emails: string[], message: string) {
+export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channelIds: string[], emails: string[], message: string, guestMagicLink = false) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailGuestInvitesToChannelsGracefully,
         params: [
@@ -607,6 +624,7 @@ export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channe
             channelIds,
             emails,
             message,
+            guestMagicLink,
         ],
     });
 }
@@ -616,6 +634,7 @@ export function sendEmailInvitesToTeamAndChannelsGracefully(
     channelIds: string[],
     emails: string[],
     message: string,
+    profiles?: MemberInviteProfile[],
 ) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailInvitesToTeamAndChannelsGracefully,
@@ -624,6 +643,7 @@ export function sendEmailInvitesToTeamAndChannelsGracefully(
             channelIds,
             emails,
             message,
+            profiles,
         ],
     });
 }
@@ -741,4 +761,22 @@ export function updateNoticesAsViewed(noticeIds: string[]) {
             noticeIds,
         ],
     });
+}
+
+export function markAllInTeamAsRead(userId: string, teamId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let response;
+        try {
+            response = await Client4.markAllInTeamAsRead(userId, teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
+        dispatch(handleAllMarkedRead(teamId));
+
+        return {data: response};
+    };
 }

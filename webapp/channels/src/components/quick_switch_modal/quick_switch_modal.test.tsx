@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {IntlProvider, injectIntl} from 'react-intl';
 
-import QuickSwitchModal from 'components/quick_switch_modal/quick_switch_modal';
+import QuickSwitchModal, {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
+// Wrap the class component with injectIntl + forwardRef so refs work
+const QuickSwitchModalWithRef = injectIntl(QuickSwitchModalClass, {forwardRef: true});
+
 describe('components/QuickSwitchModal', () => {
     const baseProps = {
+        focusOriginElement: 'anyId',
         onExited: jest.fn(),
         showTeamSwitcher: false,
         isMobileView: false,
@@ -28,36 +32,44 @@ describe('components/QuickSwitchModal', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(
-            <QuickSwitchModal {...baseProps}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};
-
-            const wrapper = shallow<QuickSwitchModal>(
-                <QuickSwitchModal {...props}/>,
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
             );
+            const instance = ref.current!;
 
-            wrapper.instance().handleSubmit();
-            expect(baseProps.onExited).not.toBeCalled();
-            expect(props.actions.switchToChannel).not.toBeCalled();
+            instance.handleSubmit();
+            expect(props.onExited).not.toHaveBeenCalled();
+            expect(props.actions.switchToChannel).not.toHaveBeenCalled();
         });
 
         it('should fail to switch to a channel', (done) => {
-            const wrapper = shallow<QuickSwitchModal>(
-                <QuickSwitchModal {...baseProps}/>,
+            const props = {...baseProps};
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
             );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
-            wrapper.instance().handleSubmit({channel});
-            expect(baseProps.actions.switchToChannel).toBeCalledWith(channel);
+            instance.handleSubmit({channel});
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
+
             process.nextTick(() => {
-                expect(baseProps.onExited).not.toBeCalled();
+                expect(props.onExited).not.toHaveBeenCalled();
                 done();
             });
         });
@@ -74,15 +86,21 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallow<QuickSwitchModal>(
-                <QuickSwitchModal {...props}/>,
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
             );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
-            wrapper.instance().handleSubmit({channel});
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            instance.handleSubmit({channel});
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
+
             process.nextTick(() => {
-                expect(baseProps.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
         });
@@ -99,19 +117,26 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallow<QuickSwitchModal>(
-                <QuickSwitchModal {...props}/>,
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
             );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.OPEN_CHANNEL};
             const selected = {
                 type: Constants.MENTION_MORE_CHANNELS,
                 channel,
             };
-            wrapper.instance().handleSubmit(selected);
-            expect(props.actions.joinChannelById).toBeCalledWith(channel.id);
+
+            instance.handleSubmit(selected);
+            expect(props.actions.joinChannelById).toHaveBeenCalledWith(channel.id);
+
             process.nextTick(() => {
-                expect(props.actions.switchToChannel).toBeCalledWith(channel);
+                expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
                 done();
             });
         });
@@ -128,27 +153,34 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallow<QuickSwitchModal>(
-                <QuickSwitchModal {...props}/>,
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
             );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.DM_CHANNEL};
             const selected = {
                 type: Constants.MENTION_MORE_CHANNELS,
                 channel,
             };
-            wrapper.instance().handleSubmit(selected);
+
+            instance.handleSubmit(selected);
             expect(props.actions.joinChannelById).not.toHaveBeenCalled();
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
+
             process.nextTick(() => {
-                expect(baseProps.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
         });
     });
 
     describe('accessibility', () => {
-        it('should restore focus to button', () => {
+        it('should restore focus to button', async () => {
             const channelNavigatorProps = {
                 showUnreadsCategory: false,
                 isQuickSwitcherOpen: false,
@@ -159,14 +191,17 @@ describe('components/QuickSwitchModal', () => {
             };
 
             renderWithContext(
-                <>
-                    <ChannelNavigator {...channelNavigatorProps}/>
-                    <QuickSwitchModal {...baseProps}/>
-                </>,
+                <IntlProvider locale='en'>
+                    <>
+                        <ChannelNavigator {...channelNavigatorProps}/>
+                        <QuickSwitchModal {...baseProps}/>
+                    </>
+                </IntlProvider>,
             );
 
-            userEvent.click(screen.getByTestId('SidebarChannelNavigatorButton'));
-            userEvent.keyboard('{escape}');
+            await userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
+            await userEvent.keyboard('{escape}');
+
             expect(screen.getByTestId('SidebarChannelNavigatorButton')).toHaveFocus();
         });
     });

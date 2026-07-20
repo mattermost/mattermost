@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @notification
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     FixedCloudConfig,
     getMentionEmailTemplate,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Email notification', () => {
     let config;

@@ -19,6 +19,7 @@ type Draft struct {
 
 	Message string `json:"message"`
 
+	Type     string          `json:"type"`
 	propsMu  sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
 	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
 	FileIds  StringArray     `json:"file_ids,omitempty"`
@@ -27,6 +28,15 @@ type Draft struct {
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
+	if utf8.RuneCountInString(o.Message) > maxDraftSize {
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxDraftSize}, "channelid="+o.ChannelId, http.StatusBadRequest)
+	}
+
+	return o.BaseIsValid()
+}
+
+func (o *Draft) BaseIsValid() *AppError {
 	if o.CreateAt == 0 {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.create_at.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
@@ -45,10 +55,6 @@ func (o *Draft) IsValid(maxDraftSize int) *AppError {
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if utf8.RuneCountInString(o.Message) > maxDraftSize {
-		return NewAppError("Drafts.IsValid", "model.draft.is_valid.msg.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(ArrayToJSON(o.FileIds)) > PostFileidsMaxRunes {
@@ -92,7 +98,7 @@ func (o *Draft) PreSave() {
 
 func (o *Draft) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.FileIds == nil {

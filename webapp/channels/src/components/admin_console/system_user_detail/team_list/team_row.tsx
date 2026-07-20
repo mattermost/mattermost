@@ -17,12 +17,11 @@ import './team_row.scss';
 
 type Props = {
     team: TeamWithMembership;
-    onRowClick?: () => void;
     doRemoveUserFromTeam: (teamId: string) => Promise<void>;
     doMakeUserTeamAdmin: (teamId: string) => Promise<void>;
     doMakeUserTeamMember: (teamId: string) => Promise<void>;
     readOnly?: boolean;
-}
+};
 
 export default class TeamRow extends React.PureComponent<Props> {
     private renderTeamType = (team: Team) => {
@@ -30,7 +29,7 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.groupSync'}
-                    defaultMessage={'Group sync'}
+                    defaultMessage={'Group Sync'}
                 />
             );
         }
@@ -38,14 +37,14 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.anyoneCanJoin'}
-                    defaultMessage={'Anyone can join'}
+                    defaultMessage={'Anyone Can Join'}
                 />
             );
         }
         return (
             <FormattedMessage
                 id={'admin.systemUserDetail.teamList.teamType.inviteOnly'}
-                defaultMessage={'Invite only'}
+                defaultMessage={'Invite Only'}
             />
         );
     };
@@ -80,7 +79,10 @@ export default class TeamRow extends React.PureComponent<Props> {
         const {team} = this.props;
         const teamIconUrl = Utils.imageURLForTeam(team);
         return (
-            <div className={'TeamRow'}>
+            <div
+                className={'TeamRow'}
+                data-testid='teamRow'
+            >
                 <div className='TeamRow__row'>
                     <div className='TeamRow__team-name'>
                         <div className='col-sm-auto'>

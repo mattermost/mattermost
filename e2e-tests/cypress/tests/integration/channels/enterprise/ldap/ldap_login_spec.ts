@@ -7,11 +7,12 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @ldap
 
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import {getRandomId} from '../../../../utils';
+import type {UserProfile} from '@mattermost/types/users';
+
+import ldapUsers from '@/fixtures/ldap_users.json';
+import {getRandomId} from '@/utils';
 
 // assumes the CYPRESS_* variables are set
 // assumes that E20 license is uploaded
@@ -21,7 +22,7 @@ context('ldap', () => {
     const guest1 = ldapUsers['board-1'];
     const admin1 = ldapUsers['dev-1'];
 
-    let testSettings;
+    let testSettings: {siteName: string; siteUrl: string; teamName: string; user: null | Record<string, unknown>};
 
     before(() => {
         // * Check if server has license for LDAP
@@ -210,7 +211,7 @@ context('ldap', () => {
     });
 });
 
-function setLDAPTestSettings(config) {
+function setLDAPTestSettings(config: Cypress.AdminConfig) {
     return {
         siteName: config.TeamSettings.SiteName,
         siteUrl: config.ServiceSettings.SiteURL,
@@ -219,16 +220,17 @@ function setLDAPTestSettings(config) {
     };
 }
 
-function disableOnboardingTaskList(ldapLogin) {
-    cy.apiLogin(ldapLogin).then((user) => {
+function disableOnboardingTaskList(ldapLogin: {username: string; password: string}) {
+    cy.apiLogin(ldapLogin).then((result) => {
+        const {user} = result as {user: UserProfile};
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_show', 'false');
         cy.apiSaveSkipStepsPreference(user.id, 'true');
     });
 }
 
-function removeUserFromAllTeams(testUser) {
-    cy.apiGetUsersByUsernames([testUser.username]).then((users) => {
+function removeUserFromAllTeams(testUser: {username: string}) {
+    cy.apiGetUsersByUsernames([testUser.username]).then(({users}) => {
         if (users.length > 0) {
             users.forEach((user) => {
                 cy.apiGetTeamsForUser(user.id).then((teams) => {

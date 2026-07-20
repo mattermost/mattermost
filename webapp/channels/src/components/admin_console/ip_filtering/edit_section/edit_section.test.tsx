@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import EditSection from './';
 
@@ -49,28 +48,28 @@ describe('EditSection', () => {
         expect(screen.getByText('192.168.0.0/24')).toBeInTheDocument();
     });
 
-    test('clicking the Add Filter button calls setShowAddModal', () => {
+    test('clicking the Add Filter button calls setShowAddModal', async () => {
         renderWithContext(
             <EditSection
                 {...baseProps}
             />,
         );
 
-        fireEvent.click(screen.getByText('Add Filter'));
+        await userEvent.click(screen.getByText('Add Filter'));
 
         expect(setShowAddModal).toHaveBeenCalledTimes(1);
         expect(setShowAddModal).toHaveBeenCalledWith(true);
     });
 
-    test('clicking the Edit button calls setEditFilter', () => {
+    test('clicking the Edit button calls setEditFilter', async () => {
         renderWithContext(
             <EditSection
                 {...baseProps}
             />,
         );
 
-        fireEvent.mouseEnter(screen.getByText('Test Filter'));
-        fireEvent.click(screen.getByRole('button', {
+        await userEvent.hover(screen.getByText('Test Filter'));
+        await userEvent.click(screen.getByRole('button', {
             name: /Edit/i,
         }));
 
@@ -78,15 +77,15 @@ describe('EditSection', () => {
         expect(setEditFilter).toHaveBeenCalledWith(ipFilters[0]);
     });
 
-    test('clicking the Delete button calls handleConfirmDeleteFilter', () => {
+    test('clicking the Delete button calls handleConfirmDeleteFilter', async () => {
         renderWithContext(
             <EditSection
                 {...baseProps}
             />,
         );
 
-        fireEvent.mouseEnter(screen.getByText('Test Filter'));
-        fireEvent.click(screen.getByRole('button', {
+        await userEvent.hover(screen.getByText('Test Filter'));
+        await userEvent.click(screen.getByRole('button', {
             name: /Delete/i,
         }));
 

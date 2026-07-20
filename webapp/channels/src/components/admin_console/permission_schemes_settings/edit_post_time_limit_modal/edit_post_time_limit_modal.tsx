@@ -5,25 +5,24 @@ import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {Constants} from 'utils/constants';
 
 const INT32_MAX = 2147483647;
 
-type Props ={
+type Props = {
     config: Partial<AdminConfig>;
     show: boolean;
     onClose: () => void;
     actions: {
         patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
-}
+};
 
 export default function EditPostTimeLimitModal(props: Props) {
     const {ServiceSettings} = props.config;
@@ -71,7 +70,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         <Modal
             dialogClassName='a11y__modal admin-modal edit-post-time-limit-modal'
             show={props.show}
-            role='dialog'
+            role='none'
             aria-labelledby='editPostTimeModalLabel'
             onHide={props.onClose}
         >
@@ -87,9 +86,12 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <FormattedMarkdownMessage
-                    id='edit_post.time_limit_modal.description'
-                    defaultMessage='Setting a time limit **applies to all users** who have the "Edit Post" permissions in any permission scheme.'
+                <FormattedMessage
+                    id='editPost.timeLimitModal.description'
+                    defaultMessage='Setting a time limit <b>applies to all users</b> who have the "Edit Post" permissions in any permission scheme.'
+                    values={{
+                        b: (chunks) => <b>{chunks}</b>,
+                    }}
                 />
                 <div className='pt-3'>
                     <div className='pt-3'>
@@ -153,20 +155,20 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={props.onClose}
                 >
                     <FormattedMessage
                         id='confirm_modal.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
-                <button
+                </Button>
+                <Button
                     id='linkModalCloseButton'
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={save}
                     disabled={saving}
                 >
@@ -181,7 +183,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                             defaultMessage='Save Edit Time'
                         />
                     )}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

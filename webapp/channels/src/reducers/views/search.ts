@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {SearchTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {ViewsState} from 'types/store/views';
 
-function modalSearch(state = '', action: AnyAction) {
+function modalSearch(state = '', action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_MODAL_SEARCH: {
         return action.data.trim();
@@ -23,7 +23,7 @@ function modalSearch(state = '', action: AnyAction) {
     }
 }
 
-function popoverSearch(state = '', action: AnyAction) {
+function popoverSearch(state = '', action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_POPOVER_SEARCH: {
         return action.data.trim();
@@ -34,7 +34,7 @@ function popoverSearch(state = '', action: AnyAction) {
     }
 }
 
-function channelMembersRhsSearch(state = '', action: AnyAction) {
+function channelMembersRhsSearch(state = '', action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_CHANNEL_MEMBERS_RHS_SEARCH: {
         return action.data;
@@ -47,7 +47,7 @@ function channelMembersRhsSearch(state = '', action: AnyAction) {
     }
 }
 
-function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: AnyAction) {
+function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_MODAL_FILTERS: {
         const filters = action.data;
@@ -63,7 +63,7 @@ function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: 
     }
 }
 
-function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> = {}, action: AnyAction) {
+function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> = {}, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_USER_GRID_SEARCH: {
         const term = action.data.trim();
@@ -87,7 +87,7 @@ function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> =
     }
 }
 
-function teamListSearch(state = '', action: AnyAction) {
+function teamListSearch(state = '', action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_TEAM_LIST_SEARCH: {
         return action.data.trim();
@@ -100,7 +100,7 @@ function teamListSearch(state = '', action: AnyAction) {
     }
 }
 
-function channelListSearch(state: Partial<ViewsState['search']['channelListSearch']> = {}, action: AnyAction) {
+function channelListSearch(state: Partial<ViewsState['search']['channelListSearch']> = {}, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SET_CHANNEL_LIST_SEARCH: {
         const term = action.data.trim();

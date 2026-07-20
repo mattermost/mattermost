@@ -5,8 +5,10 @@ package model
 
 import (
 	"crypto/sha1"
+	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -15,13 +17,23 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	// Validates both 3-digit (#RGB) and 6-digit (#RRGGBB) hex colors
+	channelHexColorRegex = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
 type ChannelType string
 
 const (
-	ChannelTypeOpen    ChannelType = "O"
-	ChannelTypePrivate ChannelType = "P"
-	ChannelTypeDirect  ChannelType = "D"
-	ChannelTypeGroup   ChannelType = "G"
+	ChannelTypeOpen         ChannelType = "O"
+	ChannelTypePrivate      ChannelType = "P"
+	ChannelTypeDirect       ChannelType = "D"
+	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeSpace        ChannelType = "S"
+	ChannelTypeOpenBoard    ChannelType = "BO"
+	ChannelTypePrivateBoard ChannelType = "BP"
+
+	ChannelPropsBoardLinkedProperties = "board:linked_properties"
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
@@ -32,37 +44,104 @@ const (
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
 	ChannelCacheSize           = 25000
+	ChannelBannerInfoMaxLength = 1024
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
 )
 
-type Channel struct {
-	Id                string         `json:"id"`
-	CreateAt          int64          `json:"create_at"`
-	UpdateAt          int64          `json:"update_at"`
-	DeleteAt          int64          `json:"delete_at"`
-	TeamId            string         `json:"team_id"`
-	Type              ChannelType    `json:"type"`
-	DisplayName       string         `json:"display_name"`
-	Name              string         `json:"name"`
-	Header            string         `json:"header"`
-	Purpose           string         `json:"purpose"`
-	LastPostAt        int64          `json:"last_post_at"`
-	TotalMsgCount     int64          `json:"total_msg_count"`
-	ExtraUpdateAt     int64          `json:"extra_update_at"`
-	CreatorId         string         `json:"creator_id"`
-	SchemeId          *string        `json:"scheme_id"`
-	Props             map[string]any `json:"props"`
-	GroupConstrained  *bool          `json:"group_constrained"`
-	Shared            *bool          `json:"shared"`
-	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
-	PolicyID          *string        `json:"policy_id"`
-	LastRootPostAt    int64          `json:"last_root_post_at"`
+type ChannelBannerInfo struct {
+	Enabled         *bool   `json:"enabled"`
+	Text            *string `json:"text"`
+	BackgroundColor *string `json:"background_color"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelBannerInfo) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(b, c)
+}
+
+func (c ChannelBannerInfo) Value() (driver.Value, error) {
+	if c == (ChannelBannerInfo{}) {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
+}
+
+type Channel struct {
+	Id                string             `json:"id"`
+	CreateAt          int64              `json:"create_at"`
+	UpdateAt          int64              `json:"update_at"`
+	DeleteAt          int64              `json:"delete_at"`
+	TeamId            string             `json:"team_id"`
+	Type              ChannelType        `json:"type"`
+	DisplayName       string             `json:"display_name"`
+	Name              string             `json:"name"`
+	Header            string             `json:"header"`
+	Purpose           string             `json:"purpose"`
+	LastPostAt        int64              `json:"last_post_at"`
+	TotalMsgCount     int64              `json:"total_msg_count"`
+	ExtraUpdateAt     int64              `json:"extra_update_at"`
+	CreatorId         string             `json:"creator_id"`
+	SchemeId          *string            `json:"scheme_id"`
+	Props             map[string]any     `json:"props"`
+	GroupConstrained  *bool              `json:"group_constrained"`
+	AutoTranslation   bool               `json:"autotranslation"`
+	Shared            *bool              `json:"shared"`
+	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
+	PolicyID          *string            `json:"policy_id"`
+	LastRootPostAt    int64              `json:"last_root_post_at"`
+	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced    bool               `json:"policy_enforced"`
+	// PolicyActions maps each action key declared by the channel's access
+	// control policy (and any imported parent policies) to true. It is
+	// populated lazily by App-layer hydrators and is therefore unset on
+	// channel reads that don't pass through one of those seams. Consumers
+	// that care about a specific action (e.g. "membership") should check
+	// PolicyActions[action] and fall back to PolicyEnforced only when the
+	// stronger meaning is acceptable. Empty/nil means either no policy or
+	// no hydration was performed.
+	PolicyActions       map[string]bool `json:"policy_actions,omitempty"`
+	PolicyIsActive      bool            `json:"policy_is_active"`
+	DefaultCategoryName string          `json:"default_category_name"`
+	ManagedCategoryName string          `json:"managed_category_name"`
+	Discoverable        bool            `json:"discoverable"`
+}
+
+// HasPolicyAction reports whether the channel's policy declares the given
+// action. Safe to call on a Channel whose PolicyActions map is nil
+// (returns false in that case). Use this in preference to direct map
+// indexing so consumers don't have to defend against nil maps.
+func (o *Channel) HasPolicyAction(action string) bool {
+	if o == nil || len(o.PolicyActions) == 0 {
+		return false
+	}
+	return o.PolicyActions[action]
+}
+
+// HasMembershipPolicyAction is a convenience for the most common consumer
+// pattern: "is this channel's membership controlled by ABAC?". Used by
+// the invite picker, channel settings, members RHS, and the server-side
+// gates (setChannelMembers, guest-invite, ChannelAccessControlled).
+func (o *Channel) HasMembershipPolicyAction() bool {
+	return o.HasPolicyAction(AccessControlPolicyActionMembership)
+}
+
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -79,6 +158,11 @@ func (o *Channel) Auditable() map[string]interface{} {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
+		"policy_enforced":      o.PolicyEnforced,
+		"policy_actions":       o.PolicyActions, // hydrated lazily; only populated on selected read paths
+		"autotranslation":      o.AutoTranslation,
+		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
+		"discoverable":         o.Discoverable,
 	}
 }
 
@@ -99,18 +183,26 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Name             *string `json:"name"`
-	Header           *string `json:"header"`
-	Purpose          *string `json:"purpose"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName         *string            `json:"display_name"`
+	Name                *string            `json:"name"`
+	Header              *string            `json:"header"`
+	Purpose             *string            `json:"purpose"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation     *bool              `json:"autotranslation"`
+	ManagedCategoryName *string            `json:"managed_category_name"`
+	DefaultCategoryName *string            `json:"default_category_name"`
+	Discoverable        *bool              `json:"discoverable"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"header":            c.Header,
-		"group_constrained": c.GroupConstrained,
-		"purpose":           c.Purpose,
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
+		"header":                c.Header,
+		"group_constrained":     c.GroupConstrained,
+		"purpose":               c.Purpose,
+		"default_category_name": c.DefaultCategoryName,
+		"managed_category_name": c.ManagedCategoryName,
+		"discoverable":          c.Discoverable,
 	}
 }
 
@@ -145,8 +237,8 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
-func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelModerationPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":  c.Name,
 		"roles": c.Roles,
 	}
@@ -167,25 +259,30 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
+// ExcludeAccessPolicyEnforced will exclude channels that are enforced by an access policy.
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup     string
-	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool // If true, deleted channels will be included in the results.
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeSearchById        bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
-	LastUpdateAt             int
+	NotAssociatedToGroup               string
+	ExcludeDefaultChannels             bool
+	IncludeDeleted                     bool // If true, deleted channels will be included in the results.
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeSearchById                  bool
+	ExcludeRemote                      bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
+	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 type ChannelMemberCountByGroup struct {
@@ -207,13 +304,9 @@ func WithID(ID string) ChannelOption {
 func (o *Channel) DeepCopy() *Channel {
 	cCopy := *o
 	if cCopy.SchemeId != nil {
-		cCopy.SchemeId = NewPointer(*o.SchemeId)
+		cCopy.SchemeId = new(*o.SchemeId)
 	}
 	return &cCopy
-}
-
-func (o *Channel) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
@@ -237,7 +330,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeSpace || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -258,6 +351,53 @@ func (o *Channel) IsValid() *AppError {
 		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+
+	if o.BannerInfo != nil && o.BannerInfo.Enabled != nil && *o.BannerInfo.Enabled {
+		if o.Type != ChannelTypeOpen && o.Type != ChannelTypePrivate {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.channel_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.Text == nil || len(*o.BannerInfo.Text) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.empty.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*o.BannerInfo.Text) > ChannelBannerInfoMaxLength {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.invalid_length.app_error", map[string]any{"maxLength": ChannelBannerInfoMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !channelHexColorRegex.MatchString(*o.BannerInfo.BackgroundColor) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.invalid.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if o.Discoverable && o.Type != ChannelTypePrivate {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.IsGroupConstrained() && !o.SupportsGroupSync() {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.group_constrained.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// IsValidBoard performs the input-validation checks specific to board channels:
+// the channel type must be BO/BP, a TeamId must be set, and DisplayName must be
+// non-empty. Callers are expected to TrimSpace DisplayName before calling.
+func (o *Channel) IsValidBoard() *AppError {
+	if !o.IsBoard() {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.TeamId == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.team_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.DisplayName == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -287,13 +427,45 @@ func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup
 }
 
+// SupportsGroupSync reports whether group_constrained is meaningful for the channel type.
+func (o *Channel) SupportsGroupSync() bool {
+	return o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate
+}
+
 func (o *Channel) IsOpen() bool {
 	return o.Type == ChannelTypeOpen
 }
 
+func (o *Channel) IsBoard() bool {
+	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
+}
+
+func (o *Channel) IsSpace() bool {
+	return o.Type == ChannelTypeSpace
+}
+
+// IsMessageChannel reports whether the channel is one of the message-bearing
+// types (open, private, direct, or group). Returns false for boards and any
+// future non-message channel types.
+func (o *Channel) IsMessageChannel() bool {
+	switch o.Type {
+	case ChannelTypeOpen, ChannelTypePrivate, ChannelTypeDirect, ChannelTypeGroup:
+		return true
+	}
+	return false
+}
+
+func (o *Channel) IsOpenBoard() bool {
+	return o.Type == ChannelTypeOpenBoard
+}
+
+func (o *Channel) IsPrivateBoard() bool {
+	return o.Type == ChannelTypePrivateBoard
+}
+
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
-		o.DisplayName = *patch.DisplayName
+		o.DisplayName = strings.TrimSpace(*patch.DisplayName)
 	}
 
 	if patch.Name != nil {
@@ -310,6 +482,37 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
+	}
+
+	// patching channel banner info
+	if patch.BannerInfo != nil {
+		if o.BannerInfo == nil {
+			o.BannerInfo = &ChannelBannerInfo{}
+		}
+
+		if patch.BannerInfo.Enabled != nil {
+			o.BannerInfo.Enabled = patch.BannerInfo.Enabled
+		}
+
+		if patch.BannerInfo.Text != nil {
+			o.BannerInfo.Text = patch.BannerInfo.Text
+		}
+
+		if patch.BannerInfo.BackgroundColor != nil {
+			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
+		}
+	}
+
+	if patch.AutoTranslation != nil {
+		o.AutoTranslation = *patch.AutoTranslation
+	}
+
+	if patch.DefaultCategoryName != nil {
+		o.DefaultCategoryName = strings.TrimSpace(*patch.DefaultCategoryName)
+	}
+
+	if patch.Discoverable != nil {
+		o.Discoverable = *patch.Discoverable
 	}
 }
 
@@ -334,26 +537,43 @@ func (o *Channel) IsShared() bool {
 }
 
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
-	if o.Type != ChannelTypeDirect {
+	user1, user2 := o.GetBothUsersForDM()
+
+	if user2 == "" {
 		return ""
+	}
+
+	if user1 == userId {
+		return user2
+	}
+
+	return user1
+}
+
+func (o *Channel) GetBothUsersForDM() (string, string) {
+	if o.Type != ChannelTypeDirect {
+		return "", ""
 	}
 
 	userIds := strings.Split(o.Name, "__")
 	if len(userIds) != 2 {
-		return ""
+		return "", ""
 	}
 
-	var otherUserId string
-
-	if userIds[0] != userIds[1] {
-		if userIds[0] == userId {
-			otherUserId = userIds[1]
-		} else {
-			otherUserId = userIds[0]
-		}
+	if userIds[0] == userIds[1] {
+		return userIds[0], ""
 	}
 
-	return otherUserId
+	return userIds[0], userIds[1]
+}
+
+func (o *Channel) Sanitize() Channel {
+	return Channel{
+		Id:          o.Id,
+		TeamId:      o.TeamId,
+		Type:        o.Type,
+		DisplayName: o.DisplayName,
+	}
 }
 
 func (t ChannelType) MarshalJSON() ([]byte, error) {
@@ -400,4 +620,16 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// ChannelMembersGetOptions provides parameters for getting channel members
+type ChannelMembersGetOptions struct {
+	// ChannelID specifies which channel to get members for
+	ChannelID string
+	// Offset for pagination
+	Offset int
+	// Limit for pagination (maximum number of results to return)
+	Limit int
+	// UpdatedAfter filters members updated after the given timestamp (cursor-based pagination)
+	UpdatedAfter int64
 }

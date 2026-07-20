@@ -1,0 +1,97 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ShareChannelWithWorkspaces {
+    &__listHeader {
+        display: flex;
+        font-weight: 600;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 12px;
+
+        &:first-child {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    &__itemName {
+        overflow: hidden;
+        flex: 1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__itemStatus {
+        flex: 1;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__statusPending {
+        color: var(--error-text);
+    }
+
+    &__statusConnectionPending {
+        color: rgba(var(--center-channel-color-rgb), 0.75)
+    }
+
+    &__statusOnline {
+        display: flex;
+        align-items: center;
+        color: var(--online-indicator);
+        gap: 6px;
+    }
+
+    &__statusOffline {
+        color: var(--error-text);
+    }
+
+    &__remove {
+        padding: 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--error-text);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    &__noWorkspacesMessage {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+        
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__addBtn {
+        align-self: flex-start;
+    }
+
+    &__dropdown {
+        flex: 1;
+    }
+}

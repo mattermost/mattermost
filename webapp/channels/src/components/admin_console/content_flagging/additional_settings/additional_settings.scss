@@ -1,0 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.contentFlaggingReasons {
+    width: 100%;
+
+    &___value-container {
+        padding: 6px 12px !important;
+        gap: 8px;
+    }
+}

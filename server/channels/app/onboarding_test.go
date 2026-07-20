@@ -12,15 +12,16 @@ import (
 )
 
 func TestOnboardingSavesOrganizationName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	err := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
+	appErr := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 		Organization: "Mattermost In Tests",
 	})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 	defer func() {
-		th.App.Srv().Store().System().PermanentDeleteByName(mm_model.SystemOrganizationName)
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(mm_model.SystemOrganizationName)
+		require.NoError(t, err)
 	}()
 
 	sys, storeErr := th.App.Srv().Store().System().GetByName(mm_model.SystemOrganizationName)

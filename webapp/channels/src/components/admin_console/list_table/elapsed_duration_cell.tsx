@@ -5,7 +5,7 @@ import moment from 'moment';
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 interface Props {
     date?: number;
@@ -65,8 +65,6 @@ export function ElapsedDurationCell(props: Props) {
 
     return (
         <WithTooltip
-            id='system-users-cell-elapsed-duration-tooltip'
-            placement='bottom'
             title={exactPassedInDate}
         >
             <span>{elapsedDaysText}</span>

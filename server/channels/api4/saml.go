@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitSaml() {
@@ -46,7 +45,9 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/xml")
 	w.Header().Set("Content-Disposition", "attachment; filename=\"metadata.xml\"")
-	w.Write([]byte(metadata))
+	if _, err := w.Write([]byte(metadata)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
@@ -81,9 +82,9 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
 		c.Err = err
@@ -105,9 +106,9 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
 		c.Err = err
@@ -134,7 +135,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddSamlIdpCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("type", d)
 
@@ -155,7 +156,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		audit.AddEventParameter(auditRec, "filename", fileData.Filename)
+		model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
 		if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
 			c.Err = err
@@ -176,7 +177,7 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlPublicCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
@@ -194,7 +195,7 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlPrivateCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
@@ -212,7 +213,7 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveSamlIdpCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {

@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -34,12 +33,7 @@ type TestEnvironment struct {
 	Request       *http.Request
 }
 
-// Init adds manualtest endpoint to the API.
-func Init(api4 *api4.API) {
-	api4.BaseRoutes.Root.Handle("/manualtest", api4.APIHandler(manualTest)).Methods(http.MethodGet)
-}
-
-func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
+func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
 	c.Logger.Info("Setting up for manual test...")
 
@@ -54,7 +48,10 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	uid, ok := params["uid"]
 	if ok {
 		hasher := fnv.New32a()
-		hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
+		_, writeErr := hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
+		if writeErr != nil {
+			c.Logger.Error("Failed to write to hasher", mlog.Err(writeErr))
+		}
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
@@ -121,8 +118,15 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		if _, verifyErr := c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email); verifyErr != nil {
+			c.Err = model.NewAppError("manualTest", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(verifyErr)
+			return
+		}
+
+		if _, saveErr := c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam); saveErr != nil {
+			c.Err = model.NewAppError("manualTest", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(saveErr)
+			return
+		}
 
 		userID = user.Id
 
@@ -177,7 +181,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
 	channels, err := a.Srv().Store().Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
 		IncludeDeleted: false,

@@ -20,7 +20,7 @@ type Props = {
     access: MixedAccess | ReadAccess | NoAccess | WriteAccess;
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     isDisabled?: boolean;
-}
+};
 
 export default class SystemRolePermissionDropdown extends React.PureComponent<Props> {
     updatePermission = (value: PermissionAccess) => {
@@ -118,7 +118,7 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
             break;
         }
 
-        const ariaLabel = Utils.localizeMessage('admin.permissions.system_role_permissions.change_access', 'Change role access on a system console section');
+        const ariaLabel = Utils.localizeMessage({id: 'admin.permissions.system_role_permissions.change_access', defaultMessage: 'Change role access on a system console section'});
         return (
             <MenuWrapper
                 isDisabled={isDisabled}
@@ -129,7 +129,10 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                     type='button'
                     aria-expanded='true'
                 >
-                    <div className='PermissionSectionDropdownButton_text'>
+                    <div
+                        className='PermissionSectionDropdownButton_text'
+                        data-testid='permissionDropdownButton-text'
+                    >
                         {currentAccess}
                     </div>
                     <div className='PermissionSectionDropdownButton_icon'>

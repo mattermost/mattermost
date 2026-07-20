@@ -570,7 +570,7 @@ describe('Actions.Posts', () => {
         });
     });
 
-    it('getNeededAtMentionedUsernames', async () => {
+    describe('getNeededAtMentionedUsernames', () => {
         const state = {
             entities: {
                 users: {
@@ -592,65 +592,55 @@ describe('Actions.Posts', () => {
             },
         } as unknown as GlobalState;
 
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: 'aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@zzz'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
-            ])).toEqual(
-            new Set(['bbb.', 'bbb', 'ccc.ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
-            ])).toEqual(
-            new Set(['bbb-', 'bbb', 'ccc-ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
-            ])).toEqual(
-            new Set(['bbb_', 'ccc_ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({
+        const testCases = [
+            {
+                name: "shouldn't return anything when no users are at-mentioned",
+                input: TestHelper.getPostMock({message: 'aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a user that's already loaded",
+                input: TestHelper.getPostMock({message: '@aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a group that's already loaded",
+                input: TestHelper.getPostMock({message: '@zzz'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return any unrecognized at-mentions',
+                input: TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: 'should return at-mentions followed by period both with and without the period',
+                input: TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
+                expected: new Set(['bbb.', 'bbb', 'ccc.ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by hyphen both with and without the hyphen',
+                input: TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
+                expected: new Set(['bbb-', 'bbb', 'ccc-ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by underscores with the underscore',
+                input: TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
+                expected: new Set(['bbb_', 'ccc_ddd']),
+            },
+            {
+                name: 'should return at-mentions in brackets',
+                input: TestHelper.getPostMock({message: '(@bbb/@ccc)'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: "shouldn't return anything when an at sign is in the middle of a word",
+                input: TestHelper.getPostMock({message: 'ddd@eee'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment props text and pretext',
+                input: TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
@@ -659,23 +649,128 @@ describe('Actions.Posts', () => {
                         ],
                     },
                 }),
-            ]),
-        ).toEqual(
-            new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
-        );
+                expected: new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment field values but not their titles',
+                input: TestHelper.getPostMock({
+                    props: {
+                        attachments: [
+                            {
+                                fields: [
+                                    {title: '@bbb', value: '@ccc'},
+                                    {title: 'some title', value: '@ddd'},
+                                ],
+                            },
+                            {
+                                fields: [
+                                    {title: '@eee', value: '@fff'},
+                                    {title: 'some other title', value: '@ggg'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ccc', 'ddd', 'fff', 'ggg']),
+            },
+            {
+                name: 'should return potential remote mentions',
+                input: TestHelper.getPostMock({
+                    message: '@user1:org1 @user2:org2/@user3:org3/@user4:org4 (@user5:org5) @user6:org6',
+                }),
+                expected: new Set(['user1:org1', 'user2:org2', 'user3:org3', 'user4:org4', 'user5:org5', 'user6:org6']),
+            },
+            {
+                name: 'should return at-mentions from mm_blocks text blocks but not button labels',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {type: 'text', text: 'hello @bbb'},
+                            {type: 'button', text: '@ccc', action_id: 'act'},
+                        ],
+                    },
+                }),
+                expected: new Set(['bbb']),
+            },
+            {
+                name: 'should return at-mentions from nested mm_blocks containers',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {
+                                type: 'container',
+                                content: [
+                                    {type: 'text', text: '@ddd in container'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ddd']),
+            },
+            {
+                name: 'should return at-mentions from Block Kit markdown and section blocks',
+                input: TestHelper.getPostMock({
+                    props: {
+                        blocks: [
+                            {type: 'markdown', text: 'markdown @eee'},
+                            {
+                                type: 'section',
+                                text: {type: 'mrkdwn', text: 'section @fff'},
+                                fields: [{type: 'mrkdwn', text: 'field @ggg'}],
+                            },
+                            {type: 'header', text: 'header @hhh'},
+                        ],
+                    },
+                }),
+                expected: new Set(['eee', 'fff', 'ggg', 'hhh']),
+            },
+            {
+                name: 'should return at-mentions from Adaptive Card TextBlock elements',
+                input: TestHelper.getPostMock({
+                    props: {
+                        cards: [
+                            {
+                                type: 'AdaptiveCard',
+                                version: '1.0',
+                                body: [
+                                    {type: 'TextBlock', text: 'card @iii'},
+                                    {
+                                        type: 'Container',
+                                        items: [{type: 'TextBlock', text: 'nested @jjj'}],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['iii', 'jjj']),
+            },
+        ];
 
-        // should never try to request usernames matching special mentions
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@all'}),
-                TestHelper.getPostMock({message: '@here'}),
-                TestHelper.getPostMock({message: '@channel'}),
-                TestHelper.getPostMock({message: '@all.'}),
-                TestHelper.getPostMock({message: '@here.'}),
-                TestHelper.getPostMock({message: '@channel.'}),
-            ])).toEqual(
-            new Set(),
-        );
+        for (const specialMention of [
+            '@all',
+            '@here',
+            '@channel',
+            '@all.',
+            '@here.',
+            '@channel.',
+        ]) {
+            testCases.push({
+                name: `should never return special mentions (${specialMention})`,
+                input: TestHelper.getPostMock({message: specialMention}),
+                expected: new Set(),
+            });
+        }
+
+        for (const testCase of testCases) {
+            test(testCase.name, () => {
+                expect(Actions.getNeededAtMentionedUsernamesAndGroups(
+                    state,
+                    [testCase.input],
+                )).toEqual(testCase.expected);
+            });
+        }
     });
 
     it('getPostsSince', async () => {
@@ -1282,13 +1377,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await dispatch(createCustomEmoji(
+        const created = (await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).
@@ -1325,6 +1420,43 @@ describe('Actions.Posts', () => {
 
         const {data} = await store.dispatch(Actions.doPostActionWithCookie('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', '', 'option'));
         expect(data).toEqual({});
+    });
+
+    it('doPostActionWithCookie with trigger_id', async () => {
+        const postId = 'posth67ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+        const triggerId = 'trigger7ja7ntdkek6g13dp3wka';
+        const channelId = 'channel7ja7ntdkek6g13dp3wka';
+
+        // Setup post in state
+        store = configureStore({
+            entities: {
+                posts: {
+                    posts: {
+                        [postId]: {id: postId, channel_id: channelId},
+                    },
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post(`/posts/${postId}/actions/${actionId}`).
+            reply(200, {trigger_id: triggerId});
+
+        const {data} = await store.dispatch(Actions.doPostActionWithCookie(postId, actionId, '', 'option'));
+
+        // Verify the trigger_id was received and stored in state
+        const state = store.getState();
+        expect(data).toBeTruthy();
+        expect(data).toEqual({trigger_id: triggerId});
+        expect(data).toBeTruthy();
+
+        expect(state.entities.integrations.dialogArguments).toBeTruthy();
+        expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
+        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {

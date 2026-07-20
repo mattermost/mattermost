@@ -41,7 +41,7 @@ type Props = {
      * An array of values that have been selected by the user in the multiselect.
      */
     values: OptionValue[];
-}
+};
 
 const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
     const renderOptionValue = useCallback((
@@ -166,7 +166,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             loading={props.loading}
             users={props.users}
             totalCount={props.totalCount}
-            placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
+            placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
         />
     );
 });

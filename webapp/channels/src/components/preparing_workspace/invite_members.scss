@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 // UX decision to show no more than about 5 1/4 lines of users/emails at a time.
 $less-than-6-user-lines-height: 227px;
@@ -65,7 +65,7 @@ $less-than-6-user-lines-height: 227px;
     }
 }
 
-@include simple-in-and-out-before("InviteMembers");
+@include mixins.simple-in-and-out-before("InviteMembers");
 
 .ChannelsPreview--enter-from-after {
     &-enter {

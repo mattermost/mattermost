@@ -3,8 +3,6 @@
 
 import {combineReducers} from 'redux';
 
-import addChannelCtaDropdown from './add_channel_cta_dropdown';
-import addChannelDropdown from './add_channel_dropdown';
 import admin from './admin';
 import announcementBar from './announcement_bar';
 import browser from './browser';
@@ -21,11 +19,11 @@ import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
 import posts from './posts';
 import productMenu from './product_menu';
+import readout from './readout';
 import rhs from './rhs';
 import rhsSuppressed from './rhs_suppressed';
 import search from './search';
 import settings from './settings';
-import statusDropdown from './status_dropdown';
 import system from './system';
 import textbox from './textbox';
 import threads from './threads';
@@ -50,11 +48,9 @@ export default combineReducers({
     marketplace,
     textbox,
     channelSidebar,
-    statusDropdown,
-    addChannelDropdown,
-    addChannelCtaDropdown,
     onboardingTasks,
     threads,
     productMenu,
     drafts,
+    readout,
 });

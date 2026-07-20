@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitElasticsearch() {
@@ -30,7 +29,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	// we set BulkIndexingTimeWindowSeconds to a random value to avoid failing on the nil check
 	// TODO: remove this hack once we remove BulkIndexingTimeWindowSeconds from the config.
 	if cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds == nil {
-		cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = model.NewPointer(0)
+		cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = new(0)
 	}
 	if checkHasNilFields(&cfg.ElasticsearchSettings) {
 		c.Err = model.NewAppError("testElasticsearch", "api.elasticsearch.test_elasticsearch_settings_nil.app_error", nil, "", http.StatusBadRequest)
@@ -39,13 +38,8 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
 	// which should prevent read-only managers from password sniffing
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestElasticsearch) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestElasticsearch) {
 		c.SetPermissionError(model.PermissionTestElasticsearch)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testElasticsearch", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -58,16 +52,11 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPurgeElasticsearchIndexes, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
 		c.SetPermissionError(model.PermissionPurgeElasticsearchIndexes)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("purgeElasticsearchIndexes", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 

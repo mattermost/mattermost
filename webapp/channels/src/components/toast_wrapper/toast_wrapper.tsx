@@ -19,8 +19,8 @@ import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {isIdNotPost} from 'utils/post_utils';
-import {localizeMessage} from 'utils/utils';
 
 import './toast__wrapper.scss';
 
@@ -30,7 +30,7 @@ const TOAST_REL_RANGES = [
     RelativeRanges.TODAY_YESTERDAY,
 ];
 
-export type Props = WrappedComponentProps & RouteComponentProps<{team: string}> & {
+export type Props = WrappedComponentProps & RouteComponentProps<{team: string; path?: string; identifier?: string}> & {
     channelMarkedAsUnread?: boolean;
     postListIds: string[];
     latestPostTimeStamp?: number;
@@ -342,6 +342,11 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
     changeUrlToRemountChannelView = () => {
         const {match} = this.props;
 
+        if (isChannelPopoutWindow() && match.params.path && match.params.identifier) {
+            getHistory().replace(`/_popout/channel/${match.params.team}/${match.params.path}/${match.params.identifier}`);
+            return;
+        }
+
         // Inorder of mount the channel view we are redirecting to /team url to load the channel again
         // Todo: Can be changed to dispatch if we put focussedPostId in redux state.
         getHistory().replace(`/${match.params.team}`);
@@ -461,7 +466,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 width,
                 onDismiss: this.hideArchiveToast,
                 onClick: this.scrollToLatestMessages,
-                onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+                onClickMessage: (
+                    <FormattedMessage
+                        id='postlist.toast.scrollToBottom'
+                        defaultMessage='Jump to recents'
+                    />
+                ),
                 showActions: true,
                 extraClasses: 'toast__history',
             };
@@ -510,9 +520,9 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         const toastToRender = this.getToastToRender();
 
         return (
-            <React.Fragment>
+            <>
                 {toastToRender}
-            </React.Fragment>
+            </>
         );
     }
 }

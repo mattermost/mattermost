@@ -1,0 +1,1 @@
+ALTER TABLE PropertyGroups DROP COLUMN IF EXISTS Version;

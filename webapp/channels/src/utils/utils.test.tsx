@@ -1,495 +1,383 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserProfile} from '@mattermost/types/users';
+import type React from 'react';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import {FileTypes} from './constants';
+import {getFileType, getSuggestionBoxAlgn, makeIsEligibleForClick} from './utils';
 
-import store from 'stores/redux_store';
-
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
-import * as ua from 'tests/helpers/user_agent_mocks';
-import Constants, {ValidationErrors} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
-describe('Utils.getDisplayNameByUser', () => {
-    afterEach(() => {
-        store.dispatch({
-            type: GeneralTypes.CLIENT_CONFIG_RESET,
-            data: {},
-        });
+describe('Utils.getFileType', () => {
+    test('should identify image files by extension', () => {
+        expect(getFileType('jpg')).toBe(FileTypes.IMAGE);
+        expect(getFileType('png')).toBe(FileTypes.IMAGE);
+        expect(getFileType('gif')).toBe(FileTypes.IMAGE);
+        expect(getFileType('bmp')).toBe(FileTypes.IMAGE);
+        expect(getFileType('tiff')).toBe(FileTypes.IMAGE);
     });
 
-    const userA = {username: 'a_user', nickname: 'a_nickname', first_name: 'a_first_name', last_name: ''};
-    const userB = {username: 'b_user', nickname: 'b_nickname', first_name: '', last_name: 'b_last_name'};
-    const userC = {username: 'c_user', nickname: '', first_name: 'c_first_name', last_name: 'c_last_name'};
-    const userD = {username: 'd_user', nickname: 'd_nickname', first_name: 'd_first_name', last_name: 'd_last_name'};
-    const userE = {username: 'e_user', nickname: '', first_name: 'e_first_name', last_name: 'e_last_name'};
-    const userF = {username: 'f_user', nickname: 'f_nickname', first_name: 'f_first_name', last_name: 'f_last_name'};
-    const userG = {username: 'g_user', nickname: '', first_name: 'g_first_name', last_name: 'g_last_name'};
-    const userH = {username: 'h_user', nickname: 'h_nickname', first_name: '', last_name: 'h_last_name'};
-    const userI = {username: 'i_user', nickname: 'i_nickname', first_name: 'i_first_name', last_name: ''};
-    const userJ = {username: 'j_user', nickname: '', first_name: 'j_first_name', last_name: ''};
-
-    test('Show display name of user with TeammateNameDisplay set to username', () => {
-        store.dispatch({
-            type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-            data: {
-                TeammateNameDisplay: 'username',
-            },
-        });
-
-        [userA, userB, userC, userD, userE, userF, userG, userH, userI, userJ].forEach((user) => {
-            expect(Utils.getDisplayNameByUser(store.getState(), user as UserProfile)).toEqual(user.username);
-        });
+    test('should identify image files from URLs with extensions', () => {
+        expect(getFileType('https://example.com/image.jpg')).toBe(FileTypes.IMAGE);
+        expect(getFileType('https://example.com/path/to/image.png')).toBe(FileTypes.IMAGE);
+        expect(getFileType('https://example.com/image.gif?query=param')).toBe(FileTypes.IMAGE);
+        expect(getFileType('http://example.com/image.bmp#fragment')).toBe(FileTypes.IMAGE);
     });
 
-    test('Show display name of user with TeammateNameDisplay set to nickname_full_name', () => {
-        store.dispatch({
-            type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-            data: {
-                TeammateNameDisplay: 'nickname_full_name',
-            },
-        });
+    test('should identify image files from URLs without extensions', () => {
+        // Test URLs with /api/v4/image and ?url= parameter
+        expect(getFileType('/api/v4/image?url=https://example.com/image-without-extension')).toBe(FileTypes.IMAGE);
+        expect(getFileType('https://mattermost.com/api/v4/image?url=https://example.com/another-image')).toBe(FileTypes.IMAGE);
 
-        for (const data of [
-            {user: userA, result: userA.nickname},
-            {user: userB, result: userB.nickname},
-            {user: userC, result: `${userC.first_name} ${userC.last_name}`},
-            {user: userD, result: userD.nickname},
-            {user: userE, result: `${userE.first_name} ${userE.last_name}`},
-            {user: userF, result: userF.nickname},
-            {user: userG, result: `${userG.first_name} ${userG.last_name}`},
-            {user: userH, result: userH.nickname},
-            {user: userI, result: userI.nickname},
-            {user: userJ, result: userJ.first_name},
-        ]) {
-            expect(Utils.getDisplayNameByUser(store.getState(), data.user as UserProfile)).toEqual(data.result);
-        }
+        // Test URLs with /api/v4/image and &url= parameter (in case it's not the first parameter)
+        expect(getFileType('/api/v4/image?param=value&url=https://example.com/image')).toBe(FileTypes.IMAGE);
+        expect(getFileType('https://mattermost.com/api/v4/image?param=value&url=https://example.com/image')).toBe(FileTypes.IMAGE);
     });
 
-    test('Show display name of user with TeammateNameDisplay set to username', () => {
-        store.dispatch({
-            type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-            data: {
-                TeammateNameDisplay: 'full_name',
-            },
-        });
-
-        for (const data of [
-            {user: userA, result: userA.first_name},
-            {user: userB, result: userB.last_name},
-            {user: userC, result: `${userC.first_name} ${userC.last_name}`},
-            {user: userD, result: `${userD.first_name} ${userD.last_name}`},
-            {user: userE, result: `${userE.first_name} ${userE.last_name}`},
-            {user: userF, result: `${userF.first_name} ${userF.last_name}`},
-            {user: userG, result: `${userG.first_name} ${userG.last_name}`},
-            {user: userH, result: userH.last_name},
-            {user: userI, result: userI.first_name},
-            {user: userJ, result: userJ.first_name},
-        ]) {
-            expect(Utils.getDisplayNameByUser(store.getState(), data.user as UserProfile)).toEqual(data.result);
-        }
-    });
-});
-
-describe('Utils.isValidUsername', () => {
-    const tests = [
-        {
-            testUserName: 'sonic.the.hedgehog',
-            expectedError: undefined,
-        }, {
-            testUserName: 'sanic.the.speedy.errored.hedgehog@10_10-10',
-            expectedError: ValidationErrors.INVALID_LENGTH,
-        }, {
-            testUserName: 'sanic⭑',
-            expectedError: ValidationErrors.INVALID_CHARACTERS,
-        }, {
-            testUserName: '.sanic',
-            expectedError: ValidationErrors.INVALID_FIRST_CHARACTER,
-        }, {
-            testUserName: 'valet',
-            expectedError: ValidationErrors.RESERVED_NAME,
-        },
-    ];
-    test('Validate username', () => {
-        for (const test of tests) {
-            const testError = Utils.isValidUsername(test.testUserName);
-            if (testError) {
-                expect(testError.id).toEqual(test.expectedError);
-            } else {
-                expect(testError).toBe(undefined);
-            }
-        }
-    });
-    test('Validate bot username', () => {
-        tests.push({
-            testUserName: 'sanic.the.hedgehog.',
-            expectedError: ValidationErrors.INVALID_LAST_CHARACTER,
-        });
-        for (const test of tests) {
-            const testError = Utils.isValidUsername(test.testUserName);
-            if (testError) {
-                expect(testError.id).toEqual(test.expectedError);
-            } else {
-                expect(testError).toBe(undefined);
-            }
-        }
-    });
-});
-
-describe('Utils.localizeMessage', () => {
-    const originalGetState = store.getState;
-
-    afterAll(() => {
-        store.getState = originalGetState;
+    test('should identify image files from proxied URLs', () => {
+        expect(getFileType('/api/v4/image?url=https://example.com/image.jpg')).toBe(FileTypes.IMAGE);
+        expect(getFileType('https://mattermost.com/api/v4/image?url=https://example.com/image.png')).toBe(FileTypes.IMAGE);
     });
 
-    const entities = {
-        general: {
-            config: {},
-        },
-        users: {
-            currentUserId: 'abcd',
-            profiles: {
-                abcd: {
-                    locale: 'fr',
-                },
-            },
-        },
-    };
-
-    describe('with translations', () => {
-        beforeAll(() => {
-            store.getState = () => ({
-                entities,
-                views: {
-                    i18n: {
-                        translations: {
-                            fr: {
-                                'test.hello_world': 'Bonjour tout le monde!',
-                            },
-                        },
-                    },
-                },
-            });
-        });
-
-        test('with translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Bonjour tout le monde!');
-        });
-
-        test('with missing string in translations', () => {
-            expect(Utils.localizeMessage('test.hello_world2', 'Hello, World 2!')).toEqual('Hello, World 2!');
-        });
-
-        test('with missing string in translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world2')).toEqual('test.hello_world2');
-        });
+    test('should handle invalid image URLs gracefully', () => {
+        // These are not valid URLs but should still be processed correctly
+        expect(getFileType('path/to/image.jpg')).toBe(FileTypes.IMAGE);
+        expect(getFileType('image.png')).toBe(FileTypes.IMAGE);
+        expect(getFileType('PHOTO.PNG')).toBe(FileTypes.IMAGE);
     });
 
-    describe('without translations', () => {
-        beforeAll(() => {
-            store.getState = () => ({
-                entities,
-                views: {
-                    i18n: {
-                        translations: {},
-                    },
-                },
-            });
-        });
-
-        test('without translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Hello, World!');
-        });
-
-        test('without translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world')).toEqual('test.hello_world');
-        });
-    });
-});
-
-describe('Utils.imageURLForUser', () => {
-    test('should return url when user id and last_picture_update is given', () => {
-        const imageUrl = Utils.imageURLForUser('foobar-123', 123456);
-        expect(imageUrl).toEqual('/api/v4/users/foobar-123/image?_=123456');
+    test('should identify other file types correctly', () => {
+        expect(getFileType('doc')).toBe(FileTypes.WORD);
+        expect(getFileType('pdf')).toBe(FileTypes.PDF);
+        expect(getFileType('mp3')).toBe(FileTypes.AUDIO);
+        expect(getFileType('mp4')).toBe(FileTypes.VIDEO);
+        expect(getFileType('js')).toBe(FileTypes.CODE);
+        expect(getFileType('txt')).toBe(FileTypes.TEXT);
     });
 
-    test('should return url when user id is given without last_picture_update', () => {
-        const imageUrl = Utils.imageURLForUser('foobar-123');
-        expect(imageUrl).toEqual('/api/v4/users/foobar-123/image?_=0');
-    });
-});
-
-describe('Utils.isUnhandledLineBreakKeyCombo', () => {
-    test('isUnhandledLineBreakKeyCombo returns true for alt + enter for Chrome UA', () => {
-        ua.mockChrome();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(true);
+    test('should only treat proxy image URLs with a url parameter as images', () => {
+        expect(getFileType('/api/v4/image')).toBe(FileTypes.OTHER);
+        expect(getFileType('/api/v4/image?url=')).toBe(FileTypes.IMAGE);
+        expect(getFileType('/api/v4/image?param=value')).toBe(FileTypes.OTHER);
     });
 
-    test('isUnhandledLineBreakKeyCombo returns false for alt + enter for Safari UA', () => {
-        ua.mockSafari();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(false);
+    test('should not treat path-like filenames with query strings or hashes as direct extensions', () => {
+        expect(getFileType('path/to/image.jpg?x=1')).toBe(FileTypes.OTHER);
+        expect(getFileType('path/to/image.jpg#fragment')).toBe(FileTypes.OTHER);
     });
 
-    test('isUnhandledLineBreakKeyCombo returns false for shift + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getShiftKeyEvent())).toBe(false);
+    test('should not classify PSD files as images (MM-67077)', () => {
+        // PSD preview support was removed due to memory vulnerability in oov/psd package
+        expect(getFileType('psd')).toBe(FileTypes.OTHER);
     });
 
-    test('isUnhandledLineBreakKeyCombo returns false for ctrl/command + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getCtrlKeyEvent())).toBe(false);
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getMetaKeyEvent())).toBe(false);
-    });
-
-    test('isUnhandledLineBreakKeyCombo returns false for just enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.BASE_EVENT)).toBe(false);
-    });
-
-    test('isUnhandledLineBreakKeyCombo returns false for f (random key)', () => {
-        const e = {
-            ...lineBreakHelpers.BASE_EVENT,
-            key: Constants.KeyCodes.F[0],
-            keyCode: Constants.KeyCodes.F[1],
-        };
-        expect(Utils.isUnhandledLineBreakKeyCombo(e)).toBe(false);
-    });
-
-    // restore initial user agent
-    afterEach(ua.reset);
-});
-
-describe('Utils.insertLineBreakFromKeyEvent', () => {
-    test('insertLineBreakFromKeyEvent returns with line break appending (no selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getAppendEvent())).toBe(lineBreakHelpers.OUTPUT_APPEND);
-    });
-    test('insertLineBreakFromKeyEvent returns with line break replacing (with selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent())).toBe(lineBreakHelpers.OUTPUT_REPLACE);
-    });
-});
-
-describe('Utils.copyTextAreaToDiv', () => {
-    const textArea = document.createElement('textarea');
-
-    test('copyTextAreaToDiv actually creates a div element', () => {
-        const copy = Utils.copyTextAreaToDiv(textArea);
-
-        expect(copy!.nodeName).toEqual('DIV');
-    });
-
-    test('copyTextAreaToDiv copies the content into the div element', () => {
-        textArea.value = 'the content';
-
-        const copy = Utils.copyTextAreaToDiv(textArea);
-
-        expect(copy!.innerHTML).toEqual('the content');
-    });
-
-    test('copyTextAreaToDiv correctly copies the styles of the textArea element', () => {
-        textArea.style.fontFamily = 'Sans-serif';
-
-        const copy = Utils.copyTextAreaToDiv(textArea);
-
-        expect(copy!.style.fontFamily).toEqual('Sans-serif');
-    });
-});
-
-describe('Utils.getCaretXYCoordinate', () => {
-    const tmpCreateRange = document.createRange;
-    const cleanUp = () => {
-        document.createRange = tmpCreateRange;
-    };
-
-    afterAll(cleanUp);
-
-    const textArea = document.createElement('textarea');
-    document.createRange = () => {
-        const range = new Range();
-
-        range.getClientRects = () => {
-            return [{
-                top: 10,
-                left: 15,
-            }] as unknown as DOMRectList;
-        };
-
-        return range;
-    };
-    textArea.value = 'm'.repeat(10);
-
-    test('getCaretXYCoordinate returns the coordinates of the caret', () => {
-        const coordinates = Utils.getCaretXYCoordinate(textArea);
-
-        expect(coordinates.x).toEqual(15);
-        expect(coordinates.y).toEqual(10);
-    });
-
-    test('getCaretXYCoordinate returns the coordinates of the caret with a left scroll', () => {
-        textArea.scrollLeft = 5;
-
-        const coordinates = Utils.getCaretXYCoordinate(textArea);
-
-        expect(coordinates.x).toEqual(10);
-    });
-});
-
-describe('Utils.getViewportSize', () => {
-    test('getViewportSize returns the right viewport using default jsDom window', () => {
-        // the default values of the jsDom window are w: 1024, h: 768
-        const viewportDimensions = Utils.getViewportSize();
-
-        expect(viewportDimensions.w).toEqual(1024);
-        expect(viewportDimensions.h).toEqual(768);
-    });
-
-    test('getViewportSize returns the right viewport width with custom parameter', () => {
-        const mockWindow = {document: {body: {}, compatMode: undefined}};
-        (mockWindow.document.body as any).clientWidth = 1025;
-        (mockWindow.document.body as any).clientHeight = 860;
-
-        const viewportDimensions = Utils.getViewportSize(mockWindow as unknown as Window);
-
-        expect(viewportDimensions.w).toEqual(1025);
-        expect(viewportDimensions.h).toEqual(860);
-    });
-
-    test('getViewportSize returns the right viewport width with custom parameter - innerWidth', () => {
-        const mockWindow = {innerWidth: 1027, innerHeight: 767};
-
-        const viewportDimensions = Utils.getViewportSize(mockWindow as unknown as Window);
-
-        expect(viewportDimensions.w).toEqual(1027);
-        expect(viewportDimensions.h).toEqual(767);
-    });
-});
-
-describe('Utils.offsetTopLeft', () => {
-    test('offsetTopLeft returns the right offset values', () => {
-        const textArea = document.createElement('textArea');
-
-        textArea.getBoundingClientRect = jest.fn(() => ({
-            top: 967,
-            left: 851,
-        } as DOMRect));
-
-        const offsetTopLeft = Utils.offsetTopLeft(textArea);
-        expect(offsetTopLeft.top).toEqual(967);
-        expect(offsetTopLeft.left).toEqual(851);
+    test('should handle null or undefined input', () => {
+        expect(getFileType(null as any)).toBe(FileTypes.OTHER);
+        expect(getFileType(undefined as any)).toBe(FileTypes.OTHER);
+        expect(getFileType('')).toBe(FileTypes.OTHER);
     });
 });
 
 describe('Utils.getSuggestionBoxAlgn', () => {
-    const tmpCreateRange = document.createRange;
-    const cleanUp = () => {
-        document.createRange = tmpCreateRange;
-    };
+    const originalCreateRange = document.createRange;
+    const originalGetSelection = document.getSelection;
+    const originalGetComputedStyle = window.getComputedStyle;
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
 
-    afterAll(cleanUp);
+    beforeEach(() => {
+        document.body.innerHTML = '';
+        document.documentElement.scrollLeft = 0;
+        document.documentElement.scrollTop = 0;
 
-    const textArea: HTMLTextAreaElement = document.createElement('textArea') as HTMLTextAreaElement;
+        document.createRange = jest.fn(() => ({
+            setStart: jest.fn(),
+            setEnd: jest.fn(),
+            getClientRects: jest.fn(() => [{left: 200, top: 40}]),
+        })) as unknown as typeof document.createRange;
 
-    textArea.value = 'a'.repeat(30);
-
-    jest.spyOn(textArea, 'offsetWidth', 'get').
-        mockImplementation(() => 950);
-
-    textArea.getBoundingClientRect = jest.fn(() => ({
-        left: 50,
-    } as DOMRect));
-
-    const createRange = (size: number) => {
-        document.createRange = () => {
-            const range = new Range();
-            range.getClientRects = () => {
-                return [{
-                    top: 100,
-                    left: size,
-                }] as unknown as DOMRectList;
-            };
-            return range;
-        };
-    };
-
-    const fixedToTheRight = textArea.offsetWidth - Constants.SUGGESTION_LIST_MODAL_WIDTH;
-
-    test('getSuggestionBoxAlgn returns 0 (box stuck to left) when the length of the text is small', () => {
-        const smallSizeText = 15;
-        createRange(smallSizeText);
-        const suggestionBoxAlgn = Utils.getSuggestionBoxAlgn(textArea, Utils.getPxToSubstract());
-        expect(suggestionBoxAlgn.pixelsToMoveX).toEqual(0);
+        document.getSelection = jest.fn(() => ({
+            removeAllRanges: jest.fn(),
+            addRange: jest.fn(),
+        })) as unknown as typeof document.getSelection;
     });
 
-    test('getSuggestionBoxAlgn returns pixels to move when text is medium size', () => {
-        const mediumSizeText = 155;
-        createRange(mediumSizeText);
-        const suggestionBoxAlgn = Utils.getSuggestionBoxAlgn(textArea, Utils.getPxToSubstract());
-        expect(suggestionBoxAlgn.pixelsToMoveX).toBeGreaterThan(0);
-        expect(suggestionBoxAlgn.pixelsToMoveX).not.toBe(fixedToTheRight);
+    afterEach(() => {
+        document.body.innerHTML = '';
+        document.createRange = originalCreateRange;
+        document.getSelection = originalGetSelection;
+        window.getComputedStyle = originalGetComputedStyle;
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalInnerWidth});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: originalInnerHeight});
     });
 
-    test('getSuggestionBoxAlgn align box to the righ when text is large size', () => {
-        const largeSizeText = 700;
-        createRange(largeSizeText);
-        const suggestionBoxAlgn = Utils.getSuggestionBoxAlgn(textArea, Utils.getPxToSubstract());
-        expect(fixedToTheRight).toEqual(suggestionBoxAlgn.pixelsToMoveX);
+    test('returns zero offsets for invalid input', () => {
+        expect(getSuggestionBoxAlgn(null as any)).toEqual({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 0,
+        });
+    });
+
+    function createTextArea(clippingAncestorRight?: number) {
+        const clippingAncestor = document.createElement('div');
+        clippingAncestor.style.overflow = 'hidden';
+        clippingAncestor.style.overflowX = 'hidden';
+        clippingAncestor.style.overflowY = 'hidden';
+        clippingAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 385,
+            right: clippingAncestorRight ?? 654,
+        })) as unknown as typeof clippingAncestor.getBoundingClientRect;
+
+        const container = document.createElement('div');
+        container.getBoundingClientRect = jest.fn(() => ({
+            width: 600,
+            right: 900,
+        })) as unknown as typeof container.getBoundingClientRect;
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello @';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '20px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        clippingAncestor.appendChild(container);
+        container.appendChild(textArea);
+        document.body.appendChild(clippingAncestor);
+
+        return {textArea, clippingAncestor};
+    }
+
+    function mockComputedStyle(overrides = new Map<Element, Partial<CSSStyleDeclaration>>()) {
+        window.getComputedStyle = jest.fn((element: Element) => ({
+            lineHeight: '20px',
+            overflow: 'visible',
+            overflowX: 'visible',
+            overflowY: 'visible',
+            ...overrides.get(element),
+        } as CSSStyleDeclaration)) as typeof window.getComputedStyle;
+    }
+
+    test('keeps the suggestion list inside the nearest clipping container', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const {textArea, clippingAncestor} = createTextArea(654);
+        mockComputedStyle(new Map([[clippingAncestor, {
+            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+        }]]));
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('treats an equal-width clipping ancestor as a valid horizontal boundary', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const {textArea, clippingAncestor} = createTextArea(654);
+        clippingAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 333,
+            right: 654,
+        })) as unknown as typeof clippingAncestor.getBoundingClientRect;
+
+        mockComputedStyle(new Map([[clippingAncestor, {
+            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+        }]]));
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('skips narrow clipping ancestors and uses the next valid boundary', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const outerAncestor = document.createElement('div');
+        outerAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 900,
+            right: 900,
+        })) as unknown as typeof outerAncestor.getBoundingClientRect;
+
+        const innerAncestor = document.createElement('div');
+        innerAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 320,
+            right: 620,
+        })) as unknown as typeof innerAncestor.getBoundingClientRect;
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello @';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '20px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        outerAncestor.appendChild(innerAncestor);
+        innerAncestor.appendChild(textArea);
+        document.body.appendChild(outerAncestor);
+
+        mockComputedStyle(new Map([
+            [innerAncestor, {
+                overflow: 'hidden',
+                overflowX: 'hidden',
+                overflowY: 'hidden',
+            }],
+            [outerAncestor, {
+                overflow: 'hidden',
+                overflowX: 'hidden',
+                overflowY: 'hidden',
+            }],
+        ]));
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 200,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('treats overflowX clipping as a horizontal boundary even when overflow remains visible', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const {textArea, clippingAncestor} = createTextArea(654);
+        mockComputedStyle(new Map([[clippingAncestor, {
+            overflow: 'visible',
+            overflowX: 'hidden',
+            overflowY: 'visible',
+        }]]));
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('uses the viewport width when no clipping ancestor constrains the textbox', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello @';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '20px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        document.body.appendChild(textArea);
+        mockComputedStyle();
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 200,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('aligns with the textbox when requested', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const {textArea} = createTextArea(900);
+        mockComputedStyle();
+
+        expect(getSuggestionBoxAlgn(textArea, 39, true)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+            lineHeight: 20,
+            placementShift: false,
+        });
+    });
+
+    test('applies trigger offset and placement shift when the viewport is short', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 120});
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello ~';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '24px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        document.body.appendChild(textArea);
+        mockComputedStyle(new Map([[textArea, {lineHeight: '24px'}]]));
+
+        expect(getSuggestionBoxAlgn(textArea, 39)).toMatchObject({
+            pixelsToMoveX: 161,
+            pixelsToMoveY: 40,
+            lineHeight: 24,
+            placementShift: true,
+        });
     });
 });
 
-describe('Utils.numberToFixedDynamic', () => {
-    const tests = [
-        {
-            label: 'Removes period when no decimals needed',
-            num: 123.001,
-            places: 2,
-            expected: '123',
-        },
-        {
-            label: 'Extra places are ignored',
-            num: 123.45,
-            places: 3,
-            expected: '123.45',
-        },
-        {
-            label: 'rounds positives',
-            num: 123.45,
-            places: 1,
-            expected: '123.5',
-        },
-        {
-            label: 'rounds negatives',
-            num: -123.45,
-            places: 1,
-            expected: '-123.5',
-        },
-        {
-            label: 'negative places interpreted as 0 places',
-            num: 123,
-            places: -1,
-            expected: '123',
-        },
-        {
-            label: 'handles integers',
-            num: 123,
-            places: 4,
-            expected: '123',
-        },
-        {
-            label: 'handles integers with 0 places',
-            num: 123,
-            places: 4,
-            expected: '123',
-        },
-        {
-            label: 'correctly excludes decimal when rounding exlcudes number',
-            num: 0.004,
-            places: 2,
-            expected: '0',
-        },
-    ];
-    tests.forEach((testCase) => {
-        test(testCase.label, () => {
-            const actual = Utils.numberToFixedDynamic(testCase.num, testCase.places);
-            expect(actual).toBe(testCase.expected);
-        });
+describe('Utils.makeIsEligibleForClick', () => {
+    const isEligibleForClick = makeIsEligibleForClick('.select-suggestion-container, .post-attachment-dropdown, .mm-blocks-select');
+
+    test('returns false when clicking inside an autocomplete selector container', () => {
+        const post = document.createElement('div');
+        const select = document.createElement('div');
+        const inputWrapper = document.createElement('div');
+        const input = document.createElement('input');
+
+        select.className = 'select-suggestion-container';
+        post.appendChild(select);
+        select.appendChild(inputWrapper);
+        inputWrapper.appendChild(input);
+        document.body.appendChild(post);
+
+        const event = {
+            currentTarget: post,
+            target: inputWrapper,
+        } as unknown as React.MouseEvent;
+
+        expect(isEligibleForClick(event)).toBe(false);
+
+        document.body.removeChild(post);
     });
 });

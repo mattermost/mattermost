@@ -3,7 +3,14 @@
 
 package remotecluster
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	RemoteClusterAlreadyConfirmedError = errors.New("the remote cluster has already been confirmed")
+)
 
 type BufferFullError struct {
 	capacity int

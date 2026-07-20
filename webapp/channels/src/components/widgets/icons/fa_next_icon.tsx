@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 
 type Props = {
     additionalClassName?: string;
-}
+};
 
 const NextIcon = ({additionalClassName}: Props) => {
     const {formatMessage} = useIntl();

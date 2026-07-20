@@ -1,19 +1,25 @@
 {
     "compilerOptions": {
-        "esModuleInterop": true,
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "target": "es2022",
+        "lib": ["esnext", "dom"],
+        "types": ["node"],
+        "declaration": true,
+        "declarationDir": "dist",
         "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "composite": true,
         "strictNullChecks": true,
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": ".",
         "paths": {
-            "@mattermost/client/*": ["../../webapp/platform/client/lib/*"],
-            "@mattermost/types/*": ["../../webapp/platform/types/lib/*"],
-            "@e2e-support/*": ["support/*"],
-            "@e2e-test.config": ["test.config.ts"],
-            "@e2e-types": ["types.ts"]
+            "@/asset": ["./asset"]
         }
     },
     "include": ["./**/*"],
-    "exclude": ["playwright-report"]
+    "exclude": ["node_modules", "playwright-report", "lib"]
 }

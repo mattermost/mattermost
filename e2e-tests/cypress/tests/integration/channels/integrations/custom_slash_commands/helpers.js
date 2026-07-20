@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 export function addNewCommand(team, trigger, url) {
     // # Open slash command page
@@ -16,7 +16,7 @@ export function addNewCommand(team, trigger, url) {
     cy.apiGetChannelByName(team.name, 'town-square').then(({channel}) => {
         let urlToType = url;
         if (url === '') {
-            urlToType = `${Cypress.env('webhookBaseUrl')}/send_message_to_channel?channel_id=${channel.id}`;
+            urlToType = `${Cypress.expose('webhookBaseUrl')}/send_message_to_channel?channel_id=${channel.id}`;
         }
         cy.get('#url').type(urlToType);
 

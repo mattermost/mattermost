@@ -21,7 +21,7 @@ export async function inTextMentionSuggestions(pretext: string, store: Store, ch
     const separatedWords = pretext.split(' ');
     const incompleteLessLastWord = separatedWords.slice(0, -1).join(' ');
     const lastWord = separatedWords[separatedWords.length - 1];
-    if (lastWord.startsWith('@')) {
+    if (lastWord.startsWith('@') || lastWord.startsWith('＠')) {
         const {data} = await store.dispatch(autocompleteUsersInChannel(lastWord.substring(1), channelID));
         const users = await getUserSuggestions(data);
         users.forEach((u) => {
