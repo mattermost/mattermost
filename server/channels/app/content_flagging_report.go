@@ -98,7 +98,6 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	return nil
 }
 
-// writeDeliveryReceiptEntry is best-effort: a missing or failed receipt must never fail the report.
 func (a *App) writeDeliveryReceiptEntry(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID string) {
 	if !a.Config().PostDeliveryTrackingEnabled() {
 		return
