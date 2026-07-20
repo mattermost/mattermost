@@ -37,6 +37,11 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
+	// Space backing channels are internal and never surface in channel search.
+	if channel.IsSpace() {
+		return
+	}
+
 	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
@@ -175,8 +180,11 @@ func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToR
 		c.rootStore.indexUserFromID(rctx, userIdToRemove)
 	}
 
-	channel, err := c.ChannelStore.Get(channelID, true)
-	if err == nil {
+	// return the removal result, not the re-index Get's — that Get returns
+	// not-found for space backing channels (excluded from the generic Get)
+	// and must not mask a successful removal.
+	channel, getErr := c.ChannelStore.Get(channelID, true)
+	if getErr == nil {
 		c.indexChannel(rctx, channel)
 	}
 
