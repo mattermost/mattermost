@@ -8013,6 +8013,22 @@
     "translation": "Failed to evaluate permission policy."
   },
   {
+    "id": "app.plugin.access_control.get.app_error",
+    "translation": "Failed to get plugin access control settings."
+  },
+  {
+    "id": "app.plugin.access_control.invalid_body.app_error",
+    "translation": "Invalid plugin access control request body."
+  },
+  {
+    "id": "app.plugin.access_control.invalid_user_id.app_error",
+    "translation": "Invalid user ID in plugin access control allow-list."
+  },
+  {
+    "id": "app.plugin.access_control.set.app_error",
+    "translation": "Failed to set plugin access control settings."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

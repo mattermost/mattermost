@@ -444,7 +444,7 @@ func (a *App) getPluginManifestByID(pluginID string) *model.Manifest {
 // IsPluginVisibleToUser reports whether the given user may see (and call the external API of)
 // the given plugin. System admins always bypass the allow-list. Plugins that set
 // user_filtering: false in their manifest always return true. An empty/disabled ACL means
-// everyone may see the plugin.
+// everyone may see the plugin. Allowed users are stored in PluginAccessControlUsers.
 func (a *App) IsPluginVisibleToUser(rctx request.CTX, userID, pluginID string) bool {
 	if userID == "" || pluginID == "" {
 		return true
@@ -464,7 +464,72 @@ func (a *App) IsPluginVisibleToUser(rctx request.CTX, userID, pluginID string) b
 		return true
 	}
 
-	return slices.Contains(acl.AllowedUserIds, userID)
+	allowed, err := a.Srv().Store().PluginAccessControl().IsUserAllowed(rctx, pluginID, userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to check plugin access control; denying visibility",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return false
+	}
+	return allowed
+}
+
+// GetPluginAccessControl returns enable (from config) and allowed user IDs (from DB).
+func (a *App) GetPluginAccessControl(rctx request.CTX, pluginID string) (*model.PluginAccessControlSettings, *model.AppError) {
+	acl := a.Config().PluginSettings.PluginAccessControl[pluginID]
+	enable := acl != nil && acl.Enable != nil && *acl.Enable
+
+	userIDs, err := a.Srv().Store().PluginAccessControl().GetUserIDs(rctx, pluginID)
+	if err != nil {
+		return nil, model.NewAppError("GetPluginAccessControl", "app.plugin.access_control.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &model.PluginAccessControlSettings{
+		Enable:         enable,
+		AllowedUserIds: userIDs,
+	}, nil
+}
+
+// SetPluginAccessControl updates enable in config and replaces allowed users in the DB.
+func (a *App) SetPluginAccessControl(rctx request.CTX, pluginID string, settings *model.PluginAccessControlSettings) *model.AppError {
+	if settings == nil {
+		return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_body.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	seen := make(map[string]struct{}, len(settings.AllowedUserIds))
+	userIDs := make([]string, 0, len(settings.AllowedUserIds))
+	for _, userID := range settings.AllowedUserIds {
+		if !model.IsValidId(userID) {
+			return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_user_id.app_error", nil, "user_id="+userID, http.StatusBadRequest)
+		}
+		if _, ok := seen[userID]; ok {
+			continue
+		}
+		seen[userID] = struct{}{}
+		userIDs = append(userIDs, userID)
+	}
+
+	if err := a.Srv().Store().PluginAccessControl().SetUserIDs(rctx, pluginID, userIDs); err != nil {
+		return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.set.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.UpdateConfig(func(cfg *model.Config) {
+		if cfg.PluginSettings.PluginAccessControl == nil {
+			cfg.PluginSettings.PluginAccessControl = make(map[string]*model.PluginAccessControl)
+		}
+		cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
+			Enable: model.NewPointer(settings.Enable),
+		}
+	})
+
+	// Enable-only config changes already publish via OnConfigurationChange; always publish
+	// so DB-only user-list changes also refresh clients.
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginAccessControlChanged, "", "", "", nil, "")
+	a.Publish(message)
+
+	return nil
 }
 
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous

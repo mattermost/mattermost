@@ -6747,6 +6747,26 @@ func (c *Client4) EnablePlugin(ctx context.Context, id string) (*Response, error
 	return BuildResponse(r), nil
 }
 
+// GetPluginAccessControl returns the access-control settings for a plugin.
+func (c *Client4) GetPluginAccessControl(ctx context.Context, pluginID string) (*PluginAccessControlSettings, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginRoute(pluginID).Join("access_control"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PluginAccessControlSettings](r)
+}
+
+// SetPluginAccessControl updates the access-control settings for a plugin.
+func (c *Client4) SetPluginAccessControl(ctx context.Context, pluginID string, settings *PluginAccessControlSettings) (*Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.pluginRoute(pluginID).Join("access_control"), settings)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // DisablePlugin will disable an enabled plugin.
 func (c *Client4) DisablePlugin(ctx context.Context, id string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.pluginRoute(id).Join("disable"), "")

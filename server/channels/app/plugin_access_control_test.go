@@ -30,32 +30,30 @@ func TestIsPluginVisibleToUser(t *testing.T) {
 	})
 
 	t.Run("access control disabled means visible to everyone", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(false),
-				AllowedUserIds: []string{allowedUserID},
-			}
-		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+			Enable:         false,
+			AllowedUserIds: []string{allowedUserID},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, pluginID)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
 		})
 
 		assert.True(t, th.App.IsPluginVisibleToUser(th.Context, deniedUserID, pluginID))
 	})
 
 	t.Run("access control enabled filters to allowed users and admins", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(true),
-				AllowedUserIds: []string{allowedUserID},
-			}
-		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{allowedUserID},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, pluginID)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
 		})
 
 		assert.True(t, th.App.IsPluginVisibleToUser(th.Context, allowedUserID, pluginID))
@@ -64,16 +62,15 @@ func TestIsPluginVisibleToUser(t *testing.T) {
 	})
 
 	t.Run("empty user id returns true", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(true),
-				AllowedUserIds: []string{allowedUserID},
-			}
-		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{allowedUserID},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, pluginID)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
 		})
 
 		assert.True(t, th.App.IsPluginVisibleToUser(th.Context, "", pluginID))
@@ -82,15 +79,16 @@ func TestIsPluginVisibleToUser(t *testing.T) {
 	t.Run("opted-out plugin always visible even with access control enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-			cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(true),
-				AllowedUserIds: []string{allowedUserID},
-			}
 		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{allowedUserID},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, pluginID)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
 		})
 
 		path, _ := fileutils.FindDir("tests")

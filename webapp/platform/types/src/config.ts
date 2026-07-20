@@ -1002,7 +1002,11 @@ export type JobSettings = {
 
 export type PluginAccessControl = {
     Enable: boolean;
-    AllowedUserIds: string[];
+};
+
+export type PluginAccessControlSettings = {
+    enable: boolean;
+    allowed_user_ids: string[];
 };
 
 export type PluginSettings = {

@@ -662,16 +662,15 @@ func TestServePluginRequestAccessControl(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.PluginAccessControl[pluginID] = &model.PluginAccessControl{
-			Enable:         model.NewPointer(true),
-			AllowedUserIds: []string{th.BasicUser.Id},
-		}
-	})
+	require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+		Enable:         true,
+		AllowedUserIds: []string{th.BasicUser.Id},
+	}))
 	t.Cleanup(func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			delete(cfg.PluginSettings.PluginAccessControl, pluginID)
 		})
+		_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
 	})
 
 	t.Run("denied authenticated user gets 404", func(t *testing.T) {

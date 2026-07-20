@@ -85,6 +85,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -540,6 +541,10 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	}
 	if err := ch.removeSignature(id); err != nil {
 		logger.Warn("Can't remove signature", mlog.Err(err))
+	}
+
+	if err := ch.srv.Store().PluginAccessControl().DeleteByPlugin(request.EmptyContext(ch.srv.Log()), id); err != nil {
+		logger.Warn("Failed to delete plugin access control users", mlog.Err(err))
 	}
 
 	ch.notifyClusterPluginEvent(

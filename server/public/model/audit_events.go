@@ -296,6 +296,7 @@ const (
 	AuditEventInstallMarketplacePlugin            = "installMarketplacePlugin"            // install plugin from official marketplace
 	AuditEventInstallPluginFromURL                = "installPluginFromURL"                // install plugin from external URL
 	AuditEventRemovePlugin                        = "removePlugin"                        // delete plugin
+	AuditEventSetPluginAccessControl              = "setPluginAccessControl"              // set per-plugin UI/API allow-list
 	AuditEventSetFirstAdminVisitMarketplaceStatus = "setFirstAdminVisitMarketplaceStatus" // set first admin visit status
 	AuditEventUploadPlugin                        = "uploadPlugin"                        // upload plugin file to server for installation
 )

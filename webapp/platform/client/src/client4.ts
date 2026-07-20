@@ -54,6 +54,7 @@ import type {
     AllowedIPRange,
     FetchIPResponse,
     LdapSettings, ContentFlaggingSettings,
+    PluginAccessControlSettings,
 } from '@mattermost/types/config';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
@@ -4187,6 +4188,20 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             this.getPluginRoute(pluginId),
             {method: 'delete'},
+        );
+    };
+
+    getPluginAccessControl = (pluginId: string) => {
+        return this.doFetch<PluginAccessControlSettings>(
+            `${this.getPluginRoute(pluginId)}/access_control`,
+            {method: 'get'},
+        );
+    };
+
+    setPluginAccessControl = (pluginId: string, settings: PluginAccessControlSettings) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPluginRoute(pluginId)}/access_control`,
+            {method: 'put', body: JSON.stringify(settings)},
         );
     };
 

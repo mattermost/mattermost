@@ -7,9 +7,10 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
-import type {AdminConfig, PluginAccessControl} from '@mattermost/types/config';
+import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {Client4} from 'mattermost-redux/client';
 import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -194,11 +195,17 @@ type PluginItemProps = {
     hasSettings: boolean;
     appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
-    accessControl?: PluginAccessControl;
-    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControl) => void;
+    accessControl?: PluginAccessControlUI;
+    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControlUI) => void;
 };
 
-const emptyAccessControl = (): PluginAccessControl => ({
+// UI state includes allowed users; only Enable is persisted via config.
+type PluginAccessControlUI = {
+    Enable: boolean;
+    AllowedUserIds: string[];
+};
+
+const emptyAccessControl = (): PluginAccessControlUI => ({
     Enable: false,
     AllowedUserIds: [],
 });
@@ -212,9 +219,9 @@ const PluginAccessControlSettings = ({
 }: {
     pluginId: string;
     userFiltering?: boolean;
-    accessControl?: PluginAccessControl;
+    accessControl?: PluginAccessControlUI;
     isDisabled?: boolean;
-    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControl) => void;
+    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControlUI) => void;
 }) => {
     if (userFiltering === false) {
         return (
@@ -616,10 +623,14 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-    pluginAccessControl: Record<string, PluginAccessControl>;
+    pluginAccessControl: Record<string, PluginAccessControlUI>;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
+
+    // Captured in getConfigFromState so handleSaved still has AllowedUserIds after
+    // doSubmit reloads state from Enable-only config.
+    private accessControlSaveSnapshot: Record<string, PluginAccessControlUI> | null = null;
     constructor(props: Props) {
         super(props);
 
@@ -652,23 +663,38 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
             config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
 
-            const accessControl: Record<string, PluginAccessControl> = {};
+            const accessControl: Record<string, {Enable: boolean}> = {};
+            const snapshot: Record<string, PluginAccessControlUI> = {};
             Object.entries(this.state.pluginAccessControl || {}).forEach(([pluginId, acl]) => {
                 if (this.props.plugins?.[pluginId]?.user_filtering === false) {
                     return;
                 }
                 accessControl[pluginId] = {
                     Enable: Boolean(acl.Enable),
-                    AllowedUserIds: acl.AllowedUserIds || [],
+                };
+                snapshot[pluginId] = {
+                    Enable: Boolean(acl.Enable),
+                    AllowedUserIds: [...(acl.AllowedUserIds || [])],
                 };
             });
             config.PluginSettings.PluginAccessControl = accessControl;
+            this.accessControlSaveSnapshot = snapshot;
         }
 
         return config;
     };
 
     getStateFromConfig(config: Props['config']): Partial<State> {
+        const fromConfig = (config?.PluginSettings?.PluginAccessControl || {}) as Record<string, {Enable?: boolean}>;
+        const previous = this.state?.pluginAccessControl || {};
+        const pluginAccessControl: Record<string, PluginAccessControlUI> = {};
+        Object.entries(fromConfig).forEach(([pluginId, acl]) => {
+            pluginAccessControl[pluginId] = {
+                Enable: Boolean(acl?.Enable),
+                AllowedUserIds: previous[pluginId]?.AllowedUserIds || [],
+            };
+        });
+
         return {
             enable: config?.PluginSettings?.Enable,
             enableUploads: config?.PluginSettings?.EnableUploads,
@@ -678,7 +704,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
-            pluginAccessControl: (config?.PluginSettings?.PluginAccessControl as Record<string, PluginAccessControl> | undefined) || {},
+            pluginAccessControl,
         };
     }
 
@@ -688,12 +714,77 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 this.props.actions.getPluginStatuses(),
                 this.props.actions.getPlugins(),
             ]).then(
-                () => this.setState({loading: false}),
+                () => {
+                    this.loadPluginAccessControlUsers();
+                    this.setState({loading: false});
+                },
             );
         }
     }
 
-    handlePluginAccessControlChange = (pluginId: string, accessControl: PluginAccessControl) => {
+    loadPluginAccessControlUsers = async () => {
+        const plugins = this.props.plugins || {};
+        const pluginIds = Object.keys(plugins).filter((id) => plugins[id]?.user_filtering !== false);
+        if (pluginIds.length === 0) {
+            return;
+        }
+
+        const results = await Promise.all(pluginIds.map(async (pluginId) => {
+            try {
+                const settings = await Client4.getPluginAccessControl(pluginId);
+                return [pluginId, settings] as const;
+            } catch {
+                return [pluginId, null] as const;
+            }
+        }));
+
+        this.setState((prevState) => {
+            const pluginAccessControl = {...prevState.pluginAccessControl};
+            results.forEach(([pluginId, settings]) => {
+                if (!settings) {
+                    return;
+                }
+                pluginAccessControl[pluginId] = {
+                    Enable: settings.enable,
+                    AllowedUserIds: settings.allowed_user_ids || [],
+                };
+            });
+            return {pluginAccessControl};
+        });
+    };
+
+    handleSaved = () => {
+        const snapshot = this.accessControlSaveSnapshot || this.state.pluginAccessControl || {};
+        this.accessControlSaveSnapshot = null;
+        this.persistPluginAccessControlUsers(snapshot);
+    };
+
+    private persistPluginAccessControlUsers = (snapshot: Record<string, PluginAccessControlUI>) => {
+        const entries = Object.entries(snapshot);
+        Promise.all(entries.map(async ([pluginId, acl]) => {
+            if (this.props.plugins?.[pluginId]?.user_filtering === false) {
+                return;
+            }
+            try {
+                await Client4.setPluginAccessControl(pluginId, {
+                    enable: Boolean(acl.Enable),
+                    allowed_user_ids: acl.AllowedUserIds || [],
+                });
+            } catch {
+                // Config enable flag was already saved; surface a soft error for user-list sync failures.
+                this.setState({
+                    serverError: this.props.intl.formatMessage({
+                        id: 'admin.plugin.accessControl.saveUsersError',
+                        defaultMessage: 'Failed to save allowed users for one or more plugins.',
+                    }),
+                });
+            }
+        })).catch(() => {
+            // Individual failures already set serverError above.
+        });
+    };
+
+    handlePluginAccessControlChange = (pluginId: string, accessControl: PluginAccessControlUI) => {
         this.setState((prevState) => ({
             pluginAccessControl: {
                 ...prevState.pluginAccessControl,

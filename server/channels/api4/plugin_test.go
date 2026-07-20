@@ -327,16 +327,15 @@ func TestGetWebappPluginsAccessControl(t *testing.T) {
 	})
 
 	t.Run("filters denied users when access control enabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginAccessControl[manifest.Id] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(true),
-				AllowedUserIds: []string{th.BasicUser.Id},
-			}
-		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, manifest.Id, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{th.BasicUser.Id},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, manifest.Id)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, manifest.Id)
 		})
 
 		th.LoginBasic(t)
@@ -350,16 +349,15 @@ func TestGetWebappPluginsAccessControl(t *testing.T) {
 	})
 
 	t.Run("opted-out plugin always returned", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginAccessControl[manifest.Id] = &model.PluginAccessControl{
-				Enable:         model.NewPointer(true),
-				AllowedUserIds: []string{th.BasicUser.Id},
-			}
-		})
+		require.Nil(t, th.App.SetPluginAccessControl(th.Context, manifest.Id, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{th.BasicUser.Id},
+		}))
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				delete(cfg.PluginSettings.PluginAccessControl, manifest.Id)
 			})
+			_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, manifest.Id)
 		})
 
 		env := th.App.GetPluginsEnvironment()

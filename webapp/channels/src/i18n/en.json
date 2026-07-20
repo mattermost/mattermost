@@ -2669,6 +2669,7 @@
   "admin.plugin.accessControl.everyone": "Everyone",
   "admin.plugin.accessControl.help": "Control which users can see this plugin in the product menu and app bar. System Administrators always have access.",
   "admin.plugin.accessControl.optedOut": "This plugin does not support user filtering.",
+  "admin.plugin.accessControl.saveUsersError": "Failed to save allowed users for one or more plugins.",
   "admin.plugin.accessControl.selectedUsers": "Only selected users",
   "admin.plugin.accessControl.title": "UI access",
   "admin.plugin.backToPlugins": "Go back to the Plugins",

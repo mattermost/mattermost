@@ -63,6 +63,7 @@ type Store interface {
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
 	ChannelGuard() ChannelGuardStore
+	PluginAccessControl() PluginAccessControlStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -1107,6 +1108,20 @@ type ChannelGuardStore interface {
 	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
 	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
 	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
+}
+
+// PluginAccessControlUser is a row asserting that a user is on a plugin's allow-list.
+type PluginAccessControlUser struct {
+	PluginId string
+	UserId   string
+	CreateAt int64
+}
+
+type PluginAccessControlStore interface {
+	IsUserAllowed(rctx request.CTX, pluginID, userID string) (bool, error)
+	GetUserIDs(rctx request.CTX, pluginID string) ([]string, error)
+	SetUserIDs(rctx request.CTX, pluginID string, userIDs []string) error
+	DeleteByPlugin(rctx request.CTX, pluginID string) error
 }
 
 type DraftStore interface {

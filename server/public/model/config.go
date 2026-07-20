@@ -3631,11 +3631,18 @@ type PluginState struct {
 	Enable bool
 }
 
-// PluginAccessControl configures per-plugin UI/API allow-lists.
+// PluginAccessControl configures whether a plugin's per-user allow-list is active.
 // When Enable is false or unset, the plugin is visible to everyone.
+// Allowed user IDs live in the PluginAccessControlUsers table, not in config.
 type PluginAccessControl struct {
-	Enable         *bool
-	AllowedUserIds []string
+	Enable *bool
+}
+
+// PluginAccessControlSettings is the admin API view of a plugin's access control
+// (enable from config + allowed users from DB).
+type PluginAccessControlSettings struct {
+	Enable         bool     `json:"enable"`
+	AllowedUserIds []string `json:"allowed_user_ids"`
 }
 
 type PluginSettings struct {
