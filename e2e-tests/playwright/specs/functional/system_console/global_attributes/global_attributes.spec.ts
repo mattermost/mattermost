@@ -98,9 +98,7 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
         await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
         // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
         // renders in both places, so each is asserted within its own scope)
-        await expect(
-            systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
-        ).toBeVisible();
+        await expect(systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes')).toBeVisible();
         await expect(
             systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
         ).toBeVisible();
