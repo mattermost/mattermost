@@ -44,21 +44,21 @@ test(
         await dialog.toBeDoneLoading();
 
         // * The row offers "Request to join" rather than a Join button
-        await dialog.toHaveRequestToJoinButton(channel.name);
+        await dialog.toHaveRequestToJoinButton(channel.display_name);
 
         // # Request to join and confirm in the modal
-        await dialog.clickRequestToJoin(channel.name);
+        await dialog.clickRequestToJoin(channel.display_name);
         await expect(channelsPage.page.getByRole('button', {name: 'Send Request'})).toBeVisible();
         await channelsPage.page.getByRole('button', {name: 'Send Request'}).click();
 
         // * The row flips to the pending "Withdraw" state
-        await dialog.toHaveWithdrawButton(channel.name);
+        await dialog.toHaveWithdrawButton(channel.display_name);
 
         // # Withdraw the request
-        await dialog.clickWithdraw(channel.name);
+        await dialog.clickWithdraw(channel.display_name);
 
         // * The row returns to the "Request to join" state
-        await dialog.toHaveRequestToJoinButton(channel.name);
+        await dialog.toHaveRequestToJoinButton(channel.display_name);
     },
 );
 

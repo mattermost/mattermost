@@ -46,23 +46,23 @@ export default class BrowseChannelsModal {
         expect(await row.getAttribute('data-testid')).toEqual(`ChannelRow-${channelName}`);
     }
 
-    getChannelRow(channelName: string): Locator {
-        return this.results.locator(`[data-testid="ChannelRow-${channelName}"]`);
+    getChannelRow(channelDisplayName: string): Locator {
+        return this.results.locator('.more-modal__row').filter({hasText: channelDisplayName});
     }
 
-    async clickRequestToJoin(channelName: string) {
-        await this.getChannelRow(channelName).getByText('Request to join').click();
+    async clickRequestToJoin(channelDisplayName: string) {
+        await this.getChannelRow(channelDisplayName).getByText('Request to join').click();
     }
 
-    async clickWithdraw(channelName: string) {
-        await this.getChannelRow(channelName).getByText('Withdraw', {exact: true}).click();
+    async clickWithdraw(channelDisplayName: string) {
+        await this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true}).click();
     }
 
-    async toHaveWithdrawButton(channelName: string) {
-        await expect(this.getChannelRow(channelName).getByText('Withdraw', {exact: true})).toBeVisible();
+    async toHaveWithdrawButton(channelDisplayName: string) {
+        await expect(this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true})).toBeVisible();
     }
 
-    async toHaveRequestToJoinButton(channelName: string) {
-        await expect(this.getChannelRow(channelName).getByText('Request to join')).toBeVisible();
+    async toHaveRequestToJoinButton(channelDisplayName: string) {
+        await expect(this.getChannelRow(channelDisplayName).getByText('Request to join')).toBeVisible();
     }
 }
