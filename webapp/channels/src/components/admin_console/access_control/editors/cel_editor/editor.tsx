@@ -14,7 +14,7 @@ import {Client4} from 'mattermost-redux/client';
 import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {TestButton, TestChannelSelect, TestResults, referencesResourceAttributes, HelpText} from '../shared';
+import {TestButton, TestResults, HelpText} from '../shared';
 
 import './editor.scss';
 
@@ -190,10 +190,6 @@ function CELEditor({
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
-
-    // Channel picked via the inline selector to test a resource.attributes.*
-    // rule against, when this editor has no channel scope of its own.
-    const [testChannelId, setTestChannelId] = useState('');
 
     // Store the handleChange callback in a ref to avoid recreating the editor
     const handleChangeRef = useRef<(value: string) => void>();
@@ -410,12 +406,6 @@ function CELEditor({
         }
     }, [editorState.validationErrors]);
 
-    // A rule comparing against the accessed channel's attributes needs a
-    // concrete channel to resolve those values. When this editor has no
-    // channel scope, the admin picks one inline to test against.
-    const needsTestChannel = !channelId && referencesResourceAttributes(editorState.expression);
-    const effectiveTestChannelId = channelId || testChannelId;
-
     return (
         <div className={`cel-editor ${className}`}>
             <MonacoLanguageProvider schemas={schemas}/>
@@ -488,25 +478,15 @@ function CELEditor({
                     </div>
                 </div>
                 <div className='access-control-test-controls'>
-                    {needsTestChannel && (
-                        <TestChannelSelect
-                            onChange={setTestChannelId}
-                            disabled={disabled}
-                        />
-                    )}
                     <TestButton
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
-                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating || (needsTestChannel && !testChannelId)}
+                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
                         disabledTooltip={
-                            (needsTestChannel && !testChannelId && intl.formatMessage({
-                                id: 'admin.access_control.test.select_channel_tooltip',
-                                defaultMessage: 'Select a channel to test this rule against',
-                            })) ||
-                            (hasMaskedRows ? intl.formatMessage({
+                            hasMaskedRows ? intl.formatMessage({
                                 id: 'admin.access_control.cel_editor.masked_values_tooltip',
                                 defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) : undefined)
+                            }) : undefined
                         }
                     />
                 </div>
@@ -514,13 +494,13 @@ function CELEditor({
             {/* Built-in expression-only modal. Suppressed when the
               * parent provided an `onTestClick` override (used by the
               * permission-rule editor, which renders its own dual-lane
-              * SimulateAccessModal). effectiveTestChannelId resolves
-              * resource.attributes.* rules against this editor's channel or the
-              * one picked inline. */}
+              * SimulateAccessModal). With no channelId, a resource.attributes.*
+              * rule gets a channel-picker step inside the modal before the
+              * members list. */}
             {!onTestClick && editorState.showTestResults && (
                 <TestResults
                     expression={editorState.expression}
-                    channelId={effectiveTestChannelId}
+                    channelId={channelId}
                     teamId={teamId}
                     isStacked={true}
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}

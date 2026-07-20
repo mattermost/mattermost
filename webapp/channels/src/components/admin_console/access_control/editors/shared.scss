@@ -54,18 +54,12 @@
     }
 }
 
-// Groups the inline "test against" channel picker with the Test button on the
-// right of an editor's action row.
+// Positions the Test button on the right of an editor's action row.
 .access-control-test-controls {
     display: flex;
     flex-shrink: 0;
     align-items: center;
     gap: 8px;
-}
-
-.access-control-test-channel-select {
-    min-width: 240px;
-    text-align: left;
 }
 
 .editor__help-text {

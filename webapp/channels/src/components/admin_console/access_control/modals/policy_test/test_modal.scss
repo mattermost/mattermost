@@ -19,4 +19,118 @@
             opacity: 0.8;
         }
     }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+    }
+}
+
+.TestChannelPicker {
+    display: flex;
+    flex-direction: column;
+
+    &__search {
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        margin: 12px 0;
+
+        .icon-magnify {
+            margin-right: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 18px;
+        }
+    }
+
+    &__search-input {
+        height: 40px;
+        flex: 1;
+        padding: 0 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: transparent;
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            outline: none;
+        }
+    }
+
+    &__list {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    &__empty {
+        padding: 32px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-align: center;
+    }
+
+    &__row {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 8px 20px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            outline: none;
+        }
+    }
+
+    &__row-icon {
+        flex: 0 0 auto;
+        margin-right: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    &__row-text {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+    }
+
+    &__row-name {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__row-team {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
