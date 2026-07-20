@@ -83,6 +83,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'clearance',
+                attribute_object_type: 'user',
                 operator: 'is at least',
                 values: [],
                 attribute_type: 'rank',
@@ -110,6 +111,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'note',
+                attribute_object_type: 'user',
                 operator: 'is',
                 values: ['resource.attributes.minClearance'],
                 attribute_type: 'text',
@@ -375,6 +377,61 @@ describe('parseExpression with multiselect attributes', () => {
                 values: ['JavaScript'],
                 attribute_type: 'multiselect',
                 hasMaskedValues: false,
+            },
+        ]);
+    });
+
+    test('maps a hasAnyOf channel-attribute target to a targetAttribute row', () => {
+        // A multiselect list-vs-list comparison is stored as a member call, so
+        // the visual AST surfaces its RHS as an attribute reference (value_type
+        // 1) pointing at resource.attributes.* rather than a literal list.
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: 'hasAnyOf',
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'programs',
+                attribute_object_type: 'user',
+                operator: 'has any of',
+                values: [],
+                attribute_type: 'multiselect',
+                hasMaskedValues: false,
+                targetAttribute: 'channelPrograms',
+            },
+        ]);
+    });
+
+    test('maps a hasAllOf channel-attribute target to a targetAttribute row', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.skills',
+                    operator: 'hasAllOf',
+                    value: 'resource.attributes.requiredSkills',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'skills',
+                attribute_object_type: 'user',
+                operator: 'has all of',
+                values: [],
+                attribute_type: 'multiselect',
+                hasMaskedValues: false,
+                targetAttribute: 'requiredSkills',
             },
         ]);
     });
@@ -651,6 +708,43 @@ describe('rowToCEL', () => {
         expect(cel).toBe('user.attributes.department in ["Eng"]');
     });
 
+    test('has_any_of with a channel-attribute target emits the member-function form', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: [],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe('user.attributes.programs.hasAnyOf(resource.attributes.channelPrograms)');
+    });
+
+    test('has_all_of with a channel-attribute target emits the member-function form', () => {
+        const cel = rowToCEL({
+            attribute: 'skills',
+            operator: 'has all of',
+            values: [],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+            targetAttribute: 'requiredSkills',
+        });
+        expect(cel).toBe('user.attributes.skills.hasAllOf(resource.attributes.requiredSkills)');
+    });
+
+    test('has_any_of keeps the literal in-chain when there is no target', () => {
+        // The channel-attribute-target form and the literal-value form share the
+        // same operator; only the presence of targetAttribute selects between them.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: ['Dragon', 'Phoenix'],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('("Dragon" in user.attributes.programs || "Phoenix" in user.attributes.programs)');
+    });
+
     test('"contains" operator produces method call', () => {
         const cel = rowToCEL({
             attribute: 'email',
@@ -795,6 +889,53 @@ describe('rowToCEL', () => {
             attribute_type: 'text',
             hasMaskedValues: false,
         })).toBe('user.attributes.department == "Eng"');
+    });
+});
+
+describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
+    // A multiselect user attribute may be compared against a channel attribute
+    // (the member-function form) or against literal option values (the in-chain
+    // form). Both operators must survive a full AST -> row -> CEL round-trip in
+    // each form so a saved rule re-renders and re-serializes identically.
+    test.each(['hasAnyOf', 'hasAllOf'])('%s against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+    });
+
+    test.each([
+        ['hasAnyOf', '("Dragon" in user.attributes.programs || "Phoenix" in user.attributes.programs)'],
+        ['hasAllOf', '"Dragon" in user.attributes.programs && "Phoenix" in user.attributes.programs'],
+    ])('%s against literal values keeps the in-chain form', (celFn, expected) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: ['Dragon', 'Phoenix'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBeUndefined();
+        expect(rows[0].values).toEqual(['Dragon', 'Phoenix']);
+        expect(rowToCEL(rows[0])).toBe(expected);
     });
 });
 
@@ -1107,6 +1248,16 @@ describe('isSimpleCondition', () => {
 
     test.each(['==', '!=', '>=', '>', '<=', '<'])('comparison %s against a resource attribute is simple', (op) => {
         expect(isSimpleCondition(`user.attributes.clearance ${op} resource.attributes.minClearance`)).toBe(true);
+    });
+
+    test.each(['hasAnyOf', 'hasAllOf'])('%s against a resource attribute is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.channelPrograms)`)).toBe(true);
+    });
+
+    test('rejects hasAnyOf/hasAllOf with a literal (non-resource) argument', () => {
+        // The engine only ever produces the resource-target form; a literal
+        // argument is not a shape the table editor round-trips.
+        expect(isSimpleCondition('user.attributes.programs.hasAnyOf("Dragon")')).toBe(false);
     });
 
     test('rejects a resource attribute on the left side', () => {

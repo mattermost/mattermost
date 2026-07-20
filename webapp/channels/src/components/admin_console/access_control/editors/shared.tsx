@@ -239,6 +239,12 @@ export function isSimpleCondition(s: string): boolean {
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
 
+        // Multiselect list-vs-list against the accessed channel's attribute,
+        // stored verbatim as a member call: the receiver is the user's
+        // multiselect attribute and the single argument is a resource.attributes.*
+        // selector (never a literal — that form is the in-chain above).
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(resource\.attributes\.\w+\)$/) ||
+
         // Native user attributes (single segment after `user.`). Restricted to
         // the field/operator pairings the table editor can round-trip: boolean
         // equality for verified/isbot, string operators for email, and

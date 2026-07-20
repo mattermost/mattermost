@@ -22,7 +22,6 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import TestResultsModal from '../../modals/policy_test/test_modal';
 import {AddAttributeButton, TestButton, TestChannelSelect, TestResults, referencesResourceAttributes, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
@@ -57,6 +56,15 @@ export function rowToCEL(row: TableRow): string {
     // (is / is not / the ranked ordinals) take an attribute target.
     if (row.targetAttribute && config && config.type === 'comparison') {
         return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
+    }
+
+    // A multiselect list-vs-list comparison against a channel attribute is stored
+    // verbatim as a member-function call the engine holds as-is:
+    // user.attributes.X.hasAnyOf(resource.attributes.Y). The literal-value
+    // in-chain (below) still applies when the row has no targetAttribute.
+    if (row.targetAttribute && isMultiselectOperator(row.operator)) {
+        const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
+        return `${attributeExpr}.${fn}(resource.attributes.${row.targetAttribute})`;
     }
 
     // native_method (e.g. youngerThanDays) takes an unquoted integer argument.
@@ -654,9 +662,10 @@ function TableEditor({
                 values: newValues,
             };
 
-            // A resource target is only valid for comparison operators; drop it
-            // when moving to a list/method operator (e.g. "in", "starts with").
-            if (OPERATOR_CONFIG[newOperator]?.type !== 'comparison') {
+            // A resource target is valid only for comparison operators and the
+            // multiselect list operators (has any of / has all of); drop it when
+            // moving to any other operator (e.g. "in", "starts with").
+            if (OPERATOR_CONFIG[newOperator]?.type !== 'comparison' && !isMultiselectOperator(newOperator)) {
                 newRows[index].targetAttribute = undefined;
             }
 
@@ -764,7 +773,14 @@ function TableEditor({
                             // resource target rather than literal value(s).
                             const targets = comparableChannelFields(field);
                             const isTargetMode = Boolean(row.targetAttribute);
-                            const supportsTarget = OPERATOR_CONFIG[row.operator]?.type === 'comparison' && targets.length > 0;
+
+                            // Comparison operators target any comparable channel
+                            // field; the multiselect list operators (has any of /
+                            // has all of) target a multiselect channel field
+                            // (list-vs-list). comparableChannelFields already
+                            // enforces the shared option scale.
+                            const supportsTarget = targets.length > 0 &&
+                                (OPERATOR_CONFIG[row.operator]?.type === 'comparison' || isMultiselectOperator(row.operator));
                             const cellDisabled = disabled || row.hasMaskedValues;
                             return (
                                 <tr
