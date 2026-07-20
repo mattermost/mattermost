@@ -2908,6 +2908,77 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		require.NotNil(t, integration)
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/plugin", integration.URL)
 	})
+
+	t.Run("integration session can modify mm_blocks_actions on its own post", func(t *testing.T) {
+		// A bot editing its OWN post over REST may change its buttons — this is
+		// the case the freeze previously blocked with no available flag.
+		botPost := &model.Post{
+			Message:       "bot post for own-post edit",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		// Integration session belonging to the post's own bot author.
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+		require.True(t, ownCtx.Session().IsIntegration())
+
+		newInline := buildMmBlocksActionsProp(
+			"refreshed",
+			"http://127.0.0.1/plugins/myplugin/refreshed",
+			map[string]any{"k": "new"},
+		)
+		edit := created.Clone()
+		edit.Message = "refreshed message"
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		// The new value lands; the old one is gone.
+		refreshed := updated.GetMmBlocksActionSpec("refreshed")
+		require.NotNil(t, refreshed, "bot editing its own post should be able to change mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/refreshed", refreshed.URL)
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"))
+		assert.Equal(t, "refreshed message", updated.Message)
+	})
+
+	t.Run("own-post edit without the prop preserves existing mm_blocks_actions", func(t *testing.T) {
+		// A message-only edit by the bot must not wipe its buttons — the update
+		// carries no mm_blocks_actions, so the original is preserved.
+		botPost := &model.Post{
+			Message:       "bot post for message-only edit",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+
+		edit := created.Clone()
+		edit.Message = "message only change"
+		edit.DelProp(model.PostPropsMmBlocksActions)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		keep := updated.GetMmBlocksActionSpec("keep")
+		require.NotNil(t, keep, "message-only edit must not wipe existing mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", keep.URL)
+		assert.Equal(t, "message only change", updated.Message)
+	})
 }
 
 // TestCreateWebhookPostKeepsMmBlocksActions locks the contract that an
