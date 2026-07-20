@@ -6,7 +6,9 @@ export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
+export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
+export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
 export {duration, getRandomId, wait, newTestPassword} from './util';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
@@ -14,10 +16,13 @@ export {
     getAdminClient,
     mergeWithOnPremServerConfig,
     getOnPremServerConfig,
+    getRecentEmail,
+    extractEmailLink,
     isWebhookTestServerReachable,
     setupWebhookTestServer,
     PlaywrightClient4,
 } from './server';
+export type {InbucketEmail} from './server';
 
 export {
     ChannelsPage,
@@ -70,7 +75,10 @@ export {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    WysiwygEditor,
 } from './ui/components';
+
+export {setWysiwygUserPreference, WYSIWYG_PREF_CATEGORY, WYSIWYG_PREF_NAME} from './wysiwyg_helpers';
 
 export {TextInputSetting} from './ui/components/system_console/base_components';
 

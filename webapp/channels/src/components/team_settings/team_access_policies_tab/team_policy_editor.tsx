@@ -623,7 +623,7 @@ export default function TeamPolicyEditor({
                                     {hasChannels() ? (
                                         <FormattedMessage
                                             id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                            defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                            defaultMessage='Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy'
                                         />
                                     ) : (
                                         <FormattedMessage

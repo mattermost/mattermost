@@ -59,17 +59,62 @@ test.describe('Mobile view RHS auto-focus', () => {
         const {user} = await pw.initSetup();
 
         // # Log in as the test user
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         // # Visit a default channel page
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
         // # Click the mobile channel header search button to open the search RHS
-        await page.locator('#navbar').getByRole('button', {name: 'Search', exact: true}).click();
+        await channelsPage.mobileNavbar.openSearch();
         await channelsPage.sidebarRight.toBeVisible();
 
         // * Verify the mobile RHS search input is focused
-        await expect(page.locator('#sbrSearchBox')).toBeFocused();
+        await expect(channelsPage.sidebarRight.mobileSearchInput).toBeFocused();
     });
+
+    /**
+     * @objective Verify that in narrow/mobile view, the channel header shows an icon-only Search
+     * button; clicking it opens the RHS search panel where a search can be performed, and closing
+     * the panel returns to the icon-only Search button.
+     */
+    test(
+        'MM-T349 MM-T369 search icon in narrow view opens search, searches, and closes back to icon',
+        {tag: '@search'},
+        async ({pw}) => {
+            const {user} = await pw.initSetup();
+
+            // # Log in as the test user
+            const {channelsPage} = await pw.testBrowser.login(user);
+
+            // # Visit a default channel page and post a message to search for
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
+            const message = `test message for narrow view search ${pw.random.id()}`;
+            await channelsPage.centerView.postCreate.postMessage(message);
+
+            // * Verify the icon-only Search button is shown in the narrow-width header
+            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+
+            // # Click it to open the RHS search panel
+            await channelsPage.mobileNavbar.openSearch();
+            await channelsPage.sidebarRight.toBeVisible();
+            const {mobileSearchInput} = channelsPage.sidebarRight;
+            await expect(mobileSearchInput).toBeFocused();
+
+            // # Perform a search
+            await mobileSearchInput.fill(message);
+            await mobileSearchInput.press('Enter');
+
+            // * Verify search results appear
+            await channelsPage.searchResultsPanel.toContainText(message);
+
+            // # Close the search panel
+            await channelsPage.sidebarRight.closeMobile();
+
+            // * Verify it collapses back to the icon-only Search button
+            await expect(channelsPage.sidebarRight.container).not.toBeVisible();
+            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+        },
+    );
 });

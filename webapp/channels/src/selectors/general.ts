@@ -40,6 +40,16 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     return accessControlSettings.EnableAttributeBasedAccessControl;
 }
 
+// Team-membership ABAC requires both the main ABAC toggle and the
+// dedicated team kill-switch flag. The team flag ships dark so team
+// enforcement can roll out independently of channel ABAC (already GA).
+export function isTeamMembershipAccessControlEnabled(state: GlobalState): boolean {
+    const accessControlSettings = getAccessControlSettings(state);
+    const config = getConfig(state);
+    return accessControlSettings.EnableAttributeBasedAccessControl &&
+        config?.FeatureFlagTeamMembershipAccessControl === 'true';
+}
+
 // Whether the channel access-control attribute indicators (the attribute
 // tags shown in the members RHS and invite modal banners) should be shown to
 // end users. Admins can disable these to avoid leaking policy details.

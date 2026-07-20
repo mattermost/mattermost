@@ -538,7 +538,10 @@ function TableEditor({
     }, [updateExpression]);
 
     return (
-        <div className='table-editor'>
+        <div
+            className='table-editor'
+            data-testid='table-editor'
+        >
             <table className='table-editor__table'>
                 <thead>
                     <tr className='table-editor__header-row'>

@@ -5,7 +5,8 @@
 
 .field-selector-menu-button {
     width: 100%;
-    height: 40px;
+    height: auto;
+    min-height: 40px;
     justify-content: start;
     border: none;
     font-weight: normal;
@@ -33,9 +34,13 @@
 }
 
 .value-selector-menu-button {
+    // Chips wrap onto new lines within the fixed-width Values cell so the
+    // table never expands horizontally past the modal. The row grows
+    // vertically to fit however many values are added.
     &__multi-values-container {
         display: flex;
         overflow: hidden;
+        min-width: 0;
         flex-grow: 1;
         flex-wrap: wrap;
         gap: 2px;
@@ -44,6 +49,7 @@
     &__inner-wrapper {
         display: flex;
         width: 100%;
+        min-width: 0;
         align-items: center;
         justify-content: space-between;
     }
@@ -77,6 +83,7 @@
     .select__multi-value {
         display: flex;
         height: 24px;
+        flex: 0 0 auto;
         align-items: center;
         border-radius: 4px;
         margin: 2px;
