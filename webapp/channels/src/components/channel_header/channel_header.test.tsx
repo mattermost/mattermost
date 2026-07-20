@@ -84,6 +84,18 @@ describe('components/ChannelHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should render properly when there are pending join requests', () => {
+        const props = {
+            ...populatedProps,
+            hasPendingJoinRequests: true,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
     test('should render properly when populated with channel props', () => {
         const props = {
             ...baseProps,
