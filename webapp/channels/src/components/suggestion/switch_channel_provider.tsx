@@ -851,13 +851,7 @@ export default class SwitchChannelProvider extends Provider {
                     wrappedChannel.unread = true;
                 }
 
-                if (isDiscoverableChannelsEnabled(state) &&
-                    newChannel.type === Constants.PRIVATE_CHANNEL &&
-                    'discoverable' in newChannel && newChannel.discoverable &&
-                    !members[newChannel.id]) {
-                    wrappedChannel.discoverableNonMember = true;
-                    wrappedChannel.hasPendingJoinRequest = Boolean(getMyPendingJoinRequestsByChannel(state)[newChannel.id]);
-                }
+                this.applyDiscoverableFlags(wrappedChannel, newChannel, state, Boolean(members[newChannel.id]));
 
                 completedChannels[channel.id] = true;
                 channels.push(wrappedChannel);
@@ -1007,6 +1001,21 @@ export default class SwitchChannelProvider extends Provider {
         );
     }
 
+    // Flags a wrapped channel as a discoverable private channel the user is not
+    // a member of, so Quick Switch routes it to the Request to Join flow rather
+    // than the legacy private-channel join confirmation. This must run on every
+    // channel-list path (search, recent, unread); otherwise non-search rows drop
+    // the flag and fall through to the broken join flow (MM-68764).
+    private applyDiscoverableFlags(wrappedChannel: WrappedChannel, channel: ChannelItem, state: GlobalState, isMember: boolean) {
+        if (isDiscoverableChannelsEnabled(state) &&
+            channel.type === Constants.PRIVATE_CHANNEL &&
+            'discoverable' in channel && channel.discoverable &&
+            !isMember) {
+            wrappedChannel.discoverableNonMember = true;
+            wrappedChannel.hasPendingJoinRequest = Boolean(getMyPendingJoinRequestsByChannel(state)[channel.id]);
+        }
+    }
+
     wrapChannels(channels: Channel[], channelType: string) {
         const state = this.store.getState();
         const currentChannel = getCurrentChannel(state);
@@ -1044,6 +1053,8 @@ export default class SwitchChannelProvider extends Provider {
             if (unread) {
                 wrappedChannel.unread = true;
             }
+
+            this.applyDiscoverableFlags(wrappedChannel, channel, state, Boolean(member));
 
             wrappedChannel.type = channelType;
             channelList.push(wrappedChannel);
