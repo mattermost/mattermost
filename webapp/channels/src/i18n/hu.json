@@ -3690,7 +3690,7 @@
   "post_info.unpin": "Kitűzés eltávolítása a csatornáról",
   "post_info.unread": "Olvasatlannak jelöl",
   "post_message_preview.channel": "Csak a ~{channel} csatorna felhasználói láthatják",
-  "post_message_view.edited": "Szerkesztett",
+  "post_message_view.edited": "(szerkesztett)",
   "post_pre_header.flagged": "Mentett",
   "post_pre_header.pinned": "Kitűzött",
   "postlist.toast.history": "Üzenet előzmények megtekintése",
