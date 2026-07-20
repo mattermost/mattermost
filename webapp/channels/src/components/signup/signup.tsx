@@ -74,7 +74,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const inviteId = params.get('id') ?? '';
     const data = params.get('d');
     const parsedData: Record<string, string> = data ? JSON.parse(data) : {};
-    const {email: parsedEmail, name: parsedTeamName} = parsedData;
+    const {email: parsedEmail, name: parsedTeamName, username: parsedUsername, first_name: parsedFirstName, last_name: parsedLastName} = parsedData;
 
     const config = useSelector(getConfig);
     const {
@@ -126,7 +126,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts && !enableUserCreation;
 
     const [email, setEmail] = useState(parsedEmail ?? '');
-    const [name, setName] = useState('');
+    const [name, setName] = useState(parsedUsername ?? '');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(Boolean(inviteId));
     const [isWaiting, setIsWaiting] = useState(false);
@@ -249,6 +249,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         setServerError(errorMessage || formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'}));
+        setIsWaiting(false);
         setLoading(false);
     };
 
@@ -367,6 +368,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [emailError, nameError, passwordError, submitClicked]);
 
+    useEffect(() => {
+        if (parsedEmail && parsedUsername) {
+            passwordInput.current?.focus();
+        }
+    }, [parsedEmail, parsedUsername]);
+
     if (loading) {
         return (<LoadingScreen/>);
     }
@@ -407,6 +414,22 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 })}
             </p>
         );
+    };
+
+    const getUsernameCustomMessage = (): CustomMessageInputType => {
+        if (nameError) {
+            return {type: ItemStatus.ERROR, value: nameError};
+        }
+        if (parsedUsername) {
+            return {
+                type: ItemStatus.INFO,
+                value: formatMessage({id: 'signup_user_completed.usernameIs', defaultMessage: 'Your username was chosen by your admin.'}),
+            };
+        }
+        return {
+            type: ItemStatus.INFO,
+            value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
+        };
     };
 
     const handleEmailOnChange = ({target: {value: email}}: React.ChangeEvent<HTMLInputElement>) => {
@@ -567,6 +590,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             const {data, error} = await dispatch(createUser(user, token, inviteId, redirectTo));
 
             if (error) {
+                if (parsedUsername && error.server_error_id === 'app.user.save.username_exists.app_error') {
+                    handleInvalidInvite(error);
+                    return;
+                }
+
                 setAlertBanner({
                     mode: 'danger' as ModeType,
                     title: (error as ServerError).message,
@@ -692,6 +720,17 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             <h2 className='signup-body-card-title'>
                                 {getCardTitle()}
                             </h2>
+                            {(parsedFirstName || parsedLastName) && (
+                                <p
+                                    className='signup-body-card-preset-name'
+                                    data-testid='signup-body-card-preset-name'
+                                >
+                                    {formatMessage(
+                                        {id: 'signup_user_completed.presetName', defaultMessage: "You'll join as {fullName}."},
+                                        {fullName: [parsedFirstName, parsedLastName].filter(Boolean).join(' ')},
+                                    )}
+                                </p>
+                            )}
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner
@@ -716,7 +755,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             defaultMessage: 'Email address',
                                         })}
                                         disabled={isWaiting || Boolean(parsedEmail)}
-                                        autoFocus={true}
+                                        autoFocus={!parsedEmail}
                                         customMessage={emailCustomLabelForInput}
                                     />
                                     <Input
@@ -731,14 +770,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             id: 'signup_user_completed.chooseUser',
                                             defaultMessage: 'Choose a Username',
                                         })}
-                                        disabled={isWaiting}
-                                        autoFocus={Boolean(parsedEmail)}
-                                        customMessage={
-                                            nameError ? {type: ItemStatus.ERROR, value: nameError} : {
-                                                type: ItemStatus.INFO,
-                                                value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
-                                            }
-                                        }
+                                        disabled={isWaiting || Boolean(parsedUsername)}
+                                        autoFocus={Boolean(parsedEmail) && !parsedUsername}
+                                        customMessage={getUsernameCustomMessage()}
                                     />
                                     <PasswordInput
                                         ref={passwordInput}

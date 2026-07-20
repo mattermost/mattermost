@@ -42,8 +42,32 @@ We highly recommend working with your Mattermost Account Team to plan for a migr
 
 </Important>
 
-```{mermaid}
+<div className="release-policy-gantt">
 
+```mermaid
+---
+config:
+  gantt:
+    fontSize: 22
+    sectionFontSize: 22
+    barHeight: 38
+    barGap: 6
+    topPadding: 22
+    leftPadding: 60
+    gridLineStartPadding: 22
+  themeVariables:
+    sectionBkgColor: '#ffffff'
+    altSectionBkgColor: '#ffffff'
+    tertiaryColor: '#ffffff'
+    primaryColor: '#0984e3'
+    doneTaskBkgColor: '#0984e3'
+    activeTaskBkgColor: '#0984e3'
+    critBkgColor: '#d63031'
+    taskTextColor: '#ffffff'
+    taskTextDarkColor: '#ffffff'
+    taskTextLightColor: '#ffffff'
+    lineColor: '#0745a1'
+---
 gantt
     dateFormat  YYYY-MM-DD
     axisFormat  %b %y
@@ -63,6 +87,8 @@ gantt
     v11.8                  :active, 2026-06-16, 2026-09-15
     v11.9                  :active, 2026-07-16, 2026-10-15
 ```
+
+</div>
 
 **Timeline Legend:**
 The chart above shows both release dates and end-of-life dates for each version. ESRs provide longer-term stability for organizations preferring less frequent updates.

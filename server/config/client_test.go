@@ -799,6 +799,26 @@ func TestGetClientConfig(t *testing.T) {
 	}
 }
 
+func TestGenerateClientConfigLockProfileFieldsForEmailUsers(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		license  *model.License
+		expected string
+	}{
+		"unlicensed":   {expected: model.TeamSettingsLockProfileFieldsNone},
+		"professional": {license: model.NewTestLicenseSKU(model.LicenseShortSkuProfessional), expected: model.TeamSettingsLockProfileFieldsNone},
+		"enterprise":   {license: model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise), expected: model.TeamSettingsLockProfileFieldsAll},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := &model.Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = model.NewPointer(model.TeamSettingsLockProfileFieldsAll)
+
+			clientConfig := GenerateClientConfig(config, "", testCase.license)
+			assert.Equal(t, testCase.expected, clientConfig["LockProfileFieldsForEmailUsers"])
+		})
+	}
+}
+
 func TestGetLimitedClientConfig(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {

@@ -31,35 +31,45 @@ exports[`components/SingleImageView permalink preview should render with permali
             class="image-permalink"
           >
             <div
-              class="image-loading__container image-permalink"
-              style="max-width: 350px;"
+              class="file-preview__button"
             >
-              <div
-                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              <figure
+                class="image-loaded-container"
               >
                 <div
-                  class="file__image-loading"
+                  class="image-loading__container"
                 >
-                  <span
-                    class="LoadingSpinner"
-                    data-testid="loadingSpinner"
-                    id="loadingSpinner"
+                  <div
+                    style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                   >
-                    <span
-                      class="fa fa-spinner fa-fw fa-pulse spinner"
-                      title="Loading Icon"
-                    />
-                  </span>
-                  <span
-                    class="loader-percent"
+                    <div
+                      class="file__image-loading"
+                    >
+                      <span
+                        class="LoadingSpinner"
+                        data-testid="loadingSpinner"
+                        id="loadingSpinner"
+                      >
+                        <span
+                          class="fa fa-spinner fa-fw fa-pulse spinner"
+                          title="Loading Icon"
+                        />
+                      </span>
+                      <span
+                        class="loader-percent"
+                      />
+                    </div>
+                  </div>
+                  <img
+                    aria-label="file thumbnail name"
+                    class="image-loading__placeholder image-permalink"
+                    height="200"
+                    role="presentation"
+                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
+                    width="350"
                   />
                 </div>
-              </div>
-              <svg
-                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
-                viewBox="0 0 350 200"
-                xmlns="http://www.w3.org/2000/svg"
-              />
+              </figure>
             </div>
             <div
               class="file-preview__button"
@@ -75,7 +85,7 @@ exports[`components/SingleImageView permalink preview should render with permali
                   tabindex="0"
                 />
                 <span
-                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                  class="image-preview-utility-buttons-container"
                 >
                   <a
                     aria-label="Download"
@@ -142,35 +152,45 @@ exports[`components/SingleImageView should match snapshot 1`] = `
             class=""
           >
             <div
-              class="image-loading__container "
-              style="max-width: 350px;"
+              class="file-preview__button"
             >
-              <div
-                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              <figure
+                class="image-loaded-container"
               >
                 <div
-                  class="file__image-loading"
+                  class="image-loading__container"
                 >
-                  <span
-                    class="LoadingSpinner"
-                    data-testid="loadingSpinner"
-                    id="loadingSpinner"
+                  <div
+                    style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                   >
-                    <span
-                      class="fa fa-spinner fa-fw fa-pulse spinner"
-                      title="Loading Icon"
-                    />
-                  </span>
-                  <span
-                    class="loader-percent"
+                    <div
+                      class="file__image-loading"
+                    >
+                      <span
+                        class="LoadingSpinner"
+                        data-testid="loadingSpinner"
+                        id="loadingSpinner"
+                      >
+                        <span
+                          class="fa fa-spinner fa-fw fa-pulse spinner"
+                          title="Loading Icon"
+                        />
+                      </span>
+                      <span
+                        class="loader-percent"
+                      />
+                    </div>
+                  </div>
+                  <img
+                    aria-label="file thumbnail name"
+                    class="image-loading__placeholder"
+                    height="200"
+                    role="presentation"
+                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
+                    width="350"
                   />
                 </div>
-              </div>
-              <svg
-                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
-                viewBox="0 0 350 200"
-                xmlns="http://www.w3.org/2000/svg"
-              />
+              </figure>
             </div>
             <div
               class="file-preview__button"
@@ -186,7 +206,7 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                   tabindex="0"
                 />
                 <span
-                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                  class="image-preview-utility-buttons-container"
                 >
                   <a
                     aria-label="Download"
@@ -254,7 +274,7 @@ exports[`components/SingleImageView should match snapshot 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"
@@ -334,35 +354,45 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
             class=""
           >
             <div
-              class="image-loading__container "
-              style="max-width: 350px;"
+              class="file-preview__button"
             >
-              <div
-                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+              <figure
+                class="image-loaded-container"
               >
                 <div
-                  class="file__image-loading"
+                  class="image-loading__container"
                 >
-                  <span
-                    class="LoadingSpinner"
-                    data-testid="loadingSpinner"
-                    id="loadingSpinner"
+                  <div
+                    style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                   >
-                    <span
-                      class="fa fa-spinner fa-fw fa-pulse spinner"
-                      title="Loading Icon"
-                    />
-                  </span>
-                  <span
-                    class="loader-percent"
+                    <div
+                      class="file__image-loading"
+                    >
+                      <span
+                        class="LoadingSpinner"
+                        data-testid="loadingSpinner"
+                        id="loadingSpinner"
+                      >
+                        <span
+                          class="fa fa-spinner fa-fw fa-pulse spinner"
+                          title="Loading Icon"
+                        />
+                      </span>
+                      <span
+                        class="loader-percent"
+                      />
+                    </div>
+                  </div>
+                  <img
+                    aria-label="file thumbnail name_svg"
+                    class="image-loading__placeholder"
+                    height="200"
+                    role="presentation"
+                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
+                    width="350"
                   />
                 </div>
-              </div>
-              <svg
-                style="max-height: 200px; max-width: 350px; vertical-align: middle;"
-                viewBox="0 0 350 200"
-                xmlns="http://www.w3.org/2000/svg"
-              />
+              </figure>
             </div>
             <div
               class="file-preview__button"
@@ -379,7 +409,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                   tabindex="0"
                 />
                 <span
-                  class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image image-preview-utility-buttons-container--small-image-no-copy-button"
+                  class="image-preview-utility-buttons-container"
                 >
                   <a
                     aria-label="Download"
@@ -448,7 +478,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"
@@ -529,7 +559,7 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"
