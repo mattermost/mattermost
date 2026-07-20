@@ -77,14 +77,16 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         await triggerSyncJob(adminClient, policyId);
         await waitForPolicySyncJob(adminClient, policyId);
 
-        // SQL sync lane on a private channel with an active policy:
+        // SQL sync lane on a private channel governed by the assigned policy:
         //  - the non-matching (eu) member is removed,
         //  - the matching (us) member stays,
-        //  - the matching (us) user who was only in the team is auto-added —
-        //    an active private-channel policy pulls in matching team members.
+        //  - the matching (us) user who was only in the team is NOT pulled in —
+        //    enforcement (remove/block) runs off the child existing, but the
+        //    auto-add pass is gated by the child's Active flag, which a manually
+        //    assigned channel materializes off by default (global auto-add is opt-in).
         expect(await verifyUserInChannel(adminClient, matchingUserInChannel.id, channel.id)).toBe(true);
         expect(await verifyUserInChannel(adminClient, nonMatchingUserInChannel.id, channel.id)).toBe(false);
-        expect(await verifyUserInChannel(adminClient, matchingUserNotInChannel.id, channel.id)).toBe(true);
+        expect(await verifyUserInChannel(adminClient, matchingUserNotInChannel.id, channel.id)).toBe(false);
 
         // Runtime lane agrees with the sync result: re-adding the matching user
         // succeeds, while adding the non-matching user is blocked.
