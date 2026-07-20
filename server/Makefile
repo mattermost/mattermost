@@ -163,7 +163,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v2.4.2
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.0-rc1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
@@ -177,7 +177,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.11.0%2B931852a-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.4.2%2B1305067-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.0-rc1%2B666ae7a-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.0%2Bd454327-fips
 endif
 
