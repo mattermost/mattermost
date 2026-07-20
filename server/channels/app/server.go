@@ -267,6 +267,9 @@ func NewServer(options ...Option) (*Server, error) {
 			callerID, _ := CallerIDFromRequestContext(rctx)
 			return callerID
 		},
+		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
+			return model.PropertyRequestOptionsFromContext(rctx.Context())
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")
@@ -345,6 +348,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
+
+	// Generic property value audit hook — groups opt in with RegisterGroup.
+	// The CPA group registers a content-level audit sink here.
+	valueAuditHook := properties.NewPropertyValueAuditHook()
+	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
+	s.propertyService.AddHook(valueAuditHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.
 	// Only "user" has a per-type cap today; when channel/team/post CPA fields
@@ -1599,6 +1608,11 @@ func (s *Server) initJobs() {
 	if jobsAccessControlSyncJobInterface != nil {
 		builder := jobsAccessControlSyncJobInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if jobsAccessControlTeamSyncJobInterface != nil {
+		builder := jobsAccessControlTeamSyncJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeAccessControlTeamSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	if pushProxyInterface != nil {

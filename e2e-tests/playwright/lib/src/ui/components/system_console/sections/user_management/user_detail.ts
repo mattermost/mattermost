@@ -124,6 +124,8 @@ class AdminUserCard {
     // System field inputs (scoped via wrapping <label> to avoid substring ambiguity)
     readonly usernameInput: Locator;
     readonly emailInput: Locator;
+    readonly firstNameInput: Locator;
+    readonly lastNameInput: Locator;
     readonly authDataInput: Locator;
     readonly authenticationMethod: Locator;
 
@@ -150,6 +152,8 @@ class AdminUserCard {
         // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
         this.usernameInput = this.getFieldInputByExactLabel('Username');
         this.emailInput = this.getFieldInputByExactLabel('Email');
+        this.firstNameInput = this.getFieldInputByExactLabel('First Name');
+        this.lastNameInput = this.getFieldInputByExactLabel('Last Name');
         this.authDataInput = this.getFieldInputByExactLabel('Auth Data');
         this.authenticationMethod =
             this.getFieldColumn('Authentication Method').getByTestId('authenticationMethodValue');

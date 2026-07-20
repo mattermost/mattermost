@@ -758,6 +758,23 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Lock profile fields for email users
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '44%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls whether users who sign in with email and password can change their own profile fields under <strong>Settings &gt; Profile</strong>. System admins are always exempt and can edit any user's profile through the System Console or the API. Users authenticating through an external provider (AD/LDAP, SAML, or OAuth) aren't affected; their fields remain governed by the provider's attribute settings.</p><ul><li><strong>Don't lock profile fields</strong>: <strong>(Default)</strong> Users can change all of their profile fields. <code>config.json</code> option: <code>"none"</code>.</li><li><strong>Lock name and username</strong>: Users cannot change their first name, last name, or username. <code>config.json</code> option: <code>"name_and_username"</code>.</li><li><strong>Lock entire profile</strong>: Additionally locks the nickname, position, and profile picture. Email stays editable because it's the sign-in credential, protected by password re-entry and verification. <code>config.json</code> option: <code>"all"</code>.</li></ul><p>Empty first and last names can be filled in once by the user, so people who join through a team invite link or open server signup aren't left without a name. Once set, the name is locked.</p><p>When this setting is enabled, anyone with the <strong>Invite Users</strong> permission can pre-set the first name, last name, and username for each email invitation they send. The invited person sees the pre-set username on the account creation page and cannot change it. We recommend restricting the <strong>Invite Users</strong> permission through <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fadvanced-permissions">advanced permissions</a> to people trusted to enter this information correctly.</p><p>For a display name convention of "First Last" across the workspace, combine this setting with <strong>Teammate Name Display</strong> set to <strong>Show first and last name</strong> and <strong>Lock Teammate Name Display</strong> set to <strong>true</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>LockProfileFieldsForEmailUsers</code> &gt; <code>none</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_LOCKPROFILEFIELDSFOREMAILUSERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Allow users to view archived channels
 
 <table>
