@@ -21,6 +21,7 @@ export default class ChannelsPage {
     readonly page: Page;
 
     readonly globalHeader;
+    readonly mobileNavbar;
     readonly userAccountMenuButton;
     readonly searchBox;
     readonly centerView;
@@ -75,6 +76,7 @@ export default class ChannelsPage {
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
+        this.mobileNavbar = new components.ChannelsMobileNavbar(page.locator('#navbar'));
         this.searchBox = new components.SearchBox(page.locator('#searchBox'));
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
