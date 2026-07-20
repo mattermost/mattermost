@@ -25,6 +25,30 @@ func celSafeName() string {
 	return "f_" + model.NewId()
 }
 
+func TestPopulateAccessControlPolicyChildCounts(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil policy is a no-op", func(t *testing.T) {
+		// Must not panic on a nil policy.
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, nil)
+	})
+
+	t.Run("non-parent policy is left untouched", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeTeam}
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, policy)
+		assert.Nil(t, policy.Props, "child counts must only be stamped on parent policies")
+	})
+
+	t.Run("parent policy with no children gets zeroed counts and empty child_ids", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeParent}
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, policy)
+		require.NotNil(t, policy.Props)
+		assert.Equal(t, 0, policy.Props["channel_count"])
+		assert.Equal(t, 0, policy.Props["team_count"])
+		assert.Equal(t, []string{}, policy.Props["child_ids"])
+	})
+}
+
 func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
 	tb.Helper()
 	th := SetupWithStoreMock(tb)

@@ -543,6 +543,8 @@ func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, acces
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
 		rctx.Logger().Warn("error removing access data token from session", mlog.Err(err))
 	}
+	// Clear the cache so the old token stops being accepted immediately.
+	a.ClearSessionCacheForUser(user.Id)
 
 	session, err := a.newSession(rctx, app, user)
 	if err != nil {
