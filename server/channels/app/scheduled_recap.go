@@ -35,11 +35,8 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
-	if appErr := a.validateRecapChannelPermissions(rctx, recap.UserId, recap.ChannelIds, "CreateScheduledRecap"); appErr != nil {
-		return nil, appErr
-	}
-
-	// Limit enforcement: Check user's limits before allowing creation
+	// Limit enforcement: Check user's limits before allowing creation.
+	// The channel count check runs first so it bounds the permission check below.
 	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
@@ -56,6 +53,10 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 				},
 				"", http.StatusBadRequest)
 		}
+	}
+
+	if appErr := a.validateRecapChannelPermissions(rctx, recap.ChannelIds, "CreateScheduledRecap"); appErr != nil {
+		return nil, appErr
 	}
 
 	// Compute NextRunAt before saving
@@ -149,10 +150,6 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
-	if appErr := a.validateRecapChannelPermissions(rctx, sessionUserID, recap.ChannelIds, "UpdateScheduledRecap"); appErr != nil {
-		return nil, appErr
-	}
-
 	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
@@ -165,6 +162,10 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 				"Requested": len(recap.ChannelIds),
 			},
 			"", http.StatusBadRequest)
+	}
+
+	if appErr := a.validateRecapChannelPermissions(rctx, recap.ChannelIds, "UpdateScheduledRecap"); appErr != nil {
+		return nil, appErr
 	}
 
 	// If enabled, recompute NextRunAt
@@ -360,11 +361,9 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 	return updatedRecap, nil
 }
 
-func (a *App) validateRecapChannelPermissions(rctx request.CTX, userID string, channelIDs []string, where string) *model.AppError {
-	for _, channelID := range channelIDs {
-		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
-			return model.NewAppError(where, "app.recap.permission_denied", nil, "", http.StatusForbidden)
-		}
+func (a *App) validateRecapChannelPermissions(rctx request.CTX, channelIDs []string, where string) *model.AppError {
+	if !a.SessionHasPermissionToChannels(rctx, *rctx.Session(), channelIDs, model.PermissionReadChannel) {
+		return model.NewAppError(where, "app.recap.permission_denied", nil, "", http.StatusForbidden)
 	}
 
 	return nil

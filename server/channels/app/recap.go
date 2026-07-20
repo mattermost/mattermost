@@ -23,20 +23,19 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 	userID := rctx.Session().UserId
 
-	// Validate user is member of all channels
-	for _, channelID := range channelIDs {
-		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
-			return nil, model.NewAppError("CreateRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
-		}
-	}
-
 	limits, err := a.GetEffectiveLimits()
 	if err != nil {
 		return nil, err
 	}
 
+	// The channel count check runs first so it bounds the permission check below.
 	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
 		return nil, recapMaxChannelsExceededError("CreateRecap", limits.MaxChannelsPerRecap, len(channelIDs))
+	}
+
+	// Validate user can read all channels
+	if appErr := a.validateRecapChannelPermissions(rctx, channelIDs, "CreateRecap"); appErr != nil {
+		return nil, appErr
 	}
 
 	if appErr := a.checkManualRecapCooldown(userID, limits, "CreateRecap"); appErr != nil {
