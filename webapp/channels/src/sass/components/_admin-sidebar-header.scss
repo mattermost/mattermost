@@ -1,73 +1,66 @@
 @use "utils/mixins";
-@use "utils/variables";
 
 .AdminSidebarHeader {
+    position: relative;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 18px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
 
-    > div {
-        &:first-child {
-            position: relative;
+    > img {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: 36px;
+        margin-left: -4px;
+    }
+
+    .header__info {
+        @include mixins.clearfix;
+
+        position: relative;
+        width: 100%;
+        flex-grow: 1;
+        color: var(--sys-sidebar-text);
+
+        .team__name {
             display: flex;
-            align-items: center;
-            padding: 18px 20px;
-            cursor: pointer;
-            gap: 8px;
+            overflow: hidden;
+            max-width: 100%;
+            font-family: Metropolis, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 20px;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        > img {
-            width: 36px;
-            min-width: 36px;
-            height: 36px;
-            flex-shrink: 0;
-            border-radius: 36px;
-            margin-left: -4px;
-        }
-
-        .header__info {
-            @include mixins.clearfix;
-
-            position: relative;
-            width: 100%;
-            flex-grow: 1;
-            color: var(--sys-sidebar-text);
-
-            .team__name {
-                display: flex;
-                overflow: hidden;
-                max-width: 100%;
-                font-family: Metropolis, sans-serif;
-                font-size: 16px;
-                font-weight: 600;
-                line-height: 20px;
-                text-decoration: none;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .user__name {
-                color: rgba(var(--sys-sidebar-text-rgb), 0.75);
-                font-weight: 400;
-                line-height: 16px;
-            }
-        }
-
-        .menu-icon {
-            padding: 8px;
-            margin-right: -8px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
-        }
-
-        &:hover {
-            background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
-
-            .menu-icon {
-                fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
-            }
+        .user__name {
+            color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+            font-weight: 400;
+            line-height: 16px;
         }
     }
 
-    .Menu {
-        position: absolute;
-        top: 60px;
-        left: 16px;
+    &:hover {
+        background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
     }
+}
+
+// Parent menu: 8px inset from the sidebar edge; min-width = sidebar width - 16px
+.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu) > .MuiPaper-root {
+    min-width: calc(264px - 16px);
+    margin-inline-start: 8px;
+}
+
+// Switch teams submenu matches the parent min-width
+.MuiPopover-root.menu_menuStyled:has(#adminConsoleSwitchTeamsMenu) > .MuiPaper-root {
+    min-width: calc(264px - 16px);
 }
