@@ -40,7 +40,7 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	}
 
 	// Limit enforcement: Check user's limits before allowing creation
-	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
 	}
@@ -153,7 +153,7 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, appErr
 	}
 
-	limits, limitsErr := a.GetEffectiveLimits(sessionUserID)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
 	}
@@ -219,7 +219,7 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		ScheduledRecapId:  sr.Id,
 	}
 
-	limits, limitsErr := a.GetEffectiveLimits(sr.UserId)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
 	}

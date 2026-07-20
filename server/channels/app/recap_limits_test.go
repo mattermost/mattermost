@@ -16,7 +16,7 @@ func TestGetEffectiveLimitsDefaults(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Ensure defaults are set (they should be by default)
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.Nil(t, appErr)
 	require.NotNil(t, limits)
 
@@ -44,7 +44,7 @@ func TestGetEffectiveLimitsWithDisabledToggle(t *testing.T) {
 		cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(false)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.Nil(t, appErr)
 	require.NotNil(t, limits)
 
@@ -72,7 +72,7 @@ func TestGetEffectiveLimitsWithCustomDefaults(t *testing.T) {
 		cfg.AIRecapSettings.DefaultLimits.MaxPostsPerRecap = model.NewPointer(1000)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.Nil(t, appErr)
 	require.NotNil(t, limits)
 
@@ -104,7 +104,7 @@ func TestGetEffectiveLimitsAllTogglesDisabled(t *testing.T) {
 		cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(false)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.Nil(t, appErr)
 	require.NotNil(t, limits)
 
@@ -134,7 +134,7 @@ func TestGetEffectiveLimitsMasterToggleDisabled(t *testing.T) {
 		cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.NotNil(t, appErr)
 	require.Nil(t, limits)
 	require.Equal(t, "api.recap.disabled.app_error", appErr.Id)
@@ -149,7 +149,7 @@ func TestGetEffectiveLimitsFeatureFlagDisabled(t *testing.T) {
 		cfg.AIRecapSettings.Enable = model.NewPointer(true)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.NotNil(t, appErr)
 	require.Nil(t, limits)
 	require.Equal(t, "api.recap.disabled.app_error", appErr.Id)
@@ -165,7 +165,7 @@ func TestGetEffectiveLimitsUnlimitedConfigValue(t *testing.T) {
 		cfg.AIRecapSettings.DefaultLimits.MaxRecapsPerDay = model.NewPointer(-1)
 	})
 
-	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	limits, appErr := th.App.GetEffectiveLimits()
 	require.Nil(t, appErr)
 	require.NotNil(t, limits)
 

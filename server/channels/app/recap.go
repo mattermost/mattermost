@@ -30,7 +30,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		}
 	}
 
-	limits, err := a.GetEffectiveLimits(userID)
+	limits, err := a.GetEffectiveLimits()
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 		channelIDs[i] = channel.ChannelId
 	}
 
-	limits, limitsErr := a.GetEffectiveLimits(userID)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return nil, limitsErr
 	}
@@ -522,7 +522,7 @@ func (a *App) checkManualRecapCooldown(userID string, limits *model.EffectiveRec
 func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *model.AppError) {
 	const defaultFetchLimit = 100
 
-	limits, limitsErr := a.GetEffectiveLimits(userID)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return 0, limitsErr
 	}
@@ -560,7 +560,7 @@ func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *mo
 // model.UnlimitedValue (-1) when token enforcement is disabled. It mirrors
 // getRemainingPostsForRecap but is per-channel (see ProcessRecapChannelWithOptions).
 func (a *App) getRemainingTokensForRecap(userID string) (int, *model.AppError) {
-	limits, limitsErr := a.GetEffectiveLimits(userID)
+	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return 0, limitsErr
 	}

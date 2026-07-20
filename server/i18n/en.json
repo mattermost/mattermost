@@ -3455,10 +3455,6 @@
     "translation": "This feature is not enabled."
   },
   {
-    "id": "api.recap.get_limit_status.app_error",
-    "translation": "Unable to get recap limit status."
-  },
-  {
     "id": "api.recap.permission_denied",
     "translation": "You do not have permission to access this recap."
   },

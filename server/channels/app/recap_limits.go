@@ -43,9 +43,9 @@ func (a *App) requireAIRecapsEnabled(where string) *model.AppError {
 }
 
 // GetRecapLimitStatus returns the current user's limit status for UI display
-func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error) {
+func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, *model.AppError) {
 	// Get effective limits
-	limits, appErr := a.GetEffectiveLimits(userID)
+	limits, appErr := a.GetEffectiveLimits()
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -60,7 +60,7 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 	// Count daily usage (excluding skipped)
 	dailyCount, err := a.Srv().Store().Recap().CountForUserSince(userID, startOfDay.UnixMilli())
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetRecapLimitStatus", "app.recap.get_daily_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Calculate cooldown status
@@ -68,7 +68,7 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 	if limits.CooldownMinutes > 0 {
 		lastRecap, err := a.Srv().Store().Recap().GetLastCompletedManualRecap(userID)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("GetRecapLimitStatus", "app.recap.cooldown_check_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if lastRecap != nil {
 			cooldownEnd := lastRecap.CreateAt + int64(limits.CooldownMinutes)*60*1000
@@ -91,8 +91,8 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 	}, nil
 }
 
-// GetEffectiveLimits returns the resolved recap limits for a given user.
-func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError) {
+// GetEffectiveLimits returns the system-wide resolved recap limits.
+func (a *App) GetEffectiveLimits() (*model.EffectiveRecapLimits, *model.AppError) {
 	if appErr := a.requireAIRecapsEnabled("GetEffectiveLimits"); appErr != nil {
 		return nil, appErr
 	}
