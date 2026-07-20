@@ -17,7 +17,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Set pending commit status
-        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        uses: mattermost/actions/delivery/update-commit-status@c7a06bc642f72fc227deb2cae3af03cff72c0f0d
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -45,7 +45,7 @@ jobs:
     needs:
       - deploy
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+      - uses: mattermost/actions/delivery/update-commit-status@c7a06bc642f72fc227deb2cae3af03cff72c0f0d
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -61,7 +61,7 @@ jobs:
     needs:
       - deploy
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+      - uses: mattermost/actions/delivery/update-commit-status@c7a06bc642f72fc227deb2cae3af03cff72c0f0d
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

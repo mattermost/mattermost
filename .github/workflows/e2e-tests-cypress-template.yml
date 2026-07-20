@@ -147,7 +147,7 @@ jobs:
       start_time: ${{ steps.matrix.outputs.start_time }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -209,7 +209,7 @@ jobs:
       contents: read
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -221,7 +221,7 @@ jobs:
         # cypress's postinstall, not into node_modules). Both must be cached;
         # otherwise workers see "cypress npm package installed but binary missing".
         id: cache-cypress
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             e2e-tests/cypress/node_modules
@@ -243,13 +243,13 @@ jobs:
       statuses: write
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@81017b2d568d1fc1f1fdaa7299b177fae53c63e1 # 2026-05-16
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -300,7 +300,7 @@ jobs:
         # Sparse-checkout just .github/actions from the triggering ref (master)
         # so the composite action below is available before the full checkout
         # overwrites the workspace with inputs.commit_sha.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
           sparse-checkout: .github/actions
@@ -308,7 +308,7 @@ jobs:
       - name: ci/runner-prep-for-openldap
         uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -318,7 +318,7 @@ jobs:
         with:
           read-only: "true"
       - name: ci/restore-cypress-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             e2e-tests/cypress/node_modules
@@ -332,7 +332,7 @@ jobs:
         working-directory: e2e-tests
         run: make start-server
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@81017b2d568d1fc1f1fdaa7299b177fae53c63e1 # 2026-05-16
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -347,7 +347,7 @@ jobs:
         run: make cloud-teardown
       - name: ci/upload-debug-artifacts
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
           path: |
@@ -371,13 +371,13 @@ jobs:
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@81017b2d568d1fc1f1fdaa7299b177fae53c63e1 # 2026-05-16
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
