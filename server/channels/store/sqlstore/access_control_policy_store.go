@@ -32,6 +32,10 @@ type accessControlPolicyV0_1 struct {
 	// AppliesToAllChannels rides in the Data jsonb; queried via containment
 	// (Data @> '{"applies_to_all_channels": true}') to list all-channels parents.
 	AppliesToAllChannels bool `json:"applies_to_all_channels,omitempty"`
+	// AutoAdd is the all-channels global auto-add switch. It rides in the Data jsonb
+	// (not the Props column) so a toggle persists: Save only writes when Data changes,
+	// and Props-only edits are dropped by the unchanged-Data fast-path.
+	AutoAdd bool `json:"auto_add,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -71,6 +75,7 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		policy.Scope = p.Scope
 		policy.ScopeID = p.ScopeID
 		policy.AppliesToAllChannels = p.AppliesToAllChannels
+		policy.AutoAdd = p.AutoAdd
 	}
 
 	if len(s.Props) > 0 {
@@ -94,6 +99,7 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 		Scope:                policy.Scope,
 		ScopeID:              policy.ScopeID,
 		AppliesToAllChannels: policy.AppliesToAllChannels,
+		AutoAdd:              policy.AutoAdd,
 	})
 	if err != nil {
 		return nil, err

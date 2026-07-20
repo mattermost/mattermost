@@ -1276,15 +1276,28 @@ func requireChildAbsent(t *testing.T, th *TestHelper, channelID string) {
 	require.True(t, errors.As(err, &nfErr), "expected no policy row for channel %s", channelID)
 }
 
+// setParentAutoAdd flips the global auto-add switch on an already-saved parent by
+// writing straight to the store (bypassing the CreateOrUpdate cascade), so a test
+// can stage a materialization state before exercising a hook.
+func setParentAutoAdd(t *testing.T, th *TestHelper, parent *model.AccessControlPolicy, autoAdd bool) {
+	t.Helper()
+	parent.AutoAdd = autoAdd
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parent)
+	require.NoError(t, err)
+}
+
 func TestUpdateAccessControlPoliciesActiveAllChannelsCascade(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.AttributeValueMasking = false
 	}).InitBasic(t)
 
 	parent := saveActiveAllChannelsParent(t, th)
+	// Global auto-add on, so materialized children start active. A child's Active
+	// gates only the auto-add pass; it tracks the parent's AutoAdd, not its Active.
+	setParentAutoAdd(t, th, parent, true)
 	wireWriteThroughAllChannelsACS(t, th)
 
-	// The create hook materializes an active child on each private channel.
+	// The create hook materializes a child on each private channel, seeded from AutoAdd.
 	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 	ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
@@ -1294,21 +1307,76 @@ func TestUpdateAccessControlPoliciesActiveAllChannelsCascade(t *testing.T) {
 	requireChildActive(t, th, ch1.Id, parent.ID, true)
 	requireChildActive(t, th, ch2.Id, parent.ID, true)
 
-	// Deactivating the parent flips every child inactive.
+	// The parent's own Active is the enforce/materialize gate, decoupled from
+	// auto-add: toggling it must NOT change the children's auto-add (Active).
 	_, appErr := th.App.UpdateAccessControlPoliciesActive(th.Context, []model.AccessControlPolicyActiveUpdate{
 		{ID: parent.ID, Active: false},
 	})
 	require.Nil(t, appErr)
-	requireChildActive(t, th, ch1.Id, parent.ID, false)
-	requireChildActive(t, th, ch2.Id, parent.ID, false)
+	requireChildActive(t, th, ch1.Id, parent.ID, true)
+	requireChildActive(t, th, ch2.Id, parent.ID, true)
 
-	// Reactivating the parent restores every child.
+	// The cascade also re-syncs a child left stale (auto-add flipped off out of
+	// band) back to the parent's AutoAdd on the next toggle.
+	require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, ch1.Id))
+	staleChild := &model.AccessControlPolicy{
+		ID: ch1.Id, Type: model.AccessControlPolicyTypeChannel, Active: false,
+		Revision: 1, Version: model.AccessControlPolicyVersionV0_3, Imports: []string{parent.ID},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, staleChild)
+	require.NoError(t, err)
+	requireChildActive(t, th, ch1.Id, parent.ID, false)
+
 	_, appErr = th.App.UpdateAccessControlPoliciesActive(th.Context, []model.AccessControlPolicyActiveUpdate{
 		{ID: parent.ID, Active: true},
 	})
 	require.Nil(t, appErr)
 	requireChildActive(t, th, ch1.Id, parent.ID, true)
+}
+
+func TestCreateOrUpdateAccessControlPolicyAutoAddCascade(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
+
+	parent := saveActiveAllChannelsParent(t, th) // AutoAdd defaults off
+	wireWriteThroughAllChannelsACS(t, th)
+
+	// Enforcement is on (children exist), but auto-add is off, so children are inactive.
+	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch1))
+		require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch2))
+	})
+	requireChildActive(t, th, ch1.Id, parent.ID, false)
+	requireChildActive(t, th, ch2.Id, parent.ID, false)
+
+	// saveParent re-saves the parent through the app path, preserving its rules so
+	// only AutoAdd changes. CreateOrUpdate cascades the flip onto every child.
+	saveParent := func(autoAdd bool) {
+		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, &model.AccessControlPolicy{
+			ID:                   parent.ID,
+			Name:                 parent.Name,
+			Type:                 model.AccessControlPolicyTypeParent,
+			Active:               true,
+			Version:              model.AccessControlPolicyVersionV0_3,
+			Rules:                parent.Rules,
+			AppliesToAllChannels: true,
+			AutoAdd:              autoAdd,
+		})
+		require.Nil(t, appErr)
+	}
+
+	// Turning global auto-add on flips every existing child active.
+	saveParent(true)
+	requireChildActive(t, th, ch1.Id, parent.ID, true)
 	requireChildActive(t, th, ch2.Id, parent.ID, true)
+
+	// Turning it back off flips them inactive again.
+	saveParent(false)
+	requireChildActive(t, th, ch1.Id, parent.ID, false)
+	requireChildActive(t, th, ch2.Id, parent.ID, false)
 }
 
 func TestAllChannelsParentTeardown(t *testing.T) {
@@ -1325,8 +1393,10 @@ func TestAllChannelsParentTeardown(t *testing.T) {
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch1))
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch2))
 		})
-		requireChildActive(t, th, ch1.Id, parent.ID, true)
-		requireChildActive(t, th, ch2.Id, parent.ID, true)
+		// Auto-add defaults off, so children materialize inactive (enforcing, not
+		// auto-adding). Teardown removes them regardless of that state.
+		requireChildActive(t, th, ch1.Id, parent.ID, false)
+		requireChildActive(t, th, ch2.Id, parent.ID, false)
 
 		parent.AppliesToAllChannels = false
 		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, parent)
@@ -1355,8 +1425,8 @@ func TestAllChannelsParentTeardown(t *testing.T) {
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch1))
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch2))
 		})
-		requireChildActive(t, th, ch1.Id, parent.ID, true)
-		requireChildActive(t, th, ch2.Id, parent.ID, true)
+		requireChildActive(t, th, ch1.Id, parent.ID, false)
+		requireChildActive(t, th, ch2.Id, parent.ID, false)
 
 		require.Nil(t, th.App.DeleteAccessControlPolicy(th.Context, parent.ID))
 

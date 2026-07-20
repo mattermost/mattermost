@@ -149,7 +149,19 @@ type AccessControlPolicy struct {
 	// periodic reconcile); each child then resolves and enforces like any other.
 	AppliesToAllChannels bool `json:"applies_to_all_channels,omitempty"`
 
-	Props map[string]any `json:"props"` // add auto-sync property here, also maybe the attributes being used in the expression
+	// AutoAdd is the global auto-add switch for an all-channels parent. Enforcement
+	// (removing non-matching members, blocking non-matching joins) is driven by a
+	// channel being PolicyEnforced — i.e. by the materialized child existing — and
+	// happens regardless of this flag. AutoAdd only governs the *add* pass: it is
+	// copied onto each materialized child's Active flag, which the membership sync's
+	// add loop reads to decide whether to populate matching users. Default false, so
+	// enabling all-channels enforces immediately but never auto-adds until the admin
+	// opts in. Only meaningful together with AppliesToAllChannels. Rides in the Data
+	// jsonb (not Props) so a toggle persists through the store's Save, which only
+	// writes when Data changes.
+	AutoAdd bool `json:"auto_add,omitempty"`
+
+	Props map[string]any `json:"props"` // also maybe the attributes being used in the expression
 }
 
 type AccessControlPolicyRule struct {
@@ -219,6 +231,13 @@ func (p *AccessControlPolicy) IsValid() *AppError {
 	// scope. Reject anywhere else regardless of version.
 	if p.AppliesToAllChannels && (p.Type != AccessControlPolicyTypeParent || p.Scope != "") {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.applies_to_all_channels.app_error", nil, "applies_to_all_channels is only valid on unscoped parent policies", 400)
+	}
+
+	// auto_add is the all-channels global auto-add switch; it only means anything
+	// alongside applies_to_all_channels. Reject it in isolation so a caller can't
+	// persist an inconsistent flag that would silently do nothing.
+	if p.AutoAdd && !p.AppliesToAllChannels {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.auto_add.app_error", nil, "auto_add is only valid together with applies_to_all_channels", 400)
 	}
 
 	switch p.Version {
@@ -635,5 +654,6 @@ func (p *AccessControlPolicy) Auditable() map[string]any {
 		"type":                    p.Type,
 		"revision":                p.Revision,
 		"applies_to_all_channels": p.AppliesToAllChannels,
+		"auto_add":                p.AutoAdd,
 	}
 }

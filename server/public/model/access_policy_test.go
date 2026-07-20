@@ -308,6 +308,39 @@ func TestAccessControlPolicyAppliesToAllChannels(t *testing.T) {
 	})
 }
 
+func TestAccessControlPolicyAutoAdd(t *testing.T) {
+	parent := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Test Policy",
+			Revision: 1,
+			Version:  AccessControlPolicyVersionV0_1,
+			Rules:    []AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+	}
+
+	t.Run("auto_add with applies_to_all_channels — valid", func(t *testing.T) {
+		p := parent()
+		p.AppliesToAllChannels = true
+		p.AutoAdd = true
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("auto_add without applies_to_all_channels — invalid", func(t *testing.T) {
+		p := parent()
+		p.AutoAdd = true
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.auto_add.app_error", err.Id)
+	})
+
+	t.Run("auto_add off — no auto_add error", func(t *testing.T) {
+		p := parent()
+		require.Nil(t, p.IsValid())
+	})
+}
+
 func TestAccessPolicyVersionV0_3(t *testing.T) {
 	validRule := AccessControlPolicyRule{
 		Actions:    []string{AccessControlPolicyActionMembership},

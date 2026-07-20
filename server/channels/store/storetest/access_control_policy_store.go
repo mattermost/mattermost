@@ -1313,6 +1313,29 @@ func testAccessControlPolicyStoreAppliesToAllChannels(t *testing.T, rctx request
 		require.True(t, got.AppliesToAllChannels)
 	})
 
+	t.Run("auto_add roundtrips and a toggle persists", func(t *testing.T) {
+		// auto_add rides in the Data jsonb precisely so a toggle survives Save's
+		// unchanged-Data fast-path. Flip only auto_add (Rules/Imports unchanged) and
+		// assert the new value is read back.
+		p := newParent("AutoAdd Roundtrip", true, true)
+		p.AutoAdd = true
+		saved, err := ss.AccessControlPolicy().Save(rctx, p)
+		require.NoError(t, err)
+		require.True(t, saved.AutoAdd)
+		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, p.ID) })
+
+		got, err := ss.AccessControlPolicy().Get(rctx, p.ID)
+		require.NoError(t, err)
+		require.True(t, got.AutoAdd)
+
+		got.AutoAdd = false
+		_, err = ss.AccessControlPolicy().Save(rctx, got)
+		require.NoError(t, err)
+		reGot, err := ss.AccessControlPolicy().Get(rctx, p.ID)
+		require.NoError(t, err)
+		require.False(t, reGot.AutoAdd, "auto_add toggle must persist (rides in Data, not Props)")
+	})
+
 	t.Run("search returns only active all-channels parents", func(t *testing.T) {
 		on := newParent("AllChannels On", true, true)
 		off := newParent("AllChannels Off", true, false)

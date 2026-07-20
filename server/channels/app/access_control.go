@@ -192,6 +192,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// to tell an all-channels teardown apart from a normal parent edit.
 	enablingAllChannels := false
 	disablingAllChannels := false
+	autoAddChanged := false
 	if policy.Type == model.AccessControlPolicyTypeParent {
 		existing, getErr := a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
 		if getErr != nil {
@@ -208,6 +209,13 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		case !policy.AppliesToAllChannels && hadAllChannels:
 			disablingAllChannels = true
 		}
+		// Global auto-add flipped on an already-active all-channels parent (not the
+		// enabling transition, which seeds children with the new AutoAdd itself).
+		// The materialized children already exist, so cascade the new AutoAdd onto
+		// their Active flags and re-run the sync to actually add (or stop adding)
+		// matching members.
+		autoAddChanged = policy.AppliesToAllChannels && policy.Active && !enablingAllChannels &&
+			hadAllChannels && existing.AutoAdd != policy.AutoAdd
 	}
 
 	// Turning the flag off must remove the child policies it materialized. Do
@@ -239,6 +247,23 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	if enablingAllChannels {
 		if _, jobErr := a.CreateAccessControlSyncJob(rctx, map[string]string{"policy_id": policy.ID}); jobErr != nil {
 			rctx.Logger().Warn("Failed to enqueue all-channels materialization sync job",
+				mlog.String("policy_id", policy.ID), mlog.Err(jobErr))
+		}
+	}
+
+	// Toggling the global auto-add switch on an already-active all-channels parent
+	// only flips the add pass on/off; enforcement is unaffected. Cascade the new
+	// AutoAdd onto the existing children's Active flags, then enqueue a sync so the
+	// add pass runs (auto-add on) or is skipped from now on (auto-add off). The
+	// cascade is best-effort like the enable backfill — the periodic reconcile and a
+	// retry are the backstop — so a failure logs rather than failing the save.
+	if autoAddChanged {
+		if appErr := a.cascadeAutoAddToAllChannelsChildren(rctx, policy); appErr != nil {
+			rctx.Logger().Warn("Failed to cascade auto-add change to all-channels children",
+				mlog.String("policy_id", policy.ID), mlog.Err(appErr))
+		}
+		if _, jobErr := a.CreateAccessControlSyncJob(rctx, map[string]string{"policy_id": policy.ID}); jobErr != nil {
+			rctx.Logger().Warn("Failed to enqueue all-channels auto-add sync job",
 				mlog.String("policy_id", policy.ID), mlog.Err(jobErr))
 		}
 	}
@@ -1569,8 +1594,11 @@ func (a *App) ChannelEligibleForAllChannels(rctx request.CTX, channel *model.Cha
 // materializeChild applies the parent import to a channel's child policy and
 // saves it, creating the channel-type row when child is nil (callers pass the
 // existing child, or nil, from a prior GetPolicy). A new child inherits the
-// parent's version and active state; an existing child keeps its own version and
-// only gains the import. It is the shared create/inherit/save/publish core of the
+// parent's version; its Active flag is seeded from the parent's AutoAdd switch,
+// because a child's Active gates only the membership sync's auto-add pass —
+// enforcement (removing non-matching members, blocking joins) runs off the child
+// simply existing. An existing child keeps its own version and Active and only
+// gains the import. It is the shared create/inherit/save/publish core of the
 // explicit-assignment and all-channels-materialization paths — the caller decides
 // eligibility and idempotency first.
 func (a *App) materializeChild(rctx request.CTX, acs einterfaces.AccessControlServiceInterface, parent *model.AccessControlPolicy, channelID string, child *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
@@ -1578,7 +1606,7 @@ func (a *App) materializeChild(rctx request.CTX, acs einterfaces.AccessControlSe
 		child = &model.AccessControlPolicy{
 			ID:       channelID,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   parent.Active,
+			Active:   parent.AutoAdd,
 			CreateAt: model.GetMillis(),
 			Props:    map[string]any{},
 			Version:  parent.Version,
@@ -1787,15 +1815,17 @@ func (a *App) removeAllChannelsChildren(rctx request.CTX, parentID string) *mode
 	}
 }
 
-// cascadeActiveToAllChannelsChildren flips the Active state of every materialized
-// child of an all-channels parent to match the parent. Children are the
-// channel-type policies that import the parent, and they are what actually govern
-// their channels — so a deactivated parent whose children stayed active would
-// keep enforcing, and a reactivated one whose children stayed inactive would not.
-// Runs in bounded pages so a parent governing many private channels never issues
-// one unbounded UPDATE; the Active flip leaves IDs untouched, so the cursor pages
-// forward stably. Children already in sync with the parent are skipped.
-func (a *App) cascadeActiveToAllChannelsChildren(rctx request.CTX, parent *model.AccessControlPolicy) *model.AppError {
+// cascadeAutoAddToAllChannelsChildren flips the Active state of every materialized
+// child of an all-channels parent to match the parent's AutoAdd switch. A child's
+// Active gates only the membership sync's auto-add pass (non-matching members are
+// removed off the child simply existing, regardless of Active), so the global
+// AutoAdd toggle is what a child's Active must track — not the parent's own Active,
+// which is the materialize/enforce gate. Runs in bounded pages so a parent
+// governing many private channels never issues one unbounded UPDATE; the Active
+// flip leaves IDs untouched, so the cursor pages forward stably. Children already
+// in sync are skipped. This only flips existing children's flags; the caller
+// enqueues a sync job when it needs the add pass to actually run.
+func (a *App) cascadeAutoAddToAllChannelsChildren(rctx request.CTX, parent *model.AccessControlPolicy) *model.AppError {
 	var cursor model.AccessControlPolicyCursor
 	for {
 		children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
@@ -1805,21 +1835,21 @@ func (a *App) cascadeActiveToAllChannelsChildren(rctx request.CTX, parent *model
 			Limit:    accessControlChildPolicySearchLimit,
 		})
 		if err != nil {
-			return model.NewAppError("cascadeActiveToAllChannelsChildren", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("cascadeAutoAddToAllChannelsChildren", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if len(children) == 0 {
 			return nil
 		}
 		updates := make([]model.AccessControlPolicyActiveUpdate, 0, len(children))
 		for _, child := range children {
-			if child.Active == parent.Active {
+			if child.Active == parent.AutoAdd {
 				continue
 			}
-			updates = append(updates, model.AccessControlPolicyActiveUpdate{ID: child.ID, Active: parent.Active})
+			updates = append(updates, model.AccessControlPolicyActiveUpdate{ID: child.ID, Active: parent.AutoAdd})
 		}
 		if len(updates) > 0 {
 			if _, err := a.Srv().Store().AccessControlPolicy().SetActiveStatusMultiple(rctx, updates); err != nil {
-				return model.NewAppError("cascadeActiveToAllChannelsChildren", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("cascadeAutoAddToAllChannelsChildren", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 		if len(children) < accessControlChildPolicySearchLimit {
@@ -2199,18 +2229,21 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 	// flag; auditAllChannelsPolicyBlastRadius no-ops for anything that is not an
 	// active all-channels parent.
 	//
-	// A toggled all-channels parent must also carry its Active state to the child
-	// policies it materialized on every eligible private channel: the children are
-	// what actually govern those channels, so a deactivated parent whose children
-	// stayed active would keep enforcing. The websocket fan-out to those children
-	// already happened above via publishChannelPolicyEnforcedForChannelPoliciesWithImport.
-	// The child flip is not atomic with the parent flip; a failed cascade leaves
-	// children stale until the toggle is retried (toggles are rare admin actions).
+	// A toggled all-channels parent re-asserts its AutoAdd switch onto the child
+	// policies it materialized on every eligible private channel: a child's Active
+	// gates only the auto-add pass (enforcement runs off the child existing), so it
+	// tracks the parent's AutoAdd, not its Active. A pure active toggle leaves
+	// AutoAdd unchanged, so this cascade is a cheap no-op there; it earns its keep on
+	// the reactivate path, re-syncing any child left stale. The websocket fan-out to
+	// those children already happened above via
+	// publishChannelPolicyEnforcedForChannelPoliciesWithImport. The child flip is not
+	// atomic with the parent flip; a failed cascade leaves children stale until the
+	// toggle is retried (toggles are rare admin actions).
 	if toggledParent {
 		for _, policy := range policies {
 			a.auditAllChannelsPolicyBlastRadius(rctx, policy)
 			if policy.Type == model.AccessControlPolicyTypeParent && policy.AppliesToAllChannels {
-				if appErr := a.cascadeActiveToAllChannelsChildren(rctx, policy); appErr != nil {
+				if appErr := a.cascadeAutoAddToAllChannelsChildren(rctx, policy); appErr != nil {
 					return nil, appErr
 				}
 				// Cascade only flips the Active bit on children that already
