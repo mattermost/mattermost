@@ -1000,6 +1000,12 @@ export type JobSettings = {
     CleanupConfigThresholdDays: number;
 };
 
+export type PluginAccessControl = {
+    Enable: boolean;
+    AllowedUserIds: string[];
+    AllowedGroupIds: string[];
+};
+
 export type PluginSettings = {
     Enable: boolean;
     EnableUploads: boolean;
@@ -1009,6 +1015,7 @@ export type PluginSettings = {
     ClientDirectory: string;
     Plugins: Record<string, any>;
     PluginStates: Record<string, {Enable: boolean}>;
+    PluginAccessControl: Record<string, PluginAccessControl>;
     EnableMarketplace: boolean;
     EnableRemoteMarketplace: boolean;
     AutomaticPrepackagedPlugins: boolean;

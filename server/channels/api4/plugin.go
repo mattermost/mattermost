@@ -259,15 +259,24 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := c.AppContext.Session().UserId
+
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
-		if m.HasClient() {
-			manifest := m.ClientManifest()
-
-			// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
-			manifest.SettingsSchema = nil
-			clientManifests = append(clientManifests, manifest)
+		if !m.HasClient() {
+			continue
 		}
+		// Empty session (unauthenticated): preserve historical behavior and return all
+		// client manifests. Authenticated users are filtered by the allow-list.
+		if userID != "" && !c.App.IsPluginVisibleToUser(c.AppContext, userID, m.Id) {
+			continue
+		}
+
+		manifest := m.ClientManifest()
+
+		// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
+		manifest.SettingsSchema = nil
+		clientManifests = append(clientManifests, manifest)
 	}
 
 	js, err := json.Marshal(clientManifests)

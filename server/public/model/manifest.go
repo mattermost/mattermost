@@ -219,8 +219,22 @@ type Manifest struct {
 	// provide your settings schema.
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
+	// UserFiltering controls whether this plugin may be subject to PluginAccessControl
+	// allow-lists. Defaults to true when omitted. Set to false for plugins that must never
+	// be hidden from users (e.g. SCIM / user-provisioning plugins).
+	UserFiltering *bool `json:"user_filtering,omitempty" yaml:"user_filtering,omitempty"`
+
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
+}
+
+// AllowsUserFiltering reports whether this plugin may be filtered by PluginAccessControl.
+// Omitted / nil / true means filtering is allowed; false opts the plugin out permanently.
+func (m *Manifest) AllowsUserFiltering() bool {
+	if m == nil {
+		return true
+	}
+	return m.UserFiltering == nil || *m.UserFiltering
 }
 
 type ManifestServer struct {

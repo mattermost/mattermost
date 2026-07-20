@@ -790,6 +790,14 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GroupUnreadChannelsDisabled)
 }
 
+func TestConfigDefaultPluginAccessControl(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	require.NotNil(t, c1.PluginSettings.PluginAccessControl)
+	assert.Empty(t, c1.PluginSettings.PluginAccessControl)
+}
+
 func TestConfigDefaultNPSPluginState(t *testing.T) {
 	t.Run("should enable NPS plugin by default", func(t *testing.T) {
 		c1 := Config{}

@@ -4268,6 +4268,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                           </a>
                         </span>
                       </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_0"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_0"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_0help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <div
                           class="alert alert-info"
@@ -4393,6 +4449,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                             Settings
                           </a>
                         </span>
+                      </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_1"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_1"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_1"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_1"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_1help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <div
@@ -4965,6 +5077,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                           </a>
                         </span>
                       </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_0"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_0"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_0help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <div
                           class="alert alert-info"
@@ -5459,6 +5627,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                             Settings
                           </a>
                         </span>
+                      </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_0"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_0"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_0help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <div
@@ -5955,6 +6179,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                           </a>
                         </span>
                       </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_0"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_0"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_0help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <div
                           class="alert alert-info"
@@ -6442,6 +6722,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                           </a>
                         </span>
                       </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_0"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_0"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_0"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_0help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <div
                           class="alert alert-info"
@@ -6559,6 +6895,62 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                             Remove
                           </a>
                         </span>
+                      </div>
+                      <div
+                        class="pt-3"
+                      >
+                        <div
+                          class="form-group"
+                          data-testid="plugin_access_control_mode_plugin_1"
+                        >
+                          <label
+                            class="control-label col-sm-4"
+                            for="plugin_access_control_mode_plugin_1"
+                          >
+                            UI access
+                          </label>
+                          <div
+                            class="col-sm-8"
+                          >
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                checked=""
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_1"
+                                type="radio"
+                                value="everyone"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Everyone
+                              </span>
+                            </label>
+                            <label
+                              class="RadioSetting__label"
+                            >
+                              <input
+                                class="RadioSetting__input"
+                                name="plugin_access_control_mode_plugin_1"
+                                type="radio"
+                                value="selected"
+                              />
+                              <span
+                                class="RadioSetting__text"
+                              >
+                                Only selected users
+                              </span>
+                            </label>
+                            <div
+                              class="help-text"
+                              data-testid="plugin_access_control_mode_plugin_1help-text"
+                            >
+                              Control which users can see this plugin in the product menu and app bar. System Administrators always have access.
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <div

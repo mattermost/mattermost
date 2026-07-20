@@ -24,6 +24,10 @@ export type PluginManifest = {
     backend?: PluginManifestServer;
     webapp?: PluginManifestWebapp;
     settings_schema?: PluginSettingsSchema;
+
+    // When false, the plugin opts out of PluginAccessControl allow-lists.
+    // Omitted / true means filtering is allowed (default).
+    user_filtering?: boolean;
     props?: Record<string, any>;
 };
 

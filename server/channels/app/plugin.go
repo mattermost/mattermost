@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"slices"
 	"sort"
@@ -248,6 +249,11 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			}
 			return true
 		}, plugin.OnConfigurationChangeID)
+
+		if !reflect.DeepEqual(oldCfg.PluginSettings.PluginAccessControl, newCfg.PluginSettings.PluginAccessControl) {
+			message := model.NewWebSocketEvent(model.WebsocketEventPluginAccessControlChanged, "", "", "", nil, "")
+			ch.srv.platform.Publish(message)
+		}
 	})
 	ch.pluginsLock.Unlock()
 
@@ -405,6 +411,60 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	}
 
 	return manifests, nil
+}
+
+// getPluginManifestByID returns the manifest for an installed plugin, or nil if not found.
+// Active (in-memory) manifests are preferred over a fresh disk scan so the live loaded
+// copy is consulted when the plugin is running.
+func (a *App) getPluginManifestByID(pluginID string) *model.Manifest {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil
+	}
+
+	pluginID = strings.ToLower(pluginID)
+	for _, p := range pluginsEnvironment.Active() {
+		if p.Manifest != nil && p.Manifest.Id == pluginID {
+			return p.Manifest
+		}
+	}
+
+	available, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil
+	}
+	for _, p := range available {
+		if p.Manifest != nil && p.Manifest.Id == pluginID {
+			return p.Manifest
+		}
+	}
+	return nil
+}
+
+// IsPluginVisibleToUser reports whether the given user may see (and call the external API of)
+// the given plugin. System admins always bypass the allow-list. Plugins that set
+// user_filtering: false in their manifest always return true. An empty/disabled ACL means
+// everyone may see the plugin.
+func (a *App) IsPluginVisibleToUser(rctx request.CTX, userID, pluginID string) bool {
+	if userID == "" || pluginID == "" {
+		return true
+	}
+
+	manifest := a.getPluginManifestByID(pluginID)
+	if manifest != nil && !manifest.AllowsUserFiltering() {
+		return true
+	}
+
+	acl := a.Config().PluginSettings.PluginAccessControl[pluginID]
+	if acl == nil || acl.Enable == nil || !*acl.Enable {
+		return true
+	}
+
+	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+		return true
+	}
+
+	return slices.Contains(acl.AllowedUserIds, userID)
 }
 
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous

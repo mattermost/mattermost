@@ -46,6 +46,7 @@ export const enum WebSocketEvents {
     PluginStatusesChanged = 'plugin_statuses_changed',
     PluginEnabled = 'plugin_enabled',
     PluginDisabled = 'plugin_disabled',
+    PluginAccessControlChanged = 'plugin_access_control_changed',
     RoleUpdated = 'role_updated',
     LicenseChanged = 'license_changed',
     ConfigChanged = 'config_changed',

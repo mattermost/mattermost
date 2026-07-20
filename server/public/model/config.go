@@ -3631,22 +3631,31 @@ type PluginState struct {
 	Enable bool
 }
 
+// PluginAccessControl configures per-plugin UI/API allow-lists.
+// When Enable is false or unset, the plugin is visible to everyone.
+type PluginAccessControl struct {
+	Enable          *bool
+	AllowedUserIds  []string
+	AllowedGroupIds []string // Enterprise; reserved for a later phase
+}
+
 type PluginSettings struct {
-	Enable                      *bool                     `access:"plugins,write_restrictable"`
-	EnableUploads               *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	AllowInsecureDownloadURL    *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	EnableHealthCheck           *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	Directory                   *string                   `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
-	ClientDirectory             *string                   `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
-	Plugins                     map[string]map[string]any `access:"plugins"`                                       // telemetry: none
-	PluginStates                map[string]*PluginState   `access:"plugins"`                                       // telemetry: none
-	EnableMarketplace           *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	EnableRemoteMarketplace     *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	AutomaticPrepackagedPlugins *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
-	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
-	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
-	ChimeraOAuthProxyURL        *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
+	Enable                      *bool                           `access:"plugins,write_restrictable"`
+	EnableUploads               *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	AllowInsecureDownloadURL    *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	EnableHealthCheck           *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	Directory                   *string                         `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	ClientDirectory             *string                         `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	Plugins                     map[string]map[string]any       `access:"plugins"`                                       // telemetry: none
+	PluginStates                map[string]*PluginState         `access:"plugins"`                                       // telemetry: none
+	PluginAccessControl         map[string]*PluginAccessControl `access:"plugins"`                                       // telemetry: none
+	EnableMarketplace           *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	EnableRemoteMarketplace     *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	AutomaticPrepackagedPlugins *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	RequirePluginSignature      *bool                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	MarketplaceURL              *string                         `access:"plugins,write_restrictable,cloud_restrictable"`
+	SignaturePublicKeyFiles     []string                        `access:"plugins,write_restrictable,cloud_restrictable"`
+	ChimeraOAuthProxyURL        *string                         `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -3680,6 +3689,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
+	}
+
+	if s.PluginAccessControl == nil {
+		s.PluginAccessControl = make(map[string]*PluginAccessControl)
 	}
 
 	if s.PluginStates[PluginIdNPS] == nil {

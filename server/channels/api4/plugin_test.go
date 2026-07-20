@@ -286,6 +286,102 @@ func TestPlugin(t *testing.T) {
 	})
 }
 
+func TestGetWebappPluginsAccessControl(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	require.Equal(t, "testplugin", manifest.Id)
+	t.Cleanup(func() {
+		_, _ = th.SystemAdminClient.RemovePlugin(context.Background(), manifest.Id)
+	})
+
+	_, err = th.SystemAdminClient.EnablePlugin(context.Background(), manifest.Id)
+	require.NoError(t, err)
+
+	containsPlugin := func(t *testing.T, client *model.Client4) bool {
+		t.Helper()
+		manifests, _, err := client.GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		for _, m := range manifests {
+			if m.Id == manifest.Id {
+				return true
+			}
+		}
+		return false
+	}
+
+	t.Run("visible to all when access control disabled", func(t *testing.T) {
+		th.LoginBasic(t)
+		assert.True(t, containsPlugin(t, th.Client))
+	})
+
+	t.Run("filters denied users when access control enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginAccessControl[manifest.Id] = &model.PluginAccessControl{
+				Enable:         model.NewPointer(true),
+				AllowedUserIds: []string{th.BasicUser.Id},
+			}
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				delete(cfg.PluginSettings.PluginAccessControl, manifest.Id)
+			})
+		})
+
+		th.LoginBasic(t)
+		assert.True(t, containsPlugin(t, th.Client))
+
+		th.LoginBasic2(t)
+		assert.False(t, containsPlugin(t, th.Client))
+
+		th.LoginSystemAdmin(t)
+		assert.True(t, containsPlugin(t, th.SystemAdminClient))
+	})
+
+	t.Run("opted-out plugin always returned", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginAccessControl[manifest.Id] = &model.PluginAccessControl{
+				Enable:         model.NewPointer(true),
+				AllowedUserIds: []string{th.BasicUser.Id},
+			}
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				delete(cfg.PluginSettings.PluginAccessControl, manifest.Id)
+			})
+		})
+
+		env := th.App.GetPluginsEnvironment()
+		require.NotNil(t, env)
+		var m *model.Manifest
+		for _, p := range env.Active() {
+			if p.Manifest != nil && p.Manifest.Id == manifest.Id {
+				m = p.Manifest
+				break
+			}
+		}
+		require.NotNil(t, m)
+		m.UserFiltering = model.NewPointer(false)
+		t.Cleanup(func() {
+			m.UserFiltering = nil
+		})
+
+		th.LoginBasic2(t)
+		assert.True(t, containsPlugin(t, th.Client))
+	})
+}
+
 func TestPluginInstallDirectoryConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
-import type {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig, PluginAccessControl} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -22,9 +22,11 @@ import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import BooleanSetting from '../boolean_setting';
+import {UserSelector} from '../content_flagging/user_multiselector/user_multiselector';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
+import RadioSetting from '../radio_setting';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -182,6 +184,7 @@ type PluginItemProps = {
     plugin?: {
         homepage_url?: string;
         release_notes_url?: string;
+        user_filtering?: boolean;
     };
     removing: boolean;
     handleEnable: (e: any) => any;
@@ -191,6 +194,111 @@ type PluginItemProps = {
     hasSettings: boolean;
     appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
+    accessControl?: PluginAccessControl;
+    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControl) => void;
+};
+
+const emptyAccessControl = (): PluginAccessControl => ({
+    Enable: false,
+    AllowedUserIds: [],
+    AllowedGroupIds: [],
+});
+
+const PluginAccessControlSettings = ({
+    pluginId,
+    userFiltering,
+    accessControl,
+    isDisabled,
+    onAccessControlChange,
+}: {
+    pluginId: string;
+    userFiltering?: boolean;
+    accessControl?: PluginAccessControl;
+    isDisabled?: boolean;
+    onAccessControlChange: (pluginId: string, accessControl: PluginAccessControl) => void;
+}) => {
+    if (userFiltering === false) {
+        return (
+            <div className='pt-3'>
+                <strong>
+                    <FormattedMessage
+                        id='admin.plugin.accessControl.title'
+                        defaultMessage='UI access'
+                    />
+                </strong>
+                <p className='help-text'>
+                    <FormattedMessage
+                        id='admin.plugin.accessControl.optedOut'
+                        defaultMessage='This plugin does not support user filtering.'
+                    />
+                </p>
+            </div>
+        );
+    }
+
+    const acl = accessControl || emptyAccessControl();
+    const mode = acl.Enable ? 'selected' : 'everyone';
+
+    return (
+        <div className='pt-3'>
+            <RadioSetting
+                id={`plugin_access_control_mode_${pluginId}`}
+                label={
+                    <FormattedMessage
+                        id='admin.plugin.accessControl.title'
+                        defaultMessage='UI access'
+                    />
+                }
+                helpText={
+                    <FormattedMessage
+                        id='admin.plugin.accessControl.help'
+                        defaultMessage='Control which users can see this plugin in the product menu and app bar. System Administrators always have access.'
+                    />
+                }
+                values={[
+                    {
+                        text: Utils.localizeMessage({id: 'admin.plugin.accessControl.everyone', defaultMessage: 'Everyone'}),
+                        value: 'everyone',
+                    },
+                    {
+                        text: Utils.localizeMessage({id: 'admin.plugin.accessControl.selectedUsers', defaultMessage: 'Only selected users'}),
+                        value: 'selected',
+                    },
+                ]}
+                value={mode}
+                setByEnv={false}
+                disabled={isDisabled}
+                onChange={(_id, value) => {
+                    onAccessControlChange(pluginId, {
+                        ...acl,
+                        Enable: value === 'selected',
+                    });
+                }}
+            />
+            {acl.Enable && (
+                <div className='pt-2'>
+                    <label>
+                        <FormattedMessage
+                            id='admin.plugin.accessControl.allowedUsers'
+                            defaultMessage='Allowed users'
+                        />
+                    </label>
+                    <UserSelector
+                        isMulti={true}
+                        id={`plugin_access_control_users_${pluginId}`}
+                        multiSelectInitialValue={acl.AllowedUserIds || []}
+                        multiSelectOnChange={(selectedUserIds) => {
+                            onAccessControlChange(pluginId, {
+                                ...acl,
+                                AllowedUserIds: selectedUserIds,
+                            });
+                        }}
+                        disabled={isDisabled}
+                    />
+                </div>
+            )}
+        </div>
+    );
 };
 
 const messages = defineMessages({
@@ -242,6 +350,8 @@ const PluginItem = ({
     hasSettings,
     appsFeatureFlagEnabled,
     isDisabled,
+    accessControl,
+    onAccessControlChange,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
@@ -449,6 +559,13 @@ const PluginItem = ({
                 {removeButton}
                 {settingsButton}
             </div>
+            <PluginAccessControlSettings
+                pluginId={pluginStatus.id}
+                userFiltering={plugin?.user_filtering}
+                accessControl={accessControl}
+                isDisabled={isDisabled}
+                onAccessControlChange={onAccessControlChange}
+            />
             <div>
                 {notices}
             </div>
@@ -500,6 +617,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
+    pluginAccessControl: Record<string, PluginAccessControl>;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
@@ -534,13 +652,26 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             config.PluginSettings.AutomaticPrepackagedPlugins = this.state.automaticPrepackagedPlugins;
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
             config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
+
+            const accessControl: Record<string, PluginAccessControl> = {};
+            Object.entries(this.state.pluginAccessControl || {}).forEach(([pluginId, acl]) => {
+                if (this.props.plugins?.[pluginId]?.user_filtering === false) {
+                    return;
+                }
+                accessControl[pluginId] = {
+                    Enable: Boolean(acl.Enable),
+                    AllowedUserIds: acl.AllowedUserIds || [],
+                    AllowedGroupIds: acl.AllowedGroupIds || [],
+                };
+            });
+            config.PluginSettings.PluginAccessControl = accessControl;
         }
 
         return config;
     };
 
-    getStateFromConfig(config: Props['config']) {
-        const state = {
+    getStateFromConfig(config: Props['config']): Partial<State> {
+        return {
             enable: config?.PluginSettings?.Enable,
             enableUploads: config?.PluginSettings?.EnableUploads,
             allowInsecureDownloadUrl: config?.PluginSettings?.AllowInsecureDownloadURL,
@@ -549,18 +680,34 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
+            pluginAccessControl: (config?.PluginSettings?.PluginAccessControl as Record<string, PluginAccessControl> | undefined) || {},
         };
-
-        return state;
     }
 
     componentDidMount() {
         if (this.state.enable) {
-            this.props.actions.getPluginStatuses().then(
+            Promise.all([
+                this.props.actions.getPluginStatuses(),
+                this.props.actions.getPlugins(),
+            ]).then(
                 () => this.setState({loading: false}),
             );
         }
     }
+
+    handlePluginAccessControlChange = (pluginId: string, accessControl: PluginAccessControl) => {
+        this.setState((prevState) => ({
+            pluginAccessControl: {
+                ...prevState.pluginAccessControl,
+                [pluginId]: accessControl,
+            },
+            saveNeeded: true,
+        }));
+
+        if (this.props.setNavigationBlocked) {
+            this.props.setNavigationBlocked(true);
+        }
+    };
 
     handleChooseFileClick = () => {
         this.fileInput.current?.click();
@@ -1011,6 +1158,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         hasSettings={hasSettings}
                         appsFeatureFlagEnabled={this.props.appsFeatureFlagEnabled}
                         isDisabled={this.props.isDisabled}
+                        accessControl={this.state.pluginAccessControl?.[pluginStatus.id]}
+                        onAccessControlChange={this.handlePluginAccessControlChange}
                     />
                 );
             });
