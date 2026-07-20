@@ -21,39 +21,35 @@ Prefer the shared components from `@mattermost/shared` over hand-rolled equivale
 
 Always import via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.
 
-## Plugin-facing global surface
+## Plugin-facing surface on `window.WebappUtils`
 
-The web app exposes several top-level `window.*` globals to plugins. **Not all of them are stable.** This section covers only the *published* subset — allowlisted entries whose contract types live in `@mattermost/shared/types/global/` and which are asserted against the real implementation at build time. Third-party plugins pin against those via `min_server_version`, so treat every published entry like a public API.
+**Do not add new top-level `window.*` globals for plugins.** Publish new plugin-facing APIs as sub-namespaces of `window.WebappUtils` instead.
 
-Stable, published surfaces this doc applies to:
+Two existing top-level globals are frozen legacy — do not extend them and do not use them as a model for new work:
 
-- `window.WebappUtils.modals.openModalById` / `canOpenModalId` (contract: `PublishedModalUtils`).
-- `window.Editor` (contract: `PublishedEditorUtils`).
+- `window.Components` — internal-plugin-only, marked at `webapp/channels/src/plugins/export.ts` as subject to breaking changes outside major releases.
+- `window.ProductApi` — a prototype for internal plugins pending module-federation migration, per the comment at the same file.
 
-Explicitly **not** stable, and outside this doc:
+**Published sub-namespaces**
 
-- `window.Components` — internal-plugin-only, documented at `webapp/channels/src/plugins/export.ts` as "may have breaking changes in the future outside of major releases". Do not treat additions here as public API.
-- `window.ProductApi` — a prototype for internal plugins during the transition to module federation, per the comment at the same file.
+Each has a contract type in `@mattermost/shared/types/global/` and a build-time drift check in `webapp/channels/src/plugins/published_*.ts`. Third-party plugins pin against these via `min_server_version` — treat every entry like a public API.
 
-Other legacy fields on `window.WebappUtils` (`browserHistory`, `notificationSounds`, `channels`, `popouts`, etc.) predate the published-allowlist pattern; changes to those still warrant a plugin-compat review, but they are not governed by the drift-check machinery below.
-
-**Where things live**
-
-- Contract types: `webapp/platform/shared/src/types/global/*.ts` (e.g. `PublishedModalUtils`, `PublishedEditorUtils`). Do not import channels internals here — if a needed type lives in `webapp/channels`, move the type portion to `@mattermost/types` or `@mattermost/shared/types/global/` first.
-- Concrete implementations and allowlists: `webapp/channels/src/plugins/published_*.ts`.
-- Wiring onto `window`: `webapp/channels/src/plugins/export.ts`.
-
-**Contract drift**
-
-Each allowlist file must assert that its real components/functions stay assignable to the published contract at build time (see `ContractHonored` + `AssertPublished*Contract` in `published_modals.ts` and `published_editor.ts`). Do not remove those `type Assert*Contract = ...` aliases — they look unused but are the only thing that makes `tsc` fail on drift.
+- `window.WebappUtils.modals` — contract `PublishedModalUtils`; allowlist in `published_modals.ts`.
+- `window.WebappUtils.editor` — contract `PublishedEditorUtils`; allowlist in `published_editor.ts`.
 
 **Adding an entry**
 
-1. Add the type to `platform/shared/src/types/global/<file>.ts`.
+Follow all four steps in the same PR:
+
+1. Add the type to `platform/shared/src/types/global/<file>.ts`. Do not import from `webapp/channels`; if you need a webapp-internal type, move its type portion to `@mattermost/types` or `platform/shared/src/types/global/` first.
 2. Add the implementation to the corresponding `channels/src/plugins/published_<file>.ts` allowlist.
-3. Add a unit test to `published_<file>.test.ts`.
-4. Only wire it onto `window` in `export.ts` once 1–3 land in the same PR.
+3. Add a unit test to `published_<file>.test.tsx`.
+4. Wire it onto `window.WebappUtils.<sub-namespace>` in `channels/src/plugins/export.ts`.
+
+**Contract drift**
+
+Each allowlist file contains a `ContractHonored` type + `AssertPublished*Contract` type alias (and, for forwardRef components, `AssertsTrue<Handle extends PublishedHandle ? true : never>` handle assertions). **Do not remove these `type Assert*` aliases.** They look unused but are the only thing that makes `tsc` fail when a real component's props or handle drift from the published contract.
 
 **Removing or changing an entry**
 
-Mark it `@deprecated` in the shared type for at least two minor releases before deletion, and call it out in the PR description. Never silently change a field's type — that breaks plugins pinned to an older `min_server_version`.
+Mark it `@deprecated` in the shared type for at least two minor releases before deletion, and call it out in the PR description. Do not silently change a field's type or rename an entry — either breaks plugins pinned to an older `min_server_version`.
