@@ -42,6 +42,60 @@
         }
     }
 
+    .AccessControlPolicySettings__channelScope {
+        display: flex;
+        margin-bottom: 16px;
+        gap: 24px;
+    }
+
+    .AccessControlPolicySettings__channelScopeOption {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        cursor: pointer;
+        font-weight: 400;
+
+        input[type='radio'] {
+            width: 16px;
+            height: 16px;
+            margin: 0 8px 0 0;
+            cursor: pointer;
+        }
+    }
+
+    .AccessControlPolicySettings__allChannels {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .AccessControlPolicySettings__allChannelsNotice {
+        h4 {
+            margin-bottom: 0;
+        }
+    }
+
+    .AccessControlPolicySettings__autoAddToggle {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        cursor: pointer;
+        font-weight: 400;
+
+        input[type='checkbox'] {
+            width: 16px;
+            height: 16px;
+            margin: 0 8px 0 0;
+            cursor: pointer;
+        }
+    }
+
+    .AccessControlPolicySettings__autoAddDescription {
+        margin-left: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+    }
+
     .EditPolicy__masked-values-warning {
         margin-top: 4px;
     }

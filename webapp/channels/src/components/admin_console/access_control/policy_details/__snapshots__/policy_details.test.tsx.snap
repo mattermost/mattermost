@@ -124,6 +124,30 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             style="height: 0px;"
           >
             <div
+              class="AccessControlPolicySettings__channelScope"
+              role="radiogroup"
+            >
+              <label
+                class="AccessControlPolicySettings__channelScopeOption"
+              >
+                <input
+                  checked=""
+                  name="channel-scope"
+                  type="radio"
+                />
+                Select channels manually
+              </label>
+              <label
+                class="AccessControlPolicySettings__channelScopeOption"
+              >
+                <input
+                  name="channel-scope"
+                  type="radio"
+                />
+                All channels
+              </label>
+            </div>
+            <div
               class="AccessControlPolicyChannelsList"
             >
               <div
@@ -531,6 +555,30 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             class="Card__body expanded expanding"
             style="height: 0px;"
           >
+            <div
+              class="AccessControlPolicySettings__channelScope"
+              role="radiogroup"
+            >
+              <label
+                class="AccessControlPolicySettings__channelScopeOption"
+              >
+                <input
+                  checked=""
+                  name="channel-scope"
+                  type="radio"
+                />
+                Select channels manually
+              </label>
+              <label
+                class="AccessControlPolicySettings__channelScopeOption"
+              >
+                <input
+                  name="channel-scope"
+                  type="radio"
+                />
+                All channels
+              </label>
+            </div>
             <div
               class="AccessControlPolicyChannelsList"
             >

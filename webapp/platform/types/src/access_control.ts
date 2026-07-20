@@ -17,6 +17,20 @@ export type AccessControlPolicy = {
     rules: AccessControlPolicyRule[];
     scope?: string;
     scope_id?: string;
+
+    /**
+     * Makes a parent policy govern every eligible private channel with no explicit
+     * per-channel assignment list. Only valid on unscoped parent policies.
+     */
+    applies_to_all_channels?: boolean;
+
+    /**
+     * Global auto-add switch for an all-channels parent. Enforcement (removing
+     * non-matching members, blocking joins) happens regardless; this only controls
+     * whether matching users are auto-added. Default false. Only meaningful with
+     * applies_to_all_channels.
+     */
+    auto_add?: boolean;
 };
 
 export type AccessControlPolicyCursor = {

@@ -30,11 +30,12 @@ import TextSetting from 'components/widgets/settings/text_setting';
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, referencesResourceAttributes, RESOURCE_ATTRIBUTES_PREFIX, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -86,6 +87,12 @@ function PolicyDetails({
     const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
+
+    // "All channels" vs "Select channels manually". All-channels sets the
+    // parent-only AppliesToAllChannels flag; auto-add is its separate global switch
+    // (default off) — enabling all-channels enforces immediately, auto-add only adds.
+    const [appliesToAllChannels, setAppliesToAllChannels] = useState(policy?.applies_to_all_channels || false);
+    const [autoAdd, setAutoAdd] = useState(policy?.auto_add || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
@@ -190,6 +197,8 @@ function PolicyDetails({
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
+                setAppliesToAllChannels(result.data?.applies_to_all_channels || false);
+                setAutoAdd(result.data?.auto_add || false);
 
                 // Child counts + ids are stamped by the GET handler (see
                 // PopulateAccessControlPolicyChildCounts): child_ids lists channels
@@ -261,6 +270,13 @@ function PolicyDetails({
                 name: policyName,
                 rules: buildRulesWithMembership(existingRules, expression),
                 type: 'parent',
+
+                // All-channels is the enforce switch: the parent must be Active for
+                // its children to materialize (and enforce) install-wide. auto_add is
+                // the separate global add switch, meaningful only under all-channels.
+                applies_to_all_channels: appliesToAllChannels,
+                active: appliesToAllChannels,
+                auto_add: appliesToAllChannels && autoAdd,
             }).then((result) => {
                 if (result.error) {
                     if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
@@ -283,6 +299,8 @@ function PolicyDetails({
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
+                setAppliesToAllChannels(result.data?.applies_to_all_channels || false);
+                setAutoAdd(result.data?.auto_add || false);
             });
 
             if (!currentPolicyId || !success) {
@@ -291,7 +309,10 @@ function PolicyDetails({
             }
 
             // --- Step 2: Assign Channels ---
-            if (success) {
+            // Skipped under "All channels": the assignment list is the manual-mode
+            // concept, and the materialized children are managed server-side from the
+            // flag, not this per-channel list.
+            if (success && !appliesToAllChannels) {
                 try {
                     if (channelChanges.removedCount > 0) {
                         await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
@@ -429,6 +450,18 @@ function PolicyDetails({
         actions.setNavigationBlocked(true);
     };
 
+    const handleChannelScopeChange = (allChannels: boolean) => {
+        setAppliesToAllChannels(allChannels);
+        setSaveNeeded(true);
+        actions.setNavigationBlocked(true);
+    };
+
+    const handleAutoAddChange = (value: boolean) => {
+        setAutoAdd(value);
+        setSaveNeeded(true);
+        actions.setNavigationBlocked(true);
+    };
+
     const hasChannels = () => {
         // If there are channels on the server (minus any pending removals) or newly added channels
         return (
@@ -469,6 +502,24 @@ function PolicyDetails({
     }, [savedChannelTypes, channelChanges.removed, channelChanges.added]);
 
     const hasMixedChannels = channelTypeCounts.publicCount > 0 && channelTypeCounts.privateCount > 0;
+
+    // Under All channels, a rule that compares against the accessed channel's
+    // attributes only lets a member in once the channel sets those attributes.
+    // Surface the referenced channel field(s) so an admin knows which to mark as
+    // required. Labels are resolved from the loaded channel fields; unresolved
+    // tokens fall back to the raw name. Informational only — never blocks the radio.
+    const rulesReferenceChannelAttrs = referencesResourceAttributes(expression);
+    const referencedChannelFieldLabels = useMemo(() => {
+        if (!rulesReferenceChannelAttrs) {
+            return [] as string[];
+        }
+        const tokens = expression.match(/resource\.attributes\.([A-Za-z0-9_]+)/g) || [];
+        const names = Array.from(new Set(tokens.map((t) => t.slice(RESOURCE_ATTRIBUTES_PREFIX.length))));
+        return names.map((name) => {
+            const field = resourceFields.find((f) => f.name === name || f.id === name);
+            return field ? getUserPropertyFieldLabel(field) : name;
+        });
+    }, [expression, rulesReferenceChannelAttrs, resourceFields]);
 
     return (
         <div className='wrapper--fixed AccessControlPolicySettings'>
@@ -664,35 +715,109 @@ function PolicyDetails({
                                         defaultMessage='Add channels'
                                     />
                                 }
-                                onClick={() => setAddChannelOpen(true)}
+                                onClick={appliesToAllChannels ? undefined : () => setAddChannelOpen(true)}
                             />
                         </Card.Header>
                         <Card.Body expanded={true}>
-                            <ChannelList
-                                onRemoveCallback={(channel) => addToRemovedChannels(channel)}
-                                channelsToRemove={channelChanges.removed}
-                                channelsToAdd={channelChanges.added}
-                                policyId={policyId}
-                                policyActiveStatusChanges={policyActiveStatusChanges}
-                                onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
-                                saving={saving}
-                            />
-                            {hasMixedChannels && (
-                                <div className='AccessControlPolicySettings__mixedChannelsNotice'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={
-                                            <FormattedMessage
-                                                id='admin.access_control.policy.edit_policy.mixed_channels.title'
-                                                defaultMessage='Membership policies affect public and private channels differently'
-                                            />
-                                        }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
-                                            defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
-                                        })}
+                            <div
+                                className='AccessControlPolicySettings__channelScope'
+                                role='radiogroup'
+                            >
+                                <label className='AccessControlPolicySettings__channelScopeOption'>
+                                    <input
+                                        type='radio'
+                                        name='channel-scope'
+                                        checked={!appliesToAllChannels}
+                                        onChange={() => handleChannelScopeChange(false)}
                                     />
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.channel_scope.manual'
+                                        defaultMessage='Select channels manually'
+                                    />
+                                </label>
+                                <label className='AccessControlPolicySettings__channelScopeOption'>
+                                    <input
+                                        type='radio'
+                                        name='channel-scope'
+                                        checked={appliesToAllChannels}
+                                        onChange={() => handleChannelScopeChange(true)}
+                                    />
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.channel_scope.all'
+                                        defaultMessage='All channels'
+                                    />
+                                </label>
+                            </div>
+
+                            {appliesToAllChannels ? (
+                                <div className='AccessControlPolicySettings__allChannels'>
+                                    {rulesReferenceChannelAttrs && (
+                                        <div className='AccessControlPolicySettings__allChannelsNotice'>
+                                            <SectionNotice
+                                                type='info'
+                                                title={
+                                                    <FormattedMessage
+                                                        id='admin.access_control.policy.edit_policy.all_channels.attributes_warning.title'
+                                                        defaultMessage='This policy depends on channel attributes'
+                                                    />
+                                                }
+                                                text={formatMessage({
+                                                    id: 'admin.access_control.policy.edit_policy.all_channels.attributes_warning.text',
+                                                    defaultMessage: 'This rule compares against the channel attribute(s): {fields}. Members are only granted access once a channel sets those attributes; private channels that leave them unset have all members removed. Mark these attributes as required on channels that must stay accessible.',
+                                                }, {fields: referencedChannelFieldLabels.join(', ')})}
+                                            />
+                                        </div>
+                                    )}
+                                    <label className='AccessControlPolicySettings__autoAddToggle'>
+                                        <input
+                                            type='checkbox'
+                                            checked={autoAdd}
+                                            disabled={saving}
+                                            onChange={(e) => handleAutoAddChange(e.target.checked)}
+                                        />
+                                        <span className='AccessControlPolicySettings__autoAddToggleLabel'>
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.all_channels.auto_add.label'
+                                                defaultMessage='Automatically add matching members'
+                                            />
+                                        </span>
+                                    </label>
+                                    <div className='AccessControlPolicySettings__autoAddDescription'>
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.all_channels.auto_add.description'
+                                            defaultMessage='When on, users who meet the access rules are added to every eligible private channel. Enforcement (removing and blocking non-matching members) always applies.'
+                                        />
+                                    </div>
                                 </div>
+                            ) : (
+                                <>
+                                    <ChannelList
+                                        onRemoveCallback={(channel) => addToRemovedChannels(channel)}
+                                        channelsToRemove={channelChanges.removed}
+                                        channelsToAdd={channelChanges.added}
+                                        policyId={policyId}
+                                        policyActiveStatusChanges={policyActiveStatusChanges}
+                                        onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
+                                        saving={saving}
+                                    />
+                                    {hasMixedChannels && (
+                                        <div className='AccessControlPolicySettings__mixedChannelsNotice'>
+                                            <SectionNotice
+                                                type='warning'
+                                                title={
+                                                    <FormattedMessage
+                                                        id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                                        defaultMessage='Membership policies affect public and private channels differently'
+                                                    />
+                                                }
+                                                text={formatMessage({
+                                                    id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                                    defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                                                })}
+                                            />
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </Card.Body>
                     </Card>
@@ -804,6 +929,7 @@ function PolicyDetails({
             {showConfirmationModal && (
                 <PolicyConfirmationModal
                     active={autoSyncMembership}
+                    allChannels={appliesToAllChannels}
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
@@ -849,7 +975,7 @@ function PolicyDetails({
                         if (!preSaveCheck()) {
                             return;
                         }
-                        if (hasChannels()) {
+                        if (hasChannels() || appliesToAllChannels) {
                             setShowConfirmationModal(true);
                         } else {
                             handleSubmit();

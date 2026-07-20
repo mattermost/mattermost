@@ -15,9 +15,16 @@ type Props = {
     channelsAffected: number;
     publicChannelsAffected?: number;
     privateChannelsAffected?: number;
+
+    /**
+     * All-channels save: the policy governs every eligible private channel, so there
+     * is no per-channel count and enforcement is unconditional. Swaps the count
+     * subheader and body copy and drops the enforce-immediately toggle.
+     */
+    allChannels?: boolean;
 };
 
-export default function PolicyConfirmationModal({active, onExited, onConfirm, channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0}: Props) {
+export default function PolicyConfirmationModal({active, onExited, onConfirm, channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0, allChannels = false}: Props) {
     const {formatMessage} = useIntl();
     const [enforceImmediately, setEnforceImmediately] = useState(true);
 
@@ -25,7 +32,12 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
     const hasOnlyPublic = publicChannelsAffected > 0 && privateChannelsAffected === 0;
 
     let bodyText: string;
-    if (hasMix) {
+    if (allChannels) {
+        bodyText = formatMessage({
+            id: 'admin.access_control.policy.save_policy_confirmation_body.all_channels',
+            defaultMessage: 'This policy will apply to every eligible private channel. Members who do not match the rules are removed and non-matching users are blocked from joining. Private channels that have not set the attributes this policy references will have all members removed. Newly created private channels are governed automatically.',
+        });
+    } else if (hasMix) {
         bodyText = active ? formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.mixed',
             defaultMessage: 'This policy is applied to channels of mixed types. For private channels, matching users will be granted access and non-matching members will be removed. For public channels, matching users will see these channels as recommendations and will be auto-added when auto-add is enabled; no existing members will be removed.',
@@ -64,13 +76,18 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
                     defaultMessage='Save membership policy'
                 />
             }
-            modalSubheaderText={
+            modalSubheaderText={allChannels ? (
+                <FormattedMessage
+                    id='admin.access_control.policy.save_policy_confirmation_subheader.all_channels'
+                    defaultMessage='All eligible private channels will be affected.'
+                />
+            ) : (
                 <FormattedMessage
                     id='admin.access_control.policy.save_policy_confirmation_subheader'
                     defaultMessage='{count} channels will be affected.'
                     values={{count: channelsAffected}}
                 />
-            }
+            )}
             footerContent={
                 <div>
                     <button
@@ -82,12 +99,10 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
                     </button>
                     <button
                         type='button'
-                        className={enforceImmediately ? 'btn-apply' : 'btn-save'}
-                        onClick={() => onConfirm(enforceImmediately)}
+                        className={(allChannels || enforceImmediately) ? 'btn-apply' : 'btn-save'}
+                        onClick={() => onConfirm(allChannels || enforceImmediately)}
                     >
-                        {enforceImmediately ?
-                            formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) :
-                            formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
+                        {(allChannels || enforceImmediately) ? formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) : formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
                         }
                     </button>
                 </div>
@@ -98,30 +113,31 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
                 {bodyText}
             </div>
 
-            <div className='enforce-toggle'>
-                <label className='enforce-checkbox-label'>
-                    <input
-                        type='checkbox'
-                        checked={enforceImmediately}
-                        onChange={(e) => setEnforceImmediately(e.target.checked)}
-                    />
-                    <span>{formatMessage({
-                        id: 'admin.access_control.policy.enforce_immediately',
-                        defaultMessage: 'Enforce policy immediately',
-                    })}</span>
-                </label>
-            </div>
+            {/* All-channels enforcement is unconditional — no enforce-immediately choice. */}
+            {!allChannels && (
+                <div className='enforce-toggle'>
+                    <label className='enforce-checkbox-label'>
+                        <input
+                            type='checkbox'
+                            checked={enforceImmediately}
+                            onChange={(e) => setEnforceImmediately(e.target.checked)}
+                        />
+                        <span>{formatMessage({
+                            id: 'admin.access_control.policy.enforce_immediately',
+                            defaultMessage: 'Enforce policy immediately',
+                        })}</span>
+                    </label>
+                </div>
+            )}
 
             <div className='confirmation'>
-                {enforceImmediately ?
-                    formatMessage({
-                        id: 'admin.access_control.policy.channels_affected',
-                        defaultMessage: 'Are you sure you want to save and apply the membership policy?',
-                    }) :
-                    formatMessage({
-                        id: 'admin.access_control.policy.save_only',
-                        defaultMessage: 'Are you sure you want to save this membership policy?',
-                    })
+                {(allChannels || enforceImmediately) ? formatMessage({
+                    id: 'admin.access_control.policy.channels_affected',
+                    defaultMessage: 'Are you sure you want to save and apply the membership policy?',
+                }) : formatMessage({
+                    id: 'admin.access_control.policy.save_only',
+                    defaultMessage: 'Are you sure you want to save this membership policy?',
+                })
                 }
             </div>
         </GenericModal>

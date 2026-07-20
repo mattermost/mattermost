@@ -434,4 +434,102 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
         expect(mockDeletePolicy).not.toHaveBeenCalled();
     });
+
+    describe('all-channels toggle', () => {
+        // An existing policy so the expression state is non-empty (the mocked
+        // TableEditor never fires onChange). expr/extra let a test drive the
+        // stored rule and the parent's all-channels state.
+        const existingWith = (expr: string, extra: Record<string, unknown> = {}) => ({
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{actions: ['membership'], expression: expr}],
+                        ...extra,
+                    },
+                }),
+            },
+        });
+
+        test('save wires applies_to_all_channels, active and auto_add when All channels is selected', async () => {
+            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', name: 'Policy 1', rules: [], applies_to_all_channels: true, active: true, auto_add: true}});
+            renderWithContext(<PolicyDetails {...existingWith('user.attributes.team == "eng"')}/>);
+
+            await userEvent.click(await screen.findByText('All channels'));
+            await userEvent.click(screen.getByText('Automatically add matching members'));
+            await userEvent.click(screen.getByText('Save'));
+
+            // All-channels confirmation always applies; there is no enforce-immediately toggle.
+            expect(screen.queryByText('Enforce policy immediately')).not.toBeInTheDocument();
+            await userEvent.click(await screen.findByText('Apply policy'));
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalled());
+            const payload = mockCreatePolicy.mock.calls[0][0];
+            expect(payload.applies_to_all_channels).toBe(true);
+            expect(payload.active).toBe(true);
+            expect(payload.auto_add).toBe(true);
+
+            // All-channels mode never touches the per-channel assignment list.
+            expect(mockAssignChannelsToAccessControlPolicy).not.toHaveBeenCalled();
+        });
+
+        test('save clears the flags in manual mode', async () => {
+            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', name: 'Policy 1', rules: []}});
+            renderWithContext(<PolicyDetails {...existingWith('user.attributes.team == "eng"')}/>);
+
+            // Toggle to All channels and back to Manual, then save (no channels → no modal).
+            await userEvent.click(await screen.findByText('All channels'));
+            await userEvent.click(screen.getByText('Select channels manually'));
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalled());
+            const payload = mockCreatePolicy.mock.calls[0][0];
+            expect(payload.applies_to_all_channels).toBe(false);
+            expect(payload.active).toBe(false);
+            expect(payload.auto_add).toBe(false);
+        });
+
+        test('auto_add is not sent when All channels is on but auto-add is left off', async () => {
+            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', name: 'Policy 1', rules: [], applies_to_all_channels: true}});
+            renderWithContext(<PolicyDetails {...existingWith('user.attributes.team == "eng"')}/>);
+
+            await userEvent.click(await screen.findByText('All channels'));
+            await userEvent.click(screen.getByText('Save'));
+            await userEvent.click(await screen.findByText('Apply policy'));
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalled());
+            const payload = mockCreatePolicy.mock.calls[0][0];
+            expect(payload.applies_to_all_channels).toBe(true);
+            expect(payload.auto_add).toBe(false);
+        });
+
+        test('names the referenced channel attributes in the all-channels warning', async () => {
+            mockGetAccessControlFields.mockResolvedValue({data: [
+                {id: 'c1', name: 'clearance', object_type: 'channel', attrs: {display_name: 'Clearance'}},
+            ]});
+            const props = existingWith('resource.attributes.clearance in user.attributes.team', {applies_to_all_channels: true});
+            renderWithContext(<PolicyDetails {...props}/>);
+
+            await waitFor(() => {
+                expect(screen.getByText('This policy depends on channel attributes')).toBeInTheDocument();
+            });
+
+            // The channel field's display name is surfaced so the admin knows what to mark required.
+            expect(screen.getByText(/Clearance/)).toBeInTheDocument();
+        });
+
+        test('hides the channel-attributes warning in manual mode', async () => {
+            mockGetAccessControlFields.mockResolvedValue({data: [
+                {id: 'c1', name: 'clearance', object_type: 'channel', attrs: {display_name: 'Clearance'}},
+            ]});
+            const props = existingWith('resource.attributes.clearance in user.attributes.team');
+            renderWithContext(<PolicyDetails {...props}/>);
+
+            await screen.findByText('Select channels manually');
+            expect(screen.queryByText('This policy depends on channel attributes')).not.toBeInTheDocument();
+        });
+    });
 });
