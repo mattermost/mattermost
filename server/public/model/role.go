@@ -964,6 +964,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePrivateChannelProperties.Id,
 			PermissionDeletePrivateChannel.Id,
 			PermissionManagePrivateChannelMembers.Id,
+			PermissionManageChannelGroupSync.Id,
 			PermissionDeletePost.Id,
 			PermissionEditPost.Id,
 			PermissionEditFileAttachment.Id,

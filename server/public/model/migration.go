@@ -66,4 +66,5 @@ const (
 	MigrationKeyAddManageAgentPermissions              = "add_manage_agent_permissions"
 	MigrationKeyAddEditFileAttachmentPermission        = "add_edit_file_attachment_permission"
 	MigrationKeyAddDiscoverableChannelPermissions      = "add_discoverable_channel_permissions"
+	MigrationKeyAddChannelGroupSyncPermission          = "add_channel_group_sync_permission"
 )

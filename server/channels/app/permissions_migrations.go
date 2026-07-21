@@ -71,6 +71,7 @@ const (
 	PermissionRemoveReaction                      = "remove_reaction"
 	PermissionManagePublicChannelMembers          = "manage_public_channel_members"
 	PermissionManagePrivateChannelMembers         = "manage_private_channel_members"
+	PermissionManageChannelGroupSync              = "manage_channel_group_sync"
 	PermissionReadJobs                            = "read_jobs"
 	PermissionManageJobs                          = "manage_jobs"
 	PermissionReadOtherUsersTeams                 = "read_other_users_teams"
@@ -1345,6 +1346,18 @@ func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, e
 	}, nil
 }
 
+func (a *App) getAddChannelGroupSyncPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				permissionExists(PermissionManagePublicChannelMembers),
+				permissionExists(PermissionManagePrivateChannelMembers),
+			),
+			Add: []string{PermissionManageChannelGroupSync},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1408,6 +1421,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
+		{Key: model.MigrationKeyAddChannelGroupSyncPermission, Migration: a.getAddChannelGroupSyncPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
