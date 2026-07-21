@@ -1178,13 +1178,14 @@ func TestCreateChannelMaterializesAllChannelsChild(t *testing.T) {
 		require.True(t, errors.As(err, &nfErr), "expected no child policy for the new channel")
 	})
 
-	t.Run("create-hook failure rolls the channel back", func(t *testing.T) {
+	t.Run("create-hook failure keeps the channel for the reconcile to backfill", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		saveActiveAllChannelsParent(t, th)
 
-		// An engine whose SavePolicy fails makes materialization fail; the
-		// create hook must then delete the just-created channel and surface the
-		// error rather than leave an ungoverned private channel behind.
+		// An engine whose SavePolicy fails makes materialization fail. Materialization
+		// failure is a transient store error, so the create hook must keep the
+		// just-created channel (never destroy committed data on a blip) and leave the
+		// governing child for the periodic reconcile to backfill.
 		m := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = m
 		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
@@ -1195,7 +1196,6 @@ func TestCreateChannelMaterializesAllChannelsChild(t *testing.T) {
 		m.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).Return(nil).Maybe()
 
 		channel := &model.Channel{
-			Id:          model.NewId(),
 			DisplayName: "dn_" + model.NewId(),
 			Name:        "name_" + model.NewId(),
 			Type:        model.ChannelTypePrivate,
@@ -1203,11 +1203,13 @@ func TestCreateChannelMaterializesAllChannelsChild(t *testing.T) {
 			CreatorId:   th.BasicUser.Id,
 		}
 		created, appErr := th.App.CreateChannel(th.Context, channel, true)
-		require.NotNil(t, appErr)
-		require.Nil(t, created)
+		require.Nil(t, appErr, "materialization failure must not fail channel creation")
+		require.NotNil(t, created)
+		t.Cleanup(func() { require.Nil(t, th.App.PermanentDeleteChannel(th.Context, created)) })
 
-		_, getErr := th.App.GetChannel(th.Context, channel.Id)
-		require.NotNil(t, getErr, "channel should have been rolled back")
+		got, getErr := th.App.GetChannel(th.Context, created.Id)
+		require.Nil(t, getErr, "channel should be kept when materialization fails")
+		require.Equal(t, created.Id, got.Id)
 	})
 }
 
