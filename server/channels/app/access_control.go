@@ -1926,10 +1926,14 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
+	// Must match the page size of any cursor-less caller loop (e.g.
+	// removeAllChannelsChildren): that loop passes up to N child IDs and expects
+	// all of them validated here. If this limit were smaller, the surplus IDs
+	// would never be unassigned and the caller loop would never converge.
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeChannel,
 		ParentID: policyID,
-		Limit:    1000,
+		Limit:    accessControlChildPolicySearchLimit,
 	})
 	if err != nil {
 		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -2039,7 +2043,7 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeTeam,
 		ParentID: policyID,
-		Limit:    1000,
+		Limit:    accessControlChildPolicySearchLimit,
 	})
 	if err != nil {
 		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
