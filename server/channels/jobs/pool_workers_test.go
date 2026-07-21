@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -42,13 +43,15 @@ func expectJobLifecycle(mockStore *storetest.Store, mockMetrics *mocks.MetricsIn
 
 func receiveStarted(t *testing.T, started <-chan string) string {
 	t.Helper()
+	var jobID string
+	received := false
 	select {
-	case jobID := <-started:
-		return jobID
+	case jobID = <-started:
+		received = true
 	case <-time.After(5 * time.Second):
-		t.Fatal("timed out waiting for job execution")
-		return ""
 	}
+	assert.True(t, received, "timed out waiting for job execution")
+	return jobID
 }
 
 func TestPoolWorkerConcurrentExecution(t *testing.T) {
@@ -81,11 +84,13 @@ func TestPoolWorkerConcurrentExecution(t *testing.T) {
 	}
 	require.Equal(t, map[string]bool{"job1": true, "job2": true, "job3": true}, got)
 
+	accepted := false
 	select {
 	case worker.JobChannel() <- model.Job{Id: "job4", Type: "job_type"}:
-		t.Fatal("fourth job accepted while pool exhausted")
+		accepted = true
 	case <-time.After(100 * time.Millisecond):
 	}
+	assert.False(t, accepted, "fourth job accepted while pool exhausted")
 
 	close(release)
 	worker.Stop()
@@ -121,18 +126,22 @@ func TestPoolWorkerStopDrainsInFlight(t *testing.T) {
 		close(stopReturned)
 	}()
 
+	returnedEarly := false
 	select {
 	case <-stopReturned:
-		t.Fatal("Stop returned before in-flight jobs finished")
+		returnedEarly = true
 	case <-time.After(200 * time.Millisecond):
 	}
+	assert.False(t, returnedEarly, "Stop returned before in-flight jobs finished")
 
 	close(release)
+	stopped := false
 	select {
 	case <-stopReturned:
+		stopped = true
 	case <-time.After(5 * time.Second):
-		t.Fatal("timed out waiting for Stop")
 	}
+	assert.True(t, stopped, "timed out waiting for Stop")
 }
 
 func TestPoolWorkerDoJob(t *testing.T) {
@@ -257,11 +266,13 @@ func TestPoolWorkerStopStates(t *testing.T) {
 		}, noopEnabled, poolSize)
 
 		go worker.Run()
+		runDidStart := false
 		select {
 		case <-runStarted:
+			runDidStart = true
 		case <-time.After(5 * time.Second):
-			t.Fatal("timed out waiting for Run")
 		}
+		assert.True(t, runDidStart, "timed out waiting for Run")
 		worker.Stop()
 		require.NotPanics(t, worker.Stop)
 	})
@@ -284,11 +295,13 @@ func TestPoolWorkerStopStates(t *testing.T) {
 		worker.JobChannel() <- model.Job{Id: "job1", Type: "job_type"}
 		receiveStarted(t, started)
 
+		accepted := false
 		select {
 		case worker.JobChannel() <- model.Job{Id: "job2", Type: "job_type"}:
-			t.Fatal("second job accepted by duplicate pool")
+			accepted = true
 		case <-time.After(100 * time.Millisecond):
 		}
+		assert.False(t, accepted, "second job accepted by duplicate pool")
 
 		close(release)
 		worker.Stop()
@@ -325,11 +338,13 @@ func TestPoolWorkerPoolSizeClamp(t *testing.T) {
 			worker.JobChannel() <- model.Job{Id: "job1", Type: "job_type"}
 			receiveStarted(t, started)
 
+			accepted := false
 			select {
 			case worker.JobChannel() <- model.Job{Id: "job2", Type: "job_type"}:
-				t.Fatal("second job accepted by clamped pool")
+				accepted = true
 			case <-time.After(100 * time.Millisecond):
 			}
+			assert.False(t, accepted, "second job accepted by clamped pool")
 
 			close(release)
 			worker.Stop()
