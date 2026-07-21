@@ -167,6 +167,15 @@ In the System Console, enter URIs as a comma-separated list. When setting this v
 
 This setting applies only when [Enable dynamic client registration](/administration-guide/configure/integrations-configuration-settings#enable-dynamic-client-registration) is enabled.
 
+Redirect URIs are matched per URL component. Patterns support two wildcards:
+
+- `*` matches any characters except `/` (for example, a single path segment or a hostname label).
+- `**` matches any characters including `/` (for example, a multi-segment path).
+
+Wildcards are applied within URL components only: host wildcards match against the host, path wildcards match against the path, and a wildcard in one component can't satisfy another component. For example, `https://*.example.com/**` matches `https://app.example.com/callback` but not `https://attacker.example.net`.
+
+Query strings are matched only when the pattern explicitly includes one. A pattern without a query string (such as `https://app.example.com/callback` or `https://app.example.com/**`) matches only redirect URIs that have no query string. To allow redirect URIs that carry query parameters, include a query component in the pattern, for example `https://app.example.com/callback?tenant=*`. To allow a callback both with and without a query string, add both patterns.
+
 <table>
 <colgroup>
 <col style={{width: '100%'}} />
