@@ -8,7 +8,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-import CELEditor from './editor';
+import CELEditor, {buildCELSchemas} from './editor';
 
 jest.mock('monaco-editor', () => ({
     editor: {
@@ -155,5 +155,52 @@ describe('CELEditor', () => {
             expect(searchUsersForExpression).toHaveBeenCalledWith(expression, '', '', 50, 'channel1', 'team1');
         });
         expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
+    });
+});
+
+describe('buildCELSchemas', () => {
+    test('treats attributes without an object type as user attributes', () => {
+        const schemas = buildCELSchemas([
+            {attribute: 'department', values: []},
+            {attribute: 'email', values: [], isNative: true},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes', 'email']);
+        expect(schemas['user.attributes']).toEqual(['department']);
+    });
+
+    test('offers only user.attributes when no session attributes are present', () => {
+        const schemas = buildCELSchemas([
+            {attribute: 'department', values: [], objectType: 'user'},
+            {attribute: 'location', values: [], objectType: 'user'},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes']);
+        expect(schemas['user.attributes']).toEqual(['department', 'location']);
+        expect(schemas['user.session']).toBeUndefined();
+    });
+
+    test('adds the user.session bucket when a session attribute is present', () => {
+        const schemas = buildCELSchemas([
+            {attribute: 'department', values: [], objectType: 'user'},
+            {attribute: 'ip_address', values: [], objectType: 'session'},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes', 'session']);
+        expect(schemas['user.attributes']).toEqual(['department']);
+        expect(schemas['user.session']).toEqual(['ip_address']);
+    });
+
+    test('drops names with spaces or that are empty', () => {
+        const schemas = buildCELSchemas([
+            {attribute: 'has space', values: [], objectType: 'user'},
+            {attribute: '   ', values: [], objectType: 'user'},
+            {attribute: 'valid', values: [], objectType: 'user'},
+            {attribute: 'session valid', values: [], objectType: 'session'},
+            {attribute: 'ip_address', values: [], objectType: 'session'},
+        ]);
+
+        expect(schemas['user.attributes']).toEqual(['valid']);
+        expect(schemas['user.session']).toEqual(['ip_address']);
     });
 });

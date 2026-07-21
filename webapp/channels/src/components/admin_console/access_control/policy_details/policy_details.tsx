@@ -13,6 +13,7 @@ import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/cha
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -32,7 +33,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -48,7 +49,13 @@ interface PolicyActions {
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
+    getTeam: (teamId: string) => Promise<ActionResult>;
 }
+
+type AssignedTeam = {
+    id: string;
+    display_name: string;
+};
 
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
@@ -101,6 +108,17 @@ function PolicyDetails({
     const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
 
+    // Teams assigned to this policy. In MVF teams are not editable from the policy
+    // editor (assignment is done from the per-team System Console page), so this is
+    // a static count read from the policy Props — used only to block deletion while
+    // any team is still linked, matching how channels gate deletion.
+    const [teamsCount, setTeamsCount] = useState(0);
+
+    // The teams linked to this policy, resolved to id + name so the delete
+    // gate can list them with links to their System Console pages. Assignment
+    // itself lives on the per-team page (MVF), so this is display-only.
+    const [assignedTeams, setAssignedTeams] = useState<AssignedTeam[]>([]);
+
     // Map of saved channelId → channel type. Lets the confirmation modal show
     // the right messaging for mixed / public-only / private-only policies.
     const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
@@ -140,18 +158,38 @@ function PolicyDetails({
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
         const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
-                setAutocompleteResult(result.data);
+                setAutocompleteResult(excludeSessionAttributes(result.data));
             }
             setAttributesLoaded(true);
         });
 
         if (policyId) {
             // For existing policies, fetch policy details and channels
-            const policyPromise = actions.fetchPolicy(policyId).then((result) => {
+            const policyPromise = actions.fetchPolicy(policyId).then(async (result) => {
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
+
+                // Child counts + ids are stamped by the GET handler (see
+                // PopulateAccessControlPolicyChildCounts): child_ids lists channels
+                // first, then teams, so the team ids are the tail after channel_count.
+                // Teams aren't editable here — the count gates deletion and the ids
+                // let us list the linked teams in the delete warning below.
+                const policyProps = result.data?.props ?? {};
+                const teamCount = (policyProps.team_count as unknown as number) || 0;
+                const channelCount = (policyProps.channel_count as unknown as number) || 0;
+                const childIds = (policyProps.child_ids as unknown as string[]) || [];
+                setTeamsCount(teamCount);
+
+                const teamIds = teamCount > 0 ? childIds.slice(channelCount) : [];
+                if (teamIds.length > 0) {
+                    const teamResults = await Promise.all(teamIds.map((id) => actions.getTeam(id)));
+                    setAssignedTeams(teamResults.
+                        map((r) => r.data).
+                        filter((team): team is Team => Boolean(team)).
+                        map((team) => ({id: team.id, display_name: team.display_name})));
+                }
             });
 
             // Fetch the full assigned-channel list (not just a page) to know
@@ -378,6 +416,11 @@ function PolicyDetails({
             (Object.keys(channelChanges.added).length > 0)
         );
     };
+
+    // Deletion is blocked while the policy still has ANY assigned resource —
+    // channels or teams. Teams aren't editable from this editor (MVF), so a
+    // linked team must be removed from the per-team System Console page first.
+    const hasAssignedResources = () => hasChannels() || teamsCount > 0;
 
     // Effective channel mix = (saved - removed) + added. Reused by the
     // mixed-channel notice below the channel list and by the confirmation
@@ -651,6 +694,35 @@ function PolicyDetails({
                                     />
                                 </div>
                             )}
+                            {teamsCount > 0 && (
+                                <div className='admin-console__warning-notice EditPolicy__delete-linked-teams-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.title'
+                                                defaultMessage='This policy is assigned to teams - Deletion not allowed'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
+                                            defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
+                                        })}
+                                    >
+                                        {assignedTeams.length > 0 && (
+                                            <ul className='EditPolicy__delete-linked-teams-list'>
+                                                {assignedTeams.map((team) => (
+                                                    <li key={team.id}>
+                                                        <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
+                                                            {team.display_name}
+                                                        </BlockableLink>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </SectionNotice>
+                                </div>
+                            )}
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
@@ -660,10 +732,10 @@ function PolicyDetails({
                                         />
                                     }
                                     subtitle={
-                                        hasChannels() ? (
+                                        hasAssignedResources() ? (
                                             <FormattedMessage
                                                 id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                                defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                                defaultMessage='Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy'
                                             />
                                         ) : (
                                             <FormattedMessage
@@ -679,12 +751,12 @@ function PolicyDetails({
                                         />
                                     }
                                     onClick={() => {
-                                        if (hasChannels()) {
+                                        if (hasAssignedResources()) {
                                             return;
                                         }
                                         setShowDeleteConfirmationModal(true);
                                     }}
-                                    isDisabled={hasChannels() || hasMaskedRows}
+                                    isDisabled={hasAssignedResources() || hasMaskedRows}
                                 />
                             </Card.Header>
                         </Card>

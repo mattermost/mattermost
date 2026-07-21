@@ -55,6 +55,7 @@ const config: Config = {
   onBrokenLinks: 'warn',
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
       onBrokenMarkdownImages: 'warn',
@@ -156,7 +157,7 @@ const config: Config = {
 
   // Theme for the API endpoint pages (parameter tables, request/response
   // schemas, code-sample picker). Layered on the classic preset theme.
-  themes: ['docusaurus-theme-openapi-docs'],
+  themes: ['docusaurus-theme-openapi-docs', '@docusaurus/theme-mermaid'],
 
   themeConfig: {
     image: 'img/brand/logo-horizontal-denim.svg',
@@ -240,6 +241,41 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
       additionalLanguages: ['bash', 'powershell', 'json', 'yaml', 'go', 'python'],
+    },
+    mermaid: {
+      theme: {light: 'base', dark: 'dark'},
+      options: {
+        themeVariables: {
+          fontSize: '14px',
+          primaryColor: '#0984e3',
+          primaryTextColor: '#ffffff',
+          primaryBorderColor: '#2d3436',
+          lineColor: '#0745a1',
+          secondaryColor: '#0984e3',
+          tertiaryColor: '#d63031',
+          mainBkg: '#ffffff',
+          textColor: '#2d3436',
+          taskBkgColor: '#0984e3',
+          taskTextColor: '#ffffff',
+          taskTextLightColor: '#ffffff',
+          taskTextDarkColor: '#ffffff',
+          activeTaskBkgColor: '#0984e3',
+          activeTaskBorderColor: '#2d3436',
+          doneTaskBkgColor: '#0984e3',
+          doneTaskBorderColor: '#2d3436',
+          critBkgColor: '#d63031',
+          critBorderColor: '#2d3436',
+        },
+        gantt: {
+          fontSize: 14,
+          sectionFontSize: 14,
+          barHeight: 28,
+          barGap: 6,
+          topPadding: 50,
+          leftPadding: 75,
+          gridLineStartPadding: 35,
+        },
+      },
     },
     // Code-sample tabs shown on every endpoint page, in display order.
     // First entry is the default selected tab (curl).
