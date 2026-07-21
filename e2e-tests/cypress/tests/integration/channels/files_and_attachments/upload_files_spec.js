@@ -274,10 +274,9 @@ describe('Upload Files', () => {
         // # Now post with the message attachment
         cy.uiGetPostTextBox().clear().type('{enter}');
 
-        cy.findByTestId('fileAttachmentList').
-            find('img[src*="/api/v4/files/"]').
-            should('be.visible').
-            invoke('attr', 'src').
+        cy.uiGetFileThumbnail(imageFilename).
+            should('have.attr', 'src').
+            and('include', '/api/v4/files/').
             then((src) => {
                 downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
             });
