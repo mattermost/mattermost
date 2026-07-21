@@ -104,6 +104,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
@@ -215,6 +216,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
@@ -303,6 +305,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
@@ -392,6 +395,7 @@ describe('custom plugin sections and settings', () => {
 
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
 
@@ -493,6 +497,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();

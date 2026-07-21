@@ -16,13 +16,14 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
     it('enables the plugin when clicked', async () => {
         const disablePlugin = jest.fn();
         const enablePlugin = jest.fn().mockResolvedValue({data: true});
+        const removePlugin = jest.fn();
 
         renderWithContext(
             <PluginEnableButton
                 id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
                 disabled={false}
                 value={false}
-                actions={{disablePlugin, enablePlugin}}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
             />,
         );
 
@@ -35,13 +36,14 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
     it('disables the plugin when clicked while enabled', async () => {
         const disablePlugin = jest.fn().mockResolvedValue({data: true});
         const enablePlugin = jest.fn();
+        const removePlugin = jest.fn();
 
         renderWithContext(
             <PluginEnableButton
                 id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
                 disabled={false}
                 value={true}
-                actions={{disablePlugin, enablePlugin}}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
             />,
         );
 
@@ -54,13 +56,14 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
     it('shows an error when enabling fails', async () => {
         const disablePlugin = jest.fn();
         const enablePlugin = jest.fn().mockResolvedValue({error: {message: 'Unable to enable plugin'}});
+        const removePlugin = jest.fn();
 
         renderWithContext(
             <PluginEnableButton
                 id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
                 disabled={false}
                 value={false}
-                actions={{disablePlugin, enablePlugin}}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
             />,
         );
 
@@ -69,5 +72,30 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         await waitFor(() => {
             expect(screen.getByText('Unable to enable plugin')).toBeInTheDocument();
         });
+    });
+
+    it('confirms before uninstalling the plugin', async () => {
+        const disablePlugin = jest.fn();
+        const enablePlugin = jest.fn();
+        const removePlugin = jest.fn().mockResolvedValue({data: true});
+
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                value={false}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Uninstall plugin'}));
+
+        expect(screen.getByText('Remove plugin?')).toBeInTheDocument();
+        expect(screen.getByText('Are you sure you would like to remove the plugin?')).toBeInTheDocument();
+        expect(removePlugin).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Remove'}));
+
+        expect(removePlugin).toHaveBeenCalledWith('com.mattermost.calls');
     });
 });

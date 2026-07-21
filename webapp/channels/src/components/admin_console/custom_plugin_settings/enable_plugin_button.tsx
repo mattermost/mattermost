@@ -9,10 +9,13 @@ import type {Dispatch} from 'redux';
 
 import {Button} from '@mattermost/shared/components/button';
 
-import {disablePlugin, enablePlugin} from 'mattermost-redux/actions/admin';
+import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
+
+import {getHistory} from 'utils/browser_history';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import {unescapePathPart} from '../schema_admin_settings';
@@ -21,6 +24,7 @@ type Props = Pick<SystemConsoleCustomSettingsComponentProps, 'id' | 'disabled' |
     actions: {
         disablePlugin: (pluginId: string) => Promise<ActionResult>;
         enablePlugin: (pluginId: string) => Promise<ActionResult>;
+        removePlugin: (pluginId: string) => Promise<ActionResult>;
     };
 };
 
@@ -36,17 +40,18 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
 }
 
 export function PluginEnableButton({actions, disabled, id, value}: Props) {
-    const [submitting, setSubmitting] = useState(false);
+    const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
+    const [showRemoveModal, setShowRemoveModal] = useState(false);
     const [serverError, setServerError] = useState('');
     const pluginId = useMemo(() => getPluginIdFromEnableSettingId(id), [id]);
     const pluginEnabled = Boolean(value);
 
     const handleTogglePlugin = useCallback(async () => {
-        if (!pluginId || submitting || disabled) {
+        if (!pluginId || submittingAction || disabled) {
             return;
         }
 
-        setSubmitting(true);
+        setSubmittingAction('toggle');
         setServerError('');
 
         const {error} = pluginEnabled ? await actions.disablePlugin(pluginId) : await actions.enablePlugin(pluginId);
@@ -54,8 +59,40 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
             setServerError(error.message);
         }
 
-        setSubmitting(false);
-    }, [actions, disabled, pluginEnabled, pluginId, submitting]);
+        setSubmittingAction('');
+    }, [actions, disabled, pluginEnabled, pluginId, submittingAction]);
+
+    const handleShowRemoveModal = useCallback(() => {
+        if (!pluginId || submittingAction || disabled) {
+            return;
+        }
+
+        setServerError('');
+        setShowRemoveModal(true);
+    }, [disabled, pluginId, submittingAction]);
+
+    const handleRemovePluginCancel = useCallback(() => {
+        setShowRemoveModal(false);
+    }, []);
+
+    const handleRemovePlugin = useCallback(async () => {
+        if (!pluginId || submittingAction || disabled) {
+            return;
+        }
+
+        setShowRemoveModal(false);
+        setSubmittingAction('remove');
+        setServerError('');
+
+        const {error} = await actions.removePlugin(pluginId);
+        if (error) {
+            setServerError(error.message);
+            setSubmittingAction('');
+            return;
+        }
+
+        getHistory().push('/admin_console/plugins/plugin_management');
+    }, [actions, disabled, pluginId, submittingAction]);
 
     let buttonMessage = pluginEnabled ? (
         <FormattedMessage
@@ -68,7 +105,7 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
             defaultMessage='Enable plugin'
         />
     );
-    if (submitting) {
+    if (submittingAction === 'toggle') {
         buttonMessage = pluginEnabled ? (
             <FormattedMessage
                 id='admin.plugin.disabling'
@@ -82,6 +119,45 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
         );
     }
 
+    const removeButtonMessage = submittingAction === 'remove' ? (
+        <FormattedMessage
+            id='admin.plugin.removing'
+            defaultMessage='Removing...'
+        />
+    ) : (
+        <FormattedMessage
+            id='admin.plugin.uninstall_plugin.button'
+            defaultMessage='Uninstall plugin'
+        />
+    );
+
+    const removePluginModal = showRemoveModal && (
+        <ConfirmModal
+            show={showRemoveModal}
+            title={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.title'
+                    defaultMessage='Remove plugin?'
+                />
+            }
+            message={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.desc'
+                    defaultMessage='Are you sure you would like to remove the plugin?'
+                />
+            }
+            confirmButtonVariant='destructive'
+            confirmButtonText={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.overwrite'
+                    defaultMessage='Remove'
+                />
+            }
+            onConfirm={handleRemovePlugin}
+            onCancel={handleRemovePluginCancel}
+        />
+    );
+
     return (
         <div className='form-group'>
             <div className='col-sm-offset-4 col-sm-8'>
@@ -90,11 +166,22 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
                     emphasis='primary'
                     variant={pluginEnabled ? 'destructive' : undefined}
                     onClick={handleTogglePlugin}
-                    disabled={disabled || submitting || !pluginId}
+                    disabled={disabled || Boolean(submittingAction) || !pluginId}
                 >
                     {buttonMessage}
                 </Button>
+                <Button
+                    type='button'
+                    className='ml-2'
+                    emphasis='secondary'
+                    variant='destructive'
+                    onClick={handleShowRemoveModal}
+                    disabled={disabled || Boolean(submittingAction) || !pluginId}
+                >
+                    {removeButtonMessage}
+                </Button>
                 <FormError error={serverError}/>
+                {removePluginModal}
             </div>
         </div>
     );
@@ -105,6 +192,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             disablePlugin,
             enablePlugin,
+            removePlugin,
         }, dispatch),
     };
 }
