@@ -504,6 +504,313 @@ function buildDeploymentSidebar(autoCat) {
   };
 }
 
+// ===========================================================================
+// Administration Guide — Configure — manual grouping override.
+// ===========================================================================
+//
+// Configure is a flat 34-file settings-reference dump. This override groups
+// it by task/subsystem so the ~12 "*-configuration-settings" reference pages
+// don't drown the handful of task-oriented pages (Search, Calls, Storage,
+// Email, Billing, Branding) sitting alongside them at the same level.
+//
+// AI Agents Configuration is deliberately kept as its own standalone,
+// un-grouped top-level entry (not folded into a "misc/optional" bucket) —
+// Agents is a first-class platform capability, not an afterthought.
+
+const ADMIN_CONFIGURE_GROUPS = {
+  settingsReference: {
+    label: 'System Console Settings Reference',
+    landing: 'configuration-settings',
+    items: [
+      'site-configuration-settings',
+      'authentication-configuration-settings',
+      'integrations-configuration-settings',
+      'plugins-configuration-settings',
+      'compliance-configuration-settings',
+      'reporting-configuration-settings',
+      'user-management-configuration-settings',
+      'environment-configuration-settings',
+      'rate-limiting-configuration-settings',
+      'push-notification-server-configuration-settings',
+      'experimental-configuration-settings',
+      'deprecated-configuration-settings',
+    ],
+  },
+  search: {
+    label: 'Search Configuration',
+    items: [
+      'bleve-search',
+      'enabling-chinese-japanese-korean-search',
+    ],
+  },
+  calls: {
+    label: 'Calls Deployment & Configuration',
+    landing: 'calls-deployment-guide',
+    items: [
+      'calls-rtcd-setup',
+      'calls-offloader-setup',
+      'calls-kubernetes',
+      'calls-logging',
+      'calls-metrics-monitoring',
+    ],
+  },
+  storage: {
+    label: 'Storage & Database',
+    items: [
+      'configuration-in-your-database',
+      'azure-blob-storage',
+      'environment-variables',
+    ],
+  },
+  email: {
+    label: 'Email & Notifications',
+    items: [
+      'smtp-email',
+      'email-templates',
+    ],
+  },
+  billing: {
+    label: 'Billing & Account',
+    items: [
+      'self-hosted-account-settings',
+      'cloud-billing-account-settings',
+    ],
+  },
+  branding: {
+    label: 'Branding & Workspace Customization',
+    items: [
+      'custom-branding-tools',
+      'customize-mattermost',
+      'optimize-your-workspace',
+    ],
+  },
+};
+
+// Top-level Configure order. Strings are doc basenames relative to
+// administration-guide/configure/; objects reference ADMIN_CONFIGURE_GROUPS
+// keys. System Console Settings and Search come first (the settings most
+// admins land on); AI Agents Configuration is 3rd, standalone.
+const ADMIN_CONFIGURE_ORDER = [
+  {group: 'settingsReference'},
+  {group: 'search'},
+  'agents-admin-guide',
+  {group: 'calls'},
+  {group: 'storage'},
+  {group: 'email'},
+  {group: 'billing'},
+  {group: 'branding'},
+  'install-boards',
+  'manage-plugins',
+  'manage-user-surveys',
+  'system-attributes',
+];
+
+// Files re-parented into groups — exclude from the orphan check.
+const ADMIN_CONFIGURE_HIDDEN = new Set([
+  'site-configuration-settings', 'authentication-configuration-settings',
+  'integrations-configuration-settings', 'plugins-configuration-settings',
+  'compliance-configuration-settings', 'reporting-configuration-settings',
+  'user-management-configuration-settings', 'environment-configuration-settings',
+  'rate-limiting-configuration-settings', 'push-notification-server-configuration-settings',
+  'experimental-configuration-settings', 'deprecated-configuration-settings',
+  'bleve-search', 'enabling-chinese-japanese-korean-search',
+  'calls-rtcd-setup', 'calls-offloader-setup', 'calls-kubernetes',
+  'calls-logging', 'calls-metrics-monitoring',
+  'configuration-in-your-database', 'azure-blob-storage', 'environment-variables',
+  'smtp-email', 'email-templates',
+  'self-hosted-account-settings', 'cloud-billing-account-settings',
+  'custom-branding-tools', 'customize-mattermost', 'optimize-your-workspace',
+]);
+
+function buildAdminConfigureItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/configure/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
+  if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
+  const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/configure/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Configure" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories
+// like Onboard/Manage/Upgrade/Scale/Comply) with the manual grouping above.
+function regroupAdminConfigure(configureCat) {
+  const leafLabels = collectLeafLabels(configureCat);
+  const items = ADMIN_CONFIGURE_ORDER.map((spec) => buildAdminConfigureItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_CONFIGURE_HIDDEN) hiddenIds.add(`administration-guide/configure/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id) && id !== 'administration-guide/configure/configuration-settings') {
+      orphans.push(id);
+    }
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Configure file(s) missing from ADMIN_CONFIGURE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  configureCat.items = items;
+  return configureCat;
+}
+
+function buildAdminGuideSidebar(autoCat) {
+  for (const it of autoCat.items) {
+    if (it.type !== 'category') continue;
+    const dirName = it.link && it.link.id ? it.link.id.split('/')[1] :
+      (it.items || []).map((c) => c.id).find(Boolean)?.split('/')[1];
+    if (dirName === 'configure') {
+      regroupAdminConfigure(it);
+      break;
+    }
+  }
+  return autoCat;
+}
+
+// ===========================================================================
+// Integrations Guide — manual grouping override.
+// ===========================================================================
+//
+// Integrations Guide is a genuinely flat 20-item list (not just a migration
+// artifact — Sphinx has the same problem). Group by integration type so
+// related pages sit together instead of an alphabetical-ish flat dump.
+
+const INTEGRATIONS_GROUPS = {
+  chatInterop: {
+    label: 'Chat & Meeting Interop',
+    items: [
+      'microsoft-teams-sync',
+      'microsoft-teams-meetings',
+      'microsoft-calendar',
+      'mattermost-mission-collaboration-for-m365',
+      'zoom',
+    ],
+  },
+  itsmDevTools: {
+    label: 'ITSM & Dev Tools',
+    items: [
+      'jira',
+      'servicenow',
+      'github',
+      'gitlab',
+    ],
+  },
+  noCode: {
+    label: 'No-Code Automation',
+    items: [
+      'no-code-automation',
+    ],
+  },
+  builtIn: {
+    label: 'Built-in Integrations',
+    items: [
+      {label: 'Webhooks', landing: 'webhook-integrations', items: [
+        'incoming-webhooks',
+        'outgoing-webhooks',
+      ]},
+      {label: 'Slash Commands', landing: 'slash-commands', items: [
+        'built-in-slash-commands',
+        'run-slash-commands',
+      ]},
+      'restful-api',
+      'plugins',
+    ],
+  },
+};
+
+// Top-level Integrations Guide order. Strings are doc basenames relative to
+// integrations-guide/; objects reference INTEGRATIONS_GROUPS keys or are
+// inline sub-groups (Webhooks, Slash Commands).
+const INTEGRATIONS_ROOT_ORDER = [
+  'popular-integrations',
+  {group: 'chatInterop'},
+  {group: 'itsmDevTools'},
+  {group: 'noCode'},
+  {group: 'builtIn'},
+  'faq',
+];
+
+const INTEGRATIONS_HIDDEN = new Set([
+  'microsoft-teams-sync', 'microsoft-teams-meetings', 'microsoft-calendar',
+  'mattermost-mission-collaboration-for-m365', 'zoom',
+  'jira', 'servicenow', 'github', 'gitlab',
+  'no-code-automation',
+  'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
+  'slash-commands', 'built-in-slash-commands', 'run-slash-commands',
+  'restful-api', 'plugins',
+]);
+
+function buildIntegrationsItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `integrations-guide/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  if (spec.group) {
+    const g = INTEGRATIONS_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown integrations group: ${spec.group}`);
+    return buildIntegrationsGroup(g, leafLabels);
+  }
+  return buildIntegrationsGroup(spec, leafLabels);
+}
+
+function buildIntegrationsGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildIntegrationsItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `integrations-guide/${g.landing}`};
+  return cat;
+}
+
+function buildIntegrationsSidebar(autoCat) {
+  const leafLabels = collectLeafLabels(autoCat);
+  const items = INTEGRATIONS_ROOT_ORDER.map((spec) => buildIntegrationsItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of INTEGRATIONS_HIDDEN) hiddenIds.add(`integrations-guide/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id) && id !== 'integrations-guide/integrations-guide-index') {
+      orphans.push(id);
+    }
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Integrations Guide file(s) missing from INTEGRATIONS_ROOT_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  return {
+    type: 'category',
+    label: 'Integrations Guide',
+    collapsed: true,
+    link: {type: 'doc', id: 'integrations-guide/integrations-guide-index'},
+    items,
+  };
+}
+
 function buildOverviewSidebar(autoCat) {
   const leafLabels = collectLeafLabels(autoCat);
   // Drop hidden snippet-include partials from the label map up front.
@@ -559,6 +866,10 @@ function main() {
       cat = buildOverviewSidebar(cat);
     } else if (dir === 'deployment-guide') {
       cat = buildDeploymentSidebar(cat);
+    } else if (dir === 'administration-guide') {
+      cat = buildAdminGuideSidebar(cat);
+    } else if (dir === 'integrations-guide') {
+      cat = buildIntegrationsSidebar(cat);
     }
     sidebar.push(cat);
   }
