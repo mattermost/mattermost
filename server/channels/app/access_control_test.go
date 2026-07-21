@@ -1414,6 +1414,33 @@ func TestAllChannelsParentTeardown(t *testing.T) {
 		require.False(t, saved.AppliesToAllChannels)
 	})
 
+	t.Run("turning the flag off with a stale auto_add still succeeds", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+		parent := saveActiveAllChannelsParent(t, th)
+		wireWriteThroughAllChannelsACS(t, th)
+
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		t.Cleanup(func() { require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch)) })
+		requireChildActive(t, th, ch.Id, parent.ID, false)
+
+		// A direct-API caller clears all-channels but leaves auto_add set. IsValid
+		// rejects that pair, so without coercion the teardown would run and then
+		// 400. The save must instead normalize auto_add off and succeed.
+		parent.AppliesToAllChannels = false
+		parent.AutoAdd = true
+		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, parent)
+		require.Nil(t, appErr)
+
+		requireChildAbsent(t, th, ch.Id)
+
+		saved, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, parent.ID)
+		require.NoError(t, err)
+		require.False(t, saved.AppliesToAllChannels)
+		require.False(t, saved.AutoAdd, "auto_add must be coerced off when all-channels is cleared")
+	})
+
 	t.Run("deleting the parent removes every materialized child", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.AttributeValueMasking = false

@@ -114,6 +114,16 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// auto_add is the all-channels global add switch and means nothing without
+	// applies_to_all_channels — IsValid rejects the pair. Coerce it off here so a
+	// caller that clears the all-channels flag but leaves a stale auto_add set
+	// (e.g. a direct-API "just turn off all-channels" call) normalizes cleanly
+	// instead of hitting a permanent 400. The store's IsValid stays strict; this
+	// is the forgiving normalization at the public entry point.
+	if !policy.AppliesToAllChannels {
+		policy.AutoAdd = false
+	}
+
 	// Defense in depth: a team admin must remain within their own team policy's
 	// rules. The api4 handler enforces this for the request path, but guard here
 	// so any internal caller saving a team policy is held to the same invariant
@@ -216,6 +226,16 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// matching members.
 		autoAddChanged = policy.AppliesToAllChannels && policy.Active && !enablingAllChannels &&
 			hadAllChannels && existing.AutoAdd != policy.AutoAdd
+	}
+
+	// Validate before the destructive teardown below. SavePolicy validates again,
+	// but a validation failure is deterministic: letting an invalid disabling save
+	// reach removeAllChannelsChildren would destroy the materialized children on a
+	// request that can never succeed, and no retry would recover them. The
+	// teardown-before-save ordering below is designed for a *transient* store
+	// failure (retry re-materializes) — not for a guaranteed rejection.
+	if appErr := policy.IsValid(); appErr != nil {
+		return nil, appErr
 	}
 
 	// Turning the flag off must remove the child policies it materialized. Do
