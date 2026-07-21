@@ -190,8 +190,6 @@ func TestInstallPluginLocally(t *testing.T) {
 			require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
 			require.Equal(t, existingManifest, conflict.ExistingManifest)
 			require.Equal(t, existingManifest, conflict.UploadedManifest)
-			require.Equal(t, existingManifest.Version, conflict.ExistingVersion)
-			require.Equal(t, existingManifest.Version, conflict.UploadedVersion)
 			require.Equal(t, model.PluginInstallConflictVersionDirectionSame, conflict.VersionDirection)
 
 			assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
@@ -242,8 +240,6 @@ func TestInstallPluginLocally(t *testing.T) {
 					require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
 					require.Equal(t, existingManifest, conflict.ExistingManifest)
 					require.Equal(t, tc.uploadedVersion, conflict.UploadedManifest.Version)
-					require.Equal(t, tc.existingVersion, conflict.ExistingVersion)
-					require.Equal(t, tc.uploadedVersion, conflict.UploadedVersion)
 					require.Equal(t, tc.versionDirection, conflict.VersionDirection)
 
 					assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})

@@ -13,7 +13,5 @@ const (
 type PluginInstallConflict struct {
 	ExistingManifest *Manifest `json:"existing_manifest"`
 	UploadedManifest *Manifest `json:"uploaded_manifest"`
-	ExistingVersion  string    `json:"existing_version"`
-	UploadedVersion  string    `json:"uploaded_version"`
 	VersionDirection string    `json:"version_direction"`
 }

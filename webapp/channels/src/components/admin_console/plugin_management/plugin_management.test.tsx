@@ -117,8 +117,6 @@ describe('components/PluginManagement', () => {
             name: 'Test Plugin',
             version: uploadedVersion,
         },
-        existing_version: existingVersion,
-        uploaded_version: uploadedVersion,
         version_direction: versionDirection,
     });
 

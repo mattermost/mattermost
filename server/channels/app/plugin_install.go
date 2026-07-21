@@ -257,17 +257,7 @@ func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.
 	conflict := model.PluginInstallConflict{
 		ExistingManifest: existingManifest,
 		UploadedManifest: uploadedManifest,
-		VersionDirection: model.PluginInstallConflictVersionDirectionUnknown,
-	}
-
-	if existingManifest != nil {
-		conflict.ExistingVersion = existingManifest.Version
-	}
-	if uploadedManifest != nil {
-		conflict.UploadedVersion = uploadedManifest.Version
-	}
-	if conflict.ExistingVersion != "" && conflict.UploadedVersion != "" {
-		conflict.VersionDirection = pluginInstallConflictVersionDirection(conflict.ExistingVersion, conflict.UploadedVersion)
+		VersionDirection: pluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
 	}
 
 	details := ""
@@ -278,13 +268,17 @@ func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.
 	return model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
 }
 
-func pluginInstallConflictVersionDirection(existingVersion, uploadedVersion string) string {
-	existing, err := semver.StrictNewVersion(existingVersion)
+func pluginInstallConflictVersionDirection(existingManifest, uploadedManifest *model.Manifest) string {
+	if existingManifest == nil || uploadedManifest == nil {
+		return model.PluginInstallConflictVersionDirectionUnknown
+	}
+
+	existing, err := semver.StrictNewVersion(existingManifest.Version)
 	if err != nil {
 		return model.PluginInstallConflictVersionDirectionUnknown
 	}
 
-	uploaded, err := semver.StrictNewVersion(uploadedVersion)
+	uploaded, err := semver.StrictNewVersion(uploadedManifest.Version)
 	if err != nil {
 		return model.PluginInstallConflictVersionDirectionUnknown
 	}

@@ -183,8 +183,6 @@ type PluginInstallVersionDirection = 'upgrade' | 'downgrade' | 'same' | 'unknown
 type PluginInstallConflict = {
     existing_manifest?: PluginManifest;
     uploaded_manifest?: PluginManifest;
-    existing_version?: string;
-    uploaded_version?: string;
     version_direction?: PluginInstallVersionDirection;
 };
 
@@ -875,8 +873,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
         const existingManifest = conflict.existing_manifest;
         const uploadedManifest = conflict.uploaded_manifest;
-        const existingVersion = conflict.existing_version || existingManifest?.version || '';
-        const uploadedVersion = conflict.uploaded_version || uploadedManifest?.version || '';
+        const existingVersion = existingManifest?.version || '';
+        const uploadedVersion = uploadedManifest?.version || '';
         const displayExistingVersion = formatPluginVersion(existingVersion) || (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_review.version_unknown'
