@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"testing"
 	"time"
@@ -108,9 +109,7 @@ func TestResetWedgedJobs(t *testing.T) {
 				}
 
 				originalData := make(map[string]string, len(job.Data))
-				for key, value := range job.Data {
-					originalData[key] = value
-				}
+				maps.Copy(originalData, job.Data)
 				matcher := mock.MatchedBy(func(candidate *model.Job) bool {
 					if candidate != job || candidate.Status != model.JobStatusError || candidate.Progress != -1 || candidate.Data["error"] == "" {
 						return false
