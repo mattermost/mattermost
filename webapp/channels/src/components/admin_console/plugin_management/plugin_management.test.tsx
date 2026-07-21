@@ -636,6 +636,7 @@ describe('components/PluginManagement', () => {
         expect(screen.getByText(message)).toBeInTheDocument();
         expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
         expect(screen.getByText('com.mattermost.test-plugin')).toBeInTheDocument();
+        expect(document.getElementById('confirmModalButton')).toBeInTheDocument();
     });
 
     test('should retry upload with force when overwrite is confirmed', async () => {
@@ -671,7 +672,7 @@ describe('components/PluginManagement', () => {
             await ref.current!.helpSubmitUpload(file, false);
         });
 
-        await userEvent.click(screen.getByRole('button', {name: 'Overwrite'}));
+        await userEvent.click(document.getElementById('confirmModalButton')!);
 
         await waitFor(() => expect(uploadPlugin).toHaveBeenLastCalledWith(file, true));
         await waitFor(() => expect(getPlugins).toHaveBeenCalled());
@@ -681,7 +682,7 @@ describe('components/PluginManagement', () => {
     test('should clear overwrite review when upload overwrite is cancelled', async () => {
         const {uploadPlugin} = await renderWithUploadConflict(makeConflictDetails('downgrade', '2.0.0', '1.0.0'));
 
-        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        await userEvent.click(document.getElementById('cancelModalButton')!);
 
         expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
         expect(uploadPlugin).toHaveBeenCalledTimes(1);
