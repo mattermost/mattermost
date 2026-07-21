@@ -2713,7 +2713,7 @@
   "admin.plugin.upload.overwrite_review.same": "This upload has the same version as the existing plugin. Overwriting will reinstall it.",
   "admin.plugin.upload.overwrite_review.title": "Review plugin overwrite",
   "admin.plugin.upload.overwrite_review.unknown": "Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.",
-  "admin.plugin.upload.overwrite_review.upgrade": "This upload appears to upgrade the existing plugin.",
+  "admin.plugin.upload.overwrite_review.upgrade": "This upload appears to upgrade the existing plugin. Overwriting will reinstall it.",
   "admin.plugin.upload.overwrite_review.version_change": "Version change",
   "admin.plugin.upload.overwrite_review.version_unknown": "Unknown",
   "admin.plugin.uploadAndPluginDisabledDesc": "To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.",

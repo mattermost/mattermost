@@ -624,7 +624,7 @@ describe('components/PluginManagement', () => {
     });
 
     test.each([
-        ['upgrade', '1.0.0', '2.0.0', 'This upload appears to upgrade the existing plugin.'],
+        ['upgrade', '1.0.0', '2.0.0', 'This upload appears to upgrade the existing plugin. Overwriting will reinstall it.'],
         ['same', '1.0.0', '1.0.0', 'This upload has the same version as the existing plugin. Overwriting will reinstall it.'],
         ['downgrade', '2.0.0', '1.0.0', 'This upload appears to downgrade the existing plugin. Downgrades can remove fixes or features.'],
         ['unknown', '1.0.0', 'not-semver', 'Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'],
