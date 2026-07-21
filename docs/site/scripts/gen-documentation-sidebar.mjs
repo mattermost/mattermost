@@ -1005,15 +1005,31 @@ function regroupAdminManage(manageCat) {
 }
 
 function buildAdminGuideSidebar(autoCat) {
+  let foundConfigure = false;
+  let foundManage = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
-    const dirName = it.link && it.link.id ? it.link.id.split('/')[1] :
-      (it.items || []).map((c) => c.id).find(Boolean)?.split('/')[1];
+    let dirName = null;
+    if (it.link && it.link.id) {
+      dirName = it.link.id.split('/')[1];
+    }
+    if (!dirName && it.items) {
+      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
+      if (firstDoc) dirName = firstDoc.id.split('/')[1];
+    }
     if (dirName === 'configure') {
       regroupAdminConfigure(it);
+      foundConfigure = true;
     } else if (dirName === 'manage') {
       regroupAdminManage(it);
+      foundManage = true;
     }
+  }
+  if (!foundConfigure) {
+    console.warn('[sidebar] WARN: Administration Guide "Configure" sub-category not found — ADMIN_CONFIGURE_GROUPS override was not applied.');
+  }
+  if (!foundManage) {
+    console.warn('[sidebar] WARN: Administration Guide "Manage" sub-category not found — ADMIN_MANAGE_GROUPS override was not applied.');
   }
   return autoCat;
 }
