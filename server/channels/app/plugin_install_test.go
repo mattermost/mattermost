@@ -186,7 +186,69 @@ func TestInstallPluginLocally(t *testing.T) {
 			require.Equal(t, "app.plugin.install_id.app_error", appErr.Id, appErr.Error())
 			require.Nil(t, manifest)
 
+			var conflict model.PluginInstallConflict
+			require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
+			require.Equal(t, existingManifest, conflict.ExistingManifest)
+			require.Equal(t, existingManifest, conflict.UploadedManifest)
+			require.Equal(t, existingManifest.Version, conflict.ExistingVersion)
+			require.Equal(t, existingManifest.Version, conflict.UploadedVersion)
+			require.Equal(t, model.PluginInstallConflictVersionDirectionSame, conflict.VersionDirection)
+
 			assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
+		})
+
+		t.Run("install only if new returns conflict version direction", func(t *testing.T) {
+			for name, tc := range map[string]struct {
+				existingVersion  string
+				uploadedVersion  string
+				versionDirection string
+			}{
+				"upgrade": {
+					existingVersion:  "0.0.1",
+					uploadedVersion:  "0.0.2",
+					versionDirection: model.PluginInstallConflictVersionDirectionUpgrade,
+				},
+				"downgrade": {
+					existingVersion:  "0.0.2",
+					uploadedVersion:  "0.0.1",
+					versionDirection: model.PluginInstallConflictVersionDirectionDowngrade,
+				},
+				"same": {
+					existingVersion:  "0.0.1",
+					uploadedVersion:  "0.0.1",
+					versionDirection: model.PluginInstallConflictVersionDirectionSame,
+				},
+				"unknown": {
+					existingVersion:  "0.0.1",
+					uploadedVersion:  "not-semver",
+					versionDirection: model.PluginInstallConflictVersionDirectionUnknown,
+				},
+			} {
+				t.Run(name, func(t *testing.T) {
+					th := Setup(t)
+
+					cleanExistingBundles(t, th)
+
+					existingManifest, appErr := installPlugin(t, th, "valid", tc.existingVersion, installPluginLocallyOnlyIfNew)
+					require.Nil(t, appErr)
+					require.NotNil(t, existingManifest)
+
+					manifest, appErr := installPlugin(t, th, "valid", tc.uploadedVersion, installPluginLocallyOnlyIfNew)
+					require.NotNil(t, appErr)
+					require.Equal(t, "app.plugin.install_id.app_error", appErr.Id, appErr.Error())
+					require.Nil(t, manifest)
+
+					var conflict model.PluginInstallConflict
+					require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
+					require.Equal(t, existingManifest, conflict.ExistingManifest)
+					require.Equal(t, tc.uploadedVersion, conflict.UploadedManifest.Version)
+					require.Equal(t, tc.existingVersion, conflict.ExistingVersion)
+					require.Equal(t, tc.uploadedVersion, conflict.UploadedVersion)
+					require.Equal(t, tc.versionDirection, conflict.VersionDirection)
+
+					assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
+				})
+			}
 		})
 
 		t.Run("install if upgrade, but older", func(t *testing.T) {
