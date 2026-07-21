@@ -18,6 +18,12 @@ From Mattermost v9.11, beta support is available for [AWS OpenSearch v1.x and v2
 
 We highly recommend that you set up an AWS OpenSearch server on a separate machine from the Mattermost server.
 
+<Important>
+
+Starting in Mattermost v12.0 (October 2026), OpenSearch v1.x is no longer supported. Upgrading to OpenSearch v2.x or later is required.
+
+</Important>
+
 <Tabs>
 <TabItem value="on-premises-opensearch" label="On-Premises OpenSearch">
 
@@ -198,19 +204,24 @@ Port 9200 is commonly used for local or on-premise OpenSearch. The AWS OpenSearc
 
 </Note>
 
-5.  Configure the access policy (JSON):
+5.  Configure the access policy (JSON). Mattermost doesn't sign OpenSearch requests with AWS SigV4, so restrict access at the network layer with the VPC and security group from step 4, and use an open principal in the domain access policy:
 
 > ``` sh
 > &#123;
->   "Version": "2012-10-17", 
->   "Statement": [&#123; 
->     "Effect": "Allow", 
->     "Principal": &#123; "AWS": 
-> "arn:aws:iam::123456789012:role/MattermostAppRole" &#125;, 
->     "Action": "es:*", 
->     "Resource": "arn:aws:es:us-east-1:123456789012:domain/mattermost-os/*" &#125;] 
+>   "Version": "2012-10-17",
+>   "Statement": [&#123;
+>     "Effect": "Allow",
+>     "Principal": &#123; "AWS": "*" &#125;,
+>     "Action": "es:ESHttp*",
+>     "Resource": "arn:aws:es:us-east-1:123456789012:domain/mattermost-os/*" &#125;]
 > &#125;
 > ```
+
+<Warning>
+
+IAM principal-based access policies (for example, `"Principal": { "AWS": "arn:aws:iam::<account-id>:role/<role-name>" }`) are not supported. Mattermost's OpenSearch client doesn't sign requests with AWS SigV4, so AWS treats the requests as anonymous and an IAM-restricted policy will reject them with `User: anonymous is not authorized to perform: es:ESHttpGet`. If you need authentication enforced at the OpenSearch layer rather than the network layer, enable [fine-grained access control](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html) on the domain with an internal master user, and enter those credentials as the **Server Username** and **Server Password** in the Mattermost Elasticsearch configuration.
+
+</Warning>
 
 6.  Configure the following advanced settings (JSON):
 
@@ -284,13 +295,13 @@ Port 9200 is commonly used for local or on-premise OpenSearch. The AWS OpenSearc
 >
 >   access_policies = &lt;<POLICY 
 > &#123;
->   "Version": "2012-10-17", 
->   "Statement": [&#123; 
->     "Effect": "Allow", 
->     "Principal": &#123; 
->       "AWS": "arn:aws:iam::123456789012:role/MattermostAppRole" 
+>   "Version": "2012-10-17",
+>   "Statement": [&#123;
+>     "Effect": "Allow",
+>     "Principal": &#123;
+>       "AWS": "*"
 >     &#125;,
->       "Action": "es:*", 
+>       "Action": "es:ESHttp*",
 >       "Resource": "arn:aws:es:us-east-1:123456789012:domain/mattermost-os/*" 
 >     &#125;]
 >   &#125;
