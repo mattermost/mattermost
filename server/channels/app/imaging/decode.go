@@ -23,6 +23,13 @@ type DecoderOptions struct {
 	// The level of concurrency for the decoder. This defines a limit on the
 	// number of concurrently running encoding goroutines.
 	ConcurrencyLevel int
+
+	// MaxDecodedResolution, when greater than zero, is the maximum number of
+	// pixels (width*height) an image may declare before it is decoded. Images
+	// exceeding this limit are rejected up front. This is a defense-in-depth
+	// guard against decompression bombs that bounds server-side memory
+	// allocation regardless of the underlying codec's behavior.
+	MaxDecodedResolution int64
 }
 
 func (o *DecoderOptions) validate() error {
@@ -52,8 +59,43 @@ func NewDecoder(opts DecoderOptions) (*Decoder, error) {
 	return &d, nil
 }
 
+// checkResolutionLimit rejects images whose declared resolution exceeds the
+// configured MaxDecodedResolution before any pixel data is decoded. It relies
+// on the reader being seekable so the header can be inspected and then rewound
+// for the full decode; non-seekable readers (which production upload paths do
+// not use) are left untouched.
+func (d *Decoder) checkResolutionLimit(rd io.Reader) error {
+	if d.opts.MaxDecodedResolution <= 0 {
+		return nil
+	}
+
+	seeker, ok := rd.(io.ReadSeeker)
+	if !ok {
+		return nil
+	}
+
+	cfg, _, cfgErr := image.DecodeConfig(seeker)
+	if _, seekErr := seeker.Seek(0, io.SeekStart); seekErr != nil {
+		return fmt.Errorf("imaging: failed to seek to start after reading image config: %w", seekErr)
+	}
+	if cfgErr != nil {
+		// Let the full decode surface a meaningful error for malformed input.
+		return nil
+	}
+
+	if res := int64(cfg.Width) * int64(cfg.Height); res > d.opts.MaxDecodedResolution {
+		return fmt.Errorf("imaging: image resolution %d (%dx%d) exceeds the maximum allowed %d", res, cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
+	}
+
+	return nil
+}
+
 // Decode decodes the given encoded data and returns the decoded image.
 func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err error) {
+	if err = d.checkResolutionLimit(rd); err != nil {
+		return nil, "", err
+	}
+
 	if d.opts.ConcurrencyLevel != 0 {
 		d.sem <- struct{}{}
 		defer func() { <-d.sem }()
@@ -71,6 +113,10 @@ func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err erro
 // must be called when access to the raw image is not needed anymore.
 // This sets the raw image data pointer to nil in an attempt to help the GC to re-use the underlying data as soon as possible.
 func (d *Decoder) DecodeMemBounded(rd io.Reader) (img image.Image, format string, releaseFunc func(), err error) {
+	if err = d.checkResolutionLimit(rd); err != nil {
+		return nil, "", nil, err
+	}
+
 	if d.opts.ConcurrencyLevel != 0 {
 		d.sem <- struct{}{}
 		defer func() {
