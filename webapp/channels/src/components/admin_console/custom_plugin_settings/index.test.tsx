@@ -46,6 +46,11 @@ describe('custom plugin sections and settings', () => {
                     testplugin: {
                     },
                 },
+                PluginStates: {
+                    testplugin: {
+                        Enable: true,
+                    },
+                },
             } as unknown as PluginSettings,
         },
         consoleAccess: {
@@ -98,7 +103,7 @@ describe('custom plugin sections and settings', () => {
             {...baseState});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
@@ -188,12 +193,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: false,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -272,12 +281,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: false,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -378,7 +391,8 @@ describe('custom plugin sections and settings', () => {
         );
 
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).toBeChecked();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
 
     it('custom sections with plugin enabled should render as expected', () => {
@@ -457,12 +471,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: true,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: true,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -474,7 +492,9 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();

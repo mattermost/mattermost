@@ -9,7 +9,7 @@ import type {Dispatch} from 'redux';
 
 import {Button} from '@mattermost/shared/components/button';
 
-import {enablePlugin} from 'mattermost-redux/actions/admin';
+import {disablePlugin, enablePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormError from 'components/form_error';
@@ -17,8 +17,9 @@ import FormError from 'components/form_error';
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import {unescapePathPart} from '../schema_admin_settings';
 
-type Props = Pick<SystemConsoleCustomSettingsComponentProps, 'id' | 'disabled'> & {
+type Props = Pick<SystemConsoleCustomSettingsComponentProps, 'id' | 'disabled' | 'value'> & {
     actions: {
+        disablePlugin: (pluginId: string) => Promise<ActionResult>;
         enablePlugin: (pluginId: string) => Promise<ActionResult>;
     };
 };
@@ -34,48 +35,67 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
     return unescapePathPart(settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length));
 }
 
-export function PluginEnableButton({actions, disabled, id}: Props) {
-    const [enabling, setEnabling] = useState(false);
+export function PluginEnableButton({actions, disabled, id, value}: Props) {
+    const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState('');
     const pluginId = useMemo(() => getPluginIdFromEnableSettingId(id), [id]);
+    const pluginEnabled = Boolean(value);
 
-    const handleEnablePlugin = useCallback(async () => {
-        if (!pluginId || enabling || disabled) {
+    const handleTogglePlugin = useCallback(async () => {
+        if (!pluginId || submitting || disabled) {
             return;
         }
 
-        setEnabling(true);
+        setSubmitting(true);
         setServerError('');
 
-        const {error} = await actions.enablePlugin(pluginId);
+        const {error} = pluginEnabled ? await actions.disablePlugin(pluginId) : await actions.enablePlugin(pluginId);
         if (error) {
             setServerError(error.message);
         }
 
-        setEnabling(false);
-    }, [actions, disabled, enabling, pluginId]);
+        setSubmitting(false);
+    }, [actions, disabled, pluginEnabled, pluginId, submitting]);
+
+    let buttonMessage = pluginEnabled ? (
+        <FormattedMessage
+            id='admin.plugin.disable_plugin.button'
+            defaultMessage='Disable plugin'
+        />
+    ) : (
+        <FormattedMessage
+            id='admin.plugin.enable_plugin.button'
+            defaultMessage='Enable plugin'
+        />
+    );
+    if (submitting) {
+        buttonMessage = pluginEnabled ? (
+            <FormattedMessage
+                id='admin.plugin.disabling'
+                defaultMessage='Disabling...'
+            />
+        ) : (
+            <FormattedMessage
+                id='admin.plugin.enabling'
+                defaultMessage='Enabling...'
+            />
+        );
+    }
 
     return (
         <div className='form-group'>
-            <Button
-                type='button'
-                emphasis='primary'
-                onClick={handleEnablePlugin}
-                disabled={disabled || enabling || !pluginId}
-            >
-                {enabling ? (
-                    <FormattedMessage
-                        id='admin.plugin.enabling'
-                        defaultMessage='Enabling...'
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='admin.plugin.enable_plugin.button'
-                        defaultMessage='Enable plugin'
-                    />
-                )}
-            </Button>
-            <FormError error={serverError}/>
+            <div className='col-sm-offset-4 col-sm-8'>
+                <Button
+                    type='button'
+                    emphasis='primary'
+                    variant={pluginEnabled ? 'destructive' : undefined}
+                    onClick={handleTogglePlugin}
+                    disabled={disabled || submitting || !pluginId}
+                >
+                    {buttonMessage}
+                </Button>
+                <FormError error={serverError}/>
+            </div>
         </div>
     );
 }
@@ -83,6 +103,7 @@ export function PluginEnableButton({actions, disabled, id}: Props) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
+            disablePlugin,
             enablePlugin,
         }, dispatch),
     };
