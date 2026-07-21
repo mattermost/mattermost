@@ -30,7 +30,7 @@ Options
 
       --description string    Optional. The description text for the new bot.
       --display-name string   Optional. The display name for the new bot.
-      --expires-in string     Duration after which the generated token expires (e.g. 90d, 12h, 30m). Required when the server enforces a maximum token lifetime.
+      --expires-in string     Duration after which the generated token expires (e.g. 90d, 12h, 30m). Requires --with-token.
   -h, --help                  help for create
       --with-token            Optional. Auto generate an access token for the bot.
 
