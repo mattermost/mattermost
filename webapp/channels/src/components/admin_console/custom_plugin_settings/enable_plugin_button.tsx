@@ -56,7 +56,7 @@ export function PluginEnableButton({actions, disabled, id}: Props) {
     }, [actions, disabled, enabling, pluginId]);
 
     return (
-        <>
+        <div className='form-group'>
             <Button
                 type='button'
                 emphasis='primary'
@@ -76,7 +76,7 @@ export function PluginEnableButton({actions, disabled, id}: Props) {
                 )}
             </Button>
             <FormError error={serverError}/>
-        </>
+        </div>
     );
 }
 

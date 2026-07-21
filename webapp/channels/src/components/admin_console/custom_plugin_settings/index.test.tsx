@@ -208,6 +208,8 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
+        expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
         expect(screen.getByText('In order to view and configure plugin settings, enable the plugin.')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).not.toBeInTheDocument();
         expect(screen.queryByText('Custom Section 2')).not.toBeInTheDocument();
@@ -290,6 +292,8 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
+        expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section 2')).toBeInTheDocument();

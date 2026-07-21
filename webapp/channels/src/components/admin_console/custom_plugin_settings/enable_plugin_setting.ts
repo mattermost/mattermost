@@ -18,10 +18,7 @@ export default function getEnablePluginSetting(plugin: PluginRedux): Partial<Adm
         return {
             type: 'custom',
             key: pluginEnabledConfigKey,
-            label: defineMessage({id: 'admin.plugin.enable_plugin', defaultMessage: 'Enable Plugin: '}),
-            help_text: defineMessage({id: 'admin.plugin.enable_plugin.help', defaultMessage: 'When true, this plugin is enabled.'}),
             component: PluginEnableButton,
-            showTitle: true,
         };
     }
 
