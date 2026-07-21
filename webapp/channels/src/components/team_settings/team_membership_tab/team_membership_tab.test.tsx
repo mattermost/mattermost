@@ -373,7 +373,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
-    it('blocks save and shows error when self-exclusion detected', async () => {
+    it('blocks save and shows the advisory self-exclusion message on a public team', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
@@ -384,6 +384,39 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         renderWithContext(
             <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Cannot save access rules')).toBeInTheDocument();
+            expect(screen.getByText(/if it is later switched to private/i)).toBeInTheDocument();
+        });
+    });
+
+    it('blocks save with the strict self-exclusion message on a private team', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
+        }));
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({
+            data: {requester_matches: false},
+        });
+
+        const privateTeam = TestHelper.getTeamMock({
+            id: 'team_id',
+            display_name: 'Private Team',
+            type: 'I',
+            allow_open_invite: false,
+        });
+
+        renderWithContext(
+            <TeamMembershipTab {...{...baseProps, team: privateTeam}}/>,
             initialState,
         );
 

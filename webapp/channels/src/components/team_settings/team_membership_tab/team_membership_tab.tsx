@@ -671,12 +671,17 @@ function TeamMembershipTab({
                         defaultMessage='Cannot save access rules'
                     />
                 }
-                message={
+                message={team.allow_open_invite ? (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.error.self_exclusion_message_advisory'
+                        defaultMessage='These rules would exclude you. This team is public, so no one is removed now, but if it is later switched to private you would be removed at the next sync.'
+                    />
+                ) : (
                     <FormattedMessage
                         id='team_settings.membership_tab.error.self_exclusion_message'
                         defaultMessage='You cannot set these rules because that will remove you from the team.'
                     />
-                }
+                )}
                 confirmButtonText={
                     <FormattedMessage
                         id='team_settings.membership_tab.error.back_to_editing'
