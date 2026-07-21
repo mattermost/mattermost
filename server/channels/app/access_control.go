@@ -2845,8 +2845,17 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 
 	currentUserID := session.UserId
 
-	// SECURITY: First check if the channel admin themselves matches this expression
-	// If they don't match, they shouldn't be able to see users who do
+	// Only return results if the requesting admin matches the expression
+	// themselves. This blocks the obvious probe: an admin who is not, say,
+	// "TopSecret" cannot run clearance == "TopSecret" just to discover who is.
+	//
+	// It is a speed bump, not a hard boundary. An admin can OR in a term they
+	// always satisfy (user.id == "<self>" || <probe>) to pass this check, then
+	// read the returned match count to answer yes/no questions about values they
+	// cannot see directly. That kind of enumeration is unavoidable in any feature
+	// that reveals who a rule matches, so we accept it. The thing we actually
+	// protect -- raw attribute values and options -- is masked when a policy is
+	// read, not here.
 	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
 	if appErr != nil {
 		return nil, 0, appErr
@@ -2866,9 +2875,9 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 	return a.TestExpression(rctx, expression, opts)
 }
 
-// TestExpressionWithTeamContext tests expressions for team admins with the same
-// info-leak guard as the channel variant: a team admin may only see users who
-// match an expression that they themselves match.
+// TestExpressionWithTeamContext is the team-admin counterpart of
+// TestExpressionWithChannelContext and applies the same self-match check; see
+// that function's comment for what the check does and does not protect.
 func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	session := rctx.Session()
 	if session == nil {
@@ -2877,7 +2886,8 @@ func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string,
 
 	currentUserID := session.UserId
 
-	// SECURITY: a team admin who doesn't match the expression must not learn who does.
+	// Same self-match check as the channel variant (see its comment): a partial
+	// guard against casual probing, not a confidentiality boundary.
 	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
 	if appErr != nil {
 		return nil, 0, appErr
