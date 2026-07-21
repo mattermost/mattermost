@@ -128,7 +128,7 @@ WHERE Type = 'select'
 UPDATE PropertyFields pf
 SET Attrs = jsonb_set(
         pf.Attrs,
-        '{options}',
+        '{'{'}options{'}'}',
         (
             SELECT jsonb_agg(elem.opt || jsonb_build_object('rank', elem.ord) ORDER BY elem.ord)
             FROM jsonb_array_elements(pf.Attrs->'options') WITH ORDINALITY AS elem(opt, ord)
@@ -146,7 +146,7 @@ WHERE pf.Type = 'rank'
 UPDATE PropertyFields pf
 SET Attrs = jsonb_set(
         pf.Attrs,
-        '{options}',
+        '{'{'}options{'}'}',
         (
             SELECT jsonb_agg(elem.opt - 'rank' ORDER BY elem.ord)
             FROM jsonb_array_elements(pf.Attrs->'options') WITH ORDINALITY AS elem(opt, ord)
