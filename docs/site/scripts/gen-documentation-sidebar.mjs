@@ -58,7 +58,6 @@ const TOP_LEVEL = [
   {dir: 'get-help',             label: 'Get Help'},
   {dir: 'agents',               label: 'Agents'},
   {dir: 'recipes',              label: 'Recipes'},
-  {dir: 'samples',              label: 'Samples'},
 ];
 
 // ---------------------------------------------------------------------------
