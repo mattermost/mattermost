@@ -11059,6 +11059,10 @@
     "translation": "The all-channels flag is only valid on unscoped parent policies."
   },
   {
+    "id": "model.access_policy.is_valid.auto_add.app_error",
+    "translation": "The auto-add flag is only valid on all-channels policies."
+  },
+  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Invalid policy id."
   },

@@ -1275,8 +1275,9 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The parent-policy editor authors resource.attributes.* against many
 	// channels, so it has no single channel to scope by; it sets this flag to
 	// pull channel-object-type CPA fields. Only meaningful without a channelId
-	// (a channel scope already includes them), and the permission check below
-	// requires ManageSystem in that case.
+	// (a channel scope already includes them), and in that case the permission
+	// check below requires either ManageSystem or team-admin access-rule
+	// permission on team_id (via teamAdminCELContextOK).
 	includeResourceFields := r.URL.Query().Get("include_resource_fields") == "true"
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)

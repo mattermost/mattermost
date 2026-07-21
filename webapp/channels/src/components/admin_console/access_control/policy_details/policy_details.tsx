@@ -667,7 +667,6 @@ function PolicyDetails({
                                     userAttributes={toCELEditorAttributes(userFields, accessControlSettings.EnableUserManagedAttributes)}
                                     resourceAttributes={resourceFields.map((attr) => ({
                                         attribute: attr.name,
-                                        values: [],
                                     }))}
                                 />
                             ) : (

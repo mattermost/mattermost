@@ -126,7 +126,6 @@ interface CELEditorProps {
      */
     resourceAttributes?: Array<{
         attribute: string;
-        values: string[];
     }>;
 
     /**

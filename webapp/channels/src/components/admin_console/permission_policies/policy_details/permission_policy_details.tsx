@@ -562,7 +562,6 @@ function PermissionPolicyDetails({
                                             userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
                                             resourceAttributes={resourceFields.map((attr) => ({
                                                 attribute: attr.name,
-                                                values: [],
                                             }))}
 
                                             // Both editor modes route the test

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"strings"
 
@@ -200,9 +201,7 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 func fieldWithEmptyOptions(f *model.PropertyField) *model.PropertyField {
 	cp := *f
 	cp.Attrs = make(model.StringInterface, len(f.Attrs)+1)
-	for k, v := range f.Attrs {
-		cp.Attrs[k] = v
-	}
+	maps.Copy(cp.Attrs, f.Attrs)
 	cp.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 	return &cp
 }

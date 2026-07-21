@@ -229,7 +229,7 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 }
 
 // testAttributesStoreGetChannelSubject verifies the per-object-type view split
-// (migration 000203): a channel-scoped attribute is readable via
+// (migration 000205): a channel-scoped attribute is readable via
 // GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
 // through the user view — proving the two views filter by ObjectType.
 func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
