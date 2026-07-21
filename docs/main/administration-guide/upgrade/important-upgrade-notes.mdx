@@ -62,7 +62,6 @@ DELETE FROM threadmemberships WHERE (postid, userid) IN (
 -- via the property API after this migration ran) are coerced to 'select'
 -- first so the recreated enum can accept them; 'select' has the same storage
 -- shape (single option ID).
---
 -- The AttributeView materialized view reads PropertyFields.Type, so Postgres
 -- refuses to rebuild the enum on that column while the view exists. Drop the
 -- view before the ALTER and recreate it afterwards.
