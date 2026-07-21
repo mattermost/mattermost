@@ -13130,5 +13130,45 @@
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
     "translation": "Nie udało się zapisać wpisu w historii edycji do zgłoszenia oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Nie udało się zapisać metadanych w raporcie dotyczącym oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Nie udało się zapisać szczegółów wpisu do raportu o zgłoszonym wpisie."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Nie udało się zapisać szczegółów przeglądu treści w raporcie dotyczącym zgłoszonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Nie udało się zamknąć archiwum zgłoszeń dotyczących oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Nie udało się skopiować zawartości załącznika do archiwum zgłoszeń dotyczących oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Nie udało się utworzyć wpisu w archiwum zgłoszeń oznaczonych postów."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Wersja robocza odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "Nie znaleziono pliku w magazynie plików pod podaną ścieżką."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Nie udało się usunąć pliku z magazynu plików."
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Nie udało się zapisać członka kanału podczas bezpośredniego importu kanału"
   }
 ]
