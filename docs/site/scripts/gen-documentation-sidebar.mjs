@@ -421,6 +421,131 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
+// Administration Guide — Manage — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Manage has 37 files split into a flat top level (19) plus a nested
+// manage/admin/ sub-folder (18) — a raw filesystem artifact, not a real
+// Sphinx grouping (Sphinx has no manage-index.rst/toctree that groups this
+// content; the admin/ sub-folder exists on disk but is never surfaced as
+// its own nav level in Sphinx's real sidebar). Worse, the flat-vs-admin
+// split is internally inconsistent — e.g. monitoring/health pages and
+// billing pages are each scattered across both buckets. This override
+// replaces both with one set of task-based groups.
+
+const ADMIN_MANAGE_GROUPS = {
+  userAccess: {
+    label: 'User & Access Management',
+    items: [
+      'admin/user-management',
+      'admin/user-provisioning',
+      'admin/user-attributes',
+      'team-channel-members',
+      {label: 'Attribute-Based Access Control', landing: 'admin/attribute-based-access-control', items: [
+        'admin/abac-system-wide-policies',
+        'admin/abac-team-channel-policies',
+        'admin/abac-channel-access-rules',
+      ]},
+    ],
+  },
+  serverMaintenance: {
+    label: 'Server Configuration & Maintenance',
+    items: [
+      'admin/server-configuration',
+      'admin/server-maintenance',
+      'code-signing-custom-builds',
+      'command-line-tools',
+      'mmctl-command-line-tool',
+    ],
+  },
+  monitoring: {
+    label: 'Monitoring & Diagnostics',
+    items: [
+      'admin/monitoring-and-performance',
+      'statistics',
+      'telemetry',
+      'configure-health-check-probes',
+      'request-server-health-check',
+      'logging',
+      'admin/error-codes',
+      'admin/generating-support-packet',
+    ],
+  },
+  billing: {
+    label: 'Billing & Licensing',
+    items: [
+      'admin/self-hosted-billing',
+      'cloud-byok',
+      'admin/installing-license-key',
+    ],
+  },
+  cloudWorkspace: {
+    label: 'Cloud Workspace Management',
+    items: [
+      'cloud-data-export',
+      'cloud-data-residency',
+      'cloud-ip-filtering',
+    ],
+  },
+  notifications: {
+    label: 'Notifications & Surveys',
+    items: [
+      'in-product-notices',
+      'system-wide-notifications',
+      'user-satisfaction-surveys',
+      'feature-labels',
+    ],
+  },
+  governance: {
+    label: 'Content & Product Governance',
+    items: [
+      'admin/content-flagging',
+      'admin/autotranslation',
+      'product-limits',
+    ],
+  },
+  dataMigration: {
+    label: 'Data Export & Migration',
+    items: [
+      'bulk-export-tool',
+      'admin/migration',
+    ],
+  },
+};
+
+// Top-level Manage order. Strings are doc basenames relative to
+// administration-guide/manage/ (admin/-prefixed ones live in the nested
+// sub-folder); objects reference ADMIN_MANAGE_GROUPS keys.
+const ADMIN_MANAGE_ORDER = [
+  {group: 'userAccess'},
+  {group: 'serverMaintenance'},
+  {group: 'monitoring'},
+  {group: 'billing'},
+  {group: 'cloudWorkspace'},
+  {group: 'notifications'},
+  {group: 'governance'},
+  {group: 'dataMigration'},
+  'admin/customize-branding',
+];
+
+// Files re-parented into groups — exclude from the orphan check.
+const ADMIN_MANAGE_HIDDEN = new Set([
+  'admin/user-management', 'admin/user-provisioning', 'admin/user-attributes', 'team-channel-members',
+  'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
+  'admin/abac-team-channel-policies', 'admin/abac-channel-access-rules',
+  'admin/server-configuration', 'admin/server-maintenance', 'code-signing-custom-builds',
+  'command-line-tools', 'mmctl-command-line-tool',
+  'admin/monitoring-and-performance', 'statistics', 'telemetry',
+  'configure-health-check-probes', 'request-server-health-check', 'logging',
+  'admin/error-codes', 'admin/generating-support-packet',
+  'admin/self-hosted-billing', 'cloud-byok', 'admin/installing-license-key',
+  'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
+  'in-product-notices', 'system-wide-notifications', 'user-satisfaction-surveys', 'feature-labels',
+  'admin/content-flagging', 'admin/autotranslation', 'product-limits',
+  'bulk-export-tool', 'admin/migration',
+]);
+
+// ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
@@ -827,6 +952,58 @@ function regroupAdminConfigure(configureCat) {
   return configureCat;
 }
 
+function buildAdminManageItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/manage/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.group) {
+    const g = ADMIN_MANAGE_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin manage group: ${spec.group}`);
+    return buildAdminManageGroup(g, leafLabels);
+  }
+  return buildAdminManageGroup(spec, leafLabels);
+}
+
+function buildAdminManageGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminManageItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/manage/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Manage" sub-category's items (in place,
+// flattening the manage/admin/ filesystem nesting into the task-based
+// groups above) with the manual grouping.
+function regroupAdminManage(manageCat) {
+  const leafLabels = collectLeafLabels(manageCat);
+  const items = ADMIN_MANAGE_ORDER.map((spec) => buildAdminManageItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_MANAGE_HIDDEN) hiddenIds.add(`administration-guide/manage/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Manage file(s) missing from ADMIN_MANAGE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  manageCat.items = items;
+  return manageCat;
+}
+
 function buildAdminGuideSidebar(autoCat) {
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
@@ -834,7 +1011,8 @@ function buildAdminGuideSidebar(autoCat) {
       (it.items || []).map((c) => c.id).find(Boolean)?.split('/')[1];
     if (dirName === 'configure') {
       regroupAdminConfigure(it);
-      break;
+    } else if (dirName === 'manage') {
+      regroupAdminManage(it);
     }
   }
   return autoCat;

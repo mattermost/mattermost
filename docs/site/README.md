@@ -49,13 +49,15 @@ when the legacy redirect map changes, not on every build.)
 Most top-level sections build their sidebar straight from the filesystem:
 each subdirectory becomes a category, each file a doc, sorted by
 `sidebar_position` frontmatter then filename. But a few sections are flat
-piles of 15-35 files that read badly as one long alphabetical list, so
+piles of 15-40 files (or split across an inconsistent filesystem nesting
+that doesn't reflect any real grouping) that read badly as-is, so
 `gen-documentation-sidebar.mjs` layers a **manual grouping override** on
 top of the auto-generated tree for those sections only: Overview
 (`OVERVIEW_GROUPS`/`OVERVIEW_ROOT_ORDER`), Deployment Guide
 (`DEPLOYMENT_GROUPS`/`DEPLOYMENT_ROOT_ORDER`), Administration Guide →
-Configure (`ADMIN_CONFIGURE_GROUPS`/`ADMIN_CONFIGURE_ORDER`), and
-Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
+Configure (`ADMIN_CONFIGURE_GROUPS`/`ADMIN_CONFIGURE_ORDER`),
+Administration Guide → Manage (`ADMIN_MANAGE_GROUPS`/`ADMIN_MANAGE_ORDER`),
+and Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
 
 The override only changes how the sidebar renders — files stay flat on
 disk at their existing paths, so URLs don't move. Each override is a pair
