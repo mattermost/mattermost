@@ -1096,12 +1096,10 @@ func TestProcessRecapChannelBudgetParallelExactness(t *testing.T) {
 	appErrs := make([]*model.AppError, len(channels))
 	var wg sync.WaitGroup
 	for i, channel := range channels {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
 			results[i], appErrs[i] = th.App.ProcessRecapChannelWithOptions(ctx, recapID, channel.Id, th.BasicUser.Id, "test-agent", model.RecapProcessingOptions{PostBudget: budget})
-		}()
+		})
 	}
 	wg.Wait()
 

@@ -90,9 +90,7 @@ func TestRecapPostBudgetConcurrentReserveRefund(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 32 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range 200 {
 				granted := budget.Reserve(7)
 				if granted == 0 {
@@ -102,7 +100,7 @@ func TestRecapPostBudgetConcurrentReserveRefund(t *testing.T) {
 				budget.Refund(granted - keep)
 				consumed.Add(int64(keep))
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
