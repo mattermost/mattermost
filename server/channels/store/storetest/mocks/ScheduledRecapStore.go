@@ -90,9 +90,9 @@ func (_m *ScheduledRecapStore) Get(id string) (*model.ScheduledRecap, error) {
 	return r0, r1
 }
 
-// GetDueBefore provides a mock function with given fields: timestamp, limit
-func (_m *ScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
-	ret := _m.Called(timestamp, limit)
+// GetDueBefore provides a mock function with given fields: timestamp, cursorNextRunAt, cursorID, limit
+func (_m *ScheduledRecapStore) GetDueBefore(timestamp int64, cursorNextRunAt int64, cursorID string, limit int) ([]*model.ScheduledRecap, error) {
+	ret := _m.Called(timestamp, cursorNextRunAt, cursorID, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDueBefore")
@@ -100,19 +100,19 @@ func (_m *ScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*mode
 
 	var r0 []*model.ScheduledRecap
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.ScheduledRecap, error)); ok {
-		return rf(timestamp, limit)
+	if rf, ok := ret.Get(0).(func(int64, int64, string, int) ([]*model.ScheduledRecap, error)); ok {
+		return rf(timestamp, cursorNextRunAt, cursorID, limit)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.ScheduledRecap); ok {
-		r0 = rf(timestamp, limit)
+	if rf, ok := ret.Get(0).(func(int64, int64, string, int) []*model.ScheduledRecap); ok {
+		r0 = rf(timestamp, cursorNextRunAt, cursorID, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ScheduledRecap)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(timestamp, limit)
+	if rf, ok := ret.Get(1).(func(int64, int64, string, int) error); ok {
+		r1 = rf(timestamp, cursorNextRunAt, cursorID, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

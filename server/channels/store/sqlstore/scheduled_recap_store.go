@@ -205,20 +205,24 @@ func (s *SqlScheduledRecapStore) GetForUser(userId string, page, perPage int) ([
 	return recaps, nil
 }
 
-// GetDueBefore retrieves enabled, non-deleted ScheduledRecaps that are due before the given timestamp.
-// It reads from master so the scheduler does not enqueue from replica-lagged NextRunAt values.
-// Results are ordered by NextRunAt ASC to process oldest first.
-func (s *SqlScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
+// GetDueBefore retrieves enabled, non-deleted ScheduledRecaps that are due before the given
+// timestamp, strictly after the (cursorNextRunAt, cursorID) keyset cursor. It reads from
+// master so the scheduler does not enqueue from replica-lagged NextRunAt values. Results are
+// ordered by (NextRunAt ASC, Id ASC) — a total order, so tied NextRunAt values paginate
+// without skips or repeats. The row-value comparison keeps the cursor predicate a single
+// index condition on idx_scheduled_recaps_enabled_next_run_id.
+func (s *SqlScheduledRecapStore) GetDueBefore(timestamp int64, cursorNextRunAt int64, cursorID string, limit int) ([]*model.ScheduledRecap, error) {
 	recaps := []*model.ScheduledRecap{}
 
 	query := s.selectQuery.
 		Where(sq.Eq{"Enabled": true, "DeleteAt": 0}).
 		Where(sq.LtOrEq{"NextRunAt": timestamp}).
-		OrderBy("NextRunAt ASC").
+		Where(sq.Expr("(NextRunAt, Id) > (?, ?)", cursorNextRunAt, cursorID)).
+		OrderBy("NextRunAt ASC", "Id ASC").
 		Limit(uint64(limit))
 
 	if err := s.GetMaster().SelectBuilder(&recaps, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get due ScheduledRecaps before timestamp=%d", timestamp)
+		return nil, errors.Wrapf(err, "failed to get due ScheduledRecaps before timestamp=%d after cursor=(%d, %s)", timestamp, cursorNextRunAt, cursorID)
 	}
 
 	return recaps, nil

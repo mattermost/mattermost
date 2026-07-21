@@ -10259,10 +10259,10 @@ func (s *TimerLayerScheduledRecapStore) Get(id string) (*model.ScheduledRecap, e
 	return result, err
 }
 
-func (s *TimerLayerScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
+func (s *TimerLayerScheduledRecapStore) GetDueBefore(timestamp int64, cursorNextRunAt int64, cursorID string, limit int) ([]*model.ScheduledRecap, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledRecapStore.GetDueBefore(timestamp, limit)
+	result, err := s.ScheduledRecapStore.GetDueBefore(timestamp, cursorNextRunAt, cursorID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

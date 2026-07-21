@@ -1465,7 +1465,12 @@ type ScheduledRecapStore interface {
 
 	// Query operations
 	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)
-	GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error)
+	// GetDueBefore returns enabled, non-deleted ScheduledRecaps with NextRunAt <= timestamp,
+	// strictly after the (cursorNextRunAt, cursorID) keyset cursor, ordered by
+	// (NextRunAt ASC, Id ASC), at most limit rows. Pass (0, "") to start from the beginning;
+	// pass the (NextRunAt, Id) of the last returned row to fetch the next page. The cursor row
+	// itself is always excluded.
+	GetDueBefore(timestamp int64, cursorNextRunAt int64, cursorID string, limit int) ([]*model.ScheduledRecap, error)
 
 	// CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user
 	// Used for max scheduled recaps limit enforcement
