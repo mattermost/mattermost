@@ -499,111 +499,113 @@ export default class AddBot extends React.PureComponent<Props, State> {
         const maxCustomIso = enforceExpiry ? isoPlusDays(this.props.maxLifetimeDays) : undefined;
 
         return (
-            <div className='form-group'>
-                <label
-                    className='control-label col-sm-4'
-                    htmlFor='defaultTokenExpiry'
-                >
-                    <FormattedMessage
-                        id='user.settings.tokens.expiry'
-                        defaultMessage='Expires: '
-                    >
-                        {(msg: React.ReactNode) => {
-                            if (typeof msg === 'string') {
-                                return msg.trimEnd();
-                            }
-                            if (Array.isArray(msg)) {
-                                return msg.map((part) => (typeof part === 'string' ? part.trimEnd() : part));
-                            }
-                            return msg;
-                        }}
-                    </FormattedMessage>
-                </label>
-                <div className='col-md-5 col-sm-8'>
-                    <select
-                        id='defaultTokenExpiry'
-                        className='form-control'
-                        value={this.state.expiryPreset}
-                        onChange={this.updateExpiryPreset}
-                    >
-                        {!enforceExpiry && (
-                            <option value='none'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiry.none'
-                                    defaultMessage='No expiry'
-                                />
-                            </option>
-                        )}
-                        {this.isPresetAllowed('7d') && (
-                            <option value='7d'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiry.7d'
-                                    defaultMessage='7 days'
-                                />
-                            </option>
-                        )}
-                        {this.isPresetAllowed('30d') && (
-                            <option value='30d'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiry.30d'
-                                    defaultMessage='30 days'
-                                />
-                            </option>
-                        )}
-                        {this.isPresetAllowed('90d') && (
-                            <option value='90d'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiry.90d'
-                                    defaultMessage='90 days'
-                                />
-                            </option>
-                        )}
-                        {this.isPresetAllowed('1y') && (
-                            <option value='1y'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiry.1y'
-                                    defaultMessage='1 year'
-                                />
-                            </option>
-                        )}
-                        <option value='custom'>
+            <>
+                <div className='row bot-profile__section'>
+                    <div className='col-md-5 col-sm-8 col-sm-offset-4'>
+                        <strong>
                             <FormattedMessage
-                                id='user.settings.tokens.expiry.custom'
-                                defaultMessage='Custom date…'
+                                id='bot.add.default_token.title'
+                                defaultMessage='Default access token'
                             />
-                        </option>
-                    </select>
-                    {this.state.expiryPreset === 'custom' && (
-                        <input
-                            id='defaultTokenExpiryCustom'
-                            className='form-control mt-2'
-                            type='date'
-                            aria-label={Utils.localizeMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
-                            value={this.state.customExpiryDate}
-                            min={todayIso()}
-                            max={maxCustomIso}
-                            onChange={this.updateCustomExpiryDate}
-                        />
-                    )}
-                    {this.props.maxLifetimeDays > 0 && (
-                        <div className='form__help'>
-                            <FormattedMessage
-                                id='user.settings.tokens.maxLifetimeHint'
-                                defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
-                                values={{days: this.props.maxLifetimeDays}}
-                            />
-                        </div>
-                    )}
-                    {enforceExpiry && (
-                        <div className='form__help'>
-                            <FormattedMessage
-                                id='user.settings.tokens.expiryEnforced'
-                                defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'
-                            />
-                        </div>
-                    )}
+                        </strong>
+                    </div>
                 </div>
-            </div>
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='defaultTokenExpiry'
+                    >
+                        <FormattedMessage
+                            id='bot.add.default_token.expiry'
+                            defaultMessage='Default token expires'
+                        />
+                    </label>
+                    <div className='col-md-5 col-sm-8'>
+                        <select
+                            id='defaultTokenExpiry'
+                            className='form-control'
+                            value={this.state.expiryPreset}
+                            onChange={this.updateExpiryPreset}
+                        >
+                            {!enforceExpiry && (
+                                <option value='none'>
+                                    <FormattedMessage
+                                        id='user.settings.tokens.expiry.none'
+                                        defaultMessage='No expiry'
+                                    />
+                                </option>
+                            )}
+                            {this.isPresetAllowed('7d') && (
+                                <option value='7d'>
+                                    <FormattedMessage
+                                        id='user.settings.tokens.expiry.7d'
+                                        defaultMessage='7 days'
+                                    />
+                                </option>
+                            )}
+                            {this.isPresetAllowed('30d') && (
+                                <option value='30d'>
+                                    <FormattedMessage
+                                        id='user.settings.tokens.expiry.30d'
+                                        defaultMessage='30 days'
+                                    />
+                                </option>
+                            )}
+                            {this.isPresetAllowed('90d') && (
+                                <option value='90d'>
+                                    <FormattedMessage
+                                        id='user.settings.tokens.expiry.90d'
+                                        defaultMessage='90 days'
+                                    />
+                                </option>
+                            )}
+                            {this.isPresetAllowed('1y') && (
+                                <option value='1y'>
+                                    <FormattedMessage
+                                        id='user.settings.tokens.expiry.1y'
+                                        defaultMessage='1 year'
+                                    />
+                                </option>
+                            )}
+                            <option value='custom'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.custom'
+                                    defaultMessage='Custom date…'
+                                />
+                            </option>
+                        </select>
+                        {this.state.expiryPreset === 'custom' && (
+                            <input
+                                id='defaultTokenExpiryCustom'
+                                className='form-control mt-2'
+                                type='date'
+                                aria-label={Utils.localizeMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
+                                value={this.state.customExpiryDate}
+                                min={todayIso()}
+                                max={maxCustomIso}
+                                onChange={this.updateCustomExpiryDate}
+                            />
+                        )}
+                        {this.props.maxLifetimeDays > 0 && (
+                            <div className='form__help'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.maxLifetimeHint'
+                                    defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
+                                    values={{days: this.props.maxLifetimeDays}}
+                                />
+                            </div>
+                        )}
+                        {enforceExpiry && (
+                            <div className='form__help'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiryEnforced'
+                                    defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </>
         );
     };
 
