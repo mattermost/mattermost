@@ -3,8 +3,6 @@
 
 import type {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
 
-import PluginEnableButton from './enable_plugin_button';
-
 import {escapePathPart} from '../schema_admin_settings';
 import type {AdminDefinitionSetting} from '../types';
 
@@ -13,8 +11,9 @@ export default function getEnablePluginSetting(plugin: PluginRedux): Partial<Adm
     const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
 
     return {
-        type: 'custom',
+        type: 'bool',
         key: pluginEnabledConfigKey,
-        component: PluginEnableButton,
+        label: '',
+        isHidden: true,
     };
 }

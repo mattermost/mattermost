@@ -17,6 +17,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
+import PluginEnableButton from 'components/admin_console/custom_plugin_settings/enable_plugin_button';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
@@ -362,6 +363,8 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
+        const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapePathPart(this.props.plugin.id) + '.Enable';
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <PluginMetadataPanel
@@ -370,6 +373,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     version={this.props.pluginVersion || this.props.plugin.version}
                     homepageUrl={this.props.plugin.homepage_url}
                     releaseNotesUrl={this.props.plugin.release_notes_url}
+                />
+                <PluginEnableButton
+                    id={pluginEnabledConfigKey}
+                    disabled={this.props.isDisabled}
+                    value={this.props.plugin.active}
                 />
             </div>
         );

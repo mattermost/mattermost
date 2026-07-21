@@ -17,15 +17,15 @@ import FormError from 'components/form_error';
 
 import {getHistory} from 'utils/browser_history';
 
-import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
-import {unescapePathPart} from '../schema_admin_settings';
-
-type Props = Pick<SystemConsoleCustomSettingsComponentProps, 'id' | 'disabled' | 'value'> & {
+type Props = {
     actions: {
         disablePlugin: (pluginId: string) => Promise<ActionResult>;
         enablePlugin: (pluginId: string) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
     };
+    disabled: boolean;
+    id: string;
+    value: boolean;
 };
 
 const pluginStatePrefix = 'PluginSettings.PluginStates.';
@@ -36,7 +36,7 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
         return '';
     }
 
-    return unescapePathPart(settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length));
+    return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
 }
 
 export function PluginEnableButton({actions, disabled, id, value}: Props) {
@@ -159,30 +159,28 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
     );
 
     return (
-        <div className='form-group'>
-            <div className='col-sm-offset-4 col-sm-8'>
-                <Button
-                    type='button'
-                    emphasis='primary'
-                    variant={pluginEnabled ? 'destructive' : undefined}
-                    onClick={handleTogglePlugin}
-                    disabled={disabled || Boolean(submittingAction) || !pluginId}
-                >
-                    {buttonMessage}
-                </Button>
-                <Button
-                    type='button'
-                    className='ml-2'
-                    emphasis='secondary'
-                    variant='destructive'
-                    onClick={handleShowRemoveModal}
-                    disabled={disabled || Boolean(submittingAction) || !pluginId}
-                >
-                    {removeButtonMessage}
-                </Button>
-                <FormError error={serverError}/>
-                {removePluginModal}
-            </div>
+        <div className='PluginMetadataPanel__actions'>
+            <Button
+                type='button'
+                emphasis='primary'
+                variant={pluginEnabled ? 'destructive' : undefined}
+                onClick={handleTogglePlugin}
+                disabled={disabled || Boolean(submittingAction) || !pluginId}
+            >
+                {buttonMessage}
+            </Button>
+            <Button
+                type='button'
+                className='ml-2'
+                emphasis='secondary'
+                variant='destructive'
+                onClick={handleShowRemoveModal}
+                disabled={disabled || Boolean(submittingAction) || !pluginId}
+            >
+                {removeButtonMessage}
+            </Button>
+            <FormError error={serverError}/>
+            {removePluginModal}
         </div>
     );
 }

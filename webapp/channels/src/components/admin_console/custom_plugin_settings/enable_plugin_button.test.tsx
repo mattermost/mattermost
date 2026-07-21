@@ -31,6 +31,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
 
         expect(enablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(disablePlugin).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', {name: 'Enable plugin'}).closest('.col-sm-offset-4')).toBeNull();
     });
 
     it('disables the plugin when clicked while enabled', async () => {

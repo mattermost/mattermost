@@ -94,6 +94,13 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('heading', {level: 1, hidden: true})).toHaveTextContent(pluginName);
     };
 
+    const expectPluginActionsInMetadataPanel = () => {
+        const wrapper = document.querySelector('.PluginMetadataPanel__settingsWrapper');
+        const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
+        expect(wrapper).toContainElement(toggleButton);
+        expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Uninstall plugin'}));
+    };
+
     it('empty sections and settings', () => {
         renderWithContext(
             <CustomPluginSettings
@@ -105,6 +112,7 @@ describe('custom plugin sections and settings', () => {
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expectPluginActionsInMetadataPanel();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
