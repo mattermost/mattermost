@@ -6,9 +6,14 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import GlobalAttributesTable from './global_attributes_table';
+
+import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeading} from '../system_properties/controls';
+
 const messages = defineMessages({
     title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
-    placeholder: {id: 'admin.global_attributes.placeholder', defaultMessage: 'Global attributes will be here.'},
+    sectionTitle: {id: 'admin.global_attributes.section_title', defaultMessage: 'Attributes'},
+    sectionSubtitle: {id: 'admin.global_attributes.section_subtitle', defaultMessage: 'Attributes available for use in access control policies across the system.'},
 });
 
 export const searchableStrings = [
@@ -17,15 +22,29 @@ export const searchableStrings = [
 
 const GlobalAttributes: React.FC = () => {
     return (
-        <div className='wrapper--fixed'>
+        <div
+            className='wrapper--fixed'
+            data-testid='globalAttributes'
+        >
             <AdminHeader>
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>
-            <div className='admin-console__wrapper'>
-                <div className='admin-console__content'>
-                    <FormattedMessage {...messages.placeholder}/>
-                </div>
-            </div>
+            <AdminWrapper>
+                <AdminSection data-testid='global_attributes'>
+                    <SectionHeader>
+                        <hgroup>
+                            <FormattedMessage
+                                tagName={SectionHeading}
+                                {...messages.sectionTitle}
+                            />
+                            <FormattedMessage {...messages.sectionSubtitle}/>
+                        </hgroup>
+                    </SectionHeader>
+                    <SectionContent $compact={true}>
+                        <GlobalAttributesTable/>
+                    </SectionContent>
+                </AdminSection>
+            </AdminWrapper>
         </div>
     );
 };
