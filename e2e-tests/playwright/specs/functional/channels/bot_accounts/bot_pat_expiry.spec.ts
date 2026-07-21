@@ -43,6 +43,7 @@ test.describe('Bot account personal access token expiry @bot_accounts @personal_
         await page.locator('#username').fill(username);
 
         // * The default-token expiry picker is enforced and clamped by the 30-day policy.
+        await expect(page.getByText('Default access token', {exact: true})).toBeVisible();
         const defaultTokenExpiry = page.locator('#defaultTokenExpiry');
         await expect(defaultTokenExpiry).toBeVisible();
         await expect(defaultTokenExpiry.locator('option', {hasText: 'No expiry'})).toHaveCount(0);
