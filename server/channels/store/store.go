@@ -1418,6 +1418,10 @@ type RecapStore interface {
 	UpdateRecap(recap *model.Recap) (*model.Recap, error)
 	GetRecap(id string) (*model.Recap, error)
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
+	// GetRecapsByStatusOlderThan returns non-deleted recaps in the given status whose
+	// UpdateAt is strictly older than the given timestamp, oldest first, at most limit rows.
+	// Used by the recap recovery scheduler to find rows stuck in 'processing'.
+	GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
 	// MarkRecapSkipped flips a recap to the skipped status with the given reason.
 	// Skipped recaps are excluded from the daily-limit count, so this frees the slot

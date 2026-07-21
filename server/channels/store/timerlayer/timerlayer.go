@@ -9203,6 +9203,22 @@ func (s *TimerLayerRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*mod
 	return result, err
 }
 
+func (s *TimerLayerRecapStore) GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.GetRecapsByStatusOlderThan(status, olderThan, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.GetRecapsByStatusOlderThan", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]*model.Recap, error) {
 	start := time.Now()
 

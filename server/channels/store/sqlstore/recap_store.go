@@ -192,6 +192,21 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 	return recaps, nil
 }
 
+func (s *SqlRecapStore) GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error) {
+	query := s.recapSelectQuery.
+		Where(sq.Eq{"Status": status, "DeleteAt": 0}).
+		Where(sq.Lt{"UpdateAt": olderThan}).
+		OrderBy("UpdateAt ASC").
+		Limit(uint64(limit))
+
+	var recaps []*model.Recap
+	if err := s.GetReplica().SelectBuilder(&recaps, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get Recaps with status=%s older than %d", status, olderThan)
+	}
+
+	return recaps, nil
+}
+
 func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Update("Recaps").

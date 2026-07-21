@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -104,6 +105,60 @@ func TestRecapStore(t *testing.T) {
 			}
 			assert.ElementsMatch(t, []string{completed, failed}, ids)
 			assert.NotContains(t, ids, skipped)
+		})
+
+		t.Run("GetRecapsByStatusOlderThan", func(t *testing.T) {
+			now := model.GetMillis()
+			save := func(status string, updateAt int64) *model.Recap {
+				recap := &model.Recap{
+					Id:                model.NewId(),
+					UserId:            model.NewId(),
+					Title:             "Test Recap",
+					CreateAt:          updateAt,
+					UpdateAt:          updateAt,
+					TotalMessageCount: 1,
+					Status:            status,
+					BotID:             "test-bot-id",
+				}
+				_, err := ss.Recap().SaveRecap(recap)
+				require.NoError(t, err)
+				return recap
+			}
+
+			oldest := save(model.RecapStatusProcessing, now-(2*time.Hour).Milliseconds())
+			newer := save(model.RecapStatusProcessing, now-(90*time.Minute).Milliseconds())
+			fresh := save(model.RecapStatusProcessing, now)
+			completed := save(model.RecapStatusCompleted, now-(2*time.Hour).Milliseconds())
+			deleted := save(model.RecapStatusProcessing, now-(2*time.Hour).Milliseconds())
+			require.NoError(t, ss.Recap().DeleteRecap(deleted.Id))
+
+			seededIDs := map[string]bool{
+				oldest.Id:    true,
+				newer.Id:     true,
+				fresh.Id:     true,
+				completed.Id: true,
+				deleted.Id:   true,
+			}
+			toIDs := func(recaps []*model.Recap) []string {
+				ids := make([]string, 0, len(recaps))
+				for _, recap := range recaps {
+					require.True(t, seededIDs[recap.Id], "unexpected recap returned: %s", recap.Id)
+					ids = append(ids, recap.Id)
+				}
+				return ids
+			}
+
+			recaps, err := ss.Recap().GetRecapsByStatusOlderThan(model.RecapStatusProcessing, now-time.Hour.Milliseconds(), 10)
+			require.NoError(t, err)
+			assert.Equal(t, []string{oldest.Id, newer.Id}, toIDs(recaps))
+
+			recaps, err = ss.Recap().GetRecapsByStatusOlderThan(model.RecapStatusProcessing, now-time.Hour.Milliseconds(), 1)
+			require.NoError(t, err)
+			assert.Equal(t, []string{oldest.Id}, toIDs(recaps))
+
+			recaps, err = ss.Recap().GetRecapsByStatusOlderThan(model.RecapStatusProcessing, now-(3*time.Hour).Milliseconds(), 10)
+			require.NoError(t, err)
+			assert.Empty(t, recaps)
 		})
 
 		t.Run("UpdateRecapStatus", func(t *testing.T) {

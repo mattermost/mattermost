@@ -168,6 +168,36 @@ func (_m *RecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.RecapC
 	return r0, r1
 }
 
+// GetRecapsByStatusOlderThan provides a mock function with given fields: status, olderThan, limit
+func (_m *RecapStore) GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error) {
+	ret := _m.Called(status, olderThan, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRecapsByStatusOlderThan")
+	}
+
+	var r0 []*model.Recap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, int) ([]*model.Recap, error)); ok {
+		return rf(status, olderThan, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, int) []*model.Recap); ok {
+		r0 = rf(status, olderThan, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Recap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, int) error); ok {
+		r1 = rf(status, olderThan, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRecapsForUser provides a mock function with given fields: userId, page, perPage
 func (_m *RecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]*model.Recap, error) {
 	ret := _m.Called(userId, page, perPage)
