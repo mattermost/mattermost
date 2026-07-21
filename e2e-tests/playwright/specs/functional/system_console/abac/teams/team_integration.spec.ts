@@ -340,10 +340,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
-     * @objective Enabling attribute-based access without linking a policy shows the empty
-     * state and blocks save with a clear error — the team is never left enforced-but-empty.
+     * @objective Enabling attribute-based access shows the empty state and the link
+     * affordance. Saving with nothing defined (no linked policy, no custom rule) turns
+     * ABAC back off cleanly rather than erroring — the team is never left enforced-but-empty.
      */
-    test('MM-68846-T5 - shows the empty state and blocks save when no policy is linked', async ({pw}) => {
+    test('MM-68846-T5 - enabling the toggle with nothing defined saves cleanly and leaves ABAC off', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -365,14 +366,18 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(page.getByText(/No membership policy assigned/i)).toBeVisible({timeout: 5000});
         await expect(page.locator('[data-testid="link-to-a-policy"]')).toBeVisible();
 
-        // Saving with the toggle on but neither a linked policy nor a custom rule is rejected.
+        // Saving with nothing defined disables ABAC instead of blocking with an error.
         await page.getByRole('button', {name: 'Save'}).click();
-        await expect(page.getByText(/must select a membership policy or define custom access rules/i)).toBeVisible({
-            timeout: 5000,
-        });
+        await expect(page.getByText(/must select a membership policy or define custom access rules/i)).toHaveCount(0);
 
-        // The server state is untouched — no policy was assigned.
-        expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
+        // Enforcement stays off on the server.
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 2000],
+                message: 'team should remain not policy-enforced after saving an empty ABAC config',
+            })
+            .toBeFalsy();
     });
 
     /**
