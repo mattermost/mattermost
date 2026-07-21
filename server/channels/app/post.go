@@ -933,11 +933,9 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		// access token / OAuth) editing its OWN post. The ownership check is
 		// what makes session type safe here — a user access token cannot inject
 		// mm_blocks_actions onto someone else's post, and from_bot on the
-		// original post is never consulted (it is user-forgeable). Any update
+		// original post is never consulted (it is user-forgeable). An update
 		// that does not carry the prop (e.g. a message-only edit) keeps whatever
-		// the original post had, so buttons are never silently wiped. Validity
-		// of the new value is checked (as a warning) by ValidateProps in the
-		// store, consistent with the create-time path.
+		// the original post had, so buttons are never silently wiped.
 		allowMmBlocksChange := updatePostOptions.AllowMmBlocksActionsUpdate ||
 			(newPost.GetProp(model.PostPropsMmBlocksActions) != nil &&
 				a.sessionMayUpdateMmBlocksActions(rctx, oldPost))
@@ -948,6 +946,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 				newPost.DelProp(model.PostPropsMmBlocksActions)
 			}
 		}
+
+		// Prune mm_blocks_actions to only the actions still referenced by the
+		// post's content. Dispatch authorizes clicks from this registry, not
+		// from whether a button renders, so a preserved entry whose button was
+		// removed would stay callable by any reader. Update-only by design:
+		// only an edit can strand an entry (we preserve the old registry while
+		// content changes); create writes both together. Mirrors webhook.go.
+		model.RefreshInteractiveActionsOnPost(newPost, newPost.GetProp(model.PostPropsMmBlocksActions))
 
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
