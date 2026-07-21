@@ -162,8 +162,7 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
         <div className='PluginMetadataPanel__actions'>
             <Button
                 type='button'
-                emphasis='primary'
-                variant={pluginEnabled ? 'destructive' : undefined}
+                emphasis={pluginEnabled ? 'secondary' : 'primary'}
                 onClick={handleTogglePlugin}
                 disabled={disabled || Boolean(submittingAction) || !pluginId}
             >

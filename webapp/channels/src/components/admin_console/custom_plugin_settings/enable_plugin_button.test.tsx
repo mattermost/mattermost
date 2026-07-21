@@ -52,6 +52,8 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
 
         expect(disablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(enablePlugin).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).not.toHaveClass('btn-danger');
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toHaveClass('btn-danger');
     });
 
     it('shows an error when enabling fails', async () => {
