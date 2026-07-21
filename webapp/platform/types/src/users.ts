@@ -134,6 +134,7 @@ export type UserAccessToken = {
     user_id: string;
     description: string;
     is_active: boolean;
+    expires_at?: number;
 };
 
 export type UsersStats = {

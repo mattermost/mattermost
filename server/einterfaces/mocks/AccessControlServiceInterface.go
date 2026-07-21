@@ -438,6 +438,11 @@ func (_m *AccessControlServiceInterface) NormalizePolicy(rctx request.CTX, polic
 	return r0, r1
 }
 
+// OnPropertyFieldOptionsChanged provides a mock function with given fields: rctx, fieldID
+func (_m *AccessControlServiceInterface) OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string) {
+	_m.Called(rctx, fieldID)
+}
+
 // QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
 func (_m *AccessControlServiceInterface) QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	ret := _m.Called(rctx, expression, opts)

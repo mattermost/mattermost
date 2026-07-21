@@ -176,6 +176,7 @@ type Routes struct {
 	Properties           *mux.Router // 'api/v4/properties'
 	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
 	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyFieldsSearch *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
 	PropertyValues       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
 	PropertySystemValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
 }
@@ -339,6 +340,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
 	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
@@ -514,6 +516,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
 	api.InitAccessControlPolicyLocal()
+	api.InitStatusLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

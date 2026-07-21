@@ -1,0 +1,351 @@
+---
+title: "Deploy Mattermost on Red Hat Enterprise Linux"
+sidebar_label: "Red Hat (RHEL)"
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted" />
+
+Install Mattermost Server on Red Hat Enterprise Linux (RHEL), Rocky Linux, AlmaLinux, Oracle Linux 7+, or CentOS Stream. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
+
+<Note title="Minimum requirements">
+
+- **Operating system**: RHEL 7+, Rocky / Alma 8+, Oracle Linux 7+, CentOS Stream 8+.
+- **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
+- **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
+- **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
+
+</Note>
+
+## Step 1: Get a PostgreSQL database
+
+Choose one of:
+
+- **Install PostgreSQL locally** on the same host. See the [PostgreSQL installation documentation](https://www.postgresql.org/download/).
+- **Use an external PostgreSQL server** and collect connection credentials before Step 2.
+- **Use a managed database service** (AWS RDS, Azure Database for PostgreSQL, etc.).
+
+## Step 2: Prepare the database
+
+Follow the [database preparation](/deployment-guide/server/preparations#database-preparation) instructions to create the Mattermost database, user, and grants.
+
+## Step 3: Download the Mattermost Server tarball
+
+SSH onto the target host and download the release. Replace `amd64` with `arm64` for ARM-based hardware.
+
+<Tabs>
+<TabItem value="latest" label="Latest release" default>
+
+```sh
+wget https://releases.mattermost.com/11.8.3/mattermost-11.8.3-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="esr" label="Current ESR">
+
+```sh
+wget https://releases.mattermost.com/11.7.6/mattermost-11.7.6-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="archive" label="Older releases">
+
+Enterprise and Team Edition releases are listed in the [version archive](/product-overview/version-archive).
+
+</TabItem>
+</Tabs>
+
+## Step 4: Install Mattermost Server
+
+Update existing system packages first:
+
+```sh
+sudo dnf update
+sudo dnf upgrade
+```
+
+Extract the tarball, move it into place, and set ownership:
+
+```sh
+tar -xvzf mattermost*.gz
+sudo mv mattermost /opt
+sudo mkdir /opt/mattermost/data
+sudo useradd --system --user-group mattermost
+sudo chown -R mattermost:mattermost /opt/mattermost
+sudo chmod -R g+w /opt/mattermost
+```
+
+<Note title="Custom paths and users">
+
+If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
+
+</Note>
+
+Create the systemd unit file at `/lib/systemd/system/mattermost.service`:
+
+```ini
+[Unit]
+Description=Mattermost
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/opt/mattermost/bin/mattermost
+TimeoutStartSec=3600
+KillMode=mixed
+Restart=always
+RestartSec=10
+WorkingDirectory=/opt/mattermost
+User=mattermost
+Group=mattermost
+LimitNOFILE=49152
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload systemd:
+
+```sh
+sudo systemctl daemon-reload
+```
+
+## Step 5: Configure and start the server
+
+Back up the default config before editing:
+
+```sh
+sudo cp /opt/mattermost/config/config.json /opt/mattermost/config/config.defaults.json
+```
+
+Edit `/opt/mattermost/config/config.json` and set:
+
+- `SqlSettings.DriverName`: `"postgres"`
+- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
+- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
+- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
+
+Start the server:
+
+```sh
+sudo systemctl start mattermost
+curl http://localhost:8065
+```
+
+You should see the Mattermost HTML response. Enable on boot:
+
+```sh
+sudo systemctl enable mattermost.service
+```
+
+If start fails on a hardened RHEL system, continue to the [Hardened RHEL configuration](#hardened-rhel-configuration) section below before troubleshooting elsewhere — it's almost always SELinux, firewalld, or fapolicyd.
+
+## Step 6: Update the server
+
+Tarball-based installs are upgraded manually. See [Upgrading Mattermost Server](/administration-guide/upgrade/upgrading-mattermost-server).
+
+## Hardened RHEL configuration
+
+Hardened RHEL installs typically require additional configuration for SELinux, firewalld, and fapolicyd. Each is covered below.
+
+<Tabs>
+<TabItem value="selinux" label="SELinux" default>
+
+RHEL 9 ships with SELinux in enforcing mode. Verify with `sestatus`. If it's enforcing, set the appropriate contexts before starting Mattermost.
+
+**Set the binary context** for `/opt/mattermost/bin`:
+
+```sh
+sudo semanage fcontext -a -t bin_t "/opt/mattermost/bin(/.*)?"
+sudo restorecon -RF /opt/mattermost/bin
+```
+
+**Set the directory context** for `/opt/mattermost`. Check current context:
+
+```sh
+ls -Z /opt/mattermost
+```
+
+If the type is `default_t`, set a web-application context:
+
+```sh
+sudo semanage fcontext -a -t httpd_sys_content_t "/opt/mattermost(/.*)?"
+sudo restorecon -R /opt/mattermost
+```
+
+**Allow Mattermost to bind to port 8065** (or your configured port):
+
+```sh
+sudo semanage port -l | grep 8065
+sudo semanage port -a -t http_port_t -p tcp 8065
+```
+
+**Generate a custom policy** if SELinux blocks something specific. Check denials:
+
+```sh
+sudo ausearch -m avc -ts recent
+sudo cat /var/log/audit/audit.log | grep denied
+```
+
+Generate a policy module from those denials:
+
+```sh
+sudo yum install -y policycoreutils-python-utils
+sudo grep mattermost /var/log/audit/audit.log | audit2allow -M mattermost_policy
+sudo semodule -i mattermost_policy.pp
+```
+
+**Restart and verify**:
+
+```sh
+sudo systemctl restart mattermost
+```
+
+<Tip title="Testing-only fallback">
+
+For debugging, you can temporarily switch SELinux to permissive mode with `sudo setenforce 0`. Re-enable enforcement with `sudo setenforce 1` once contexts are correct. Don't ship a production deployment in permissive mode.
+
+</Tip>
+
+**References**
+
+- [SELinux User's and Administrator's Guide](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/index)
+- [SELinux Project Wiki](https://github.com/SELinuxProject/selinux)
+
+</TabItem>
+<TabItem value="firewalld" label="firewalld">
+
+firewalld is the default firewall on RHEL. Check status:
+
+```sh
+sudo systemctl status firewalld
+```
+
+**Open the Mattermost ports**:
+
+```sh
+sudo firewall-cmd --permanent --add-port=8065/tcp
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all
+```
+
+The output should show `8065/tcp` and the `http` / `https` services.
+
+**Mattermost Calls ports** (if you're running the Calls plugin or the standalone rtcd service):
+
+```sh
+# Integrated Calls plugin
+sudo firewall-cmd --permanent --add-port=8443/udp
+sudo firewall-cmd --permanent --add-port=8443/tcp
+sudo firewall-cmd --reload
+
+# Standalone rtcd (adds API port)
+sudo firewall-cmd --permanent --add-port=8045/tcp
+sudo firewall-cmd --reload
+```
+
+- Port 8443 (UDP/TCP) carries RTC media (audio, video, screen share).
+- Port 8045 (TCP) is the rtcd API.
+- TCP support for RTC requires Calls v0.17+ and rtcd v0.11+.
+
+See the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) for the full topology.
+
+</TabItem>
+<TabItem value="fapolicyd" label="fapolicyd">
+
+fapolicyd (File Access Policy Daemon) blocks execution of untrusted binaries. In secure RHEL environments it commonly blocks Mattermost binaries and plugins — the symptom is "operation not permitted" errors in `mattermost.log`.
+
+**Confirm fapolicyd is the cause** by temporarily stopping it:
+
+```sh
+sudo systemctl stop fapolicyd
+sudo systemctl start mattermost
+```
+
+If Mattermost now works, restart fapolicyd and configure an allow rule.
+
+**Identify the denial**:
+
+```sh
+sudo fapolicyd --debug
+```
+
+Look for a line like:
+
+```text
+rule=15 dec=deny_audit perm=execute auid=-1 pid=19735
+  exe=/opt/mattermost/bin/mattermost : path=/opt/mattermost/plugins/focalboard/server/dist/plugin-linux-amd64
+  ftype=application/x-executable trust=0
+```
+
+Note the rule number — your allow rule must be numbered lower so it's evaluated first.
+
+**Create an allow rule** at `/etc/fapolicyd/rules.d/80-mattermost.rules`:
+
+```text
+allow perm=execute exe=/usr/bin/sudo trust=1 : dir=/opt/mattermost/ all trust=0
+allow perm=execute exe=/opt/mattermost/bin/mattermost : dir=/opt/mattermost all trust=0
+allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/mattermost/ all trust=0
+```
+
+**Validate and load**:
+
+```sh
+sudo fagenrules --check
+sudo fagenrules --load
+sudo systemctl restart fapolicyd
+sudo systemctl restart mattermost
+```
+
+Verify:
+
+```sh
+curl http://localhost:8065
+sudo systemctl status mattermost
+```
+
+**Rules for the standalone rtcd service** (if deployed): create `/etc/fapolicyd/rules.d/80-rtcd.rules`:
+
+```text
+allow perm=execute exe=/usr/bin/sudo trust=1 : dir=/opt/rtcd/ all trust=0
+allow perm=execute exe=/opt/rtcd/bin/rtcd : dir=/opt/rtcd all trust=0
+allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/rtcd/ all trust=0
+```
+
+Then reload fapolicyd as above. See [RTCD setup and configuration](/administration-guide/configure/calls-deployment-guide) for the full rtcd install path.
+
+<Note title="Rule numbering">
+
+fapolicyd rules are evaluated in order. Your allow rules must be numbered lower than the deny rule that's blocking Mattermost — `80-` is usually safe with a stock configuration. If denials persist, re-check the rule number from `fapolicyd --debug` and renumber accordingly.
+
+</Note>
+
+**Reference**: [Mattermost and fapolicyd](https://support.mattermost.com/hc/en-us/articles/12167526545172-Mattermost-and-fapolicyd) support article.
+
+</TabItem>
+</Tabs>
+
+## Remove Mattermost
+
+Stop the server, back up any data you need, then remove the install directory:
+
+```sh
+sudo systemctl stop mattermost
+sudo rm -rf /opt/mattermost
+sudo rm /lib/systemd/system/mattermost.service
+sudo userdel mattermost
+```
+
+<Important title="Back up before removing">
+
+`/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
+
+</Important>
+
+## Next steps
+
+- [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
+- [Set up TLS](/deployment-guide/server/setup-tls)
+- [DISA STIG mapping](/security-guide/compliance-frameworks/disa-stig) if this deployment is bound for a regulated environment

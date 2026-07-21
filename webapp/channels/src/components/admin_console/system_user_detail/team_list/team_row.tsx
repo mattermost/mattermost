@@ -79,7 +79,10 @@ export default class TeamRow extends React.PureComponent<Props> {
         const {team} = this.props;
         const teamIconUrl = Utils.imageURLForTeam(team);
         return (
-            <div className={'TeamRow'}>
+            <div
+                className={'TeamRow'}
+                data-testid='teamRow'
+            >
                 <div className='TeamRow__row'>
                     <div className='TeamRow__team-name'>
                         <div className='col-sm-auto'>

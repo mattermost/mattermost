@@ -102,6 +102,7 @@ All environment variables are optional with sensible defaults.
 | `PW_ADMIN_EMAIL`              | Admin email                                | `sysadmin@sample.mattermost.com` |
 | `PW_ENSURE_PLUGINS_INSTALLED` | Comma-separated list of plugins to install | `[]`                             |
 | `PW_RESET_BEFORE_TEST`        | Reset server before test                   | `false`                          |
+| `PW_SMTP_URL`                 | Inbucket HTTP API URL                      | `http://localhost:9001`          |
 
 #### High Availability Cluster Settings
 

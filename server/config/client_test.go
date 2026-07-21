@@ -379,6 +379,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: new(true),
 					EnableUserManagedAttributes:       new(true),
+					EnableChannelPolicyIndicators:     new(true),
 				},
 			},
 			"",
@@ -386,6 +387,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
 				"EnableUserManagedAttributes":       "true",
+				"EnableChannelPolicyIndicators":     "true",
 			},
 			nil,
 		},
@@ -395,6 +397,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: new(false),
 					EnableUserManagedAttributes:       new(false),
+					EnableChannelPolicyIndicators:     new(false),
 				},
 			},
 			"",
@@ -402,6 +405,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableChannelPolicyIndicators":     "false",
 			},
 			nil,
 		},
@@ -413,6 +417,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableChannelPolicyIndicators":     "true",
 			},
 			nil,
 		},
@@ -728,6 +733,46 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{},
 			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
 		},
+		{
+			"notification metrics enabled follows the metrics setting",
+			&model.Config{
+				MetricsSettings: model.MetricsSettings{
+					Enable:                    new(true),
+					EnableNotificationMetrics: new(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					Cluster: new(true),
+				},
+			},
+			map[string]string{
+				"EnableMetrics":             "true",
+				"EnableNotificationMetrics": "true",
+			},
+			nil,
+		},
+		{
+			"notification metrics disabled follows the metrics setting",
+			&model.Config{
+				MetricsSettings: model.MetricsSettings{
+					Enable:                    new(true),
+					EnableNotificationMetrics: new(false),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					Cluster: new(true),
+				},
+			},
+			map[string]string{
+				"EnableMetrics":             "true",
+				"EnableNotificationMetrics": "false",
+			},
+			nil,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -750,6 +795,26 @@ func TestGetClientConfig(t *testing.T) {
 				_, ok := configMap[absentField]
 				assert.False(t, ok, fmt.Sprintf("config should not contain %v", absentField))
 			}
+		})
+	}
+}
+
+func TestGenerateClientConfigLockProfileFieldsForEmailUsers(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		license  *model.License
+		expected string
+	}{
+		"unlicensed":   {expected: model.TeamSettingsLockProfileFieldsNone},
+		"professional": {license: model.NewTestLicenseSKU(model.LicenseShortSkuProfessional), expected: model.TeamSettingsLockProfileFieldsNone},
+		"enterprise":   {license: model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise), expected: model.TeamSettingsLockProfileFieldsAll},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := &model.Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = model.NewPointer(model.TeamSettingsLockProfileFieldsAll)
+
+			clientConfig := GenerateClientConfig(config, "", testCase.license)
+			assert.Equal(t, testCase.expected, clientConfig["LockProfileFieldsForEmailUsers"])
 		})
 	}
 }

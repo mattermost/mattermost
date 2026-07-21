@@ -155,6 +155,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                 >
                   <div
                     class="loading-screen"
+                    data-testid="loading-screen"
                     style="position: absolute;"
                   >
                     <div

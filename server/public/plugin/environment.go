@@ -446,30 +446,55 @@ func (env *Environment) RemovePlugin(id string) {
 	}
 }
 
-// Deactivates the plugin with the given id.
+// deactivateAndTeardown runs OnDeactivate (with a 10-second timeout), then marks the plugin
+// as not running and closes its RPC connection. The plugin remains reachable via
+// RunMultiPluginHook* throughout OnDeactivate so it can dispatch hooks back to itself.
+//
+// If the plugin is not currently active, there's nothing to tear down: its state is reconciled
+// to not running and no OnDeactivate is dispatched, avoiding a spurious RPC call to an
+// already-closed connection.
+//
+// Deactivation always reconciles the plugin to PluginStateNotRunning, intentionally clearing any
+// error state (e.g. PluginStateFailedToStayRunning): once deactivated, the plugin is no longer
+// meant to be running, so the error no longer applies. Callers that want to record a more specific
+// state deactivate first and set it afterward, as the health check job does when a plugin exceeds
+// its restart limit.
+func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
+	id := rp.BundleInfo.Manifest.Id
+
+	if rp.supervisor == nil || !env.IsActive(id) {
+		env.setPluginState(id, model.PluginStateNotRunning)
+		return false
+	}
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", id), mlog.Err(err))
+		}
+	}()
+
+	select {
+	case <-time.After(10 * time.Second):
+		env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", id))
+	case <-done:
+	}
+
+	env.setPluginState(id, model.PluginStateNotRunning)
+	rp.supervisor.Shutdown()
+
+	return true
+}
+
+// Deactivate the plugin with the given id.
 func (env *Environment) Deactivate(id string) bool {
 	p, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return false
 	}
 
-	isActive := env.IsActive(id)
-
-	env.setPluginState(id, model.PluginStateNotRunning)
-
-	if !isActive {
-		return false
-	}
-
-	rp := p.(registeredPlugin)
-	if rp.supervisor != nil {
-		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
-		}
-		rp.supervisor.Shutdown()
-	}
-
-	return true
+	return env.deactivateAndTeardown(p.(registeredPlugin))
 }
 
 // RestartPlugin deactivates, then activates the plugin with the given id.
@@ -487,31 +512,7 @@ func (env *Environment) Shutdown() {
 	env.registeredPlugins.Range(func(_, value any) bool {
 		rp := value.(registeredPlugin)
 
-		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
-			return true
-		}
-
-		wg.Add(1)
-
-		done := make(chan bool)
-		go func() {
-			defer close(done)
-			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-
-			select {
-			case <-time.After(10 * time.Second):
-				env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id))
-			case <-done:
-			}
-
-			rp.supervisor.Shutdown()
-		}()
+		wg.Go(func() { env.deactivateAndTeardown(rp) })
 
 		return true
 	})
@@ -607,6 +608,22 @@ func (env *Environment) HooksForPluginWithRPCErr(id string) (HooksWithRPCErr, er
 	}
 
 	return nil, fmt.Errorf("plugin not found: %v", id)
+}
+
+// HasPluginImplementing reports whether any active plugin implements hookId. Use this to avoid
+// expensive setup when no plugin will actually be called by RunMultiPluginHook.
+func (env *Environment) HasPluginImplementing(hookId int) bool {
+	found := false
+	env.registeredPlugins.Range(func(_, value any) bool {
+		rp := value.(registeredPlugin)
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+		found = true
+		return false // stop on first match
+	})
+
+	return found
 }
 
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.

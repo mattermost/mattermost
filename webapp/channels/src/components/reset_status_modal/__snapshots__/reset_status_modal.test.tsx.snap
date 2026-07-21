@@ -15,7 +15,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
       class="fade modal-backdrop in"
     />
     <div
-      aria-labelledby="confirmModalLabel"
+      aria-labelledby="genericModalLabel"
       aria-modal="true"
       class="fade in modal"
       id="confirmModal"
@@ -135,7 +135,7 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
       class="fade modal-backdrop in"
     />
     <div
-      aria-labelledby="confirmModalLabel"
+      aria-labelledby="genericModalLabel"
       aria-modal="true"
       class="fade in modal"
       id="confirmModal"

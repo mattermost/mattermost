@@ -18,14 +18,10 @@ import (
 // Masking is attribute-based, not permission-based: system admins who do not hold all values
 // in a policy must also receive redacted raw expressions.
 func shouldRedactExpressions(c *Context) bool {
-	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
-		c.App.Config().FeatureFlags.AttributeValueMasking
+	return c.App.Config().FeatureFlags.AttributeValueMasking
 }
 
 func (api *API) InitAccessControlPolicy() {
-	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
-		return
-	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
@@ -140,6 +136,26 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 		}
+	case model.AccessControlPolicyTypeTeam:
+		// Team-type policies are keyed by the team ID, so policy.ID is the team.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			if !model.IsValidId(policy.ID) {
+				c.SetInvalidParam("policy.id")
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), policy.ID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			// Hard-block a team admin from saving rules that would lock themselves
+			// out of their own team.
+			for _, rule := range policy.Rules {
+				if appErr := c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, rule.Expression); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			}
+		}
 	default:
 		c.SetInvalidParam("type")
 		return
@@ -211,6 +227,11 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the
+	// policy editor can disable deletion while any channel or team is still linked,
+	// mirroring the policy list. GetAccessControlPolicy does not compute these.
+	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
+
 	if shouldRedactExpressions(c) {
 		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
 	}
@@ -251,14 +272,19 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
-			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			if !owned {
-				c.SetPermissionError(model.PermissionManageTeamAccessRules)
-				return
+			// Team-type policies use the team's own ID as the policy ID.
+			// A team admin can delete their team's direct policy without the
+			// parent-ownership check (which only covers parent-type policies).
+			if policyID != teamID {
+				owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+				if appErr != nil {
+					c.Err = appErr
+					return
+				}
+				if !owned {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
 			}
 		}
 	}
@@ -366,10 +392,20 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	// Scope results to a team's current members only for callers authorized on
+	// that team. A channel admin clears the permission gate via the channel
+	// branch, so binding the team scope to teamID alone would let them point the
+	// search at any team — gate it on the verified team permission instead.
+	if hasSystemPermission || hasTeamPermission {
+		searchOpts.TeamID = teamID
+	}
+
 	// Only system admins see ALL matching users (unrestricted).
 	// Delegated admins (team and channel) see only users matching expressions with attributes they possess.
 	if hasSystemPermission {
 		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	} else if hasTeamPermission {
+		users, count, appErr = c.App.TestExpressionWithTeamContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	} else {
 		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	}
@@ -846,14 +882,19 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 				// Try team-admin permission via team_id in request
 				if list.TeamID != "" && model.IsValidId(list.TeamID) &&
 					c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), list.TeamID, model.PermissionManageTeamAccessRules) {
-					owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
-					if appErr != nil {
-						c.Err = appErr
-						return
-					}
-					if !owned {
-						c.SetPermissionError(model.PermissionManageTeamAccessRules)
-						return
+					// Team-type policies use the team's own ID as the policy ID.
+					// Skip the parent-ownership check for a team admin toggling their
+					// own team policy's active flag.
+					if entry.ID != list.TeamID {
+						owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
+						if appErr != nil {
+							c.Err = appErr
+							return
+						}
+						if !owned {
+							c.SetPermissionError(model.PermissionManageTeamAccessRules)
+							return
+						}
 					}
 				} else {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -982,6 +1023,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1085,6 +1127,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

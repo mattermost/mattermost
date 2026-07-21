@@ -35,7 +35,7 @@ function makeLinkedField(actions: string[], options: Array<{id: string; name: st
     return {
         id: LINKED_FIELD_ID,
         group_id: CLASSIFICATIONS_GROUP_NAME,
-        name: 'system_classification',
+        name: 'classification',
         type: 'select',
         object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,

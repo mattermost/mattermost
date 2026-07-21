@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -68,6 +69,45 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     contextmenu: false,
 };
 
+type CELUserAttribute = {
+    attribute: string;
+    values: string[];
+
+    // 'session' marks a user.session.* attribute; 'user' marks a user.* /
+    // user.attributes.* attribute. Always populated by toCELEditorAttributes.
+    objectType?: string;
+
+    // Native user attributes (e.g. user.email) complete directly off `user.`
+    // rather than under `user.attributes.`.
+    isNative?: boolean;
+};
+
+// Builds the Monaco autocomplete schema. CPA/user attributes are offered under
+// user.attributes.*; enabled session attributes (objectType 'session') are
+// offered under user.session.* — the session bucket only appears when present.
+// Native attributes (isNative) complete directly off user.* (e.g. user.email).
+export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
+    const cleanNames = (attrs: CELUserAttribute[]) => attrs.
+        map((attr) => attr.attribute).
+        filter((name) => !name.includes(' ') && name.trim() !== '');
+    const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
+    const nativeNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && attr.isNative));
+    const cpaNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && !attr.isNative));
+
+    const schemas: Record<string, string[]> = {
+        user: ['attributes', ...(sessionAttrNames.length ? ['session'] : []), ...nativeNames],
+        'user.attributes': cpaNames,
+        ...(sessionAttrNames.length ? {'user.session': sessionAttrNames} : {}),
+    };
+
+    // createat exposes the youngerThanDays member helper.
+    if (nativeNames.includes('createat')) {
+        schemas['user.createat'] = ['youngerThanDays'];
+    }
+
+    return schemas;
+}
+
 interface CELEditorProps {
     value: string;
     onChange: (value: string) => void;
@@ -77,10 +117,7 @@ interface CELEditorProps {
     channelId?: string;
     teamId?: string;
     disabled?: boolean;
-    userAttributes: Array<{
-        attribute: string;
-        values: string[];
-    }>;
+    userAttributes: CELUserAttribute[];
 
     /**
      * When provided, the built-in expression-only TestResultsModal is
@@ -128,12 +165,7 @@ function CELEditor({
         isWaitingForValidation: false,
     });
 
-    const schemas = {
-        user: ['attributes'],
-        'user.attributes': userAttributes.
-            map((attr) => attr.attribute).
-            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
-    };
+    const schemas = buildCELSchemas(userAttributes);
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);

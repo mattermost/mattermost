@@ -43,11 +43,15 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     return (
-        <div className={classNames('hfroute-header', {'has-free-banner': freeBanner, 'has-custom-site-name': title})}>
+        <div
+            data-testid='hfroute-header'
+            className={classNames('hfroute-header', {'has-free-banner': freeBanner, 'has-custom-site-name': title})}
+        >
             <div className='header-main'>
                 <div>
                     {freeBanner &&
                         <Link
+                            data-testid='header-logo-link'
                             className='header-logo-link'
                             to='/'
                             aria-label={ariaLabel}
@@ -57,6 +61,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
                     }
                     {title &&
                         <Link
+                            data-testid='header-logo-link'
                             className='header-logo-link'
                             to='/'
                             aria-label={ariaLabel}

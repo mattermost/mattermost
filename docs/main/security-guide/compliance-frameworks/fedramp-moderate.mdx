@@ -1,0 +1,137 @@
+---
+title: FedRAMP Moderate
+sidebar_position: 1
+description: Mattermost's FedRAMP Moderate authorization posture, configuration guidance, and NIST 800-53 control mappings.
+---
+
+<AttestationStatus
+  framework="FedRAMP Moderate"
+  status="in-process"
+  asOf="2026-05-11"
+  detailsHref="https://mattermost.com/trust/"
+/>
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,cloud-government,air-gapped" />
+
+# FedRAMP Moderate
+
+This page documents Mattermost's posture against the **FedRAMP Moderate** baseline (NIST 800-53 Rev. 5 Moderate control set). It is the primary entry surface for **Security Architects** and **Accreditors** (`docs/_redesign/personas.md` §5 in the repo) preparing System Security Plans (SSPs) or evaluating Mattermost for use in FedRAMP-bounded environments.
+
+:::important Status
+Current authorization status is set by the `<AttestationStatus>` badge above. Status updates require sign-off from Mattermost's compliance team — do not change in PRs without product + legal approval. See `docs/_redesign/proposed-ia.md` §5 risk 4 in the repo.
+:::
+
+## Authorization scope
+
+When Mattermost achieves FedRAMP Moderate authorization, the authorization will apply to a specific deployment configuration. Customers using Mattermost in a FedRAMP-bounded environment **inherit** the authorization only when their deployment matches the authorized configuration. Deviations require customer-managed re-authorization.
+
+Documented in this page:
+
+- The authorized **edition** (Enterprise / Enterprise Advanced).
+- The authorized **deployment mode** (Cloud Government or Self-Hosted in a FedRAMP-bounded enclave).
+- The authorized **release version range**.
+- The **shared responsibility model** — which controls Mattermost implements, which the customer implements, and which are shared.
+
+## NIST 800-53 control mapping
+
+The mapping below is organized by NIST 800-53 control family. Each row identifies the Mattermost feature, plugin, or configuration setting that implements the control. Where multiple controls share an implementation, the implementation is listed once and cross-referenced.
+
+This structure is modeled on [Teleport's FedRAMP page](https://goteleport.com/docs/zero-trust-access/compliance-frameworks/fedramp/), which organizes by NIST control family because that is the abstraction auditors cite in SSPs.
+
+### Access Control (AC)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| AC-2 (Account Management) | System Console → Users + SCIM provisioning | [Onboard Users](../../administration-guide/onboard/sso-saml) |
+| AC-3 (Access Enforcement) | Role-based access control (System / Team / Channel) + Advanced Permissions | [Manage Permissions](../../administration-guide/manage/admin/user-management) |
+| AC-6 (Least Privilege) | Custom roles + ABAC (Enterprise Advanced) | [Manage Permissions](../../administration-guide/manage/admin/user-management) |
+| AC-7 (Unsuccessful Login Attempts) | `ServiceSettings.MaximumLoginAttempts` + account lockout | System Console → Authentication |
+| AC-11 (Session Lock) | `ServiceSettings.SessionLengthWebInHours` + session expiration | System Console → Session Lengths |
+| AC-17 (Remote Access) | TLS enforcement + MFA | [Transport Encryption](../../deployment-guide/transport-encryption.mdx) |
+
+### Audit and Accountability (AU)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| AU-2 (Event Logging) | Audit log + JSON audit log schema | [Comply](../../administration-guide/comply/compliance-export) |
+| AU-3 (Content of Audit Records) | JSON audit log fields | Audit Log Reference (Phase 2) |
+| AU-6 (Audit Review, Analysis, and Reporting) | SIEM integration via audit log export | *Audit Log Export to Air-Gapped SIEM* (Phase 2) |
+| AU-9 (Protection of Audit Information) | Audit log immutability + offline export | Audit Log Reference (Phase 2) |
+| AU-12 (Audit Record Generation) | Per-action audit emissions | Audit Log Reference (Phase 2) |
+
+### Identification and Authentication (IA)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| IA-2 (Identification and Authentication) | SAML 2.0, OIDC, AD/LDAP | [Onboard Users](../../administration-guide/onboard/sso-saml) |
+| IA-2(1) (MFA for Privileged Accounts) | MFA enforcement for system admins | System Console → MFA |
+| IA-2(2) (MFA for Non-Privileged Accounts) | MFA enforcement for all users | System Console → MFA |
+| IA-5 (Authenticator Management) | Password complexity policy + rotation | System Console → Password |
+| IA-8 (Identification and Authentication, Non-Organizational Users) | Guest accounts with separate permission model | [Guest Accounts](../../administration-guide/onboard/guest-accounts) |
+
+### Configuration Management (CM)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| CM-2 (Baseline Configuration) | `config.json` version control + Operator CR | [Configure](../../administration-guide/configure/configuration-settings) |
+| CM-6 (Configuration Settings) | Hardening guide + STIG profile | [Hardening Guides](../../security-guide/security-guide-index) |
+| CM-7 (Least Functionality) | Per-feature enable/disable flags + plugin gating | [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features) |
+| CM-8 (Information System Component Inventory) | `mmctl system info` + Support Packet | [Maintain](../../administration-guide/manage/admin/server-maintenance) |
+
+### System and Communications Protection (SC)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| SC-7 (Boundary Protection) | NGINX reverse proxy + TLS + image proxy | [Setup NGINX Proxy](../../deployment-guide/server/setup-nginx-proxy.mdx) |
+| SC-8 (Transmission Confidentiality and Integrity) | TLS 1.2+ enforcement | [Setup TLS](../../deployment-guide/server/setup-tls.mdx) |
+| SC-13 (Cryptographic Protection) | FIPS 140-3 validated modules (when FIPS mode enabled at install time) | *Configure FIPS at Install Time* (Phase 1) and *Cryptography & FIPS* (Phase 2) |
+| SC-28 (Protection of Information at Rest) | Database encryption at rest + file storage encryption | [Encryption Options](../../deployment-guide/encryption-options.mdx) |
+
+### System and Information Integrity (SI)
+
+| Control | Implementation | Configuration |
+|---|---|---|
+| SI-2 (Flaw Remediation) | Security advisory feed + ESR cadence | [ESR Support Policy](../../product-overview/release-policy) |
+| SI-4 (Information System Monitoring) | Prometheus / Grafana / Loki integration | [Monitor & Operate](../../administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) |
+| SI-7 (Software, Firmware, and Information Integrity) | Signed releases + checksum verification | Release verification — Phase 2 |
+
+### Other control families — Phase 2
+
+The following control families will be added in Phase 2 as the Mattermost compliance team completes the authorization package:
+
+- **AT** — Awareness and Training (operator + user training references)
+- **CA** — Assessment, Authorization, and Monitoring (ATO process documentation)
+- **CP** — Contingency Planning (backup, DR, BCP)
+- **IR** — Incident Response
+- **MA** — Maintenance
+- **MP** — Media Protection
+- **PE** — Physical and Environmental Protection (deployment-context specific)
+- **PL** — Planning
+- **PS** — Personnel Security
+- **RA** — Risk Assessment
+- **SA** — System and Services Acquisition
+- **SR** — Supply Chain Risk Management
+
+## Shared responsibility
+
+When Mattermost achieves FedRAMP Moderate authorization for the Cloud Government deployment mode, a formal shared responsibility model will be published here. Self-Hosted deployments operate entirely under the customer's authorization boundary — Mattermost's contribution is the validated configuration guidance on this page.
+
+## Required configuration
+
+For a Mattermost deployment to align with FedRAMP Moderate, the following configuration is required:
+
+1. **FIPS mode enabled at install time** — see *Configure FIPS at Install Time* (Phase 1). FIPS cannot be enabled post-deploy.
+2. **TLS 1.2+ for all client and inter-service traffic** — see [Transport Encryption](../../deployment-guide/transport-encryption.mdx).
+3. **Audit log retention ≥ 1 year** — configure via `LogSettings.FileLevel` and external SIEM export.
+4. **MFA enforced for all users** — System Console → MFA.
+5. **Phone-home features disabled** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
+6. **Audit log offline export configured** — see *Audit Log Export to Air-Gapped SIEM* (Phase 2).
+
+## References
+
+- [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final) — base control catalog.
+- [FedRAMP Moderate baseline](https://www.fedramp.gov/baselines/) — the Moderate control selection.
+- [Mattermost Trust Portal](https://mattermost.com/trust/) — formal attestation letters and authorization artifacts.
+- [Teleport FedRAMP documentation](https://goteleport.com/docs/zero-trust-access/compliance-frameworks/fedramp/) — reference model for the NIST-control-family structure used on this page.
+- [GitLab FedRAMP secure configuration guide](https://docs.gitlab.com/security/dedicated_for_government_secure_config_guide/) — reference model for numbered requirement / recommendation structure.

@@ -19,6 +19,10 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+
+	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
+	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
+	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
 )
 
 // Audit & Certificates
@@ -152,6 +156,11 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+	// AuditEventCPAValueChange is emitted from the common app-layer value write
+	// path for every effective CPA value change, regardless of caller (session,
+	// local admin, plugin owner, or LDAP/SAML sync). It is the single place all
+	// owners converge, capturing the caller ID and acting-as scope.
+	AuditEventCPAValueChange = "cpaValueChange"
 )
 
 // Property Fields
@@ -453,45 +462,47 @@ const (
 
 // Users
 const (
-	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device IDs (standard or VoIP) to user session for mobile app
-	AuditEventCreateUser                   = "createUser"                   // create user account
-	AuditEventCreateUserAccessToken        = "createUserAccessToken"        // create personal access token for user API access
-	AuditEventDeleteUser                   = "deleteUser"                   // delete user account
-	AuditEventDemoteUserToGuest            = "demoteUserToGuest"            // demote regular user to guest account with limited permissions
-	AuditEventDisableUserAccessToken       = "disableUserAccessToken"       // disable user personal access token
-	AuditEventEnableUserAccessToken        = "enableUserAccessToken"        // enable user personal access token
-	AuditEventExtendSessionExpiry          = "extendSessionExpiry"          // extend user session expiration time
-	AuditEventLocalDeleteUser              = "localDeleteUser"              // delete user locally
-	AuditEventLocalPermanentDeleteAllUsers = "localPermanentDeleteAllUsers" // permanently delete all users locally
-	AuditEventLogin                        = "login"                        // user login to system
-	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
-	AuditEventLogout                       = "logout"                       // user logout from system
-	AuditEventMarkMessagesRead             = "markAllMessagesRead"          // user marked all direct and group messages as read
-	AuditEventMarkTeamRead                 = "markFullTeamRead"             // user marked an entire team as read
-	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
-	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
-	AuditEventPatchUser                    = "patchUser"                    // update user properties
-	AuditEventPromoteGuestToUser           = "promoteGuestToUser"           // promote guest account to regular user
-	AuditEventResetPassword                = "resetPassword"                // reset user password
-	AuditEventResetPasswordFailedAttempts  = "resetPasswordFailedAttempts"  // reset failed password attempt counter
-	AuditEventRevokeAllSessionsAllUsers    = "revokeAllSessionsAllUsers"    // revoke all active sessions for all users
-	AuditEventRevokeAllSessionsForUser     = "revokeAllSessionsForUser"     // revoke all active sessions for specific user
-	AuditEventRevokeSession                = "revokeSession"                // revoke specific user session
-	AuditEventRejectExpiredUserAccessToken = "rejectExpiredUserAccessToken" // rejected an API request because the personal access token has expired
-	AuditEventRevokeUserAccessToken        = "revokeUserAccessToken"        // revoke user personal access token
-	AuditEventSendPasswordReset            = "sendPasswordReset"            // send password reset email to user
-	AuditEventSendVerificationEmail        = "sendVerificationEmail"        // send email verification link to user
-	AuditEventSetDefaultProfileImage       = "setDefaultProfileImage"       // set user profile image to default avatar
-	AuditEventSetProfileImage              = "setProfileImage"              // set custom profile image for user
-	AuditEventSwitchAccountType            = "switchAccountType"            // switch user authentication method from one to another
-	AuditEventUpdatePassword               = "updatePassword"               // update user password
-	AuditEventUpdateUser                   = "updateUser"                   // update user account properties
-	AuditEventUpdateUserActive             = "updateUserActive"             // update user active status
-	AuditEventUpdateUserAuth               = "updateUserAuth"               // update user authentication method
-	AuditEventUpdateUserMfa                = "updateUserMfa"                // update user multi-factor authentication settings
-	AuditEventUpdateUserRoles              = "updateUserRoles"              // update user roles
-	AuditEventVerifyUserEmail              = "verifyUserEmail"              // verify user email address using verification token
-	AuditEventVerifyUserEmailWithoutToken  = "verifyUserEmailWithoutToken"  // verify user email address without verification token
+	AuditEventAttachDeviceId                     = "attachDeviceId"                     // attach device IDs (standard or VoIP) to user session for mobile app
+	AuditEventCreateUser                         = "createUser"                         // create user account
+	AuditEventCreateUserAccessToken              = "createUserAccessToken"              // create personal access token for user API access
+	AuditEventDeleteUser                         = "deleteUser"                         // delete user account
+	AuditEventDemoteUserToGuest                  = "demoteUserToGuest"                  // demote regular user to guest account with limited permissions
+	AuditEventDisableUserAccessToken             = "disableUserAccessToken"             // disable user personal access token
+	AuditEventEnableUserAccessToken              = "enableUserAccessToken"              // enable user personal access token
+	AuditEventExtendSessionExpiry                = "extendSessionExpiry"                // extend user session expiration time
+	AuditEventLocalDeleteUser                    = "localDeleteUser"                    // delete user locally
+	AuditEventLocalPermanentDeleteAllUsers       = "localPermanentDeleteAllUsers"       // permanently delete all users locally
+	AuditEventLogin                              = "login"                              // user login to system
+	AuditEventLoginWithDesktopToken              = "loginWithDesktopToken"              // user login to system with desktop token
+	AuditEventLogout                             = "logout"                             // user logout from system
+	AuditEventMarkMessagesRead                   = "markAllMessagesRead"                // user marked all direct and group messages as read
+	AuditEventMarkTeamRead                       = "markFullTeamRead"                   // user marked an entire team as read
+	AuditEventMigrateAuthToLdap                  = "migrateAuthToLdap"                  // migrate user authentication method to LDAP
+	AuditEventMigrateAuthToSaml                  = "migrateAuthToSaml"                  // migrate user authentication method to SAML
+	AuditEventPatchUser                          = "patchUser"                          // update user properties
+	AuditEventPromoteGuestToUser                 = "promoteGuestToUser"                 // promote guest account to regular user
+	AuditEventResetPassword                      = "resetPassword"                      // reset user password
+	AuditEventResetPasswordFailedAttempts        = "resetPasswordFailedAttempts"        // reset failed password attempt counter
+	AuditEventRevokeAllSessionsAllUsers          = "revokeAllSessionsAllUsers"          // revoke all active sessions for all users
+	AuditEventRevokeAllSessionsForUser           = "revokeAllSessionsForUser"           // revoke all active sessions for specific user
+	AuditEventRevokeSession                      = "revokeSession"                      // revoke specific user session
+	AuditEventRejectExpiredUserAccessToken       = "rejectExpiredUserAccessToken"       // rejected an API request because the personal access token has expired
+	AuditEventRevokeUserAccessToken              = "revokeUserAccessToken"              // revoke user personal access token
+	AuditEventRevokeNonCompliantUserAccessTokens = "revokeNonCompliantUserAccessTokens" // revoke all personal access tokens that violate the maximum lifetime policy
+	AuditEventRotateUserAccessToken              = "rotateUserAccessToken"              // rotate (regenerate secret for) user personal access token
+	AuditEventSendPasswordReset                  = "sendPasswordReset"                  // send password reset email to user
+	AuditEventSendVerificationEmail              = "sendVerificationEmail"              // send email verification link to user
+	AuditEventSetDefaultProfileImage             = "setDefaultProfileImage"             // set user profile image to default avatar
+	AuditEventSetProfileImage                    = "setProfileImage"                    // set custom profile image for user
+	AuditEventSwitchAccountType                  = "switchAccountType"                  // switch user authentication method from one to another
+	AuditEventUpdatePassword                     = "updatePassword"                     // update user password
+	AuditEventUpdateUser                         = "updateUser"                         // update user account properties
+	AuditEventUpdateUserActive                   = "updateUserActive"                   // update user active status
+	AuditEventUpdateUserAuth                     = "updateUserAuth"                     // update user authentication method
+	AuditEventUpdateUserMfa                      = "updateUserMfa"                      // update user multi-factor authentication settings
+	AuditEventUpdateUserRoles                    = "updateUserRoles"                    // update user roles
+	AuditEventVerifyUserEmail                    = "verifyUserEmail"                    // verify user email address using verification token
+	AuditEventVerifyUserEmailWithoutToken        = "verifyUserEmailWithoutToken"        // verify user email address without verification token
 )
 
 // Webhooks

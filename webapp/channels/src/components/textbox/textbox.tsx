@@ -64,7 +64,7 @@ export type Props = {
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{data: any}>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string) => Promise<ActionResult>;
         fetchAgents: () => Promise<ActionResult>;
     };
     useChannelMentions: boolean;

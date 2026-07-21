@@ -1,0 +1,39 @@
+---
+title: "For SREs and Platform Operators"
+description: "Start here if you own deploy, scale, observability, and disaster recovery for Mattermost."
+slug: /for/sre
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For SREs and Platform Operators
+
+You own Mattermost's deployment, scaling, and operations. This page is a curated entry point — every link goes to the canonical guide.
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Reference architecture', to: '/deployment-guide/reference-architecture/reference-architecture-index', description: 'Application, scaling, HA, Redis, Enterprise search.'},
+  {title: 'Install on Kubernetes', to: '/deployment-guide/server/deploy-kubernetes', description: 'Mattermost Operator + Helm chart + custom resources.'},
+  {title: 'Backup and DR', to: '/deployment-guide/backup-disaster-recovery', description: 'Backup strategy, retention, restore drills.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'High availability', to: '/administration-guide/scale/high-availability-cluster-based-deployment', description: 'Clustering across app, DB, and proxy layers.'},
+  {title: 'Hardware sizing', to: '/deployment-guide/software-hardware-requirements', description: 'CPU, memory, disk, network per scale tier.'},
+  {title: 'Air-gapped quick-start', to: '/deployment-guide/air-gapped-operations/quick-start-runbook', description: '12-step runbook for network-isolated enclaves.'},
+  {title: 'Calls operations (RTCD)', to: '/administration-guide/configure/calls-deployment-guide', description: 'RTCD, Offloader, Calls on Kubernetes, metrics.'},
+  {title: 'Prometheus and Grafana', to: '/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring', description: 'Scrape configs, dashboards, alert rules.'},
+  {title: 'Active/Passive on AWS', to: '/deployment-guide/disaster-recovery-aws', description: 'Cross-region failover topology.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For air-gapped operators', to: '/for/air-gapped-operator', description: 'Network-isolated, sovereign-cloud, tactical-edge.'},
+  {title: 'For administrators', to: '/for/administrator', description: 'Day-to-day workspace administration.'},
+  {title: 'For security architects', to: '/for/security-architect', description: 'Compliance frameworks, FIPS, audit logging.'},
+]} />

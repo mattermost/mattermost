@@ -1,0 +1,237 @@
+---
+title: "Send messages"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+You can send messages in public and private channels as well as to other users in Mattermost. Depending on when you compose a message, you can send it immediately, [schedule it for later](/end-user-guide/collaborate/schedule-messages), or [set its priority](/end-user-guide/collaborate/message-priority).
+
+Mattermost may notify you when a recipient's availability is set to [Do Not Disturb](/end-user-guide/preferences/set-your-status-availability#set-your-availability), and the recipient's local time is outside of regular business hours (between 10PM and 6AM). This warning displays directly above the message text field.
+
+<Note>
+
+From Mattermost v11.5, you can access help resources for message formatting by selecting the **Help** link below the message text field.
+
+</Note>
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Enter a message in the text field, then select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" /> to send the message.
+
+<Tip>
+
+You can also use a keyboard to send messages:
+
+- Press <kbd>Enter</kbd> on Windows or Linux, or <kbd>↵</kbd> on Mac.
+- You can configure Mattermost to require <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac to send multi-line messages. Select the **gear** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon to go to **Settings**, then select **Advanced \> Send messages on CTRL+ENTER**.
+
+</Tip>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+1.  Tap the text field at the bottom of the Mattermost app to type a message.
+
+![Type a message in the text box at the bottom of the mobile app.](/images/mobile-type-a-message-in-a-channel.jpg)
+
+2.  Tap **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" /> icon to send it in the channel.
+
+![Tap on the send icon to send the message in the channel.](/images/mobile-sending-a-message.gif)
+
+</TabItem>
+</Tabs>
+
+
+## Rewrite messages with AI
+
+You can use AI to enhance your messages before sending them. This feature helps you improve writing quality, fix spelling, adjust message length, or transform your text based on specific needs.
+
+From Mattermost v11.5, when you use AI Rewrite while composing a reply in a thread, the AI incorporates context from the thread to generate suggestions that better fit the ongoing conversation.
+
+From Mattermost v11.7, Rewrite is accessed through the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu, alongside any custom prompts your system admin has made available.
+
+On Web/Desktop or Mobile:
+
+> 1.  Type your message in the message compose field.
+> 2.  Open the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu from the message actions, then select **Rewrite**.
+> 3.  Select a bot from the list of available AI agents.
+> 4.  Choose from available rewrite options:
+>     - **Improve writing**: Enhance clarity and professionalism
+>     - **Fix spelling**: Correct spelling and grammar errors
+>     - **Shorten**: Make your message more concise
+>     - **Elaborate**: Add more detail and context
+>     - **Simplify**: Use clearer, easier-to-understand language
+>     - **Summarize**: Condense your message to key points
+>     - **Custom prompt**: Specify your own transformation instructions
+> 5.  Review the AI-generated suggestion. Select **Regenerate** to try again or **Discard** to return to your original message.
+> 6.  Select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+
+<Tip>
+
+From Mattermost v11.7, system admins can publish custom prompts that appear alongside Rewrite in the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu. If you don't see a custom prompt you expect, check with your system admin.
+
+</Tip>
+
+<Note>
+
+Messages that have been rewritten using AI are automatically marked as AI-generated content for transparency. Your system admin must [configure AI agents](/administration-guide/configure/agents-admin-guide) for the rewrite feature to be available.
+
+</Note>
+
+## Send burn-on-read messages
+
+<PlanAvailability slug="entry-adv" />
+
+From Mattermost v11.3, burn-on-read messages stay concealed until recipients reveal them. After revealing, the message is deleted for that recipient when the timer expires. Burn-on-read messages can't be replied to or edited. You can send burn-on-read messages unless your system admin has [disabled the ability to do so](/administration-guide/configure/site-configuration-settings#enable-burn-on-read-messages) in your Mattermost instance.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+1.  Compose your message.
+2.  Select the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
+3.  Select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+From Mattermost mobile v2.38.0, you can send burn-on-read messages from the mobile app.
+
+1.  Compose your message.
+2.  Tap the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
+3.  Tap **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+
+</TabItem>
+</Tabs>
+
+
+Recipients see a concealed placeholder with **Reveal**. After revealing, a timer shows when the message will be deleted.
+
+As the message sender, hover over the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon above the sent message to see how many recipients have read the message. You can also delete the burn-on-read message for all recipients before the timer expires by selecting the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon above the sent message.
+
+## Draft messages
+
+From Mattermost v7.7, when composing new messages, it's easy to return to a message in progress later, unless your system admin has [disabled global drafts](/administration-guide/configure/site-configuration-settings#enable-server-syncing-of-message-drafts) in the System Console.
+
+By default, message drafts are synchronized on the Mattermost server and are accessible everywhere you access Mattermost, including a web browser or the desktop app. Limit drafts to your current Mattermost client only by going to **Settings \> Advanced \> Allow message drafts to sync with the server** to disable draft synchronization.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Draft messages are added to a **Drafts** view available at the top of the channel sidebar.
+
+<img src="../../images/Global-Drafts-Animated-GIF.gif" width="700" alt="Global drafts makes it easy for you to find all messages in progress." />
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+When composing a message, you can simply choose to complete it later. The partially composed message is kept in the text field and an **Edit** option <img src="/img/ui/pencil-outline_F0CB6.svg" alt="Edit icon." className="theme-icon" /> displays next to the channel name.
+
+From Mattermost v10.5, you'll find local draft messages under **Drafts**. Drafts synchronized to the Mattermost server will be listed under **Drafts** in a future mobile app release.
+
+![You can sync a daft message by exiting the channel mid-way while composing the message.](/images/mobile-draft-a-message.gif)
+
+</TabItem>
+</Tabs>
+
+
+## Edit messages
+
+All users can edit their own sent messages, unless the system admin has [restricted the ability to do so](/administration-guide/onboard/advanced-permissions).
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you've sent.
+
+> ![Select the More option to edit or delete a sent message.](/images/more-actions.png)
+
+2.  Select **Edit** to edit your own messages. Editing a message won't trigger new [@mention notifications](/end-user-guide/collaborate/mention-people), or [desktop notifications](/end-user-guide/preferences/manage-your-notifications).
+
+<Tip>
+
+From Mattermost v10.5, using a web browser or the Mattermost Desktop app, you can also change or remove message attachments when editing your sent messages.
+
+</Tip>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+1.  Long press on the message that you want to edit and tap on **Edit**.
+
+![Tap and hold on a message that you want to edit.](/images/mobile-edit-a-message.gif)
+
+2.  Type the updated message and tap on **Save**.
+
+![Type the updated message and tap save to save the edited message.](/images/mobile-editing-a-message.jpg)
+
+<Tip>
+
+From Mattermost v10.11 and mobile app v2.31.0, when editing messages on mobile, you can also view, delete, and save message attachments as you would when using Mattermost in a web browser or the desktop app.
+
+</Tip>
+
+</TabItem>
+</Tabs>
+
+
+### Restore a previous version of an edited message
+
+From Mattermost v7.9, [Mattermost Enterprise or Professional](https://mattermost.com/pricing) customers can [edit or delete messages](#edit-or-delete-messages) after sending them if your system admin hasn't restricted the ability to do so using [advanced permissions](/administration-guide/onboard/advanced-permissions).
+
+Message recipients can't see your message edit history, and restoring a previous message version won't trigger new [@mention notifications](/end-user-guide/collaborate/mention-people).
+
+<Note>
+
+Restoring a previous version of the message is available in the Mattermost desktop app or a web browser. The ability to restore using the mobile app isn't supported.
+
+</Note>
+
+1.  Select the word **Edited** next to your message.
+2.  In the right pane, review all previous versions of the message.
+3.  Select the **Restore** <img src="/img/ui/restore_F099B.svg" alt="Use the Restore icon to restore a previous version of an edited message." className="theme-icon" /> icon next to the version you want to restore.
+4.  Select **Confirm**.
+
+![Select Edited next to an edited message, and then select the version you want to restore.](/images/restore-previous-edited-message.gif)
+
+## Delete messages
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+All users can delete their own sent messages, unless the system admin has [restricted the ability to do so](/administration-guide/onboard/advanced-permissions).
+
+1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you want to delete.
+2.  Select **Delete** to delete your own messages. Select **Delete** again to confirm.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+1.  Long Press on the message you want to delete and tap on **Delete**.
+
+![Tap and hold on the message that you want to delete.](/images/mobile-delete-a-message.gif)
+
+2.  Tap on **Delete** again to confirm your choice.
+
+![Confirm your choice to delete the message.](/images/mobile-confirm-delete-a-message.jpg)
+
+</TabItem>
+</Tabs>
+
+
+## Do more with your messages
+
+<Tip>
+
+Using a RTL plugin, Mattermost can automatically detect and display messages written using right-to-left scripts, such as Arabic, Hebrew, or Persian. Your system admin must install the [RTL Plugin](https://github.com/QueraTeam/mattermost-rtl) to enable this functionality.
+
+</Tip>
+
+Do more with your Mattermost messages using the following features:
+
+- [Format messages](/end-user-guide/collaborate/format-messages)
+- [Mention people](/end-user-guide/collaborate/mention-people)
+- [Share files](/end-user-guide/collaborate/share-files-in-messages)
+- [Share links to channels and messages](/end-user-guide/collaborate/share-links)

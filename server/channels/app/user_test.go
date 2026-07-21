@@ -1241,6 +1241,68 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.Len(t, members, 2)
 	})
 
+	t.Run("token profile fields override client-supplied user data", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		// The client-supplied payload simulates a tampered signup request.
+		u := model.User{Email: invitationEmail, Username: "tampered" + model.NewId(), FirstName: "Tampered", LastName: "Values", Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":     th.BasicTeam.Id,
+				"email":      invitationEmail,
+				"username":   presetUsername,
+				"first_name": "Dave",
+				"last_name":  "Roberts",
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username, "The username must be the pre-set one")
+		require.Equal(t, "Dave", newUser.FirstName, "The first name must be the pre-set one")
+		require.Equal(t, "Roberts", newUser.LastName, "The last name must be the pre-set one")
+	})
+
+	t.Run("token username is lowercased", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": strings.ToUpper(presetUsername),
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username)
+	})
+
+	t.Run("token with taken username fails with username_exists", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": th.BasicUser.Username,
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+		_, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
@@ -1803,6 +1865,38 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 	})
+}
+
+func TestUpdateUserAuthRevokesExistingSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session1, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	authData := model.NewId()
+	_, err = th.App.UpdateUserAuth(th.Context, th.BasicUser.Id, &model.UserAuth{
+		AuthService: model.UserAuthServiceGitlab,
+		AuthData:    &authData,
+	})
+	require.Nil(t, err)
+
+	session1, err = th.App.GetSession(session1.Token)
+	require.NotNil(t, err, "session1 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session1)
+
+	session2, err = th.App.GetSession(session2.Token)
+	require.NotNil(t, err, "session2 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session2)
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {

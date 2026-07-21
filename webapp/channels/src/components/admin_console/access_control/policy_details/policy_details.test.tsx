@@ -10,6 +10,8 @@ import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing
 
 import PolicyDetails from './policy_details';
 
+import TableEditor from '../editors/table_editor/table_editor';
+
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
         push: jest.fn(),
@@ -42,6 +44,7 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 }));
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -68,6 +71,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
         },
@@ -102,6 +106,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             createJob: mockCreateJob,
             getVisualAST: mockGetVisualAST,
             updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
+            getTeam: jest.fn().mockResolvedValue({data: null}),
         },
     };
 
@@ -219,6 +224,27 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         await waitFor(() => {
             expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
         });
+    });
+
+    test('excludes session attributes from the attributes passed to the editor', async () => {
+        MockedTableEditor.mockClear();
+        mockGetAccessControlFields.mockResolvedValue({
+            data: [
+                {id: 'u1', name: 'department', group_id: 'cpa9q4w7m2x5c8v1b6n3k0jr5h', object_type: 'user', attrs: {managed: 'admin'}},
+                {id: 's1', name: 'network_name', group_id: 'nkpkzni6yjrjt8uktpbwkagoth', object_type: 'session', target_type: 'system', attrs: {}},
+            ],
+        });
+
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+        const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+        expect(passedNames).toContain('department');
+        expect(passedNames).not.toContain('network_name');
     });
 
     test('hasMaskedRows derivation survives Simple → Advanced → Simple mode toggles', async () => {
@@ -352,5 +378,60 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         await waitFor(() => {
             expect(mockDeletePolicy).toHaveBeenCalledWith('policy1');
         });
+    });
+
+    test('should block deletion when the policy is assigned to teams (no channels)', async () => {
+        // team_count is stamped into policy Props by the GET handler. Teams are not
+        // editable from this editor, so a linked team must gate deletion the same way
+        // channels do — otherwise deleting orphans the team-type child policies.
+        const props = {
+            ...defaultProps,
+            policyId: 'policy1',
+            actions: {
+                ...defaultProps.actions,
+                deletePolicy: mockDeletePolicy.mockResolvedValue({data: {}}),
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{expression: 'true'}],
+                        props: {team_count: 2, channel_count: 0, child_ids: ['t1', 't2']},
+                    },
+                }),
+
+                // No channels assigned — only teams gate the deletion.
+                searchChannels: mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}}),
+
+                // child_ids lists channels first, then teams; with no channels the
+                // ids are the two team ids, resolved to names for the warning list.
+                getTeam: jest.fn().
+                    mockResolvedValueOnce({data: {id: 't1', display_name: 'Engineering'}}).
+                    mockResolvedValueOnce({data: {id: 't2', display_name: 'Design'}}),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+
+        // The has-resources subtitle is shown instead of the deletable subtitle.
+        expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+
+        // The linked-teams warning lists each team, linking to its System Console page.
+        await waitFor(() => {
+            expect(screen.getByText('This policy is assigned to teams - Deletion not allowed')).toBeInTheDocument();
+        });
+        const engineeringLink = screen.getByRole('link', {name: 'Engineering'});
+        expect(engineeringLink).toHaveAttribute('href', '/admin_console/user_management/teams/t1');
+        expect(screen.getByRole('link', {name: 'Design'})).toHaveAttribute('href', '/admin_console/user_management/teams/t2');
+
+        // Clicking Delete is a no-op — the confirmation modal never opens.
+        const deleteButtons = screen.getAllByText('Delete');
+        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+        expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
+        expect(mockDeletePolicy).not.toHaveBeenCalled();
     });
 });

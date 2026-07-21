@@ -8202,10 +8202,6 @@
     "translation": "E-mail instellingen heeft niet-ingestelde waarden."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "E-maillijst is leeg"
   },
@@ -12566,5 +12562,17 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "Scope ID kan niet worden ingesteld zonder scope."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "De functie voor machtigingsbeleid op kanaalniveau is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Functie voor beleidsimulatie is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Alle gebruikers in de simulatie moeten lid zijn van het team of het kanaal in het verzoek."
   }
 ]

@@ -60,3 +60,33 @@ describe('messageHtmlToComponent wrapper', () => {
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, options);
     });
 });
+
+describe('window.WebappUtils.modals.openModalById', () => {
+    test('opens an allowlisted modal by id with the given props', () => {
+        const action = (window as any).WebappUtils.modals.openModalById('team_settings', {focusOriginElement: 'channel-header'});
+
+        expect(action.modalId).toBe('team_settings');
+        expect(action.dialogProps).toEqual({focusOriginElement: 'channel-header'});
+        expect(typeof action.dialogType).toBe('function');
+    });
+});
+
+describe('window.WebappUtils.modals.canOpenModalId', () => {
+    test('is true for an allowlisted modal id', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('team_settings')).toBe(true);
+    });
+
+    test('is false for an id the web app does not publish', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('channel_invite')).toBe(false);
+        expect((window as any).WebappUtils.modals.canOpenModalId('not_a_real_modal')).toBe(false);
+    });
+});
+
+describe('window.WebappUtils.openUserSettings', () => {
+    test('opens the user settings modal', () => {
+        const action = (window as any).WebappUtils.openUserSettings({isContentProductSettings: false});
+
+        expect(action.modalId).toBe('user_settings');
+        expect(action.dialogProps).toEqual({isContentProductSettings: false});
+    });
+});

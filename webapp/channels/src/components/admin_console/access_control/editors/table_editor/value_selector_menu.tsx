@@ -12,10 +12,19 @@ import {isMultiValueOperator} from '../shared';
 
 export interface TableRow {
     attribute: string;
+
+    // 'user' | 'session'; drives the CEL namespace. Defaults to user.
+    attribute_object_type?: string;
     operator: string;
     values: string[];
     attribute_type: string;
     hasMaskedValues: boolean;
+
+    // Native user attributes are referenced as `user.<name>` (vs `user.attributes.<name>`).
+    isNative?: boolean;
+
+    // Native boolean attributes (e.g. user.verified) emit unquoted true/false literals.
+    isBoolean?: boolean;
 }
 
 export interface ValueSelectorMenuProps {

@@ -565,7 +565,6 @@
   "admin.requestButton.loading": "Nalaganje...",
   "admin.requestButton.requestFailure": "Preskusna napaka: {error}",
   "admin.requestButton.requestSuccess": "Test uspešen",
-  "admin.s3.s3Success": "Povezava je bila uspešna",
   "admin.saml.adminAttrTitle": "ID atributa: ",
   "admin.saml.assertionConsumerServiceURLTitle": "URL za prijavo za ponudnika storitev:",
   "admin.saml.enableDescription": "Ko je true, bo Mattermost potekal v načinu visoke razpoložljivosti. Oglejte si [documentation] (! Http: //docs.mattermost.com/deployment/cluster.html), če želite izvedeti več o konfiguriranju visoke razpoložljivosti za Mattermost.",

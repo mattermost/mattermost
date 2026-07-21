@@ -56,7 +56,7 @@ func createTestPost(t *testing.T, message string) *common.ESPost {
 	post, err := common.ESPostFromPost(&model.Post{
 		Id:      model.NewId(),
 		Message: message,
-	}, "myteam", "O")
+	}, "myteam", "O", true)
 	require.NoError(t, err)
 	return post
 }

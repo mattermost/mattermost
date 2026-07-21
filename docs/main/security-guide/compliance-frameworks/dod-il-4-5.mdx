@@ -1,0 +1,121 @@
+---
+title: "DoD Impact Level 4 / Impact Level 5"
+sidebar_label: "DoD IL4 / IL5"
+description: Mattermost's posture against the DoD Cloud Computing Security Requirements Guide (CC SRG) Impact Level 4 and Impact Level 5 baselines.
+---
+
+<AttestationStatus
+  framework="DoD IL4 / IL5"
+  status="roadmap"
+  asOf="2026-05-11"
+  detailsHref="https://mattermost.com/trust/"
+/>
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,cloud-government,air-gapped" />
+
+# DoD Impact Level 4 / Impact Level 5
+
+This page documents Mattermost's posture against the DoD Cloud Computing Security Requirements Guide (CC SRG) Impact Level (IL) 4 and Impact Level 5 baselines. IL4 covers Controlled Unclassified Information (CUI) including export-controlled and mission-critical data. IL5 covers National Security Systems data and unclassified information requiring a higher level of protection than IL4.
+
+:::important Status
+Current status is **Roadmap** — see the `<AttestationStatus>` badge above. Mattermost is FedRAMP Moderate–aligned (see [FedRAMP Moderate](./fedramp-moderate)), which is the standard prerequisite for IL4 sponsorship. IL5 additionally requires US-citizen-only operational support and dedicated infrastructure.
+
+This page documents the gap honestly: what controls are met today via the FedRAMP Moderate baseline, what additional controls IL4/IL5 require beyond FedRAMP Moderate, and the customer's role in deploying Mattermost inside an authorized boundary.
+:::
+
+## Authorization landscape
+
+| Level | Data classification | Network | Mattermost availability |
+|---|---|---|---|
+| **IL2** | Non-controlled, non-CUI | Internet-accessible | Standard Mattermost Cloud is suitable; no special configuration required. |
+| **IL4** | CUI (including export-controlled, PHI, FOUO) | DISA NIPRNet boundary (CAP) | Self-Hosted Enterprise on AWS GovCloud (US) or Azure Government, customer-managed authorization boundary. |
+| **IL5** | National Security Systems, mission-critical | DISA NIPRNet (dedicated) | Self-Hosted Enterprise on AWS GovCloud (US) or Azure Government, dedicated single-tenant infrastructure, US-citizen-only operational support, customer-managed authorization boundary. |
+| **IL6** | Classified up to Secret | SIPRNet | Self-Hosted Enterprise in customer-managed enclave (out of scope for this page — see [Air-Gapped Operations](../../deployment-guide/air-gapped-operations/)). |
+
+## Baseline inheritance from FedRAMP Moderate
+
+A Mattermost deployment that meets the configuration on the [FedRAMP Moderate](./fedramp-moderate) page inherits the majority of the IL4 / IL5 control baseline. The CC SRG explicitly maps DoD impact levels to NIST 800-53 baselines:
+
+- **IL4** ≈ FedRAMP Moderate + DoD-specific overlays.
+- **IL5** ≈ FedRAMP High + DoD-specific overlays, with the additional dedicated-infrastructure and US-person operational support requirements.
+
+Customers pursuing IL4 / IL5 authorization should start with the FedRAMP Moderate configuration as the baseline.
+
+## Additional controls beyond FedRAMP Moderate
+
+### Cryptography
+
+| Requirement | Mattermost support |
+|---|---|
+| FIPS 140-3 validated cryptographic modules in all data paths | Deploy using the FIPS-compliant container image. See [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig). |
+| TLS 1.2+ exclusively; no TLS 1.0 / 1.1 | Configure in NGINX / reverse proxy per [Setup TLS](../../deployment-guide/server/setup-tls). |
+| Data-at-rest encryption | See [Encryption Options](../../deployment-guide/encryption-options). |
+| Key management aligned with NIST 800-57 | Customer-managed via HSM, AWS KMS, Azure Key Vault, or equivalent. |
+
+### Network boundary (Cloud Access Point — CAP)
+
+IL4 / IL5 require traffic to traverse a DISA CAP. Mattermost does not provide the CAP; customers deploy Mattermost behind their authorized CAP.
+
+- All inbound user traffic terminates at the CAP, not at the Mattermost reverse proxy.
+- Outbound integrations (webhooks, push proxy egress, plugin marketplace) must be either disabled or routed through the CAP. Use [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features) as the inventory of outbound calls.
+
+### Audit and logging
+
+| Requirement | Mattermost support |
+|---|---|
+| Audit log immutability and retention ≥ 1 year (IL4) / ≥ 3 years (IL5) | JSON audit log + customer-managed SIEM export. Configure retention at the SIEM and the storage tier. |
+| Audit log content includes all NIST 800-53 AU-3 fields | Documented in Audit Log Reference (Phase 2). |
+| Real-time audit log monitoring | Customer-managed via SIEM integration (Splunk, ELK, OpenSearch, etc.). |
+| Tamper-evident audit log integrity controls | Customer-managed at the SIEM tier; Mattermost does not sign audit log entries at emission. |
+
+### Authentication and identity
+
+| Requirement | Mattermost support |
+|---|---|
+| PIV / CAC smart-card authentication | Supported via SAML federation with a customer-managed IdP that supports CAC (Entra ID + ADFS with CAC, Okta with CAC, etc.). |
+| Multi-factor authentication for all users | Enforced via the IdP. Mattermost honors the IdP's MFA assertion. |
+| Account inactivity lockout | Configured via the IdP. |
+| Privileged account separation | Custom roles + ABAC (Enterprise Advanced). |
+
+### Personnel
+
+**IL5 specifically**: Operational support personnel with access to Mattermost infrastructure must be US citizens. Mattermost provides Enterprise support tiers; for IL5 deployments, customers either:
+
+- Self-operate Mattermost (most common — Mattermost is self-hosted) and use Mattermost commercial support for product issues only, not for direct production access.
+- Engage Mattermost professional services for a US-person-only engagement (contact Mattermost sales).
+
+### Dedicated infrastructure (IL5 only)
+
+IL5 requires dedicated, non-shared infrastructure. Mattermost Cloud (multi-tenant) is not suitable for IL5. Self-Hosted on customer-dedicated infrastructure (AWS GovCloud single-tenant, Azure Government single-tenant, or on-premises) is the supported path.
+
+## Required configuration summary
+
+A Mattermost deployment aligned with IL4 / IL5 requires, at minimum:
+
+1. **Deployed using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
+2. **TLS 1.2+ exclusively** with FIPS-approved cipher suites.
+3. **Audit log retention ≥ 1 year (IL4) / ≥ 3 years (IL5)** via customer SIEM.
+4. **PIV / CAC authentication** via SAML federation to a customer-managed IdP.
+5. **CAP-fronted network boundary** — Mattermost behind, not in front of, the CAP.
+6. **Phone-home features disabled** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
+7. **Dedicated infrastructure (IL5 only)** — single-tenant AWS GovCloud / Azure Government / on-prem.
+8. **US-person operational support (IL5 only)** — customer-controlled.
+
+## Customer responsibility
+
+DoD IL authorizations are **customer-led**. Mattermost provides the validated configuration and feature support documented on this page; customers are responsible for:
+
+- The authorization package (SSP, POA&M, ATO memo).
+- Sponsorship by a DoD organization.
+- Pen-testing within the authorization boundary.
+- Continuous monitoring per the CC SRG.
+
+Mattermost will provide attestation letters, FIPS certificates, and configuration evidence to support a customer's authorization package on request via [https://mattermost.com/trust/](https://mattermost.com/trust/).
+
+## References
+
+- [DoD Cloud Computing Security Requirements Guide](https://public.cyber.mil/dccs/dccs-documents/) — the canonical CC SRG.
+- [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final) — the underlying control catalog.
+- [FedRAMP Moderate](./fedramp-moderate) — the baseline Mattermost is aligned to today.
+- [Mattermost Trust Portal](https://mattermost.com/trust/) — current attestation status and supporting evidence.

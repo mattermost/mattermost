@@ -151,7 +151,7 @@ const AdvancedTextbox = ({
                 {internalError && (
                     <div className='AdvancedTextbox__error-message'>
                         <i className='icon icon-alert-circle-outline'/>
-                        <span>{internalError}</span>
+                        <span data-testid='advanced-textbox-error-text'>{internalError}</span>
                     </div>
                 )}
 

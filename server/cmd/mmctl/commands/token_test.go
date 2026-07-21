@@ -324,6 +324,79 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestRotateTokenCmdF() {
+	s.Run("Should rotate a token and print the new secret", func() {
+		printer.Clean()
+
+		tokenID := "xwt6numaubyj9mqjfkqjk5pfqr"
+		mockToken := model.UserAccessToken{Id: tokenID, Token: "new-secret-value", Description: "ci-token"}
+
+		s.client.
+			EXPECT().
+			RotateUserAccessToken(context.TODO(), tokenID, int64(0)).
+			Return(&mockToken, &model.Response{}, nil).
+			Times(1)
+
+		err := rotateTokenCmdF(s.client, &cobra.Command{}, []string{tokenID})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockToken, printer.GetLines()[0])
+	})
+
+	s.Run("Should pass expiry when --expires-in is set", func() {
+		printer.Clean()
+
+		tokenID := "xwt6numaubyj9mqjfkqjk5pfqr"
+		mockToken := model.UserAccessToken{Id: tokenID, Token: "new-secret-value", Description: "ci-token"}
+
+		now := time.Now()
+		s.client.
+			EXPECT().
+			RotateUserAccessToken(context.TODO(), tokenID, gomock.AssignableToTypeOf(int64(0))).
+			DoAndReturn(func(_ context.Context, _ string, expiresAt int64) (*model.UserAccessToken, *model.Response, error) {
+				expected := now.Add(30 * 24 * time.Hour).UnixMilli()
+				s.Require().InDelta(expected, expiresAt, float64(time.Minute.Milliseconds()))
+				return &mockToken, &model.Response{}, nil
+			}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "30d"))
+
+		err := rotateTokenCmdF(s.client, cmd, []string{tokenID})
+		s.Require().NoError(err)
+	})
+
+	s.Run("Should fail if the server rejects the rotation", func() {
+		printer.Clean()
+
+		tokenID := "xwt6numaubyj9mqjfkqjk5pfqr"
+
+		s.client.
+			EXPECT().
+			RotateUserAccessToken(context.TODO(), tokenID, int64(0)).
+			Return(nil, &model.Response{}, errors.New("token not found")).
+			Times(1)
+
+		err := rotateTokenCmdF(s.client, &cobra.Command{}, []string{tokenID})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), fmt.Sprintf("could not rotate token %q", tokenID))
+	})
+
+	s.Run("Should reject invalid --expires-in", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "not-a-duration"))
+
+		err := rotateTokenCmdF(s.client, cmd, []string{"some-token-id"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "invalid --expires-in")
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 	s.Run("Should revoke user access tokens", func() {
 		printer.Clean()

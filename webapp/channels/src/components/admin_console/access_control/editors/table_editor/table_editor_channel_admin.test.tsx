@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, fireEvent} from 'tests/react_testing_utils';
 
 import TableEditor from './table_editor';
 
@@ -389,5 +389,91 @@ describe('TableEditor - User Self-Exclusion', () => {
         // Now button should be disabled since second validation returns false
         testButton = screen.getByRole('button', {name: /test access rule/i});
         expect(testButton).toBeDisabled();
+    });
+});
+
+describe('TableEditor - attribute name collision across namespaces', () => {
+    const makeField = (id: string, objectType: string): UserPropertyField => ({
+        id,
+        name: 'region',
+        type: 'text',
+        group_id: objectType === 'session' ? 'session_attributes' : 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: objectType === 'session' ? 'system' : '',
+        object_type: objectType,
+        attrs: {
+            sort_order: objectType === 'session' ? 1 : 0,
+            visibility: 'always',
+            value_type: '',
+            managed: 'admin',
+            display_name: objectType === 'session' ? 'Region (session)' : 'Region',
+        },
+    });
+
+    const userRegion = makeField('u-region', 'user');
+    const sessionRegion = makeField('s-region', 'session');
+
+    const mockActions = {getVisualAST: jest.fn()};
+
+    const baseProps = {
+        value: 'user.attributes.region == "x"',
+        onChange: jest.fn(),
+        userAttributes: [userRegion, sessionRegion],
+        enableUserManagedAttributes: true,
+        onParseError: jest.fn(),
+        actions: mockActions,
+    };
+
+    beforeEach(() => {
+        baseProps.onChange.mockClear();
+        mockActions.getVisualAST.mockReset();
+        mockActions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.region',
+                        operator: '==',
+                        value: 'x',
+                        value_type: 0,
+                        attribute_type: 'text',
+                    },
+                ],
+            },
+        });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('picking the session attribute that shares a name resolves to the user.session namespace', async () => {
+        const {container} = renderWithContext(<TableEditor {...baseProps}/>, {});
+
+        await waitFor(() => {
+            expect(screen.getByTestId('attributeSelectorMenuButton')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+
+        const sessionOption = document.getElementById('attribute-s-region');
+        expect(sessionOption).toBeInTheDocument();
+        fireEvent.click(sessionOption as HTMLElement);
+
+        // Selecting a new attribute clears the value; commit a fresh one so the
+        // expression is regenerated through the session namespace.
+        const valueInput = container.querySelector('.values-editor__simple-input') as HTMLInputElement;
+        expect(valueInput).toBeInTheDocument();
+        fireEvent.focus(valueInput);
+        fireEvent.change(valueInput, {target: {value: '10.0.0.1'}});
+        fireEvent.blur(valueInput);
+
+        await waitFor(() => {
+            expect(baseProps.onChange).toHaveBeenCalledWith('user.session.region == "10.0.0.1"');
+        });
     });
 });

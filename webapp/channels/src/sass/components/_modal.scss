@@ -47,6 +47,22 @@
         }
     }
 
+    #become-participant-modal {
+        .GenericModal__header {
+            h1 {
+                margin-right: 0;
+                margin-left: 0;
+                text-align: left;
+            }
+        }
+
+        .modal-body {
+            > div {
+                text-align: left;
+            }
+        }
+    }
+
     .edit-modal-body {
         overflow: visible;
 

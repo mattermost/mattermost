@@ -1,6 +1,16 @@
 @use 'utils/_mixins';
 
 .InviteView {
+    &__policyBanner {
+        margin-bottom: 16px;
+    }
+
+    &__inviteLinkWarning {
+        margin-right: auto;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+    }
+
     &__sectionTitle {
         padding-top: 16px;
         padding-bottom: 8px;

@@ -1,0 +1,18 @@
+{
+  "title": "Mattermost Use Case Guide",
+  "subtitle": "Mission-critical scenarios served by Mattermost.",
+  "eyebrow": "USE CASES",
+  "version": "unreleased",
+  "spine": [
+    "/use-case-guide/devops-collaboration",
+    "/use-case-guide/integrated-security-operations",
+    "/use-case-guide/maximize-microsoft-investments",
+    "/use-case-guide/mission-ready-mobile",
+    "/use-case-guide/on-prem-skype-for-business-replacement",
+    "/use-case-guide/out-of-band-incident-response",
+    "/use-case-guide/purpose-built-collaboration",
+    "/use-case-guide/secure-command-and-control",
+    "/use-case-guide/self-sovereign-collaboration",
+    "/use-case-guide/use-cases-index"
+  ]
+}
