@@ -635,7 +635,7 @@ describe('components/PluginManagement', () => {
         expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
         expect(screen.getByText(message)).toBeInTheDocument();
         expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
-        expect(screen.getAllByText('com.mattermost.test-plugin')).toHaveLength(2);
+        expect(screen.getByText('com.mattermost.test-plugin')).toBeInTheDocument();
     });
 
     test('should retry upload with force when overwrite is confirmed', async () => {

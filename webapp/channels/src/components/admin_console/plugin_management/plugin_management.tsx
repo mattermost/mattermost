@@ -919,22 +919,13 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
-        const existingPlugin = existingManifest && (
+        const pluginManifest = uploadedManifest || existingManifest;
+        const plugin = pluginManifest && (
             <PluginMetadataPanel
-                name={existingManifest.name || existingManifest.id}
-                id={existingManifest.id}
-                version={existingVersion}
-                homepageUrl={existingManifest.homepage_url}
-                releaseNotesUrl={existingManifest.release_notes_url}
-            />
-        );
-        const uploadedPlugin = uploadedManifest && (
-            <PluginMetadataPanel
-                name={uploadedManifest.name || uploadedManifest.id}
-                id={uploadedManifest.id}
-                version={uploadedVersion}
-                homepageUrl={uploadedManifest.homepage_url}
-                releaseNotesUrl={uploadedManifest.release_notes_url}
+                name={pluginManifest.name || pluginManifest.id}
+                id={pluginManifest.id}
+                version=''
+                homepageUrl={pluginManifest.homepage_url}
             />
         );
 
@@ -953,26 +944,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                     {warningCopy}
                 </p>
                 <dl className='PluginUploadOverwriteReview__details'>
-                    {existingPlugin && (
+                    {plugin && (
                         <>
                             <dt>
                                 <FormattedMessage
-                                    id='admin.plugin.upload.overwrite_review.existing_plugin'
-                                    defaultMessage='Existing plugin'
+                                    id='admin.plugin.upload.overwrite_review.plugin'
+                                    defaultMessage='Plugin'
                                 />
                             </dt>
-                            <dd>{existingPlugin}</dd>
-                        </>
-                    )}
-                    {uploadedPlugin && (
-                        <>
-                            <dt>
-                                <FormattedMessage
-                                    id='admin.plugin.upload.overwrite_review.uploaded_plugin'
-                                    defaultMessage='Uploaded plugin'
-                                />
-                            </dt>
-                            <dd>{uploadedPlugin}</dd>
+                            <dd>{plugin}</dd>
                         </>
                     )}
                     <dt>
