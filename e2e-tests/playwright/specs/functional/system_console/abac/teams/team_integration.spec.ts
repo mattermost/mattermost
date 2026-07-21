@@ -284,7 +284,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
         // * Custom rule still governs, so enforcement stays on
-        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
+            'aria-pressed',
+            'true',
+        );
 
         // * Save goes straight through: removal is not new criteria, so no apply modal
         await page.getByRole('button', {name: 'Save'}).click();
