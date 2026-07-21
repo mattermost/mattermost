@@ -226,7 +226,9 @@ const (
 type AccessDecision struct {
 	Decision bool `json:"decision"`
 	// Outcome disambiguates allow vs no_policy for the plugin access-control
-	// APIs, its only consumer; core channel/team callers read Decision alone.
+	// APIs, its only consumer. Only the evaluator's plugin-type lane sets it;
+	// the legacy resource/permission lanes leave it empty, and core
+	// channel/team callers read Decision alone.
 	Outcome AccessDecisionOutcome `json:"outcome,omitempty"`
 	Context map[string]any        `json:"context,omitempty"`
 }
