@@ -32,6 +32,10 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
                 onClick: () => onChange('user.attributes.department in ["Engineering"]'),
                 'data-testid': 'table-editor-change',
             }, 'Change expression'),
+            MockReact.createElement('button', {
+                onClick: () => onChange(''),
+                'data-testid': 'table-editor-clear',
+            }, 'Clear expression'),
         ),
     );
 });
@@ -296,6 +300,76 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => {
             expect(createAccessControlTeamSyncJob).not.toHaveBeenCalled();
+        });
+    });
+
+    it('removes the policy and reports success when the last rule is cleared', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: {status: 'OK'}});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('team_id');
+            expect(screen.getByText('Settings saved')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Failed to save access rules')).not.toBeInTheDocument();
+    });
+
+    it('reports an error when clearing the last rule fails to delete the policy', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+        mockActions.deleteChannelPolicy.mockResolvedValue({error: new Error('boom')});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Failed to save access rules')).toBeInTheDocument();
         });
     });
 

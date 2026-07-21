@@ -295,6 +295,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 	auditRec.Success()
+
+	// Middleware forces a JSON content-type, so an empty 200 body fails the
+	// client's parse and surfaces a spurious error on a successful delete.
+	ReturnStatusOK(w)
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {

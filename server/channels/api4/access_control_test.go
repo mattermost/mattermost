@@ -683,6 +683,39 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("DeleteAccessControlPolicy returns a status body, not an empty 200", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       samplePolicyID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules:    []model.AccessControlPolicyRule{{Expression: "user.attributes.team == 'engineering'", Actions: []string{"membership"}}},
+		}
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(1)
+		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		// The middleware forces a JSON content-type; an empty body would make the
+		// client fail to parse the response. Assert a real status body is returned.
+		resp, err := th.SystemAdminClient.DoAPIDelete(context.Background(), "/access_control_policies/"+samplePolicyID)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var body map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+		require.Equal(t, model.StatusOk, body[model.STATUS])
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")

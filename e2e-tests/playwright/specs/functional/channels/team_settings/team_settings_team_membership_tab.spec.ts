@@ -565,6 +565,46 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
+    test('MM-69100_42 Removing the last rule saves cleanly without a false error', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Pre-create a saved rule (equivalent to "add a rule and save it")
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // # Remove the only rule via the trash icon
+        await tab.getByRole('button', {name: 'Remove row'}).first().click();
+
+        // # Save → confirm
+        await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Save team membership rules?'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await confirmModal.getByRole('button', {name: 'Save'}).click();
+        await expect(confirmModal).not.toBeVisible({timeout: 10000});
+
+        // * Save succeeds: no "Failed to save access rules" error surfaces
+        await expect(tab.getByText('Failed to save access rules')).not.toBeVisible();
+        await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
+
+        // * Policy is actually removed on the server
+        const policyResult: any = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`,
+            {method: 'GET'},
+        ).catch(() => null);
+        expect(JSON.stringify(policyResult ?? {})).not.toContain('Engineering');
+
+        await teamSettings.close();
+    });
+
     test('MM-69100_38 Sync footer shows "Never synced" in Team Membership tab when a policy exists', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
