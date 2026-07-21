@@ -14449,10 +14449,10 @@ func (s *TimerLayerUserAccessTokenStore) GetByUser(userID string, page int, perP
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 	start := time.Now()
 
-	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit, includeAllTokens)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -14465,10 +14465,10 @@ func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s *TimerLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 	start := time.Now()
 
-	result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+	result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit, includeAllTokens)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
