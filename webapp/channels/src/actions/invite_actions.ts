@@ -4,7 +4,7 @@
 import {defineMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
+import type {TeamMemberWithError, TeamInviteWithError, MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -21,10 +21,11 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+import {filterProfilesForEmails} from 'utils/member_invite_profiles';
 
 import type {DispatchFunc, ActionFuncAsync} from 'types/store';
 
-export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
+export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[], profiles?: Record<string, MemberInviteProfile>): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
@@ -85,7 +86,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
+                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails, filterProfilesForEmails(profiles, emails)));
             } catch {
                 response = {
                     data: emails.map((email) => ({
@@ -341,6 +342,7 @@ export function sendMembersInvitesToChannels(
     users: UserProfile[],
     emails: string[],
     message: string,
+    profiles?: Record<string, MemberInviteProfile>,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
@@ -413,6 +415,7 @@ export function sendMembersInvitesToChannels(
                         channels.map((x) => x.id),
                         emails,
                         message,
+                        filterProfilesForEmails(profiles, emails),
                     ),
                 );
             } catch {

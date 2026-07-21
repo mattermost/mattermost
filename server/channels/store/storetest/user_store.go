@@ -2824,6 +2824,14 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
 	require.NoError(t, nErr)
 
+	// A space backing channel carrying a mention for u3 must not inflate the badge count.
+	cSpace := model.Channel{TeamId: teamID, DisplayName: "Space", Name: "space-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, nErr = ss.Channel().Save(rctx, &cSpace, -1)
+	require.NoError(t, nErr)
+	mSpace := model.ChannelMember{ChannelId: cSpace.Id, UserId: u3.Id, NotifyProps: model.GetDefaultChannelNotifyProps(), MentionCount: 5, MentionCountRoot: 5}
+	_, nErr = ss.Channel().SaveMember(rctx, &mSpace)
+	require.NoError(t, nErr)
+
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")

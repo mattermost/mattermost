@@ -4194,6 +4194,64 @@ func (s *apiRPCServer) DeleteChannel(args *Z_DeleteChannelArgs, returns *Z_Delet
 	return nil
 }
 
+type Z_RestoreChannelArgs struct {
+	A string
+}
+
+type Z_RestoreChannelReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RestoreChannel(channelId string) *model.AppError {
+	_args := &Z_RestoreChannelArgs{channelId}
+	_returns := &Z_RestoreChannelReturns{}
+	if err := g.client.Call("Plugin.RestoreChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to RestoreChannel API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RestoreChannel(args *Z_RestoreChannelArgs, returns *Z_RestoreChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		RestoreChannel(channelId string) *model.AppError
+	}); ok {
+		returns.A = hook.RestoreChannel(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RestoreChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelOfTypeArgs struct {
+	A string
+	B model.ChannelType
+}
+
+type Z_GetChannelOfTypeReturns struct {
+	A *model.Channel
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelOfTypeArgs{channelId, channelType}
+	_returns := &Z_GetChannelOfTypeReturns{}
+	if err := g.client.Call("Plugin.GetChannelOfType", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelOfType API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelOfType(args *Z_GetChannelOfTypeArgs, returns *Z_GetChannelOfTypeReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelOfType(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelOfType called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPublicChannelsForTeamArgs struct {
 	A string
 	B int
@@ -9133,6 +9191,162 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeletePropertyValuesForField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpsertPropertyValuesWithOptionsArgs struct {
+	A []*model.PropertyValue
+	B model.PropertyRequestOptions
+}
+
+type Z_UpsertPropertyValuesWithOptionsReturns struct {
+	A []*model.PropertyValue
+	B error
+}
+
+func (g *apiRPCClient) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	_args := &Z_UpsertPropertyValuesWithOptionsArgs{values, options}
+	_returns := &Z_UpsertPropertyValuesWithOptionsReturns{}
+	if err := g.client.Call("Plugin.UpsertPropertyValuesWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpsertPropertyValuesWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpsertPropertyValuesWithOptions(args *Z_UpsertPropertyValuesWithOptionsArgs, returns *Z_UpsertPropertyValuesWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error)
+	}); ok {
+		returns.A, returns.B = hook.UpsertPropertyValuesWithOptions(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpsertPropertyValuesWithOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpsertPropertyValueWithOptionsArgs struct {
+	A *model.PropertyValue
+	B model.PropertyRequestOptions
+}
+
+type Z_UpsertPropertyValueWithOptionsReturns struct {
+	A *model.PropertyValue
+	B error
+}
+
+func (g *apiRPCClient) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	_args := &Z_UpsertPropertyValueWithOptionsArgs{value, options}
+	_returns := &Z_UpsertPropertyValueWithOptionsReturns{}
+	if err := g.client.Call("Plugin.UpsertPropertyValueWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpsertPropertyValueWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpsertPropertyValueWithOptions(args *Z_UpsertPropertyValueWithOptionsArgs, returns *Z_UpsertPropertyValueWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error)
+	}); ok {
+		returns.A, returns.B = hook.UpsertPropertyValueWithOptions(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpsertPropertyValueWithOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyValueWithOptionsArgs struct {
+	A string
+	B string
+	C model.PropertyRequestOptions
+}
+
+type Z_DeletePropertyValueWithOptionsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	_args := &Z_DeletePropertyValueWithOptionsArgs{groupID, valueID, options}
+	_returns := &Z_DeletePropertyValueWithOptionsReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyValueWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyValueWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyValueWithOptions(args *Z_DeletePropertyValueWithOptionsArgs, returns *Z_DeletePropertyValueWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error
+	}); ok {
+		returns.A = hook.DeletePropertyValueWithOptions(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyValueWithOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyValuesForTargetWithOptionsArgs struct {
+	A string
+	B string
+	C string
+	D model.PropertyRequestOptions
+}
+
+type Z_DeletePropertyValuesForTargetWithOptionsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	_args := &Z_DeletePropertyValuesForTargetWithOptionsArgs{groupID, targetType, targetID, options}
+	_returns := &Z_DeletePropertyValuesForTargetWithOptionsReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyValuesForTargetWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyValuesForTargetWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyValuesForTargetWithOptions(args *Z_DeletePropertyValuesForTargetWithOptionsArgs, returns *Z_DeletePropertyValuesForTargetWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error
+	}); ok {
+		returns.A = hook.DeletePropertyValuesForTargetWithOptions(args.A, args.B, args.C, args.D)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyValuesForTargetWithOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyValuesForFieldWithOptionsArgs struct {
+	A string
+	B string
+	C model.PropertyRequestOptions
+}
+
+type Z_DeletePropertyValuesForFieldWithOptionsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	_args := &Z_DeletePropertyValuesForFieldWithOptionsArgs{groupID, fieldID, options}
+	_returns := &Z_DeletePropertyValuesForFieldWithOptionsReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyValuesForFieldWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyValuesForFieldWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyValuesForFieldWithOptions(args *Z_DeletePropertyValuesForFieldWithOptionsArgs, returns *Z_DeletePropertyValuesForFieldWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error
+	}); ok {
+		returns.A = hook.DeletePropertyValuesForFieldWithOptions(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyValuesForFieldWithOptions called but not implemented."))
 	}
 	return nil
 }

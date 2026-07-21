@@ -319,7 +319,7 @@ func TestDoJob(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(job, nil).Once()
 
 		// The reviewed post has no previewing posts, so only its own deliveries are copied.
-		mockStore.PostStore.On("GetSingle", mock.Anything, postID, true).Return(&model.Post{Id: postID}, nil).Once()
+		mockStore.PostStore.On("GetPostPreviews", mock.Anything, postID).Return([]string{}, nil).Once()
 		rows := makeRows(postID, 3)
 		mockStore.UserPostDeliveryStore.On("GetByPost", mock.Anything, postID, mock.Anything, mock.Anything).Return(rows, nil).Once()
 		mockStore.UserPostDeliveryContentReviewStore.On("SaveBatch", mock.Anything, postID, mock.Anything, job.Id).Return(nil).Once()
@@ -377,7 +377,7 @@ func TestDoJob(t *testing.T) {
 		job := newJob()
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(job, nil).Once()
-		mockStore.PostStore.On("GetSingle", mock.Anything, postID, true).Return(&model.Post{Id: postID}, nil).Once()
+		mockStore.PostStore.On("GetPostPreviews", mock.Anything, postID).Return([]string{}, nil).Once()
 		mockStore.UserPostDeliveryStore.On("GetByPost", mock.Anything, postID, mock.Anything, mock.Anything).Return(nil, store.ErrUserPostDeliverySourceUnavailable).Once()
 		mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(job, nil).Once()
 		mockStore.JobStore.On("Get", mock.Anything, job.Id).Return(job, nil).Maybe()
@@ -400,7 +400,7 @@ func TestDoJob(t *testing.T) {
 		close(worker.stop)
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(job, nil).Once()
-		mockStore.PostStore.On("GetSingle", mock.Anything, postID, true).Return(&model.Post{Id: postID}, nil).Once()
+		mockStore.PostStore.On("GetPostPreviews", mock.Anything, postID).Return([]string{}, nil).Once()
 		mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusCanceled).Return(job, nil).Once()
 		mockStore.JobStore.On("Get", mock.Anything, job.Id).Return(job, nil).Maybe()
 
@@ -416,11 +416,8 @@ func TestDoJob(t *testing.T) {
 		job := newJob()
 		const previewer = "previewing-post-000000000"
 
-		reviewedPost := &model.Post{Id: postID}
-		reviewedPost.AddProp(model.PostPropsPreviewedIn, []any{previewer})
-
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(job, nil).Once()
-		mockStore.PostStore.On("GetSingle", mock.Anything, postID, true).Return(reviewedPost, nil).Once()
+		mockStore.PostStore.On("GetPostPreviews", mock.Anything, postID).Return([]string{previewer}, nil).Once()
 		// Both the reviewed post and its previewer are read from the source...
 		mockStore.UserPostDeliveryStore.On("GetByPost", mock.Anything, postID, mock.Anything, mock.Anything).Return(makeRows(postID, 2), nil).Once()
 		mockStore.UserPostDeliveryStore.On("GetByPost", mock.Anything, previewer, mock.Anything, mock.Anything).Return(makeRows(previewer, 1), nil).Once()
@@ -437,12 +434,12 @@ func TestDoJob(t *testing.T) {
 		mockStore.UserPostDeliveryContentReviewStore.AssertExpectations(t)
 	})
 
-	t.Run("a failure loading the reviewed post fails the job", func(t *testing.T) {
+	t.Run("a failure loading the previewing posts fails the job", func(t *testing.T) {
 		worker, mockStore, app := newWorkerWithMockStore(t)
 		job := newJob()
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(job, nil).Once()
-		mockStore.PostStore.On("GetSingle", mock.Anything, postID, true).Return(nil, store.NewErrNotFound("Post", postID)).Once()
+		mockStore.PostStore.On("GetPostPreviews", mock.Anything, postID).Return(nil, store.NewErrNotFound("Post", postID)).Once()
 		mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(job, nil).Once()
 		mockStore.JobStore.On("Get", mock.Anything, job.Id).Return(job, nil).Maybe()
 

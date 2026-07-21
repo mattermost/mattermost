@@ -84,6 +84,49 @@ func TestPostIsValid(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestAccessControlTeamPostTypes(t *testing.T) {
+	maxPostSize := 10000
+
+	for _, postType := range []string{PostTypeAccessControlTeamRemoval, PostTypeAccessControlTeamAddition} {
+		// Persisted to Posts.Type, which is varchar(26).
+		require.LessOrEqual(t, len(postType), 26, "post type %q must fit Posts.Type varchar(26)", postType)
+		require.True(t, strings.HasPrefix(postType, PostSystemMessagePrefix), "post type %q must be a system message", postType)
+
+		o := Post{
+			Id:        NewId(),
+			CreateAt:  GetMillis(),
+			UpdateAt:  GetMillis(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			Message:   "test",
+			Type:      postType,
+		}
+		require.Nil(t, o.IsValid(maxPostSize), "post type %q must be an accepted system type", postType)
+	}
+}
+
+func TestIsAccessControlTeamMembershipNotification(t *testing.T) {
+	cases := []struct {
+		name     string
+		postType string
+		expected bool
+	}{
+		{"removal DM", PostTypeAccessControlTeamRemoval, true},
+		{"addition DM", PostTypeAccessControlTeamAddition, true},
+		{"regular post", "", false},
+		{"add to team", PostTypeAddToTeam, false},
+		{"remove from team", PostTypeRemoveFromTeam, false},
+		{"join channel", PostTypeJoinChannel, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Post{Type: tc.postType}
+			require.Equal(t, tc.expected, p.IsAccessControlTeamMembershipNotification())
+		})
+	}
+}
+
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()
@@ -1598,26 +1641,4 @@ func TestPost_PropsIsValid(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestGetPreviewedInProp(t *testing.T) {
-	t.Run("returns nil when the prop is absent", func(t *testing.T) {
-		require.Nil(t, (&Post{}).GetPreviewedInProp())
-	})
-
-	t.Run("returns the post IDs from a JSON array", func(t *testing.T) {
-		// After a DB/JSON round-trip the array is decoded as []any of strings.
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: []any{"post1", "post2"}}}
-		require.Equal(t, []string{"post1", "post2"}, p.GetPreviewedInProp())
-	})
-
-	t.Run("skips non-string entries", func(t *testing.T) {
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: []any{"post1", 42, "post2"}}}
-		require.Equal(t, []string{"post1", "post2"}, p.GetPreviewedInProp())
-	})
-
-	t.Run("returns nil for a non-array value", func(t *testing.T) {
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: "not-an-array"}}
-		require.Nil(t, p.GetPreviewedInProp())
-	})
 }

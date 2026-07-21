@@ -83,23 +83,27 @@ func testPostStoreAddPostPreviewReference(t *testing.T, rctx request.CTX, ss sto
 		return p
 	}
 
-	t.Run("appends, dedups, and no-ops for a missing previewed post", func(t *testing.T) {
+	t.Run("inserts, dedups, and isolates by previewed post", func(t *testing.T) {
 		previewed := newPost()
 		b1, b2 := newPost(), newPost()
 
 		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, previewed.Id, b1.Id))
 		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, previewed.Id, b2.Id))
-		// Re-appending an existing referrer must not duplicate it.
 		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, previewed.Id, b1.Id))
-		// A missing previewed post matches no rows and is not an error.
 		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, model.NewId(), b1.Id))
 
-		got, err := ss.Post().GetSingle(rctx, previewed.Id, false)
+		got, err := ss.Post().GetPostPreviews(rctx, previewed.Id)
 		require.NoError(t, err)
-		require.ElementsMatch(t, []string{b1.Id, b2.Id}, got.GetPreviewedInProp())
+		require.ElementsMatch(t, []string{b1.Id, b2.Id}, got)
 	})
 
-	t.Run("concurrent appends do not lose updates", func(t *testing.T) {
+	t.Run("returns empty for a post that is previewed nowhere", func(t *testing.T) {
+		got, err := ss.Post().GetPostPreviews(rctx, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, got)
+	})
+
+	t.Run("concurrent inserts do not lose rows", func(t *testing.T) {
 		previewed := newPost()
 		const n = 12
 		referrers := make([]string, n)
@@ -122,9 +126,28 @@ func testPostStoreAddPostPreviewReference(t *testing.T, rctx request.CTX, ss sto
 			require.NoError(t, err)
 		}
 
-		got, err := ss.Post().GetSingle(rctx, previewed.Id, false)
+		got, err := ss.Post().GetPostPreviews(rctx, previewed.Id)
 		require.NoError(t, err)
-		require.ElementsMatch(t, referrers, got.GetPreviewedInProp(), "every concurrent append must be preserved")
+		require.ElementsMatch(t, referrers, got, "every concurrent insert must be preserved")
+	})
+
+	t.Run("permanently deleting a post purges its preview rows on both sides", func(t *testing.T) {
+		previewed, other := newPost(), newPost()
+		b1, b2 := newPost(), newPost()
+
+		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, previewed.Id, b1.Id))
+		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, other.Id, b1.Id))
+		require.NoError(t, ss.Post().AddPostPreviewReference(rctx, other.Id, b2.Id))
+
+		require.NoError(t, ss.Post().PermanentDelete(rctx, previewed.Id))
+		got, err := ss.Post().GetPostPreviews(rctx, previewed.Id)
+		require.NoError(t, err)
+		require.Empty(t, got)
+
+		require.NoError(t, ss.Post().PermanentDelete(rctx, b1.Id))
+		got, err = ss.Post().GetPostPreviews(rctx, other.Id)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{b2.Id}, got)
 	})
 }
 
