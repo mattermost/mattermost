@@ -7,6 +7,7 @@ import {generateId} from 'mattermost-redux/utils/helpers';
 
 import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
+import * as Utils from 'utils/utils';
 
 import Bot from './bot';
 
@@ -427,5 +428,35 @@ describe('components/integrations/bots/Bot', () => {
 
         await screen.findByText(/new-secret/);
         expect(rotateUserAccessToken).toHaveBeenCalledWith('t1', FROZEN_NOW + (30 * DAY_MS));
+    });
+
+    it('copies a newly generated bot token secret from the one-time display', async () => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: 'owner1'});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id, username: 'owner1'});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        const createUserAccessToken = jest.fn().mockResolvedValue({data: UtilsTestHelper.getUserAccessTokenMock({id: 't1', user_id: bot.user_id, token: 'new-secret'})});
+        const copyToClipboard = jest.spyOn(Utils, 'copyToClipboard').mockImplementation(jest.fn());
+
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={{...actions, createUserAccessToken}}
+                fromApp={false}
+                maxLifetimeDays={0}
+            />,
+        );
+
+        fireEvent.click(screen.getByText('Create New Token'));
+        fireEvent.change(screen.getByLabelText('Token Description:'), {target: {value: 'deploy token'}});
+        fireEvent.click(screen.getByText('Save'));
+
+        await screen.findByText(/new-secret/);
+        fireEvent.click(screen.getByLabelText('Copy Token'));
+
+        expect(copyToClipboard).toHaveBeenCalledWith('new-secret');
     });
 });

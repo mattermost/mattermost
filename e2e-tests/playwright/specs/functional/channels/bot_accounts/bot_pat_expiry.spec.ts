@@ -75,5 +75,6 @@ test.describe('Bot account personal access token expiry @bot_accounts @personal_
 
         // * The rotated secret is revealed using the same one-time-copy pattern.
         await expect(botItem.getByText('Access Token:')).toBeVisible();
+        await expect(botItem.getByLabel('Copy Token')).toBeVisible();
     });
 });

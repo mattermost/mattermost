@@ -15,6 +15,7 @@ import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
+import CopyText from 'components/copy_text';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import type {ExpiryPreset} from 'components/user_settings/security/user_access_token_section/user_access_token_section';
@@ -861,6 +862,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                         />
                         {this.state.token.token}
                     </strong>
+                    <CopyText
+                        label={{id: 'integrations.copy_token', defaultMessage: 'Copy Token'}}
+                        value={this.state.token.token}
+                    />
                     <div className='mt-2'>
                         <Button
                             emphasis='primary'
