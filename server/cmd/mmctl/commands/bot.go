@@ -23,13 +23,14 @@ var BotCmd = &cobra.Command{
 }
 
 var CreateBotCmd = &cobra.Command{
-	Use:     "create [username]",
-	Short:   "Create bot",
-	Long:    "Create bot.",
-	Example: `  bot create testbot`,
-	PreRun:  disableLocalPrecheck,
-	RunE:    withClient(botCreateCmdF),
-	Args:    cobra.ExactArgs(1),
+	Use:   "create [username]",
+	Short: "Create bot",
+	Long:  "Create bot.",
+	Example: `  bot create testbot
+  bot create deploybot --with-token --expires-in 90d`,
+	PreRun: disableLocalPrecheck,
+	RunE:   withClient(botCreateCmdF),
+	Args:   cobra.ExactArgs(1),
 }
 
 var UpdateBotCmd = &cobra.Command{
