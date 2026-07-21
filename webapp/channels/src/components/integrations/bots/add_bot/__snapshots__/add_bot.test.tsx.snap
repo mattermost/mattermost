@@ -258,13 +258,24 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           </div>
         </div>
         <div
+          class="row bot-profile__section"
+        >
+          <div
+            class="col-md-5 col-sm-8 col-sm-offset-4"
+          >
+            <strong>
+              Default access token
+            </strong>
+          </div>
+        </div>
+        <div
           class="form-group"
         >
           <label
             class="control-label col-sm-4"
             for="defaultTokenExpiry"
           >
-            Expires:
+            Default token expires
           </label>
           <div
             class="col-md-5 col-sm-8"

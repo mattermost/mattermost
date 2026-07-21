@@ -100,6 +100,8 @@ describe('components/integrations/bots/AddBot', () => {
         );
 
         fireEvent.change(screen.getByLabelText('Username'), {target: {value: 'testbot'}});
+        expect(screen.getByText('Default access token')).toBeInTheDocument();
+        expect(screen.getByLabelText('Default token expires')).toBeInTheDocument();
         expect(screen.getByText('No expiry')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Create Bot Account'));
 
@@ -123,6 +125,8 @@ describe('components/integrations/bots/AddBot', () => {
         );
 
         fireEvent.change(screen.getByLabelText('Username'), {target: {value: 'testbot'}});
+        expect(screen.getByText('Default access token')).toBeInTheDocument();
+        expect(screen.getByLabelText('Default token expires')).toBeInTheDocument();
         expect(screen.queryByText('No expiry')).not.toBeInTheDocument();
         expect(screen.getByText('Tokens can be valid for up to 30 days.')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Create Bot Account'));

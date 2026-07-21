@@ -4172,6 +4172,8 @@
   "backstage_sidebar.integrations.outgoingOauthConnections": "Outgoing OAuth 2.0 Connections",
   "billing.subscription.info.mostRecentPaymentFailed": "Your most recent payment failed",
   "billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed": "It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
+  "bot.add.default_token.expiry": "Default token expires",
+  "bot.add.default_token.title": "Default access token",
   "bot.add.description": "Description",
   "bot.add.description.help": "(Optional) Let others know what this bot does.",
   "bot.add.display_name.help": "(Optional) You can choose to display your bot's full name rather than its username.",
