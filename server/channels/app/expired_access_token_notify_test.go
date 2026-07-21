@@ -90,7 +90,9 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 			{Id: model.NewId(), UserId: bot.UserId, Description: "bot-token"},
 		})
 
-		require.Len(t, notificationPostsFor(t, th, systemBot.UserId, bot.OwnerId, "bot-token"), 1)
+		posts := notificationPostsFor(t, th, systemBot.UserId, bot.OwnerId, "bot-token")
+		require.Len(t, posts, 1)
+		require.Contains(t, posts[0].Message, bot.Username)
 		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))
 	})
 
