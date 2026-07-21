@@ -52,6 +52,10 @@ jest.mock('./team_level_access_rules', () => {
                     checked={props.initialAutoSync ?? false}
                     onChange={(e) => props.onRulesChange(true, 'user.department == "Engineering"', e.target.checked)}
                 />
+                <button
+                    data-testid='clear-rule-button'
+                    onClick={() => props.onRulesChange(true, '', false)}
+                >{'clear'}</button>
             </div>
         );
     };
@@ -109,6 +113,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
             getTeamMembers: jest.fn().mockResolvedValue({data: []}),
             saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            deleteAccessControlPolicy: jest.fn().mockResolvedValue({data: {}}),
             getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
             searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
         },
@@ -567,6 +572,50 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
         await waitFor(() => {
             expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+        });
+    });
+
+    test('clearing the only custom rule with no policy disables ABAC and saves without the apply modal', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.office == "Home"'}],
+                    active: true,
+                },
+                enforced: true,
+            },
+        });
+        const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                deleteAccessControlPolicy,
+                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('clear-rule-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        // Disabling ABAC is not new criteria — no affected-count modal.
+        expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+
+        // The team's own policy is deleted so enforcement clears server-side.
+        await waitFor(() => {
+            expect(deleteAccessControlPolicy).toHaveBeenCalledWith('123');
         });
     });
 
