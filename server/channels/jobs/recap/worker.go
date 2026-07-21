@@ -19,7 +19,7 @@ type AppIface interface {
 	Publish(message *model.WebSocketEvent)
 }
 
-func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
+func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.PoolWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return cfg.AIRecapsEnabled()
 	}
@@ -31,7 +31,17 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 		})
 	}
 
-	return jobs.NewSimpleWorker("Recap", jobServer, execute, isEnabled)
+	return jobs.NewPoolWorker("Recap", jobServer, execute, isEnabled, poolSizeFromConfig)
+}
+
+// poolSizeFromConfig returns the configured number of concurrent recap jobs
+// per node, falling back to the default when the config sub-struct has not
+// been populated (SetDefaults normally guarantees it has).
+func poolSizeFromConfig(cfg *model.Config) int {
+	if cfg == nil || cfg.AIRecapSettings.Processing == nil || cfg.AIRecapSettings.Processing.MaxConcurrentJobs == nil {
+		return model.RecapProcessingDefaultMaxConcurrentJobs
+	}
+	return *cfg.AIRecapSettings.Processing.MaxConcurrentJobs
 }
 
 func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, setProgress func(int64)) error {

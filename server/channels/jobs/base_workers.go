@@ -69,43 +69,51 @@ func (worker *SimpleWorker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *SimpleWorker) DoJob(job *model.Job) {
-	logger := worker.logger.With(JobLoggerFields(job)...)
+	claimAndExecuteJob(worker.jobServer, worker.logger, "SimpleWorker", job, worker.execute)
+}
+
+// claimAndExecuteJob claims the given candidate job and, when the claim wins,
+// runs execute and records success or failure. It is shared by SimpleWorker
+// and PoolWorker; workerKind only customizes log messages so each worker
+// type's log output is unchanged.
+func claimAndExecuteJob(jobServer *JobServer, logger mlog.LoggerIFace, workerKind string, job *model.Job, execute func(logger mlog.LoggerIFace, job *model.Job) error) {
+	logger = logger.With(JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
 	var appErr *model.AppError
-	job, appErr = worker.jobServer.ClaimJob(job)
+	job, appErr = jobServer.ClaimJob(job)
 	if appErr != nil {
-		logger.Warn("SimpleWorker experienced an error while trying to claim job", mlog.Err(appErr))
+		logger.Warn(workerKind+" experienced an error while trying to claim job", mlog.Err(appErr))
 		return
 	} else if job == nil {
 		return
 	}
 
-	err := worker.execute(logger, job)
+	err := execute(logger, job)
 	if err != nil {
-		logger.Error("SimpleWorker: job execution error", mlog.Err(err))
-		worker.setJobError(logger, job, model.NewAppError("DoJob", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(err))
+		logger.Error(workerKind+": job execution error", mlog.Err(err))
+		setWorkerJobError(jobServer, logger, workerKind, job, model.NewAppError("DoJob", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 
-	logger.Debug("SimpleWorker: Job is complete")
-	worker.setJobSuccess(logger, job)
+	logger.Debug(workerKind + ": Job is complete")
+	setWorkerJobSuccess(jobServer, logger, workerKind, job)
 }
 
-func (worker *SimpleWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
-	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
+func setWorkerJobSuccess(jobServer *JobServer, logger mlog.LoggerIFace, workerKind string, job *model.Job) {
+	if err := jobServer.SetJobProgress(job, 100); err != nil {
 		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
+		setWorkerJobError(jobServer, logger, workerKind, job, err)
 	}
 
-	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		logger.Error("SimpleWorker: Failed to set success for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
+	if err := jobServer.SetJobSuccess(job); err != nil {
+		logger.Error(workerKind+": Failed to set success for job", mlog.Err(err))
+		setWorkerJobError(jobServer, logger, workerKind, job, err)
 	}
 }
 
-func (worker *SimpleWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
-	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		logger.Error("SimpleWorker: Failed to set job error", mlog.Err(err))
+func setWorkerJobError(jobServer *JobServer, logger mlog.LoggerIFace, workerKind string, job *model.Job, appError *model.AppError) {
+	if err := jobServer.SetJobError(job, appError); err != nil {
+		logger.Error(workerKind+": Failed to set job error", mlog.Err(err))
 	}
 }

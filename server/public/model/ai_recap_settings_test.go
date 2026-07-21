@@ -51,7 +51,120 @@ func TestAIRecapSettingsSetDefaults(t *testing.T) {
 		assert.Equal(t, 5000, *s.DefaultLimits.MaxPostsPerDay)
 		require.NotNil(t, s.DefaultLimits.CooldownMinutes)
 		assert.Equal(t, 60, *s.DefaultLimits.CooldownMinutes)
+
+		require.NotNil(t, s.Processing)
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentJobs, *s.Processing.MaxConcurrentJobs)
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentLLMCalls, *s.Processing.MaxConcurrentLLMCalls)
+		assert.Equal(t, RecapProcessingDefaultMaxDueSchedulesPerTick, *s.Processing.MaxDueSchedulesPerTick)
 	})
+}
+
+func TestRecapProcessingSettingsSetDefaults(t *testing.T) {
+	t.Run("sets all defaults on empty struct", func(t *testing.T) {
+		s := &RecapProcessingSettings{}
+		s.SetDefaults()
+
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentJobs, *s.MaxConcurrentJobs)
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentLLMCalls, *s.MaxConcurrentLLMCalls)
+		assert.Equal(t, RecapProcessingDefaultMaxDueSchedulesPerTick, *s.MaxDueSchedulesPerTick)
+	})
+
+	t.Run("preserves existing values", func(t *testing.T) {
+		s := &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(9)}
+		s.SetDefaults()
+
+		assert.Equal(t, 9, *s.MaxConcurrentJobs)
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentLLMCalls, *s.MaxConcurrentLLMCalls)
+		assert.Equal(t, RecapProcessingDefaultMaxDueSchedulesPerTick, *s.MaxDueSchedulesPerTick)
+	})
+}
+
+func TestRecapProcessingSettingsValidation(t *testing.T) {
+	tests := []struct {
+		name      string
+		mutate    func(*RecapProcessingSettings)
+		wantErrID string
+	}{
+		{
+			name: "valid defaults",
+		},
+		{
+			name: "valid minimum 1",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentJobs = NewPointer(1)
+				s.MaxConcurrentLLMCalls = NewPointer(1)
+				s.MaxDueSchedulesPerTick = NewPointer(1)
+			},
+		},
+		{
+			name: "valid large values",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentJobs = NewPointer(64)
+				s.MaxConcurrentLLMCalls = NewPointer(256)
+				s.MaxDueSchedulesPerTick = NewPointer(100000)
+			},
+		},
+		{
+			name: "MaxConcurrentJobs zero",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentJobs = NewPointer(0)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_concurrent_jobs.app_error",
+		},
+		{
+			name: "MaxConcurrentJobs -1 not unlimited",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentJobs = NewPointer(-1)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_concurrent_jobs.app_error",
+		},
+		{
+			name: "MaxConcurrentLLMCalls zero",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentLLMCalls = NewPointer(0)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_concurrent_llm_calls.app_error",
+		},
+		{
+			name: "MaxConcurrentLLMCalls -1 not unlimited",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxConcurrentLLMCalls = NewPointer(-1)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_concurrent_llm_calls.app_error",
+		},
+		{
+			name: "MaxDueSchedulesPerTick zero",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxDueSchedulesPerTick = NewPointer(0)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_due_schedules_per_tick.app_error",
+		},
+		{
+			name: "MaxDueSchedulesPerTick -1 not unlimited",
+			mutate: func(s *RecapProcessingSettings) {
+				s.MaxDueSchedulesPerTick = NewPointer(-1)
+			},
+			wantErrID: "model.config.is_valid.ai_recap.max_due_schedules_per_tick.app_error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &RecapProcessingSettings{}
+			s.SetDefaults()
+			if tt.mutate != nil {
+				tt.mutate(s)
+			}
+
+			err := s.isValid()
+			if tt.wantErrID == "" {
+				assert.Nil(t, err)
+				return
+			}
+			require.NotNil(t, err)
+			assert.Equal(t, tt.wantErrID, err.Id)
+		})
+	}
 }
 
 func TestRecapLimitSettingsValidation(t *testing.T) {
@@ -203,6 +316,19 @@ func TestAIRecapSettingsPreservesExistingValues(t *testing.T) {
 		// Other toggles should be set to true (default)
 		assert.True(t, *s.EnforceScheduledRecaps)
 	})
+
+	t.Run("preserves existing Processing values", func(t *testing.T) {
+		s := &AIRecapSettings{
+			Processing: &RecapProcessingSettings{
+				MaxConcurrentJobs: NewPointer(2),
+			},
+		}
+		s.SetDefaults()
+
+		assert.Equal(t, 2, *s.Processing.MaxConcurrentJobs)
+		assert.Equal(t, RecapProcessingDefaultMaxConcurrentLLMCalls, *s.Processing.MaxConcurrentLLMCalls)
+		assert.Equal(t, RecapProcessingDefaultMaxDueSchedulesPerTick, *s.Processing.MaxDueSchedulesPerTick)
+	})
 }
 
 func TestAIRecapSettingsIsValid(t *testing.T) {
@@ -221,6 +347,14 @@ func TestAIRecapSettingsIsValid(t *testing.T) {
 		assert.Nil(t, s.IsValid())
 	})
 
+	t.Run("valid with nil Processing", func(t *testing.T) {
+		s := &AIRecapSettings{
+			Enable: NewPointer(true),
+		}
+
+		assert.Nil(t, s.IsValid())
+	})
+
 	t.Run("invalid if DefaultLimits are invalid", func(t *testing.T) {
 		s := &AIRecapSettings{
 			Enable: NewPointer(true),
@@ -232,5 +366,17 @@ func TestAIRecapSettingsIsValid(t *testing.T) {
 		err := s.IsValid()
 		require.NotNil(t, err)
 		assert.Equal(t, "model.config.is_valid.ai_recap.max_recaps_per_day.app_error", err.Id)
+	})
+
+	t.Run("invalid if Processing is invalid", func(t *testing.T) {
+		s := &AIRecapSettings{
+			Processing: &RecapProcessingSettings{
+				MaxConcurrentJobs: NewPointer(0),
+			},
+		}
+
+		err := s.IsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.ai_recap.max_concurrent_jobs.app_error", err.Id)
 	})
 }
