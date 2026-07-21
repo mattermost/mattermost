@@ -18,10 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T) {
-	cfg := &model.Config{}
-	cfg.SetDefaults()
-	cfg.FeatureFlags.EnableAIRecaps = true
+func newSchedulerTest(t *testing.T, cfg *model.Config) (*Scheduler, *storetest.Store) {
+	t.Helper()
 
 	mockStore := &storetest.Store{}
 	t.Cleanup(func() {
@@ -36,39 +34,85 @@ func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T
 		func(cfg *model.Config) bool { return true },
 	), nil)
 
+	return MakeScheduler(jobServer, mockStore), mockStore
+}
+
+func expectNoWedgedJobs(mockStore *storetest.Store) {
+	mockStore.JobStore.
+		On("GetAllByTypeAndStatus", mock.Anything, model.JobTypeScheduledRecap, model.JobStatusInProgress).
+		Return([]*model.Job{}, nil).
+		Once()
+}
+
+// makeDueRecaps returns schedules with strictly increasing keyset keys.
+func makeDueRecaps(n int, baseNextRunAt int64) []*model.ScheduledRecap {
+	recaps := make([]*model.ScheduledRecap, n)
+	for i := range recaps {
+		recaps[i] = testScheduledRecap(true)
+		recaps[i].NextRunAt = baseNextRunAt + int64(i)
+	}
+	return recaps
+}
+
+func expectBatch(mockStore *storetest.Store, cursorAt int64, cursorID string, limit int, rows []*model.ScheduledRecap) {
+	mockStore.ScheduledRecapStore.
+		On("GetDueBefore", mock.AnythingOfType("int64"), cursorAt, cursorID, limit).
+		Return(rows, nil).
+		Once()
+}
+
+func expectEnqueueOK(mockStore *storetest.Store, sr *model.ScheduledRecap) {
+	mockStore.JobStore.
+		On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
+			return job.Type == model.JobTypeScheduledRecap &&
+				len(job.Data) == 1 &&
+				job.Data["scheduled_recap_id"] == sr.Id
+		}), map[string]string{"scheduled_recap_id": sr.Id}).
+		Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
+		Once()
+}
+
+func expectEnqueueDuplicate(mockStore *storetest.Store, sr *model.ScheduledRecap) {
+	mockStore.JobStore.
+		On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
+			return job.Type == model.JobTypeScheduledRecap &&
+				job.Data["scheduled_recap_id"] == sr.Id
+		}), map[string]string{"scheduled_recap_id": sr.Id}).
+		Return(nil, nil).
+		Once()
+}
+
+func expectEnqueueError(mockStore *storetest.Store, sr *model.ScheduledRecap) {
+	mockStore.JobStore.
+		On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
+			return job.Type == model.JobTypeScheduledRecap &&
+				job.Data["scheduled_recap_id"] == sr.Id
+		}), map[string]string{"scheduled_recap_id": sr.Id}).
+		Return(nil, errors.New("boom")).
+		Once()
+}
+
+func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+
+	scheduler, mockStore := newSchedulerTest(t, cfg)
+
 	dueRecap1 := testScheduledRecap(true)
 	dueRecap2 := testScheduledRecap(true)
 	duplicateRecap := *dueRecap1
 	dueRecaps := []*model.ScheduledRecap{dueRecap1, dueRecap2, &duplicateRecap}
 
-	mockStore.JobStore.
-		On("GetAllByTypeAndStatus", mock.Anything, model.JobTypeScheduledRecap, model.JobStatusInProgress).
-		Return([]*model.Job{}, nil).
-		Once()
-	mockStore.ScheduledRecapStore.
-		On("GetDueBefore", mock.AnythingOfType("int64"), 100).
-		Return(dueRecaps, nil)
+	expectNoWedgedJobs(mockStore)
+	expectBatch(mockStore, 0, "", 100, dueRecaps)
 
 	for _, sr := range []*model.ScheduledRecap{dueRecap1, dueRecap2} {
-		mockStore.JobStore.
-			On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
-				return job.Type == model.JobTypeScheduledRecap &&
-					len(job.Data) == 1 &&
-					job.Data["scheduled_recap_id"] == sr.Id
-			}), map[string]string{"scheduled_recap_id": sr.Id}).
-			Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
-			Once()
+		expectEnqueueOK(mockStore, sr)
 	}
 
-	mockStore.JobStore.
-		On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
-			return job.Type == model.JobTypeScheduledRecap &&
-				job.Data["scheduled_recap_id"] == dueRecap1.Id
-		}), map[string]string{"scheduled_recap_id": dueRecap1.Id}).
-		Return(nil, nil).
-		Once()
+	expectEnqueueDuplicate(mockStore, dueRecap1)
 
-	scheduler := MakeScheduler(jobServer, mockStore)
 	job, appErr := scheduler.ScheduleJob(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
@@ -79,17 +123,7 @@ func TestScheduleJobResetsWedgedJobThenEnqueuesSameTick(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
 
-	mockStore := &storetest.Store{}
-	t.Cleanup(func() {
-		mockStore.AssertExpectations(t)
-	})
-	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-	jobServer.RegisterJobType(model.JobTypeScheduledRecap, jobs.NewSimpleWorker(
-		model.JobTypeScheduledRecap,
-		jobServer,
-		func(logger mlog.LoggerIFace, job *model.Job) error { return nil },
-		func(cfg *model.Config) bool { return true },
-	), nil)
+	scheduler, mockStore := newSchedulerTest(t, cfg)
 
 	scheduledRecap := testScheduledRecap(true)
 	stale := model.GetMillis() - (ScheduledRecapJobWedgedTimeout + time.Minute).Milliseconds()
@@ -116,7 +150,7 @@ func TestScheduleJobResetsWedgedJobThenEnqueuesSameTick(t *testing.T) {
 		Return(wedged, nil).
 		Once()
 	mockStore.ScheduledRecapStore.
-		On("GetDueBefore", mock.AnythingOfType("int64"), 100).
+		On("GetDueBefore", mock.AnythingOfType("int64"), int64(0), "", 100).
 		Return([]*model.ScheduledRecap{scheduledRecap}, nil).
 		Once()
 	mockStore.JobStore.
@@ -130,7 +164,6 @@ func TestScheduleJobResetsWedgedJobThenEnqueuesSameTick(t *testing.T) {
 		Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
 		Once()
 
-	scheduler := MakeScheduler(jobServer, mockStore)
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
@@ -142,17 +175,7 @@ func TestScheduleJobContinuesWhenWedgedResetFails(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
 
-	mockStore := &storetest.Store{}
-	t.Cleanup(func() {
-		mockStore.AssertExpectations(t)
-	})
-	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-	jobServer.RegisterJobType(model.JobTypeScheduledRecap, jobs.NewSimpleWorker(
-		model.JobTypeScheduledRecap,
-		jobServer,
-		func(logger mlog.LoggerIFace, job *model.Job) error { return nil },
-		func(cfg *model.Config) bool { return true },
-	), nil)
+	scheduler, mockStore := newSchedulerTest(t, cfg)
 
 	scheduledRecap := testScheduledRecap(true)
 	mockStore.JobStore.
@@ -160,7 +183,7 @@ func TestScheduleJobContinuesWhenWedgedResetFails(t *testing.T) {
 		Return(nil, errors.New("boom")).
 		Once()
 	mockStore.ScheduledRecapStore.
-		On("GetDueBefore", mock.AnythingOfType("int64"), 100).
+		On("GetDueBefore", mock.AnythingOfType("int64"), int64(0), "", 100).
 		Return([]*model.ScheduledRecap{scheduledRecap}, nil).
 		Once()
 	mockStore.JobStore.
@@ -168,8 +191,236 @@ func TestScheduleJobContinuesWhenWedgedResetFails(t *testing.T) {
 		Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
 		Once()
 
-	scheduler := MakeScheduler(jobServer, mockStore)
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
+}
+
+func TestScheduleJobDrainsBacklogAcrossBatches(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+
+	recaps := makeDueRecaps(250, model.GetMillis()-1000)
+	expectBatch(mockStore, 0, "", 100, recaps[:100])
+	expectBatch(mockStore, recaps[99].NextRunAt, recaps[99].Id, 100, recaps[100:200])
+	expectBatch(mockStore, recaps[199].NextRunAt, recaps[199].Id, 100, recaps[200:])
+	for _, sr := range recaps {
+		expectEnqueueOK(mockStore, sr)
+	}
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestScheduleJobStopsAtMaxDueSchedulesPerTick(t *testing.T) {
+	tests := []struct {
+		name    string
+		cap     int
+		batches []struct {
+			limit int
+			size  int
+		}
+		wantEnqueued int
+	}{
+		{
+			name: "cap splits final batch",
+			cap:  150,
+			batches: []struct {
+				limit int
+				size  int
+			}{{limit: 100, size: 100}, {limit: 50, size: 50}},
+			wantEnqueued: 150,
+		},
+		{
+			name: "cap below batch size",
+			cap:  30,
+			batches: []struct {
+				limit int
+				size  int
+			}{{limit: 30, size: 30}},
+			wantEnqueued: 30,
+		},
+		{
+			name: "cap equals backlog exactly",
+			cap:  100,
+			batches: []struct {
+				limit int
+				size  int
+			}{{limit: 100, size: 100}},
+			wantEnqueued: 100,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			cfg.FeatureFlags.EnableAIRecaps = true
+			cfg.AIRecapSettings.Processing.MaxDueSchedulesPerTick = model.NewPointer(tt.cap)
+			scheduler, mockStore := newSchedulerTest(t, cfg)
+			expectNoWedgedJobs(mockStore)
+
+			recaps := makeDueRecaps(tt.wantEnqueued, model.GetMillis()-1000)
+			var cursorAt int64
+			var cursorID string
+			offset := 0
+			for _, batch := range tt.batches {
+				rows := recaps[offset : offset+batch.size]
+				expectBatch(mockStore, cursorAt, cursorID, batch.limit, rows)
+				offset += batch.size
+				last := rows[len(rows)-1]
+				cursorAt, cursorID = last.NextRunAt, last.Id
+			}
+			for _, sr := range recaps {
+				expectEnqueueOK(mockStore, sr)
+			}
+
+			job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+			require.Nil(t, appErr)
+			require.Nil(t, job)
+		})
+	}
+}
+
+func TestScheduleJobCountsDuplicatesTowardCapAndContinuesDrain(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+
+	recaps := makeDueRecaps(120, model.GetMillis()-1000)
+	expectBatch(mockStore, 0, "", 100, recaps[:100])
+	expectBatch(mockStore, recaps[99].NextRunAt, recaps[99].Id, 100, recaps[100:])
+
+	duplicates := map[int]struct{}{10: {}, 50: {}, 99: {}}
+	for i, sr := range recaps {
+		if _, duplicate := duplicates[i]; duplicate {
+			expectEnqueueDuplicate(mockStore, sr)
+		} else {
+			expectEnqueueOK(mockStore, sr)
+		}
+	}
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestScheduleJobAbortsTickOnStoreErrorMidDrain(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+
+	recaps := makeDueRecaps(100, model.GetMillis()-1000)
+	expectBatch(mockStore, 0, "", 100, recaps)
+	mockStore.ScheduledRecapStore.
+		On("GetDueBefore", mock.AnythingOfType("int64"), recaps[99].NextRunAt, recaps[99].Id, 100).
+		Return(nil, errors.New("boom")).
+		Once()
+	for _, sr := range recaps {
+		expectEnqueueOK(mockStore, sr)
+	}
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestScheduleJobContinuesPastEnqueueErrorMidBatch(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+
+	recaps := makeDueRecaps(3, model.GetMillis()-1000)
+	expectBatch(mockStore, 0, "", 100, recaps)
+	expectEnqueueOK(mockStore, recaps[0])
+	expectEnqueueError(mockStore, recaps[1])
+	expectEnqueueOK(mockStore, recaps[2])
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestMaxDueSchedulesPerTickFromConfig(t *testing.T) {
+	defaultedConfig := &model.Config{}
+	defaultedConfig.SetDefaults()
+
+	tests := []struct {
+		name string
+		cfg  *model.Config
+		want int
+	}{
+		{
+			name: "nil config",
+			want: model.RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+		{
+			name: "nil Processing",
+			cfg:  &model.Config{},
+			want: model.RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+		{
+			name: "nil MaxDueSchedulesPerTick",
+			cfg: &model.Config{
+				AIRecapSettings: model.AIRecapSettings{
+					Processing: &model.RecapProcessingSettings{},
+				},
+			},
+			want: model.RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+		{
+			name: "configured value",
+			cfg: &model.Config{
+				AIRecapSettings: model.AIRecapSettings{
+					Processing: &model.RecapProcessingSettings{
+						MaxDueSchedulesPerTick: model.NewPointer(250),
+					},
+				},
+			},
+			want: 250,
+		},
+		{
+			name: "zero clamps to one",
+			cfg: &model.Config{
+				AIRecapSettings: model.AIRecapSettings{
+					Processing: &model.RecapProcessingSettings{
+						MaxDueSchedulesPerTick: model.NewPointer(0),
+					},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "negative clamps to one",
+			cfg: &model.Config{
+				AIRecapSettings: model.AIRecapSettings{
+					Processing: &model.RecapProcessingSettings{
+						MaxDueSchedulesPerTick: model.NewPointer(-5),
+					},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "defaulted config",
+			cfg:  defaultedConfig,
+			want: model.RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, maxDueSchedulesPerTickFromConfig(tt.cfg))
+		})
+	}
 }
