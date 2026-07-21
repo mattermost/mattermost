@@ -80,7 +80,8 @@ var AssignBotCmd = &cobra.Command{
 func init() {
 	CreateBotCmd.Flags().String("display-name", "", "Optional. The display name for the new bot.")
 	CreateBotCmd.Flags().String("description", "", "Optional. The description text for the new bot.")
-	CreateBotCmd.Flags().Bool("with-token", false, "Optional. Auto genreate access token for the bot.")
+	CreateBotCmd.Flags().Bool("with-token", false, "Optional. Auto generate an access token for the bot.")
+	CreateBotCmd.Flags().String("expires-in", "", "Duration after which the generated token expires (e.g. 90d, 12h, 30m). Required when the server enforces a maximum token lifetime.")
 	ListBotCmd.Flags().Bool("orphaned", false, "Optional. Only show orphaned bots.")
 	ListBotCmd.Flags().Bool("all", false, "Optional. Show all bots (including deleleted and orphaned).")
 	UpdateBotCmd.Flags().String("username", "", "Optional. The new username for the bot.")

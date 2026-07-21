@@ -21,6 +21,7 @@ Examples
 ::
 
     bot create testbot
+    bot create deploybot --with-token --expires-in 90d
 
 Options
 ~~~~~~~
@@ -29,8 +30,9 @@ Options
 
       --description string    Optional. The description text for the new bot.
       --display-name string   Optional. The display name for the new bot.
+      --expires-in string     Duration after which the generated token expires (e.g. 90d, 12h, 30m). Required when the server enforces a maximum token lifetime.
   -h, --help                  help for create
-      --with-token            Optional. Auto genreate access token for the bot.
+      --with-token            Optional. Auto generate an access token for the bot.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
