@@ -256,9 +256,9 @@ func (_m *UserAccessTokenStore) GetByUser(userID string, page int, perPage int) 
 	return r0, r1
 }
 
-// GetExpiredBefore provides a mock function with given fields: cutoff, limit
-func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(cutoff, limit)
+// GetExpiredBefore provides a mock function with given fields: cutoff, limit, includeAllTokens
+func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(cutoff, limit, includeAllTokens)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetExpiredBefore")
@@ -266,19 +266,19 @@ func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*mo
 
 	var r0 []*model.UserAccessToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(cutoff, limit)
+	if rf, ok := ret.Get(0).(func(int64, int, bool) ([]*model.UserAccessToken, error)); ok {
+		return rf(cutoff, limit, includeAllTokens)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
-		r0 = rf(cutoff, limit)
+	if rf, ok := ret.Get(0).(func(int64, int, bool) []*model.UserAccessToken); ok {
+		r0 = rf(cutoff, limit, includeAllTokens)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserAccessToken)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(cutoff, limit)
+	if rf, ok := ret.Get(1).(func(int64, int, bool) error); ok {
+		r1 = rf(cutoff, limit, includeAllTokens)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -286,9 +286,9 @@ func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*mo
 	return r0, r1
 }
 
-// GetExpiringTokens provides a mock function with given fields: now, thresholds, limit
-func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(now, thresholds, limit)
+// GetExpiringTokens provides a mock function with given fields: now, thresholds, limit, includeAllTokens
+func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(now, thresholds, limit, includeAllTokens)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetExpiringTokens")
@@ -296,19 +296,19 @@ func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, l
 
 	var r0 []*model.UserAccessToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, []int, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(now, thresholds, limit)
+	if rf, ok := ret.Get(0).(func(int64, []int, int, bool) ([]*model.UserAccessToken, error)); ok {
+		return rf(now, thresholds, limit, includeAllTokens)
 	}
-	if rf, ok := ret.Get(0).(func(int64, []int, int) []*model.UserAccessToken); ok {
-		r0 = rf(now, thresholds, limit)
+	if rf, ok := ret.Get(0).(func(int64, []int, int, bool) []*model.UserAccessToken); ok {
+		r0 = rf(now, thresholds, limit, includeAllTokens)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserAccessToken)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, []int, int) error); ok {
-		r1 = rf(now, thresholds, limit)
+	if rf, ok := ret.Get(1).(func(int64, []int, int, bool) error); ok {
+		r1 = rf(now, thresholds, limit, includeAllTokens)
 	} else {
 		r1 = ret.Error(1)
 	}
