@@ -33,6 +33,7 @@ var (
 func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
 	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
+	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
@@ -278,6 +279,81 @@ func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss sto
 		require.Error(t, err)
 		require.IsType(t, &store.ErrNotFound{}, err)
 		require.Nil(t, subject)
+	})
+}
+
+// testAttributesStoreEmptyMultiselect pins the fail-closed contract for
+// multiselect attributes (migration 000205): an empty multiselect resolves to
+// NULL in the matview, never an empty array. The view builds the value with
+// jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
+// NULL — there is no NULLIF/COALESCE. A refactor that wrapped it in
+// COALESCE(..., '[]') would silently flip fail-closed to fail-open (an empty tag
+// set would start satisfying an "in"/membership rule) with the rest of the suite
+// still green, so assert the NULL directly.
+func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	optID1, optID2 := model.NewId(), model.NewId()
+	field, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID: groupID,
+		Name:    "tags",
+		Type:    model.PropertyFieldTypeMultiselect,
+		Attrs: map[string]any{"options": []any{
+			map[string]any{"id": optID1, "name": "blue", "color": ""},
+			map[string]any{"id": optID2, "name": "green", "color": ""},
+		}},
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	emptyChannelID := model.NewId()
+	fullChannelID := model.NewId()
+
+	emptyVal, err := json.Marshal([]string{})
+	require.NoError(t, err)
+	fullVal, err := json.Marshal([]string{optID1, optID2})
+	require.NoError(t, err)
+
+	pvEmpty, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   emptyChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      emptyVal,
+	})
+	require.NoError(t, err)
+	pvFull, err := ss.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   fullChannelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      fullVal,
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvEmpty.ID))
+		require.NoError(t, ss.PropertyValue().Delete(groupID, pvFull.ID))
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+	})
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("empty multiselect resolves to NULL, not []", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, emptyChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		// nil (JSON null), never []any{} — an empty slice would satisfy a
+		// membership rule and open the fail-open hole this test guards.
+		require.Nil(t, subject.Attributes["tags"])
+	})
+
+	t.Run("populated multiselect resolves to option names", func(t *testing.T) {
+		subject, err := ss.Attributes().GetSubject(rctx, fullChannelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []any{"blue", "green"}, subject.Attributes["tags"])
 	})
 }
 
