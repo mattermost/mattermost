@@ -5,6 +5,7 @@ package app
 
 import (
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -368,6 +369,7 @@ func TestCreateRecapFromScheduleAllUnreads(t *testing.T) {
 		Enabled:            true,
 		CreateAt:           model.GetMillis(),
 		UpdateAt:           model.GetMillis(),
+		NextRunAt:          model.GetMillis() - 60_000,
 	}
 
 	recap, createErr := th.App.CreateRecapFromSchedule(th.Context, scheduledRecap)
@@ -389,6 +391,7 @@ func TestCreateRecapFromScheduleAllUnreads(t *testing.T) {
 	require.NotNil(t, recapJob)
 	assert.Equal(t, model.TimePeriodLastWeek, recapJob.Data["time_period"])
 	assert.Equal(t, "Focus on launch risks", recapJob.Data["custom_instructions"])
+	assert.Equal(t, strconv.FormatInt(scheduledRecap.NextRunAt, 10), recapJob.Data["scheduled_for"])
 }
 
 func TestCreateScheduledRecapMasterToggleDisabled(t *testing.T) {
