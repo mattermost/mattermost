@@ -5,6 +5,11 @@
 // Mirrors gen-developer-sidebar.mjs in structure. Only differences are
 // the source directory and the top-level section list (per PLAN.md 3.1).
 //
+// File layout: all manual-grouping CONFIG lives at the top (one section per
+// group of constants below) — that's what you touch when adding/moving a
+// page. All FUNCTIONS (generic helpers, per-section builders, main) live at
+// the bottom, and normally don't need to change for a content-only edit.
+//
 // Usage: node docs-site/scripts/gen-documentation-sidebar.mjs
 
 import {readFileSync, writeFileSync, readdirSync, statSync, existsSync} from 'node:fs';
@@ -16,6 +21,31 @@ const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
 const SRC = join(REPO_ROOT, 'main');
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
+
+// ===========================================================================
+// CONFIG — top-level sections, and manual grouping overrides.
+// ===========================================================================
+//
+// Most sections build their sidebar straight from the filesystem: each
+// subdirectory becomes a category, each file a doc, sorted by
+// `sidebar_position` frontmatter then filename (see buildCategory below).
+// Overview, Deployment Guide, Administration Guide > Configure, and
+// Integrations Guide are flat piles of 15-40 files that read badly as one
+// long alphabetical list, so each gets a manual grouping override applied
+// at sidebar-render time only — the files themselves stay flat on disk, so
+// URLs don't move.
+//
+// Each override is a `*_GROUPS` map (group key -> {label, landing?, items})
+// plus a `*_ROOT_ORDER`/`*_ORDER` array giving the top-level order (plain
+// strings for standalone docs, `{group: 'key'}` for a group from the map).
+// A `*_HIDDEN` set lists files that got re-parented into a group so the
+// orphan check below doesn't re-append them at the section root.
+//
+// Adding a new file to one of these sections: add its basename to the
+// relevant group's `items` (or to the root order array, if standalone). If
+// you forget, the generator logs `WARN: N file(s) missing from *_ORDER` and
+// falls back to appending it at the section root — so it surfaces as a
+// build warning instead of silently disappearing.
 
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
@@ -31,102 +61,13 @@ const TOP_LEVEL = [
   {dir: 'samples',              label: 'Samples'},
 ];
 
-function humanize(name) {
-  return name.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function readFm(filePath, key) {
-  try {
-    const text = readFileSync(filePath, 'utf8').slice(0, 4000);
-    const m = text.match(/^---\n([\s\S]*?)\n---/);
-    if (!m) return null;
-    const r = new RegExp(`^${key}:\\s*"?([^"\\n]+)"?`, 'm');
-    const x = m[1].match(r);
-    return x ? x[1].trim().replace(/^"|"$/g, '') : null;
-  } catch { return null; }
-}
-
-function isDraft(filePath) {
-  return readFm(filePath, 'draft') === 'true';
-}
-
-function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
-
-// Landing pages in this tree are conventionally named either `index.md(x)`
-// or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
-// use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
-// when files are flattened for URL stability, and doesn't always exactly
-// match the directory name. Recognize both, everywhere a directory's
-// landing file is looked up, so category headers/sorting/labels resolve
-// consistently instead of assuming a literal index.md(x).
-function findIndexFile(absDir) {
-  let entries;
-  try { entries = readdirSync(absDir); } catch { return null; }
-  return entries.find((e) => /^index\.(md|mdx)$/.test(e)) ||
-    entries.find((e) => /-index\.(md|mdx)$/.test(e)) ||
-    null;
-}
-
-function buildCategory(absDir, docsRelDir) {
-  const entries = readdirSync(absDir);
-  const indexFile = findIndexFile(absDir);
-  let categoryLink = null;
-  if (indexFile && !isDraft(join(absDir, indexFile))) {
-    categoryLink = {type: 'doc', id: pathToDocId(join(docsRelDir, indexFile))};
-  }
-
-  const subDirs = [];
-  const leafDocs = [];
-  for (const name of entries) {
-    if (name === indexFile) continue;
-    const abs = join(absDir, name);
-    const st = statSync(abs);
-    if (st.isDirectory()) subDirs.push(name);
-    else if (st.isFile() && /\.(md|mdx)$/.test(name) && !isDraft(abs)) leafDocs.push(name);
-  }
-
-  function key(name, abs) {
-    const p = readFm(abs, 'sidebar_position');
-    return [p ? Number(p) : 9999, name.toLowerCase()];
-  }
-  leafDocs.sort((a, b) => {
-    const ka = key(a, join(absDir, a));
-    const kb = key(b, join(absDir, b));
-    return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
-  });
-  function subDirKey(name) {
-    const subAbs = join(absDir, name);
-    const subIndex = findIndexFile(subAbs);
-    return key(name, subIndex ? join(subAbs, subIndex) : join(subAbs, 'index.mdx'));
-  }
-  subDirs.sort((a, b) => {
-    const ka = subDirKey(a);
-    const kb = subDirKey(b);
-    return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
-  });
-
-  const items = [];
-  for (const name of leafDocs) {
-    const id = pathToDocId(join(docsRelDir, name));
-    const filePath = join(absDir, name);
-    const label = readFm(filePath, 'sidebar_label') ||
-      readFm(filePath, 'title') ||
-      humanize(basename(name, /\.(md|mdx)$/.exec(name)[0]));
-    items.push({type: 'doc', id, label});
-  }
-  for (const name of subDirs) {
-    const sub = buildCategory(join(absDir, name), join(docsRelDir, name));
-    if (sub) items.push(sub);
-  }
-
-  const label =
-    (indexFile && readFm(join(absDir, indexFile), 'title')) ||
-    humanize(basename(absDir));
-
-  if (!categoryLink && items.length === 0) return null;
-
-  return {type: 'category', label, collapsed: true, ...(categoryLink ? {link: categoryLink} : {}), items};
-}
+// ---------------------------------------------------------------------------
+// Overview — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// The Overview directory is flat (~40 .mdx files at one level) for URL-
+// stability reasons — moving files into sub-directories would break the
+// redirect table. Mirrors the live docs.mattermost.com Overview structure.
 
 // Files in docs/product-overview/ that are MDX snippet/partial includes,
 // not standalone pages. Excluded from the auto-generated sidebar so they
@@ -137,14 +78,6 @@ const OVERVIEW_HIDDEN = new Set([
   'common-esr-support-rst',
 ]);
 
-// Manual grouping override for the Overview section.
-//
-// The Overview directory is flat (~40 .mdx files at one level) for URL-stability
-// reasons — moving files into sub-directories would break the redirect table.
-// This override applies a logical grouping at sidebar-render time only; the
-// files themselves stay flat on disk and their URLs stay stable.
-//
-// Mirrors the live docs.mattermost.com Overview structure.
 const OVERVIEW_GROUPS = {
   // 'Subscription Overview' — paid subscription model: Self-Hosted, Cloud, Non-Profit.
   subscription: {
@@ -215,42 +148,9 @@ const OVERVIEW_ROOT_ORDER = [
   'whats-new-in-v11',
 ];
 
-function buildOverviewItem(spec, leafLabels) {
-  if (typeof spec === 'string') {
-    const id = `product-overview/${spec}`;
-    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
-  }
-  if (spec.group) {
-    const g = OVERVIEW_GROUPS[spec.group];
-    if (!g) throw new Error(`unknown overview group: ${spec.group}`);
-    return buildOverviewGroup(g, leafLabels);
-  }
-  return buildOverviewGroup(spec, leafLabels);
-}
-
-function buildOverviewGroup(g, leafLabels) {
-  const items = g.items.map((it) => buildOverviewItem(it, leafLabels));
-  const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) {
-    cat.link = {type: 'doc', id: `product-overview/${g.landing}`};
-  }
-  return cat;
-}
-
-// Pull every doc label from the auto-generated Overview category so the
-// manual ordering preserves the frontmatter-derived titles.
-function collectLeafLabels(cat, acc = {}) {
-  if (!cat || !cat.items) return acc;
-  for (const it of cat.items) {
-    if (it.type === 'doc' && it.id && it.label) acc[it.id] = it.label;
-    else if (it.type === 'category') collectLeafLabels(it, acc);
-  }
-  return acc;
-}
-
-// ===========================================================================
+// ---------------------------------------------------------------------------
 // Deployment Guide — manual grouping override.
-// ===========================================================================
+// ---------------------------------------------------------------------------
 //
 // The Deployment Guide directory has loose top-level files mixed with sub-
 // directories (server/, desktop/, mobile/, air-gapped-operations/, reference-
@@ -258,13 +158,10 @@ function collectLeafLabels(cat, acc = {}) {
 // items at the top level, with a 16-item kitchen-sink under Server.
 //
 // This override applies a progression-ordered grouping (Try → Plan → Install
-// → Operate → Security → Troubleshoot) at sidebar-render time only; the
-// files themselves stay flat on disk and their URLs stay stable.
-//
-// Server's internal structure is also restructured into Plan / Install-by-
-// platform / Configure-at-install sub-groups, and the four troubleshooting
-// pages that live under server/ are pulled up into the top-level
-// "Deployment Troubleshooting" category.
+// → Operate → Security → Troubleshoot). Server's internal structure is also
+// restructured into Plan / Install-by-platform / Configure-at-install sub-
+// groups, and the four troubleshooting pages that live under server/ are
+// pulled up into the top-level "Deployment Troubleshooting" category.
 
 const DEPLOYMENT_GROUPS = {
   // 'Deployment Scenarios' — promoted from inside Reference Architecture
@@ -396,117 +293,20 @@ const DEPLOYMENT_HIDDEN = new Set([
   'backup-disaster-recovery',                             // → backupDr (as landing)
   'disaster-recovery-aws',                                // → backupDr
   'postgres-migration',                                   // → postgresMig (as landing)
-  'postgres-migration-assist-tool',                       // → postgresMig
-  'manual-postgres-migration',                            // → postgresMig
-  'encryption-options',                                   // → encryption (as landing)
-  'transport-encryption',                                 // → encryption
-  'deployment-troubleshooting',                           // → troubleshooting (as landing)
-  'server/troubleshooting',                               // → troubleshooting
-  'server/docker-troubleshooting',                        // → troubleshooting
-  'server/trouble_mysql',                                 // → troubleshooting
-  'server/trouble-postgres',                              // → troubleshooting
+  'postgres-migration-assist-tool',                        // → postgresMig
+  'manual-postgres-migration',                             // → postgresMig
+  'encryption-options',                                    // → encryption (as landing)
+  'transport-encryption',                                  // → encryption
+  'deployment-troubleshooting',                            // → troubleshooting (as landing)
+  'server/troubleshooting',                                // → troubleshooting
+  'server/docker-troubleshooting',                         // → troubleshooting
+  'server/trouble_mysql',                                  // → troubleshooting
+  'server/trouble-postgres',                               // → troubleshooting
 ]);
 
-function buildDeploymentItem(spec, leafLabels, autoCats) {
-  if (typeof spec === 'string') {
-    const id = `deployment-guide/${spec}`;
-    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
-  }
-  if (spec.doc) {
-    // Explicit doc leaf with an inline label override.
-    const id = `deployment-guide/${spec.doc}`;
-    return {type: 'doc', id, label: spec.label || leafLabels[id] || humanize(spec.doc.split('/').pop())};
-  }
-  if (spec.auto) {
-    // Reference an auto-generated sub-category (e.g., Desktop, Mobile, Air-Gapped).
-    const cat = autoCats.get(spec.auto);
-    if (!cat) throw new Error(`auto-category not found: deployment-guide/${spec.auto}`);
-    return cat;
-  }
-  if (spec.group) {
-    const g = DEPLOYMENT_GROUPS[spec.group];
-    if (!g) throw new Error(`unknown deployment group: ${spec.group}`);
-    return buildDeploymentGroup(g, leafLabels, autoCats);
-  }
-  return buildDeploymentGroup(spec, leafLabels, autoCats);
-}
-
-function buildDeploymentGroup(g, leafLabels, autoCats) {
-  const items = g.items.map((it) => buildDeploymentItem(it, leafLabels, autoCats));
-  const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) {
-    cat.link = {type: 'doc', id: `deployment-guide/${g.landing}`};
-  }
-  return cat;
-}
-
-function buildDeploymentSidebar(autoCat) {
-  // Index the auto-generated sub-categories by directory name so we can
-  // hand them off intact to the manual ordering. We look at the category's
-  // link target first, and fall back to the first doc child if the dir
-  // has no index.{md,mdx} (e.g., desktop/, mobile/).
-  const autoCats = new Map();
-  function dirNameFromId(id) {
-    const parts = id.split('/');
-    return parts.length >= 2 ? parts[1] : null;
-  }
-  for (const it of autoCat.items) {
-    if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = dirNameFromId(it.link.id);
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = dirNameFromId(firstDoc.id);
-    }
-    if (dirName) autoCats.set(dirName, it);
-  }
-
-  const leafLabels = collectLeafLabels(autoCat);
-
-  const items = DEPLOYMENT_ROOT_ORDER.map((spec) => buildDeploymentItem(spec, leafLabels, autoCats));
-
-  // Orphan detection: surface any leaf doc in the Deployment Guide that we
-  // didn't include in the manual order, so new files don't silently disappear.
-  // DEPLOYMENT_HIDDEN is files we KNOW are re-parented inside groups — they
-  // are referenced (so their labels need to stay in leafLabels) but they
-  // must not be re-emitted as orphans.
-  const hiddenIds = new Set();
-  for (const h of DEPLOYMENT_HIDDEN) hiddenIds.add(`deployment-guide/${h}`);
-  const known = new Set();
-  (function walk(n) {
-    if (Array.isArray(n)) n.forEach(walk);
-    else if (n && typeof n === 'object') {
-      if (n.type === 'doc' && n.id) known.add(n.id);
-      if (n.link && n.link.id) known.add(n.link.id);
-      if (n.items) walk(n.items);
-    }
-  })(items);
-  const orphans = [];
-  for (const id of Object.keys(leafLabels)) {
-    if (!known.has(id) && !hiddenIds.has(id) && id !== 'deployment-guide/deployment-guide-index') {
-      orphans.push(id);
-    }
-  }
-  if (orphans.length > 0) {
-    console.warn(`[sidebar] WARN: ${orphans.length} Deployment Guide file(s) missing from DEPLOYMENT_ROOT_ORDER — falling through to root:`);
-    for (const id of orphans) console.warn(`  - ${id}`);
-    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
-  }
-
-  return {
-    type: 'category',
-    label: 'Deployment Guide',
-    collapsed: true,
-    link: {type: 'doc', id: 'deployment-guide/deployment-guide-index'},
-    items,
-  };
-}
-
-// ===========================================================================
+// ---------------------------------------------------------------------------
 // Administration Guide — Configure — manual grouping override.
-// ===========================================================================
+// ---------------------------------------------------------------------------
 //
 // Configure is a flat 34-file settings-reference dump. This override groups
 // it by task/subsystem so the ~12 "*-configuration-settings" reference pages
@@ -622,69 +422,9 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
   'custom-branding-tools', 'customize-mattermost', 'optimize-your-workspace',
 ]);
 
-function buildAdminConfigureItem(spec, leafLabels) {
-  if (typeof spec === 'string') {
-    const id = `administration-guide/configure/${spec}`;
-    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
-  }
-  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
-  if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
-  const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
-  const cat = {type: 'category', label: g.label, collapsed: true, items};
-  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/configure/${g.landing}`};
-  return cat;
-}
-
-// Replace the auto-generated "Configure" sub-category's items (in place,
-// preserving its position among Administration Guide's other sub-categories
-// like Onboard/Manage/Upgrade/Scale/Comply) with the manual grouping above.
-function regroupAdminConfigure(configureCat) {
-  const leafLabels = collectLeafLabels(configureCat);
-  const items = ADMIN_CONFIGURE_ORDER.map((spec) => buildAdminConfigureItem(spec, leafLabels));
-
-  const known = new Set();
-  (function walk(n) {
-    if (Array.isArray(n)) n.forEach(walk);
-    else if (n && typeof n === 'object') {
-      if (n.type === 'doc' && n.id) known.add(n.id);
-      if (n.link && n.link.id) known.add(n.link.id);
-      if (n.items) walk(n.items);
-    }
-  })(items);
-  const hiddenIds = new Set();
-  for (const h of ADMIN_CONFIGURE_HIDDEN) hiddenIds.add(`administration-guide/configure/${h}`);
-  const orphans = [];
-  for (const id of Object.keys(leafLabels)) {
-    if (!known.has(id) && !hiddenIds.has(id) && id !== 'administration-guide/configure/configuration-settings') {
-      orphans.push(id);
-    }
-  }
-  if (orphans.length > 0) {
-    console.warn(`[sidebar] WARN: ${orphans.length} Configure file(s) missing from ADMIN_CONFIGURE_ORDER — falling through to root:`);
-    for (const id of orphans) console.warn(`  - ${id}`);
-    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
-  }
-
-  configureCat.items = items;
-  return configureCat;
-}
-
-function buildAdminGuideSidebar(autoCat) {
-  for (const it of autoCat.items) {
-    if (it.type !== 'category') continue;
-    const dirName = it.link && it.link.id ? it.link.id.split('/')[1] :
-      (it.items || []).map((c) => c.id).find(Boolean)?.split('/')[1];
-    if (dirName === 'configure') {
-      regroupAdminConfigure(it);
-      break;
-    }
-  }
-  return autoCat;
-}
-
-// ===========================================================================
+// ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
-// ===========================================================================
+// ---------------------------------------------------------------------------
 //
 // Integrations Guide is a genuinely flat 20-item list (not just a migration
 // artifact — Sphinx has the same problem). Group by integration type so
@@ -755,6 +495,357 @@ const INTEGRATIONS_HIDDEN = new Set([
   'restful-api', 'plugins',
 ]);
 
+// ===========================================================================
+// FUNCTIONS — generic helpers, per-section builders, main.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Generic helpers, shared by the auto-generator and every manual override.
+// ---------------------------------------------------------------------------
+
+function humanize(name) {
+  return name.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function readFm(filePath, key) {
+  try {
+    const text = readFileSync(filePath, 'utf8').slice(0, 4000);
+    const m = text.match(/^---\n([\s\S]*?)\n---/);
+    if (!m) return null;
+    const r = new RegExp(`^${key}:\\s*"?([^"\\n]+)"?`, 'm');
+    const x = m[1].match(r);
+    return x ? x[1].trim().replace(/^"|"$/g, '') : null;
+  } catch { return null; }
+}
+
+function isDraft(filePath) {
+  return readFm(filePath, 'draft') === 'true';
+}
+
+function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
+
+// Landing pages in this tree are conventionally named either `index.md(x)`
+// or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
+// use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
+// when files are flattened for URL stability, and doesn't always exactly
+// match the directory name. Recognize both, everywhere a directory's
+// landing file is looked up, so category headers/sorting/labels resolve
+// consistently instead of assuming a literal index.md(x).
+function findIndexFile(absDir) {
+  let entries;
+  try { entries = readdirSync(absDir); } catch { return null; }
+  return entries.find((e) => /^index\.(md|mdx)$/.test(e)) ||
+    entries.find((e) => /-index\.(md|mdx)$/.test(e)) ||
+    null;
+}
+
+function buildCategory(absDir, docsRelDir) {
+  const entries = readdirSync(absDir);
+  const indexFile = findIndexFile(absDir);
+  let categoryLink = null;
+  if (indexFile && !isDraft(join(absDir, indexFile))) {
+    categoryLink = {type: 'doc', id: pathToDocId(join(docsRelDir, indexFile))};
+  }
+
+  const subDirs = [];
+  const leafDocs = [];
+  for (const name of entries) {
+    if (name === indexFile) continue;
+    const abs = join(absDir, name);
+    const st = statSync(abs);
+    if (st.isDirectory()) subDirs.push(name);
+    else if (st.isFile() && /\.(md|mdx)$/.test(name) && !isDraft(abs)) leafDocs.push(name);
+  }
+
+  function key(name, abs) {
+    const p = readFm(abs, 'sidebar_position');
+    return [p ? Number(p) : 9999, name.toLowerCase()];
+  }
+  leafDocs.sort((a, b) => {
+    const ka = key(a, join(absDir, a));
+    const kb = key(b, join(absDir, b));
+    return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
+  });
+  function subDirKey(name) {
+    const subAbs = join(absDir, name);
+    const subIndex = findIndexFile(subAbs);
+    return key(name, subIndex ? join(subAbs, subIndex) : join(subAbs, 'index.mdx'));
+  }
+  subDirs.sort((a, b) => {
+    const ka = subDirKey(a);
+    const kb = subDirKey(b);
+    return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
+  });
+
+  const items = [];
+  for (const name of leafDocs) {
+    const id = pathToDocId(join(docsRelDir, name));
+    const filePath = join(absDir, name);
+    const label = readFm(filePath, 'sidebar_label') ||
+      readFm(filePath, 'title') ||
+      humanize(basename(name, /\.(md|mdx)$/.exec(name)[0]));
+    items.push({type: 'doc', id, label});
+  }
+  for (const name of subDirs) {
+    const sub = buildCategory(join(absDir, name), join(docsRelDir, name));
+    if (sub) items.push(sub);
+  }
+
+  const label =
+    (indexFile && readFm(join(absDir, indexFile), 'title')) ||
+    humanize(basename(absDir));
+
+  if (!categoryLink && items.length === 0) return null;
+
+  return {type: 'category', label, collapsed: true, ...(categoryLink ? {link: categoryLink} : {}), items};
+}
+
+// Pull every doc label from an auto-generated category so a manual ordering
+// preserves the frontmatter-derived titles.
+function collectLeafLabels(cat, acc = {}) {
+  if (!cat || !cat.items) return acc;
+  for (const it of cat.items) {
+    if (it.type === 'doc' && it.id && it.label) acc[it.id] = it.label;
+    else if (it.type === 'category') collectLeafLabels(it, acc);
+  }
+  return acc;
+}
+
+// ---------------------------------------------------------------------------
+// Overview — builder.
+// ---------------------------------------------------------------------------
+
+function buildOverviewItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `product-overview/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  if (spec.group) {
+    const g = OVERVIEW_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown overview group: ${spec.group}`);
+    return buildOverviewGroup(g, leafLabels);
+  }
+  return buildOverviewGroup(spec, leafLabels);
+}
+
+function buildOverviewGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildOverviewItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) {
+    cat.link = {type: 'doc', id: `product-overview/${g.landing}`};
+  }
+  return cat;
+}
+
+function buildOverviewSidebar(autoCat) {
+  const leafLabels = collectLeafLabels(autoCat);
+  // Drop hidden snippet-include partials from the label map up front.
+  for (const hidden of OVERVIEW_HIDDEN) delete leafLabels[`product-overview/${hidden}`];
+
+  const items = OVERVIEW_ROOT_ORDER.map((spec) => buildOverviewItem(spec, leafLabels));
+
+  // Surface any flat docs we didn't include in the manual order so a new
+  // file dropped into docs/product-overview/ doesn't silently disappear.
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && id !== 'product-overview/product-overview-index') orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Overview file(s) missing from OVERVIEW_ROOT_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  return {
+    type: 'category',
+    label: 'Overview',
+    collapsed: true,
+    // Merged with the site landing — clicking "Overview" opens the
+    // root doc (docs/index.mdx, slug: /), which is the unified
+    // welcome / Overview page.
+    link: {type: 'doc', id: 'index'},
+    items,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Deployment Guide — builder.
+// ---------------------------------------------------------------------------
+
+function buildDeploymentItem(spec, leafLabels, autoCats) {
+  if (typeof spec === 'string') {
+    const id = `deployment-guide/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.doc) {
+    // Explicit doc leaf with an inline label override.
+    const id = `deployment-guide/${spec.doc}`;
+    return {type: 'doc', id, label: spec.label || leafLabels[id] || humanize(spec.doc.split('/').pop())};
+  }
+  if (spec.auto) {
+    // Reference an auto-generated sub-category (e.g., Desktop, Mobile, Air-Gapped).
+    const cat = autoCats.get(spec.auto);
+    if (!cat) throw new Error(`auto-category not found: deployment-guide/${spec.auto}`);
+    return cat;
+  }
+  if (spec.group) {
+    const g = DEPLOYMENT_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown deployment group: ${spec.group}`);
+    return buildDeploymentGroup(g, leafLabels, autoCats);
+  }
+  return buildDeploymentGroup(spec, leafLabels, autoCats);
+}
+
+function buildDeploymentGroup(g, leafLabels, autoCats) {
+  const items = g.items.map((it) => buildDeploymentItem(it, leafLabels, autoCats));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) {
+    cat.link = {type: 'doc', id: `deployment-guide/${g.landing}`};
+  }
+  return cat;
+}
+
+function buildDeploymentSidebar(autoCat) {
+  // Index the auto-generated sub-categories by directory name so we can
+  // hand them off intact to the manual ordering. We look at the category's
+  // link target first, and fall back to the first doc child if the dir
+  // has no index.{md,mdx} (e.g., desktop/, mobile/).
+  const autoCats = new Map();
+  function dirNameFromId(id) {
+    const parts = id.split('/');
+    return parts.length >= 2 ? parts[1] : null;
+  }
+  for (const it of autoCat.items) {
+    if (it.type !== 'category') continue;
+    let dirName = null;
+    if (it.link && it.link.id) {
+      dirName = dirNameFromId(it.link.id);
+    }
+    if (!dirName && it.items) {
+      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
+      if (firstDoc) dirName = dirNameFromId(firstDoc.id);
+    }
+    if (dirName) autoCats.set(dirName, it);
+  }
+
+  const leafLabels = collectLeafLabels(autoCat);
+
+  const items = DEPLOYMENT_ROOT_ORDER.map((spec) => buildDeploymentItem(spec, leafLabels, autoCats));
+
+  // Orphan detection: surface any leaf doc in the Deployment Guide that we
+  // didn't include in the manual order, so new files don't silently disappear.
+  // DEPLOYMENT_HIDDEN is files we KNOW are re-parented inside groups — they
+  // are referenced (so their labels need to stay in leafLabels) but they
+  // must not be re-emitted as orphans.
+  const hiddenIds = new Set();
+  for (const h of DEPLOYMENT_HIDDEN) hiddenIds.add(`deployment-guide/${h}`);
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id) && id !== 'deployment-guide/deployment-guide-index') {
+      orphans.push(id);
+    }
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Deployment Guide file(s) missing from DEPLOYMENT_ROOT_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  return {
+    type: 'category',
+    label: 'Deployment Guide',
+    collapsed: true,
+    link: {type: 'doc', id: 'deployment-guide/deployment-guide-index'},
+    items,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Administration Guide — builder (regroups the "Configure" sub-category).
+// ---------------------------------------------------------------------------
+
+function buildAdminConfigureItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/configure/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
+  if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
+  const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/configure/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Configure" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories
+// like Onboard/Manage/Upgrade/Scale/Comply) with the manual grouping above.
+function regroupAdminConfigure(configureCat) {
+  const leafLabels = collectLeafLabels(configureCat);
+  const items = ADMIN_CONFIGURE_ORDER.map((spec) => buildAdminConfigureItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_CONFIGURE_HIDDEN) hiddenIds.add(`administration-guide/configure/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id) && id !== 'administration-guide/configure/configuration-settings') {
+      orphans.push(id);
+    }
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Configure file(s) missing from ADMIN_CONFIGURE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  configureCat.items = items;
+  return configureCat;
+}
+
+function buildAdminGuideSidebar(autoCat) {
+  for (const it of autoCat.items) {
+    if (it.type !== 'category') continue;
+    const dirName = it.link && it.link.id ? it.link.id.split('/')[1] :
+      (it.items || []).map((c) => c.id).find(Boolean)?.split('/')[1];
+    if (dirName === 'configure') {
+      regroupAdminConfigure(it);
+      break;
+    }
+  }
+  return autoCat;
+}
+
+// ---------------------------------------------------------------------------
+// Integrations Guide — builder.
+// ---------------------------------------------------------------------------
+
 function buildIntegrationsItem(spec, leafLabels) {
   if (typeof spec === 'string') {
     const id = `integrations-guide/${spec}`;
@@ -811,45 +902,9 @@ function buildIntegrationsSidebar(autoCat) {
   };
 }
 
-function buildOverviewSidebar(autoCat) {
-  const leafLabels = collectLeafLabels(autoCat);
-  // Drop hidden snippet-include partials from the label map up front.
-  for (const hidden of OVERVIEW_HIDDEN) delete leafLabels[`product-overview/${hidden}`];
-
-  const items = OVERVIEW_ROOT_ORDER.map((spec) => buildOverviewItem(spec, leafLabels));
-
-  // Surface any flat docs we didn't include in the manual order so a new
-  // file dropped into docs/product-overview/ doesn't silently disappear.
-  const known = new Set();
-  (function walk(n) {
-    if (Array.isArray(n)) n.forEach(walk);
-    else if (n && typeof n === 'object') {
-      if (n.type === 'doc' && n.id) known.add(n.id);
-      if (n.link && n.link.id) known.add(n.link.id);
-      if (n.items) walk(n.items);
-    }
-  })(items);
-  const orphans = [];
-  for (const id of Object.keys(leafLabels)) {
-    if (!known.has(id) && id !== 'product-overview/product-overview-index') orphans.push(id);
-  }
-  if (orphans.length > 0) {
-    console.warn(`[sidebar] WARN: ${orphans.length} Overview file(s) missing from OVERVIEW_ROOT_ORDER — falling through to root:`);
-    for (const id of orphans) console.warn(`  - ${id}`);
-    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
-  }
-
-  return {
-    type: 'category',
-    label: 'Overview',
-    collapsed: true,
-    // Merged with the site landing — clicking "Overview" opens the
-    // root doc (docs/index.mdx, slug: /), which is the unified
-    // welcome / Overview page.
-    link: {type: 'doc', id: 'index'},
-    items,
-  };
-}
+// ---------------------------------------------------------------------------
+// Entry point.
+// ---------------------------------------------------------------------------
 
 function main() {
   if (!existsSync(SRC)) { console.error(`SRC not found at ${SRC}`); process.exit(1); }
