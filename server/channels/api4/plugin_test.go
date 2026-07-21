@@ -380,6 +380,99 @@ func TestGetWebappPluginsAccessControl(t *testing.T) {
 	})
 }
 
+func TestPluginAccessControlAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+	})
+
+	pluginID := "testplugin"
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.PluginAccessControl, pluginID)
+		})
+		_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
+	})
+
+	t.Run("system admin can get and set access control", func(t *testing.T) {
+		settings, _, err := th.SystemAdminClient.GetPluginAccessControl(context.Background(), pluginID)
+		require.NoError(t, err)
+		require.NotNil(t, settings)
+		assert.False(t, settings.Enable)
+
+		_, err = th.SystemAdminClient.SetPluginAccessControl(context.Background(), pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{th.BasicUser.Id},
+		})
+		require.NoError(t, err)
+
+		settings, _, err = th.SystemAdminClient.GetPluginAccessControl(context.Background(), pluginID)
+		require.NoError(t, err)
+		assert.True(t, settings.Enable)
+		assert.Equal(t, []string{th.BasicUser.Id}, settings.AllowedUserIds)
+	})
+
+	t.Run("non-admin cannot get or set access control", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPluginAccessControl(context.Background(), pluginID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = th.Client.SetPluginAccessControl(context.Background(), pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{th.BasicUser.Id},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("invalid user id rejected", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.SetPluginAccessControl(context.Background(), pluginID, &model.PluginAccessControlSettings{
+			Enable:         true,
+			AllowedUserIds: []string{"not-a-valid-id"},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid json body rejected", func(t *testing.T) {
+		url := th.SystemAdminClient.APIURL + "/plugins/" + pluginID + "/access_control"
+		req, err := http.NewRequest(http.MethodPut, url, strings.NewReader(`{"enable":`))
+		require.NoError(t, err)
+		req.Header.Set(model.HeaderAuth, th.SystemAdminClient.AuthType+" "+th.SystemAdminClient.AuthToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		httpResp, err := th.SystemAdminClient.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+	})
+
+	t.Run("plugins disabled returns not implemented", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		_, resp, err := th.SystemAdminClient.GetPluginAccessControl(context.Background(), pluginID)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.SetPluginAccessControl(context.Background(), pluginID, &model.PluginAccessControlSettings{
+			Enable: false,
+		})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+}
+
 func TestPluginInstallDirectoryConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

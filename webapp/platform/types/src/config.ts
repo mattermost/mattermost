@@ -1001,7 +1001,7 @@ export type JobSettings = {
 };
 
 export type PluginAccessControl = {
-    Enable: boolean;
+    Enable: boolean | null;
 };
 
 export type PluginAccessControlSettings = {

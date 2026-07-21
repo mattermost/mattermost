@@ -719,6 +719,22 @@ func TestServePluginRequestAccessControl(t *testing.T) {
 		require.True(t, handlerCalled)
 	})
 
+	t.Run("denied user still 404s when CSRF fails on cookie auth", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		req.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: deniedSession.Token})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		assert.False(t, handlerCalled)
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
 	t.Run("opted-out plugin always allowed", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
