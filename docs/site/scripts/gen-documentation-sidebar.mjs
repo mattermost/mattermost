@@ -52,16 +52,24 @@ function isDraft(filePath) {
 
 function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
 
+// Landing pages in this tree are conventionally named either `index.md(x)`
+// or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
+// use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
+// when files are flattened for URL stability, and doesn't always exactly
+// match the directory name. Recognize both, everywhere a directory's
+// landing file is looked up, so category headers/sorting/labels resolve
+// consistently instead of assuming a literal index.md(x).
+function findIndexFile(absDir) {
+  let entries;
+  try { entries = readdirSync(absDir); } catch { return null; }
+  return entries.find((e) => /^index\.(md|mdx)$/.test(e)) ||
+    entries.find((e) => /-index\.(md|mdx)$/.test(e)) ||
+    null;
+}
+
 function buildCategory(absDir, docsRelDir) {
   const entries = readdirSync(absDir);
-  // Landing pages in this tree are conventionally named either `index.md(x)`
-  // or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
-  // use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
-  // when files are flattened for URL stability, and doesn't always exactly
-  // match the directory name. Recognize both so category headers link to
-  // their landing page instead of just expanding/collapsing.
-  const indexFile = entries.find((e) => /^index\.(md|mdx)$/.test(e)) ||
-    entries.find((e) => /-index\.(md|mdx)$/.test(e));
+  const indexFile = findIndexFile(absDir);
   let categoryLink = null;
   if (indexFile && !isDraft(join(absDir, indexFile))) {
     categoryLink = {type: 'doc', id: pathToDocId(join(docsRelDir, indexFile))};
@@ -86,9 +94,14 @@ function buildCategory(absDir, docsRelDir) {
     const kb = key(b, join(absDir, b));
     return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
   });
+  function subDirKey(name) {
+    const subAbs = join(absDir, name);
+    const subIndex = findIndexFile(subAbs);
+    return key(name, subIndex ? join(subAbs, subIndex) : join(subAbs, 'index.mdx'));
+  }
   subDirs.sort((a, b) => {
-    const ka = key(a, join(absDir, a, 'index.mdx'));
-    const kb = key(b, join(absDir, b, 'index.mdx'));
+    const ka = subDirKey(a);
+    const kb = subDirKey(b);
     return ka[0] - kb[0] || ka[1].localeCompare(kb[1]);
   });
 
@@ -107,8 +120,7 @@ function buildCategory(absDir, docsRelDir) {
   }
 
   const label =
-    readFm(join(absDir, 'index.md'), 'title') ||
-    readFm(join(absDir, 'index.mdx'), 'title') ||
+    (indexFile && readFm(join(absDir, indexFile), 'title')) ||
     humanize(basename(absDir));
 
   if (!categoryLink && items.length === 0) return null;
