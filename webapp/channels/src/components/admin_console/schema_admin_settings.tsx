@@ -1021,6 +1021,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         if (setting.showTitle) {
             return (
                 <Setting
+                    key={this.props.schema.id + '_custom_' + setting.key}
                     label={label}
                     inputId={setting.key}
                     helpText={helpText}

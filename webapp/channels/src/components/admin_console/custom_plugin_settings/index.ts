@@ -60,7 +60,7 @@ function makeGetPluginSchema() {
                     } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
                         // Show a warning banner to enable the plugin in order to display the custom component.
                         type = Constants.SettingsTypes.TYPE_BANNER;
-                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin.'});
                         bannerType = 'warning';
                         isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
                     }
@@ -104,7 +104,7 @@ function makeGetPluginSchema() {
                                 type: Constants.SettingsTypes.TYPE_BANNER,
                                 label: defineMessage({
                                     id: 'admin.plugin.customSection.pluginDisabledWarning',
-                                    defaultMessage: 'In order to view this section, enable the plugin and click Save.',
+                                    defaultMessage: 'In order to view this section, enable the plugin.',
                                 }),
                                 banner_type: 'warning',
                             }];
@@ -144,7 +144,7 @@ function makeGetPluginSchema() {
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
-                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin.'}),
                         banner_type: 'warning' as const,
                     };
 
