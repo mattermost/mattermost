@@ -25,6 +25,7 @@ type Props = {
     };
     disabled: boolean;
     id: string;
+    saveNeeded?: false | string;
     value: boolean;
 };
 
@@ -39,15 +40,33 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
     return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
 }
 
-export function PluginEnableButton({actions, disabled, id, value}: Props) {
+export function PluginEnableButton({actions, disabled, id, saveNeeded = false, value}: Props) {
     const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
     const [showRemoveModal, setShowRemoveModal] = useState(false);
-    const [serverError, setServerError] = useState('');
+    const [serverError, setServerError] = useState<React.ReactNode>('');
     const pluginId = useMemo(() => getPluginIdFromEnableSettingId(id), [id]);
     const pluginEnabled = Boolean(value);
 
+    const guardUnsavedChanges = useCallback(() => {
+        if (saveNeeded === false) {
+            return false;
+        }
+
+        setServerError(
+            <FormattedMessage
+                id='admin_settings.save_unsaved_changes'
+                defaultMessage='Please save unsaved changes first'
+            />,
+        );
+        return true;
+    }, [saveNeeded]);
+
     const handleTogglePlugin = useCallback(async () => {
         if (!pluginId || submittingAction || disabled) {
+            return;
+        }
+
+        if (guardUnsavedChanges()) {
             return;
         }
 
@@ -60,16 +79,20 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
         }
 
         setSubmittingAction('');
-    }, [actions, disabled, pluginEnabled, pluginId, submittingAction]);
+    }, [actions, disabled, guardUnsavedChanges, pluginEnabled, pluginId, submittingAction]);
 
     const handleShowRemoveModal = useCallback(() => {
         if (!pluginId || submittingAction || disabled) {
             return;
         }
 
+        if (guardUnsavedChanges()) {
+            return;
+        }
+
         setServerError('');
         setShowRemoveModal(true);
-    }, [disabled, pluginId, submittingAction]);
+    }, [disabled, guardUnsavedChanges, pluginId, submittingAction]);
 
     const handleRemovePluginCancel = useCallback(() => {
         setShowRemoveModal(false);
@@ -77,6 +100,11 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
 
     const handleRemovePlugin = useCallback(async () => {
         if (!pluginId || submittingAction || disabled) {
+            return;
+        }
+
+        if (guardUnsavedChanges()) {
+            setShowRemoveModal(false);
             return;
         }
 
@@ -92,7 +120,7 @@ export function PluginEnableButton({actions, disabled, id, value}: Props) {
         }
 
         getHistory().push('/admin_console/plugins/plugin_management');
-    }, [actions, disabled, pluginId, submittingAction]);
+    }, [actions, disabled, guardUnsavedChanges, pluginId, submittingAction]);
 
     let buttonMessage = pluginEnabled ? (
         <FormattedMessage

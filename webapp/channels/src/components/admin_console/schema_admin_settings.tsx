@@ -112,6 +112,10 @@ export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
 }
 
+export function getPluginEnabledConfigKey(pluginId: string) {
+    return 'PluginSettings.PluginStates.' + escapePathPart(pluginId) + '.Enable';
+}
+
 export function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
     if (!text) {
         return undefined;
@@ -363,8 +367,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
-        const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapePathPart(this.props.plugin.id) + '.Enable';
-
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <PluginMetadataPanel
@@ -375,8 +377,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     releaseNotesUrl={this.props.plugin.release_notes_url}
                 />
                 <PluginEnableButton
-                    id={pluginEnabledConfigKey}
+                    id={getPluginEnabledConfigKey(this.props.plugin.id)}
                     disabled={this.props.isDisabled}
+                    saveNeeded={this.state.saveNeeded}
                     value={this.props.plugin.active}
                 />
             </div>

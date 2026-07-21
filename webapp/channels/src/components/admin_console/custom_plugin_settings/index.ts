@@ -24,7 +24,7 @@ import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition_helpers';
-import {escapePathPart} from '../schema_admin_settings';
+import {escapePathPart, getPluginEnabledConfigKey} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
 type OwnProps = {match: {params: {plugin_id: string}}};
@@ -43,7 +43,7 @@ function makeGetPluginSchema() {
             }
 
             const escapedPluginId = escapePathPart(plugin.id);
-            const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
+            const pluginEnabledConfigKey = getPluginEnabledConfigKey(plugin.id);
 
             const parsePluginSettings = (settings: PluginSetting[]) => {
                 return settings.map((setting) => {
@@ -185,7 +185,7 @@ function makeGetPluginSchema() {
             return {
                 ...plugin.settings_schema,
                 id: plugin.id,
-                stateKey: `${plugin.id}.${plugin.active ? 'active' : 'inactive'}`,
+                stateKey: plugin.id,
                 name: plugin.name,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,

@@ -77,6 +77,32 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         });
     });
 
+    it('blocks plugin actions when there are unsaved setting changes', async () => {
+        const disablePlugin = jest.fn();
+        const enablePlugin = jest.fn();
+        const removePlugin = jest.fn();
+
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                saveNeeded='config'
+                value={false}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+
+        expect(screen.getByText('Please save unsaved changes first')).toBeInTheDocument();
+        expect(enablePlugin).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Uninstall plugin'}));
+
+        expect(screen.queryByText('Remove plugin?')).not.toBeInTheDocument();
+        expect(removePlugin).not.toHaveBeenCalled();
+    });
+
     it('confirms before uninstalling the plugin', async () => {
         const disablePlugin = jest.fn();
         const enablePlugin = jest.fn();
