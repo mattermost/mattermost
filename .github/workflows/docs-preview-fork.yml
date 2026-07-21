@@ -42,19 +42,3 @@ jobs:
       PR_NUMBER: ${{ inputs.PR_NUMBER }}
       COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
       STATUS_CONTEXT: docs-preview
-
-  update-failure-status:
-    runs-on: ubuntu-latest
-    if: failure() || cancelled()
-    needs:
-      - deploy
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.COMMIT_SHA }}
-          context: docs-preview
-          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} failed"
-          status: failure
