@@ -1587,6 +1587,8 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 		mentionCountColumn = "cm.MentionCountRoot"
 	}
 
+	// Space backing channels are internal and carry no chat read-state.
+	typeClause, typeArgs := nonMessageBackingChannelTypesNotIn()
 	query := `
 		SELECT SUM(` + mentionCountColumn + `)
 		FROM Channels c
@@ -1594,10 +1596,11 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 			ON cm.ChannelId = c.Id
 			AND cm.UserId = ?
 			AND c.DeleteAt = 0
+		WHERE c.Type ` + typeClause + `
 	`
 
 	var count int64
-	err := us.GetReplica().Get(&count, query, userId)
+	err := us.GetReplica().Get(&count, query, append([]any{userId}, typeArgs...)...)
 	if err != nil {
 		return count, errors.Wrapf(err, "failed to count unread Channels for userId=%s", userId)
 	}

@@ -447,6 +447,20 @@ type API interface {
 	// Minimum server version: 5.2
 	DeleteChannel(channelId string) *model.AppError
 
+	// RestoreChannel restores a previously deleted (archived) channel.
+	//
+	// @tag Channel
+	// Minimum server version: 11.10
+	RestoreChannel(channelId string) *model.AppError
+
+	// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Unlike
+	// GetChannel, it resolves opaque backing channel types (e.g. space) that GetChannel excludes;
+	// a caller that needs such a channel asks for it by its exact type.
+	//
+	// @tag Channel
+	// Minimum server version: 11.10
+	GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError)
+
 	// GetPublicChannelsForTeam gets a list of all channels.
 	//
 	// @tag Channel
@@ -1643,6 +1657,43 @@ type API interface {
 	// @tag PropertyValue
 	// Minimum server version: 10.10
 	DeletePropertyValuesForField(groupID, fieldID string) error
+
+	// UpsertPropertyValuesWithOptions creates or updates multiple property
+	// values, declaring the scope the plugin is acting as. The scope is
+	// checked against each field's owners list when the field is owner-managed.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error)
+
+	// UpsertPropertyValueWithOptions creates or updates a single property
+	// value, declaring the scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error)
+
+	// DeletePropertyValueWithOptions deletes a property value, declaring the
+	// scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error
+
+	// DeletePropertyValuesForTargetWithOptions deletes all property values for
+	// a target, declaring the scope the plugin is acting as. This is the
+	// deprovisioning entrypoint: it needs no value objects, only the target.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error
+
+	// DeletePropertyValuesForFieldWithOptions deletes all property values for a
+	// field, declaring the scope the plugin is acting as.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.10
+	DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error
 
 	// LogAuditRec logs an audit record using the default audit logger.
 	//

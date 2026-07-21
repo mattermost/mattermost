@@ -9,6 +9,8 @@ export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {extractEmailLink, getRecentEmail} from './email';
+export type {InbucketEmail} from './email';
 export {
     enableAIBridgeTestMode,
     configureAIBridgeMock,

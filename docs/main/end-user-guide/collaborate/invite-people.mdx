@@ -53,6 +53,7 @@ Anyone can invite people to Mattermost teams and channels, unless your system ad
 - An invite link can be used by anyone and doesn’t change unless it’s re-generated or revoked by a system admin or team admin via **Team Settings \> Access \> Invite Code**.
 - Your system admin must [enable email invitations](/administration-guide/configure/authentication-configuration-settings#enable-email-invitations) and configure [email](/administration-guide/configure/environment-configuration-settings#smtp) for Mattermost to send email-based invitations.
   - Invitation links sent by email expire after 48 hours and can only be used once.
+- When profile fields are managed by your system admin, email invitations may include fields to preset the invitee's name and username. These values are applied during signup and become admin-managed.
 - Your system admin can [cancel all email invitations](/administration-guide/configure/authentication-configuration-settings#invalidate-pending-email-invites) that haven't yet been accepted within the System Console.
 
 </Note>

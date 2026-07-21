@@ -22,6 +22,10 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+
+	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
+	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
+	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
 )
 
 // Audit & Certificates
@@ -155,6 +159,11 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+	// AuditEventCPAValueChange is emitted from the common app-layer value write
+	// path for every effective CPA value change, regardless of caller (session,
+	// local admin, plugin owner, or LDAP/SAML sync). It is the single place all
+	// owners converge, capturing the caller ID and acting-as scope.
+	AuditEventCPAValueChange = "cpaValueChange"
 )
 
 // Property Fields
