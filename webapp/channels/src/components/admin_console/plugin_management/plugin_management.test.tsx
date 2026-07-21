@@ -9,7 +9,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -624,6 +624,27 @@ describe('components/PluginManagement', () => {
         await waitFor(() => {
             expect(screen.queryByRole('progressbar', {name: 'Plugin upload progress'})).not.toBeInTheDocument();
         });
+    });
+
+    test('keeps the dropzone active when dragging between child elements', () => {
+        renderWithContext(<PluginManagement {...defaultProps}/>);
+
+        const dropzone = screen.getByRole('button', {name: /Click or drop plugin bundle to upload/});
+        const dropzoneTitle = dropzone.querySelector('.PluginManagement__uploadDropzoneTitle');
+        expect(dropzoneTitle).not.toBeNull();
+
+        fireEvent.dragEnter(dropzone);
+        expect(dropzone).toHaveClass('PluginManagement__uploadDropzone--active');
+
+        const dragLeaveChild = createEvent.dragLeave(dropzone);
+        Object.defineProperty(dragLeaveChild, 'relatedTarget', {value: dropzoneTitle});
+        fireEvent(dropzone, dragLeaveChild);
+        expect(dropzone).toHaveClass('PluginManagement__uploadDropzone--active');
+
+        const dragLeaveDropzone = createEvent.dragLeave(dropzone);
+        Object.defineProperty(dragLeaveDropzone, 'relatedTarget', {value: document.body});
+        fireEvent(dropzone, dragLeaveDropzone);
+        expect(dropzone).not.toHaveClass('PluginManagement__uploadDropzone--active');
     });
 
     test('explains why direct upload is disabled when plugin signatures are required', () => {

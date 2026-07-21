@@ -619,6 +619,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     handleUploadDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
+
+        const relatedTarget = e.relatedTarget || e.nativeEvent.relatedTarget;
+        if (relatedTarget instanceof Node && e.currentTarget.contains(relatedTarget)) {
+            return;
+        }
+
         this.setState({draggingUpload: false});
     };
 
