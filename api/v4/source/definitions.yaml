@@ -3182,6 +3182,19 @@ components:
           type: string
           description: Set to "all" to mark the channel unread for any new message,
             "mention" to mark unread for new mentions only. Defaults to "all".
+    PluginAccessControlSettings:
+      type: object
+      properties:
+        enable:
+          type: boolean
+          description: >
+            When true, only users listed in `allowed_user_ids` (and System
+            Administrators) can see the plugin in the product menu and app bar.
+        allowed_user_ids:
+          type: array
+          items:
+            type: string
+          description: User IDs allowed to see the plugin when access control is enabled.
     PluginManifest:
       type: object
       properties:
