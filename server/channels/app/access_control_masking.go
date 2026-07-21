@@ -218,12 +218,24 @@ func (a *App) userSiblingField(rctx request.CTX, groupID, linkedFieldID string) 
 	if appErr != nil {
 		return nil, appErr
 	}
+	// The masking decision uses this sibling's held values to gate a channel
+	// field's option names, so it must resolve to exactly one field. Nothing
+	// enforces LinkedFieldID uniqueness at the DB level, so a second match would
+	// make the choice depend on store order and could disclose a value via the
+	// "wrong" sibling. Error on ambiguity rather than guess — the caller fails
+	// this field closed (precompute logs and skips it, masking every value).
+	// PerPage:2 is enough to detect the second match.
+	var match *model.PropertyField
 	for _, f := range fields {
-		if f != nil {
-			return f, nil
+		if f == nil {
+			continue
 		}
+		if match != nil {
+			return nil, model.NewAppError("userSiblingField", "app.pap.masking.ambiguous_sibling.app_error", map[string]any{"LinkedFieldID": linkedFieldID}, "multiple user fields link the same template", http.StatusInternalServerError)
+		}
+		match = f
 	}
-	return nil, nil
+	return match, nil
 }
 
 func (r *appMaskingResolver) fieldToMaskingInfo(h *maskingHoldings) *model.MaskingFieldInfo {

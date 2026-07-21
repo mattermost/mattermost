@@ -7857,6 +7857,10 @@
     "translation": "Could not mask policy expression."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Could not merge policy expression with stored masked values."
   },

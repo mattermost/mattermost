@@ -1402,6 +1402,83 @@ func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
 	assert.True(t, info.IsValueHidden("B"), "value the caller does not hold must be hidden on the channel field")
 }
 
+// TestAppMaskingResolver_AmbiguousUserSibling guards the fail-open hole where two
+// user fields link the same template. Nothing enforces LinkedFieldID uniqueness
+// at the DB level, so picking the "first" sibling would make channel-field
+// visibility depend on store order and could leak a value via the wrong sibling.
+// Resolution must error instead of guessing.
+func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	options := []any{map[string]any{"id": optA, "name": "A"}}
+
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	linkedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		}
+	}
+
+	// Two user fields link the same template — the ambiguity this test triggers.
+	for range 2 {
+		_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &tmpl.ID,
+			Attrs:         linkedAttrs(),
+		})
+		require.NoError(t, sErr)
+	}
+
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	// The Resolve path propagates the ambiguity error rather than guessing a
+	// sibling (the batch precompute path instead logs and fails the field closed).
+	_, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.Error(t, err)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Equal(t, "app.pap.masking.ambiguous_sibling.app_error", appErr.Id)
+}
+
 // TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic guards the fail-open
 // hole where the channel field is protected (shared_only) but its user-side
 // sibling is public (the default when access mode is unset — linked fields do
