@@ -13,7 +13,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -201,6 +205,104 @@ func TestProcessRecapJob(t *testing.T) {
 		require.NoError(t, err)
 		mockApp.AssertExpectations(t)
 	})
+}
+
+func TestRecapWorkerPanicMarksJobErrorAndReleasesSemaphore(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	cfg.AIRecapSettings.Enable = model.NewPointer(true)
+	cfg.AIRecapSettings.Processing.MaxConcurrentLLMCalls = model.NewPointer(1)
+
+	mockStore := &storetest.Store{}
+	mockMetrics := &einterfacesmocks.MetricsInterface{}
+	mockApp := &MockAppIface{}
+	t.Cleanup(func() {
+		mockStore.AssertExpectations(t)
+		mockMetrics.AssertExpectations(t)
+		mockApp.AssertExpectations(t)
+	})
+
+	logger, loggerErr := mlog.NewLogger()
+	require.NoError(t, loggerErr)
+	t.Cleanup(func() {
+		assert.NoError(t, logger.Shutdown())
+	})
+	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, mockMetrics, logger, nil)
+	worker := MakeWorker(jobServer, mockStore, mockApp)
+
+	claimedJob1 := &model.Job{
+		Id:     "job1",
+		Type:   model.JobTypeRecap,
+		Status: model.JobStatusInProgress,
+		Data: map[string]string{
+			"recap_id": "recap1", "user_id": "user1",
+			"channel_ids": "channel1", "agent_id": "agent1",
+		},
+	}
+	claimedJob2 := &model.Job{
+		Id:     "job2",
+		Type:   model.JobTypeRecap,
+		Status: model.JobStatusInProgress,
+		Data: map[string]string{
+			"recap_id": "recap2", "user_id": "user1",
+			"channel_ids": "channel2", "agent_id": "agent1",
+		},
+	}
+	candidateJob1 := &model.Job{Id: "job1", Type: model.JobTypeRecap}
+	candidateJob2 := &model.Job{Id: "job2", Type: model.JobTypeRecap}
+
+	mockStore.JobStore.On("UpdateStatusOptimistically", "job1", model.JobStatusPending, model.JobStatusInProgress).Return(claimedJob1, nil).Once()
+	mockStore.JobStore.On("UpdateStatusOptimistically", "job2", model.JobStatusPending, model.JobStatusInProgress).Return(claimedJob2, nil).Once()
+	mockStore.JobStore.On("UpdateOptimistically", claimedJob1, model.JobStatusInProgress).Return(claimedJob1, nil).Times(3)
+	mockStore.JobStore.On("UpdateOptimistically", claimedJob2, model.JobStatusInProgress).Return(claimedJob2, nil).Times(3)
+	mockStore.JobStore.On("UpdateStatus", "job2", model.JobStatusSuccess).Return(claimedJob2, nil).Once()
+	mockMetrics.On("IncrementJobActive", model.JobTypeRecap).Twice()
+	mockMetrics.On("DecrementJobActive", model.JobTypeRecap).Twice()
+
+	mockStore.RecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil).Once()
+	mockStore.RecapStore.On("UpdateRecapStatus", "recap2", model.RecapStatusProcessing).Return(nil).Once()
+	recap2 := &model.Recap{Id: "recap2"}
+	mockStore.RecapStore.On("GetRecap", "recap2").Return(recap2, nil).Once()
+	mockStore.RecapStore.On("UpdateRecap", mock.MatchedBy(func(recap *model.Recap) bool {
+		return recap.Id == "recap2" &&
+			recap.TotalMessageCount == 1 &&
+			recap.Status == model.RecapStatusCompleted
+	})).Return(recap2, nil).Once()
+
+	mockApp.On("Publish", mock.Anything).Return().Times(3)
+	mockApp.On("NewRecapPostBudgetForUser", "user1").Return(unlimitedBudget(), nil).Twice()
+	mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel1", "user1", "agent1", matchOptions(model.RecapProcessingOptions{})).
+		Run(func(args mock.Arguments) { panic("channel panic") }).
+		Return((*model.RecapChannelResult)(nil), (*model.AppError)(nil)).
+		Once()
+	mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap2", "channel2", "user1", "agent1", matchOptions(model.RecapProcessingOptions{})).
+		Return(&model.RecapChannelResult{ChannelID: "channel2", MessageCount: 1, Success: true}, nil).
+		Once()
+
+	require.PanicsWithValue(t, "channel panic", func() {
+		worker.DoJob(candidateJob1)
+	})
+	assert.Equal(t, model.JobStatusError, claimedJob1.Status)
+
+	secondJobResult := make(chan any, 1)
+	go func() {
+		defer func() {
+			secondJobResult <- recover()
+		}()
+		worker.DoJob(candidateJob2)
+	}()
+
+	var secondJobPanic any
+	require.Eventually(t, func() bool {
+		select {
+		case secondJobPanic = <-secondJobResult:
+			return true
+		default:
+			return false
+		}
+	}, 5*time.Second, 10*time.Millisecond)
+	assert.Nil(t, secondJobPanic)
 }
 
 func TestProcessRecapJobRespectsLLMSemaphore(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -34,14 +35,6 @@ const (
 	// progress to the database.
 	progressUpdateInterval = time.Second
 )
-
-// channelOutcome is one channel's terminal result, sent from a worker
-// goroutine to the collector. Failures are outcomes, never errgroup errors.
-type channelOutcome struct {
-	channelID    string
-	messageCount int
-	success      bool
-}
 
 func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.PoolWorker {
 	isEnabled := func(cfg *model.Config) bool {
@@ -124,7 +117,7 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	// collector goroutine exclusively owns the totals and the progress writes,
 	// so no accumulator state is shared. The results channel is buffered to
 	// the full channel count so a worker's send can never block.
-	results := make(chan channelOutcome, len(channelIDs))
+	results := make(chan model.RecapChannelResult, len(channelIDs))
 
 	totalMessages := 0
 	successfulChannels := make([]string, 0, len(channelIDs))
@@ -139,11 +132,11 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 		var lastEmitAt time.Time
 		for completed := 1; completed <= len(channelIDs); completed++ {
 			outcome := <-results
-			if outcome.success {
-				totalMessages += outcome.messageCount
-				successfulChannels = append(successfulChannels, outcome.channelID)
+			if outcome.Success {
+				totalMessages += outcome.MessageCount
+				successfulChannels = append(successfulChannels, outcome.ChannelID)
 			} else {
-				failedChannels = append(failedChannels, outcome.channelID)
+				failedChannels = append(failedChannels, outcome.ChannelID)
 			}
 
 			// Monotonic, throttled progress: completed only grows, so percent
@@ -162,8 +155,20 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 
 	g, gctx := errgroup.WithContext(context.Background())
 	g.SetLimit(maxChannelWorkersPerJob)
+	var panicOnce sync.Once
+	var panicValue any
 	for _, channelID := range channelIDs {
-		g.Go(func() error {
+		g.Go(func() (workerErr error) {
+			defer func() {
+				if recovered := recover(); recovered != nil {
+					panicOnce.Do(func() {
+						panicValue = recovered
+					})
+					results <- model.RecapChannelResult{ChannelID: channelID}
+					workerErr = fmt.Errorf("panic processing recap channel %s: %v", channelID, recovered)
+				}
+			}()
+
 			// The node-global semaphore is held around the ENTIRE channel
 			// processing call (DB reads + LLM call + save), capping in-flight
 			// LLM work per node across all recap jobs. There is deliberately
@@ -175,7 +180,7 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 				logger.Warn("Failed to acquire LLM slot for channel",
 					mlog.String("channel_id", channelID),
 					mlog.Err(err))
-				results <- channelOutcome{channelID: channelID}
+				results <- model.RecapChannelResult{ChannelID: channelID}
 				return nil
 			}
 			defer llmSemaphore.Release(1)
@@ -189,21 +194,26 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 				logger.Warn("Failed to process channel",
 					mlog.String("channel_id", channelID),
 					mlog.Err(err))
-				results <- channelOutcome{channelID: channelID}
+				results <- model.RecapChannelResult{ChannelID: channelID}
 				return nil
 			}
 			if !result.Success {
 				logger.Warn("Channel processing unsuccessful", mlog.String("channel_id", channelID))
-				results <- channelOutcome{channelID: channelID}
+				results <- model.RecapChannelResult{ChannelID: channelID}
 				return nil
 			}
-			results <- channelOutcome{channelID: channelID, messageCount: result.MessageCount, success: true}
+			results <- model.RecapChannelResult{ChannelID: channelID, MessageCount: result.MessageCount, Success: true}
 			return nil
 		})
 	}
 
+	// Every worker sends before it returns, so the collector can finish its
+	// fixed number of receives after the group has drained.
 	_ = g.Wait()
 	<-collectorDone
+	if panicValue != nil {
+		panic(panicValue)
+	}
 
 	// Update recap with final data (title is already set by user in CreateRecap)
 	recap, err := storeInstance.Recap().GetRecap(recapID)
