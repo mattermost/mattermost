@@ -32,7 +32,7 @@ const (
 	tiffTypeShort = 3
 	tiffTypeLong  = 4
 
-	compressionPackBits = 32773
+	compressionPackBits  = 32773
 	photometricBlackZero = 1
 )
 
