@@ -93,6 +93,7 @@ import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/fea
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
 import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
+import SessionAttributesFeatureDiscovery from './feature_discovery/features/session_attributes';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -120,6 +121,7 @@ import SecureConnections, {searchableStrings as secureConnectionsSearchableStrin
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
@@ -660,6 +662,44 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             board_attributes: {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
@@ -704,6 +744,13 @@ const AdminDefinition: AdminDefinitionType = {
                                         ),
                                     },
                                 },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableChannelPolicyIndicators',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
                             ],
                         },
                     ],
@@ -728,40 +775,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
-            },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    sections: [
-                        {
-                            key: 'admin.session_attributes.settings',
-                            settings: [
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
-                                    label: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderTitle', defaultMessage: 'Trust proxy device identity header'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderDesc', defaultMessage: 'When enabled, the server trusts the device identity provided by a reverse proxy in the request header. Only enable this when a trusted proxy sets the device identity header.'}),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
-                                    label: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyTitle', defaultMessage: 'Enforce device ID consistency'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyDesc', defaultMessage: 'When enabled, the session is revoked if the device identity changes from the value previously recorded for that session.'}),
-                                },
-                            ],
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
             membership_policy_details_edit: {
                 url: `system_attributes/membership_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
@@ -3200,6 +3213,28 @@ const AdminDefinition: AdminDefinitionType = {
                                 strong: (msg: string) => <strong>{msg}</strong>,
                             },
                             isHidden: it.not(it.licensedForFeature('LockTeammateNameDisplay')),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'TeamSettings.LockProfileFieldsForEmailUsers',
+                            label: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsers', defaultMessage: 'Lock Profile Fields for Email Users:'}),
+                            help_text: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsersDesc', defaultMessage: 'Applies only to accounts that sign in with email and password; System Admins are always exempt. When enabled, users cannot change the locked fields themselves, empty first and last names can be filled in once by the user, and anyone with the "Invite Users" permission can pre-set names and usernames when sending email invites. Consider restricting that permission via permission schemes to people trusted to enter this information correctly.'}),
+                            options: [
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NONE,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.none', defaultMessage: "Don't lock profile fields (default)"}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.nameAndUsername', defaultMessage: 'Lock name and username'}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.ALL,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.all', defaultMessage: 'Lock entire profile'}),
+                                },
+                            ],
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {

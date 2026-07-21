@@ -3,14 +3,24 @@
 exports[`components/SizeAwareImage should load download and copy link buttons when an image is mounted 1`] = `
 <div>
   <div
-    class="image-loading__container class"
-    style="max-width: 300px;"
+    class="file-preview__button"
   >
-    <svg
-      style="max-height: 200px; max-width: 300px; vertical-align: middle;"
-      viewBox="0 0 300 200"
-      xmlns="http://www.w3.org/2000/svg"
-    />
+    <figure
+      class="image-loaded-container"
+    >
+      <div
+        class="image-loading__container"
+      >
+        <img
+          aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+          class="image-loading__placeholder class"
+          height="200"
+          role="presentation"
+          src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
+          width="300"
+        />
+      </div>
+    </figure>
   </div>
   <div
     class="file-preview__button"
@@ -26,7 +36,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         tabindex="0"
       />
       <span
-        class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+        class="image-preview-utility-buttons-container"
       >
         <button
           aria-label="Copy link"
@@ -78,14 +88,24 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
 exports[`components/SizeAwareImage should match snapshot when handleSmallImageContainer prop is passed 1`] = `
 <div>
   <div
-    class="image-loading__container class"
-    style="max-width: 300px;"
+    class="file-preview__button"
   >
-    <svg
-      style="max-height: 200px; max-width: 300px; vertical-align: middle;"
-      viewBox="0 0 300 200"
-      xmlns="http://www.w3.org/2000/svg"
-    />
+    <figure
+      class="image-loaded-container"
+    >
+      <div
+        class="image-loading__container"
+      >
+        <img
+          aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+          class="image-loading__placeholder class"
+          height="200"
+          role="presentation"
+          src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
+          width="300"
+        />
+      </div>
+    </figure>
   </div>
   <div
     class="file-preview__button"
@@ -101,7 +121,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
         tabindex="0"
       />
       <span
-        class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+        class="image-preview-utility-buttons-container"
       >
         <button
           aria-label="Copy link"
@@ -152,35 +172,45 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
 exports[`components/SizeAwareImage should render a placeholder and has loader when showLoader is true 1`] = `
 <div>
   <div
-    class="image-loading__container class"
-    style="max-width: 300px;"
+    class="file-preview__button"
   >
-    <div
-      style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+    <figure
+      class="image-loaded-container"
     >
       <div
-        class="file__image-loading"
+        class="image-loading__container"
       >
-        <span
-          class="LoadingSpinner"
-          data-testid="loadingSpinner"
-          id="loadingSpinner"
+        <div
+          style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
         >
-          <span
-            class="fa fa-spinner fa-fw fa-pulse spinner"
-            title="Loading Icon"
-          />
-        </span>
-        <span
-          class="loader-percent"
+          <div
+            class="file__image-loading"
+          >
+            <span
+              class="LoadingSpinner"
+              data-testid="loadingSpinner"
+              id="loadingSpinner"
+            >
+              <span
+                class="fa fa-spinner fa-fw fa-pulse spinner"
+                title="Loading Icon"
+              />
+            </span>
+            <span
+              class="loader-percent"
+            />
+          </div>
+        </div>
+        <img
+          aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+          class="image-loading__placeholder class"
+          height="200"
+          role="presentation"
+          src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
+          width="300"
         />
       </div>
-    </div>
-    <svg
-      style="max-height: 200px; max-width: 300px; vertical-align: middle;"
-      viewBox="0 0 300 200"
-      xmlns="http://www.w3.org/2000/svg"
-    />
+    </figure>
   </div>
   <div
     class="file-preview__button"
@@ -196,7 +226,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         tabindex="0"
       />
       <span
-        class="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+        class="image-preview-utility-buttons-container"
       >
         <button
           aria-label="Copy link"

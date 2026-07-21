@@ -19,6 +19,12 @@ export default class ThreadFooter {
         await expect(this.container).toBeVisible();
     }
 
+    async toHaveNReplies(n: number) {
+        const text = n === 1 ? '1 reply' : `${n} replies`;
+
+        await expect(this.replyButton).toContainText(text);
+    }
+
     /**
      * Clicks on the reply button in the thread footer to open the thread in RHS.
      */
