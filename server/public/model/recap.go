@@ -45,6 +45,12 @@ type AIRecapSummaryResponse struct {
 type RecapProcessingOptions struct {
 	TimePeriod         string
 	CustomInstructions string
+
+	// PostBudget, when non-nil, is the job-local cross-channel post budget
+	// shared by every channel of one recap job. When nil,
+	// ProcessRecapChannelWithOptions recomputes the remaining posts from the
+	// database for each channel (pre-existing behavior for direct callers).
+	PostBudget *RecapPostBudget
 }
 
 // RecapChannelResult represents the result of processing a single channel for a recap
