@@ -261,23 +261,26 @@ describe('Upload Files', () => {
             // * Verify that image type is present
             cy.findByText(imageType).should('be.visible');
 
-            // # Get the image preview div
-            cy.get('.post-image.normal').then((imageDiv) => {
-                // # Filter out the url from the css background property
-                // url("https://imageurl") => https://imageurl
-                const imageURL = imageDiv.css('background-image').split('"')[1];
+            cy.get('.post-image.normal').
+                invoke('css', 'background-image').
+                should('include', '/api/v4/files/').
+                then((backgroundImage) => {
+                    const imageURL = backgroundImage.match(/^url\(["']?(.*?)["']?\)$/)[1];
 
-                downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
-            });
+                    downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
+                });
         });
 
         // # Now post with the message attachment
         cy.uiGetPostTextBox().clear().type('{enter}');
 
-        // * Check that the image in the post is with valid source link
-        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').then((src) => {
-            downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
-        });
+        cy.findByTestId('fileAttachmentList').
+            find('img[src*="/api/v4/files/"]').
+            should('be.visible').
+            invoke('attr', 'src').
+            then((src) => {
+                downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
+            });
     });
 
     it('MM-T2265 Multiple File Upload - 5 is successful (image, video, code, pdf, audio, other)', () => {
