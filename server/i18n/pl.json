@@ -12878,5 +12878,257 @@
   {
     "id": "app.access_control.get_session_attributes.app_error",
     "translation": "Nie udało się pobrać atrybutów sesji."
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "Funkcja Zintegrowane Tablice nie jest włączona."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Nie można utworzyć kanału tablicy."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Nieprawidłowe dane kanału tablicy."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "Osiągnięto maksymalną liczbę kanałów na zespół."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Kanały tablic nie mogą być tworzone za pomocą CreateChannel. Zamiast tego użyj API /boards."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Nie można pobrać kanałów z nieprzeczytanymi wiadomościami i wzmiankami."
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Nie udało się załadować prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Nie znaleziono prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Nie udało się zapisać prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Nie udało się zaktualizować prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Przywrócenie kanału odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Nie można zapisać członka kanału."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Wtyczka „ {{.PluginID}} ” próbowała zmienić typ kanału za pomocą metody ChannelWillBeUpdated; zmiany typu muszą przebiegać przez dedykowaną ścieżkę zmiany typu"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Aktualizacja kanału odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "ID kanału nie jest prawidłowym identyfikatorem kanału."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Nie udało się zarejestrować zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "ID kanału jest wymagane do zarejestrowania zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Nie udało się wyrejestrować zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "ID kanału jest wymagane do wyrejestrowania zabezpieczenia kanału."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Nie udało się zapisać danych w formacie CSV."
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Wyczyszczono"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Nie udało się zamknąć pliku ze zgłoszeniami oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Szczegóły"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Status"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Krok"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Usunięto."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Nie udało się pobrać historii edycji."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**Identyfikatory informacji o pliku:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "few": "{{.Count}} pliki zostało/zostały usuniętych/usunięte z dysku.",
+      "many": "Usunięto {{.Count}} plików z dysku.",
+      "one": "{{.Count}} plik został usunięty z dysku."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "Nie znaleziono żadnych danych."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "Nie znaleziono żadnych plików."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "Brak wierszy do usunięcia."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Post został wyczyszczony i usunięty."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "few": "Wyczyszczono {{.Count}} rewizji z {{.Total}}.",
+      "many": "Wyczyszczono {{.Count}} wersji z {{.Total}}.",
+      "one": "Wyczyszczono {{.Count}} rewizję z {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Wątki, reakcje i powiązane dane zostały usunięte."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Dziennik błędów"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Wygenerowano:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Usunięcie wpisu nie doszło do końca. Sprawdź dziennik błędów i zgłoś sprawę administratorowi systemu, żeby mógł to naprawić ręcznie."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "ID Posta"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Poprawka"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Znalezione poprawki:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Nie udało się"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Nie dotyczy"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Częściowy"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Usunięto"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Nieznany"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Podziękowania"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Edytuj historię"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Załączniki plików"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "Zapisy dotyczące załączników"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Stałe powiadomienia"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Dane wpisu"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Metadane dotyczące priorytetów"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Przypomnienia"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Wątek, odpowiedzi i reakcje"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Podsumowanie"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Nie udało się zsynchronizować pliku ze zgłoszeniami oznaczonych postów na dysku."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Nie udało się utworzyć pliku tymczasowego dla zgłoszenia dotyczącego oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Raport o usuniętych postach"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Łączna liczba kroków:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Nie udało się zapisać wpisu w historii edycji do zgłoszenia oznaczonego posta."
   }
 ]
