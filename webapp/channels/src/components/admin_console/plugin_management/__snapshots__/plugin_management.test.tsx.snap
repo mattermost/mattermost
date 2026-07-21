@@ -195,20 +195,13 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -607,20 +600,13 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -1095,20 +1081,13 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -1516,13 +1495,13 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
+                      Click or drop plugin bundle to upload
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
                       id="plugin-upload-description"
                     >
-                      Direct uploads are disabled while plugin signatures are required. Install plugins through Marketplace instead.
+                      Plugin signatures are required. Install plugins through Marketplace instead.
                     </span>
                   </button>
                   <input
@@ -1922,20 +1901,13 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -2335,20 +2307,13 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -2759,7 +2724,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
+                      Click or drop plugin bundle to upload
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
@@ -3155,20 +3120,13 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -3575,7 +3533,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
+                      Click or drop plugin bundle to upload
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
@@ -3993,20 +3951,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -4688,20 +4639,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -5181,20 +5125,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -5674,20 +5611,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input
@@ -6167,20 +6097,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    aria-describedby="plugin-upload-description"
                     class="btn btn-tertiary PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Drop plugin bundle here or click to upload
-                    </span>
-                    <span
-                      class="PluginManagement__uploadDropzoneDescription"
-                      id="plugin-upload-description"
-                    >
-                      Selecting a .tar.gz plugin starts the upload automatically.
+                      Click or drop plugin bundle to upload
                     </span>
                   </button>
                   <input

@@ -639,8 +639,8 @@ describe('components/PluginManagement', () => {
         };
         renderWithContext(<PluginManagement {...props}/>);
 
-        expect(screen.getByRole('button', {name: /Drop plugin bundle here or click to upload/})).toBeDisabled();
-        expect(screen.getByText('Direct uploads are disabled while plugin signatures are required. Install plugins through Marketplace instead.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
+        expect(screen.getByText('Plugin signatures are required. Install plugins through Marketplace instead.')).toBeInTheDocument();
     });
 
     test('explains why direct upload is disabled when plugin uploads are disabled', () => {
@@ -656,7 +656,7 @@ describe('components/PluginManagement', () => {
         };
         renderWithContext(<PluginManagement {...props}/>);
 
-        expect(screen.getByRole('button', {name: /Drop plugin bundle here or click to upload/})).toBeDisabled();
+        expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
         expect(screen.getByText('Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.')).toBeInTheDocument();
     });
 });

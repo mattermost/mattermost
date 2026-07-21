@@ -1009,7 +1009,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             return (
                 <FormattedMessage
                     id='admin.plugin.upload.disabled_signature_required'
-                    defaultMessage='Direct uploads are disabled while plugin signatures are required. Install plugins through Marketplace instead.'
+                    defaultMessage='Plugin signatures are required. Install plugins through Marketplace instead.'
                 />
             );
         }
@@ -1253,7 +1253,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         onDragLeave={this.handleUploadDragLeave}
                                         onDrop={this.handleUploadDrop}
                                         disabled={uploadDropzoneDisabled}
-                                        aria-describedby='plugin-upload-description'
+                                        aria-describedby={uploadDisabledReason ? 'plugin-upload-description' : undefined}
                                     >
                                         <span className='PluginManagement__uploadDropzoneTitle'>
                                             {
@@ -1265,24 +1265,19 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 ) : (
                                                     <FormattedMessage
                                                         id='admin.plugin.upload.dropzone_title'
-                                                        defaultMessage='Drop plugin bundle here or click to upload'
+                                                        defaultMessage='Click or drop plugin bundle to upload'
                                                     />
                                                 )
                                             }
                                         </span>
-                                        <span
-                                            className='PluginManagement__uploadDropzoneDescription'
-                                            id='plugin-upload-description'
-                                        >
-                                            {
-                                                uploadDisabledReason || (
-                                                    <FormattedMessage
-                                                        id='admin.plugin.upload.dropzone_description'
-                                                        defaultMessage='Selecting a .tar.gz plugin starts the upload automatically.'
-                                                    />
-                                                )
-                                            }
-                                        </span>
+                                        {uploadDisabledReason && (
+                                            <span
+                                                className='PluginManagement__uploadDropzoneDescription'
+                                                id='plugin-upload-description'
+                                            >
+                                                {uploadDisabledReason}
+                                            </span>
+                                        )}
                                     </Button>
                                     <input
                                         ref={this.fileInput}

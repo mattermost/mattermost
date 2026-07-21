@@ -2,17 +2,18 @@
     &__uploadDropzone {
         display: flex;
         width: 100%;
-        min-height: 116px;
+        min-height: 68px;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 20px;
-        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
+        padding: 12px 16px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        background: transparent;
         color: var(--center-channel-color);
-        gap: 4px;
-        text-align: center;
+        gap: 2px;
+        text-align: left;
+        white-space: normal;
 
         &:hover:not(:disabled),
         &--active {
@@ -22,7 +23,7 @@
 
         &:disabled {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            background: rgba(var(--center-channel-color-rgb), 0.04);
+            background: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             cursor: not-allowed;
         }
@@ -37,10 +38,20 @@
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 12px;
         font-weight: 400;
+        line-height: 16px;
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
-    &__fileInput {
-        display: none;
+    input.PluginManagement__fileInput[type='file'] {
+        position: absolute;
+        overflow: hidden;
+        width: 1px;
+        height: 1px;
+        clip-path: inset(50%);
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
     }
 
     &__fileName {
