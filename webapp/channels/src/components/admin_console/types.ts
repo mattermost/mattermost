@@ -23,6 +23,7 @@ type AdminDefinitionConfigSchemaComponent = {
     id: string;
     component: Component;
     isBeta?: boolean;
+    stateKey?: string;
 };
 
 export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}};
@@ -175,6 +176,7 @@ AdminDefinitionSettingExpandable;
 
 export type AdminDefinitionConfigSchemaSettings = {
     id: string;
+    stateKey?: string;
     name: string | MessageDescriptor;
     isBeta?: boolean;
     isHidden?: Check;

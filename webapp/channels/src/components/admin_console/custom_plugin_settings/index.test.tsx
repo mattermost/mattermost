@@ -303,6 +303,84 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('In order to view this setting, enable the plugin.')).toBeInTheDocument();
     });
 
+    it('reloads plugin enable setting state when the plugin becomes active', () => {
+        const disabledPlugin = {
+            ...plugin,
+            active: false,
+        };
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: disabledPlugin,
+                    },
+                },
+            },
+        };
+
+        const disabledProps = {
+            ...baseProps,
+            config: {
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
+                    },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
+            },
+        };
+
+        const {rerender, updateStoreState} = renderWithContext(
+            <CustomPluginSettings
+                {...disabledProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+
+        updateStoreState({
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...disabledPlugin,
+                            active: true,
+                        },
+                    },
+                },
+            },
+        });
+
+        rerender(
+            <CustomPluginSettings
+                {...disabledProps}
+                config={{
+                    PluginSettings: {
+                        Plugins: {
+                            testplugin: {},
+                        },
+                        PluginStates: {
+                            testplugin: {
+                                Enable: true,
+                            },
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).toBeChecked();
+    });
+
     it('custom sections with plugin enabled should render as expected', () => {
         const CustomSection1 = () => {
             return (

@@ -185,6 +185,7 @@ function makeGetPluginSchema() {
             return {
                 ...plugin.settings_schema,
                 id: plugin.id,
+                stateKey: `${plugin.id}.${plugin.active ? 'active' : 'inactive'}`,
                 name: plugin.name,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,

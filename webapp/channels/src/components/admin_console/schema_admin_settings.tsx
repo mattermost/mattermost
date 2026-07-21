@@ -95,7 +95,8 @@ type State = {
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string;
-    prevSchemaId?: string;
+    prevSchemaKey?: string;
+    prevConfig?: Partial<AdminConfig>;
 };
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
@@ -160,9 +161,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     }
 
     static getDerivedStateFromProps(props: SchemaAdminSettingsProps, state: State) {
-        if (props.schema && props.schema.id !== state.prevSchemaId) {
+        const schemaKey = props.schema && (props.schema.stateKey || props.schema.id);
+        if (props.schema && (schemaKey !== state.prevSchemaKey || (state.saveNeeded === false && props.config !== state.prevConfig))) {
             return {
-                prevSchemaId: props.schema.id,
+                prevSchemaKey: schemaKey,
+                prevConfig: props.config,
                 saveNeeded: false,
                 saving: false,
                 serverError: null,
