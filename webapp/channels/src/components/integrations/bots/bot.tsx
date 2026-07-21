@@ -3,11 +3,12 @@
 
 import React from 'react';
 import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {Bot as BotType} from '@mattermost/types/bots';
+import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 
@@ -16,6 +17,17 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ConfirmModal from 'components/confirm_modal';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import type {ExpiryPreset} from 'components/user_settings/security/user_access_token_section/user_access_token_section';
+import {
+    clampExpiresAtToMaxLifetime,
+    deriveTokenStatus,
+    endOfLocalDayFromIsoDate,
+    endOfLocalDayPlusDays,
+    isoPlusDays,
+    mapServerErrorIdToMessage,
+    PRESET_DAYS,
+    todayIso,
+} from 'components/user_settings/security/user_access_token_section/user_access_token_section';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
@@ -37,6 +49,9 @@ export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile
         description.toLowerCase().indexOf(filter) === -1 &&
         ownerUsername.toLowerCase().indexOf(filter) === -1);
 }
+
+const APPROACHING_EXPIRY_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type Props = {
 
@@ -72,6 +87,8 @@ type Props = {
 
     pluginDisplayName?: string;
 
+    maxLifetimeDays: number;
+
     actions: {
 
         /**
@@ -87,11 +104,12 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        rotateUserAccessToken: (tokenId: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
     };
 
     /**
@@ -105,6 +123,13 @@ type State = {
     creatingTokenState: string;
     token: UserAccessToken | Record<string, any>;
     error: ReactNode;
+    serverError: ReactNode;
+    expiryPreset: ExpiryPreset;
+    customExpiryDate: string;
+    regeneratingTokenId: string;
+    regenerateExpiryPreset: ExpiryPreset;
+    regenerateCustomExpiryDate: string;
+    saving: boolean;
 };
 
 export default class Bot extends React.PureComponent<Props, State> {
@@ -116,6 +141,13 @@ export default class Bot extends React.PureComponent<Props, State> {
             creatingTokenState: 'CLOSED',
             token: {},
             error: '',
+            serverError: '',
+            expiryPreset: this.defaultExpiryPreset(),
+            customExpiryDate: this.defaultCustomExpiryDate(),
+            regeneratingTokenId: '',
+            regenerateExpiryPreset: this.defaultExpiryPreset(),
+            regenerateCustomExpiryDate: this.defaultCustomExpiryDate(),
+            saving: false,
         };
     }
 
@@ -148,12 +180,103 @@ export default class Bot extends React.PureComponent<Props, State> {
         this.setState({confirmingId: ''});
     };
 
+    isUserOwnedBot = (): boolean => {
+        return Boolean(this.props.owner?.username) && !this.props.fromApp;
+    };
+
+    isExpiryEnforced = (): boolean => {
+        return this.isUserOwnedBot() && this.props.maxLifetimeDays > 0;
+    };
+
+    defaultCustomExpiryDate = (): string => {
+        const {maxLifetimeDays} = this.props;
+        if (maxLifetimeDays > 0) {
+            return isoPlusDays(Math.max(1, Math.min(30, maxLifetimeDays)));
+        }
+        return isoPlusDays(30);
+    };
+
+    isPresetAllowed = (preset: ExpiryPreset): boolean => {
+        const {maxLifetimeDays} = this.props;
+        if (preset === 'none' || preset === 'custom') {
+            return true;
+        }
+        return maxLifetimeDays <= 0 || PRESET_DAYS[preset] <= maxLifetimeDays;
+    };
+
+    defaultExpiryPreset = (): ExpiryPreset => {
+        if (!this.isExpiryEnforced()) {
+            return 'none';
+        }
+        const presets: ExpiryPreset[] = ['30d', '7d'];
+        for (const preset of presets) {
+            if (this.isPresetAllowed(preset)) {
+                return preset;
+            }
+        }
+        return 'custom';
+    };
+
+    resolveExpiresAt = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): number => {
+        if (!this.isUserOwnedBot() || expiryPreset === 'none') {
+            return 0;
+        }
+        if (expiryPreset === 'custom') {
+            return endOfLocalDayFromIsoDate(customExpiryDate);
+        }
+        return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
+    };
+
+    getExpiryValidationError = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): ReactNode | null => {
+        if (!this.isUserOwnedBot()) {
+            return null;
+        }
+
+        const expiresAt = this.resolveExpiresAt(expiryPreset, customExpiryDate);
+        if (expiryPreset === 'custom' && expiresAt <= 0) {
+            return mapServerErrorIdToMessage('expires_at_required');
+        }
+        if (this.isExpiryEnforced() && expiresAt <= 0) {
+            return mapServerErrorIdToMessage('expires_at_required');
+        }
+        if (expiresAt > 0 && expiresAt <= Date.now()) {
+            return mapServerErrorIdToMessage('expires_at_in_past');
+        }
+        if (expiresAt > 0 && this.props.maxLifetimeDays > 0) {
+            const maxAllowed = endOfLocalDayPlusDays(this.props.maxLifetimeDays);
+            if (expiresAt > maxAllowed) {
+                return mapServerErrorIdToMessage('expires_at_too_far', this.props.maxLifetimeDays);
+            }
+        }
+        return null;
+    };
+
+    handleExpiryPresetChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({expiryPreset: e.target.value as ExpiryPreset, error: ''});
+    };
+
+    handleCustomExpiryChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        this.setState({customExpiryDate: e.target.value, error: ''});
+    };
+
+    handleRegenerateExpiryPresetChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({regenerateExpiryPreset: e.target.value as ExpiryPreset});
+    };
+
+    handleRegenerateCustomExpiryChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        this.setState({regenerateCustomExpiryDate: e.target.value});
+    };
+
     openCreateToken = (): void => {
         this.setState({
             creatingTokenState: 'OPEN',
             token: {
                 description: '',
             },
+            error: '',
+            serverError: '',
+            expiryPreset: this.defaultExpiryPreset(),
+            customExpiryDate: this.defaultCustomExpiryDate(),
         });
     };
 
@@ -163,6 +286,8 @@ export default class Bot extends React.PureComponent<Props, State> {
             token: {
                 description: '',
             },
+            error: '',
+            saving: false,
         });
     };
 
@@ -176,7 +301,8 @@ export default class Bot extends React.PureComponent<Props, State> {
     handleCreateToken = async (e: SyntheticEvent): Promise<void> => {
         e.preventDefault();
 
-        if (this.state.token.description === '') {
+        const description = this.state.token.description?.trim() || '';
+        if (description === '') {
             this.setState({error: (
                 <FormattedMessage
                     id='bot.token.error.description'
@@ -186,12 +312,177 @@ export default class Bot extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {data, error} = await this.props.actions.createUserAccessToken(this.props.bot.user_id, this.state.token.description);
-        if (data) {
-            this.setState({creatingTokenState: 'CREATED', token: data});
-        } else if (error) {
-            this.setState({error: error.message});
+        const expiryError = this.getExpiryValidationError();
+        if (expiryError) {
+            this.setState({error: expiryError});
+            return;
         }
+
+        const expiresAt = this.resolveExpiresAt();
+        const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, this.props.maxLifetimeDays);
+
+        this.setState({saving: true, error: '', serverError: ''});
+        const {data, error} = await this.props.actions.createUserAccessToken(this.props.bot.user_id, description, clampedExpiresAt > 0 ? clampedExpiresAt : undefined);
+        if (data) {
+            this.setState({creatingTokenState: 'CREATED', token: data, saving: false});
+        } else if (error) {
+            const serverError = error as ServerError;
+            const mapped = mapServerErrorIdToMessage(serverError.server_error_id, this.props.maxLifetimeDays);
+            this.setState({error: mapped || serverError.message, saving: false});
+        }
+    };
+
+    openRegenerateToken = (id: string): void => {
+        const regenerateExpiryPreset = this.defaultExpiryPreset();
+        const regenerateCustomExpiryDate = this.defaultCustomExpiryDate();
+        this.setState({
+            regeneratingTokenId: id,
+            regenerateExpiryPreset,
+            regenerateCustomExpiryDate,
+            serverError: '',
+        });
+    };
+
+    closeRegenerateToken = (): void => {
+        this.setState({
+            regeneratingTokenId: '',
+            saving: false,
+        });
+    };
+
+    regenerateTokenConfirmed = async (): Promise<void> => {
+        const expiryError = this.getExpiryValidationError(this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate);
+        if (expiryError) {
+            this.setState({serverError: expiryError});
+            return;
+        }
+
+        const expiresAt = this.resolveExpiresAt(this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate);
+        const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, this.props.maxLifetimeDays);
+
+        this.setState({saving: true, serverError: ''});
+        const {data, error} = await this.props.actions.rotateUserAccessToken(this.state.regeneratingTokenId, clampedExpiresAt > 0 ? clampedExpiresAt : undefined);
+
+        if (data) {
+            this.setState({creatingTokenState: 'CREATED', token: data, regeneratingTokenId: '', saving: false});
+        } else if (error) {
+            const serverError = error as ServerError;
+            const mapped = mapServerErrorIdToMessage(serverError.server_error_id, this.props.maxLifetimeDays);
+            this.setState({serverError: mapped || serverError.message, regeneratingTokenId: '', saving: false});
+        }
+    };
+
+    renderExpiryPicker = (
+        idPrefix: string,
+        expiryPreset: ExpiryPreset,
+        customExpiryDate: string,
+        onPresetChange: (e: ChangeEvent<HTMLSelectElement>) => void,
+        onCustomDateChange: (e: ChangeEvent<HTMLInputElement>) => void,
+    ): JSX.Element | null => {
+        if (!this.isUserOwnedBot()) {
+            return null;
+        }
+
+        const enforceExpiry = this.isExpiryEnforced();
+        const maxCustomIso = this.props.maxLifetimeDays > 0 ? isoPlusDays(this.props.maxLifetimeDays) : undefined;
+
+        return (
+            <div className='row pt-2'>
+                <label
+                    className='col-sm-auto control-label pr-3'
+                    htmlFor={`${idPrefix}Expiry`}
+                >
+                    <FormattedMessage
+                        id='user.settings.tokens.expiry'
+                        defaultMessage='Expires: '
+                    />
+                </label>
+                <div className='col-sm-auto'>
+                    <select
+                        id={`${idPrefix}Expiry`}
+                        className='form-control form-sm'
+                        value={expiryPreset}
+                        onChange={onPresetChange}
+                    >
+                        {!enforceExpiry && (
+                            <option value='none'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.none'
+                                    defaultMessage='No expiry'
+                                />
+                            </option>
+                        )}
+                        {this.isPresetAllowed('7d') && (
+                            <option value='7d'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.7d'
+                                    defaultMessage='7 days'
+                                />
+                            </option>
+                        )}
+                        {this.isPresetAllowed('30d') && (
+                            <option value='30d'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.30d'
+                                    defaultMessage='30 days'
+                                />
+                            </option>
+                        )}
+                        {this.isPresetAllowed('90d') && (
+                            <option value='90d'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.90d'
+                                    defaultMessage='90 days'
+                                />
+                            </option>
+                        )}
+                        {this.isPresetAllowed('1y') && (
+                            <option value='1y'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.expiry.1y'
+                                    defaultMessage='1 year'
+                                />
+                            </option>
+                        )}
+                        <option value='custom'>
+                            <FormattedMessage
+                                id='user.settings.tokens.expiry.custom'
+                                defaultMessage='Custom date…'
+                            />
+                        </option>
+                    </select>
+                    {expiryPreset === 'custom' && (
+                        <input
+                            id={`${idPrefix}ExpiryCustom`}
+                            className='form-control form-sm mt-2'
+                            type='date'
+                            aria-label={Utils.localizeMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
+                            value={customExpiryDate}
+                            min={todayIso()}
+                            max={maxCustomIso}
+                            onChange={onCustomDateChange}
+                        />
+                    )}
+                    {this.props.maxLifetimeDays > 0 && (
+                        <div className='pt-2'>
+                            <FormattedMessage
+                                id='user.settings.tokens.maxLifetimeHint'
+                                defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
+                                values={{days: this.props.maxLifetimeDays}}
+                            />
+                        </div>
+                    )}
+                    {enforceExpiry && (
+                        <div className='pt-2'>
+                            <FormattedMessage
+                                id='user.settings.tokens.expiryEnforced'
+                                defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     };
 
     public render(): JSX.Element | null {
@@ -210,11 +501,14 @@ export default class Bot extends React.PureComponent<Props, State> {
             return null;
         }
 
+        const isUserOwnedBot = this.isUserOwnedBot();
         const tokenList = [];
         Object.values(this.props.accessTokens).forEach((token) => {
             let activeLink;
             let disableClass = '';
             let disabledText;
+            let statusBadge;
+            let expiryRow;
 
             if (token.is_active) {
                 activeLink = (
@@ -232,15 +526,17 @@ export default class Bot extends React.PureComponent<Props, State> {
                         />
                     </a>);
             } else {
-                disableClass = 'light';
-                disabledText = (
-                    <span className='mr-2 light'>
-                        <FormattedMessage
-                            id='user.settings.tokens.deactivatedWarning'
-                            defaultMessage='(Disabled)'
-                        />
-                    </span>
-                );
+                if (!isUserOwnedBot) {
+                    disableClass = 'light';
+                    disabledText = (
+                        <span className='mr-2 light'>
+                            <FormattedMessage
+                                id='user.settings.tokens.deactivatedWarning'
+                                defaultMessage='(Disabled)'
+                            />
+                        </span>
+                    );
+                }
                 activeLink = (
                     <a
                         id={token.id + '_activate'}
@@ -255,6 +551,79 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Enable'
                         />
                     </a>
+                );
+            }
+
+            if (isUserOwnedBot) {
+                const status = deriveTokenStatus(token);
+                statusBadge = (
+                    <span className={`bot-token__status bot-token__status--${status}`}>
+                        {status === 'active' && (
+                            <FormattedMessage
+                                id='user.settings.tokens.status.active'
+                                defaultMessage='Active'
+                            />
+                        )}
+                        {status === 'expired' && (
+                            <FormattedMessage
+                                id='user.settings.tokens.status.expired'
+                                defaultMessage='Expired'
+                            />
+                        )}
+                        {status === 'inactive' && (
+                            <FormattedMessage
+                                id='user.settings.tokens.status.inactive'
+                                defaultMessage='Disabled'
+                            />
+                        )}
+                    </span>
+                );
+
+                const hasExpiry = Boolean(token.expires_at && token.expires_at > 0);
+                const msUntilExpiry = hasExpiry ? (token.expires_at as number) - Date.now() : Infinity;
+                const approachingExpiry = status === 'active' && hasExpiry && msUntilExpiry > 0 && msUntilExpiry < APPROACHING_EXPIRY_DAYS * MS_PER_DAY;
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+                const daysUntilExpiry = hasExpiry ? Math.max(0, Math.floor(((token.expires_at as number) - startOfToday.getTime()) / MS_PER_DAY)) : 0;
+
+                expiryRow = (
+                    <div className='bot-token__expiry whitespace--nowrap overflow--ellipsis'>
+                        <b>
+                            <FormattedMessage
+                                id='user.settings.tokens.expiry'
+                                defaultMessage='Expires: '
+                            />
+                        </b>
+                        {hasExpiry ? (
+                            <>
+                                <FormattedDate
+                                    value={token.expires_at}
+                                    year='numeric'
+                                    month='short'
+                                    day='2-digit'
+                                />
+                                {' '}
+                                <FormattedTime value={token.expires_at}/>
+                                {approachingExpiry && (
+                                    <span className='bot-token__expiry-warning'>
+                                        {' '}
+                                        <WarningIcon/>
+                                        {' '}
+                                        <FormattedMessage
+                                            id='user.settings.tokens.expiresSoon'
+                                            defaultMessage='Expires in {days, number} {days, plural, one {day} other {days}}'
+                                            values={{days: daysUntilExpiry}}
+                                        />
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.tokens.expiry.never'
+                                defaultMessage='Never'
+                            />
+                        )}
+                    </div>
                 );
             }
 
@@ -273,6 +642,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                                     />
                                 </b>
                                 {token.description}
+                                {' '}
+                                {statusBadge}
                             </div>
                             <div className='setting-box__token-id whitespace--nowrap overflow--ellipsis'>
                                 <b>
@@ -283,10 +654,29 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </b>
                                 {token.id}
                             </div>
+                            {expiryRow}
                         </div>
                         <div>
                             {disabledText}
                             {activeLink}
+                            {isUserOwnedBot && token.is_active && (
+                                <>
+                                    {' - '}
+                                    <a
+                                        id={token.id + '_regenerate'}
+                                        href='#'
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            this.openRegenerateToken(token.id);
+                                        }}
+                                    >
+                                        <FormattedMessage
+                                            id='user.settings.tokens.regenerate'
+                                            defaultMessage='Regenerate'
+                                        />
+                                    </a>
+                                </>
+                            )}
                             {' - '}
                             <a
                                 id={token.id + '_delete'}
@@ -358,6 +748,10 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         if (this.state.creatingTokenState === 'OPEN') {
+            const expiryError = this.getExpiryValidationError();
+            const descriptionEmpty = !this.state.token.description || this.state.token.description.trim() === '';
+            const expirySection = this.renderExpiryPicker('botToken', this.state.expiryPreset, this.state.customExpiryDate, this.handleExpiryPresetChange, this.handleCustomExpiryChange);
+
             tokenList.push(
                 <div
                     key={'create'}
@@ -397,11 +791,12 @@ export default class Bot extends React.PureComponent<Props, State> {
                                         defaultMessage='Enter a description for your token to remember what it does.'
                                     />
                                 </div>
+                                {expirySection}
                                 <label
                                     id='clientError'
                                     className='has-error is-empty'
                                 >
-                                    {this.state.error}
+                                    {this.state.error || expiryError}
                                 </label>
                                 <div className='mt-2'>
                                     <SaveButton
@@ -413,7 +808,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                                                 defaultMessage='Save'
                                             />
                                         }
-                                        saving={false}
+                                        saving={this.state.saving}
+                                        disabled={descriptionEmpty || Boolean(expiryError)}
                                     />
                                     <Button
                                         emphasis='tertiary'
@@ -520,6 +916,8 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         }
 
+        const regenerateToken = this.props.accessTokens[this.state.regeneratingTokenId];
+        const regenerateExpiryError = this.getExpiryValidationError(this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate);
         const imageURL = Utils.imageURLForUser(this.props.user.id, this.props.user.last_picture_update);
 
         return (
@@ -544,6 +942,11 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <div className='light small'>
                         {managedBy}
                     </div>
+                    {this.state.serverError && (
+                        <div className='has-error mt-2'>
+                            {this.state.serverError}
+                        </div>
+                    )}
                     <div className='bot-list is-empty'>
                         {tokenList}
                     </div>
@@ -571,6 +974,51 @@ export default class Bot extends React.PureComponent<Props, State> {
                     show={this.state.confirmingId !== ''}
                     onConfirm={this.revokeTokenConfirmed}
                     onCancel={this.closeConfirm}
+                />
+                <ConfirmModal
+                    title={
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmRegenerateTitle'
+                            defaultMessage='Regenerate Token?'
+                        />
+                    }
+                    message={regenerateToken ? (
+                        <div>
+                            <div className='alert alert-danger'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.confirmRegenerate.description'
+                                    defaultMessage='The current secret for this token will stop working immediately. Any integrations using it will need to be updated with the new secret. You cannot undo this action.'
+                                />
+                            </div>
+                            {this.renderExpiryPicker('regenerateBotToken', this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate, this.handleRegenerateExpiryPresetChange, this.handleRegenerateCustomExpiryChange)}
+                            {regenerateExpiryError && (
+                                <div className='has-error mt-2'>
+                                    {regenerateExpiryError}
+                                </div>
+                            )}
+                            <p className='pt-3'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.confirmRegenerate.confirmation'
+                                    defaultMessage='Are you sure you want to regenerate the <b>{description}</b> token?'
+                                    values={{
+                                        description: regenerateToken.description,
+                                        b: (chunks) => <b>{chunks}</b>,
+                                    }}
+                                />
+                            </p>
+                        </div>
+                    ) : null}
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmRegenerateButton'
+                            defaultMessage='Yes, Regenerate'
+                        />
+                    }
+                    modalClass='integrations-backstage-modal'
+                    show={this.state.regeneratingTokenId !== ''}
+                    onConfirm={this.regenerateTokenConfirmed}
+                    onCancel={this.closeRegenerateToken}
+                    confirmDisabled={Boolean(regenerateExpiryError) || this.state.saving}
                 />
             </div>
         );

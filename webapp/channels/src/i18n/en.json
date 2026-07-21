@@ -3159,7 +3159,7 @@
   "admin.service.readTimeout": "Read Timeout:",
   "admin.service.readTimeoutDescription": "Maximum time allowed from when the connection is accepted to when the request body is fully read.",
   "admin.service.revokeNonCompliantTokens.button": "Revoke non-compliant tokens",
-  "admin.service.revokeNonCompliantTokens.confirmBody": "This will permanently revoke {count, number} personal access {count, plural, one {token} other {tokens}} that {count, plural, one {does} other {do}} not comply with the current maximum lifetime policy. This cannot be undone. Bot account tokens are not affected.",
+  "admin.service.revokeNonCompliantTokens.confirmBody": "This will permanently revoke {count, number} personal access {count, plural, one {token} other {tokens}} that {count, plural, one {does} other {do}} not comply with the current maximum lifetime policy, including tokens for user-owned bot accounts. Plugin-owned bot account tokens are exempt. This cannot be undone.",
   "admin.service.revokeNonCompliantTokens.confirmButton": "Revoke tokens",
   "admin.service.revokeNonCompliantTokens.confirmTitle": "Revoke non-compliant personal access tokens?",
   "admin.service.revokeNonCompliantTokens.count": "{count, number} personal access {count, plural, one {token} other {tokens}} currently {count, plural, one {violates} other {violate}} the maximum lifetime policy.",

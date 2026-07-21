@@ -19,6 +19,7 @@ describe('components/integrations/bots/Bots', () => {
         revokeUserAccessToken: jest.fn(),
         enableUserAccessToken: jest.fn(),
         disableUserAccessToken: jest.fn(),
+        rotateUserAccessToken: jest.fn(),
         getUser: jest.fn(),
         disableBot: jest.fn(),
         enableBot: jest.fn(),
@@ -62,6 +63,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -92,6 +94,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={true}
                 appsBotIDs={['3']}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -131,6 +134,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -176,6 +180,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -228,6 +233,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -252,6 +258,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -294,6 +301,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -323,6 +331,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -348,6 +357,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -396,6 +406,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
