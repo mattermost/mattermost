@@ -518,6 +518,29 @@ function TeamMembershipTab({
 
     const isEmptyTeamWarning = allowedCount === 0 && !team.allow_open_invite;
 
+    // Removing every rule (with no parent policy left) drops the team's attribute
+    // enforcement entirely, so the confirmation warns about that rather than showing
+    // a members-affected count that no longer applies.
+    const isRemovingAllRules = !expression.trim() && originalExpression.trim() !== '' && systemPolicies.length === 0;
+
+    const removeRulesMessage = (
+        <div className='TeamMembershipTab__confirmMessage'>
+            <p>
+                {team.allow_open_invite ? (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_message_advisory'
+                        defaultMessage='This team will no longer have membership requirements. Auto-add and the "Recommended" tag stop; current members are unaffected.'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_message'
+                        defaultMessage='This team will no longer be restricted by user attributes. Current members keep their access, and anyone who can normally join the team will be able to.'
+                    />
+                )}
+            </p>
+        </div>
+    );
+
     const confirmMessage = (
         <div className='TeamMembershipTab__confirmMessage'>
             {allowedCount !== null && (
@@ -702,18 +725,28 @@ function TeamMembershipTab({
 
             <ConfirmModal
                 show={showConfirmModal}
-                title={
+                title={isRemovingAllRules ? (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_title'
+                        defaultMessage='Remove membership rules?'
+                    />
+                ) : (
                     <FormattedMessage
                         id='team_settings.membership_tab.confirm.title'
                         defaultMessage='Save team membership rules?'
                     />
-                }
-                message={confirmMessage}
+                )}
+                message={isRemovingAllRules ? removeRulesMessage : confirmMessage}
                 confirmButtonText={
                     isProcessingSave ? (
                         <FormattedMessage
                             id='team_settings.membership_tab.confirm.saving'
                             defaultMessage='Saving...'
+                        />
+                    ) : isRemovingAllRules ? (
+                        <FormattedMessage
+                            id='team_settings.membership_tab.confirm.remove_confirm'
+                            defaultMessage='Remove rules'
                         />
                     ) : (
                         <FormattedMessage

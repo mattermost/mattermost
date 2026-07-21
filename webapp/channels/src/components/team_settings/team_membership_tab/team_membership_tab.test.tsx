@@ -358,9 +358,10 @@ describe('components/team_settings/TeamMembershipTab', () => {
         await userEvent.click(screen.getByTestId('table-editor-clear'));
         await userEvent.click(screen.getByText('Save'));
 
-        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
-        const confirmButtons = screen.getAllByText('Save');
-        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+        // Removing all rules shows the enforcement-removal warning, not the count modal.
+        await waitFor(() => expect(screen.getByText('Remove membership rules?')).toBeInTheDocument());
+        expect(screen.getByText(/no longer have membership requirements/i)).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Remove rules'));
 
         await waitFor(() => {
             expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('team_id');
@@ -394,9 +395,8 @@ describe('components/team_settings/TeamMembershipTab', () => {
         await userEvent.click(screen.getByTestId('table-editor-clear'));
         await userEvent.click(screen.getByText('Save'));
 
-        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
-        const confirmButtons = screen.getAllByText('Save');
-        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+        await waitFor(() => expect(screen.getByText('Remove membership rules?')).toBeInTheDocument());
+        await userEvent.click(screen.getByText('Remove rules'));
 
         await waitFor(() => {
             expect(screen.getByText('Failed to save access rules')).toBeInTheDocument();

@@ -623,11 +623,12 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(tab.locator('#autoAddMembersCheckbox')).not.toBeChecked();
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeDisabled();
 
-        // # Save → confirm
+        // # Save → the removal warning (not the count modal) is shown
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Save team membership rules?'});
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Remove membership rules?'});
         await expect(confirmModal).toBeVisible({timeout: 15000});
-        await confirmModal.getByRole('button', {name: 'Save'}).click();
+        await expect(confirmModal.getByText(/no longer be restricted by user attributes/i)).toBeVisible();
+        await confirmModal.getByRole('button', {name: 'Remove rules'}).click();
         await expect(confirmModal).not.toBeVisible({timeout: 10000});
 
         // * Save succeeds: no "Failed to save access rules" error surfaces
