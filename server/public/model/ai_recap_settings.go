@@ -91,8 +91,8 @@ func (s *RecapLimitSettings) isValid() *AppError {
 
 // RecapProcessingSettings configures server-side processing of recap jobs.
 type RecapProcessingSettings struct {
-	// MaxConcurrentJobs is the number of recap jobs each server node processes
-	// concurrently. Takes effect when the recap job worker restarts.
+	// MaxConcurrentJobs is the size of each recap-related job worker pool on a
+	// server node. Takes effect when the workers restart.
 	MaxConcurrentJobs *int `access:"ai_recaps"` // Default: 4, minimum 1
 
 	// MaxConcurrentLLMCalls caps in-flight LLM channel-summarization calls per

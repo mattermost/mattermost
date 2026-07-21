@@ -3911,8 +3911,8 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'number',
                                     key: 'AIRecapSettings.Processing.MaxConcurrentJobs',
-                                    label: defineMessage({id: 'admin.recaps.maxConcurrentJobs.title', defaultMessage: 'Maximum Concurrent Recap Jobs:'}),
-                                    help_text: defineMessage({id: 'admin.recaps.maxConcurrentJobs.desc', defaultMessage: 'Number of recap jobs each server processes at the same time. Requires a server restart to take effect.'}),
+                                    label: defineMessage({id: 'admin.recaps.maxConcurrentJobs.title', defaultMessage: 'Maximum Concurrent Jobs Per Recap Worker:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxConcurrentJobs.desc', defaultMessage: 'Number of jobs each recap-related worker processes at the same time on each server. Requires a server restart to take effect.'}),
                                     placeholder: defineMessage({id: 'admin.recaps.maxConcurrentJobs.placeholder', defaultMessage: 'E.g.: "4"'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),

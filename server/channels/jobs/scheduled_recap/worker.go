@@ -20,8 +20,8 @@ type AppIface interface {
 	CreateRecapFromSchedule(rctx request.CTX, scheduledRecap *model.ScheduledRecap) (*model.Recap, *model.AppError)
 }
 
-// MakeWorker creates a new worker for processing scheduled recap jobs.
-func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIface) *jobs.SimpleWorker {
+// MakeWorker creates a new worker pool for processing scheduled recap jobs.
+func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIface) *jobs.PoolWorker {
 	const workerName = "ScheduledRecap"
 
 	isEnabled := func(cfg *model.Config) bool {
@@ -33,7 +33,17 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		return processScheduledRecapJob(logger, job, storeInstance, app)
 	}
 
-	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
+	return jobs.NewPoolWorker(workerName, jobServer, execute, isEnabled, poolSizeFromConfig)
+}
+
+// poolSizeFromConfig returns the configured number of concurrent scheduled
+// recap jobs per node, falling back to the default when the config
+// sub-struct has not been populated (SetDefaults normally guarantees it has).
+func poolSizeFromConfig(cfg *model.Config) int {
+	if cfg == nil || cfg.AIRecapSettings.Processing == nil || cfg.AIRecapSettings.Processing.MaxConcurrentJobs == nil {
+		return model.RecapProcessingDefaultMaxConcurrentJobs
+	}
+	return *cfg.AIRecapSettings.Processing.MaxConcurrentJobs
 }
 
 func processScheduledRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, app AppIface) error {
