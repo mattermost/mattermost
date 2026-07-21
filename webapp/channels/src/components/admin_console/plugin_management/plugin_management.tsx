@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
-import type {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig, PluginAccessControl} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
@@ -672,9 +672,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
             const snapshot: Record<string, PluginAccessControlUI> = {};
             if (this.dirtyAccessControlPluginIds.size > 0 && this.accessControlUsersLoaded) {
-                const accessControl: Record<string, {Enable: boolean}> = {
-                    ...(config.PluginSettings.PluginAccessControl || {}),
-                };
+                const existingAccessControl = (config.PluginSettings.PluginAccessControl || {}) as Record<string, PluginAccessControl>;
+                const accessControl: Record<string, PluginAccessControl> = {...existingAccessControl};
                 this.dirtyAccessControlPluginIds.forEach((pluginId) => {
                     if (this.props.plugins?.[pluginId]?.user_filtering === false) {
                         return;
