@@ -14,4 +14,5 @@ type BulkExportOpts struct {
 	IncludeRolesAndSchemes  bool
 	CreateArchive           bool
 	TeamName                string
+	ChannelName             string
 }

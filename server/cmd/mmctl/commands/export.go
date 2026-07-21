@@ -100,6 +100,7 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
 	ExportCreateCmd.Flags().String("team", "", "Export only the specified team (by name).")
+	ExportCreateCmd.Flags().String("channel", "", "Export only the specified channel. Requires a team to export the channel from.")
 
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
@@ -149,6 +150,14 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	teamName, _ := command.Flags().GetString("team")
 	if teamName != "" {
 		data["team_name"] = teamName
+	}
+
+	channelName, _ := command.Flags().GetString("channel")
+	if teamName == "" && channelName != "" {
+		return fmt.Errorf("Please specify a team to export a channel from.")
+	}
+	if channelName != "" {
+		data["channel_name"] = channelName
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
