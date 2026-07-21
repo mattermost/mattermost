@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
@@ -112,5 +113,45 @@ func TestUserPostDeliveryStore(t *testing.T) {
 
 	t.Run("MarkBulk with no records is a no-op", func(t *testing.T) {
 		require.NoError(t, s.MarkBulk(ctx, nil))
+	})
+
+	t.Run("PermanentDeleteBatch deletes only rows older than the cutoff, in batches", func(t *testing.T) {
+		postID := model.NewId()
+		rctx := request.EmptyContext(logger)
+
+		// Old rows use a tiny created_at so the cutoff targets exactly them, without
+		// touching rows inserted by other subtests (whose created_at is ~now).
+		const oldCreatedAt = int64(1000)
+		keepCreatedAt := model.GetMillis() + 1000000
+
+		insert := func(targetID string, createdAt int64) {
+			_, execErr := sqlStore.userPostDeliveryX.ExecContext(ctx,
+				`INSERT INTO `+userPostDeliveryTableName+` (post_id, target_id, target_type, mechanism, created_at)
+				 VALUES ($1, $2, $3, $4, $5)`,
+				postID, targetID, model.DeliveryTargetUser, model.DeliveryMechanismProduct, createdAt)
+			require.NoError(t, execErr)
+		}
+
+		// 3 rows old enough to delete, 2 rows to keep.
+		insert(model.NewId(), oldCreatedAt)
+		insert(model.NewId(), oldCreatedAt)
+		insert(model.NewId(), oldCreatedAt)
+		insert(model.NewId(), keepCreatedAt)
+		insert(model.NewId(), keepCreatedAt)
+
+		// Cutoff sits between the old and kept rows; batch size 2 forces >1 batch.
+		cutoff := oldCreatedAt + 1
+		var total int64
+		for range 10 {
+			n, delErr := s.PermanentDeleteBatch(rctx, cutoff, 2)
+			require.NoError(t, delErr)
+			total += n
+			if n == 0 {
+				break
+			}
+		}
+
+		require.Equal(t, int64(3), total, "should delete exactly the rows older than the cutoff")
+		require.Len(t, rowsByPost(t, postID), 2, "rows at/after the cutoff must remain")
 	})
 }

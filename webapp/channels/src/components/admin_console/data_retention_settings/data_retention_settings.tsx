@@ -40,6 +40,8 @@ type Props = {
     customPoliciesCount: number;
     globalMessageRetentionHours: string | undefined;
     globalFileRetentionHours: string | undefined;
+    globalDeliveryTrackingRetentionHours: string | undefined;
+    postDeliveryTrackingEnabled: boolean;
     actions: {
         getDataRetentionCustomPolicies: (page: number) => Promise<ActionResult>;
         createJob: (job: JobTypeBase) => Promise<ActionResult>;
@@ -128,6 +130,17 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                 field: 'files',
             },
         ];
+        if (this.props.postDeliveryTrackingEnabled) {
+            columns.push({
+                name: (
+                    <FormattedMessage
+                        id='admin.data_retention.globalPoliciesTable.deliveryTracking'
+                        defaultMessage='Delivery tracking'
+                    />
+                ),
+                field: 'delivery_tracking',
+            });
+        }
         columns.push(
             {
                 name: '',
@@ -266,6 +279,13 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                         {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableFileDeletion, this.props.globalFileRetentionHours)}
                     </div>
                 ),
+                ...(this.props.postDeliveryTrackingEnabled ? {
+                    delivery_tracking: (
+                        <div data-testid='global_delivery_tracking_retention_cell'>
+                            {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableDeliveryTrackingDeletion, this.props.globalDeliveryTrackingRetentionHours)}
+                        </div>
+                    ),
+                } : {}),
                 actions: (
                     <MenuWrapper
                         isDisabled={false}
@@ -591,7 +611,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                     title={<FormattedMessage {...messages.jobCreation_title}/>}
                                     subtitle={<FormattedMessage {...messages.jobCreation_subTitle}/>}
                                     buttonText={<FormattedMessage {...messages.createJob_title}/>}
-                                    isDisabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && (this.props.customPoliciesCount === 0)}
+                                    isDisabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && String(DataRetentionSettings?.EnableDeliveryTrackingDeletion) !== 'true' && (this.props.customPoliciesCount === 0)}
                                     onClick={this.handleCreateJob}
                                 />
                             </Card.Header>
@@ -602,7 +622,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                     jobType={JobTypes.DATA_RETENTION as JobType}
                                     hideJobCreateButton={true}
                                     className={'job-table__data-retention'}
-                                    disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true'}
+                                    disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && String(DataRetentionSettings?.EnableDeliveryTrackingDeletion) !== 'true'}
                                     createJobButtonText={<FormattedMessage {...messages.createJob_title}/>}
                                     createJobHelpText={
                                         <div>

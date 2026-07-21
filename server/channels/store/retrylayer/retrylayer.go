@@ -18545,6 +18545,27 @@ func (s *RetryLayerUserPostDeliveryStore) MarkBulk(ctx context.Context, records 
 
 }
 
+func (s *RetryLayerUserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserPostDeliveryStore.PermanentDeleteBatch(rctx, endTime, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserPostDeliveryContentReviewStore) CountByReviewPost(ctx context.Context, reviewPostID string) (int64, error) {
 
 	tries := 0

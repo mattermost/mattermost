@@ -20,6 +20,8 @@ describe('components/PluginManagement', () => {
         },
         messageRetentionHours: '2400',
         fileRetentionHours: '2400',
+        deliveryTrackingRetentionHours: '2400',
+        postDeliveryTrackingEnabled: false,
         environmentConfig: {},
         actions: {
             patchConfig: jest.fn(),

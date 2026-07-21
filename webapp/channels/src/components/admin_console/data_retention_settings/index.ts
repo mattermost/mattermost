@@ -19,12 +19,16 @@ function mapStateToProps(state: GlobalState) {
     const customPoliciesCount = getDataRetentionCustomPoliciesCount(state);
     const globalMessageRetentionHours = getConfig(state).DataRetentionMessageRetentionHours;
     const globalFileRetentionHours = getConfig(state).DataRetentionFileRetentionHours;
+    const globalDeliveryTrackingRetentionHours = getConfig(state).DataRetentionDeliveryTrackingRetentionHours;
+    const postDeliveryTrackingEnabled = getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
 
     return {
         customPolicies,
         customPoliciesCount,
         globalMessageRetentionHours,
         globalFileRetentionHours,
+        globalDeliveryTrackingRetentionHours,
+        postDeliveryTrackingEnabled,
     };
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -39,6 +40,10 @@ func (noopUserPostDeliveryStore) GetByPost(context.Context, string, model.UserPo
 	// The feature is disabled (no source pool). Signal loudly rather than
 	// returning an empty result so callers don't mistake it for "no deliveries".
 	return nil, store.ErrUserPostDeliverySourceUnavailable
+}
+
+func (noopUserPostDeliveryStore) PermanentDeleteBatch(request.CTX, int64, int64) (int64, error) {
+	return 0, nil
 }
 
 func newSqlUserPostDeliveryStore(s *SqlStore) store.UserPostDeliveryStore {
@@ -117,4 +122,31 @@ func (s *SqlUserPostDeliveryStore) GetByPost(ctx context.Context, postID string,
 		return nil, errors.Wrapf(err, "SqlUserPostDeliveryStore.GetByPost: failed to fetch delivery records for post_id=%s", postID)
 	}
 	return records, nil
+}
+
+// PermanentDeleteBatch deletes up to limit rows older than endTime (created_at in unix
+// millis) and returns the number deleted. Postgres has no DELETE ... LIMIT and the table
+// has no primary key, so a ctid subselect bounds each batch; the retention job loops until
+// this returns 0. Runs on the delivery pool (second DB when configured, else primary).
+func (s *SqlUserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
+	res, err := s.userPostDeliveryX.ExecContext(rctx.Context(),
+		`DELETE FROM `+userPostDeliveryTableName+`
+		 WHERE ctid IN (
+			SELECT ctid FROM `+userPostDeliveryTableName+`
+			WHERE created_at < $1
+			LIMIT $2
+		 )`, endTime, limit)
+	if err != nil {
+		return 0, errors.Wrap(err, "SqlUserPostDeliveryStore.PermanentDeleteBatch: failed to delete delivery records")
+	}
+
+	deleted, err := res.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "SqlUserPostDeliveryStore.PermanentDeleteBatch: failed to read rows affected")
+	}
+
+	if deleted > 0 && s.metrics != nil {
+		s.metrics.IncrementUserPostDeliveryRecordsDeleted(int(deleted))
+	}
+	return deleted, nil
 }

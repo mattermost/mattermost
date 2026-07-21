@@ -35,8 +35,10 @@ export type ClientConfig = {
     CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
+    DataRetentionEnableDeliveryTrackingDeletion: string;
     DataRetentionFileRetentionHours: string;
     DataRetentionMessageRetentionHours: string;
+    DataRetentionDeliveryTrackingRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -968,6 +970,8 @@ export type DataRetentionSettings = {
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
     PreservePinnedPosts: boolean;
+    EnableDeliveryTrackingDeletion: boolean;
+    DeliveryTrackingRetentionHours: number;
 };
 
 export type MessageExportSettings = {

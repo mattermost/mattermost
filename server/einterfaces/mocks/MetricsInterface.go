@@ -282,6 +282,11 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 	_m.Called()
 }
 
+// IncrementUserPostDeliveryRecordsDeleted provides a mock function with given fields: count
+func (_m *MetricsInterface) IncrementUserPostDeliveryRecordsDeleted(count int) {
+	_m.Called(count)
+}
+
 // IncrementUserPostDeliveryRecordsPersisted provides a mock function with given fields: count
 func (_m *MetricsInterface) IncrementUserPostDeliveryRecordsPersisted(count int) {
 	_m.Called(count)

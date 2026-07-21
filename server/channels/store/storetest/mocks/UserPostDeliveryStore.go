@@ -8,6 +8,7 @@ import (
 	context "context"
 
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -80,6 +81,34 @@ func (_m *UserPostDeliveryStore) MarkBulk(ctx context.Context, records []model.U
 	}
 
 	return r0
+}
+
+// PermanentDeleteBatch provides a mock function with given fields: rctx, endTime, limit
+func (_m *UserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
+	ret := _m.Called(rctx, endTime, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteBatch")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64) (int64, error)); ok {
+		return rf(rctx, endTime, limit)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64) int64); ok {
+		r0 = rf(rctx, endTime, limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, int64, int64) error); ok {
+		r1 = rf(rctx, endTime, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewUserPostDeliveryStore creates a new instance of UserPostDeliveryStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

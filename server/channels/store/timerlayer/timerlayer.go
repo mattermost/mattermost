@@ -14645,6 +14645,22 @@ func (s *TimerLayerUserPostDeliveryStore) MarkBulk(ctx context.Context, records 
 	return err
 }
 
+func (s *TimerLayerUserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserPostDeliveryStore.PermanentDeleteBatch(rctx, endTime, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserPostDeliveryStore.PermanentDeleteBatch", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserPostDeliveryContentReviewStore) CountByReviewPost(ctx context.Context, reviewPostID string) (int64, error) {
 	start := time.Now()
 

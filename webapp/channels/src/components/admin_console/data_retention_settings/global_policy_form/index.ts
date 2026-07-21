@@ -20,10 +20,14 @@ import GlobalPolicyForm from './global_policy_form';
 function mapStateToProps(state: GlobalState) {
     const messageRetentionHours = getConfig(state).DataRetentionMessageRetentionHours;
     const fileRetentionHours = getConfig(state).DataRetentionFileRetentionHours;
+    const deliveryTrackingRetentionHours = getConfig(state).DataRetentionDeliveryTrackingRetentionHours;
+    const postDeliveryTrackingEnabled = getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
 
     return {
         messageRetentionHours,
         fileRetentionHours,
+        deliveryTrackingRetentionHours,
+        postDeliveryTrackingEnabled,
         environmentConfig: getEnvironmentConfig(state),
     };
 }

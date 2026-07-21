@@ -30,6 +30,8 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     messageRetentionHours: string | undefined;
     fileRetentionHours: string | undefined;
+    deliveryTrackingRetentionHours: string | undefined;
+    postDeliveryTrackingEnabled: boolean;
     environmentConfig: Partial<EnvironmentConfig>;
     actions: {
         patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
@@ -41,6 +43,8 @@ type State = {
     messageRetentionInputValue: string;
     fileRetentionDropdownValue: ValueType;
     fileRetentionInputValue: string;
+    deliveryTrackingRetentionDropdownValue: ValueType;
+    deliveryTrackingRetentionInputValue: string;
     saveNeeded: boolean;
     saving: boolean;
     serverError: React.ReactNode;
@@ -60,6 +64,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             messageRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableMessageDeletion, props.messageRetentionHours),
             fileRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableFileDeletion, props.fileRetentionHours),
             fileRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableFileDeletion, props.fileRetentionHours),
+            deliveryTrackingRetentionDropdownValue: this.getDefaultDropdownValue(DataRetentionSettings?.EnableDeliveryTrackingDeletion, props.deliveryTrackingRetentionHours),
+            deliveryTrackingRetentionInputValue: this.getDefaultInputValue(DataRetentionSettings?.EnableDeliveryTrackingDeletion, props.deliveryTrackingRetentionHours),
         };
     }
 
@@ -97,12 +103,14 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
     };
 
     handleSubmit = async () => {
-        const {messageRetentionDropdownValue, messageRetentionInputValue, fileRetentionDropdownValue, fileRetentionInputValue} = this.state;
+        const {messageRetentionDropdownValue, messageRetentionInputValue, fileRetentionDropdownValue, fileRetentionInputValue, deliveryTrackingRetentionDropdownValue, deliveryTrackingRetentionInputValue} = this.state;
         const newConfig: AdminConfig = JSON.parse(JSON.stringify(this.props.config));
 
         this.setState({saving: true});
 
-        if ((messageRetentionDropdownValue.value !== FOREVER && parseInt(messageRetentionInputValue, 10) < 1) || (fileRetentionDropdownValue.value !== FOREVER && parseInt(fileRetentionInputValue, 10) < 1)) {
+        const deliveryTrackingInvalid = this.props.postDeliveryTrackingEnabled && deliveryTrackingRetentionDropdownValue.value !== FOREVER && parseInt(deliveryTrackingRetentionInputValue, 10) < 1;
+
+        if ((messageRetentionDropdownValue.value !== FOREVER && parseInt(messageRetentionInputValue, 10) < 1) || (fileRetentionDropdownValue.value !== FOREVER && parseInt(fileRetentionInputValue, 10) < 1) || deliveryTrackingInvalid) {
             this.setState({
                 formErrorText: (
                     <FormattedMessage
@@ -127,6 +135,13 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         if (!this.isFileRetentionSetByEnv() && this.setDeletionEnabled(fileRetentionDropdownValue.value)) {
             newConfig.DataRetentionSettings.FileRetentionDays = 0;
             newConfig.DataRetentionSettings.FileRetentionHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
+        }
+
+        if (this.props.postDeliveryTrackingEnabled) {
+            newConfig.DataRetentionSettings.EnableDeliveryTrackingDeletion = this.setDeletionEnabled(deliveryTrackingRetentionDropdownValue.value);
+            if (!this.isDeliveryTrackingRetentionSetByEnv() && this.setDeletionEnabled(deliveryTrackingRetentionDropdownValue.value)) {
+                newConfig.DataRetentionSettings.DeliveryTrackingRetentionHours = this.setRetentionHours(deliveryTrackingRetentionDropdownValue.value, deliveryTrackingRetentionInputValue);
+            }
         }
 
         const {error} = await this.props.actions.patchConfig(newConfig);
@@ -166,6 +181,11 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         return (this.props.environmentConfig?.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
         (this.props.environmentConfig?.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0) ||
         (this.props.environmentConfig?.DataRetentionSettings?.EnableFileDeletion && !this.props.config.DataRetentionSettings?.EnableFileDeletion);
+    };
+
+    isDeliveryTrackingRetentionSetByEnv = () => {
+        return (this.props.environmentConfig?.DataRetentionSettings?.DeliveryTrackingRetentionHours && this.props.config.DataRetentionSettings?.DeliveryTrackingRetentionHours && this.props.config.DataRetentionSettings.DeliveryTrackingRetentionHours > 0) ||
+        (this.props.environmentConfig?.DataRetentionSettings?.EnableDeliveryTrackingDeletion && !this.props.config.DataRetentionSettings?.EnableDeliveryTrackingDeletion);
     };
 
     render = () => {
@@ -255,6 +275,36 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                         />
                                         {this.isFileRetentionSetByEnv() && <SetByEnv/>}
                                     </div>
+                                    {this.props.postDeliveryTrackingEnabled &&
+                                        <div id='global_delivery_tracking_dropdown'>
+                                            <DropdownInputHybrid
+                                                onDropdownChange={(value) => {
+                                                    if (this.state.deliveryTrackingRetentionDropdownValue.value !== value.value) {
+                                                        this.setState({deliveryTrackingRetentionDropdownValue: value, saveNeeded: true});
+                                                        this.props.actions.setNavigationBlocked(true);
+                                                    }
+                                                }}
+                                                onInputChange={(e) => {
+                                                    this.setState({deliveryTrackingRetentionInputValue: e.target.value, saveNeeded: true});
+                                                    this.props.actions.setNavigationBlocked(true);
+                                                }}
+                                                value={this.state.deliveryTrackingRetentionDropdownValue}
+                                                inputValue={this.state.deliveryTrackingRetentionInputValue}
+                                                width={90}
+                                                exceptionToInput={[FOREVER]}
+                                                isDisabled={this.isDeliveryTrackingRetentionSetByEnv()}
+                                                defaultValue={keepForeverOption()}
+                                                options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
+                                                legend={messages.deliveryTrackingRetention}
+                                                placeholder={messages.deliveryTrackingRetention}
+                                                name={'delivery_tracking_retention'}
+                                                inputType={'number'}
+                                                dropdownClassNamePrefix={'delivery_tracking_retention_dropdown'}
+                                                inputId={'delivery_tracking_retention_input'}
+                                            />
+                                            {this.isDeliveryTrackingRetentionSetByEnv() && <SetByEnv/>}
+                                        </div>
+                                    }
                                 </div>
 
                             </Card.Body>
@@ -309,5 +359,9 @@ const messages = defineMessages({
     fileRetention: {
         id: 'admin.data_retention.form.fileRetention',
         defaultMessage: 'File retention',
+    },
+    deliveryTrackingRetention: {
+        id: 'admin.data_retention.form.deliveryTrackingRetention',
+        defaultMessage: 'Post delivery tracking retention',
     },
 });

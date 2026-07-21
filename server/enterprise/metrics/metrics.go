@@ -72,6 +72,7 @@ type MetricsInterfaceImpl struct {
 	PostFileAttachCounter prometheus.Counter
 
 	UserPostDeliveryRecordsPersistedCounter prometheus.Counter
+	UserPostDeliveryRecordsDeletedCounter   prometheus.Counter
 
 	HTTPRequestsCounter prometheus.Counter
 	HTTPErrorsCounter   prometheus.Counter
@@ -380,6 +381,15 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		ConstLabels: additionalLabels,
 	})
 	m.Registry.MustRegister(m.UserPostDeliveryRecordsPersistedCounter)
+
+	m.UserPostDeliveryRecordsDeletedCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemDB,
+		Name:        "user_post_delivery_records_deleted_total",
+		Help:        "The total number of post-delivery-tracking rows deleted by the data retention job.",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.UserPostDeliveryRecordsDeletedCounter)
 
 	m.DbMasterConnectionsGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
@@ -1910,6 +1920,10 @@ func (mi *MetricsInterfaceImpl) IncrementPostFileAttachment(count int) {
 
 func (mi *MetricsInterfaceImpl) IncrementUserPostDeliveryRecordsPersisted(count int) {
 	mi.UserPostDeliveryRecordsPersistedCounter.Add(float64(count))
+}
+
+func (mi *MetricsInterfaceImpl) IncrementUserPostDeliveryRecordsDeleted(count int) {
+	mi.UserPostDeliveryRecordsDeletedCounter.Add(float64(count))
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPRequest() {

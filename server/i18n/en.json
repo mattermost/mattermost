@@ -11871,6 +11871,10 @@
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
+    "id": "model.config.is_valid.data_retention.delivery_tracking_retention_hours_too_low.app_error",
+    "translation": "Post delivery tracking retention hours cannot be less than 0."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
     "translation": "File retention days and file retention hours cannot both be 0."
   },

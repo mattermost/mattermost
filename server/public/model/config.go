@@ -258,6 +258,7 @@ const (
 	DataRetentionSettingsDefaultBatchSize                      = 3000
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
+	DataRetentionSettingsDefaultDeliveryTrackingRetentionHours = 365 * 24
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
@@ -3544,6 +3545,8 @@ type DataRetentionSettings struct {
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
 	PreservePinnedPosts            *bool   `access:"compliance_data_retention_policy"`
+	EnableDeliveryTrackingDeletion *bool   `access:"compliance_data_retention_policy"`
+	DeliveryTrackingRetentionHours *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -3597,6 +3600,14 @@ func (s *DataRetentionSettings) SetDefaults() {
 	if s.PreservePinnedPosts == nil {
 		s.PreservePinnedPosts = new(false)
 	}
+
+	if s.EnableDeliveryTrackingDeletion == nil {
+		s.EnableDeliveryTrackingDeletion = new(false)
+	}
+
+	if s.DeliveryTrackingRetentionHours == nil {
+		s.DeliveryTrackingRetentionHours = new(DataRetentionSettingsDefaultDeliveryTrackingRetentionHours)
+	}
 }
 
 // GetMessageRetentionHours returns the message retention time as an int.
@@ -3621,6 +3632,15 @@ func (s *DataRetentionSettings) GetFileRetentionHours() int {
 		return *s.FileRetentionDays * 24
 	}
 	return DataRetentionSettingsDefaultFileRetentionDays * 24
+}
+
+// GetDeliveryTrackingRetentionHours returns the retention time (in hours) for post
+// delivery tracking data, falling back to the default when unset or non-positive.
+func (s *DataRetentionSettings) GetDeliveryTrackingRetentionHours() int {
+	if s.DeliveryTrackingRetentionHours != nil && *s.DeliveryTrackingRetentionHours > 0 {
+		return *s.DeliveryTrackingRetentionHours
+	}
+	return DataRetentionSettingsDefaultDeliveryTrackingRetentionHours
 }
 
 const (
@@ -5297,6 +5317,10 @@ func (s *DataRetentionSettings) isValid() *AppError {
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if s.DeliveryTrackingRetentionHours == nil || *s.DeliveryTrackingRetentionHours < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.delivery_tracking_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
