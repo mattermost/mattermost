@@ -519,6 +519,57 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
+    test('removing a policy while an unedited custom rule remains keeps enforcement on and saves without the apply modal', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: ['parent1'],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.office == "Home"'}],
+                    active: false,
+                },
+                enforced: true,
+            },
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                unassignTeamsFromAccessControlPolicy,
+                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+
+        // Custom rule still governs, so enforcement stays on.
+        expect(screen.getByTestId('policy-enforce-toggle-button')).toHaveAttribute('aria-pressed', 'true');
+
+        // Removal is not new criteria: the unedited custom rule must not trigger the apply-count modal.
+        await userEvent.click(screen.getByText('Save'));
+
+        expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+        });
+    });
+
     test('surfaces a policy action error on save instead of silently succeeding', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},

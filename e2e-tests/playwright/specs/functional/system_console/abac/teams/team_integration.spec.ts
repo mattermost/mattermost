@@ -209,6 +209,99 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
+     * @objective Removing a linked policy from a team that also has a custom rule saves
+     * cleanly: enforcement stays on (the rule still governs) and no affected-count "Apply
+     * membership policy" modal appears. Removal is not new criteria — regression for the
+     * modal firing on an unedited, pre-existing custom rule.
+     *
+     * The webapp unit test mocks the rules editor, so it can't exercise the real
+     * hasChanges signal that caused the bug; this drives the real editor end to end.
+     */
+    test('MM-68846-T20 - removing a policy while a custom rule remains saves without the apply modal', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+
+        const policyName = `Eng Policy ${suffix}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+
+        // # Link the policy and add a custom rule, then persist both in one save
+        const policyFetchDone = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDone;
+        await setToggle(page, true);
+
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const linkModal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await linkModal.waitFor({state: 'visible', timeout: 5000});
+        const policyRow = await findPolicyRow(linkModal, policyName);
+        await policyRow.click();
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+        await addAttributeRule(rulesPanel, page, 'Engineering');
+
+        await page.getByRole('button', {name: 'Save'}).click();
+        const applyModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(applyModal).toBeVisible({timeout: 15000});
+        await applyModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(applyModal).not.toBeVisible({timeout: 10000});
+        await page.waitForLoadState('networkidle');
+
+        // # Re-open and remove the policy; the custom rule stays
+        const policyFetchDoneRemove = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneRemove;
+
+        await expect(
+            page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: policyName}),
+        ).toBeVisible({timeout: 15000});
+
+        await page.getByLabel('Remove policy').click();
+        const disconnectModal = page.locator('.ConfirmModal').filter({hasText: 'Remove this team from policy'});
+        await expect(disconnectModal).toBeVisible({timeout: 5000});
+        await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
+        await expect(disconnectModal).not.toBeVisible({timeout: 5000});
+
+        // * Custom rule still governs, so enforcement stays on
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute('aria-pressed', 'true');
+
+        // * Save goes straight through: removal is not new criteria, so no apply modal
+        await page.getByRole('button', {name: 'Save'}).click();
+        await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
+        await page.waitForLoadState('networkidle');
+
+        // * Team stays policy-enforced: the custom rule survives the policy removal
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 2000],
+                message: 'team should remain policy-enforced: a custom rule still governs after policy removal',
+            })
+            .toBe(true);
+    });
+
+    /**
      * @objective A group-synced team cannot use a membership policy: the ABAC toggle is
      * disabled with an explanatory notice, and becomes usable once group sync is off.
      */

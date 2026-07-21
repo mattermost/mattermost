@@ -841,13 +841,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        // Only applying new criteria (a newly linked policy or changed custom rules)
-        // can drop current members, so only that warrants the affected-count confirm.
-        // Removing a policy retains members (confirmed at the trash click) and must
-        // save straight through, not reopen the apply-membership modal.
+        // Only genuinely new criteria can drop members, so only that warrants the
+        // affected-count confirm: a newly linked policy, or an edited rule expression.
+        // teamRulesHaveChanges reports true whenever a rule merely exists, so it can't
+        // tell an edit from a pre-existing rule during a policy removal — compare the
+        // expression against the loaded original instead. Auto-add is excluded: it only
+        // drives the proactive add pass, never removals.
+        const ruleExpressionEdited = this.state.teamRulesExpression !== this.state.teamRulesOriginalExpression;
         const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && (
             this.state.accessControlPolicies.some((p) => !this.state.originalPolicyIds.includes(p.id)) ||
-            this.state.teamRulesHaveChanges
+            ruleExpressionEdited
         );
 
         if (hasAbacChanges) {
