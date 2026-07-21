@@ -440,12 +440,33 @@ func TestArchiveMaxFileSize(t *testing.T) {
 	}
 }
 
+// waitForExtractionSlotDrain polls until the global extraction slot semaphore
+// has no in-flight holders. blockingExtractor.done closes before the detached
+// goroutine's releaseExtractionSlot defer runs, so subtests must drain slots
+// before the next subtest or parent cleanup reinitializes the semaphore.
+func waitForExtractionSlotDrain(t *testing.T, logger mlog.LoggerIFace, data []byte) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		_, err := ExtractWithExtraExtractors(
+			logger,
+			"file.txt",
+			bytes.NewReader(data),
+			ExtractSettings{Timeout: 0},
+			[]Extractor{&slowExtractor{delay: 0}},
+		)
+		return err == nil
+	}, 2*time.Second, 5*time.Millisecond, "detached extraction goroutine should release its slot after finishing")
+}
+
 func TestExtractConcurrency(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
-	resetExtractionConcurrencyForTest(1)
-	t.Cleanup(func() { resetExtractionConcurrencyForTest(runtime.NumCPU()) })
-
 	data := []byte("hello world")
+
+	resetExtractionConcurrencyForTest(1)
+	t.Cleanup(func() {
+		waitForExtractionSlotDrain(t, logger, data)
+		resetExtractionConcurrencyForTest(runtime.NumCPU())
+	})
 
 	t.Run("rejects new extractions while the concurrency limit is reached", func(t *testing.T) {
 		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
@@ -472,11 +493,10 @@ func TestExtractConcurrency(t *testing.T) {
 		case <-time.After(2 * time.Second):
 			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
+		waitForExtractionSlotDrain(t, logger, data)
 	})
 
 	t.Run("a timed-out extraction keeps its slot until the detached goroutine finishes", func(t *testing.T) {
-		resetExtractionConcurrencyForTest(1)
-
 		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
 		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
 
@@ -500,5 +520,6 @@ func TestExtractConcurrency(t *testing.T) {
 		case <-time.After(2 * time.Second):
 			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
+		waitForExtractionSlotDrain(t, logger, data)
 	})
 }
