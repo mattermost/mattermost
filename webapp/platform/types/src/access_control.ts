@@ -246,6 +246,7 @@ export const POLICY_SIMULATION_BLAME_SOURCES = {
     PEER_POLICY: 'peer_policy',
     NO_APPLICABLE_POLICY: 'no_applicable_policy',
     NO_APPLICABLE_RULE: 'no_applicable_rule',
+    NO_SESSION_DATA: 'no_session_data',
     SIBLING_SAVED: 'sibling_saved',
 } as const;
 

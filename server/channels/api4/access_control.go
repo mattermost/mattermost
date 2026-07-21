@@ -604,6 +604,11 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	// the Decision Details panel and per-leaf ActualValue strings.
 	c.App.RedactSimulationAttributesForCaller(c.AppContext, resp, hasSystemPermission)
 
+	// Sanitize evaluation traces for non-system-admin callers.
+	// Traces are sysadmin-only; channel/team admins get flat
+	// expressions and the frontend falls back when trees are absent.
+	c.App.SanitizeSimulationEvaluationTracesForCaller(resp, hasSystemPermission)
+
 	js, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("simulatePolicyForUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
