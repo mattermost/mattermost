@@ -253,7 +253,13 @@ function TeamMembershipTab({
     const handleExpressionChange = useCallback((newExpression: string) => {
         setExpression(newExpression);
         setSaveChangesPanelState(undefined);
-    }, []);
+
+        // Auto-add can't apply without rules; clear it (not just disable it) so the
+        // checkbox doesn't sit greyed-out-but-checked when the last rule is removed.
+        if (!newExpression.trim() && systemPolicies.length === 0) {
+            setAutoAddMembers(false);
+        }
+    }, [systemPolicies]);
 
     const handleParseError = useCallback((errorMessage?: string) => {
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {

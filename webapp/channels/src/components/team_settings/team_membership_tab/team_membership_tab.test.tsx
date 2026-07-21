@@ -303,6 +303,36 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
+    it('unchecks and disables auto-add when the last rule is cleared', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        const checkbox = await screen.findByRole('checkbox', {name: /auto-add members/i});
+        await waitFor(() => expect(checkbox).toBeChecked());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+
+        await waitFor(() => {
+            expect(checkbox).not.toBeChecked();
+            expect(checkbox).toBeDisabled();
+        });
+    });
+
     it('removes the policy and reports success when the last rule is cleared', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({

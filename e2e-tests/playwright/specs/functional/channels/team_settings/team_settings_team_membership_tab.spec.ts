@@ -605,8 +605,8 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await enableTeamMembershipABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Pre-create a saved rule (equivalent to "add a rule and save it")
-        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+        // # Pre-create a saved rule with auto-add ON (equivalent to "add a rule and save it")
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -614,9 +614,14 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await channelsPage.toBeVisible();
 
         const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+        await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked();
 
         // # Remove the only rule via the trash icon
         await tab.getByRole('button', {name: 'Remove row'}).first().click();
+
+        // * Auto-add is unchecked and disabled once no rules remain
+        await expect(tab.locator('#autoAddMembersCheckbox')).not.toBeChecked();
+        await expect(tab.locator('#autoAddMembersCheckbox')).toBeDisabled();
 
         // # Save → confirm
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
