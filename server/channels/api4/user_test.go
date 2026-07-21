@@ -7624,7 +7624,7 @@ func TestExpiredBotAccessTokenIsRejected(t *testing.T) {
 	_, resp, err := th.Client.GetMe(context.Background(), "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-	CheckErrorID(t, err, "app.user_access_token.expired")
+	CheckErrorID(t, err, "api.context.session_expired.app_error")
 }
 
 func TestGetUsersByStatus(t *testing.T) {
