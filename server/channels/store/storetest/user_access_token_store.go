@@ -286,12 +286,31 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.UserAccessToken().Save(future)
 	require.NoError(t, err)
 
+	botOwner, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
+	require.NoError(t, err)
+	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: botOwner.Id}))
+	require.NoError(t, err)
+	_, err = ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: botOwner.Id})
+	require.NoError(t, err)
+	expiredBot := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      botUser.Id,
+		Description: "expired bot token",
+		ExpiresAt:   now - 60*1000,
+	}
+	_, err = ss.UserAccessToken().Save(expiredBot)
+	require.NoError(t, err)
+
 	t.Cleanup(func() {
-		// Delete all three fixtures (expired included) so the test stays
+		// Delete all fixtures (expired included) so the test stays
 		// isolated even on early exit before DeleteByIds runs.
 		_ = ss.UserAccessToken().Delete(nonExpiring.Id)
 		_ = ss.UserAccessToken().Delete(future.Id)
 		_ = ss.UserAccessToken().Delete(expired.Id)
+		_ = ss.UserAccessToken().Delete(expiredBot.Id)
+		_ = ss.Bot().PermanentDelete(botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, botOwner.Id)
 	})
 
 	// The stored value should be persisted and returned
@@ -305,9 +324,10 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// GetExpiredBefore should only return the expired token and must not leak
 	// the secret token value (the Token column is intentionally not selected).
-	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100)
+	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100, true)
 	require.NoError(t, err)
 	found := false
+	foundBot := false
 	for _, row := range expiredRows {
 		// The Token column is never selected by GetExpiredBefore, so no row —
 		// not just the matched expired one — should ever carry the secret.
@@ -316,17 +336,26 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.Equal(t, expired.ExpiresAt, row.ExpiresAt)
 			found = true
 		}
+		if row.Id == expiredBot.Id {
+			foundBot = true
+		}
 		require.NotEqual(t, nonExpiring.Id, row.Id, "non-expiring token must not be returned")
 		require.NotEqual(t, future.Id, row.Id, "future token must not be returned")
 	}
 	require.True(t, found, "expired token should be present in GetExpiredBefore results")
+	require.True(t, foundBot, "expired bot token should be present in GetExpiredBefore results")
+
+	botRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100, false)
+	require.NoError(t, err)
+	require.Contains(t, tokenIDs(botRows), expiredBot.Id)
+	require.NotContains(t, tokenIDs(botRows), expired.Id)
 
 	// Negative or zero limits short-circuit and return an empty slice without
 	// hitting the DB; verify the contract holds.
-	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0)
+	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0, true)
 	require.NoError(t, err)
 	require.Empty(t, zeroLimit)
-	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5)
+	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5, true)
 	require.NoError(t, err)
 	require.Empty(t, negativeLimit)
 
@@ -450,7 +479,7 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	_, err = ss.UserAccessToken().Save(deactivatedToken)
 	require.NoError(t, err)
 
-	// Bot with an in-window token: excluded.
+	// User-owned bot with an in-window token: its owner can be notified.
 	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: activeUser.Id}))
 	require.NoError(t, err)
 	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: activeUser.Id})
@@ -459,17 +488,29 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	_, err = ss.UserAccessToken().Save(botToken)
 	require.NoError(t, err)
 
+	// Plugin-owned bot with an in-window token: excluded because there is no
+	// human notification recipient.
+	pluginBotUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: "com.mattermost.test"}))
+	require.NoError(t, err)
+	_, nErr = ss.Bot().Save(&model.Bot{UserId: pluginBotUser.Id, Username: pluginBotUser.Username, OwnerId: "com.mattermost.test"})
+	require.NoError(t, nErr)
+	pluginBotToken := &model.UserAccessToken{Token: model.NewId(), UserId: pluginBotUser.Id, Description: "plugin bot", ExpiresAt: now + 5*dayMillisTest}
+	_, err = ss.UserAccessToken().Save(pluginBotToken)
+	require.NoError(t, err)
+
 	t.Cleanup(func() {
-		for _, id := range []string{inWindow.Id, beyond.Id, past.Id, nonExpiring.Id, terminal.Id, stillNotify.Id, deactivatedToken.Id, botToken.Id} {
+		for _, id := range []string{inWindow.Id, beyond.Id, past.Id, nonExpiring.Id, terminal.Id, stillNotify.Id, deactivatedToken.Id, botToken.Id, pluginBotToken.Id} {
 			_ = ss.UserAccessToken().Delete(id)
 		}
 		_ = ss.Bot().PermanentDelete(botUser.Id)
+		_ = ss.Bot().PermanentDelete(pluginBotUser.Id)
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, pluginBotUser.Id)
 		_ = ss.User().PermanentDelete(rctx, activeUser.Id)
 		_ = ss.User().PermanentDelete(rctx, deletedUser.Id)
 	})
 
-	rows, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 100)
+	rows, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 100, true)
 	require.NoError(t, err)
 
 	got := make(map[string]*model.UserAccessToken)
@@ -485,7 +526,8 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NotContains(t, got, nonExpiring.Id, "non-expiring token must not be returned")
 	require.NotContains(t, got, terminal.Id, "token already warned within the terminal bucket must not be returned")
 	require.NotContains(t, got, deactivatedToken.Id, "token owned by a deactivated user must not be returned")
-	require.NotContains(t, got, botToken.Id, "bot token must not be returned")
+	require.Contains(t, got, botToken.Id, "user-owned bot token should be returned")
+	require.NotContains(t, got, pluginBotToken.Id, "plugin-owned bot token must not be returned")
 
 	require.Nil(t, got[inWindow.Id].LastNotifiedAt)
 	require.NotNil(t, got[stillNotify.Id].LastNotifiedAt)
@@ -504,15 +546,20 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	require.Less(t, indexOfToken(rows, stillNotify.Id), indexOfToken(rows, inWindow.Id), "sooner-expiring token must be returned first")
 
 	// Non-positive limit and empty thresholds short-circuit.
-	zero, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 0)
+	zero, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 0, true)
 	require.NoError(t, err)
 	require.Empty(t, zero)
-	neg, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, -3)
+	neg, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, -3, true)
 	require.NoError(t, err)
 	require.Empty(t, neg)
-	none, err := ss.UserAccessToken().GetExpiringTokens(now, nil, 100)
+	none, err := ss.UserAccessToken().GetExpiringTokens(now, nil, 100, true)
 	require.NoError(t, err)
 	require.Empty(t, none)
+
+	botRows, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 100, false)
+	require.NoError(t, err)
+	require.Contains(t, tokenIDs(botRows), botToken.Id)
+	require.NotContains(t, tokenIDs(botRows), inWindow.Id)
 }
 
 func indexOfToken(tokens []*model.UserAccessToken, id string) int {
@@ -522,6 +569,14 @@ func indexOfToken(tokens []*model.UserAccessToken, id string) int {
 		}
 	}
 	return -1
+}
+
+func tokenIDs(tokens []*model.UserAccessToken) []string {
+	ids := make([]string, len(tokens))
+	for i, token := range tokens {
+		ids[i] = token.Id
+	}
+	return ids
 }
 
 func testUserAccessTokenUpdateLastNotifiedAt(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -595,13 +650,24 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, err)
 	require.NoError(t, ss.UserAccessToken().UpdateTokenDisable(inactive.Id))
 
-	// Never-expiring token owned by a bot — bots are exempt and excluded.
-	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "noncompliant_bot", OwnerId: model.NewId()}))
+	// Never-expiring token owned by a user-managed bot — non-compliant.
+	botOwner, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
 	require.NoError(t, err)
-	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: model.NewId()})
+	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "noncompliant_bot", OwnerId: botOwner.Id}))
+	require.NoError(t, err)
+	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: botOwner.Id})
 	require.NoError(t, nErr)
 	botToken := &model.UserAccessToken{Token: model.NewId(), UserId: botUser.Id, Description: "bot token"}
 	_, err = ss.UserAccessToken().Save(botToken)
+	require.NoError(t, err)
+
+	// Plugin-owned bot tokens remain exempt.
+	pluginBotUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "plugin_noncompliant_bot", OwnerId: "com.mattermost.test"}))
+	require.NoError(t, err)
+	_, nErr = ss.Bot().Save(&model.Bot{UserId: pluginBotUser.Id, Username: pluginBotUser.Username, OwnerId: "com.mattermost.test"})
+	require.NoError(t, nErr)
+	pluginBotToken := &model.UserAccessToken{Token: model.NewId(), UserId: pluginBotUser.Id, Description: "plugin bot token"}
+	_, err = ss.UserAccessToken().Save(pluginBotToken)
 	require.NoError(t, err)
 
 	// Two non-compliant tokens owned by the same user — verifies that the
@@ -627,16 +693,21 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 		_ = ss.UserAccessToken().Delete(compliant.Id)
 		_ = ss.UserAccessToken().Delete(inactive.Id)
 		_ = ss.UserAccessToken().Delete(botToken.Id)
+		_ = ss.UserAccessToken().Delete(pluginBotToken.Id)
 		_ = ss.Bot().PermanentDelete(botUser.Id)
+		_ = ss.Bot().PermanentDelete(pluginBotUser.Id)
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
+		_ = ss.User().PermanentDelete(rctx, pluginBotUser.Id)
+		_ = ss.User().PermanentDelete(rctx, botOwner.Id)
 	})
 
-	// Against the 30-day cap, at least our four active non-bot violators are counted.
+	// Against the 30-day cap, at least our five active user and user-owned bot
+	// violators are counted.
 	// Use GreaterOrEqual to avoid flakiness from concurrent tests that may also
 	// hold non-compliant tokens when this test runs.
 	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, count, baseline30+4)
+	require.GreaterOrEqual(t, count, baseline30+5)
 
 	// A non-positive limit is a no-op.
 	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
@@ -645,11 +716,11 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 
 	// DeleteNonCompliantExpiry deletes all violators and their sessions, returns
 	// one UserId per deleted token row (not per user), and leaves
-	// compliant/inactive/bot tokens untouched.
+	// compliant/inactive/plugin-owned bot tokens untouched.
 	// Use GreaterOrEqual for the same reason as the count check above.
 	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(userIDs), 4, "should return at least our four deleted tokens")
+	require.GreaterOrEqual(t, len(userIDs), 5, "should return at least our five deleted tokens")
 	// Verify sharedUserID appears exactly twice — once per token, not once per user.
 	// This specifically guards against a SELECT DISTINCT regression.
 	sharedOccurrences := 0
@@ -664,9 +735,10 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.True(t, gotUserIDs[noExpiry.UserId], "user of never-expiring token should be returned")
 	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
 	require.True(t, gotUserIDs[sharedUserID], "shared user with multiple tokens should be returned")
+	require.True(t, gotUserIDs[botToken.UserId], "user-owned bot token should be returned")
 	require.False(t, gotUserIDs[compliant.UserId], "compliant token user must not be returned")
 	require.False(t, gotUserIDs[inactive.UserId], "inactive token user must not be returned")
-	require.False(t, gotUserIDs[botToken.UserId], "bot token user must not be returned")
+	require.False(t, gotUserIDs[pluginBotToken.UserId], "plugin-owned bot token user must not be returned")
 
 	// Token rows are gone.
 	_, err = ss.UserAccessToken().Get(noExpiry.Id)
@@ -677,6 +749,8 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.Error(t, err, "shared-user token A should be deleted")
 	_, err = ss.UserAccessToken().Get(multiB.Id)
 	require.Error(t, err, "shared-user token B should be deleted")
+	_, err = ss.UserAccessToken().Get(botToken.Id)
+	require.Error(t, err, "user-owned bot token should be deleted")
 
 	// Sessions for deleted tokens are gone.
 	_, nErr = ss.Session().Get(rctx, noExpirySession.Token)
@@ -689,8 +763,8 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, err, "compliant token must survive")
 	_, err = ss.UserAccessToken().Get(inactive.Id)
 	require.NoError(t, err, "inactive token must survive")
-	_, err = ss.UserAccessToken().Get(botToken.Id)
-	require.NoError(t, err, "bot token must survive")
+	_, err = ss.UserAccessToken().Get(pluginBotToken.Id)
+	require.NoError(t, err, "plugin-owned bot token must survive")
 
 	// Count is back to at most baseline after deletion (could be lower if our
 	// delete swept up tokens from other concurrent tests; could equal baseline if
