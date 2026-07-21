@@ -28,12 +28,14 @@ type SqlAttributesStore struct {
 // The view is per-object-type (migration 000205) so a refresh of one type's
 // attributes doesn't recompute the others. Unknown types fall back to the user
 // view, preserving the pre-split behavior for callers that pass no type.
-func attributeViewFor(objectType string) string {
+func attributeViewFor(objectType string) (string, error) {
 	switch objectType {
 	case model.PropertyFieldObjectTypeChannel:
-		return "ChannelAttributeView"
+		return "ChannelAttributeView", nil
+	case model.PropertyFieldObjectTypeUser:
+		return "UserAttributeView", nil
 	default:
-		return "UserAttributeView"
+		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
 	}
 }
 
@@ -89,7 +91,11 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 }
 
 func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
-	query := s.selectQueryBuilder.From(attributeViewFor(objectType)).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
+	view, err := attributeViewFor(objectType)
+	if err != nil {
+		return nil, err
+	}
+	query := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
 
 	q, args, err := query.ToSql()
 	if err != nil {

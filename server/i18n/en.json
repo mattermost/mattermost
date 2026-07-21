@@ -7861,6 +7861,10 @@
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
   },
   {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Cannot resolve attribute visibility for an unknown object type."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Could not merge policy expression with stored masked values."
   },

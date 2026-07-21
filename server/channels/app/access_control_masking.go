@@ -158,9 +158,16 @@ func (r *appMaskingResolver) Resolve(objectType, fieldName string) (*model.Maski
 // visible values (the caller holds nothing channel-side), the fail-closed
 // direction.
 func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName string) (*maskingHoldings, *model.AppError) {
-	lookupType := objectType
-	if lookupType != model.PropertyFieldObjectTypeChannel {
+	var lookupType string
+	switch objectType {
+	case model.PropertyFieldObjectTypeChannel:
+		lookupType = model.PropertyFieldObjectTypeChannel
+	case model.PropertyFieldObjectTypeUser:
 		lookupType = model.PropertyFieldObjectTypeUser
+	default:
+		// Only user./resource. CPA roots reach here (see cpaAttributeRoots); fail
+		// loud rather than silently treating an unexpected type as a user lookup.
+		return nil, model.NewAppError("holdingsFieldFor", "app.pap.masking.unknown_object_type.app_error", map[string]any{"ObjectType": objectType}, "", http.StatusInternalServerError)
 	}
 
 	field, appErr := a.GetPropertyFieldByNameForObjectType(rctx, groupID, "", lookupType, fieldName)
