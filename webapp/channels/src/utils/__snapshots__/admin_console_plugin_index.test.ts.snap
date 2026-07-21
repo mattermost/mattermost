@@ -3,9 +3,10 @@
 exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 1`] = `
 Object {
   "plugin_mattermost-autolink": Array [
-    "Enable Plugin: ",
-    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.mattermost-autolink.Enable",
+    "Enable plugin",
+    "Disable plugin",
+    "Uninstall plugin",
     "Autolink",
     "mattermost-autolink",
     "Configure this plugin directly in the config.json file. Learn more in our documentation. To report an issue, make a suggestion or a contribution, check the plugin repository.",
@@ -18,9 +19,10 @@ Object {
 exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 2`] = `
 Object {
   "plugin_Some-random-plugin": Array [
-    "Enable Plugin: ",
-    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.Some-random-plugin.Enable",
+    "Enable plugin",
+    "Disable plugin",
+    "Uninstall plugin",
     "Random",
     "Some-random-plugin",
     "random plugin footer",
@@ -32,9 +34,10 @@ Object {
     "setRange",
   ],
   "plugin_mattermost-autolink": Array [
-    "Enable Plugin: ",
-    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.mattermost-autolink.Enable",
+    "Enable plugin",
+    "Disable plugin",
+    "Uninstall plugin",
     "Autolink",
     "mattermost-autolink",
     "Configure this plugin directly in the config.json file. Learn more in our documentation. To report an issue, make a suggestion or a contribution, check the plugin repository.",
