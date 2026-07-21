@@ -516,6 +516,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 isAdmin={this.props.isAdmin}
                 usersLoader={this.usersLoader}
                 membershipPolicyEnforced={this.isTeamMembershipGoverned()}
+                membershipPolicyStrict={this.isStrictlyFilteredTeam()}
                 emailInvitationsEnabled={this.props.emailInvitationsEnabled}
                 onChangeUsersEmails={this.onChangeUsersEmails}
                 onUsersInputChange={this.onUsersInputChange}

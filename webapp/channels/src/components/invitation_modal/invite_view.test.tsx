@@ -48,6 +48,7 @@ const defaultProps: Props = deepFreeze({
     regenerateTeamInviteId: jest.fn(),
     isAdmin: false,
     membershipPolicyEnforced: false,
+    membershipPolicyStrict: false,
     usersLoader: jest.fn(),
     onChangeUsersEmails: jest.fn(),
     isCloud: false,
@@ -355,10 +356,11 @@ describe('InviteView', () => {
         expect(screen.getByTestId('inviteButton')).toBeDisabled();
     });
 
-    it('shows the membership-policy notice, attribute tags, and invite-link warning on a governed team', () => {
+    it('shows the strict membership-policy notice, attribute tags, and invite-link warning on a private governed team', () => {
         props = {
             ...defaultProps,
             membershipPolicyEnforced: true,
+            membershipPolicyStrict: true,
             currentTeam: {id: 'team1', display_name: 'Team One', invite_id: 'abc'} as Team,
         };
 
@@ -373,6 +375,28 @@ describe('InviteView', () => {
 
         // The notice and the link warning are exposed as live status regions.
         expect(screen.getAllByRole('status').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('softens the notice and link warning to advisory copy on a public governed team', () => {
+        props = {
+            ...defaultProps,
+            membershipPolicyEnforced: true,
+            membershipPolicyStrict: false,
+            currentTeam: {id: 'team1', display_name: 'Team One', invite_id: 'abc'} as Team,
+        };
+
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
+        );
+
+        // Advisory copy is shown, and the strict phrasing is gone.
+        expect(screen.getByText('This team has membership requirements')).toBeInTheDocument();
+        expect(screen.getByText('Users who do not meet them can still join, but will not be automatically added.')).toBeInTheDocument();
+        expect(screen.getByText('People who use this link can join even if they do not meet the membership requirements, but will not be automatically added.')).toBeInTheDocument();
+        expect(screen.getByText('Department: Engineering')).toBeInTheDocument();
+        expect(screen.queryByText('Only users who meet the membership requirements can be added to this team.')).not.toBeInTheDocument();
+        expect(screen.queryByText('People who use this link must meet the membership requirements to join.')).not.toBeInTheDocument();
     });
 
     it('does not show the membership-policy notice on a non-governed team', () => {
