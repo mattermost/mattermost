@@ -3920,6 +3920,18 @@ const AdminDefinition: AdminDefinitionType = {
                                     ),
                                     validate: validators.minValue(1, defineMessage({id: 'admin.recaps.maxConcurrentJobs.minValue', defaultMessage: 'Must be 1 or greater'})),
                                 },
+                                {
+                                    type: 'number',
+                                    key: 'AIRecapSettings.Processing.MaxConcurrentLLMCalls',
+                                    label: defineMessage({id: 'admin.recaps.maxConcurrentLLMCalls.title', defaultMessage: 'Maximum Concurrent LLM Calls:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxConcurrentLLMCalls.desc', defaultMessage: 'Maximum number of channel summarization requests each server sends to the LLM at the same time, across all recap jobs. Lower this to protect self-hosted LLM servers. Requires a server restart to take effect.'}),
+                                    placeholder: defineMessage({id: 'admin.recaps.maxConcurrentLLMCalls.placeholder', defaultMessage: 'E.g.: "16"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                    validate: validators.minValue(1, defineMessage({id: 'admin.recaps.maxConcurrentLLMCalls.minValue', defaultMessage: 'Must be 1 or greater'})),
+                                },
                             ],
                         },
                     ],
