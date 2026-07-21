@@ -54,7 +54,14 @@ function pathToDocId(relPath) { return relPath.replace(/\.(md|mdx)$/, ''); }
 
 function buildCategory(absDir, docsRelDir) {
   const entries = readdirSync(absDir);
-  const indexFile = entries.find((e) => /^index\.(md|mdx)$/.test(e));
+  // Landing pages in this tree are conventionally named either `index.md(x)`
+  // or `<something>-index.md(x)` (e.g. integrations-guide-index.mdx,
+  // use-cases-index.mdx) — the latter avoids "index.mdx" filename collisions
+  // when files are flattened for URL stability, and doesn't always exactly
+  // match the directory name. Recognize both so category headers link to
+  // their landing page instead of just expanding/collapsing.
+  const indexFile = entries.find((e) => /^index\.(md|mdx)$/.test(e)) ||
+    entries.find((e) => /-index\.(md|mdx)$/.test(e));
   let categoryLink = null;
   if (indexFile && !isDraft(join(absDir, indexFile))) {
     categoryLink = {type: 'doc', id: pathToDocId(join(docsRelDir, indexFile))};
@@ -63,7 +70,7 @@ function buildCategory(absDir, docsRelDir) {
   const subDirs = [];
   const leafDocs = [];
   for (const name of entries) {
-    if (/^index\.(md|mdx)$/.test(name)) continue;
+    if (name === indexFile) continue;
     const abs = join(absDir, name);
     const st = statSync(abs);
     if (st.isDirectory()) subDirs.push(name);
