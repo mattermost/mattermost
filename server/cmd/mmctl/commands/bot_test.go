@@ -121,6 +121,19 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 		s.Require().Empty(printer.GetLines())
 	})
 
+	s.Run("Should reject invalid expires-in before creating the bot", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("with-token", true, "")
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "not-a-duration"))
+
+		err := botCreateCmdF(s.client, cmd, []string{"a-bot"})
+		s.Require().ErrorContains(err, "invalid --expires-in value")
+		s.Require().Empty(printer.GetLines())
+	})
+
 	s.Run("Should error when creating a bot", func() {
 		printer.Clean()
 
