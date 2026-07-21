@@ -92,8 +92,13 @@ describe('Plugin remains enabled when upgraded', () => {
         // * Verify that the button shows correct text while uploading
         cy.get('#uploadPlugin').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
-        // # Confirm overwrite of plugin with same name
-        cy.get('#confirmModalButton').should('be.visible').click();
+        // # Review and confirm overwrite of plugin with same name
+        cy.findByTestId('plugin-upload-overwrite-review').should('be.visible').within(() => {
+            cy.findByText('Review plugin overwrite').should('be.visible');
+            cy.findByText('This upload appears to upgrade the existing plugin.').should('be.visible');
+            cy.findByText(`v${demoPluginOld.version} \u2192 v${demoPlugin.version}`).should('be.visible');
+            cy.findByText('Overwrite').click();
+        });
 
         // * Verify that the button shows correct text and is disabled after upload
         waitForServerStatus(demoPlugin.id, demoPlugin.version, {isActive: true});

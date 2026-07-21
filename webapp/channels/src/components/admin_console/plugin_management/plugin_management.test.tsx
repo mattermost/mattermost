@@ -634,7 +634,7 @@ describe('components/PluginManagement', () => {
         expect(screen.getByTestId('plugin-upload-overwrite-review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
         expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
         expect(screen.getByText(message)).toBeInTheDocument();
-        expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} → ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
+        expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
         expect(screen.getAllByText('com.mattermost.test-plugin')).toHaveLength(2);
     });
 

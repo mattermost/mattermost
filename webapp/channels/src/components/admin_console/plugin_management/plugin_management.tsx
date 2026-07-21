@@ -983,7 +983,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                     </dt>
                     <dd>
                         {displayExistingVersion}
-                        {' → '}
+                        {' \u2192 '}
                         {displayUploadedVersion}
                     </dd>
                 </dl>
