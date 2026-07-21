@@ -150,4 +150,11 @@ type MetricsInterface interface {
 	ObserveAutoTranslateWorkerTaskDuration(elapsed float64)
 	AddAutoTranslateRecoveryStuckFound(count float64)
 	IncrementAutoTranslateNormHash(result string)
+
+	// Recap metrics
+	ObserveRecapDeliveryDelay(seconds float64)
+	ObserveRecapScheduledBacklog(count int64)
+	IncrementRecapLLMInFlight()
+	DecrementRecapLLMInFlight()
+	ObserveRecapChannelProcessTime(success bool, seconds float64)
 }
