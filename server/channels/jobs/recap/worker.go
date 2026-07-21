@@ -6,6 +6,7 @@ package recap
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 )
@@ -36,7 +38,7 @@ const (
 	progressUpdateInterval = time.Second
 )
 
-func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.PoolWorker {
+func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface, getMetrics func() einterfaces.MetricsInterface) *jobs.PoolWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return cfg.AIRecapsEnabled()
 	}
@@ -52,7 +54,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
-		return processRecapJob(logger, job, storeInstance, appInstance, llmSemaphore, func(progress int64) {
+		return processRecapJob(logger, job, storeInstance, appInstance, getMetrics(), llmSemaphore, func(progress int64) {
 			_ = jobServer.SetJobProgress(job, progress)
 		})
 	}
@@ -67,7 +69,21 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 	return jobs.NewPoolWorker("Recap", jobServer, execute, isEnabled, poolSize)
 }
 
-func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, llmSemaphore *semaphore.Weighted, setProgress func(int64)) error {
+func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, metrics einterfaces.MetricsInterface, llmSemaphore *semaphore.Weighted, setProgress func(int64)) error {
+	jobStartTime := time.Now()
+
+	var scheduledFor int64
+	if raw := job.Data["scheduled_for"]; raw != "" {
+		parsed, parseErr := strconv.ParseInt(raw, 10, 64)
+		if parseErr != nil {
+			logger.Warn("Ignoring invalid scheduled_for in recap job data",
+				mlog.String("scheduled_for", raw),
+				mlog.Err(parseErr))
+		} else {
+			scheduledFor = parsed
+		}
+	}
+
 	recapID := job.Data["recap_id"]
 	userID := job.Data["user_id"]
 	channelIDs := strings.Split(job.Data["channel_ids"], ",")
@@ -107,11 +123,17 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	// collector goroutine exclusively owns the totals and the progress writes,
 	// so no accumulator state is shared. The results channel is buffered to
 	// the full channel count so a worker's send can never block.
-	results := make(chan model.RecapChannelResult, len(channelIDs))
+	type channelOutcome struct {
+		result  model.RecapChannelResult
+		semWait time.Duration
+	}
+	results := make(chan channelOutcome, len(channelIDs))
 
 	totalMessages := 0
 	successfulChannels := make([]string, 0, len(channelIDs))
 	failedChannels := make([]string, 0, len(channelIDs))
+	var semWaitTotal time.Duration
+	var semWaitMax time.Duration
 
 	collectorDone := make(chan struct{})
 	go func() {
@@ -122,11 +144,15 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 		var lastEmitAt time.Time
 		for completed := 1; completed <= len(channelIDs); completed++ {
 			outcome := <-results
-			if outcome.Success {
-				totalMessages += outcome.MessageCount
-				successfulChannels = append(successfulChannels, outcome.ChannelID)
+			semWaitTotal += outcome.semWait
+			if outcome.semWait > semWaitMax {
+				semWaitMax = outcome.semWait
+			}
+			if outcome.result.Success {
+				totalMessages += outcome.result.MessageCount
+				successfulChannels = append(successfulChannels, outcome.result.ChannelID)
 			} else {
-				failedChannels = append(failedChannels, outcome.ChannelID)
+				failedChannels = append(failedChannels, outcome.result.ChannelID)
 			}
 
 			// Monotonic, throttled progress: completed only grows, so percent
@@ -149,12 +175,16 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	var panicValue any
 	for _, channelID := range channelIDs {
 		g.Go(func() (workerErr error) {
+			var semWait time.Duration
 			defer func() {
 				if recovered := recover(); recovered != nil {
 					panicOnce.Do(func() {
 						panicValue = recovered
 					})
-					results <- model.RecapChannelResult{ChannelID: channelID}
+					results <- channelOutcome{
+						result:  model.RecapChannelResult{ChannelID: channelID},
+						semWait: semWait,
+					}
 					workerErr = fmt.Errorf("panic processing recap channel %s: %v", channelID, recovered)
 				}
 			}()
@@ -166,33 +196,62 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 			// abandoning a call would free the slot while the LLM request
 			// keeps running, defeating the cap. Wedged-job recovery (phase 2)
 			// bounds the user-facing blast radius of a hung call.
+			waitStart := time.Now()
 			if err := llmSemaphore.Acquire(gctx, 1); err != nil {
 				logger.Warn("Failed to acquire LLM slot for channel",
 					mlog.String("channel_id", channelID),
 					mlog.Err(err))
-				results <- model.RecapChannelResult{ChannelID: channelID}
+				results <- channelOutcome{result: model.RecapChannelResult{ChannelID: channelID}}
 				return nil
 			}
-			defer llmSemaphore.Release(1)
+			semWait = time.Since(waitStart)
+			if metrics != nil {
+				metrics.IncrementRecapLLMInFlight()
+			}
 
 			// Fresh per-goroutine context with the user's session so
 			// session-dependent code (e.g. auto-translation supplements)
 			// works correctly.
 			rctx := request.EmptyContext(logger).WithSession(&model.Session{UserId: userID})
-			result, err := appInstance.ProcessRecapChannelWithOptions(rctx, recapID, channelID, userID, agentID, options)
+			var result *model.RecapChannelResult
+			var err *model.AppError
+			procStart := time.Now()
+			func() {
+				defer func() {
+					if metrics != nil {
+						metrics.ObserveRecapChannelProcessTime(err == nil && result != nil && result.Success, time.Since(procStart).Seconds())
+						metrics.DecrementRecapLLMInFlight()
+					}
+					llmSemaphore.Release(1)
+				}()
+				result, err = appInstance.ProcessRecapChannelWithOptions(rctx, recapID, channelID, userID, agentID, options)
+			}()
 			if err != nil {
 				logger.Warn("Failed to process channel",
 					mlog.String("channel_id", channelID),
 					mlog.Err(err))
-				results <- model.RecapChannelResult{ChannelID: channelID}
+				results <- channelOutcome{
+					result:  model.RecapChannelResult{ChannelID: channelID},
+					semWait: semWait,
+				}
 				return nil
 			}
 			if !result.Success {
 				logger.Warn("Channel processing unsuccessful", mlog.String("channel_id", channelID))
-				results <- model.RecapChannelResult{ChannelID: channelID}
+				results <- channelOutcome{
+					result:  model.RecapChannelResult{ChannelID: channelID},
+					semWait: semWait,
+				}
 				return nil
 			}
-			results <- model.RecapChannelResult{ChannelID: channelID, MessageCount: result.MessageCount, Success: true}
+			results <- channelOutcome{
+				result: model.RecapChannelResult{
+					ChannelID:    channelID,
+					MessageCount: result.MessageCount,
+					Success:      true,
+				},
+				semWait: semWait,
+			}
 			return nil
 		})
 	}
@@ -245,10 +304,21 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 		publishRecapUpdate(appInstance, recapID, userID)
 	}
 
+	if metrics != nil && scheduledFor > 0 {
+		delaySeconds := float64(model.GetMillis()-scheduledFor) / 1000.0
+		if delaySeconds < 0 {
+			delaySeconds = 0
+		}
+		metrics.ObserveRecapDeliveryDelay(delaySeconds)
+	}
+
 	logger.Info("Recap job completed",
 		mlog.String("recap_id", recapID),
 		mlog.Int("successful_channels", len(successfulChannels)),
-		mlog.Int("failed_channels", len(failedChannels)))
+		mlog.Int("failed_channels", len(failedChannels)),
+		mlog.Duration("job_duration", time.Since(jobStartTime)),
+		mlog.Duration("semaphore_wait_total", semWaitTotal),
+		mlog.Duration("semaphore_wait_max", semWaitMax))
 
 	return nil
 }
