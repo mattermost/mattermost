@@ -106,6 +106,11 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if expiresIn := cmd.Flags().Lookup("expires-in"); expiresIn != nil && expiresIn.Changed && !withToken {
 		return errors.New("--expires-in requires --with-token")
 	}
+	if withToken {
+		if _, err := resolveTokenExpiry(cmd); err != nil {
+			return err
+		}
+	}
 
 	username := args[0]
 	displayName, _ := cmd.Flags().GetString("display-name")
