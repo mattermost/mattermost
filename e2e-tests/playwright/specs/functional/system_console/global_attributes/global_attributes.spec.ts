@@ -179,15 +179,18 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 },
             ] as const;
 
-            for (const seed of seeds) {
-                // eslint-disable-next-line no-await-in-loop
-                await createGlobalAttributeField(adminClient, seed.name, {
-                    type: seed.type,
-                    attrs: {display_name: seed.displayName, ...seed.attrs},
-                });
-            }
-
             try {
+                // # Seed every field inside the try block — if creation fails partway
+                // through (e.g. field 3 of 5), the finally below still cleans up whatever
+                // was already created instead of leaving it orphaned on the shared server.
+                for (const seed of seeds) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await createGlobalAttributeField(adminClient, seed.name, {
+                        type: seed.type,
+                        attrs: {display_name: seed.displayName, ...seed.attrs},
+                    });
+                }
+
                 // # Log in and open the Manage Attributes page once every field is seeded
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -244,20 +247,23 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // in isolation (the unit tests already cover the fallback alone).
             const thirdName = `mmm_e2e_sort_fallback_${timestamp}`;
 
-            await createGlobalAttributeField(adminClient, firstName, {
-                type: 'text',
-                attrs: {display_name: firstDisplayName},
-            });
-            await createGlobalAttributeField(adminClient, secondName, {
-                type: 'text',
-                attrs: {display_name: secondDisplayName},
-            });
-            await createGlobalAttributeField(adminClient, thirdName, {
-                type: 'text',
-                attrs: {},
-            });
-
             try {
+                // # Seed all three fields inside the try block — if creation fails
+                // partway through, the finally below still cleans up whatever was
+                // already created instead of leaving it orphaned on the shared server.
+                await createGlobalAttributeField(adminClient, firstName, {
+                    type: 'text',
+                    attrs: {display_name: firstDisplayName},
+                });
+                await createGlobalAttributeField(adminClient, secondName, {
+                    type: 'text',
+                    attrs: {display_name: secondDisplayName},
+                });
+                await createGlobalAttributeField(adminClient, thirdName, {
+                    type: 'text',
+                    attrs: {},
+                });
+
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
