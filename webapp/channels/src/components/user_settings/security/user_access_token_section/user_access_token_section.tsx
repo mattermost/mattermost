@@ -248,8 +248,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             tokenError: '',
             serverError: null,
             saving: false,
-            expiryPreset: this.defaultExpiryPreset(),
-            customExpiryDate: this.defaultCustomExpiryDate(),
+            expiryPreset: this.getDefaultExpiryPreset(),
+            customExpiryDate: this.getDefaultCustomExpiryDate(),
             tokenDescription: '',
         };
         this.minRef = React.createRef();
@@ -282,11 +282,11 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return {active: nextProps.active};
     }
 
-    defaultCustomExpiryDate = (): string => {
+    getDefaultCustomExpiryDate = (): string => {
         return defaultCustomExpiryDate(this.props.maxLifetimeDays);
     };
 
-    defaultExpiryPreset = (): ExpiryPreset => {
+    getDefaultExpiryPreset = (): ExpiryPreset => {
         return defaultExpiryPreset(this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
     };
 
@@ -305,7 +305,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     // or null when the selection is valid. Used both to disable the Save/Regenerate
     // button and surface the error inline (so the user sees it without clicking
     // through the confirmation flow) and as the guard in handleCreateToken.
-    getExpiryValidationError = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): React.ReactNode | null => {
+    getExpirySelectionValidationError = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): React.ReactNode | null => {
         return getExpiryValidationError(expiryPreset, customExpiryDate, this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
     };
 
@@ -411,8 +411,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     startCreatingToken = () => {
         this.setState({
             tokenCreationState: TOKEN_CREATING,
-            expiryPreset: this.defaultExpiryPreset(),
-            customExpiryDate: this.defaultCustomExpiryDate(),
+            expiryPreset: this.getDefaultExpiryPreset(),
+            customExpiryDate: this.getDefaultCustomExpiryDate(),
             tokenDescription: '',
             tokenError: '',
         });
@@ -455,7 +455,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             return;
         }
 
-        const expiryError = this.getExpiryValidationError();
+        const expiryError = this.getExpirySelectionValidationError();
         if (expiryError) {
             this.setState({tokenError: expiryError});
             return;
@@ -664,7 +664,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         const regenerateExpiryPreset = e.target.value as ExpiryPreset;
         this.setState({
             regenerateExpiryPreset,
-            confirmDisabled: Boolean(this.getExpiryValidationError(regenerateExpiryPreset, this.state.regenerateCustomExpiryDate)),
+            confirmDisabled: Boolean(this.getExpirySelectionValidationError(regenerateExpiryPreset, this.state.regenerateCustomExpiryDate)),
         });
     };
 
@@ -672,20 +672,20 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         const regenerateCustomExpiryDate = e.target.value;
         this.setState({
             regenerateCustomExpiryDate,
-            confirmDisabled: Boolean(this.getExpiryValidationError(this.state.regenerateExpiryPreset, regenerateCustomExpiryDate)),
+            confirmDisabled: Boolean(this.getExpirySelectionValidationError(this.state.regenerateExpiryPreset, regenerateCustomExpiryDate)),
         });
     };
 
     confirmRegenerateToken = (tokenId: string) => {
         const token = this.props.userAccessTokens[tokenId];
-        const regenerateExpiryPreset = this.defaultExpiryPreset();
-        const regenerateCustomExpiryDate = this.defaultCustomExpiryDate();
+        const regenerateExpiryPreset = this.getDefaultExpiryPreset();
+        const regenerateCustomExpiryDate = this.getDefaultCustomExpiryDate();
 
         this.setState({
             showConfirmModal: true,
             regenerateExpiryPreset,
             regenerateCustomExpiryDate,
-            confirmDisabled: Boolean(this.getExpiryValidationError(regenerateExpiryPreset, regenerateCustomExpiryDate)),
+            confirmDisabled: Boolean(this.getExpirySelectionValidationError(regenerateExpiryPreset, regenerateCustomExpiryDate)),
             confirmTitle: (
                 <FormattedMessage
                     id='user.settings.tokens.confirmRegenerateTitle'
@@ -695,7 +695,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             confirmMessage: (state: State) => {
                 const preset = state.regenerateExpiryPreset!;
                 const customDate = state.regenerateCustomExpiryDate!;
-                const expiryError = this.getExpiryValidationError(preset, customDate);
+                const expiryError = this.getExpirySelectionValidationError(preset, customDate);
 
                 return (
                     <div>
@@ -1037,7 +1037,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
 
             // Validate the expiry selection up front so the error surfaces inline and the
             // Save button is disabled, instead of only failing inside the confirm flow.
-            const expiryError = this.getExpiryValidationError();
+            const expiryError = this.getExpirySelectionValidationError();
             const descriptionEmpty = this.state.tokenDescription.trim() === '';
 
             const expirySection = this.renderExpiryPicker('newToken', expiryPreset, customExpiryDate, this.handleExpiryPresetChange, this.handleCustomExpiryChange);
