@@ -864,37 +864,30 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // though they're navigated to from Deployment Guide). We mirror that split
 // here by physically moving those 21 files to
 // `deployment-guide/reference-architecture/scale/` (see the `scaling` group
-// in DEPLOYMENT_GROUPS) and keeping only the monitoring pages in this
-// section's grouping.
+// in DEPLOYMENT_GROUPS), leaving only the 7 monitoring pages here. With just
+// one theme left, they're listed flat rather than wrapped in a redundant
+// "Observability & Monitoring" sub-category one level above itself.
 
-const ADMIN_SCALE_GROUPS = {
-  monitoring: {
-    label: 'Observability & Monitoring',
-    items: [
-      'deploy-prometheus-grafana-for-performance-monitoring',
-      'collect-performance-metrics',
-      'performance-monitoring-metrics',
-      'performance-alerting',
-      'deploy-grafana-loki-for-centralized-logging',
-      'push-notification-health-targets',
-      'ensuring-releases-perform-at-scale',
-    ],
-  },
-};
+// Empty for now — kept (rather than removed) so buildAdminScaleItem's
+// `{group: '...'}` branch still throws a clear "unknown admin scale group"
+// error instead of a raw ReferenceError if a themed sub-group is needed here
+// again in the future (e.g. if Scale grows past this one theme).
+const ADMIN_SCALE_GROUPS = {};
 
-// Top-level Scale order — just the one remaining group now that
-// architecture/capacity/search content moved to Deployment Guide.
 const ADMIN_SCALE_ORDER = [
-  {group: 'monitoring'},
+  'deploy-prometheus-grafana-for-performance-monitoring',
+  'collect-performance-metrics',
+  'performance-monitoring-metrics',
+  'performance-alerting',
+  'deploy-grafana-loki-for-centralized-logging',
+  'push-notification-health-targets',
+  'ensuring-releases-perform-at-scale',
 ];
 
-// Files re-parented into groups — exclude from the orphan check.
-const ADMIN_SCALE_HIDDEN = new Set([
-  'deploy-prometheus-grafana-for-performance-monitoring', 'collect-performance-metrics',
-  'performance-monitoring-metrics', 'performance-alerting',
-  'deploy-grafana-loki-for-centralized-logging', 'push-notification-health-targets',
-  'ensuring-releases-perform-at-scale',
-]);
+// Files re-parented into groups — exclude from the orphan check. Empty now
+// that Scale's 7 remaining files are listed flat (directly known via
+// ADMIN_SCALE_ORDER) rather than nested inside a sub-group.
+const ADMIN_SCALE_HIDDEN = new Set([]);
 
 // ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
