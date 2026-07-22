@@ -699,6 +699,8 @@ const defaultServerConfig: AdminConfig = {
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
         PreservePinnedPosts: false,
+        EnableDeliveryTrackingDeletion: false,
+        DeliveryTrackingRetentionHours: 8760,
     },
     MobileEphemeralModeSettings: {
         Enable: false,
