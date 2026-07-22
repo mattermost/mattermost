@@ -51,6 +51,15 @@ function walk(dir, exclude = []) {
   return out;
 }
 
+// Several vendored files lead with a raw `<!-- Copyright ... -->` HTML
+// comment. Plain Markdown tolerates that, but MDX doesn't parse bare HTML
+// comments the same way (it wants `{/* ... */}`), so strip it before any
+// further processing rather than trying to convert it — license headers
+// aren't meaningful on rendered docs pages anyway.
+function stripLeadingLicenseComment(body) {
+  return body.replace(/^<!--[\s\S]*?-->\r?\n\r?\n?/, '');
+}
+
 // Extract a leading `# Title` line as Docusaurus frontmatter `title`, since
 // migrated pages elsewhere in main/ carry the title in frontmatter rather
 // than as an in-body H1 (Docusaurus renders the frontmatter title as the
@@ -85,7 +94,7 @@ function stageDocs() {
     const dest = join(DEST_DOCS, rel);
     mkdirSync(dirname(dest), {recursive: true});
 
-    const raw = readFileSync(src, 'utf8');
+    const raw = stripLeadingLicenseComment(readFileSync(src, 'utf8'));
     const {title, body} = extractTitle(raw);
     const transformed = rewriteImagePaths(body);
     const frontmatter = title ? `---\ntitle: "${title.replace(/"/g, '\\"')}"\n---\n\n` : '';
