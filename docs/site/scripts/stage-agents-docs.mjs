@@ -19,7 +19,7 @@
 // Re-run safely at any time (e.g. after `git submodule update --remote`) to
 // re-sync with upstream — it fully regenerates its output directories.
 //
-// Usage: node docs-site/scripts/stage-agents-docs.mjs
+// Usage: node docs/site/scripts/stage-agents-docs.mjs
 
 import {
   readFileSync, writeFileSync, mkdirSync, readdirSync, statSync,
@@ -79,14 +79,18 @@ function rewriteImagePaths(body) {
 }
 
 function stageDocs() {
-  if (!existsSync(VENDOR_DOCS)) {
-    console.warn(`[stage-agents-docs] SKIP: submodule content not found at ${VENDOR_DOCS}`);
-    console.warn('[stage-agents-docs] Run `git submodule update --init --remote docs/vendor/mattermost-plugin-agents` first.');
-    return {files: 0, images: 0};
-  }
-
+  // Clear previous output unconditionally, even on failure below, so a
+  // reused workspace (stale checkout, missing submodule init) never ships
+  // docs left over from a prior run instead of failing loudly.
   rmrf(DEST_DOCS);
   rmrf(DEST_IMAGES);
+
+  if (!existsSync(VENDOR_DOCS)) {
+    throw new Error(
+      `[stage-agents-docs] submodule content not found at ${VENDOR_DOCS}. ` +
+      'Run `git submodule update --init --remote docs/vendor/mattermost-plugin-agents` first.',
+    );
+  }
 
   const mdFiles = walk(VENDOR_DOCS, ['img']).filter((f) => extname(f) === '.md');
   for (const src of mdFiles) {
