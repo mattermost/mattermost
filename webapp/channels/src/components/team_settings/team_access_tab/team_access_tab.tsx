@@ -43,6 +43,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     // Mode-flip confirmation modal state
     const [showModeFlipModal, setShowModeFlipModal] = useState(false);
     const [modeFlipMemberCount, setModeFlipMemberCount] = useState<number | null>(null);
+    const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
     const pendingPublicValueRef = useRef<boolean | null>(null);
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
@@ -68,32 +69,36 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         return !error;
     }, [actions, isPublicTeam, isPublicTeamInitial, team]);
 
-    const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
+    // The expression the sync will enforce once private: the team's own membership
+    // rule ANDed with any imported parent policies. Returns null when there is no
+    // rule (or an import can't be resolved) so callers fall back to generic handling.
+    const getCombinedTeamExpression = useCallback(async (): Promise<string | null> => {
+        const policyResult = await actions.getTeamAccessControlPolicy(team.id);
+        const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
+        const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
+
+        // Parent-governed teams keep the rules in the imported policy, not here.
+        const parentIds = policyData?.policy?.imports ?? [];
+        const parentPolicies = await Promise.all(
+            parentIds.map((id) => actions.getAccessControlPolicy(id)),
+        );
+
+        // A dropped import would understate the rule set; treat as unresolved.
+        if (parentPolicies.some((result) => result?.error || !result?.data)) {
+            return null;
+        }
+        const parentExpressions = parentPolicies.map((result) =>
+            getMembershipRule((result.data as AccessControlPolicy).rules)?.expression,
+        );
+
+        return combineMembershipExpressions([teamExpression, ...parentExpressions]) || null;
+    }, [actions, team.id]);
+
+    const computeModeFlipCount = useCallback(async (expression: string | null): Promise<number | null> => {
+        if (!expression) {
+            return null;
+        }
         try {
-            const policyResult = await actions.getTeamAccessControlPolicy(team.id);
-            const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
-            const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
-
-            // Parent-governed teams keep the rules in the imported policy, not here.
-            const parentIds = policyData?.policy?.imports ?? [];
-            const parentPolicies = await Promise.all(
-                parentIds.map((id) => actions.getAccessControlPolicy(id)),
-            );
-
-            // A dropped import would understate the count; fall back to the generic message.
-            if (parentPolicies.some((result) => result?.error || !result?.data)) {
-                return null;
-            }
-            const parentExpressions = parentPolicies.map((result) =>
-                getMembershipRule((result.data as AccessControlPolicy).rules)?.expression,
-            );
-
-            const expression = combineMembershipExpressions([teamExpression, ...parentExpressions]);
-
-            if (!expression) {
-                return null;
-            }
-
             // active - matching, server-side to avoid paging the member list.
             const [searchResult, statsResult] = await Promise.all([
                 actions.searchUsersForExpression(expression, '', '', 1, undefined, team.id),
@@ -119,14 +124,36 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
         if (!newIsPublic && isPublicTeam && teamAbacActive) {
             pendingPublicValueRef.current = newIsPublic;
-            const count = await computeModeFlipCount();
+
+            let expression: string | null = null;
+            try {
+                expression = await getCombinedTeamExpression();
+            } catch {
+                expression = null;
+            }
+
+            // Switching to private activates strict enforcement, which would remove
+            // the editing admin if they don't meet the rules. Block the switch (only
+            // when we can confirm the mismatch) so they don't lock themselves out.
+            if (expression) {
+                const result = await actions.validateExpressionAgainstRequester(expression, undefined, team.id);
+                if (result.data && !result.data.requester_matches) {
+                    pendingPublicValueRef.current = null;
+                    setAreThereUnsavedChanges(false);
+                    setSaveChangesPanelState(undefined);
+                    setShowSelfExclusionModal(true);
+                    return;
+                }
+            }
+
+            const count = await computeModeFlipCount(expression);
             setModeFlipMemberCount(count);
             setShowModeFlipModal(true);
             return;
         }
 
         setIsPublicTeam(newIsPublic);
-    }, [isPublicTeam, teamAbacActive, computeModeFlipCount, setAreThereUnsavedChanges]);
+    }, [isPublicTeam, teamAbacActive, getCombinedTeamExpression, computeModeFlipCount, actions, team.id, setAreThereUnsavedChanges]);
 
     const handleModeFlipConfirm = useCallback(async () => {
         setShowModeFlipModal(false);
@@ -270,6 +297,32 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                 }
                 onConfirm={handleModeFlipConfirm}
                 onCancel={handleModeFlipCancel}
+                isStacked={true}
+            />
+
+            <ConfirmModal
+                show={showSelfExclusionModal}
+                title={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.title'
+                        defaultMessage='Cannot switch to Private Team'
+                    />
+                }
+                message={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.message'
+                        defaultMessage='You do not meet the current membership rules, so switching to Private would remove you from the team at the next sync. Update the rules to include yourself, or ask another admin to make the switch.'
+                    />
+                }
+                confirmButtonText={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.confirm'
+                        defaultMessage='Back to editing'
+                    />
+                }
+                onConfirm={() => setShowSelfExclusionModal(false)}
+                onCancel={() => setShowSelfExclusionModal(false)}
+                hideCancel={true}
                 isStacked={true}
             />
         </div>

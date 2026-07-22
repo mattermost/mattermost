@@ -18,6 +18,7 @@ import {
     assignTeamToParentPolicy,
     setUserAttribute,
     waitForAttributeViewToInclude,
+    waitForAttributeViewToExclude,
 } from './helpers';
 
 type ModeFlipScenario = {
@@ -457,6 +458,48 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
 
         // * Modal shows the resolved count, not the generic message
         await expect(modeFlipModal.getByText(/1 current member does not meet/i)).toBeVisible({timeout: 10000});
+
+        await teamSettings.close();
+    });
+
+    test('MM-69100_44 mode-flip is blocked when the admin does not meet the rules', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        const expression = 'user.attributes.Department == "Engineering"';
+
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Public governed team where the admin does NOT satisfy the rule
+        const team = await createPublicTeam(adminClient, suffix);
+        await setUserAttribute(adminClient, adminUser.id, 'Department', 'Marketing');
+        await createTeamMembershipPolicy(adminClient, team.id, expression, false);
+        await waitForAttributeViewToExclude(adminClient, expression, [adminUser.id]);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessTab();
+
+        // # Click Private Team card
+        await teamSettings.container.locator('#public-private-selector-button-P').click();
+
+        // * Self-exclusion block appears; the mode-flip confirmation does not
+        await expect(page.getByText('Cannot switch to Private Team')).toBeVisible({timeout: 30000});
+        await expect(page.getByText('Switch to Private Team?')).not.toBeVisible();
+
+        await page.getByRole('button', {name: 'Back to editing'}).click();
+        await expect(page.getByText('Cannot switch to Private Team')).not.toBeVisible({timeout: 5000});
+
+        // * Team is still public
+        const apiTeam = await adminClient.getTeam(team.id);
+        expect(apiTeam.allow_open_invite).toBe(true);
 
         await teamSettings.close();
     });

@@ -619,6 +619,37 @@ function TeamMembershipTab({
         </div>
     );
 
+    let confirmModalMessage = confirmMessage;
+    if (isRemovingAllRules) {
+        confirmModalMessage = removeRulesMessage;
+    } else if (team.allow_open_invite) {
+        confirmModalMessage = advisoryConfirmMessage;
+    }
+
+    let confirmModalButtonText;
+    if (isProcessingSave) {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.saving'
+                defaultMessage='Saving...'
+            />
+        );
+    } else if (isRemovingAllRules) {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.remove_confirm'
+                defaultMessage='Remove rules'
+            />
+        );
+    } else {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.save'
+                defaultMessage='Save'
+            />
+        );
+    }
+
     return (
         <div className='TeamMembershipTab'>
             {policiesLoaded && systemPolicies.length > 0 && (
@@ -772,25 +803,8 @@ function TeamMembershipTab({
                         defaultMessage='Save team membership rules?'
                     />
                 )}
-                message={isRemovingAllRules ? removeRulesMessage : (team.allow_open_invite ? advisoryConfirmMessage : confirmMessage)}
-                confirmButtonText={
-                    isProcessingSave ? (
-                        <FormattedMessage
-                            id='team_settings.membership_tab.confirm.saving'
-                            defaultMessage='Saving...'
-                        />
-                    ) : isRemovingAllRules ? (
-                        <FormattedMessage
-                            id='team_settings.membership_tab.confirm.remove_confirm'
-                            defaultMessage='Remove rules'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='team_settings.membership_tab.confirm.save'
-                            defaultMessage='Save'
-                        />
-                    )
-                }
+                message={confirmModalMessage}
+                confirmButtonText={confirmModalButtonText}
                 cancelButtonText={
                     <FormattedMessage
                         id='team_settings.membership_tab.confirm.cancel'
