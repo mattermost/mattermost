@@ -184,7 +184,6 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 // through (e.g. field 3 of 5), the finally below still cleans up whatever
                 // was already created instead of leaving it orphaned on the shared server.
                 for (const seed of seeds) {
-                    // eslint-disable-next-line no-await-in-loop
                     await createGlobalAttributeField(adminClient, seed.name, {
                         type: seed.type,
                         attrs: {display_name: seed.displayName, ...seed.attrs},
@@ -205,19 +204,14 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     });
 
                     // * Each seeded field's display name, type, source, and options render correctly
-                    // eslint-disable-next-line no-await-in-loop
                     await expect(row.getByTestId('global-attribute-name')).toHaveText(seed.displayName);
-                    // eslint-disable-next-line no-await-in-loop
                     await expect(row.getByTestId('global-attribute-type')).toContainText(seed.expectedType);
-                    // eslint-disable-next-line no-await-in-loop
                     await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
-                    // eslint-disable-next-line no-await-in-loop
                     await expect(row.getByTestId('global-attribute-options')).toContainText(seed.expectedOptions);
                 }
             } finally {
                 // # Clean up regardless of assertion outcome, so reruns start from a clean slate
                 for (const seed of seeds) {
-                    // eslint-disable-next-line no-await-in-loop
                     await deleteGlobalAttributeFieldIfExists(adminClient, seed.name);
                 }
             }

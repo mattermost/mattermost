@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+
 import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
