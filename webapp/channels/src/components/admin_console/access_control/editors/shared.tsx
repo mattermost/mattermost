@@ -383,7 +383,13 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
 // test modal must resolve one — the editor's own scope, or a channel picked in
 // the modal's first step.
 export function referencesResourceAttributes(expression: string): boolean {
-    return expression.includes(RESOURCE_ATTRIBUTES_PREFIX);
+    // Strip quoted string literals first so a value like
+    // "resource.attributes.minClearance" is not mistaken for an actual
+    // attribute reference (which would wrongly force a test channel).
+    // Simple quote stripping; doesn't handle escaped quotes inside a literal,
+    // which these editors never emit — parse the AST if that ever changes.
+    const withoutLiterals = expression.replace(/'[^']*'|"[^"]*"/g, '');
+    return withoutLiterals.includes(RESOURCE_ATTRIBUTES_PREFIX);
 }
 
 interface TestResultsProps {
