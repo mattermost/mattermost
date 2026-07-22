@@ -104,6 +104,7 @@ func setWorkerJobSuccess(jobServer *JobServer, logger mlog.LoggerIFace, workerKi
 	if err := jobServer.SetJobProgress(job, 100); err != nil {
 		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
 		setWorkerJobError(jobServer, logger, workerKind, job, err)
+		return
 	}
 
 	if err := jobServer.SetJobSuccess(job); err != nil {
