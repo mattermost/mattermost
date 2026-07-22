@@ -105,6 +105,7 @@ body {
  * page title. */
 h1 {
   font-family: var(--mm-font-heading);
+  font-weight: 900;
   letter-spacing: -0.025em;
   line-height: 1.12;
   font-stretch: 92%;            /* ignored by static fonts; helps with variable Saira if loaded */
