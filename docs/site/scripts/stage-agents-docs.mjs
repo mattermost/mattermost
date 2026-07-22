@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Stage the mattermost-plugin-agents submodule's docs/ subfolder into
-// main/agents/docs/ so gen-documentation-sidebar.mjs's `agents` TOP_LEVEL
-// entry has real content to build a category from.
+// main/agents/docs/ so the two curated Agents pages (administration-guide/
+// configure/agents-admin-guide.mdx and end-user-guide/agents.mdx) and a
+// handful of nested reference pages have real content to link to.
 //
 // Why a staging script instead of pointing the submodule directly at the
 // path docs pages live under: git submodules can't do a sparse "just this
@@ -16,6 +17,30 @@
 // pages" effect via conf.py exclude_patterns/redirect lists on the same
 // full-repo submodule checkout.
 //
+// Navigation model mirrors Sphinx exactly (see source/end-user-guide/
+// agents.rst and source/administration-guide/configure/agents-admin-
+// guide.rst in the old docs repo): Sphinx never gives Agents its own
+// top-level nav section. It `.. include::`s admin_guide.md/user_guide.md
+// bodies directly into the two curated pages, and only gives a handful of
+// files (providers, aws_bedrock_setup, sovereign_ai, usage_tips) their own
+// nested pages via a small hidden toctree on those same two pages. The
+// rest of the submodule's docs/ (load-testing, upgrading_to_2.0, all of
+// features/) are never referenced in any Sphinx toctree — reachable only
+// by direct URL, not by navigating the site. This script reproduces that
+// three-way split:
+//   - INLINE_PARTIALS: staged twice — once as a normal (but unlisted) doc
+//     for direct-link parity with Sphinx's orphan pages, and once as a
+//     Docusaurus "Markdown partial" (leading underscore, auto-excluded
+//     from routing/sidebars) that the curated pages `import` and render
+//     inline, reproducing the live `.. include::` behavior.
+//   - NAV_CHILDREN: normal listed docs. gen-documentation-sidebar.mjs
+//     nests these under the curated pages via cross-directory {doc: ...}
+//     group items (see ADMIN_CONFIGURE_GROUPS.agents / the End User Guide
+//     promotion in that script).
+//   - Everything else: staged as normal but *unlisted* docs — built and
+//     linkable (several of these files link to each other), but absent
+//     from the sidebar, matching Sphinx never listing them anywhere.
+//
 // Re-run safely at any time (e.g. after `git submodule update --remote`) to
 // re-sync with upstream — it fully regenerates its output directories.
 //
@@ -25,7 +50,7 @@ import {
   readFileSync, writeFileSync, mkdirSync, readdirSync, statSync,
   existsSync, rmSync, copyFileSync,
 } from 'node:fs';
-import {join, resolve, relative, dirname, extname} from 'node:path';
+import {join, resolve, relative, dirname, extname, posix} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -35,6 +60,14 @@ const REPO_ROOT = resolve(SITE_ROOT, '..');
 const VENDOR_DOCS = join(REPO_ROOT, 'vendor', 'mattermost-plugin-agents', 'docs');
 const DEST_DOCS = join(REPO_ROOT, 'main', 'agents', 'docs');
 const DEST_IMAGES = join(SITE_ROOT, 'static', 'images', 'agents');
+
+// Files whose body is inlined into a curated page via a Markdown partial
+// import, in addition to being staged as their own unlisted page.
+const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide']);
+
+// Files that get their own listed page, nested under a curated page by
+// gen-documentation-sidebar.mjs. Everything else staged ends up unlisted.
+const NAV_CHILDREN = new Set(['providers', 'aws_bedrock_setup', 'sovereign_ai', 'usage_tips']);
 
 function rmrf(p) {
   if (existsSync(p)) rmSync(p, {recursive: true, force: true});
@@ -78,6 +111,20 @@ function rewriteImagePaths(body) {
   return body.replace(/(!\[[^\]]*]\()(?:\.\.\/)?img\/([^)\s]+)(\))/g, '$1/images/agents/$2$3');
 }
 
+// Vendored markdown cross-links sibling docs with relative paths, e.g.
+// `[...](../admin_guide.md#license-requirements)` or
+// `[...](features/channel_summaries.md)`. Resolve those relative to the
+// linking file's own directory under docs/ and rewrite to the site's
+// absolute `/agents/docs/<id>` doc convention, so links keep working
+// regardless of where the linking content ends up rendered (including
+// when inlined into a curated page in a completely different directory).
+function rewriteRelativeMdLinks(body, fileRelDir) {
+  return body.replace(/(\[[^\]]*]\()(?!https?:\/\/|\/|#)([^)\s#]+)\.md(#[^)\s]+)?(\))/g, (_m, pre, target, anchor, post) => {
+    const resolved = posix.normalize(posix.join(fileRelDir, target));
+    return `${pre}/agents/docs/${resolved}${anchor || ''}${post}`;
+  });
+}
+
 function stageDocs() {
   // Clear previous output unconditionally, even on failure below, so a
   // reused workspace (stale checkout, missing submodule init) never ships
@@ -93,16 +140,36 @@ function stageDocs() {
   }
 
   const mdFiles = walk(VENDOR_DOCS, ['img']).filter((f) => extname(f) === '.md');
+  let partialCount = 0;
   for (const src of mdFiles) {
-    const rel = relative(VENDOR_DOCS, src);
-    const dest = join(DEST_DOCS, rel);
-    mkdirSync(dirname(dest), {recursive: true});
+    const rel = relative(VENDOR_DOCS, src); // e.g. "admin_guide.md" or "features/channel_summaries.md"
+    const relDir = posix.dirname(rel.replace(/\\/g, '/'));
+    const baseName = basenameNoExt(rel);
 
     const raw = stripLeadingLicenseComment(readFileSync(src, 'utf8'));
     const {title, body} = extractTitle(raw);
-    const transformed = rewriteImagePaths(body);
-    const frontmatter = title ? `---\ntitle: "${title.replace(/"/g, '\\"')}"\n---\n\n` : '';
+    const transformed = rewriteRelativeMdLinks(rewriteImagePaths(body), relDir === '.' ? '' : relDir);
+
+    const dest = join(DEST_DOCS, rel);
+    mkdirSync(dirname(dest), {recursive: true});
+
+    const listed = NAV_CHILDREN.has(baseName);
+    const inlined = INLINE_PARTIALS.has(baseName);
+    const frontmatterLines = [];
+    if (title) frontmatterLines.push(`title: "${title.replace(/"/g, '\\"')}"`);
+    if (!listed) frontmatterLines.push('unlisted: true');
+    const frontmatter = frontmatterLines.length ? `---\n${frontmatterLines.join('\n')}\n---\n\n` : '';
     writeFileSync(dest, frontmatter + transformed);
+
+    if (inlined) {
+      // Markdown partials (leading underscore) are auto-excluded from
+      // Docusaurus routing/sidebars and can be `import`ed + rendered
+      // inline elsewhere — this is what reproduces Sphinx's
+      // `.. include:: /agents/docs/*.md` behavior.
+      const partialDest = join(dirname(dest), `_${baseName}_partial.mdx`);
+      writeFileSync(partialDest, transformed);
+      partialCount++;
+    }
   }
 
   const imgDir = join(VENDOR_DOCS, 'img');
@@ -115,8 +182,13 @@ function stageDocs() {
     }
   }
 
-  return {files: mdFiles.length, images: imageCount};
+  return {files: mdFiles.length, partials: partialCount, images: imageCount};
 }
 
-const {files, images} = stageDocs();
-console.log(`[stage-agents-docs] staged ${files} doc(s), ${images} image(s) into ${relative(REPO_ROOT, DEST_DOCS)}`);
+function basenameNoExt(relPath) {
+  const base = posix.basename(relPath.replace(/\\/g, '/'));
+  return base.replace(/\.md$/, '');
+}
+
+const {files, partials, images} = stageDocs();
+console.log(`[stage-agents-docs] staged ${files} doc(s) (${partials} with inline partials), ${images} image(s) into ${relative(REPO_ROOT, DEST_DOCS)}`);
