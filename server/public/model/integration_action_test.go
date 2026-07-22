@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -144,9 +145,31 @@ func TestPostAction_IsValid(t *testing.T) {
 			},
 			wantErr: "action must have a name",
 		},
+		"empty action id is allowed (auto-generated)": {
+			action: &PostAction{
+				Id:   "",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
 		"valid action id with underscore and hyphen": {
 			action: &PostAction{
 				Id:   "confirm_ban-1",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"valid action id with leading and trailing separators": {
+			action: &PostAction{
+				Id:   "-_confirm_-",
 				Name: "Test Button",
 				Type: PostActionTypeButton,
 				Integration: &PostActionIntegration{
@@ -176,6 +199,39 @@ func TestPostAction_IsValid(t *testing.T) {
 				},
 			},
 			wantErr: "invalid action id 'confirm ban' - must contain only letters, numbers, underscores, or hyphens",
+		},
+		"invalid action id with slash": {
+			action: &PostAction{
+				Id:   "confirm/ban",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action id 'confirm/ban' - must contain only letters, numbers, underscores, or hyphens",
+		},
+		"invalid action id with plus": {
+			action: &PostAction{
+				Id:   "confirm+ban",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action id 'confirm+ban' - must contain only letters, numbers, underscores, or hyphens",
+		},
+		"invalid action id with non-ascii letters": {
+			action: &PostAction{
+				Id:   "café",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action id 'café' - must contain only letters, numbers, underscores, or hyphens",
 		},
 		"invalid style": {
 			action: &PostAction{
@@ -304,6 +360,35 @@ func TestPostAction_IsValid(t *testing.T) {
 				assert.ErrorContains(t, err, tc.wantErr, name)
 			}
 		})
+	}
+}
+
+// TestPostActionIDRegexMatchesActionRoute locks postActionIDRegex to the
+// character class of the doPostAction route registered in
+// api4.(*API).InitAction ("/actions/{action_id:[A-Za-z0-9_-]+}"). If the two
+// drift, an action ID could pass PostAction.IsValid yet still 404 on click —
+// the exact MM-49350 failure this validation exists to surface. api4 cannot be
+// imported here (it depends on model), so the route pattern is mirrored as a
+// literal and both are exercised against the same samples.
+func TestPostActionIDRegexMatchesActionRoute(t *testing.T) {
+	routeActionIDRegex := regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+
+	samples := []string{
+		"confirm_ban",
+		"confirmBan1",
+		"-_confirm_-",
+		"12345",
+		"confirm.ban",
+		"confirm ban",
+		"confirm/ban",
+		"confirm+ban",
+		"café",
+		"",
+	}
+
+	for _, s := range samples {
+		assert.Equalf(t, routeActionIDRegex.MatchString(s), postActionIDRegex.MatchString(s),
+			"postActionIDRegex and the api4 action route must agree on %q", s)
 	}
 }
 
