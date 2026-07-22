@@ -289,9 +289,18 @@ func TestPoolWorkerStopStates(t *testing.T) {
 		worker := NewPoolWorker("test", jobServer, execute, noopEnabled, fixedPoolSize(1))
 		expectJobLifecycle(mockStore, mockMetrics, "job1")
 
-		go worker.Run()
-		go worker.Run()
-		time.Sleep(50 * time.Millisecond)
+		runReturned := make(chan struct{}, 2)
+		run := func() {
+			worker.Run()
+			runReturned <- struct{}{}
+		}
+		go run()
+		go run()
+		select {
+		case <-runReturned:
+		case <-time.After(5 * time.Second):
+			assert.FailNow(t, "duplicate Run did not return")
+		}
 		worker.JobChannel() <- model.Job{Id: "job1", Type: "job_type"}
 		receiveStarted(t, started)
 
@@ -305,6 +314,11 @@ func TestPoolWorkerStopStates(t *testing.T) {
 
 		close(release)
 		worker.Stop()
+		select {
+		case <-runReturned:
+		case <-time.After(5 * time.Second):
+			assert.FailNow(t, "active Run did not return after Stop")
+		}
 	})
 }
 
@@ -352,7 +366,7 @@ func TestPoolWorkerPoolSizeClamp(t *testing.T) {
 	}
 }
 
-func TestPoolWorkerPanicParity(t *testing.T) {
+func TestPoolWorkerSetSuccessFailureParity(t *testing.T) {
 	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
 		t.Parallel()
 	}
