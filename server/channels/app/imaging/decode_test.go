@@ -5,6 +5,8 @@ package imaging
 
 import (
 	"bytes"
+	"image"
+	"image/png"
 	"os"
 	"sync"
 	"testing"
@@ -254,5 +256,52 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		require.Empty(t, d.sem)
 		release()
 		require.Empty(t, d.sem)
+	})
+}
+
+// TestDecoderMaxDecodedResolution verifies the defense-in-depth cap: the shared
+// decoder refuses to decode any image whose declared resolution exceeds the
+// configured limit, regardless of the underlying codec, before allocating
+// pixel data.
+func TestDecoderMaxDecodedResolution(t *testing.T) {
+	makePNG := func(w, h int) []byte {
+		var buf bytes.Buffer
+		require.NoError(t, png.Encode(&buf, image.NewRGBA(image.Rect(0, 0, w, h))))
+		return buf.Bytes()
+	}
+
+	d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 100})
+	require.NoError(t, err)
+
+	t.Run("Decode rejects image exceeding the cap", func(t *testing.T) {
+		img, format, decErr := d.Decode(bytes.NewReader(makePNG(50, 50))) // 2500px > 100
+		require.Error(t, decErr)
+		require.ErrorContains(t, decErr, "exceeds the maximum allowed")
+		require.Nil(t, img)
+		require.Empty(t, format)
+	})
+
+	t.Run("Decode allows image within the cap", func(t *testing.T) {
+		img, format, decErr := d.Decode(bytes.NewReader(makePNG(5, 5))) // 25px <= 100
+		require.NoError(t, decErr)
+		require.NotNil(t, img)
+		require.Equal(t, "png", format)
+	})
+
+	t.Run("DecodeMemBounded rejects image exceeding the cap", func(t *testing.T) {
+		img, format, release, decErr := d.DecodeMemBounded(bytes.NewReader(makePNG(50, 50)))
+		require.Error(t, decErr)
+		require.ErrorContains(t, decErr, "exceeds the maximum allowed")
+		require.Nil(t, img)
+		require.Empty(t, format)
+		require.Nil(t, release)
+	})
+
+	t.Run("cap disabled by default", func(t *testing.T) {
+		dd, ddErr := NewDecoder(DecoderOptions{})
+		require.NoError(t, ddErr)
+		img, _, decErr := dd.Decode(bytes.NewReader(makePNG(50, 50)))
+		require.NoError(t, decErr)
+		require.NotNil(t, img)
 	})
 }
