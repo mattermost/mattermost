@@ -402,6 +402,39 @@ describe('components/team_settings/TeamMembershipTab', () => {
         expect(screen.queryByText('Failed to save access rules')).not.toBeInTheDocument();
     });
 
+    it('does not show the removal warning when a parent import remains, even if its policy is not yet loaded', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
+            },
+        }));
+
+        // The parent policy fetch returns nothing, so systemPolicies stays empty even
+        // though existingImports has the parent. Clearing the team rule must NOT be
+        // treated as removing all enforcement — the policy still imports the parent.
+        mockActions.getChannelPolicy.mockResolvedValue({data: null});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        expect(screen.queryByText('Remove membership rules?')).not.toBeInTheDocument();
+    });
+
     it('reports an error when clearing the last rule fails to delete the policy', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({

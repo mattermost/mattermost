@@ -520,7 +520,7 @@ function TeamMembershipTab({
     // Removing every rule (with no parent policy left) drops the team's attribute
     // enforcement entirely, so the confirmation warns about that rather than showing
     // a members-affected count that no longer applies.
-    const isRemovingAllRules = !expression.trim() && originalExpression.trim() !== '' && systemPolicies.length === 0;
+    const isRemovingAllRules = !expression.trim() && originalExpression.trim() !== '' && existingImports.length === 0;
 
     // Advisory (public) teams neither restrict joining nor remove members, so the
     // auto-add legend must not promise enforcement.
