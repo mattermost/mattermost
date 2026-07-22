@@ -119,6 +119,17 @@ h2, h3, h4 {
   line-height: 1.25;
 }
 
+/* Search results page ("See all results") — each hit's title is a plain h2
+ * outside `.markdown`, so it inherits the full --ifm-h2-font-size (1.85rem),
+ * as large as an in-article section header. Scoped to the wrapper class
+ * Docusaurus's SearchPage puts on <html> rather than the plugin's own
+ * (hashed) CSS-module class, so this survives dependency upgrades. */
+.search-page-wrapper h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
 /* Section heading rhythm — a small marigold rule sits above each h2.
  * Scoped via the `mm-section` class (auto-applied below) so it doesn't
  * collide with OpenAPI plugin internal h2s (endpoint URL header,
