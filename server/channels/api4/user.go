@@ -1076,7 +1076,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if useAbacFilter {
 			cursorId := r.URL.Query().Get("cursor_id")
-			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, cursorId, c.Params.PerPage, c.IsSystemAdmin())
+			search := r.URL.Query().Get("search")
+			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, search, cursorId, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
