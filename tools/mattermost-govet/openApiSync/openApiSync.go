@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/printer"
 	"go/token"
 	"net/http"
@@ -137,6 +138,23 @@ func getOperation(pathItem *v3high.PathItem, method string) *v3high.Operation {
 	return nil
 }
 
+// constStringValue returns the compile-time string value of expr when available.
+// This covers string literals, const identifiers/selectors, and concatenations of
+// those — the shapes used by api4 route registration (e.g. shared charset consts).
+func constStringValue(pass *analysis.Pass, expr ast.Expr) (string, bool) {
+	if tv, ok := pass.TypesInfo.Types[expr]; ok && tv.Value != nil && tv.Value.Kind() == constant.String {
+		return constant.StringVal(tv.Value), true
+	}
+	if lit, ok := expr.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+		s, err := strconv.Unquote(lit.Value)
+		if err != nil {
+			return "", false
+		}
+		return s, true
+	}
+	return "", false
+}
+
 // processRouterInit checks that all Init functions defined in `names` are properly documented
 func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[string]string, paths *v3high.Paths, cm *fuzzy.Model) {
 	for _, file := range pass.Files {
@@ -150,14 +168,34 @@ func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[s
 				if !ok {
 					continue
 				}
-				aexpr, ok := expr.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr)
+				call, ok := expr.X.(*ast.CallExpr)
+				if !ok {
+					continue
+				}
+				sel, ok := call.Fun.(*ast.SelectorExpr)
+				if !ok {
+					continue
+				}
+				aexpr, ok := sel.X.(*ast.CallExpr)
 				if !ok || len(aexpr.Args) != 2 {
 					continue
 				}
-				prefix, _ := strconv.Unquote(aexpr.Args[0].(*ast.BasicLit).Value)
+				prefix, ok := constStringValue(pass, aexpr.Args[0])
+				if !ok {
+					pass.Reportf(aexpr.Args[0].Pos(), "Handle path must be a compile-time string constant")
+					continue
+				}
 				method := getMethodFromExpr(expr)
 
-				name := aexpr.Fun.(*ast.SelectorExpr).X.(*ast.SelectorExpr).Sel.Name
+				routeSel, ok := aexpr.Fun.(*ast.SelectorExpr)
+				if !ok {
+					continue
+				}
+				baseSel, ok := routeSel.X.(*ast.SelectorExpr)
+				if !ok {
+					continue
+				}
+				name := baseSel.Sel.Name
 				handler := cleanRegexp(routerPrefixes[name]) + cleanRegexp(prefix)
 				if stringInSlice(handler, IgnoredCases, true) { // ignore special cases
 					continue
