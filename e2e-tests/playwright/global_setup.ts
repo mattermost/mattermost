@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {baseGlobalSetup, testConfig} from '@mattermost/playwright-lib';
+import {baseGlobalSetup, startStack, stopStack, testConfig} from '@mattermost/playwright-lib';
 
 async function globalSetup() {
     try {
+        // With PW_USE_TESTCONTAINERS=true, bring up the server + dependencies via Testcontainers
+        // before pinging it. No-op otherwise, when a server is expected to already be running.
+        await startStack();
         await baseGlobalSetup();
     } catch (error: unknown) {
         // eslint-disable-next-line no-console
@@ -14,8 +17,8 @@ async function globalSetup() {
         );
     }
 
-    return function () {
-        // placeholder for teardown setup
+    return async function () {
+        await stopStack();
     };
 }
 

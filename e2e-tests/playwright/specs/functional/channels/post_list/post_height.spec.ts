@@ -36,12 +36,15 @@ test.describe('Post height', () => {
             type: 'O',
         });
 
-        // # Enable SVG rendering and let the server fetch metadata from the local mock file server
+        // # Enable SVG rendering and let the server fetch metadata from the mock file server.
+        // AllowedUntrustedInternalConnections only takes effect in `external` mode here — in
+        // `testcontainers` mode it's fixed at boot via an env var, and a PatchConfig on an env-controlled
+        // field is accepted but has no real effect.
         await adminClient.patchConfig({
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
+                AllowedUntrustedInternalConnections: `localhost 127.0.0.1 ${new URL(fileServerUrl).hostname}`,
             },
         });
 
