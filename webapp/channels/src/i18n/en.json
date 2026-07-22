@@ -7057,7 +7057,6 @@
   "team_settings.membership_tab.confirm.title": "Save team membership rules?",
   "team_settings.membership_tab.error.back_to_editing": "Back to editing",
   "team_settings.membership_tab.error.self_exclusion_message": "You cannot set these rules because that will remove you from the team.",
-  "team_settings.membership_tab.error.self_exclusion_message_advisory": "These rules would exclude you. This team is public, so no one is removed now, but if it is later switched to private you would be removed at the next sync.",
   "team_settings.membership_tab.error.self_exclusion_title": "Cannot save access rules",
   "team_settings.membership_tab.error.validation_failed": "Failed to validate access rules. Please try again.",
   "team_settings.membership_tab.parse_error": "Invalid expression format",

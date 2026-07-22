@@ -403,7 +403,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
-    it('blocks save and shows the advisory self-exclusion message on a public team', async () => {
+    it('does not block self-exclusion on a public team (advisory: no removal)', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
@@ -412,6 +412,8 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {requester_matches: false},
         });
 
+        // baseTeam is public (allow_open_invite). The admin excludes themselves, but
+        // the save must proceed straight to the normal confirmation — no hard block.
         renderWithContext(
             <TeamMembershipTab {...baseProps}/>,
             initialState,
@@ -420,13 +422,11 @@ describe('components/team_settings/TeamMembershipTab', () => {
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
         await userEvent.click(screen.getByTestId('table-editor-change'));
-
         await userEvent.click(screen.getByText('Save'));
 
-        await waitFor(() => {
-            expect(screen.getByText('Cannot save access rules')).toBeInTheDocument();
-            expect(screen.getByText(/if it is later switched to private/i)).toBeInTheDocument();
-        });
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        expect(screen.queryByText('Cannot save access rules')).not.toBeInTheDocument();
+        expect(mockActions.validateExpressionAgainstRequester).not.toHaveBeenCalled();
     });
 
     it('blocks save with the strict self-exclusion message on a private team', async () => {

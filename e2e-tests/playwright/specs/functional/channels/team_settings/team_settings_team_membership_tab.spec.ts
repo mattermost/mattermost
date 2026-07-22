@@ -415,7 +415,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
-    test('MM-69100_43 Self-exclusion on a public team still blocks but shows the advisory message', async ({pw}) => {
+    test('MM-69100_43 Self-exclusion does not block on a public team (advisory)', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
@@ -424,7 +424,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         // # Make the team public (advisory mode)
         await adminClient.patchTeam({id: team.id, allow_open_invite: true});
 
-        // # Ensure adminUser does NOT match the rule so self-exclusion fires
+        // # Ensure adminUser does NOT match the rule (would be self-exclusion on a private team)
         await setUserAttribute(adminClient, adminUser.id, 'Department', '');
         await waitForAttributeViewToExclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
 
@@ -438,13 +438,9 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await addAttributeRule(tab, page, 'Engineering');
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
-        // * Block still fires (title unchanged) but the message is the advisory variant
-        await expect(page.getByText('Cannot save access rules')).toBeVisible({timeout: 15000});
-        await expect(page.getByText(/if it is later switched to private/i)).toBeVisible();
-        await expect(page.getByText('Save team membership rules?')).not.toBeVisible();
-
-        await page.getByRole('button', {name: 'Back to editing'}).click();
-        await expect(page.getByText('Cannot save access rules')).not.toBeVisible({timeout: 5000});
+        // * No self-exclusion block — the save proceeds to the normal confirmation
+        await expect(page.getByText('Save team membership rules?')).toBeVisible({timeout: 15000});
+        await expect(page.getByText('Cannot save access rules')).not.toBeVisible();
 
         await teamSettings.close();
     });
