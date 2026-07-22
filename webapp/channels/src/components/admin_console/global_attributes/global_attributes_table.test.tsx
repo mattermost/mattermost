@@ -132,6 +132,14 @@ describe('GlobalAttributesTable', () => {
         expect(await screen.findByTestId('global-attribute-applies-to')).toBeInTheDocument();
     });
 
+    it('renders the Usage column as an explicit placeholder, not a blank cell', async () => {
+        getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        expect(await screen.findByTestId('global-attribute-usage')).toBeInTheDocument();
+    });
+
     it('shows the empty-state message when there are no fields', async () => {
         getPropertyFields.mockResolvedValue([]);
 
@@ -141,15 +149,23 @@ describe('GlobalAttributesTable', () => {
     });
 
     it('shows an error state (not the empty state) when the fetch fails', async () => {
+        // Suppress the expected console.error from the load failure this test triggers.
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         getPropertyFields.mockRejectedValue(new Error('boom'));
 
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
         expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
         expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+        consoleSpy.mockRestore();
     });
 
     it('shows an error state (not the empty state) on a 404, rather than treating it as an empty result', async () => {
+        // Suppress the expected console.error from the load failure this test triggers.
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         const notFound = Object.assign(new Error('not found'), {status_code: 404});
         getPropertyFields.mockRejectedValue(notFound);
 
@@ -157,6 +173,8 @@ describe('GlobalAttributesTable', () => {
 
         expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
         expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+        consoleSpy.mockRestore();
     });
 
     describe('Type column', () => {
@@ -210,6 +228,18 @@ describe('GlobalAttributesTable', () => {
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
             expect(await screen.findByTestId('global-attribute-options')).toHaveTextContent('0 options');
+        });
+
+        it('uses the singular "1 option" at the pluralization boundary, not "1 options"', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                type: 'select',
+                attrs: {options: [{id: 'o1', name: 'A'}]},
+            })]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByTestId('global-attribute-options')).toHaveTextContent('1 option');
+            expect(screen.queryByText('1 options')).not.toBeInTheDocument();
         });
     });
 
@@ -265,6 +295,9 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).not.toBeDisabled();
 
+            // * Icon-only trigger has an accessible name for screen readers (WCAG 4.1.2)
+            expect(trigger).toHaveAccessibleName('More actions');
+
             await userEvent.click(trigger);
 
             const menuitems = screen.getAllByRole('menuitem');
@@ -279,6 +312,11 @@ describe('GlobalAttributesTable', () => {
             expect(edit!).toHaveAttribute('aria-disabled', 'true');
             expect(duplicate!).toHaveAttribute('aria-disabled', 'true');
             expect(del!).toHaveAttribute('aria-disabled', 'true');
+
+            // * Each disabled item explains why, rather than silently doing nothing
+            expect(edit!).toHaveTextContent('Coming soon');
+            expect(duplicate!).toHaveTextContent('Coming soon');
+            expect(del!).toHaveTextContent('Coming soon');
         });
     });
 });

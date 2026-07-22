@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
-import type {ComponentType} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, FormatListNumberedIcon, HelpCircleOutlineIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import type IconProps from '@mattermost/compass-icons/components/props';
+import {ContentCopyIcon, DotsHorizontalIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
@@ -32,17 +30,6 @@ const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
 const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 
 const columnHelper = createColumnHelper<PropertyField>();
-
-const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
-    text: MenuVariantIcon,
-    select: ChevronDownCircleOutlineIcon,
-    multiselect: FormatListBulletedIcon,
-    rank: FormatListNumberedIcon,
-};
-
-function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
-    return TYPE_ICONS[fieldType] ?? HelpCircleOutlineIcon;
-}
 
 function getTypeLabel(fieldType: FieldType): MessageDescriptor {
     return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
@@ -69,40 +56,15 @@ function SourceCell({field}: {field: PropertyField}) {
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
+    let content: React.ReactNode;
     if (kind === 'plugin') {
-        return (
-            <span
-                className='GlobalAttributesTable__source'
-                data-testid='global-attribute-source'
-            >
-                <PowerPlugOutlineIcon size={16}/>
-                <span>{pluginDisplayName}</span>
-            </span>
-        );
-    }
-
-    if (kind === 'ldap') {
-        return (
-            <span
-                className='GlobalAttributesTable__source'
-                data-testid='global-attribute-source'
-            >
-                <SyncIcon size={16}/>
-                <FormattedMessage {...sourceLabels.ldap}/>
-            </span>
-        );
-    }
-
-    if (kind === 'saml') {
-        return (
-            <span
-                className='GlobalAttributesTable__source'
-                data-testid='global-attribute-source'
-            >
-                <SyncIcon size={16}/>
-                <FormattedMessage {...sourceLabels.saml}/>
-            </span>
-        );
+        content = pluginDisplayName;
+    } else if (kind === 'ldap') {
+        content = <FormattedMessage {...sourceLabels.ldap}/>;
+    } else if (kind === 'saml') {
+        content = <FormattedMessage {...sourceLabels.saml}/>;
+    } else {
+        content = <FormattedMessage {...sourceLabels.managed}/>;
     }
 
     return (
@@ -110,7 +72,7 @@ function SourceCell({field}: {field: PropertyField}) {
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
-            <FormattedMessage {...sourceLabels.managed}/>
+            {content}
         </span>
     );
 }
@@ -141,6 +103,7 @@ function ActionsCell({field}: {field: PropertyField}) {
                 class: 'btn btn-transparent',
                 children: <DotsHorizontalIcon size={18}/>,
                 dataTestId: menuId,
+                'aria-label': formatMessage(actionsLabels.tooltip),
             }}
             menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
             menu={{
@@ -152,20 +115,35 @@ function ActionsCell({field}: {field: PropertyField}) {
                 id={`${menuId}-edit`}
                 disabled={true}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={<FormattedMessage {...actionsLabels.edit}/>}
+                labels={(
+                    <>
+                        <span><FormattedMessage {...actionsLabels.edit}/></span>
+                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
+                    </>
+                )}
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
                 disabled={true}
                 leadingElement={<ContentCopyIcon size={18}/>}
-                labels={<FormattedMessage {...actionsLabels.duplicate}/>}
+                labels={(
+                    <>
+                        <span><FormattedMessage {...actionsLabels.duplicate}/></span>
+                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
+                    </>
+                )}
             />
             <Menu.Item
                 id={`${menuId}-delete`}
                 disabled={true}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
-                labels={<FormattedMessage {...actionsLabels.delete}/>}
+                labels={(
+                    <>
+                        <span><FormattedMessage {...actionsLabels.delete}/></span>
+                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
+                    </>
+                )}
             />
         </Menu.Container>
     );
@@ -194,8 +172,9 @@ export default function GlobalAttributesTable() {
                 if (active) {
                     setLoadError(false);
                 }
-            } catch {
+            } catch (error) {
                 // Surface an error state instead of a misleading empty state.
+                console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
                 }
@@ -237,20 +216,14 @@ export default function GlobalAttributesTable() {
             columnHelper.accessor('type', {
                 id: 'type',
                 header: () => <FormattedMessage {...messages.type}/>,
-                cell: ({getValue}) => {
-                    const fieldType = getValue();
-                    const Icon = getTypeIcon(fieldType);
-
-                    return (
-                        <span
-                            className='GlobalAttributesTable__type'
-                            data-testid='global-attribute-type'
-                        >
-                            <Icon size={16}/>
-                            <FormattedMessage {...getTypeLabel(fieldType)}/>
-                        </span>
-                    );
-                },
+                cell: ({getValue}) => (
+                    <span
+                        className='GlobalAttributesTable__type'
+                        data-testid='global-attribute-type'
+                    >
+                        <FormattedMessage {...getTypeLabel(getValue())}/>
+                    </span>
+                ),
                 enableSorting: false,
                 enableHiding: false,
             }),
@@ -274,6 +247,12 @@ export default function GlobalAttributesTable() {
                         <OptionsCell field={row.original}/>
                     </span>
                 ),
+                enableHiding: false,
+            }),
+            columnHelper.display({
+                id: 'usage',
+                header: () => <FormattedMessage {...messages.usage}/>,
+                cell: () => <span data-testid='global-attribute-usage'>{'—'}</span>,
                 enableHiding: false,
             }),
             columnHelper.display({
@@ -336,6 +315,7 @@ const messages = defineMessages({
     appliesTo: {id: 'admin.global_attributes.table.applies_to', defaultMessage: 'Applies to'},
     source: {id: 'admin.global_attributes.table.source', defaultMessage: 'Source'},
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
+    usage: {id: 'admin.global_attributes.table.usage', defaultMessage: 'Usage'},
     actions: {id: 'admin.global_attributes.table.actions', defaultMessage: 'Actions'},
     empty: {
         id: 'admin.global_attributes.table.empty',
@@ -369,4 +349,5 @@ const actionsLabels = defineMessages({
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
+    comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},
 });

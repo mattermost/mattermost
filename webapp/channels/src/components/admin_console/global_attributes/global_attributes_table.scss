@@ -8,11 +8,6 @@
     display: inline-flex;
     align-items: center;
     color: rgba(var(--center-channel-color-rgb), 0.72);
-    gap: 6px;
-
-    svg {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
 }
 
 .GlobalAttributesTable__name {

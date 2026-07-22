@@ -114,9 +114,11 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
 
     /**
      * @objective Ensure a real access_control/template attribute renders in the table with
-     * its display name, type icon+label, source, and options count.
+     * its display name, type icon+label, source, and options count — across every field
+     * type the ticket's Type column has a mapping for (Text/Select/Multiselect/Ranked),
+     * plus one unmapped type (date) to prove the fallback also holds end-to-end.
      */
-    test('renders a seeded attribute with its Attribute/Type/Source/Options values', async ({pw}) => {
+    test('renders one seeded field per type with correct Attribute/Type/Source/Options values', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await getAdminClient();
 
@@ -138,44 +140,113 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
             'GlobalAttributes stays disabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-on in this environment.',
         );
 
-        const fieldName = `e2e_global_attribute_${Date.now()}`;
+        const timestamp = Date.now();
 
-        // # Seed a real select-type field via the admin API (covers the "Managed here"
-        // Source branch and a non-zero Options count — the plugin+protected branch is
-        // unit-test-only since the admin API blocks source_plugin_id/protected from
-        // non-plugin callers).
-        await createGlobalAttributeField(adminClient, fieldName, {
-            type: 'select',
-            attrs: {
-                display_name: 'E2E Global Attribute',
-                options: [
-                    {id: '', name: 'Option A'},
-                    {id: '', name: 'Option B'},
-                ],
+        // Covers the "Managed here" Source branch (all of these) alongside every Type/Options
+        // combination reachable through the admin API — the plugin+protected Source branch is
+        // unit-test-only since the admin API blocks source_plugin_id/protected from non-plugin
+        // callers, and rank uses type: 'rank' directly (the same type Classification Markings'
+        // own saveCreateField creates), not the select-based seeding some older e2e helpers use.
+        // displayName embeds the same per-run timestamp as name — required so the row locator
+        // below can't collide with another concurrently-running browser project's seeded row
+        // (this suite's projects share one server/worker pool; see playwright.config.ts).
+        const seeds = [
+            {
+                name: `e2e_global_attribute_text_${timestamp}`,
+                displayName: `E2E Text Attribute ${timestamp}`,
+                type: 'text',
+                attrs: {},
+                expectedType: 'Text',
+                expectedOptions: 'Free Text',
             },
-        });
+            {
+                name: `e2e_global_attribute_select_${timestamp}`,
+                displayName: `E2E Select Attribute ${timestamp}`,
+                type: 'select',
+                attrs: {
+                    options: [
+                        {id: '', name: 'Option A'},
+                        {id: '', name: 'Option B'},
+                    ],
+                },
+                expectedType: 'Select',
+                expectedOptions: '2 options',
+            },
+            {
+                name: `e2e_global_attribute_multiselect_${timestamp}`,
+                displayName: `E2E Multiselect Attribute ${timestamp}`,
+                type: 'multiselect',
+                attrs: {
+                    options: [
+                        {id: '', name: 'Option A'},
+                        {id: '', name: 'Option B'},
+                        {id: '', name: 'Option C'},
+                    ],
+                },
+                expectedType: 'Multiselect',
+                expectedOptions: '3 options',
+            },
+            {
+                name: `e2e_global_attribute_rank_${timestamp}`,
+                displayName: `E2E Ranked Attribute ${timestamp}`,
+                type: 'rank',
+                attrs: {
+                    options: [
+                        {id: '', name: 'Low', rank: 1},
+                        {id: '', name: 'High', rank: 2},
+                    ],
+                },
+                expectedType: 'Ranked',
+                expectedOptions: '2 options',
+            },
+            {
+                name: `e2e_global_attribute_date_${timestamp}`,
+                displayName: `E2E Date Attribute ${timestamp}`,
+                type: 'date',
+                attrs: {},
+                expectedType: 'Other',
+                expectedOptions: 'Free Text',
+            },
+        ] as const;
+
+        for (const seed of seeds) {
+            // eslint-disable-next-line no-await-in-loop
+            await createGlobalAttributeField(adminClient, seed.name, {
+                type: seed.type,
+                attrs: {display_name: seed.displayName, ...seed.attrs},
+            });
+        }
 
         try {
-            // # Log in and open the Manage Attributes page
+            // # Log in and open the Manage Attributes page once every field is seeded
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            // Re-rooted `has` probe on the name cell's testid+text, mirroring the
-            // established row-lookup pattern (see board_attributes.ts's rowByName).
-            const row = systemConsolePage.page.locator('tr', {
-                has: systemConsolePage.page
-                    .getByTestId('global-attribute-name')
-                    .filter({hasText: 'E2E Global Attribute'}),
-            });
+            for (const seed of seeds) {
+                // Re-rooted `has` probe on the name cell's testid+text, mirroring the
+                // established row-lookup pattern (see board_attributes.ts's rowByName).
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page
+                        .getByTestId('global-attribute-name')
+                        .filter({hasText: seed.displayName}),
+                });
 
-            // * The seeded field's display name, type, source, and options render correctly
-            await expect(row.getByTestId('global-attribute-name')).toHaveText('E2E Global Attribute');
-            await expect(row.getByTestId('global-attribute-type')).toContainText('Select');
-            await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
-            await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+                // * Each seeded field's display name, type, source, and options render correctly
+                // eslint-disable-next-line no-await-in-loop
+                await expect(row.getByTestId('global-attribute-name')).toHaveText(seed.displayName);
+                // eslint-disable-next-line no-await-in-loop
+                await expect(row.getByTestId('global-attribute-type')).toContainText(seed.expectedType);
+                // eslint-disable-next-line no-await-in-loop
+                await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+                // eslint-disable-next-line no-await-in-loop
+                await expect(row.getByTestId('global-attribute-options')).toContainText(seed.expectedOptions);
+            }
         } finally {
             // # Clean up regardless of assertion outcome, so reruns start from a clean slate
-            await deleteGlobalAttributeFieldIfExists(adminClient, fieldName);
+            for (const seed of seeds) {
+                // eslint-disable-next-line no-await-in-loop
+                await deleteGlobalAttributeFieldIfExists(adminClient, seed.name);
+            }
         }
     });
 });
