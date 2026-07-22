@@ -21,6 +21,296 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
+<td rowspan="13">v11.9</td>
+<td><p>Mattermost v11.9 changes how redirect URI allowlist patterns are matched for OAuth Dynamic Client Registration (DCR). Patterns are now evaluated per URL component (scheme, host, path, and query) rather than as a whole-string glob. As a result, a pattern such as <code>https://\*.example.com/\*\*</code> no longer matches redirect URIs that include a query string (for example, <code>https://app.example.com/callback?tenant=foo</code>); redirect URIs without a query string continue to match as expected.</p><p>Admins using DCR with redirect URIs that include query strings must update their allowlist. To allow redirect URIs both with and without a query string, add two separate entries:</p><ul><li><code>https://\*.example.com/\*\*</code> — matches redirect URIs with no query string.</li><li><code>https://\*.example.com/\*\*?\*\*</code> — matches redirect URIs with any query string.</li></ul><p>A pattern that includes a query component (such as <code>?\*\*</code>) only matches URIs that also carry a query string; it will not match URIs without one. Both entries are required to cover both cases.</p></td>
+</tr>
+<tr>
+<td><p>Mattermost 11.9.0 introduces a schema change in the form of a new column added to the <code>incomingwebhooks</code> table. The <code>incomingwebhooks</code> table receives an <code>AccessExclusiveLock</code> when adding the column; however, because PostgreSQL 11+ treats <code>ADD COLUMN</code> with a non-volatile constant default as a metadata-only operation, the lock is held for only microseconds and is not proportional to row count. All concurrent reads and writes are blocked only for the instant the catalog entry is updated, then immediately released — impact to concurrent operations is negligible. Zero downtime is possible when upgrading to this release. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- up
+ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS lastused bigint NOT NULL DEFAULT 0;
+-- down
+ALTER TABLE incomingwebhooks DROP COLUMN IF EXISTS lastused;</code></pre></td>
+</tr>
+<tr>
+<td><p>This migration adds a new <code>voipdeviceid</code> column (<code>VARCHAR(512) NOT NULL DEFAULT ''</code>) to the <code>sessions</code> table to support associating VoIP device identifiers with user sessions. The column is defined with an empty-string default, ensuring existing rows and any rows written by older server versions automatically satisfy the <code>NOT NULL</code> constraint without requiring a data backfill. On PostgreSQL 11 and later, adding a column with a constant default is a metadata-only operation — no table rewrite occurs — so the <code>ACCESS EXCLUSIVE</code> lock on <code>sessions</code> is held for only a brief period (typically milliseconds). Administrators on large deployments should be aware that <code>sessions</code> is one of the most frequently accessed tables, and any long-running transactions already holding locks on it could cause a transient increase in lock-wait times during the migration. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- up
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS voipdeviceid VARCHAR(512) NOT NULL DEFAULT '';
+-- down
+ALTER TABLE sessions DROP COLUMN IF EXISTS voipdeviceid;</code></pre></td>
+</tr>
+<tr>
+<td><p>This migration adds a composite index, <code>idx_access_control_policies_type_id</code>, on the <code>AccessControlPolicies</code> table covering the <code>Type</code> and <code>Id</code> columns. The index is intended to improve query performance when filtering or looking up access control policies by type and identifier. The index is built using <code>CREATE INDEX CONCURRENTLY</code>, meaning it is constructed in the background without blocking reads or writes on the <code>AccessControlPolicies</code> table. No columns, constraints, or existing indexes are modified or removed by this change. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Up migration (PostgreSQL)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_access_control_policies_type_id ON AccessControlPolicies(Type, Id);</code></pre><pre><code>-- Down migration (PostgreSQL)
+DROP INDEX CONCURRENTLY IF EXISTS idx_access_control_policies_type_id;</code></pre></td>
+</tr>
+<tr>
+<td><p>This migration removes orphaned rows from the <code>threadmemberships</code> table — specifically, rows where the associated user is no longer a member of the channel that the thread belongs to. The cleanup is performed via a filtered <code>DELETE</code> using a three-way join across <code>threadmemberships</code>, <code>threads</code>, and <code>channelmembers</code>. No schema objects (tables, columns, or indexes) are added or removed; only data rows are affected. Note for large instances: this migration issues a single unbatched delete that scans the entirety of <code>threadmemberships</code> with a join against <code>threads</code> and <code>channelmembers</code>. On databases with tens of millions of rows or significant historical channel-membership churn, this query may run for an extended period, block autovacuum on <code>threadmemberships</code>, increase WAL pressure, and contribute to replication lag. Administrators of large deployments should test execution time on a representative dataset before upgrading and consider scheduling the upgrade during a low-traffic window. The down migration contains no rollback SQL because the deleted rows cannot be recovered; this migration is irreversible. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Drop ThreadMembership rows whose user is no longer a member of the thread's channel.
+DELETE FROM threadmemberships WHERE (postid, userid) IN (
+    SELECT
+        threadmemberships.postid,
+        threadmemberships.userid
+    FROM
+        threadmemberships
+        JOIN threads ON threads.postid = threadmemberships.postid
+        LEFT JOIN channelmembers ON channelmembers.userid = threadmemberships.userid
+            AND threads.channelid = channelmembers.channelid
+    WHERE
+        channelmembers.channelid IS NULL
+);</code></pre></td>
+</tr>
+<tr>
+<td><p>Migration 000199 extends the <code>property_field_type</code> enum in PostgreSQL by adding the new value <code>'rank'</code> to support rank-type property fields. The change is made via <code>ALTER TYPE property_field_type ADD VALUE IF NOT EXISTS 'rank'</code>, which is a catalog-only operation that touches only the <code>pg_enum</code> system catalog and acquires no locks on user tables such as <code>PropertyFields</code> or <code>PropertyValues</code>. Existing rows and application code are entirely unaffected by the addition. The rollback (down) migration is intentionally destructive: any <code>PropertyFields</code> rows carrying <code>Type = 'rank'</code> are coerced to <code>'select'</code>, the enum is rebuilt without the <code>'rank'</code> value, and the <code>AttributeView</code> materialized view is dropped and recreated — all of which require an <code>AccessExclusiveLock</code> on <code>PropertyFields</code> and should only be executed during a maintenance window. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Postgres cannot remove a value from an existing enum in place, so rebuild
+-- the type without 'rank'. Any rows still holding 'rank' (e.g. fields created
+-- via the property API after this migration ran) are coerced to 'select'
+-- first so the recreated enum can accept them; 'select' has the same storage
+-- shape (single option ID).
+-- The AttributeView materialized view reads PropertyFields.Type, so Postgres
+-- refuses to rebuild the enum on that column while the view exists. Drop the
+-- view before the ALTER and recreate it afterwards.
+UPDATE PropertyFields SET Type = 'select' WHERE Type = 'rank';
+DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+ALTER TYPE property_field_type RENAME TO property_field_type_old;
+CREATE TYPE property_field_type AS ENUM (
+    'text',
+    'select',
+    'multiselect',
+    'date',
+    'user',
+    'multiuser'
+);
+ALTER TABLE PropertyFields
+    ALTER COLUMN Type TYPE property_field_type USING Type::text::property_field_type;
+DROP TYPE property_field_type_old;
+-- Recreate the no-rank AttributeView (matches 000177 / 000198 down).
+CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
+SELECT
+    pv.GroupID,
+    pv.TargetID,
+    pv.TargetType,
+    jsonb_object_agg(
+        pf.Name,
+        CASE
+            WHEN pf.Type = 'select' THEN (
+                SELECT to_jsonb(options.name)
+                FROM jsonb_to_recordset(pf.Attrs->'options') AS options(id text, name text)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+                SELECT jsonb_agg(option_names.name)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN jsonb_to_recordset(pf.Attrs->'options') AS option_names(id text, name text)
+                ON option_id = option_names.id
+            )
+            ELSE pv.Value
+        END
+    ) AS Attributes
+FROM PropertyValues pv
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
+WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
+  AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
+  AND pf.ObjectType = 'user'
+GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;</code></pre></td>
+</tr>
+<tr>
+<td><p>Migration 000195 updates up to three rows in the <code>PropertyFields</code> table that belong to the <code>access_control</code> property group, converting their <code>Type</code> value from <code>'select'</code> to <code>'rank'</code> and backfilling a <code>rank</code> integer key into each element of the <code>options</code> array stored in the <code>Attrs</code> JSONB column. The affected fields are <code>classification</code> (<code>ObjectType = 'template'</code>), <code>system_classification</code> (<code>ObjectType = 'system'</code>), and <code>channel_classification</code> (<code>ObjectType = 'channel'</code>), which are part of the classification-markings feature gated behind a feature flag. No schema structure changes (DDL) are made — only targeted DML <code>UPDATE</code> statements are executed, touching at most three rows regardless of server size. Both statements run within a single transaction, so no intermediate state is ever visible to other sessions. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- up migration
+-- Convert the classification-markings property fields from 'select' to 'rank'.
+-- Each (Name, ObjectType) pair is matched explicitly so unrelated fields that
+-- happen to share a name cannot be touched. At most three rows are updated.
+UPDATE PropertyFields
+SET Type = 'rank'
+WHERE Type = 'select'
+  AND GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND (
+        (Name = 'classification'         AND ObjectType = 'template')
+     OR (Name = 'system_classification'  AND ObjectType = 'system')
+     OR (Name = 'channel_classification' AND ObjectType = 'channel')
+  );
+-- Backfill a rank onto every option.
+UPDATE PropertyFields pf
+SET Attrs = jsonb_set(
+        pf.Attrs,
+        '{'{'}options{'}'}',
+        (
+            SELECT jsonb_agg(elem.opt || jsonb_build_object('rank', elem.ord) ORDER BY elem.ord)
+            FROM jsonb_array_elements(pf.Attrs->'options') WITH ORDINALITY AS elem(opt, ord)
+        )
+    )
+WHERE pf.Type = 'rank'
+  AND pf.GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND (
+        (pf.Name = 'classification'         AND pf.ObjectType = 'template')
+     OR (pf.Name = 'system_classification'  AND pf.ObjectType = 'system')
+     OR (pf.Name = 'channel_classification' AND pf.ObjectType = 'channel')
+  )
+  AND jsonb_typeof(pf.Attrs->'options') = 'array'
+  AND jsonb_array_length(pf.Attrs->'options') > 0;</code></pre><pre><code>-- down migration
+UPDATE PropertyFields pf
+SET Attrs = jsonb_set(
+        pf.Attrs,
+        '{'{'}options{'}'}',
+        (
+            SELECT jsonb_agg(elem.opt - 'rank' ORDER BY elem.ord)
+            FROM jsonb_array_elements(pf.Attrs->'options') WITH ORDINALITY AS elem(opt, ord)
+        )
+    )
+WHERE pf.Type = 'rank'
+  AND pf.GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND (
+        (pf.Name = 'classification'         AND pf.ObjectType = 'template')
+     OR (pf.Name = 'system_classification'  AND pf.ObjectType = 'system')
+     OR (pf.Name = 'channel_classification' AND pf.ObjectType = 'channel')
+  )
+  AND jsonb_typeof(pf.Attrs->'options') = 'array'
+  AND jsonb_array_length(pf.Attrs->'options') > 0;
+UPDATE PropertyFields
+SET Type = 'select'
+WHERE Type = 'rank'
+  AND GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND (
+        (Name = 'classification'         AND ObjectType = 'template')
+     OR (Name = 'system_classification'  AND ObjectType = 'system')
+     OR (Name = 'channel_classification' AND ObjectType = 'channel')
+  );</code></pre></td>
+</tr>
+<tr>
+<td><p>Migration 000196 updates data within the <code>PropertyFields</code> table as part of the Access Control / Properties framework. Specifically, it renames two classification field entries inside the <code>access_control</code> <code>PropertyGroups</code> group: the <code>system_classification</code> entry (<code>ObjectType = 'system'</code>) and the <code>channel_classification</code> entry (<code>ObjectType = 'channel'</code>) are both renamed to the canonical value <code>classification</code>. The rows remain distinct because the unique index on <code>PropertyFields</code> incorporates <code>ObjectType</code>, preventing collisions. This change affects at most two rows and completes near-instantly with no measurable performance impact. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Up migration
+-- Rename the system- and channel-scoped classification linked fields so all
+-- three classification fields share the canonical Name 'classification'. They
+-- remain distinct rows because the typed unique index keys on ObjectType as
+-- well, so template/system/channel rows do not collide.
+UPDATE PropertyFields
+SET Name = 'classification'
+WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND (
+        (Name = 'system_classification'  AND ObjectType = 'system')
+     OR (Name = 'channel_classification' AND ObjectType = 'channel')
+  );
+-- Down migration
+-- Restore the previous names so the rows can be matched by 000195's down
+-- migration. Identified by ObjectType since all three classification rows
+-- share the same Name='classification' at this point.
+UPDATE PropertyFields
+SET Name = 'system_classification'
+WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND Name = 'classification'
+  AND ObjectType = 'system';
+UPDATE PropertyFields
+SET Name = 'channel_classification'
+WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'access_control')
+  AND Name = 'classification'
+  AND ObjectType = 'channel';</code></pre></td>
+</tr>
+<tr>
+<td><p>Migration 000178 extends the <code>AttributeView</code> materialized view — part of the ABAC/property system — to add support for <code>rank</code>-typed property fields. Previously, <code>rank</code>-typed values were stored as raw values in the view; they are now materialized as <code>{'{'}"name": &lt;option-name&gt;, "rank": &lt;option-rank&gt;{'}'}</code> JSON objects, enabling ABAC policies to compare rank values without embedding rank integers directly in policy expressions. The migration drops and recreates <code>AttributeView</code> in a single transaction, performing a full scan of <code>PropertyValues</code> and <code>PropertyFields</code> at migration time. Because these tables are gated behind a feature flag and expected to be empty or near-empty at the time of this migration, the performance impact is negligible for most deployments. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Extend the AttributeView matview to materialize rank-typed property values
+-- as {"{"}"name": &lt;option-name&gt;, "rank": &lt;option-rank&gt;{"}"} so ABAC policies can
+-- compare ranks without storing rank integers in policy expressions.
+DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
+SELECT
+    pv.GroupID,
+    pv.TargetID,
+    pv.TargetType,
+    jsonb_object_agg(
+        pf.Name,
+        CASE
+            WHEN pf.Type = 'select' THEN (
+                SELECT to_jsonb(options.name)
+                FROM jsonb_to_recordset(pf.Attrs->'options') AS options(id text, name text)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+                SELECT jsonb_agg(option_names.name)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN jsonb_to_recordset(pf.Attrs->'options') AS option_names(id text, name text)
+                ON option_id = option_names.id
+            )
+            WHEN pf.Type = 'rank' THEN (
+                SELECT jsonb_build_object(
+                    'name', options.name,
+                    'rank', options.rank
+                )
+                FROM jsonb_to_recordset(pf.Attrs->'options')
+                     AS options(id text, name text, rank int)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            ELSE pv.Value
+        END
+    ) AS Attributes
+FROM PropertyValues pv
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
+WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
+  AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
+  AND pf.ObjectType = 'user'
+GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;</code></pre><pre><code>-- Restore the 000177 matview definition (no rank branch).
+DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
+SELECT
+    pv.GroupID,
+    pv.TargetID,
+    pv.TargetType,
+    jsonb_object_agg(
+        pf.Name,
+        CASE
+            WHEN pf.Type = 'select' THEN (
+                SELECT to_jsonb(options.name)
+                FROM jsonb_to_recordset(pf.Attrs->'options') AS options(id text, name text)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+                SELECT jsonb_agg(option_names.name)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN jsonb_to_recordset(pf.Attrs->'options') AS option_names(id text, name text)
+                ON option_id = option_names.id
+            )
+            ELSE pv.Value
+        END
+    ) AS Attributes
+FROM PropertyValues pv
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
+WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
+  AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
+  AND pf.ObjectType = 'user'
+GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;</code></pre></td>
+</tr>
+<tr>
+<td><p>Added an <code>expiresat</code> column and partial index to <code>useraccesstokens</code> to support PAT expiry enforcement. Large-dataset testing was not required for this migration as <code>useraccesstokens</code> is not a large table. <code>useraccesstokens</code> receives a brief ACCESS EXCLUSIVE lock when adding the column (Migration 000187, metadata-only, no table rewrite on PostgreSQL 11+), and a SHARE UPDATE EXCLUSIVE lock during the index build via CREATE INDEX CONCURRENTLY (Migration 000188), which never blocks concurrent reads or writes. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Migration 000187 (transactional):
+ALTER TABLE useraccesstokens ADD COLUMN IF NOT EXISTS expiresat bigint NOT NULL DEFAULT 0;
+-- Migration 000188 (run via morph as nontransactional):
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_useraccesstokens_expiresat
+    ON useraccesstokens (expiresat)
+    WHERE expiresat > 0;
+-- Down migrations:
+DROP INDEX CONCURRENTLY IF EXISTS idx_useraccesstokens_expiresat;
+ALTER TABLE useraccesstokens DROP COLUMN IF EXISTS expiresat;</code></pre></td>
+</tr>
+<tr>
+<td><p>Added support for <code>board</code> as a new channel bookmark type by introducing a <code>targetid</code> column and a corresponding index on the <code>channelbookmarks</code> table. The only table touched is <code>channelbookmarks</code>. The nullable column add is metadata-only with a negligible exclusive lock duration. The index build uses <code>CONCURRENTLY</code> and runs online without blocking DML. Existing <code>link</code> and <code>file</code> bookmark rows and queries are unaffected, and the new <code>targetid</code> column is nullable with no default, which is inert to old code. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000190_channel_bookmarks_board_target_id.up.sql
+ALTER TYPE channel_bookmark_type ADD VALUE IF NOT EXISTS 'board';
+ALTER TABLE channelbookmarks ADD COLUMN IF NOT EXISTS targetid varchar(26) DEFAULT NULL;
+-- 000191_channel_bookmarks_target_id_index.up.sql
+-- morph:nontransactional
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channelbookmarks_type_targetid ON channelbookmarks (type, targetid) WHERE targetid IS NOT NULL;</code></pre></td>
+</tr>
+<tr>
+<td><p>Added a <code>SchemaVersion</code> column (<code>integer DEFAULT 1 NOT NULL</code>) to the <code>PropertyGroups</code> table. Large-dataset testing was not performed for this migration. The only table touched is <code>PropertyGroups</code>, which is a small registry table holding one row per registered property group. <code>PropertyGroups</code> receives a brief access exclusive lock when adding the column, held only momentarily for a metadata-only catalog update with no table rewrite. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>ALTER TABLE PropertyGroups ADD COLUMN IF NOT EXISTS SchemaVersion integer DEFAULT 1 NOT NULL;</code></pre></td>
+</tr>
+<tr>
+<td><p>Two new database migrations introduce the <code>ChannelGuards</code> table, which enables plugins to register exclusive ownership of channels. Migration <code>000185</code> creates the <code>ChannelGuards</code> table with three columns — <code>ChannelId</code>, <code>PluginId</code>, and <code>CreatedAt</code> — and a composite primary key on (<code>ChannelId, PluginId</code>) to enforce uniqueness per plugin per channel. Migration <code>000186</code> adds the secondary index <code>idx_channel_guards_plugin_id</code> on the <code>PluginId</code> column to support efficient plugin-scoped queries against the table. Both migrations are safe to run online with no locking impact on existing production tables. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000185_create_channel_guards.up.sql
+CREATE TABLE IF NOT EXISTS ChannelGuards (
+    ChannelId varchar(26)  NOT NULL,
+    PluginId  varchar(190) NOT NULL,
+    CreatedAt bigint       NOT NULL,
+    PRIMARY KEY (ChannelId, PluginId)
+);</code></pre><pre><code>-- 000185_create_channel_guards.down.sql
+DROP TABLE IF EXISTS ChannelGuards;</code></pre><pre><code>-- 000186_create_channel_guards_plugin_id_index.up.sql
+-- morph:nontransactional
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channel_guards_plugin_id ON ChannelGuards(PluginId);</code></pre><pre><code>-- 000186_create_channel_guards_plugin_id_index.down.sql
+-- morph:nontransactional
+DROP INDEX CONCURRENTLY IF EXISTS idx_channel_guards_plugin_id;</code></pre></td>
+</tr>
+<tr>
 <td rowspan="8">v11.8</td>
 <td>The Custom Profile Attributes property group is renamed from <code>custom_profile_attributes</code> to <code>access_control</code>, and CPA fields and values are migrated from the legacy property model to the v2 model. The functionality of the CPA feature is unchanged. Plugin developers that use CPA will need to register against the new group name.</td>
 </tr>
