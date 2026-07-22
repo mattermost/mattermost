@@ -628,8 +628,8 @@ type State = BaseState & {
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
 
-    // Captured in getConfigFromState so handleSaved still has AllowedUserIds after
-    // doSubmit reloads state from Enable-only config.
+    // Captured in getConfigFromState so a successful doSubmit still has AllowedUserIds
+    // after state is reloaded from Enable-only config.
     private accessControlSaveSnapshot: Record<string, PluginAccessControlUI> | null = null;
 
     // Plugin IDs whose ACLs were edited this session; only these are persisted on save.
@@ -776,11 +776,54 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return allLoaded;
     };
 
-    handleSaved = () => {
-        const snapshot = this.accessControlSaveSnapshot || {};
-        this.accessControlSaveSnapshot = null;
-        this.dirtyAccessControlPluginIds.clear();
-        this.persistPluginAccessControlUsers(snapshot);
+    // Override doSubmit so ACL user lists are persisted only after a successful
+    // config PATCH. OLDAdminSettings calls handleSaved on both success and error.
+    doSubmit = async (callback?: () => void) => {
+        this.setState({
+            saving: true,
+            serverError: null,
+        });
+
+        let config = JSON.parse(JSON.stringify(this.props.config));
+        config = this.getConfigFromState(config);
+
+        if (!this.props.patchConfig) {
+            return;
+        }
+
+        const {data, error} = await this.props.patchConfig(config);
+
+        if (data) {
+            this.setState(this.getStateFromConfig(data) as State);
+            this.setState({
+                saveNeeded: false,
+                saving: false,
+            });
+
+            if (this.props.setNavigationBlocked) {
+                this.props.setNavigationBlocked(false);
+            }
+
+            callback?.();
+
+            const snapshot = this.accessControlSaveSnapshot || {};
+            this.accessControlSaveSnapshot = null;
+            this.dirtyAccessControlPluginIds.clear();
+            this.persistPluginAccessControlUsers(snapshot);
+            return;
+        }
+
+        if (error) {
+            this.setState({
+                saving: false,
+                serverError: error.message,
+                serverErrorId: error.server_error_id,
+            });
+
+            // Keep dirty ACL edits so the admin can retry; drop the one-shot snapshot.
+            this.accessControlSaveSnapshot = null;
+            callback?.();
+        }
     };
 
     private persistPluginAccessControlUsers = (snapshot: Record<string, PluginAccessControlUI>) => {
