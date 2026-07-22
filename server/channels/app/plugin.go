@@ -249,11 +249,16 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			}
 			return true
 		}, plugin.OnConfigurationChangeID)
+	})
 
-		if !reflect.DeepEqual(oldCfg.PluginSettings.PluginAccessControl, newCfg.PluginSettings.PluginAccessControl) {
-			message := model.NewWebSocketEvent(model.WebsocketEventPluginAccessControlChanged, "", "", "", nil, "")
-			ch.srv.platform.Publish(message)
+	// Notify clients when plugin UI access-control enable flags change in config.
+	ch.RemoveConfigListener(ch.pluginAccessControlListenerID)
+	ch.pluginAccessControlListenerID = ch.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if reflect.DeepEqual(oldCfg.PluginSettings.PluginAccessControl, newCfg.PluginSettings.PluginAccessControl) {
+			return
 		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPluginAccessControlChanged, "", "", "", nil, "")
+		ch.srv.platform.Publish(message)
 	})
 	ch.pluginsLock.Unlock()
 
@@ -365,6 +370,8 @@ func (ch *Channels) ShutDownPlugins() {
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
+	ch.RemoveConfigListener(ch.pluginAccessControlListenerID)
+	ch.pluginAccessControlListenerID = ""
 	ch.srv.RemoveClusterLeaderChangedListener(ch.pluginClusterLeaderListenerID)
 	ch.pluginClusterLeaderListenerID = ""
 
@@ -524,8 +531,8 @@ func (a *App) SetPluginAccessControl(rctx request.CTX, pluginID string, settings
 		}
 	})
 
-	// Enable-only config changes already publish via OnConfigurationChange; always publish
-	// so DB-only user-list changes also refresh clients.
+	// Enable-only config changes already publish via the dedicated PAC config listener;
+	// always publish here so DB-only user-list changes also refresh clients.
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginAccessControlChanged, "", "", "", nil, "")
 	a.Publish(message)
 

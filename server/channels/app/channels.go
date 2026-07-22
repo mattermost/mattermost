@@ -49,6 +49,7 @@ type Channels struct {
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
+	pluginAccessControlListenerID string
 	pluginClusterLeaderListenerID string
 
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
