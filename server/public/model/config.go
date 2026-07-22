@@ -4110,6 +4110,9 @@ type AccessControlSettings struct {
 	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4133,6 +4136,12 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnforceDeviceIDConsistency == nil {
 		s.EnforceDeviceIDConsistency = new(false)
+	}
+
+	// Floor is enforced by the scheduler, not here, so an operator's explicit
+	// sub-minute value survives config round-trips.
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
 	}
 }
 
