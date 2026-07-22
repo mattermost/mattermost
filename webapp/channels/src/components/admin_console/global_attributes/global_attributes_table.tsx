@@ -31,6 +31,10 @@ const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 
 const columnHelper = createColumnHelper<PropertyField>();
 
+export function getDisplayName(field: PropertyField): string {
+    return (field.attrs?.display_name as string | undefined) || field.name;
+}
+
 function getTypeLabel(fieldType: FieldType): MessageDescriptor {
     return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
 }
@@ -193,13 +197,13 @@ export default function GlobalAttributesTable() {
     }, [dispatch]);
 
     const rows = useMemo(
-        () => [...fields].sort((a, b) => a.name.localeCompare(b.name)),
+        () => [...fields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),
         [fields],
     );
 
     const columns = useMemo<Array<ColumnDef<PropertyField, any>>>(() => {
         return [
-            columnHelper.accessor((row) => (row.attrs?.display_name as string | undefined) || row.name, {
+            columnHelper.accessor((row) => getDisplayName(row), {
                 id: 'attribute',
                 header: () => <FormattedMessage {...messages.attribute}/>,
                 cell: ({getValue}) => (

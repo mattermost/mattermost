@@ -13,7 +13,7 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
-import GlobalAttributesTable, {getSourceKind} from './global_attributes_table';
+import GlobalAttributesTable, {getDisplayName, getSourceKind} from './global_attributes_table';
 
 // The server keys every field under a real group UUID that differs from the
 // group name ('access_control'); fixtures mirror that so the resolve-by-name
@@ -122,6 +122,23 @@ describe('GlobalAttributesTable', () => {
         await screen.findByText('zeta_field');
         const names = screen.getAllByTestId('global-attribute-name').map((cell) => cell.textContent);
         expect(names).toEqual(['alpha_field', 'zeta_field']);
+    });
+
+    it('sorts by the same displayed value as the Attribute column, not the internal name, when they diverge', async () => {
+        // Internal names sort z-then-a, but display_name sorts a-then-z — proves the
+        // table orders by what the user reads (the Attribute column value), not the
+        // hidden internal name behind it.
+        const fields = [
+            makeField({id: 'f1', name: 'zzz_internal_id', attrs: {display_name: 'Aardvark Attribute'}}),
+            makeField({id: 'f2', name: 'aaa_internal_id', attrs: {display_name: 'Zebra Attribute'}}),
+        ];
+        getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        await screen.findByText('Aardvark Attribute');
+        const names = screen.getAllByTestId('global-attribute-name').map((cell) => cell.textContent);
+        expect(names).toEqual(['Aardvark Attribute', 'Zebra Attribute']);
     });
 
     it('renders the Applies-to column as an explicit placeholder, not a blank cell', async () => {
@@ -318,6 +335,16 @@ describe('GlobalAttributesTable', () => {
             expect(duplicate!).toHaveTextContent('Coming soon');
             expect(del!).toHaveTextContent('Coming soon');
         });
+    });
+});
+
+describe('getDisplayName', () => {
+    it('prefers attrs.display_name over the internal name', () => {
+        expect(getDisplayName(makeField({name: 'internal_name', attrs: {display_name: 'Human Name'}}))).toBe('Human Name');
+    });
+
+    it('falls back to the internal name when no display_name is set', () => {
+        expect(getDisplayName(makeField({name: 'internal_name', attrs: {}}))).toBe('internal_name');
     });
 });
 

@@ -249,4 +249,69 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
             }
         }
     });
+
+    /**
+     * @objective Ensure the table sorts by the same value shown in the Attribute column
+     * (display_name, falling back to name) rather than by the hidden internal name.
+     */
+    test('sorts rows by the displayed Attribute value, not the internal field name', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient} = await getAdminClient();
+
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to get admin user');
+        }
+
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            licenseTier(license.SkuShortName) < 20,
+            'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+                'Professional is not sufficient—the admin route is hidden and redirects away.',
+        );
+
+        await setGlobalAttributesFeatureFlag(adminClient, true);
+        const {FeatureFlags} = await adminClient.getConfig();
+        test.skip(
+            FeatureFlags.GlobalAttributes !== true,
+            'GlobalAttributes stays disabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-on in this environment.',
+        );
+
+        const timestamp = Date.now();
+
+        // Internal names sort z-then-a; display names (what the table actually shows and
+        // must sort by) sort a-then-z. If the table sorted by the internal name instead,
+        // these rows would render in the opposite order.
+        const firstName = `zzz_e2e_sort_${timestamp}`;
+        const secondName = `aaa_e2e_sort_${timestamp}`;
+        const firstDisplayName = `Aardvark E2E Sort Attribute ${timestamp}`;
+        const secondDisplayName = `Zebra E2E Sort Attribute ${timestamp}`;
+
+        await createGlobalAttributeField(adminClient, firstName, {
+            type: 'text',
+            attrs: {display_name: firstDisplayName},
+        });
+        await createGlobalAttributeField(adminClient, secondName, {
+            type: 'text',
+            attrs: {display_name: secondDisplayName},
+        });
+
+        try {
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('global-attribute-name').getByText(firstDisplayName).waitFor();
+
+            // * Rendered order follows the displayed Attribute value (Aardvark before Zebra),
+            // not the internal name (which would put "aaa_..." first if sorted that way)
+            const names = await systemConsolePage.page.getByTestId('global-attribute-name').allTextContents();
+            const firstIndex = names.indexOf(firstDisplayName);
+            const secondIndex = names.indexOf(secondDisplayName);
+            expect(firstIndex).toBeGreaterThanOrEqual(0);
+            expect(secondIndex).toBeGreaterThanOrEqual(0);
+            expect(firstIndex).toBeLessThan(secondIndex);
+        } finally {
+            await deleteGlobalAttributeFieldIfExists(adminClient, firstName);
+            await deleteGlobalAttributeFieldIfExists(adminClient, secondName);
+        }
+    });
 });
