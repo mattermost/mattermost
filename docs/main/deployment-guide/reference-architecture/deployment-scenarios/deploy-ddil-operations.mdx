@@ -36,9 +36,9 @@ This hybrid deployment architecture provides optimal collaboration in both conne
     - When internet disconnected: Microsoft services are unreachable, but embedded Mattermost application remains fully operational for tactical teams.
   - **Mattermost Desktop Apps:** Access Mattermost via [desktop](/deployment-guide/desktop/desktop-app-deployment) or web apps in addition to the embedded views from Teams and Outlook. *(Optional - not shown)*
   - **Mattermost Mobile Apps:** Access Mattermost via [iPhone and Android apps](/deployment-guide/mobile/mobile-app-deployment), with support for [ID-only push notifications](/deployment-guide/mobile/host-your-own-push-proxy-service) to ensure compliance with data sovereignty requirements. *(Optional when connectivity permits - not shown)*
-- **Mattermost Deployment:** Mattermost deployed for sovereign tactical collaboration on local infrastructure, such as [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), supporting data residency regulations and [disconnected operations](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment). See [reference architecture](/administration-guide/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
+- **Mattermost Deployment:** Mattermost deployed for sovereign tactical collaboration on local infrastructure, such as [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), supporting data residency regulations and [disconnected operations](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment). See [reference architecture](/deployment-guide/reference-architecture/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
   - **Mattermost Server:** Core application server handling tactical collaboration workloads, including:
-    - [Messaging Collaboration](/end-user-guide/messaging-collaboration): DDIL-ready 1:1, group messaging, and structured channel collaboration with [rich integration capabilities](/integrations-guide/integrations-guide-index) and [enterprise-grade search](/administration-guide/scale/scaling-for-enterprise#enterprise-search).
+    - [Messaging Collaboration](/end-user-guide/messaging-collaboration): DDIL-ready 1:1, group messaging, and structured channel collaboration with [rich integration capabilities](/integrations-guide/integrations-guide-index) and [enterprise-grade search](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#enterprise-search).
     - [Workflow Automation](/end-user-guide/workflow-automation): Playbooks provide structure, monitoring and automation for repeatable processes built-in to your local Mattermost deployment.
     - [Project Tracking](/end-user-guide/project-task-management): Boards enables project management capabilities built-in to your local Mattermost deployment.
     - [AI Agents](/administration-guide/configure/agents-admin-guide): AI Agents run against a local LLM hosted within your tactical network.
@@ -77,10 +77,10 @@ Effective collaboration at the tactical edge requires all voice and screen shari
 
 ### High availability and fault tolerance
 
-Deploy Mattermost in a [cluster-based architecture](/administration-guide/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
+Deploy Mattermost in a [cluster-based architecture](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
 
 - Application servers: Scale horizontally across multiple nodes with a load balancer distributing client traffic.
-- Search service: [Elasticsearch or AWS OpenSearch Service](/administration-guide/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
+- Search service: [Elasticsearch or AWS OpenSearch Service](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
 - Object storage: Configure S3-compatible backends with erasure coding or replication for durability. All application servers must access shared file storage (NAS or S3) to ensure consistent data availability.
 - Calls services: Run multiple `rtcd` and offloader nodes for resilience.
 

@@ -13,35 +13,35 @@ Server requirements vary based on usage and we highly recommend that you run a p
 
 ## Backing storage
 
-Review detailed [write and read storage benchmark results](/administration-guide/scale/backing-storage-benchmarks) for supported storage options including local file system (EBS, gp3), network file system (EFS), and object storage (S3) to make informed decisions based on your use case and infrastructure needs.
+Review detailed [write and read storage benchmark results](/deployment-guide/reference-architecture/scale/backing-storage-benchmarks) for supported storage options including local file system (EBS, gp3), network file system (EFS), and object storage (S3) to make informed decisions based on your use case and infrastructure needs.
 
 ## Enterprise search
 
 We highly recommend a dedicated server for large enterprise deployments to run highly efficient database searches in a cluster environment.
 
-For deployments with over 5 million posts, [Enterprise search](/administration-guide/scale/enterprise-search) using [Elasticsearch](/administration-guide/scale/enterprise-search#elasticsearch) or [AWS OpenSearch Service](/administration-guide/scale/enterprise-search#aws-opensearch-service) is required for optimized search performance, dedicated indexing and usage resourcing via cluster support without performance degradation and timeouts, resulting in faster, more predicable search results.
+For deployments with over 5 million posts, [Enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) using [Elasticsearch](/deployment-guide/reference-architecture/scale/enterprise-search#elasticsearch) or [AWS OpenSearch Service](/deployment-guide/reference-architecture/scale/enterprise-search#aws-opensearch-service) is required for optimized search performance, dedicated indexing and usage resourcing via cluster support without performance degradation and timeouts, resulting in faster, more predicable search results.
 
 ## High availability
 
-A [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) enables a Mattermost system to maintain service during outages and hardware failures through the use of redundant infrastructure.
+A [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) enables a Mattermost system to maintain service during outages and hardware failures through the use of redundant infrastructure.
 
 ## Redis
 
-[Redis](/administration-guide/scale/redis) is an in-memory data structure store that can be used as a database, cache, and message broker. Mattermost uses Redis as an external cache to improve performance at scale. When properly configured, Redis can help support Mattermost installations with more than 100,000 users by providing improved performance through efficient caching.
+[Redis](/deployment-guide/reference-architecture/scale/redis) is an in-memory data structure store that can be used as a database, cache, and message broker. Mattermost uses Redis as an external cache to improve performance at scale. When properly configured, Redis can help support Mattermost installations with more than 100,000 users by providing improved performance through efficient caching.
 
 ## Available reference architectures
 
 The following reference architectures are available as recommended starting points for your self-hosted Mattermost deployment, where user counts refer to the number of concurrent users for a given deployment. The number of concurrent numbers is commonly lower than the total number of user accounts.
 
-- [Scale up to 200 users](/administration-guide/scale/scale-to-200-users) - Learn how to scale Mattermost to up to 200 users.
-- [Scale up to 2000 users](/administration-guide/scale/scale-to-2000-users) - Learn how to scale Mattermost to up to 2000 users.
-- [Scale up to 15000 users](/administration-guide/scale/scale-to-15000-users) - Learn how to scale Mattermost to up to 15000 users.
-- [Scale up to 30000 users](/administration-guide/scale/scale-to-30000-users) - Learn how to scale Mattermost to up to 30000 users.
-- [Scale up to 50000 users](/administration-guide/scale/scale-to-50000-users) - Learn how to scale Mattermost to up to 50000 users.
-- [Scale up to 80000 users](/administration-guide/scale/scale-to-80000-users) - Learn how to scale Mattermost to up to 80000 users.
-- [Scale up to 90000 users](/administration-guide/scale/scale-to-90000-users) - Learn how to scale Mattermost to up to 90000 users.
-- [Scale up to 100000 users](/administration-guide/scale/scale-to-100000-users) - Learn how to scale Mattermost to up to 100000 users.
-- [Scale up to 200000 users](/administration-guide/scale/scale-to-200000-users) - Learn how to scale Mattermost to up to 200000 users.
+- [Scale up to 200 users](/deployment-guide/reference-architecture/scale/scale-to-200-users) - Learn how to scale Mattermost to up to 200 users.
+- [Scale up to 2000 users](/deployment-guide/reference-architecture/scale/scale-to-2000-users) - Learn how to scale Mattermost to up to 2000 users.
+- [Scale up to 15000 users](/deployment-guide/reference-architecture/scale/scale-to-15000-users) - Learn how to scale Mattermost to up to 15000 users.
+- [Scale up to 30000 users](/deployment-guide/reference-architecture/scale/scale-to-30000-users) - Learn how to scale Mattermost to up to 30000 users.
+- [Scale up to 50000 users](/deployment-guide/reference-architecture/scale/scale-to-50000-users) - Learn how to scale Mattermost to up to 50000 users.
+- [Scale up to 80000 users](/deployment-guide/reference-architecture/scale/scale-to-80000-users) - Learn how to scale Mattermost to up to 80000 users.
+- [Scale up to 90000 users](/deployment-guide/reference-architecture/scale/scale-to-90000-users) - Learn how to scale Mattermost to up to 90000 users.
+- [Scale up to 100000 users](/deployment-guide/reference-architecture/scale/scale-to-100000-users) - Learn how to scale Mattermost to up to 100000 users.
+- [Scale up to 200000 users](/deployment-guide/reference-architecture/scale/scale-to-200000-users) - Learn how to scale Mattermost to up to 200000 users.
 
 <Important>
 
@@ -57,7 +57,7 @@ At a high level, each deployment size was fixed (Mattermost server node count/si
 
 Tests were defined by configuration of the actions executed by each simulated user (and the frequency of these actions) where the coordinator metrics define a health system under load. Tests were performed using the Mattermost v9.5 Extended Support Release (ESR). Job servers weren't used. All tests with more than a single app node had an NGINX proxy running in front of them.
 
-For the last test of 200K users, further infrastructure changes were made. Elasticsearch nodes were added. A Redis instance was added, and multiple NGINX proxies were used to distribute traffic evenly across all nodes in the cluster. More details can be found on the [scale to 200000 users](/administration-guide/scale/scale-to-200000-users) documentation page.
+For the last test of 200K users, further infrastructure changes were made. Elasticsearch nodes were added. A Redis instance was added, and multiple NGINX proxies were used to distribute traffic evenly across all nodes in the cluster. More details can be found on the [scale to 200000 users](/deployment-guide/reference-architecture/scale/scale-to-200000-users) documentation page.
 
 Full testing methodology, configuration, and setup is available, incluidng a [fixed database dump with 100 million posts](https://us-east-1.console.aws.amazon.com/backup/home?region=us-east-1#/resources/arn%3Aaws%3Ards%3Aus-east-1%3A729462591288%3Acluster%3Adb-pg-100m-posts-v9-5-5). Visit the [Mattermost Community](https://community.mattermost.com/) and join the [Developers: Performance channel](https://community.mattermost.com/core/channels/developers-performance) for details.
 

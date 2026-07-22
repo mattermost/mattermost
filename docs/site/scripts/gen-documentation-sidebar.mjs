@@ -228,6 +228,46 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
+  // Scaling Architecture — moved here (physically, from
+  // administration-guide/scale/) to mirror Sphinx's live nav, where this
+  // whole cluster (capacity planning, HA/architecture, search infra, caching)
+  // sits under Reference Architecture as a sibling of Application
+  // Architecture. `scaling-for-enterprise` is the general entry point
+  // referencing the sub-groups below, so it's the group's landing page.
+  scaling: {
+    label: 'Scaling Architecture',
+    landing: 'reference-architecture/scale/scaling-for-enterprise',
+    items: [
+      {label: 'Capacity Planning', items: [
+        'reference-architecture/scale/scale-to-200-users',
+        'reference-architecture/scale/scale-to-2000-users',
+        'reference-architecture/scale/scale-to-15000-users',
+        'reference-architecture/scale/scale-to-30000-users',
+        'reference-architecture/scale/scale-to-50000-users',
+        'reference-architecture/scale/scale-to-80000-users',
+        'reference-architecture/scale/scale-to-90000-users',
+        'reference-architecture/scale/scale-to-100000-users',
+        'reference-architecture/scale/scale-to-200000-users',
+        'reference-architecture/scale/estimated-storage-per-user-per-month',
+        'reference-architecture/scale/backing-storage-benchmarks',
+        'reference-architecture/scale/lifetime-storage',
+        'reference-architecture/scale/additional-ha-considerations',
+      ]},
+      {label: 'High Availability & Architecture', items: [
+        'reference-architecture/scale/high-availability-cluster-based-deployment',
+        'reference-architecture/scale/server-architecture',
+      ]},
+      {label: 'Search Infrastructure', landing: 'reference-architecture/scale/enterprise-search', items: [
+        'reference-architecture/scale/elasticsearch-setup',
+        'reference-architecture/scale/opensearch-setup',
+        'reference-architecture/scale/common-configure-mattermost-for-enterprise-search',
+      ]},
+      {label: 'Caching', items: [
+        'reference-architecture/scale/redis',
+      ]},
+    ],
+  },
+
   // Backup & Disaster Recovery — group the two related pages.
   backupDr: {
     label: 'Backup & Disaster Recovery',
@@ -279,6 +319,7 @@ const DEPLOYMENT_ROOT_ORDER = [
   {group: 'deploymentScenarios'},
   'deployment-architecture',
   {group: 'server'},
+  {group: 'scaling'},
   // Desktop, Mobile, Air-Gapped Operations keep their auto-generated trees
   // (each has its own index file + sub-pages). Referenced by the `__auto__`
   // sentinel so we slot them in here, in the order we want.
@@ -706,33 +747,32 @@ const COLLABORATE_HIDDEN = new Set([
 // ---------------------------------------------------------------------------
 //
 // Onboard is a flat 34-file dump spanning SSO/identity setup, guest/admin
-// permissions, user provisioning, and one-time migration tasks. SAML alone
-// is 11 of the 34 files (one per IdP plus FAQ/technical docs), so it gets
-// its own group with `sso-saml` as the landing page; every other identity
-// protocol (OIDC, Google, GitLab, Entra ID native, OAuth->OIDC conversion,
-// AD/LDAP) is grouped separately so SAML's IdP-specific how-tos don't drown
-// them out.
+// permissions, user provisioning, and one-time migration tasks. All SSO and
+// identity-provider protocols (SAML, OIDC, Google, GitLab, Entra ID native,
+// OAuth->OIDC conversion, AD/LDAP) live under one "SSO & Identity" group;
+// SAML is nested as its own sub-category within it since it alone accounts
+// for 11 of those files (one per IdP plus FAQ/technical docs).
 
 const ADMIN_ONBOARD_GROUPS = {
-  samlSso: {
-    label: 'SAML Single Sign-On',
-    landing: 'sso-saml',
+  sso: {
+    label: 'SSO & Identity',
     items: [
-      'sso-saml-before-you-begin',
-      'sso-saml-adfs',
-      'sso-saml-adfs-msws2016',
-      'sso-saml-entraid',
-      'sso-saml-keycloak',
-      'sso-saml-ldapsync',
-      'sso-saml-okta',
-      'sso-saml-onelogin',
-      'sso-saml-technical',
-      'sso-saml-faq',
-    ],
-  },
-  otherSso: {
-    label: 'Other SSO & Identity (OAuth, OIDC & AD/LDAP)',
-    items: [
+      {
+        label: 'SAML Single Sign-On',
+        landing: 'sso-saml',
+        items: [
+          'sso-saml-before-you-begin',
+          'sso-saml-adfs',
+          'sso-saml-adfs-msws2016',
+          'sso-saml-entraid',
+          'sso-saml-keycloak',
+          'sso-saml-ldapsync',
+          'sso-saml-okta',
+          'sso-saml-onelogin',
+          'sso-saml-technical',
+          'sso-saml-faq',
+        ],
+      },
       'sso-openidconnect',
       'sso-google',
       'sso-gitlab',
@@ -752,8 +792,8 @@ const ADMIN_ONBOARD_GROUPS = {
       'ssl-client-certificate',
     ],
   },
-  guestPermissions: {
-    label: 'Guest Accounts & Delegated Administration',
+  userManagement: {
+    label: 'User Management',
     items: [
       'guest-accounts',
       'delegated-granular-administration',
@@ -780,14 +820,13 @@ const ADMIN_ONBOARD_GROUPS = {
   },
 };
 
-// Top-level Onboard order. Identity/auth setup first (SAML, other SSO, MFA),
-// then permissions/guest access, then provisioning/bulk data, then the
-// one-time migration tasks admins hit least often.
+// Top-level Onboard order. Identity/auth setup first (SSO, then MFA/cert),
+// then user management, then provisioning/bulk data, then the one-time
+// migration tasks admins hit least often.
 const ADMIN_ONBOARD_ORDER = [
-  {group: 'samlSso'},
-  {group: 'otherSso'},
+  {group: 'sso'},
   {group: 'mfaCert'},
-  {group: 'guestPermissions'},
+  {group: 'userManagement'},
   {group: 'provisioning'},
   {group: 'migration'},
 ];
@@ -814,48 +853,21 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
 // Administration Guide — Scale — manual grouping override.
 // ---------------------------------------------------------------------------
 //
-// Scale is a flat 28-file dump mixing a whole run of `scale-to-N-users`
-// capacity-planning pages with unrelated HA, search, and monitoring topics.
-// `scaling-for-enterprise` is kept as a standalone top-level landing page
-// (mirrors how ADMIN_CONFIGURE_ORDER keeps `agents-admin-guide` standalone)
-// since it's the general entry point referencing several of the groups
-// below, not a member of any one of them.
+// Scale was originally a flat 28-file dump mixing a whole run of
+// `scale-to-N-users` capacity-planning pages with unrelated HA, search, and
+// monitoring topics. In Sphinx's live nav, only the 7 monitoring/observability
+// pages below actually stay under Administration Guide — the other 21 files
+// (capacity planning, HA/architecture, search infrastructure, caching) are
+// listed under Deployment Guide → Reference Architecture instead (Sphinx
+// decouples toctree/nav placement from a page's physical file location, so
+// those files keep their `/administration-guide/scale/...` URLs there even
+// though they're navigated to from Deployment Guide). We mirror that split
+// here by physically moving those 21 files to
+// `deployment-guide/reference-architecture/scale/` (see the `scaling` group
+// in DEPLOYMENT_GROUPS) and keeping only the monitoring pages in this
+// section's grouping.
 
 const ADMIN_SCALE_GROUPS = {
-  capacityPlanning: {
-    label: 'Capacity Planning',
-    items: [
-      'scale-to-200-users',
-      'scale-to-2000-users',
-      'scale-to-15000-users',
-      'scale-to-30000-users',
-      'scale-to-50000-users',
-      'scale-to-80000-users',
-      'scale-to-90000-users',
-      'scale-to-100000-users',
-      'scale-to-200000-users',
-      'estimated-storage-per-user-per-month',
-      'backing-storage-benchmarks',
-      'lifetime-storage',
-      'additional-ha-considerations',
-    ],
-  },
-  ha: {
-    label: 'High Availability & Architecture',
-    items: [
-      'high-availability-cluster-based-deployment',
-      'server-architecture',
-    ],
-  },
-  search: {
-    label: 'Search Infrastructure',
-    landing: 'enterprise-search',
-    items: [
-      'elasticsearch-setup',
-      'opensearch-setup',
-      'common-configure-mattermost-for-enterprise-search',
-    ],
-  },
   monitoring: {
     label: 'Observability & Monitoring',
     items: [
@@ -868,39 +880,20 @@ const ADMIN_SCALE_GROUPS = {
       'ensuring-releases-perform-at-scale',
     ],
   },
-  caching: {
-    label: 'Caching',
-    items: [
-      'redis',
-    ],
-  },
 };
 
-// Top-level Scale order. `scaling-for-enterprise` stands alone as the
-// section's general landing page; everything else is grouped by subsystem.
+// Top-level Scale order — just the one remaining group now that
+// architecture/capacity/search content moved to Deployment Guide.
 const ADMIN_SCALE_ORDER = [
-  'scaling-for-enterprise',
-  {group: 'capacityPlanning'},
-  {group: 'ha'},
-  {group: 'search'},
   {group: 'monitoring'},
-  {group: 'caching'},
 ];
 
 // Files re-parented into groups — exclude from the orphan check.
 const ADMIN_SCALE_HIDDEN = new Set([
-  'scale-to-200-users', 'scale-to-2000-users', 'scale-to-15000-users', 'scale-to-30000-users',
-  'scale-to-50000-users', 'scale-to-80000-users', 'scale-to-90000-users', 'scale-to-100000-users',
-  'scale-to-200000-users', 'estimated-storage-per-user-per-month', 'backing-storage-benchmarks',
-  'lifetime-storage', 'additional-ha-considerations',
-  'high-availability-cluster-based-deployment', 'server-architecture',
-  'enterprise-search', 'elasticsearch-setup', 'opensearch-setup',
-  'common-configure-mattermost-for-enterprise-search',
   'deploy-prometheus-grafana-for-performance-monitoring', 'collect-performance-metrics',
   'performance-monitoring-metrics', 'performance-alerting',
   'deploy-grafana-loki-for-centralized-logging', 'push-notification-health-targets',
   'ensuring-releases-perform-at-scale',
-  'redis',
 ]);
 
 // ---------------------------------------------------------------------------

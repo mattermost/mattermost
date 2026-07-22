@@ -62,9 +62,20 @@ Administration Guide → Scale (`ADMIN_SCALE_GROUPS`/`ADMIN_SCALE_ORDER`),
 End User Guide → Collaborate (`COLLABORATE_GROUPS`/`COLLABORATE_ORDER`), and
 Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
 
-The override only changes how the sidebar renders — files stay flat on
-disk at their existing paths, so URLs don't move. Each override is a pair
-of constants near the top of the script:
+Usually the override only changes how the sidebar renders — files stay
+flat on disk at their existing paths, so URLs don't move. The one
+exception is Administration Guide → Scale: 21 of its 28 files (capacity
+planning, HA/architecture, search infrastructure, caching) were physically
+moved to `deployment-guide/reference-architecture/scale/` and are grouped
+via `DEPLOYMENT_GROUPS.scaling`, matching where Sphinx's live nav actually
+lists that content (under Deployment Guide → Reference Architecture, as a
+sibling of Application Architecture). Only the 7 monitoring/observability
+pages stayed under `ADMIN_SCALE_GROUPS`. Since that move changes URLs, the
+Sphinx→Docusaurus redirect targets for those 21 pages in
+`sidebars/active-redirects.json` were updated to point at the new paths,
+and internal `.mdx` links across the docs were rewritten accordingly.
+
+Each override is a pair of constants near the top of the script:
 
 - A `*_GROUPS` map of group key → `{label, landing?, items}`, where `items`
   are doc basenames (relative to that section's directory) or nested

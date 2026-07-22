@@ -30,14 +30,14 @@ Moreover, search replicas are also supported to handle search queries.
 
 ## Preparation
 
-- Review [available reference architectures](/administration-guide/scale/scaling-for-enterprise#scaling-for-enterprise) for guidance on scaling Mattermost for the applicable number of users. Reference architecture guidance includes recommendations for the number of Mattermost nodes, database writer and reader nodes, Elasticsearch nodes, and proxy nodes, as well as file storage estimates depending on anticipated usage patterns.
+- Review [available reference architectures](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#scaling-for-enterprise) for guidance on scaling Mattermost for the applicable number of users. Reference architecture guidance includes recommendations for the number of Mattermost nodes, database writer and reader nodes, Elasticsearch nodes, and proxy nodes, as well as file storage estimates depending on anticipated usage patterns.
 - Determine whether the file storage configuration for Mattermost will be Amazon S3, an S3-compatible file storage service, or network-attached storage (NAS) mounted on each Mattermost node. If Mattermost nodes are left configured with local file system storage on the host file system on each node rather than a NAS location, high availability will not function correctly and may corrupt your file storage.
 - For Kubernetes deployments, review [Deploy Mattermost on Kubernetes](/deployment-guide/server/deploy-kubernetes).
 - For non-Kubernetes deployments, install or upgrade Mattermost to the desired version on one server provisioned for Mattermost. Refer to [Deploy Mattermost on Linux](/deployment-guide/server/deploy-linux) for installation details. [Install a license key](/administration-guide/manage/admin/installing-license-key) to apply an Enterprise or Enterprise Advanced license key to the installed node.
 - **Recommended:** If using `config.json` for Mattermost configuration, refer to [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) to migrate the Mattermost instance to using the database for configuration. It is also possible to continue using `config.json` files. However, when high availability is enabled, the System Console is set to read-only mode to ensure all the `config.json` files on the Mattermost servers are always identical.
 - Review [Calls self-hosted deployment](/administration-guide/configure/calls-deployment) to develop an appropriately-scaled Calls deployment plan.
-- If you anticipate your Mattermost server reaching more than 2.5 million posts, review [Enterprise search](/administration-guide/scale/enterprise-search) for options to ensure optimum search performance.
-- For Mattermost deployments for more than 100,000 users, review the [Redis](/administration-guide/scale/redis) deployment guide.
+- If you anticipate your Mattermost server reaching more than 2.5 million posts, review [Enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) for options to ensure optimum search performance.
+- For Mattermost deployments for more than 100,000 users, review the [Redis](/deployment-guide/reference-architecture/scale/redis) deployment guide.
 
 ## Deployment guide
 
@@ -966,7 +966,7 @@ rm /tmp/search-replica-config.json
 
 Search replicas use the same PostgreSQL configuration as regular read replicas. When configured, all search queries are distributed among the search replicas. If search replicas are unavailable, queries fall back to read replicas, and ultimately to the primary database.
 
-For deployments requiring advanced search capabilities, see [Enterprise search](/administration-guide/scale/enterprise-search) for information on Elasticsearch integration.
+For deployments requiring advanced search capabilities, see [Enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) for information on Elasticsearch integration.
 
 #### Database sizing
 
@@ -1046,11 +1046,11 @@ If you're using Mattermost Calls for voice and screen sharing communication, rev
 
 **Enterprise search**
 
-For deployments expected to exceed 2.5 million posts, consider implementing [Enterprise search](/administration-guide/scale/enterprise-search) with Elasticsearch. Elasticsearch provides significantly faster search performance and advanced search capabilities for large-scale deployments.
+For deployments expected to exceed 2.5 million posts, consider implementing [Enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) with Elasticsearch. Elasticsearch provides significantly faster search performance and advanced search capabilities for large-scale deployments.
 
 **Redis integration**
 
-For deployments serving more than 100,000 users, implement [Redis](/administration-guide/scale/redis) to improve session management, caching, and real-time communication performance across your cluster.
+For deployments serving more than 100,000 users, implement [Redis](/deployment-guide/reference-architecture/scale/redis) to improve session management, caching, and real-time communication performance across your cluster.
 
 **Performance monitoring**
 
@@ -1140,7 +1140,7 @@ When you reinstall a plugin in v5.14, the previous **Enabled** or **Disabled** s
 
 ### CLI and High Availability
 
-The CLI is run in a single node which bypasses the mechanisms that a [high availability environment](/administration-guide/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks such as updating and deleting users or changing configuration settings require a server restart.
+The CLI is run in a single node which bypasses the mechanisms that a [high availability environment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks such as updating and deleting users or changing configuration settings require a server restart.
 
 We recommend using [mmctl](/administration-guide/manage/mmctl-command-line-tool) in a high availability environment instead since a server restart is not required. These changes are made through the API layer, so the node receiving the change request notifies all other nodes in the cluster.
 

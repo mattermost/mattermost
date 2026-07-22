@@ -52,7 +52,7 @@ The deployment architecture includes the following components:
   - **Mattermost Desktop Apps:** Access Mattermost directly by deploying [desktop](/deployment-guide/desktop/desktop-app-deployment) or web apps in your organization.
   - **Mattermost Mobile Apps:** Access Mattermost via [iPhone and Android apps](/deployment-guide/mobile/mobile-app-deployment), with support for [ID-only push notifications](/deployment-guide/mobile/host-your-own-push-proxy-service) to ensure compliance with data sovereignty requirements. *(Optional - not shown)*
   - **Microsoft 365 Desktop Apps:** For partnered organizations using Microsoft 365 services, Teams and Outlook can be deployed with the [embedded Mattermost application](/integrations-guide/mattermost-mission-collaboration-for-m365) for cross-domain partner collaboration within a familiar interface. *(Optional)*
-- **Mattermost Deployments:** Mattermost deployed for sovereign collaboration on private cloud or local infrastructure, such as [Azure](/deployment-guide/server/deploy-kubernetes) or [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), to maintain compliance with STIG, FedRAMP, and NIST 800-53 standards. See [reference architecture](/administration-guide/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
+- **Mattermost Deployments:** Mattermost deployed for sovereign collaboration on private cloud or local infrastructure, such as [Azure](/deployment-guide/server/deploy-kubernetes) or [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), to maintain compliance with STIG, FedRAMP, and NIST 800-53 standards. See [reference architecture](/deployment-guide/reference-architecture/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
   - **Mattermost Server:** Core application server handling collaboration workloads, including:
     - [Messaging Collaboration](/end-user-guide/messaging-collaboration): Sovereign 1:1, group messaging, and structured channel collaboration.
     - [Workflow Automation](/end-user-guide/workflow-automation): Playbooks provide structure, monitoring and automation for repeatable processes built-in to your sovereign Mattermost deployment.
@@ -119,10 +119,10 @@ AI capabilities enhance mission collaboration with summarization, translation, s
 
 ### High availability and fault tolerance
 
-Deploy Mattermost in a [cluster-based architecture](/administration-guide/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
+Deploy Mattermost in a [cluster-based architecture](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
 
 - Application servers: Scale horizontally across multiple nodes with a load balancer distributing client traffic.
-- Search service: [Elasticsearch or AWS OpenSearch Service](/administration-guide/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
+- Search service: [Elasticsearch or AWS OpenSearch Service](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
 - Object storage: Configure S3-compatible backends with erasure coding or replication for durability. All application servers must access shared file storage (NAS or S3) to ensure consistent data availability.
 - Calls services: Run multiple `rtcd` and offloader nodes for resilience.
 
