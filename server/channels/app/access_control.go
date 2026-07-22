@@ -262,10 +262,26 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// Enabling all-channels on a parent makes it govern every eligible private
 	// channel. Materialize a child policy per channel via a background membership
 	// sync job (the enable-time backfill); the sync enumerates private channels
-	// and creates the children. Failure here is non-fatal — the periodic reconcile
-	// is the backstop — so log and continue rather than failing the save.
+	// and creates the children. Materialization is asynchronous by design — an
+	// install can have tens of thousands of channels — so existing channels are
+	// governed eventually, not by the time this returns; the hourly reconcile is
+	// the backstop.
+	//
+	// A missing sync worker returns 4xx (the enterprise job runner isn't
+	// registered on this server — e.g. unlicensed), where all-channels can't run
+	// anyway, so stay non-fatal and let the save succeed. A real enqueue failure
+	// (5xx, e.g. the job-row insert failed) is the one case that turns the normal
+	// seconds-to-minutes rollout into an up-to-an-hour gap, so surface it instead
+	// of reporting success. The parent is already persisted, so the reconcile
+	// still backstops; but note the enable transition is one-shot — retrying this
+	// same request is a scheduling no-op (the parent already reads as enabled) —
+	// so recovery is the reconcile or re-toggling, unlike the activate path where
+	// a retry re-enqueues.
 	if enablingAllChannels {
 		if _, jobErr := a.CreateAccessControlSyncJob(rctx, map[string]string{"policy_id": policy.ID}); jobErr != nil {
+			if jobErr.StatusCode >= http.StatusInternalServerError {
+				return nil, jobErr
+			}
 			rctx.Logger().Warn("Failed to enqueue all-channels materialization sync job",
 				mlog.String("policy_id", policy.ID), mlog.Err(jobErr))
 		}
@@ -2286,9 +2302,20 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 				// path uses so activation always materializes children up front;
 				// the job is idempotent (existing children are skipped), so
 				// reactivating an already-materialized parent is a cheap no-op.
-				// Non-fatal on failure — the reconcile remains the backstop.
+				// Materialization is asynchronous (see the enable path in
+				// CreateOrUpdateAccessControlPolicy): existing channels are governed
+				// eventually, not by the time this returns; the hourly reconcile is
+				// the backstop. A missing sync worker returns 4xx (job runner not
+				// registered — e.g. unlicensed) where all-channels can't run anyway,
+				// so stay non-fatal there. A real enqueue failure (5xx) stretches the
+				// normal seconds-to-minutes rollout into an up-to-an-hour gap, so
+				// surface it rather than reporting success; the job is idempotent, so
+				// retrying re-enqueues and recovery here is immediate.
 				if policy.Active {
 					if _, jobErr := a.CreateAccessControlSyncJob(rctx, map[string]string{"policy_id": policy.ID}); jobErr != nil {
+						if jobErr.StatusCode >= http.StatusInternalServerError {
+							return nil, jobErr
+						}
 						rctx.Logger().Warn("Failed to enqueue all-channels materialization sync job on activation",
 							mlog.String("policy_id", policy.ID), mlog.Err(jobErr))
 					}
