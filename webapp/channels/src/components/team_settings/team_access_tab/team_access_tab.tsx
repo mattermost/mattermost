@@ -40,7 +40,6 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [isSaving, setIsSaving] = useState(false);
 
-    // Mode-flip confirmation modal state
     const [showModeFlipModal, setShowModeFlipModal] = useState(false);
     const [modeFlipMemberCount, setModeFlipMemberCount] = useState<number | null>(null);
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
@@ -206,8 +205,6 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         }
         setSaveChangesPanelState('saved');
         setShowTabSwitchError(false);
-
-        // allows modal to close immediately
         setAreThereUnsavedChanges(false);
     }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 

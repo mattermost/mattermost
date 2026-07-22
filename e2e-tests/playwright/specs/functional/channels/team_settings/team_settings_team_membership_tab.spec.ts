@@ -637,10 +637,9 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
 
         // * Policy is actually removed on the server
-        const policyResult: any = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`,
-            {method: 'GET'},
-        ).catch(() => null);
+        const policyResult: any = await (adminClient as any)
+            .doFetch(`${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`, {method: 'GET'})
+            .catch(() => null);
         expect(JSON.stringify(policyResult ?? {})).not.toContain('Engineering');
 
         await teamSettings.close();

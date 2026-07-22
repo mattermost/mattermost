@@ -111,7 +111,6 @@ type State = {
     abacAffectedCount: number | null;
     abacQualifyingCount: number | null;
 
-    // Team-level access rules state
     teamRulesExpression: string;
     teamRulesOriginalExpression: string;
     teamRulesExistingRules: AccessControlPolicyRule[];
@@ -159,7 +158,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             abacAffectedCount: null,
             abacQualifyingCount: null,
 
-            // Team-level access rules state
             teamRulesExpression: '',
             teamRulesOriginalExpression: '',
             teamRulesExistingRules: [],
@@ -615,7 +613,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            // Assign only policies not already on the server.
             const policiesToAssign = accessControlPolicies.filter((policy) => !this.state.originalPolicyIds.includes(policy.id));
             if (policiesToAssign.length > 0) {
                 const result = await Promise.all(
@@ -643,7 +640,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            // Save the team-level rules policy when rules have changes or there are parent policies.
             if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
@@ -668,14 +664,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             saveNeeded = true;
                         }
 
-                        // Kick an immediate reconcile so membership changes apply on
-                        // save rather than waiting for the hourly scheduler. The sync
-                        // worker decides removal vs. add by team privacy and the
-                        // policy's active flag, so this must fire whenever an enforced
-                        // policy is saved — custom rules OR a linked parent policy —
-                        // not only when auto-add is on; otherwise non-qualifying
-                        // members linger on strict teams until the periodic scheduler
-                        // runs. On advisory (public) teams the worker no-ops.
+                        // Reconcile now instead of waiting for the scheduler. A private
+                        // team runs the removal pass regardless of auto-add, so any
+                        // enforced save (custom rules or a parent policy) must fire a job
+                        // even with auto-add off or non-qualifying members linger; public
+                        // teams no-op.
                         if (!saveNeeded && (hasTeamRules || hasParentPolicies || teamRulesAutoSync)) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
@@ -695,7 +688,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     saveNeeded = true;
                 }
             } else if (!saveNeeded && policyEnforced && !teamRulesHaveChanges) {
-                // auto-add flag may have changed independently via a future toggle; update active status.
+                // No rule changes, but the auto-add flag alone may have toggled — persist it.
                 const autoSyncChanged = teamRulesAutoSync !== this.state.teamRulesOriginalAutoSync;
                 if (autoSyncChanged) {
                     const activeResult = await actions.updateAccessControlPoliciesActive([{id: teamID, active: teamRulesAutoSync}]);

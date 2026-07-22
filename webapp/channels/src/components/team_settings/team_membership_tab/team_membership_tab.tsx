@@ -406,13 +406,9 @@ function TeamMembershipTab({
             const rulesChanged = expression !== originalExpression;
             const autoAddTurnedOn = autoAddMembers && !originalAutoAddMembers;
 
-            // Kick an immediate reconcile so membership changes apply on save rather
-            // than waiting for the hourly scheduler. The sync worker decides removal
-            // vs. add by team privacy and the policy's active flag: on a strict
-            // (private) team the removal pass runs regardless of auto-add, so a rule
-            // change MUST trigger a job even with auto-add off — otherwise
-            // non-qualifying members linger until the periodic scheduler runs. On
-            // advisory (public) teams the worker no-ops, so an extra job is harmless.
+            // Reconcile now instead of waiting for the scheduler. A private team runs
+            // the removal pass regardless of auto-add, so a rule change must fire a job
+            // even with auto-add off or non-qualifying members linger; public teams no-op.
             if (rulesChanged || autoAddTurnedOn) {
                 try {
                     await dispatch(createAccessControlTeamSyncJob({policy_id: team.id}));
