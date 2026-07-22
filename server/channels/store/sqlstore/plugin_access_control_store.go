@@ -79,14 +79,17 @@ func (s *SqlPluginAccessControlStore) SetUserIDs(rctx request.CTX, pluginID stri
 	}
 
 	now := model.GetMillis()
-	insert := s.getQueryBuilder().
-		Insert("PluginAccessControlUsers").
-		Columns("PluginId", "UserId", "CreateAt")
-	for _, userID := range userIDs {
-		insert = insert.Values(pluginID, userID, now)
-	}
-	if _, err = transaction.ExecBuilder(insert); err != nil {
-		return errors.Wrapf(err, "failed to set plugin access control users for plugin=%s", pluginID)
+	chunks := chunkSlice(userIDs, 3, s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		insert := s.getQueryBuilder().
+			Insert("PluginAccessControlUsers").
+			Columns("PluginId", "UserId", "CreateAt")
+		for _, userID := range chunk {
+			insert = insert.Values(pluginID, userID, now)
+		}
+		if _, err = transaction.ExecBuilder(insert); err != nil {
+			return errors.Wrapf(err, "failed to set plugin access control users for plugin=%s", pluginID)
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
