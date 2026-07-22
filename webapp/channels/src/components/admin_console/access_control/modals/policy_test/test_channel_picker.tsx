@@ -16,10 +16,11 @@ import LoadingScreen from 'components/loading_screen';
 
 const SEARCH_DEBOUNCE_MS = 250;
 
-// Access policies apply to private channels only, so that's all we search —
-// the same admin all-channels filter the assignment modal uses.
+// ABAC policies can be assigned to public or private channels (only all-channels
+// auto-materialization is private-only), and a resource-aware rule reads channel
+// attributes that both types carry — so search both. Omitting the public/private
+// flags returns open + private; the exclusions mirror channel eligibility.
 const CHANNEL_SEARCH_OPTS = {
-    private: true,
     exclude_group_constrained: true,
     exclude_remote: true,
     exclude_default_channels: true,
@@ -30,9 +31,9 @@ interface Props {
 }
 
 // First step of the shared test modal for a resource.attributes.* rule with no
-// channel scope of its own: pick a concrete private channel whose attribute
-// values the rule is resolved against. Rows are icon + name + team + chevron —
-// no member counts (the members step reports the matching users).
+// channel scope of its own: pick a concrete channel whose attribute values the
+// rule is resolved against. Rows are icon + name + team + chevron — no member
+// counts (the members step reports the matching users).
 export default function TestChannelPicker({onSelect}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();

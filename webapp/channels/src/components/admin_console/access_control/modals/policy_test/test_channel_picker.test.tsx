@@ -35,7 +35,7 @@ describe('TestChannelPicker', () => {
         mockSearchAllChannels.mockReturnValue(() => Promise.resolve({data: channels}));
     });
 
-    it('searches private channels and renders a row per result', async () => {
+    it('searches public and private channels and renders a row per result', async () => {
         renderWithContext(<TestChannelPicker onSelect={onSelect}/>);
 
         expect(await screen.findByText('Engineering')).toBeInTheDocument();
@@ -44,13 +44,13 @@ describe('TestChannelPicker', () => {
         // Team name shown as subtext, no member counts.
         expect(screen.getByText('Core')).toBeInTheDocument();
 
-        // Private-channel-only filter, matching the assignment modal.
-        expect(mockSearchAllChannels).toHaveBeenCalledWith('', expect.objectContaining({
-            private: true,
+        // No public/private flag: ABAC policies can be assigned to both, so the
+        // picker must not restrict to private. Exact match locks that out.
+        expect(mockSearchAllChannels).toHaveBeenCalledWith('', {
             exclude_group_constrained: true,
             exclude_remote: true,
             exclude_default_channels: true,
-        }));
+        });
     });
 
     it('reports the chosen channel id through onSelect', async () => {
