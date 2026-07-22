@@ -1713,6 +1713,13 @@ func (a *App) EnsureAllChannelsChildren(rctx request.CTX, parent *model.AccessCo
 // removed. Returns an empty slice in the common case where no all-channels
 // parent exists, so callers can gate cheaply on len()==0.
 func (a *App) allChannelsParents(rctx request.CTX, activeOnly bool) ([]*model.AccessControlPolicy, *model.AppError) {
+	// This gates channel-lifecycle materialization (create / privacy conversion),
+	// so it must observe a parent activated moments earlier on master. SearchPolicies
+	// reads the replica by default; a lagging replica could miss the parent and leave
+	// a just-created or -converted channel ungoverned until the reconcile. Pin master
+	// for read-after-write consistency.
+	rctx = RequestContextWithMaster(rctx)
+
 	var parents []*model.AccessControlPolicy
 	var cursor model.AccessControlPolicyCursor
 	for {

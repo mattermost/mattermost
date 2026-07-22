@@ -765,7 +765,10 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	query = query.Limit(limit)
 	query = query.OrderBy("Id ASC")
 
-	err := s.GetReplica().SelectBuilder(&p, query)
+	// DBXFromContext honors a master-pinned rctx (RequestContextWithMaster) for
+	// read-after-write consistency; it defaults to the replica otherwise, so
+	// existing callers are unaffected.
+	err := s.DBXFromContext(rctx.Context()).SelectBuilder(&p, query)
 	if err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to find policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
 	}
@@ -798,7 +801,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	var total int64
-	err = s.GetReplica().GetBuilder(&total, count)
+	err = s.DBXFromContext(rctx.Context()).GetBuilder(&total, count)
 	if err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to count policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
 	}
