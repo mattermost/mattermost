@@ -104,7 +104,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     // rule (or an import can't be resolved) so callers fall back to generic handling.
     const getCombinedTeamExpression = useCallback(async (): Promise<string | null> => {
         const policyResult = await actions.getTeamAccessControlPolicy(team.id);
-        const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
+        const policyData = policyResult?.data;
         const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
 
         // Parent-governed teams keep the rules in the imported policy, not here.
@@ -202,6 +202,10 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     const handleModeFlipCancel = useCallback(() => {
         setShowModeFlipModal(false);
         pendingPublicValueRef.current = null;
+    }, []);
+
+    const handleSelfExclusionModalClose = useCallback(() => {
+        setShowSelfExclusionModal(false);
     }, []);
 
     const handleClose = useCallback(() => {
@@ -329,8 +333,8 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                         defaultMessage='Back to editing'
                     />
                 }
-                onConfirm={() => setShowSelfExclusionModal(false)}
-                onCancel={() => setShowSelfExclusionModal(false)}
+                onConfirm={handleSelfExclusionModalClose}
+                onCancel={handleSelfExclusionModalClose}
                 hideCancel={true}
                 isStacked={true}
             />
