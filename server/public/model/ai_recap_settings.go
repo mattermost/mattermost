@@ -113,6 +113,15 @@ func (s *RecapProcessingSettings) MaxConcurrentJobsOrDefault() int {
 	return max(*s.MaxConcurrentJobs, 1)
 }
 
+// MaxConcurrentLLMCallsOrDefault returns the configured per-node LLM call
+// limit, falling back to the default and enforcing the runtime minimum.
+func (s *RecapProcessingSettings) MaxConcurrentLLMCallsOrDefault() int {
+	if s == nil || s.MaxConcurrentLLMCalls == nil {
+		return RecapProcessingDefaultMaxConcurrentLLMCalls
+	}
+	return max(*s.MaxConcurrentLLMCalls, 1)
+}
+
 // SetDefaults sets the default values for RecapProcessingSettings
 func (s *RecapProcessingSettings) SetDefaults() {
 	if s.MaxConcurrentJobs == nil {

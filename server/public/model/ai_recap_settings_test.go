@@ -79,41 +79,76 @@ func TestRecapProcessingSettingsSetDefaults(t *testing.T) {
 	})
 }
 
-func TestRecapProcessingSettingsMaxConcurrentJobsOrDefault(t *testing.T) {
+func TestRecapProcessingSettingsValuesOrDefault(t *testing.T) {
 	tests := []struct {
 		name     string
 		settings *RecapProcessingSettings
+		value    func(*RecapProcessingSettings) int
 		expected int
 	}{
 		{
-			name:     "nil settings",
+			name:     "concurrent jobs with nil settings",
+			value:    (*RecapProcessingSettings).MaxConcurrentJobsOrDefault,
 			expected: RecapProcessingDefaultMaxConcurrentJobs,
 		},
 		{
-			name:     "nil value",
+			name:     "concurrent jobs with nil value",
 			settings: &RecapProcessingSettings{},
+			value:    (*RecapProcessingSettings).MaxConcurrentJobsOrDefault,
 			expected: RecapProcessingDefaultMaxConcurrentJobs,
 		},
 		{
-			name:     "configured value",
+			name:     "configured concurrent jobs",
 			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(7)},
+			value:    (*RecapProcessingSettings).MaxConcurrentJobsOrDefault,
 			expected: 7,
 		},
 		{
-			name:     "zero is clamped",
+			name:     "zero concurrent jobs is clamped",
 			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(0)},
+			value:    (*RecapProcessingSettings).MaxConcurrentJobsOrDefault,
 			expected: 1,
 		},
 		{
-			name:     "negative value is clamped",
+			name:     "negative concurrent jobs is clamped",
 			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(-3)},
+			value:    (*RecapProcessingSettings).MaxConcurrentJobsOrDefault,
+			expected: 1,
+		},
+		{
+			name:     "LLM calls with nil settings",
+			value:    (*RecapProcessingSettings).MaxConcurrentLLMCallsOrDefault,
+			expected: RecapProcessingDefaultMaxConcurrentLLMCalls,
+		},
+		{
+			name:     "LLM calls with nil value",
+			settings: &RecapProcessingSettings{},
+			value:    (*RecapProcessingSettings).MaxConcurrentLLMCallsOrDefault,
+			expected: RecapProcessingDefaultMaxConcurrentLLMCalls,
+		},
+		{
+			name:     "configured LLM calls",
+			settings: &RecapProcessingSettings{MaxConcurrentLLMCalls: NewPointer(5)},
+			value:    (*RecapProcessingSettings).MaxConcurrentLLMCallsOrDefault,
+			expected: 5,
+		},
+		{
+			name:     "zero LLM calls is clamped",
+			settings: &RecapProcessingSettings{MaxConcurrentLLMCalls: NewPointer(0)},
+			value:    (*RecapProcessingSettings).MaxConcurrentLLMCallsOrDefault,
+			expected: 1,
+		},
+		{
+			name:     "negative LLM calls is clamped",
+			settings: &RecapProcessingSettings{MaxConcurrentLLMCalls: NewPointer(-3)},
+			value:    (*RecapProcessingSettings).MaxConcurrentLLMCallsOrDefault,
 			expected: 1,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, tt.settings.MaxConcurrentJobsOrDefault())
+			assert.Equal(t, tt.expected, tt.value(tt.settings))
 		})
 	}
 }

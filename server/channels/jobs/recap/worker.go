@@ -44,7 +44,11 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 	// One semaphore per node: MakeWorker runs once at server startup and every
 	// recap job processed by this node's pool shares it. Sized once from
 	// config; changing MaxConcurrentLLMCalls requires a server restart.
-	llmSemaphore := semaphore.NewWeighted(int64(llmCallLimitFromConfig(jobServer.Config())))
+	llmCallLimit := model.RecapProcessingDefaultMaxConcurrentLLMCalls
+	if cfg := jobServer.Config(); cfg != nil {
+		llmCallLimit = cfg.AIRecapSettings.Processing.MaxConcurrentLLMCallsOrDefault()
+	}
+	llmSemaphore := semaphore.NewWeighted(int64(llmCallLimit))
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
@@ -61,20 +65,6 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 	}
 
 	return jobs.NewPoolWorker("Recap", jobServer, execute, isEnabled, poolSize)
-}
-
-// llmCallLimitFromConfig returns the configured per-node cap on concurrent LLM
-// channel-summarization calls, clamped to at least 1 (a zero-weight semaphore
-// would block every job forever).
-func llmCallLimitFromConfig(cfg *model.Config) int {
-	limit := model.RecapProcessingDefaultMaxConcurrentLLMCalls
-	if cfg != nil && cfg.AIRecapSettings.Processing != nil && cfg.AIRecapSettings.Processing.MaxConcurrentLLMCalls != nil {
-		limit = *cfg.AIRecapSettings.Processing.MaxConcurrentLLMCalls
-	}
-	if limit < 1 {
-		return 1
-	}
-	return limit
 }
 
 func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, llmSemaphore *semaphore.Weighted, setProgress func(int64)) error {
