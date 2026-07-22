@@ -47,18 +47,6 @@ func MakeScheduler(jobServer *jobs.JobServer, storeInstance store.Store) *Schedu
 	}
 }
 
-// maxDueSchedulesPerTickFromConfig returns the per-tick enqueue cap, falling back to
-// the default when the config is not populated and clamping to at least 1.
-func maxDueSchedulesPerTickFromConfig(cfg *model.Config) int {
-	if cfg == nil || cfg.AIRecapSettings.Processing == nil || cfg.AIRecapSettings.Processing.MaxDueSchedulesPerTick == nil {
-		return model.RecapProcessingDefaultMaxDueSchedulesPerTick
-	}
-	if v := *cfg.AIRecapSettings.Processing.MaxDueSchedulesPerTick; v >= 1 {
-		return v
-	}
-	return 1
-}
-
 // NextScheduleTime overrides to use tight polling interval.
 func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastJob *model.Job) *time.Time {
 	next := now.Add(SchedulerPollingInterval)
@@ -80,7 +68,11 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 
 	// Snapshot the due cutoff once so schedules becoming due mid-drain wait for the next tick.
 	now := model.GetMillis()
-	maxPerTick := maxDueSchedulesPerTickFromConfig(cfg)
+	var processing *model.RecapProcessingSettings
+	if cfg != nil {
+		processing = cfg.AIRecapSettings.Processing
+	}
+	maxPerTick := processing.MaxDueSchedulesPerTickOrDefault()
 
 	var cursorNextRunAt int64
 	var cursorID string
