@@ -1,0 +1,21 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use 'utils/variables';
+
+.GlobalAttributesTable__type,
+.GlobalAttributesTable__source {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    gap: 6px;
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+}
+
+.GlobalAttributesTable__name {
+    color: var(--center-channel-color);
+    font-weight: variables.$font-weight--semibold;
+}

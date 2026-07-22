@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, HelpCircleOutlineIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, FormatListNumberedIcon, HelpCircleOutlineIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
@@ -25,6 +25,8 @@ import type {GlobalState} from 'types/store';
 
 import {AdminConsoleListTable} from '../list_table';
 
+import './global_attributes_table.scss';
+
 const GLOBAL_ATTRIBUTES_GROUP_NAME = 'access_control';
 const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
 const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
@@ -35,7 +37,7 @@ const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
     text: MenuVariantIcon,
     select: ChevronDownCircleOutlineIcon,
     multiselect: FormatListBulletedIcon,
-    rank: SortAscendingIcon,
+    rank: FormatListNumberedIcon,
 };
 
 function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
@@ -108,7 +110,6 @@ function SourceCell({field}: {field: PropertyField}) {
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
-            <ServerVariantIcon size={16}/>
             <FormattedMessage {...sourceLabels.managed}/>
         </span>
     );
@@ -223,7 +224,12 @@ export default function GlobalAttributesTable() {
                 id: 'attribute',
                 header: () => <FormattedMessage {...messages.attribute}/>,
                 cell: ({getValue}) => (
-                    <span data-testid='global-attribute-name'>{getValue()}</span>
+                    <span
+                        className='GlobalAttributesTable__name'
+                        data-testid='global-attribute-name'
+                    >
+                        {getValue()}
+                    </span>
                 ),
                 enableSorting: false,
                 enableHiding: false,

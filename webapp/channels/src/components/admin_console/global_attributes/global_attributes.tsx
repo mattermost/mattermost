@@ -12,8 +12,8 @@ import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeadin
 
 const messages = defineMessages({
     title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
-    sectionTitle: {id: 'admin.global_attributes.section_title', defaultMessage: 'Attributes'},
-    sectionSubtitle: {id: 'admin.global_attributes.section_subtitle', defaultMessage: 'Attributes available for use in access control policies across the system.'},
+    sectionTitle: {id: 'admin.global_attributes.section_title', defaultMessage: 'Manage Attributes'},
+    sectionSubtitle: {id: 'admin.global_attributes.section_subtitle', defaultMessage: 'Define an attribute once, then choose which resources can use it.'},
 });
 
 export const searchableStrings = [
