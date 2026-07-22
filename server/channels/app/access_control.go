@@ -1658,6 +1658,9 @@ func (a *App) EnsureAllChannelsChildren(rctx request.CTX, parent *model.AccessCo
 	children := make([]*model.AccessControlPolicy, 0, len(channels))
 	for _, channel := range channels {
 		if !a.ChannelEligibleForAllChannels(rctx, channel) {
+			if channel == nil {
+				continue
+			}
 			rctx.Logger().Debug("Skipping ineligible channel during all-channels materialization",
 				mlog.String("channel_id", channel.Id),
 				mlog.String("parent_policy_id", parent.ID))
