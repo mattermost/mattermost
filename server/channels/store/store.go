@@ -1330,9 +1330,6 @@ type UserPostDeliveryStore interface {
 	MarkBulk(ctx context.Context, records []model.UserPostDelivery) error
 	DeleteByPost(ctx context.Context, postID string) error
 	GetByPost(ctx context.Context, postID string, after model.UserPostDeliveryCursor, limit int) ([]model.UserPostDelivery, error)
-	// PermanentDeleteBatch deletes up to limit rows whose created_at is older than endTime
-	// (unix millis) from the delivery pool, returning the number deleted. The data retention
-	// job calls this in a loop until it returns 0.
 	PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error)
 }
 

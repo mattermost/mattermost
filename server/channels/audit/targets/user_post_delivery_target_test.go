@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -48,6 +49,10 @@ func (f *fakeUserPostDeliveryStore) DeleteByPost(context.Context, string) error 
 
 func (f *fakeUserPostDeliveryStore) GetByPost(context.Context, string, model.UserPostDeliveryCursor, int) ([]model.UserPostDelivery, error) {
 	return nil, nil
+}
+
+func (f *fakeUserPostDeliveryStore) PermanentDeleteBatch(request.CTX, int64, int64) (int64, error) {
+	return 0, nil
 }
 
 func (f *fakeUserPostDeliveryStore) snapshot() (map[model.UserPostDelivery]int, int) {

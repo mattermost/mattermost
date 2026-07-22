@@ -119,8 +119,6 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		postID := model.NewId()
 		rctx := request.EmptyContext(logger)
 
-		// Old rows use a tiny created_at so the cutoff targets exactly them, without
-		// touching rows inserted by other subtests (whose created_at is ~now).
 		const oldCreatedAt = int64(1000)
 		keepCreatedAt := model.GetMillis() + 1000000
 
@@ -132,14 +130,12 @@ func TestUserPostDeliveryStore(t *testing.T) {
 			require.NoError(t, execErr)
 		}
 
-		// 3 rows old enough to delete, 2 rows to keep.
 		insert(model.NewId(), oldCreatedAt)
 		insert(model.NewId(), oldCreatedAt)
 		insert(model.NewId(), oldCreatedAt)
 		insert(model.NewId(), keepCreatedAt)
 		insert(model.NewId(), keepCreatedAt)
 
-		// Cutoff sits between the old and kept rows; batch size 2 forces >1 batch.
 		cutoff := oldCreatedAt + 1
 		var total int64
 		for range 10 {

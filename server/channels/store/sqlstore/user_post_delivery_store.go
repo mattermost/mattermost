@@ -124,18 +124,22 @@ func (s *SqlUserPostDeliveryStore) GetByPost(ctx context.Context, postID string,
 	return records, nil
 }
 
-// PermanentDeleteBatch deletes up to limit rows older than endTime (created_at in unix
-// millis) and returns the number deleted. Postgres has no DELETE ... LIMIT and the table
-// has no primary key, so a ctid subselect bounds each batch; the retention job loops until
-// this returns 0. Runs on the delivery pool (second DB when configured, else primary).
 func (s *SqlUserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
-	res, err := s.userPostDeliveryX.ExecContext(rctx.Context(),
-		`DELETE FROM `+userPostDeliveryTableName+`
-		 WHERE ctid IN (
-			SELECT ctid FROM `+userPostDeliveryTableName+`
-			WHERE created_at < $1
-			LIMIT $2
-		 )`, endTime, limit)
+	subQuery := s.getQueryBuilder().
+		Select("ctid").
+		From(userPostDeliveryTableName).
+		Where(sq.Lt{"created_at": endTime}).
+		Limit(uint64(limit))
+
+	queryString, args, err := s.getQueryBuilder().
+		Delete(userPostDeliveryTableName).
+		Where(sq.Expr("ctid IN (?)", subQuery)).
+		ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "SqlUserPostDeliveryStore.PermanentDeleteBatch: failed to build delete query")
+	}
+
+	res, err := s.userPostDeliveryX.ExecContext(rctx.Context(), queryString, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "SqlUserPostDeliveryStore.PermanentDeleteBatch: failed to delete delivery records")
 	}
