@@ -190,6 +190,7 @@ func TestRecapStore(t *testing.T) {
 			tests := []struct {
 				name             string
 				status           string
+				deleted          bool
 				wantTransitioned bool
 				wantStatus       string
 			}{
@@ -210,6 +211,12 @@ func TestRecapStore(t *testing.T) {
 					status:     model.RecapStatusCompleted,
 					wantStatus: model.RecapStatusCompleted,
 				},
+				{
+					name:       "soft-deleted processing recap is unchanged",
+					status:     model.RecapStatusProcessing,
+					deleted:    true,
+					wantStatus: model.RecapStatusProcessing,
+				},
 			}
 
 			for _, tt := range tests {
@@ -225,11 +232,17 @@ func TestRecapStore(t *testing.T) {
 					}
 					_, err := ss.Recap().SaveRecap(recap)
 					require.NoError(t, err)
+					if tt.deleted {
+						require.NoError(t, ss.Recap().DeleteRecap(recap.Id))
+					}
 
 					transitioned, err := ss.Recap().MarkRecapFailedIfIncomplete(recap.Id)
 					require.NoError(t, err)
 					assert.Equal(t, tt.wantTransitioned, transitioned)
 
+					if tt.deleted {
+						return
+					}
 					updated, err := ss.Recap().GetRecap(recap.Id)
 					require.NoError(t, err)
 					assert.Equal(t, tt.wantStatus, updated.Status)

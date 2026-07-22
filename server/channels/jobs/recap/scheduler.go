@@ -68,21 +68,22 @@ func (s *Scheduler) resetWedgedJobs(rctx request.CTX) {
 	}
 }
 
-func (s *Scheduler) markRecapFailed(rctx request.CTX, recapID, userID string) {
+func (s *Scheduler) markRecapFailed(rctx request.CTX, recapID, userID string) bool {
 	transitioned, err := s.store.Recap().MarkRecapFailedIfIncomplete(recapID)
 	if err != nil {
 		rctx.Logger().Error("Failed to mark recap as failed",
 			mlog.String("recap_id", recapID),
 			mlog.Err(err))
-		return
+		return false
 	}
 	if !transitioned {
 		rctx.Logger().Debug("Recap is already terminal or deleted",
 			mlog.String("recap_id", recapID))
-		return
+		return false
 	}
 
 	publishRecapUpdate(s.app, recapID, userID)
+	return true
 }
 
 func (s *Scheduler) sweepOrphanedRecaps(rctx request.CTX) {
@@ -112,10 +113,14 @@ func (s *Scheduler) sweepOrphanedRecaps(rctx request.CTX) {
 			continue
 		}
 
-		rctx.Logger().Warn("Recap stuck in processing with no live job; marking failed",
+		rctx.Logger().Debug("Recap stuck in processing with no live job; attempting failure transition",
 			mlog.String("recap_id", recap.Id),
 			mlog.String("user_id", recap.UserId),
 			mlog.Millis("update_at", recap.UpdateAt))
-		s.markRecapFailed(rctx, recap.Id, recap.UserId)
+		if s.markRecapFailed(rctx, recap.Id, recap.UserId) {
+			rctx.Logger().Warn("Marked orphaned recap as failed",
+				mlog.String("recap_id", recap.Id),
+				mlog.String("user_id", recap.UserId))
+		}
 	}
 }
