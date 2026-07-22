@@ -11,7 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {renderWithContext, screen, act, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, act} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -292,11 +292,9 @@ describe('InvitationModal', () => {
         expect(guestChannels.length).toBe(2);
     });
 
-    it('loads only policy-matching candidates for a private governed team and filters them by term', async () => {
-        const matching = [
-            TestHelper.getUserMock({id: 'u_eng', username: 'engineer'}),
-            TestHelper.getUserMock({id: 'u_mkt', username: 'marketer'}),
-        ];
+    it('searches policy-matching candidates server-side for a private governed team', async () => {
+        // Server returns only users matching both the policy and the search term.
+        const matching = [TestHelper.getUserMock({id: 'u_eng', username: 'engineer'})];
         const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockResolvedValue(matching);
 
         const localProps = {
@@ -312,15 +310,45 @@ describe('InvitationModal', () => {
             state,
         );
 
-        await waitFor(() => expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), ''));
+        // No pre-buffering on mount — the picker only queries when the user types.
+        expect(spy).not.toHaveBeenCalled();
 
         const instance = ref.current!;
-        await waitFor(() => expect(instance.state.abacCandidates).toHaveLength(2));
-
         const results: UserProfile[] = await new Promise((resolve) => {
-            instance.usersLoader('engineer', resolve);
+            instance.usersLoader('eng', resolve);
         });
+
+        // The typed term is forwarded to the policy-scoped endpoint and the
+        // server result is surfaced verbatim (no client-side cap or filtering).
+        expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), '', 'eng');
         expect(results.map((u) => u.id)).toEqual(['u_eng']);
+
+        spy.mockRestore();
+    });
+
+    it('fails closed when the policy candidate search errors', async () => {
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockRejectedValue(new Error('boom'));
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+
+        const instance = ref.current!;
+        const results: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('eng', resolve);
+        });
+
+        // Never fall through to the unfiltered search — empty list instead.
+        expect(results).toEqual([]);
 
         spy.mockRestore();
     });
