@@ -159,10 +159,9 @@ const (
 	MaxActionQueryValueLength = 2048
 )
 
-// PostActionIDCharsetPattern is the single source of truth for the characters
-// allowed in a PostAction ID. It is used both to validate IDs here and to
-// register the doPostAction route in api4 (InitAction), so an ID that passes
-// validation cannot render a button that silently 404s on click.
+// PostActionIDCharsetPattern defines the characters allowed in a PostAction ID.
+// It is shared by ID validation and the doPostAction route in api4 so a valid ID
+// cannot produce a button that 404s on click.
 const PostActionIDCharsetPattern = "[A-Za-z0-9_-]+"
 
 var postActionIDRegex = regexp.MustCompile("^" + PostActionIDCharsetPattern + "$")
