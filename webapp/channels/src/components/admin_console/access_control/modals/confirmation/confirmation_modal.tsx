@@ -17,9 +17,10 @@ type Props = {
     privateChannelsAffected?: number;
 
     /**
-     * All-channels save: the policy governs every eligible private channel, so there
-     * is no per-channel count and enforcement is unconditional. Swaps the count
-     * subheader and body copy and drops the enforce-immediately toggle.
+     * All-channels save: the policy governs every eligible channel (public and
+     * private), so there is no per-channel count and enforcement is unconditional.
+     * Swaps the count subheader and body copy and drops the enforce-immediately
+     * toggle. Private channels get strict removal; public channels are add-only.
      */
     allChannels?: boolean;
 };
@@ -35,7 +36,7 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
     if (allChannels) {
         bodyText = formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.all_channels',
-            defaultMessage: 'This policy will apply to every eligible private channel. Members who do not match the rules are removed and non-matching users are blocked from joining. Private channels that have not set the attributes this policy references will have all members removed. Newly created private channels are governed automatically.',
+            defaultMessage: 'This policy will apply to every eligible channel. On private channels, matching users are granted access, non-matching members are removed, and non-matching users are blocked from joining; a private channel that has not set the attributes this policy references will have all members removed. On public channels, matching users are added (when auto-add is on), the channel stays open to everyone, and no members are removed. Newly created channels are governed automatically.',
         });
     } else if (hasMix) {
         bodyText = active ? formatMessage({
@@ -79,7 +80,7 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
             modalSubheaderText={allChannels ? (
                 <FormattedMessage
                     id='admin.access_control.policy.save_policy_confirmation_subheader.all_channels'
-                    defaultMessage='All eligible private channels will be affected.'
+                    defaultMessage='All eligible public and private channels will be affected.'
                 />
             ) : (
                 <FormattedMessage

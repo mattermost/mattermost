@@ -339,15 +339,15 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	// An active "applies to all channels" parent policy should govern every
-	// eligible private channel. Materialize the governing child synchronously so
-	// the channel is governed immediately in the common case. This only fails on
-	// a transient store error (the no-op cases return nil), and the channel row
-	// is already committed — so on failure keep the channel and let the periodic
-	// reconcile materialize the child on its next pass, rather than destroying a
-	// committed channel and its data on a blip. The tradeoff is a brief
+	// eligible channel (public or private). Materialize the governing child
+	// synchronously so the channel is governed immediately in the common case. This
+	// only fails on a transient store error (the no-op cases return nil), and the
+	// channel row is already committed — so on failure keep the channel and let the
+	// periodic reconcile materialize the child on its next pass, rather than
+	// destroying a committed channel and its data on a blip. The tradeoff is a brief
 	// governed-late window, but a just-created channel has only its creator as a
-	// member. No-op for non-private channels and when no all-channels parent is
-	// active.
+	// member. No-op for ineligible channels (e.g. DM/GM) and when no all-channels
+	// parent is active.
 	if appErr := a.ensureAllChannelsChildrenForChannel(rctx, sc); appErr != nil {
 		rctx.Logger().Error("Failed to materialize all-channels children for new channel; the reconcile sweep will backfill",
 			mlog.String("channel_id", sc.Id), mlog.Err(appErr))
@@ -945,28 +945,11 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		})
 	}
 
-	// Keep all-channels materialized children in step with the new privacy.
-	// channel.Type here is the post-conversion type. public→private: the channel
-	// is now in scope for active all-channels parents, so materialize their
-	// children. private→public: all-channels scope is private-only, so drop the
-	// children sourced from all-channels parents. Either side only fails on a
-	// transient store error; on failure we log and continue rather than rolling
-	// back the already-committed privacy change, and lean on the periodic
-	// reconcile to repair the gap — a converted-to-public channel has its stale
-	// child removed next pass, and a converted-to-private channel missing its
-	// child is re-materialized. The tradeoff is a brief governed-late window on
-	// public→private. Continuing (rather than returning early) also lets the
-	// cache invalidation and channel_converted broadcast below still fire, so
-	// clients don't keep showing the pre-conversion privacy.
-	if channel.Type == model.ChannelTypePrivate {
-		if appErr := a.ensureAllChannelsChildrenForChannel(rctx, channel); appErr != nil {
-			rctx.Logger().Error("Failed to materialize all-channels children on convert to private; the reconcile sweep will backfill",
-				mlog.String("channel_id", channel.Id), mlog.Err(appErr))
-		}
-	} else if appErr := a.removeAllChannelsChildrenFromChannel(rctx, channel); appErr != nil {
-		rctx.Logger().Error("Failed to remove all-channels children on convert to public; the reconcile sweep will clean up",
-			mlog.String("channel_id", channel.Id), mlog.Err(appErr))
-	}
+	// An all-channels parent governs public and private channels alike, so a
+	// privacy conversion never moves a channel in or out of scope: its materialized
+	// child stays put and the membership sync simply switches enforcement mode
+	// (strict removal for private, add-only for public) based on the channel's
+	// current type. No materialization work is needed here.
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 

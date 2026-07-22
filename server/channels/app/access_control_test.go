@@ -931,9 +931,9 @@ func TestEnsureAllChannelsChildren(t *testing.T) {
 		},
 	}
 
-	t.Run("materializes exactly one child per eligible private channel", func(t *testing.T) {
+	t.Run("materializes exactly one child per eligible channel (public and private)", func(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
-		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
+		ch2 := th.CreateChannel(t, th.BasicTeam) // public: eligible too
 		t.Cleanup(func() {
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch1))
 			require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch2))
@@ -1067,7 +1067,7 @@ func TestChannelEligibleForAllChannels(t *testing.T) {
 		want    bool
 	}{
 		{"eligible private channel", priv, true},
-		{"public channel excluded (all-channels scope is private-only)", pub, false},
+		{"eligible public channel", pub, true},
 		{"archived private channel excluded", &archived, false},
 		{"group-constrained channel excluded", &groupConstrained, false},
 		{"shared channel excluded", &shared, false},
@@ -1164,6 +1164,20 @@ func TestCreateChannelMaterializesAllChannelsChild(t *testing.T) {
 		assert.Contains(t, child.Imports, parent.ID)
 	})
 
+	t.Run("materializes a child for a new public channel under an active parent", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		parent := saveActiveAllChannelsParent(t, th)
+		wireWriteThroughAllChannelsACS(t, th)
+
+		ch := th.CreateChannel(t, th.BasicTeam) // public
+		t.Cleanup(func() { require.Nil(t, th.App.PermanentDeleteChannel(th.Context, ch)) })
+
+		child, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.AccessControlPolicyTypeChannel, child.Type)
+		assert.Contains(t, child.Imports, parent.ID)
+	})
+
 	t.Run("no active all-channels parent leaves the new channel ungoverned", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		// Engine present, but no all-channels parent exists: the gate query
@@ -1213,8 +1227,14 @@ func TestCreateChannelMaterializesAllChannelsChild(t *testing.T) {
 	})
 }
 
-func TestUpdateChannelPrivacyAllChannelsChildren(t *testing.T) {
-	t.Run("public to private materializes the child", func(t *testing.T) {
+// TestUpdateChannelPrivacyKeepsAllChannelsChild pins the post-simplification
+// invariant: an all-channels parent governs public and private channels alike, so
+// a privacy conversion never materializes or removes a child — the row persists
+// untouched and only the enforcement mode (strict removal vs. add-only) switches at
+// sync time. This replaces the former conversion-hook test, which materialized on
+// convert-to-private and stripped on convert-to-public.
+func TestUpdateChannelPrivacyKeepsAllChannelsChild(t *testing.T) {
+	t.Run("public to private keeps the child", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		parent := saveActiveAllChannelsParent(t, th)
 		wireWriteThroughAllChannelsACS(t, th)
@@ -1222,21 +1242,22 @@ func TestUpdateChannelPrivacyAllChannelsChildren(t *testing.T) {
 		pub := th.CreateChannel(t, th.BasicTeam)
 		t.Cleanup(func() { require.Nil(t, th.App.PermanentDeleteChannel(th.Context, pub)) })
 
-		// A public channel is out of scope, so no child exists yet.
-		_, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, pub.Id)
-		var nfErr *store.ErrNotFound
-		require.True(t, errors.As(err, &nfErr))
+		// Public channels are in scope now, so the create hook already materialized
+		// a child.
+		child, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, pub.Id)
+		require.NoError(t, err)
+		require.Contains(t, child.Imports, parent.ID)
 
 		pub.Type = model.ChannelTypePrivate
 		_, appErr := th.App.UpdateChannelPrivacy(th.Context, pub, th.BasicUser)
 		require.Nil(t, appErr)
 
-		child, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, pub.Id)
+		child, err = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, pub.Id)
 		require.NoError(t, err)
-		assert.Contains(t, child.Imports, parent.ID)
+		assert.Contains(t, child.Imports, parent.ID, "child must persist through convert-to-private")
 	})
 
-	t.Run("private to public removes the child", func(t *testing.T) {
+	t.Run("private to public keeps the child", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		parent := saveActiveAllChannelsParent(t, th)
 		wireWriteThroughAllChannelsACS(t, th)
@@ -1244,7 +1265,6 @@ func TestUpdateChannelPrivacyAllChannelsChildren(t *testing.T) {
 		priv := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() { require.Nil(t, th.App.PermanentDeleteChannel(th.Context, priv)) })
 
-		// The create hook materialized the child.
 		child, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, priv.Id)
 		require.NoError(t, err)
 		require.Contains(t, child.Imports, parent.ID)
@@ -1253,10 +1273,10 @@ func TestUpdateChannelPrivacyAllChannelsChildren(t *testing.T) {
 		_, appErr := th.App.UpdateChannelPrivacy(th.Context, priv, th.BasicUser)
 		require.Nil(t, appErr)
 
-		// The all-channels import was the child's only import, so the row is gone.
-		_, err = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, priv.Id)
-		var nfErr *store.ErrNotFound
-		require.True(t, errors.As(err, &nfErr), "child policy should be removed after converting to public")
+		// Public is still in scope, so the child stays (enforced add-only from here).
+		child, err = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, priv.Id)
+		require.NoError(t, err)
+		assert.Contains(t, child.Imports, parent.ID, "child must persist through convert-to-public")
 	})
 }
 

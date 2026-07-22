@@ -259,11 +259,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 
 	a.auditAllChannelsPolicyBlastRadius(rctx, policy)
 
-	// Enabling all-channels on a parent makes it govern every eligible private
-	// channel. Materialize a child policy per channel via a background membership
-	// sync job (the enable-time backfill); the sync enumerates private channels
-	// and creates the children. Materialization is asynchronous by design — an
-	// install can have tens of thousands of channels — so existing channels are
+	// Enabling all-channels on a parent makes it govern every eligible channel
+	// (public or private). Materialize a child policy per channel via a background
+	// membership sync job (the enable-time backfill); the sync enumerates the
+	// eligible channels and creates the children. Materialization is asynchronous
+	// by design — an install can have tens of thousands of channels — so existing channels are
 	// governed eventually, not by the time this returns; the hourly reconcile is
 	// the backstop.
 	//
@@ -1601,10 +1601,10 @@ func filterBlameToEditingRuleScope(blame []model.PolicySimulationBlame, editingR
 // parent are skipped, so the call is idempotent and safe to re-run — it backs
 // the enable-time backfill, the channel-create hook, and the drift reconcile.
 //
-// Ineligible channels (group-constrained / shared / team-default) are skipped
-// rather than failing the whole batch: an enumerator may include a channel that
-// changed eligibility between listing and materialization. Callers restrict the
-// set to eligible private channels; this re-validation is a defensive backstop.
+// Ineligible channels (DM/GM / group-constrained / shared / team-default) are
+// skipped rather than failing the whole batch: an enumerator may include a channel
+// that changed eligibility between listing and materialization. Callers restrict
+// the set to eligible channels; this re-validation is a defensive backstop.
 //
 // The new child's version tracks the parent's so Inherit's same-version rule is
 // always satisfied (a v0.3 child requires a v0.3 parent; a v0.4 child accepts
@@ -1614,15 +1614,17 @@ func filterBlameToEditingRuleScope(blame []model.PolicySimulationBlame, editingR
 // Returns the resulting child policies (created or already-present) so the
 // caller can sync their membership through the normal per-channel path.
 // ChannelEligibleForAllChannels reports whether a channel should currently carry
-// a materialized all-channels child policy. All-channels scope is private-only,
-// so a public channel is excluded even though ValidateChannelEligibilityForAccessControl
-// would admit it, and an archived channel is excluded (a governed channel sheds
-// its child on archive). This is the single gate every materialization path uses
+// a materialized all-channels child policy: any public or private channel that is
+// not archived and passes the general access-control eligibility check (which
+// already excludes DM/GM, group-constrained, shared, and team-default channels).
+// Public channels are included: the membership sync enforces them add-only
+// (matching users are auto-added, none are removed) while private channels get
+// strict removal, so public↔private conversion never changes eligibility and needs
+// no materialization hook. This is the single gate every materialization path uses
 // — the enumeration filters in callers are only optimizations — so no caller can
-// drift into materializing on a public or archived channel.
+// drift into materializing on an ineligible channel.
 func (a *App) ChannelEligibleForAllChannels(rctx request.CTX, channel *model.Channel) bool {
 	return channel != nil &&
-		channel.Type == model.ChannelTypePrivate &&
 		channel.DeleteAt == 0 &&
 		a.ValidateChannelEligibilityForAccessControl(rctx, channel) == nil
 }
@@ -1743,17 +1745,16 @@ func (a *App) allChannelsParents(rctx request.CTX, activeOnly bool) ([]*model.Ac
 }
 
 // ensureAllChannelsChildrenForChannel materializes a child policy on the given
-// channel for every active all-channels parent, provided the channel is an
-// eligible private channel. It backs the channel-create and public→private
-// conversion hooks: an active all-channels parent must govern every eligible
-// private channel, and a materialized child is how that governance is enforced.
+// channel for every active all-channels parent, provided the channel is eligible.
+// It backs the channel-create hook: an active all-channels parent must govern every
+// eligible channel, and a materialized child is how that governance is enforced.
 //
-// No-op (a single nil check) when the access control engine is absent or the
-// channel is not private; a single store query returns nothing in the common
-// case where no all-channels parent is active. Any failure is returned so the
+// No-op (a cheap in-memory check) when the access control engine is absent or the
+// channel is ineligible (e.g. a DM/GM); a single store query returns nothing in the
+// common case where no all-channels parent is active. Any failure is returned so the
 // caller can fail-secure (roll back the channel create / surface the error).
 func (a *App) ensureAllChannelsChildrenForChannel(rctx request.CTX, channel *model.Channel) *model.AppError {
-	if a.Srv().ch.AccessControl == nil || channel == nil || channel.Type != model.ChannelTypePrivate {
+	if a.Srv().ch.AccessControl == nil || !a.ChannelEligibleForAllChannels(rctx, channel) {
 		return nil
 	}
 
@@ -1763,59 +1764,6 @@ func (a *App) ensureAllChannelsChildrenForChannel(rctx request.CTX, channel *mod
 	}
 	for _, parent := range parents {
 		if _, appErr := a.EnsureAllChannelsChildren(rctx, parent, []*model.Channel{channel}); appErr != nil {
-			return appErr
-		}
-	}
-	return nil
-}
-
-// removeAllChannelsChildrenFromChannel drops any all-channels-sourced imports
-// from the channel's materialized child policy, deleting the child row once it
-// becomes import-less. It backs the private→public conversion hook: all-channels
-// scope is private-only, so a channel leaving private must shed the parents that
-// governed it implicitly. Inactive all-channels parents are included — a
-// deactivated parent still leaves a child row to tear down. No-op when the
-// engine is absent.
-//
-// Materialized and explicitly-assigned imports are indistinguishable here, so a
-// hand-assigned all-channels parent is also dropped on conversion. Accepted for
-// the same reason as removeAllChannelsChildren: an all-channels parent is not
-// expected to be hand-assigned.
-func (a *App) removeAllChannelsChildrenFromChannel(rctx request.CTX, channel *model.Channel) *model.AppError {
-	acs := a.Srv().ch.AccessControl
-	if acs == nil || channel == nil {
-		return nil
-	}
-
-	parents, appErr := a.allChannelsParents(rctx, false)
-	if appErr != nil {
-		return appErr
-	}
-	if len(parents) == 0 {
-		return nil
-	}
-
-	// Read the channel's own child once and unassign only the all-channels
-	// parents it actually imports. Calling UnassignPoliciesFromChannels blindly
-	// per parent would run a full child search and log a spurious "not assigned"
-	// warning for every parent this channel never imported.
-	child, appErr := acs.GetPolicy(rctx, channel.Id)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		return appErr
-	}
-
-	parentIDs := make(map[string]bool, len(parents))
-	for _, parent := range parents {
-		parentIDs[parent.ID] = true
-	}
-	for _, importID := range child.Imports {
-		if !parentIDs[importID] {
-			continue
-		}
-		if appErr := a.UnassignPoliciesFromChannels(rctx, importID, []string{channel.Id}); appErr != nil {
 			return appErr
 		}
 	}
@@ -2274,13 +2222,14 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		}
 	}
 
-	// Activating an all-channels parent PDP-gates every eligible private channel
-	// at once, so log the blast radius for operators. Only a parent can carry the
-	// flag; auditAllChannelsPolicyBlastRadius no-ops for anything that is not an
-	// active all-channels parent.
+	// Activating an all-channels parent PDP-gates every eligible channel at once, so
+	// log the blast radius for operators (the audit counts private channels, the
+	// removal-risk set). Only a parent can carry the flag;
+	// auditAllChannelsPolicyBlastRadius no-ops for anything that is not an active
+	// all-channels parent.
 	//
 	// A toggled all-channels parent re-asserts its AutoAdd switch onto the child
-	// policies it materialized on every eligible private channel: a child's Active
+	// policies it materialized on every eligible channel: a child's Active
 	// gates only the auto-add pass (enforcement runs off the child existing), so it
 	// tracks the parent's AutoAdd, not its Active. A pure active toggle leaves
 	// AutoAdd unchanged, so this cascade is a cheap no-op there; it earns its keep on
@@ -2335,10 +2284,13 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 }
 
 // auditAllChannelsPolicyBlastRadius records, when an all-channels parent policy
-// becomes active, how many private channels it now governs. Activating such a
-// policy makes every eligible private channel PDP-gated at once (deny-on-miss is
-// fail-secure but high blast radius), so the count is logged for operators.
-// No-op for any other policy or an inactive one.
+// becomes active, how many private channels it now governs. The count is scoped to
+// private channels deliberately: they are the removal-risk set (deny-on-miss empties
+// a private channel that has not set a referenced attribute), whereas public channels
+// are enforced add-only and can never be emptied, so they carry no removal blast
+// radius. Activating such a policy makes every eligible private channel PDP-gated at
+// once, so the count is logged for operators. No-op for any other policy or an
+// inactive one.
 func (a *App) auditAllChannelsPolicyBlastRadius(rctx request.CTX, policy *model.AccessControlPolicy) {
 	if policy == nil || !policy.AppliesToAllChannels || !policy.Active {
 		return
@@ -2356,7 +2308,7 @@ func (a *App) auditAllChannelsPolicyBlastRadius(rctx request.CTX, policy *model.
 			mlog.String("policy_id", policy.ID), mlog.Err(appErr))
 		return
 	}
-	rctx.Logger().Info("Active all-channels access control policy governs all eligible private channels",
+	rctx.Logger().Info("Active all-channels access control policy governs all eligible channels; logging the private-channel removal-risk count",
 		mlog.String("policy_id", policy.ID),
 		mlog.Int("private_channels_affected", total))
 }

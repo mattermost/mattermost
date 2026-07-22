@@ -762,7 +762,7 @@ function PolicyDetails({
                                                 }
                                                 text={formatMessage({
                                                     id: 'admin.access_control.policy.edit_policy.all_channels.attributes_warning.text',
-                                                    defaultMessage: 'This rule compares against the channel attribute(s): {fields}. Members are only granted access once a channel sets those attributes; private channels that leave them unset have all members removed. Mark these attributes as required on channels that must stay accessible.',
+                                                    defaultMessage: 'This rule compares against the channel attribute(s): {fields}. Members are only granted access once a channel sets those attributes. A private channel that leaves them unset has all members removed; public channels stay open and lose no members. Mark these attributes as required on private channels that must stay accessible.',
                                                 }, {fields: referencedChannelFieldLabels.join(', ')})}
                                             />
                                         </div>
@@ -784,7 +784,7 @@ function PolicyDetails({
                                     <div className='AccessControlPolicySettings__autoAddDescription'>
                                         <FormattedMessage
                                             id='admin.access_control.policy.edit_policy.all_channels.auto_add.description'
-                                            defaultMessage='When on, users who meet the access rules are added to every eligible private channel. Enforcement (removing and blocking non-matching members) always applies.'
+                                            defaultMessage='When on, users who meet the access rules are added to every eligible channel. On private channels, non-matching members are always removed and blocked regardless of this setting; public channels stay open and only ever gain matching members.'
                                         />
                                     </div>
                                 </div>

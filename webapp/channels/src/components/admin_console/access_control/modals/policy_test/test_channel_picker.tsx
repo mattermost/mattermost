@@ -16,10 +16,10 @@ import LoadingScreen from 'components/loading_screen';
 
 const SEARCH_DEBOUNCE_MS = 250;
 
-// ABAC policies can be assigned to public or private channels (only all-channels
-// auto-materialization is private-only), and a resource-aware rule reads channel
-// attributes that both types carry — so search both. Omitting the public/private
-// flags returns open + private; the exclusions mirror channel eligibility.
+// ABAC policies (including the all-channels scope) apply to public and private
+// channels alike, and a resource-aware rule reads channel attributes that both
+// types carry — so search both. Omitting the public/private flags returns open +
+// private; the exclusions mirror channel eligibility.
 const CHANNEL_SEARCH_OPTS = {
     exclude_group_constrained: true,
     exclude_remote: true,

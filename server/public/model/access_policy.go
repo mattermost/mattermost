@@ -141,12 +141,15 @@ type AccessControlPolicy struct {
 	Scope   string `json:"scope,omitempty"`    // "" (system) or "team"
 	ScopeID string `json:"scope_id,omitempty"` // team ID when scope="team"
 
-	// AppliesToAllChannels makes a parent policy govern every eligible private
-	// channel without an explicit per-channel assignment list. Only valid on
-	// parent-type policies. Enabling it materializes a channel-type child policy
-	// importing this parent on every eligible private channel (backfilled by the
-	// membership sync job, kept current by the channel-create hook and the
-	// periodic reconcile); each child then resolves and enforces like any other.
+	// AppliesToAllChannels makes a parent policy govern every eligible channel
+	// (public or private) without an explicit per-channel assignment list. Only
+	// valid on parent-type policies. Enabling it materializes a channel-type child
+	// policy importing this parent on every eligible channel (backfilled by the
+	// membership sync job, kept current by the channel-create hook and the periodic
+	// reconcile); each child then resolves and enforces like any other. Enforcement
+	// mode follows the channel type at sync time: private channels get strict
+	// removal of non-matching members, public channels are add-only (matching users
+	// are auto-added, none are removed).
 	AppliesToAllChannels bool `json:"applies_to_all_channels,omitempty"`
 
 	// AutoAdd is the global auto-add switch for an all-channels parent. Enforcement
@@ -224,7 +227,7 @@ func (p *AccessControlPolicy) IsValid() *AppError {
 
 	// The all-channels flag only makes sense on a system-scoped parent policy:
 	// it is the reusable rule-carrier that gets materialized as a child policy on
-	// every eligible private channel install-wide. A channel policy is already
+	// every eligible channel install-wide. A channel policy is already
 	// bound to one channel; team/permission target a different resource; and a
 	// team-scoped parent is confined to its team, which the install-wide
 	// materialization does not honor — so the flag must not be combined with a
