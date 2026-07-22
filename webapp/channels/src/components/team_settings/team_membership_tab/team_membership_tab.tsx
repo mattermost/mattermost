@@ -753,6 +753,7 @@ function TeamMembershipTab({
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
                     customErrorMessage={formError || undefined}
+                    saving={isProcessingSave}
                     cancelButtonText={formatMessage({
                         id: 'team_settings.membership_tab.reset',
                         defaultMessage: 'Reset',

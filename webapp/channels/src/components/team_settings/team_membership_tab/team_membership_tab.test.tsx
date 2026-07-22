@@ -435,6 +435,40 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
+    it('shows a saving state on the save panel while the save is in flight', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {policy: null, enforced: false},
+        }));
+
+        let resolveSave: (value: unknown) => void = () => {};
+        mockActions.saveChannelPolicy.mockReturnValue(new Promise((resolve) => {
+            resolveSave = resolve;
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(await screen.findByText('Save'));
+
+        // Confirm the modal to start the save
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        // While saving: the panel button reads "Saving..." and is disabled
+        await waitFor(() => expect(screen.getByText('Saving...')).toBeInTheDocument());
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
+
+        // Finish the save
+        resolveSave({data: {id: 'team_id'}});
+        await waitFor(() => expect(screen.getByText('Settings saved')).toBeInTheDocument());
+    });
+
     it('does not block self-exclusion on a public team (advisory: no removal)', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
