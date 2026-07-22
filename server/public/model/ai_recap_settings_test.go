@@ -79,6 +79,45 @@ func TestRecapProcessingSettingsSetDefaults(t *testing.T) {
 	})
 }
 
+func TestRecapProcessingSettingsMaxConcurrentJobsOrDefault(t *testing.T) {
+	tests := []struct {
+		name     string
+		settings *RecapProcessingSettings
+		expected int
+	}{
+		{
+			name:     "nil settings",
+			expected: RecapProcessingDefaultMaxConcurrentJobs,
+		},
+		{
+			name:     "nil value",
+			settings: &RecapProcessingSettings{},
+			expected: RecapProcessingDefaultMaxConcurrentJobs,
+		},
+		{
+			name:     "configured value",
+			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(7)},
+			expected: 7,
+		},
+		{
+			name:     "zero is clamped",
+			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(0)},
+			expected: 1,
+		},
+		{
+			name:     "negative value is clamped",
+			settings: &RecapProcessingSettings{MaxConcurrentJobs: NewPointer(-3)},
+			expected: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.settings.MaxConcurrentJobsOrDefault())
+		})
+	}
+}
+
 func TestRecapProcessingSettingsValidation(t *testing.T) {
 	tests := []struct {
 		name      string

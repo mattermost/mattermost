@@ -104,6 +104,15 @@ type RecapProcessingSettings struct {
 	MaxDueSchedulesPerTick *int `access:"ai_recaps"` // Default: 1000, minimum 1
 }
 
+// MaxConcurrentJobsOrDefault returns the configured worker pool size, falling
+// back to the default and enforcing the runtime minimum.
+func (s *RecapProcessingSettings) MaxConcurrentJobsOrDefault() int {
+	if s == nil || s.MaxConcurrentJobs == nil {
+		return RecapProcessingDefaultMaxConcurrentJobs
+	}
+	return max(*s.MaxConcurrentJobs, 1)
+}
+
 // SetDefaults sets the default values for RecapProcessingSettings
 func (s *RecapProcessingSettings) SetDefaults() {
 	if s.MaxConcurrentJobs == nil {

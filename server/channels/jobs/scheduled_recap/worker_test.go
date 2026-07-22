@@ -43,58 +43,6 @@ func (a *blockingScheduledRecapApp) CreateRecapFromSchedule(_ request.CTX, sched
 	return &model.Recap{Id: model.NewId()}, nil
 }
 
-func TestPoolSizeFromConfig(t *testing.T) {
-	defaultedConfig := &model.Config{}
-	defaultedConfig.SetDefaults()
-
-	tests := []struct {
-		name string
-		cfg  *model.Config
-		want int
-	}{
-		{
-			name: "nil config",
-			want: model.RecapProcessingDefaultMaxConcurrentJobs,
-		},
-		{
-			name: "nil Processing",
-			cfg:  &model.Config{},
-			want: model.RecapProcessingDefaultMaxConcurrentJobs,
-		},
-		{
-			name: "nil MaxConcurrentJobs",
-			cfg: &model.Config{
-				AIRecapSettings: model.AIRecapSettings{
-					Processing: &model.RecapProcessingSettings{},
-				},
-			},
-			want: model.RecapProcessingDefaultMaxConcurrentJobs,
-		},
-		{
-			name: "configured value",
-			cfg: &model.Config{
-				AIRecapSettings: model.AIRecapSettings{
-					Processing: &model.RecapProcessingSettings{
-						MaxConcurrentJobs: model.NewPointer(7),
-					},
-				},
-			},
-			want: 7,
-		},
-		{
-			name: "defaulted config",
-			cfg:  defaultedConfig,
-			want: model.RecapProcessingDefaultMaxConcurrentJobs,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, poolSizeFromConfig(tt.cfg))
-		})
-	}
-}
-
 func TestMakeWorkerProcessesScheduledRecapsConcurrently(t *testing.T) {
 	const poolSize = 3
 

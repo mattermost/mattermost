@@ -33,17 +33,14 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		return processScheduledRecapJob(logger, job, storeInstance, app)
 	}
 
-	return jobs.NewPoolWorker(workerName, jobServer, execute, isEnabled, poolSizeFromConfig)
-}
-
-// poolSizeFromConfig returns the configured number of concurrent scheduled
-// recap jobs per node, falling back to the default when the config
-// sub-struct has not been populated (SetDefaults normally guarantees it has).
-func poolSizeFromConfig(cfg *model.Config) int {
-	if cfg == nil || cfg.AIRecapSettings.Processing == nil || cfg.AIRecapSettings.Processing.MaxConcurrentJobs == nil {
-		return model.RecapProcessingDefaultMaxConcurrentJobs
+	poolSize := func(cfg *model.Config) int {
+		if cfg == nil {
+			return (*model.RecapProcessingSettings)(nil).MaxConcurrentJobsOrDefault()
+		}
+		return cfg.AIRecapSettings.Processing.MaxConcurrentJobsOrDefault()
 	}
-	return *cfg.AIRecapSettings.Processing.MaxConcurrentJobs
+
+	return jobs.NewPoolWorker(workerName, jobServer, execute, isEnabled, poolSize)
 }
 
 func processScheduledRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, app AppIface) error {
