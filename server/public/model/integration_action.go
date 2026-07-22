@@ -159,8 +159,15 @@ const (
 	MaxActionQueryValueLength = 2048
 )
 
+// postActionIDRegex bounds the characters allowed in a PostAction ID. It must
+// stay in sync with the action route pattern in api4 (InitAction); an ID that
+// passes here but not the route would render a button that silently 404s on
+// click.
+var postActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+
 type PostAction struct {
-	// A unique Action ID. If not set, generated automatically.
+	// A unique Action ID. If not set, one is generated automatically. When set
+	// explicitly, it may contain only letters, numbers, underscores, or hyphens.
 	Id string `json:"id,omitempty"`
 
 	// The type of the interactive element. Currently supported are
@@ -208,6 +215,10 @@ func (p *PostAction) IsValid() error {
 
 	if p.Name == "" {
 		multiErr = multierror.Append(multiErr, fmt.Errorf("action must have a name"))
+	}
+
+	if p.Id != "" && !postActionIDRegex.MatchString(p.Id) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid action id '%s' - must contain only letters, numbers, underscores, or hyphens", p.Id))
 	}
 
 	if p.Style != "" {

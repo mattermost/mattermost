@@ -144,6 +144,39 @@ func TestPostAction_IsValid(t *testing.T) {
 			},
 			wantErr: "action must have a name",
 		},
+		"valid action id with underscore and hyphen": {
+			action: &PostAction{
+				Id:   "confirm_ban-1",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"invalid action id with period": {
+			action: &PostAction{
+				Id:   "confirm.ban",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action id 'confirm.ban' - must contain only letters, numbers, underscores, or hyphens",
+		},
+		"invalid action id with space": {
+			action: &PostAction{
+				Id:   "confirm ban",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action id 'confirm ban' - must contain only letters, numbers, underscores, or hyphens",
+		},
 		"invalid style": {
 			action: &PostAction{
 				Id:    "validid",
