@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 /**
- * System Console — Global Attributes access gate (MM-69845) and attribute listing (MM-69846).
+ * System Console — Global Attributes access gate and attribute listing.
  * Visibility is gated by the GlobalAttributes feature flag AND an Enterprise-tier license.
  * Once past the gate, the page lists every access_control/template property field on the server.
  *
