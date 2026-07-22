@@ -702,6 +702,208 @@ const COLLABORATE_HIDDEN = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
+// Administration Guide — Onboard — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Onboard is a flat 34-file dump spanning SSO/identity setup, guest/admin
+// permissions, user provisioning, and one-time migration tasks. SAML alone
+// is 11 of the 34 files (one per IdP plus FAQ/technical docs), so it gets
+// its own group with `sso-saml` as the landing page; every other identity
+// protocol (OIDC, Google, GitLab, Entra ID native, OAuth->OIDC conversion,
+// AD/LDAP) is grouped separately so SAML's IdP-specific how-tos don't drown
+// them out.
+
+const ADMIN_ONBOARD_GROUPS = {
+  samlSso: {
+    label: 'SAML Single Sign-On',
+    landing: 'sso-saml',
+    items: [
+      'sso-saml-before-you-begin',
+      'sso-saml-adfs',
+      'sso-saml-adfs-msws2016',
+      'sso-saml-entraid',
+      'sso-saml-keycloak',
+      'sso-saml-ldapsync',
+      'sso-saml-okta',
+      'sso-saml-onelogin',
+      'sso-saml-technical',
+      'sso-saml-faq',
+    ],
+  },
+  otherSso: {
+    label: 'Other SSO & Identity (OAuth, OIDC & AD/LDAP)',
+    items: [
+      'sso-openidconnect',
+      'sso-google',
+      'sso-gitlab',
+      'sso-entraid',
+      'convert-oauth20-service-providers-to-openidconnect',
+      'common-converting-oauth-to-openidconnect',
+      'ad-ldap',
+      'ad-ldap-groups-synchronization',
+      'managing-team-channel-membership-using-ad-ldap-sync-groups',
+    ],
+  },
+  mfaCert: {
+    label: 'Multi-Factor & Certificate-Based Authentication',
+    items: [
+      'multi-factor-authentication',
+      'certificate-based-authentication',
+      'ssl-client-certificate',
+    ],
+  },
+  guestPermissions: {
+    label: 'Guest Accounts & Delegated Administration',
+    items: [
+      'guest-accounts',
+      'delegated-granular-administration',
+      'advanced-permissions',
+      'advanced-permissions-backend-infrastructure',
+    ],
+  },
+  provisioning: {
+    label: 'User Provisioning & Bulk Data',
+    items: [
+      'user-provisioning-workflows',
+      'bulk-loading-data',
+      'connected-workspaces',
+    ],
+  },
+  migration: {
+    label: 'Migrating to Mattermost',
+    landing: 'migrating-to-mattermost',
+    items: [
+      'migrate-from-slack',
+      'migrate-gitlab-omnibus',
+      'migration-announcement-email',
+    ],
+  },
+};
+
+// Top-level Onboard order. Identity/auth setup first (SAML, other SSO, MFA),
+// then permissions/guest access, then provisioning/bulk data, then the
+// one-time migration tasks admins hit least often.
+const ADMIN_ONBOARD_ORDER = [
+  {group: 'samlSso'},
+  {group: 'otherSso'},
+  {group: 'mfaCert'},
+  {group: 'guestPermissions'},
+  {group: 'provisioning'},
+  {group: 'migration'},
+];
+
+// Files re-parented into groups — exclude from the orphan check. Every
+// Onboard file lives in a group (no standalone top-level docs), so this
+// covers all 34.
+const ADMIN_ONBOARD_HIDDEN = new Set([
+  'sso-saml', 'sso-saml-before-you-begin', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
+  'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-ldapsync', 'sso-saml-okta',
+  'sso-saml-onelogin', 'sso-saml-technical', 'sso-saml-faq',
+  'sso-openidconnect', 'sso-google', 'sso-gitlab', 'sso-entraid',
+  'convert-oauth20-service-providers-to-openidconnect', 'common-converting-oauth-to-openidconnect',
+  'ad-ldap', 'ad-ldap-groups-synchronization', 'managing-team-channel-membership-using-ad-ldap-sync-groups',
+  'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
+  'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
+  'advanced-permissions-backend-infrastructure',
+  'user-provisioning-workflows', 'bulk-loading-data', 'connected-workspaces',
+  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-gitlab-omnibus',
+  'migration-announcement-email',
+]);
+
+// ---------------------------------------------------------------------------
+// Administration Guide — Scale — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Scale is a flat 28-file dump mixing a whole run of `scale-to-N-users`
+// capacity-planning pages with unrelated HA, search, and monitoring topics.
+// `scaling-for-enterprise` is kept as a standalone top-level landing page
+// (mirrors how ADMIN_CONFIGURE_ORDER keeps `agents-admin-guide` standalone)
+// since it's the general entry point referencing several of the groups
+// below, not a member of any one of them.
+
+const ADMIN_SCALE_GROUPS = {
+  capacityPlanning: {
+    label: 'Capacity Planning',
+    items: [
+      'scale-to-200-users',
+      'scale-to-2000-users',
+      'scale-to-15000-users',
+      'scale-to-30000-users',
+      'scale-to-50000-users',
+      'scale-to-80000-users',
+      'scale-to-90000-users',
+      'scale-to-100000-users',
+      'scale-to-200000-users',
+      'estimated-storage-per-user-per-month',
+      'backing-storage-benchmarks',
+      'lifetime-storage',
+      'additional-ha-considerations',
+    ],
+  },
+  ha: {
+    label: 'High Availability & Architecture',
+    items: [
+      'high-availability-cluster-based-deployment',
+      'server-architecture',
+    ],
+  },
+  search: {
+    label: 'Search Infrastructure',
+    landing: 'enterprise-search',
+    items: [
+      'elasticsearch-setup',
+      'opensearch-setup',
+      'common-configure-mattermost-for-enterprise-search',
+    ],
+  },
+  monitoring: {
+    label: 'Observability & Monitoring',
+    items: [
+      'deploy-prometheus-grafana-for-performance-monitoring',
+      'collect-performance-metrics',
+      'performance-monitoring-metrics',
+      'performance-alerting',
+      'deploy-grafana-loki-for-centralized-logging',
+      'push-notification-health-targets',
+      'ensuring-releases-perform-at-scale',
+    ],
+  },
+  caching: {
+    label: 'Caching',
+    items: [
+      'redis',
+    ],
+  },
+};
+
+// Top-level Scale order. `scaling-for-enterprise` stands alone as the
+// section's general landing page; everything else is grouped by subsystem.
+const ADMIN_SCALE_ORDER = [
+  'scaling-for-enterprise',
+  {group: 'capacityPlanning'},
+  {group: 'ha'},
+  {group: 'search'},
+  {group: 'monitoring'},
+  {group: 'caching'},
+];
+
+// Files re-parented into groups — exclude from the orphan check.
+const ADMIN_SCALE_HIDDEN = new Set([
+  'scale-to-200-users', 'scale-to-2000-users', 'scale-to-15000-users', 'scale-to-30000-users',
+  'scale-to-50000-users', 'scale-to-80000-users', 'scale-to-90000-users', 'scale-to-100000-users',
+  'scale-to-200000-users', 'estimated-storage-per-user-per-month', 'backing-storage-benchmarks',
+  'lifetime-storage', 'additional-ha-considerations',
+  'high-availability-cluster-based-deployment', 'server-architecture',
+  'enterprise-search', 'elasticsearch-setup', 'opensearch-setup',
+  'common-configure-mattermost-for-enterprise-search',
+  'deploy-prometheus-grafana-for-performance-monitoring', 'collect-performance-metrics',
+  'performance-monitoring-metrics', 'performance-alerting',
+  'deploy-grafana-loki-for-centralized-logging', 'push-notification-health-targets',
+  'ensuring-releases-perform-at-scale',
+  'redis',
+]);
+
+// ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
@@ -1177,9 +1379,115 @@ function regroupAdminManage(manageCat) {
   return manageCat;
 }
 
+function buildAdminOnboardItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/onboard/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.group) {
+    const g = ADMIN_ONBOARD_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin onboard group: ${spec.group}`);
+    return buildAdminOnboardGroup(g, leafLabels);
+  }
+  return buildAdminOnboardGroup(spec, leafLabels);
+}
+
+function buildAdminOnboardGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminOnboardItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/onboard/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Onboard" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories)
+// with the manual grouping above.
+function regroupAdminOnboard(onboardCat) {
+  const leafLabels = collectLeafLabels(onboardCat);
+  const items = ADMIN_ONBOARD_ORDER.map((spec) => buildAdminOnboardItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_ONBOARD_HIDDEN) hiddenIds.add(`administration-guide/onboard/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Onboard file(s) missing from ADMIN_ONBOARD_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  onboardCat.items = items;
+  return onboardCat;
+}
+
+function buildAdminScaleItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/scale/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.group) {
+    const g = ADMIN_SCALE_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin scale group: ${spec.group}`);
+    return buildAdminScaleGroup(g, leafLabels);
+  }
+  return buildAdminScaleGroup(spec, leafLabels);
+}
+
+function buildAdminScaleGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminScaleItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/scale/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Scale" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories)
+// with the manual grouping above.
+function regroupAdminScale(scaleCat) {
+  const leafLabels = collectLeafLabels(scaleCat);
+  const items = ADMIN_SCALE_ORDER.map((spec) => buildAdminScaleItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_SCALE_HIDDEN) hiddenIds.add(`administration-guide/scale/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Scale file(s) missing from ADMIN_SCALE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  scaleCat.items = items;
+  return scaleCat;
+}
+
 function buildAdminGuideSidebar(autoCat) {
   let foundConfigure = false;
   let foundManage = false;
+  let foundOnboard = false;
+  let foundScale = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
     let dirName = null;
@@ -1196,6 +1504,12 @@ function buildAdminGuideSidebar(autoCat) {
     } else if (dirName === 'manage') {
       regroupAdminManage(it);
       foundManage = true;
+    } else if (dirName === 'onboard') {
+      regroupAdminOnboard(it);
+      foundOnboard = true;
+    } else if (dirName === 'scale') {
+      regroupAdminScale(it);
+      foundScale = true;
     }
   }
   if (!foundConfigure) {
@@ -1203,6 +1517,12 @@ function buildAdminGuideSidebar(autoCat) {
   }
   if (!foundManage) {
     console.warn('[sidebar] WARN: Administration Guide "Manage" sub-category not found — ADMIN_MANAGE_GROUPS override was not applied.');
+  }
+  if (!foundOnboard) {
+    console.warn('[sidebar] WARN: Administration Guide "Onboard" sub-category not found — ADMIN_ONBOARD_GROUPS override was not applied.');
+  }
+  if (!foundScale) {
+    console.warn('[sidebar] WARN: Administration Guide "Scale" sub-category not found — ADMIN_SCALE_GROUPS override was not applied.');
   }
   return autoCat;
 }
