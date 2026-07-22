@@ -18,6 +18,7 @@ func TestPluginAccessControlStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetUserIDsReplaces", func(t *testing.T) { testPluginAccessControlSetUserIDsReplaces(t, rctx, ss) })
 	t.Run("SetUserIDsEmptyClears", func(t *testing.T) { testPluginAccessControlSetUserIDsEmptyClears(t, rctx, ss) })
 	t.Run("DeleteByPlugin", func(t *testing.T) { testPluginAccessControlDeleteByPlugin(t, rctx, ss) })
+	t.Run("DeleteByUser", func(t *testing.T) { testPluginAccessControlDeleteByUser(t, rctx, ss) })
 }
 
 func testPluginAccessControlSetGetIsUserAllowed(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -81,4 +82,23 @@ func testPluginAccessControlDeleteByPlugin(t *testing.T, rctx request.CTX, ss st
 	gotB, err := ss.PluginAccessControl().GetUserIDs(rctx, pluginB)
 	require.NoError(t, err)
 	assert.Equal(t, []string{userID}, gotB)
+}
+
+func testPluginAccessControlDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	pluginA := "com.example.plugin-f"
+	pluginB := "com.example.plugin-g"
+	userA := model.NewId()
+	userB := model.NewId()
+
+	require.NoError(t, ss.PluginAccessControl().SetUserIDs(rctx, pluginA, []string{userA, userB}))
+	require.NoError(t, ss.PluginAccessControl().SetUserIDs(rctx, pluginB, []string{userA}))
+	require.NoError(t, ss.PluginAccessControl().DeleteByUser(rctx, userA))
+
+	gotA, err := ss.PluginAccessControl().GetUserIDs(rctx, pluginA)
+	require.NoError(t, err)
+	assert.Equal(t, []string{userB}, gotA)
+
+	gotB, err := ss.PluginAccessControl().GetUserIDs(rctx, pluginB)
+	require.NoError(t, err)
+	assert.Empty(t, gotB)
 }

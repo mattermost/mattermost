@@ -8029,6 +8029,10 @@
     "translation": "Invalid user ID in plugin access control allow-list."
   },
   {
+    "id": "app.plugin.access_control.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete plugin access control entries for user."
+  },
+  {
     "id": "app.plugin.access_control.set.app_error",
     "translation": "Failed to set plugin access control settings."
   },

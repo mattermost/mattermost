@@ -6848,6 +6848,22 @@ func (s *TimerLayerPluginAccessControlStore) DeleteByPlugin(rctx request.CTX, pl
 	return err
 }
 
+func (s *TimerLayerPluginAccessControlStore) DeleteByUser(rctx request.CTX, userID string) error {
+	start := time.Now()
+
+	err := s.PluginAccessControlStore.DeleteByUser(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.DeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPluginAccessControlStore) GetUserIDs(rctx request.CTX, pluginID string) ([]string, error) {
 	start := time.Now()
 

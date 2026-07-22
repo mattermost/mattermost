@@ -107,3 +107,13 @@ func (s *SqlPluginAccessControlStore) DeleteByPlugin(rctx request.CTX, pluginID 
 	}
 	return nil
 }
+
+func (s *SqlPluginAccessControlStore) DeleteByUser(rctx request.CTX, userID string) error {
+	query := s.getQueryBuilder().
+		Delete("PluginAccessControlUsers").
+		Where(sq.Eq{"UserId": userID})
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete plugin access control users for user=%s", userID)
+	}
+	return nil
+}

@@ -2185,6 +2185,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().PluginAccessControl().DeleteByUser(rctx, user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.plugin.access_control.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

@@ -32,6 +32,24 @@ func (_m *PluginAccessControlStore) DeleteByPlugin(rctx request.CTX, pluginID st
 	return r0
 }
 
+// DeleteByUser provides a mock function with given fields: rctx, userID
+func (_m *PluginAccessControlStore) DeleteByUser(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetUserIDs provides a mock function with given fields: rctx, pluginID
 func (_m *PluginAccessControlStore) GetUserIDs(rctx request.CTX, pluginID string) ([]string, error) {
 	ret := _m.Called(rctx, pluginID)

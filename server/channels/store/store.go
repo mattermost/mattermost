@@ -1126,6 +1126,7 @@ type PluginAccessControlStore interface {
 	GetUserIDs(rctx request.CTX, pluginID string) ([]string, error)
 	SetUserIDs(rctx request.CTX, pluginID string, userIDs []string) error
 	DeleteByPlugin(rctx request.CTX, pluginID string) error
+	DeleteByUser(rctx request.CTX, userID string) error
 }
 
 type DraftStore interface {
