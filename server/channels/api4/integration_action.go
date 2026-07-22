@@ -14,7 +14,7 @@ import (
 )
 
 func (api *API) InitAction() {
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9_-]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/actions/{action_id:"+model.PostActionIDCharsetPattern+"}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
 
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)

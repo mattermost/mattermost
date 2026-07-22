@@ -363,32 +363,25 @@ func TestPostAction_IsValid(t *testing.T) {
 	}
 }
 
-// TestPostActionIDRegexMatchesActionRoute locks postActionIDRegex to the
-// character class of the doPostAction route registered in
-// api4.(*API).InitAction ("/actions/{action_id:[A-Za-z0-9_-]+}"). If the two
-// drift, an action ID could pass PostAction.IsValid yet still 404 on click —
-// the exact MM-49350 failure this validation exists to surface. api4 cannot be
-// imported here (it depends on model), so the route pattern is mirrored as a
-// literal and both are exercised against the same samples.
-func TestPostActionIDRegexMatchesActionRoute(t *testing.T) {
-	routeActionIDRegex := regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+// TestPostActionIDCharsetPattern pins the accept/reject semantics of
+// PostActionIDCharsetPattern, the shared constant used both to validate action
+// IDs (postActionIDRegex) and to register the doPostAction route in
+// api4.(*API).InitAction. Because both derive from this constant, an ID that
+// passes PostAction.IsValid is guaranteed to also match the route rather than
+// silently 404 on click — the MM-49350 failure this validation exists to
+// surface. These samples lock the intended charset so a future edit that
+// widens or narrows it is caught here.
+func TestPostActionIDCharsetPattern(t *testing.T) {
+	charsetRegex := regexp.MustCompile("^" + PostActionIDCharsetPattern + "$")
 
-	samples := []string{
-		"confirm_ban",
-		"confirmBan1",
-		"-_confirm_-",
-		"12345",
-		"confirm.ban",
-		"confirm ban",
-		"confirm/ban",
-		"confirm+ban",
-		"café",
-		"",
+	valid := []string{"confirm_ban", "confirmBan1", "-_confirm_-", "12345"}
+	invalid := []string{"confirm.ban", "confirm ban", "confirm/ban", "confirm+ban", "café", ""}
+
+	for _, s := range valid {
+		assert.Truef(t, charsetRegex.MatchString(s), "%q should be an accepted action ID", s)
 	}
-
-	for _, s := range samples {
-		assert.Equalf(t, routeActionIDRegex.MatchString(s), postActionIDRegex.MatchString(s),
-			"postActionIDRegex and the api4 action route must agree on %q", s)
+	for _, s := range invalid {
+		assert.Falsef(t, charsetRegex.MatchString(s), "%q should be a rejected action ID", s)
 	}
 }
 

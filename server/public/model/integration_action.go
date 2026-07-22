@@ -159,11 +159,13 @@ const (
 	MaxActionQueryValueLength = 2048
 )
 
-// postActionIDRegex bounds the characters allowed in a PostAction ID. It must
-// stay in sync with the action route pattern in api4 (InitAction); an ID that
-// passes here but not the route would render a button that silently 404s on
-// click.
-var postActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+// PostActionIDCharsetPattern is the single source of truth for the characters
+// allowed in a PostAction ID. It is used both to validate IDs here and to
+// register the doPostAction route in api4 (InitAction), so an ID that passes
+// validation cannot render a button that silently 404s on click.
+const PostActionIDCharsetPattern = "[A-Za-z0-9_-]+"
+
+var postActionIDRegex = regexp.MustCompile("^" + PostActionIDCharsetPattern + "$")
 
 type PostAction struct {
 	// A unique Action ID. If not set, one is generated automatically. When set
