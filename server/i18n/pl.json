@@ -13170,5 +13170,85 @@
   {
     "id": "app.import.import_direct_channel.save_member.error",
     "translation": "Nie udało się zapisać członka kanału podczas bezpośredniego importu kanału"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Polityki dotyczące członkostwa nie mają zastosowania do domyślnych kanałów zespołu."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Polityki kontroli dostępu można stosować wyłącznie do kanałów publicznych lub prywatnych."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Nie da się przypisać polityki kontroli dostępu do zespołów."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "Nie możesz usunąć tej polityki, bo zawiera wartości atrybutów, do których nie masz uprawnień dostępu."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Nie udało się wygenerować zamaskowanego wizualnego drzewa AST na podstawie wyrażenia."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Nie udało się pobrać członków Zespołu do usunięcia."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Nie udało się określić zamaskowanych wartości dla wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Nie udało się załadować zestawu akcji zdefiniowanego w polityce kontroli dostępu kanału."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Nie udało się zamaskować wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Nie udało się połączyć wyrażenia polityki z zapisanymi wartościami zamaskowanymi."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Nie udało się przywrócić operatorów rangi w wyrażeniu polityki."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "Nie masz uprawnień do wprowadzenia tej zmiany w polityce."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Polityka zawiera wartość, która jest niedozwolona."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "Warunek zawierający zamaskowane wartości został usunięty. Proszę ponownie załadować politykę i spróbować jeszcze raz."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "Wyrażenie w polityce zawiera wartość zastępczą, której nie udało się rozpoznać. Odśwież politykę i spróbuj jeszcze raz."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Nie udało się zainicjować modułu rozpoznawania atrybutów podczas zapisywania polityki."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Nazwy reguł uprawnień muszą być unikalne w ramach danej polityki."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "Nie spełniasz jednego lub kilku warunków określonych w niniejszej Polityce."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Nie udało się odświeżyć atrybutów symulacji."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Nie udało się skompilować polityki na potrzeby symulacji."
   }
 ]
