@@ -33,7 +33,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 
 	poolSize := func(cfg *model.Config) int {
 		if cfg == nil {
-			return (*model.RecapProcessingSettings)(nil).MaxConcurrentJobsOrDefault()
+			return model.RecapProcessingDefaultMaxConcurrentJobs
 		}
 		return cfg.AIRecapSettings.Processing.MaxConcurrentJobsOrDefault()
 	}

@@ -47,6 +47,10 @@ func TestSimpleWorkerPanic(t *testing.T) {
 }
 
 func TestSetWorkerJobSuccessProgressFailure(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	jobServer, mockStore, mockMetrics := makeJobServer(t)
 	job := &model.Job{
 		Id:     "job_id",
