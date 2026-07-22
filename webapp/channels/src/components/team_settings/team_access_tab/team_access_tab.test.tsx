@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
@@ -175,11 +175,11 @@ describe('components/TeamSettings', () => {
         await userEvent.click(screen.getByText('Private Team'));
 
         // Public -> Private on a governed team opens the mode-flip confirmation.
+        // Confirming it saves immediately — no second click on the panel.
         await userEvent.click(await screen.findByText('Switch to Private'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
 
         // Privacy is written via patchTeam on every path — team.type is never synced.
-        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+        await waitFor(() => expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false}));
     });
 
     test('ABAC-governed team: selecting Public patches allow_open_invite=true', async () => {

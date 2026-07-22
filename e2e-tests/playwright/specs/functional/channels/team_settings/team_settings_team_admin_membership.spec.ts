@@ -294,12 +294,11 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         // * The modal warns that the flip activates strict ABAC enforcement.
         await expect(modeFlipModal.getByText(/activate strict ABAC enforcement/i)).toBeVisible({timeout: 10000});
 
-        // # Confirm the flip — mirroring discoverability MM-69100_6 exactly
+        // # Confirm the flip — confirming saves immediately (no second click)
         await modeFlipModal.getByRole('button', {name: 'Switch to Private'}).click();
         await expect(modeFlipModal).not.toBeVisible({timeout: 5000});
 
-        await expect(teamSettings.saveButton).toBeVisible();
-        await teamSettings.save();
+        // * The save auto-completes and the panel reports success
         await teamSettings.verifySavedMessage();
 
         // * Team is now private. Privacy is driven by allow_open_invite alone; the

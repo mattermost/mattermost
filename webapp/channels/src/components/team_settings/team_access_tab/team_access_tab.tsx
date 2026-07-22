@@ -56,17 +56,48 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         return true;
     }, [actions, allowedDomains, team]);
 
-    const handlePrivacySubmit = useCallback(async (): Promise<boolean> => {
-        if (isPublicTeam === isPublicTeamInitial) {
+    const handlePrivacySubmit = useCallback(async (nextIsPublic: boolean): Promise<boolean> => {
+        if (nextIsPublic === isPublicTeamInitial) {
             return true;
         }
 
         // Privacy follows master's model on every path: patch allow_open_invite
         // only, leaving team.type untouched. ABAC join/sync/directory logic keys on
         // allow_open_invite alone, so there is nothing to normalize.
-        const {error} = await actions.patchTeam({id: team.id, allow_open_invite: isPublicTeam});
+        const {error} = await actions.patchTeam({id: team.id, allow_open_invite: nextIsPublic});
         return !error;
-    }, [actions, isPublicTeam, isPublicTeamInitial, team]);
+    }, [actions, isPublicTeamInitial, team]);
+
+    const commitChanges = useCallback(async (nextIsPublic: boolean, isModeFlip: boolean) => {
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
+        const allowedDomainSuccess = await handleAllowedDomainsSubmit();
+        const privacySuccess = await handlePrivacySubmit(nextIsPublic);
+        setIsSaving(false);
+        if (!allowedDomainSuccess || !privacySuccess) {
+            setSaveChangesPanelState('error');
+            return;
+        }
+        setSaveChangesPanelState('saved');
+        setShowTabSwitchError(false);
+        setAreThereUnsavedChanges(false);
+
+        // A mode flip on a governed team kicks an immediate reconcile so enforcement
+        // (or the advisory no-op) applies on save rather than waiting for the scheduler.
+        if (isModeFlip && teamAbacActive) {
+            try {
+                await actions.createAccessControlTeamSyncJob({policy_id: team.id});
+            } catch (jobError) {
+                // Job creation failure does not block the privacy change; the periodic
+                // sync still converges. Log so an operator can see why immediate
+                // enforcement did not kick in.
+                // eslint-disable-next-line no-console
+                console.error('Failed to create team access control sync job after mode flip:', jobError);
+            }
+        }
+    }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, teamAbacActive, actions, team.id, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     // The expression the sync will enforce once private: the team's own membership
     // rule ANDed with any imported parent policies. Returns null when there is no
@@ -155,24 +186,18 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     }, [isPublicTeam, teamAbacActive, getCombinedTeamExpression, computeModeFlipCount, actions, team.id, setAreThereUnsavedChanges]);
 
     const handleModeFlipConfirm = useCallback(async () => {
+        const newIsPublic = pendingPublicValueRef.current;
         setShowModeFlipModal(false);
-        if (pendingPublicValueRef.current !== null) {
-            setIsPublicTeam(pendingPublicValueRef.current);
-            pendingPublicValueRef.current = null;
+        pendingPublicValueRef.current = null;
+        if (newIsPublic === null) {
+            return;
         }
 
-        if (teamAbacActive) {
-            try {
-                await actions.createAccessControlTeamSyncJob({policy_id: team.id});
-            } catch (jobError) {
-                // Job creation failure does not block the privacy change; the
-                // periodic sync still converges membership. Log so an operator
-                // can see why immediate enforcement did not kick in.
-                // eslint-disable-next-line no-console
-                console.error('Failed to create team access control sync job after mode flip:', jobError);
-            }
-        }
-    }, [actions, team.id, teamAbacActive]);
+        // Confirming the modal IS the intent to save — apply immediately (showing the
+        // panel's saving state) instead of leaving the change staged for a second click.
+        setIsPublicTeam(newIsPublic);
+        await commitChanges(newIsPublic, true);
+    }, [commitChanges]);
 
     const handleModeFlipCancel = useCallback(() => {
         setShowModeFlipModal(false);
@@ -191,22 +216,9 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         handleClose();
     }, [handleClose, isPublicTeamInitial, team.allowed_domains]);
 
-    const handleSaveChanges = useCallback(async () => {
-        if (isSaving) {
-            return;
-        }
-        setIsSaving(true);
-        const allowedDomainSuccess = await handleAllowedDomainsSubmit();
-        const privacySuccess = await handlePrivacySubmit();
-        setIsSaving(false);
-        if (!allowedDomainSuccess || !privacySuccess) {
-            setSaveChangesPanelState('error');
-            return;
-        }
-        setSaveChangesPanelState('saved');
-        setShowTabSwitchError(false);
-        setAreThereUnsavedChanges(false);
-    }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
+    const handleSaveChanges = useCallback(() => {
+        return commitChanges(isPublicTeam, false);
+    }, [commitChanges, isPublicTeam]);
 
     let modeFlipMessage;
     if (modeFlipMemberCount === null) {

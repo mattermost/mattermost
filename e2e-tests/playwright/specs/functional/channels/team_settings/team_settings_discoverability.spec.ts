@@ -283,13 +283,11 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const modeFlipModal = page.locator('.ConfirmModal').filter({hasText: 'Switch to Private Team?'});
         await expect(modeFlipModal).toBeVisible({timeout: 30000});
 
-        // # Click "Switch to Private" (creates sync job immediately)
+        // # Click "Switch to Private" — confirming saves immediately (no second click)
         await modeFlipModal.getByRole('button', {name: 'Switch to Private'}).click();
         await expect(modeFlipModal).not.toBeVisible({timeout: 5000});
 
-        // # SaveChangesPanel still visible — click Save to persist the team change
-        await expect(teamSettings.saveButton).toBeVisible();
-        await teamSettings.save();
+        // * The save auto-completes and the panel reports success
         await teamSettings.verifySavedMessage();
 
         // * Team is now private. Privacy is driven by allow_open_invite alone; the
@@ -400,7 +398,8 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await expect(modeFlipModal).toBeVisible({timeout: 30000});
         await modeFlipModal.getByRole('button', {name: 'Switch to Private'}).click();
         await expect(modeFlipModal).not.toBeVisible({timeout: 5000});
-        await teamSettings.save();
+
+        // Confirming saves immediately — the panel reports success on its own
         await teamSettings.verifySavedMessage();
 
         // * Team is private again
