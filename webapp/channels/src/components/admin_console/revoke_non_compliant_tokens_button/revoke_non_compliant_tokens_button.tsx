@@ -159,7 +159,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
                 message={(
                     <FormattedMessage
                         id='admin.service.revokeNonCompliantTokens.confirmBody'
-                        defaultMessage='This will permanently revoke {count, number} personal access {count, plural, one {token} other {tokens}} that {count, plural, one {does} other {do}} not comply with the current maximum lifetime policy. This cannot be undone. Bot account tokens are exempt.'
+                        defaultMessage='This will permanently revoke {count, number} personal access {count, plural, one {token} other {tokens}} that {count, plural, one {does} other {do}} not comply with the current maximum lifetime policy, including tokens for user-owned and plugin-owned bot accounts. This cannot be undone.'
                         values={{count: count ?? 0}}
                     />
                 )}
