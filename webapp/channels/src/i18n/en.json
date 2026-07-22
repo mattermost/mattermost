@@ -482,6 +482,7 @@
   "admin.access_control.table_editor.values.create_placeholder": "Type to create value",
   "admin.access_control.table_editor.values.select_values": "Select values...",
   "admin.access_control.test.channel_picker.back": "Back to channel selection",
+  "admin.access_control.test.channel_picker.error": "Could not load channels. Check your connection and try again.",
   "admin.access_control.test.channel_picker.no_results": "No channels found",
   "admin.access_control.test.channel_picker.search": "Search channels",
   "admin.access_control.test.channel_picker.title": "Select a channel to test against",

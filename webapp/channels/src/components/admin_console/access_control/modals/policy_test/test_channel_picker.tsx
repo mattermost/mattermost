@@ -40,6 +40,7 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
     const [term, setTerm] = useState('');
     const [channels, setChannels] = useState<ChannelWithTeamData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
 
     // Guards against a slow earlier request overwriting a newer one's results.
     const requestSeq = useRef(0);
@@ -51,8 +52,13 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
         if (seq !== requestSeq.current) {
             return;
         }
-        const data = (action as ActionResult<ChannelWithTeamData[]>).data ?? [];
-        setChannels(data);
+        const result = action as ActionResult<ChannelWithTeamData[]>;
+
+        // A dispatch error (e.g. network failure) must not read as an empty
+        // result — otherwise the admin sees "No channels found" and assumes none
+        // match rather than retrying.
+        setHasError(Boolean(result.error));
+        setChannels(result.data ?? []);
         setLoading(false);
     }, [dispatch]);
 
@@ -69,6 +75,15 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
     let listContent: JSX.Element | JSX.Element[];
     if (loading && channels.length === 0) {
         listContent = <LoadingScreen/>;
+    } else if (hasError) {
+        listContent = (
+            <div className='TestChannelPicker__empty'>
+                <FormattedMessage
+                    id='admin.access_control.test.channel_picker.error'
+                    defaultMessage='Could not load channels. Check your connection and try again.'
+                />
+            </div>
+        );
     } else if (channels.length === 0) {
         listContent = (
             <div className='TestChannelPicker__empty'>

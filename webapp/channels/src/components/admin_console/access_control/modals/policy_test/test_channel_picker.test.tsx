@@ -82,4 +82,13 @@ describe('TestChannelPicker', () => {
 
         expect(await screen.findByText('No channels found')).toBeInTheDocument();
     });
+
+    it('surfaces an error state instead of "no results" on a failed search', async () => {
+        mockSearchAllChannels.mockReturnValue(() => Promise.resolve({error: new Error('network')}));
+
+        renderWithContext(<TestChannelPicker onSelect={onSelect}/>);
+
+        expect(await screen.findByText('Could not load channels. Check your connection and try again.')).toBeInTheDocument();
+        expect(screen.queryByText('No channels found')).not.toBeInTheDocument();
+    });
 });
