@@ -245,6 +245,34 @@ func (s *SqlRecapStore) UpdateRecapStatus(id, status string) error {
 	return nil
 }
 
+// MarkRecapFailedIfIncomplete atomically fails a non-terminal recap so recovery
+// cannot overwrite a worker that completed concurrently.
+func (s *SqlRecapStore) MarkRecapFailedIfIncomplete(id string) (bool, error) {
+	query := s.getQueryBuilder().
+		Update("Recaps").
+		SetMap(map[string]any{
+			"Status":   model.RecapStatusFailed,
+			"UpdateAt": model.GetMillis(),
+		}).
+		Where(sq.Eq{
+			"Id":       id,
+			"DeleteAt": 0,
+			"Status":   []string{model.RecapStatusPending, model.RecapStatusProcessing},
+		})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to mark Recap as failed for id=%s", id)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to get affected rows after marking Recap as failed for id=%s", id)
+	}
+
+	return rowsAffected > 0, nil
+}
+
 // MarkRecapSkipped flips a still-pending recap to skipped. Scoped to pending so a
 // recap a worker has already started processing is never clobbered.
 func (s *SqlRecapStore) MarkRecapSkipped(id, reason string) error {

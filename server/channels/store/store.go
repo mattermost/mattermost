@@ -1423,6 +1423,9 @@ type RecapStore interface {
 	// Used by the recap recovery scheduler to find rows stuck in 'processing'.
 	GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
+	// MarkRecapFailedIfIncomplete atomically marks a pending or processing recap
+	// as failed. It returns false when the recap is already terminal or deleted.
+	MarkRecapFailedIfIncomplete(id string) (bool, error)
 	// MarkRecapSkipped flips a recap to the skipped status with the given reason.
 	// Skipped recaps are excluded from the daily-limit count, so this frees the slot
 	// for a recap that never ran (e.g. its processing job failed to enqueue).

@@ -69,26 +69,19 @@ func (s *Scheduler) resetWedgedJobs(rctx request.CTX) {
 }
 
 func (s *Scheduler) markRecapFailed(rctx request.CTX, recapID, userID string) {
-	recap, err := s.store.Recap().GetRecap(recapID)
+	transitioned, err := s.store.Recap().MarkRecapFailedIfIncomplete(recapID)
 	if err != nil {
-		rctx.Logger().Warn("Could not get recap for reset job",
-			mlog.String("recap_id", recapID),
-			mlog.Err(err))
-		return
-	}
-	if recap.Status != model.RecapStatusProcessing && recap.Status != model.RecapStatusPending {
-		rctx.Logger().Debug("Recap for reset job is already terminal",
-			mlog.String("recap_id", recapID),
-			mlog.String("recap_status", recap.Status))
-		return
-	}
-
-	if err := s.store.Recap().UpdateRecapStatus(recapID, model.RecapStatusFailed); err != nil {
 		rctx.Logger().Error("Failed to mark recap as failed",
 			mlog.String("recap_id", recapID),
 			mlog.Err(err))
 		return
 	}
+	if !transitioned {
+		rctx.Logger().Debug("Recap is already terminal or deleted",
+			mlog.String("recap_id", recapID))
+		return
+	}
+
 	publishRecapUpdate(s.app, recapID, userID)
 }
 
@@ -123,12 +116,6 @@ func (s *Scheduler) sweepOrphanedRecaps(rctx request.CTX) {
 			mlog.String("recap_id", recap.Id),
 			mlog.String("user_id", recap.UserId),
 			mlog.Millis("update_at", recap.UpdateAt))
-		if err := s.store.Recap().UpdateRecapStatus(recap.Id, model.RecapStatusFailed); err != nil {
-			rctx.Logger().Error("Failed to mark orphaned recap as failed",
-				mlog.String("recap_id", recap.Id),
-				mlog.Err(err))
-			continue
-		}
-		publishRecapUpdate(s.app, recap.Id, recap.UserId)
+		s.markRecapFailed(rctx, recap.Id, recap.UserId)
 	}
 }

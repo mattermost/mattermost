@@ -186,6 +186,57 @@ func TestRecapStore(t *testing.T) {
 			assert.Equal(t, model.RecapStatusCompleted, updatedRecap.Status)
 		})
 
+		t.Run("MarkRecapFailedIfIncomplete", func(t *testing.T) {
+			tests := []struct {
+				name             string
+				status           string
+				wantTransitioned bool
+				wantStatus       string
+			}{
+				{
+					name:             "pending recap transitions",
+					status:           model.RecapStatusPending,
+					wantTransitioned: true,
+					wantStatus:       model.RecapStatusFailed,
+				},
+				{
+					name:             "processing recap transitions",
+					status:           model.RecapStatusProcessing,
+					wantTransitioned: true,
+					wantStatus:       model.RecapStatusFailed,
+				},
+				{
+					name:       "completed recap is unchanged",
+					status:     model.RecapStatusCompleted,
+					wantStatus: model.RecapStatusCompleted,
+				},
+			}
+
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					recap := &model.Recap{
+						Id:       model.NewId(),
+						UserId:   model.NewId(),
+						Title:    "Test Recap",
+						CreateAt: model.GetMillis(),
+						UpdateAt: model.GetMillis(),
+						Status:   tt.status,
+						BotID:    "test-bot-id",
+					}
+					_, err := ss.Recap().SaveRecap(recap)
+					require.NoError(t, err)
+
+					transitioned, err := ss.Recap().MarkRecapFailedIfIncomplete(recap.Id)
+					require.NoError(t, err)
+					assert.Equal(t, tt.wantTransitioned, transitioned)
+
+					updated, err := ss.Recap().GetRecap(recap.Id)
+					require.NoError(t, err)
+					assert.Equal(t, tt.wantStatus, updated.Status)
+				})
+			}
+		})
+
 		t.Run("SaveAndGetRecapChannels", func(t *testing.T) {
 			recapId := model.NewId()
 

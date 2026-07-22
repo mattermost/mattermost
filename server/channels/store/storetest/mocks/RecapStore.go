@@ -246,6 +246,34 @@ func (_m *RecapStore) MarkRecapAsRead(id string) error {
 	return r0
 }
 
+// MarkRecapFailedIfIncomplete provides a mock function with given fields: id
+func (_m *RecapStore) MarkRecapFailedIfIncomplete(id string) (bool, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkRecapFailedIfIncomplete")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MarkRecapSkipped provides a mock function with given fields: id, reason
 func (_m *RecapStore) MarkRecapSkipped(id string, reason string) error {
 	ret := _m.Called(id, reason)

@@ -74,8 +74,7 @@ func TestRecapSchedulerWedgedJobMarksRecapFailedAndPublishes(t *testing.T) {
 		}), model.JobStatusInProgress).
 		Return(wedged, nil).
 		Once()
-	mockStore.RecapStore.On("GetRecap", "r1").Return(&model.Recap{Id: "r1", Status: model.RecapStatusProcessing}, nil).Once()
-	mockStore.RecapStore.On("UpdateRecapStatus", "r1", model.RecapStatusFailed).Return(nil).Once()
+	mockStore.RecapStore.On("MarkRecapFailedIfIncomplete", "r1").Return(true, nil).Once()
 	mockApp.On("Publish", recapUpdateMatcher("r1", "u1")).Once()
 	mockStore.RecapStore.
 		On("GetRecapsByStatusOlderThan", model.RecapStatusProcessing, mock.AnythingOfType("int64"), orphanSweepLimit).
@@ -88,7 +87,7 @@ func TestRecapSchedulerWedgedJobMarksRecapFailedAndPublishes(t *testing.T) {
 	mockStore.JobStore.AssertNumberOfCalls(t, "UpdateOptimistically", 1)
 }
 
-func TestRecapSchedulerWedgedJobSkipsTerminalRecap(t *testing.T) {
+func TestRecapSchedulerWedgedJobDoesNotClobberCompletedRecap(t *testing.T) {
 	scheduler, cfg, mockStore, mockApp := makeRecapScheduler(t)
 	stale := model.GetMillis() - (RecapJobWedgedTimeout + time.Minute).Milliseconds()
 	wedged := &model.Job{
@@ -103,7 +102,7 @@ func TestRecapSchedulerWedgedJobSkipsTerminalRecap(t *testing.T) {
 		On("UpdateOptimistically", mock.Anything, model.JobStatusInProgress).
 		Return(wedged, nil).
 		Once()
-	mockStore.RecapStore.On("GetRecap", "r1").Return(&model.Recap{Id: "r1", Status: model.RecapStatusCompleted}, nil).Once()
+	mockStore.RecapStore.On("MarkRecapFailedIfIncomplete", "r1").Return(false, nil).Once()
 	mockStore.RecapStore.
 		On("GetRecapsByStatusOlderThan", model.RecapStatusProcessing, mock.AnythingOfType("int64"), orphanSweepLimit).
 		Return([]*model.Recap{}, nil).
@@ -112,7 +111,6 @@ func TestRecapSchedulerWedgedJobSkipsTerminalRecap(t *testing.T) {
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
-	mockStore.RecapStore.AssertNotCalled(t, "UpdateRecapStatus", mock.Anything, mock.Anything)
 	mockApp.AssertNotCalled(t, "Publish", mock.Anything)
 }
 
@@ -136,13 +134,36 @@ func TestRecapSchedulerOrphanSweepSkipsRecapsWithLiveJobs(t *testing.T) {
 		On("GetByTypeAndData", mock.Anything, model.JobTypeRecap, map[string]string{"recap_id": "b"}, true, model.JobStatusPending, model.JobStatusInProgress).
 		Return([]*model.Job{}, nil).
 		Once()
-	mockStore.RecapStore.On("UpdateRecapStatus", "b", model.RecapStatusFailed).Return(nil).Once()
+	mockStore.RecapStore.On("MarkRecapFailedIfIncomplete", "b").Return(true, nil).Once()
 	mockApp.On("Publish", recapUpdateMatcher("b", "ub")).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
-	mockStore.RecapStore.AssertNotCalled(t, "UpdateRecapStatus", "a", mock.Anything)
+	mockStore.RecapStore.AssertNotCalled(t, "MarkRecapFailedIfIncomplete", "a")
+}
+
+func TestRecapSchedulerOrphanSweepDoesNotClobberCompletedRecap(t *testing.T) {
+	scheduler, cfg, mockStore, mockApp := makeRecapScheduler(t)
+	recap := &model.Recap{Id: "r1", UserId: "u1", Status: model.RecapStatusProcessing}
+	mockStore.JobStore.
+		On("GetAllByTypeAndStatus", mock.Anything, model.JobTypeRecap, model.JobStatusInProgress).
+		Return([]*model.Job{}, nil).
+		Once()
+	mockStore.RecapStore.
+		On("GetRecapsByStatusOlderThan", model.RecapStatusProcessing, mock.AnythingOfType("int64"), orphanSweepLimit).
+		Return([]*model.Recap{recap}, nil).
+		Once()
+	mockStore.JobStore.
+		On("GetByTypeAndData", mock.Anything, model.JobTypeRecap, map[string]string{"recap_id": "r1"}, true, model.JobStatusPending, model.JobStatusInProgress).
+		Return([]*model.Job{}, nil).
+		Once()
+	mockStore.RecapStore.On("MarkRecapFailedIfIncomplete", "r1").Return(false, nil).Once()
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+	mockApp.AssertNotCalled(t, "Publish", mock.Anything)
 }
 
 func TestRecapSchedulerOrphanSweepCutoffAndLimit(t *testing.T) {
