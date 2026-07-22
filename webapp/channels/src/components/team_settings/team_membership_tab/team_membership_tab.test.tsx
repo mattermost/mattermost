@@ -166,6 +166,38 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
+    it('shows advisory auto-add descriptions on a public team', async () => {
+        // baseTeam is public: neither description may promise join-restriction or removal.
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        // Auto-add off (loaded): advisory "recommended, not added automatically"
+        expect(screen.getByText(/shown as recommended but are not added automatically/i)).toBeInTheDocument();
+        expect(screen.queryByText(/will restrict who can join/i)).not.toBeInTheDocument();
+
+        // Auto-add on: advisory "no members are removed"
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
+        expect(screen.getByText(/automatically added as members and shown as recommended. No members are removed/i)).toBeInTheDocument();
+        expect(screen.queryByText(/who no longer match will be removed/i)).not.toBeInTheDocument();
+    });
+
     it('shows system policy indicator when parent policies are applied', async () => {
         const parentPolicy = {
             id: 'parent_policy_id',

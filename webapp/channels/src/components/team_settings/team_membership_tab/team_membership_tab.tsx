@@ -526,6 +526,27 @@ function TeamMembershipTab({
     // a members-affected count that no longer applies.
     const isRemovingAllRules = !expression.trim() && originalExpression.trim() !== '' && systemPolicies.length === 0;
 
+    // Advisory (public) teams neither restrict joining nor remove members, so the
+    // auto-add legend must not promise enforcement.
+    let autoAddDescription: string;
+    if (team.allow_open_invite) {
+        autoAddDescription = autoAddMembers ? formatMessage({
+            id: 'team_settings.membership_tab.auto_add_enabled_description_advisory',
+            defaultMessage: 'Qualifying users are automatically added as members and shown as recommended. No members are removed.',
+        }) : formatMessage({
+            id: 'team_settings.membership_tab.auto_add_disabled_description_advisory',
+            defaultMessage: 'Qualifying users are shown as recommended but are not added automatically. No one is blocked from joining.',
+        });
+    } else {
+        autoAddDescription = autoAddMembers ? formatMessage({
+            id: 'team_settings.membership_tab.auto_add_enabled_description',
+            defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
+        }) : formatMessage({
+            id: 'team_settings.membership_tab.auto_add_disabled_description',
+            defaultMessage: 'Access rules will restrict who can join the team, but qualifying users will not be added automatically.',
+        });
+    }
+
     const removeRulesMessage = (
         <div className='TeamMembershipTab__confirmMessage'>
             <p>
@@ -669,13 +690,7 @@ function TeamMembershipTab({
                     </label>
                 </div>
                 <p className='TeamMembershipTab__autoAddDescription'>
-                    {autoAddMembers ? formatMessage({
-                        id: 'team_settings.membership_tab.auto_add_enabled_description',
-                        defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
-                    }) : formatMessage({
-                        id: 'team_settings.membership_tab.auto_add_disabled_description',
-                        defaultMessage: 'Access rules will restrict who can join the team, but qualifying users will not be added automatically.',
-                    })}
+                    {autoAddDescription}
                 </p>
             </div>
 
