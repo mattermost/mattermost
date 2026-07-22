@@ -24,11 +24,13 @@ import SpinnerButton from 'components/spinner_button';
 import type {ExpiryPreset} from 'components/user_settings/security/user_access_token_section/user_access_token_section';
 import {
     clampExpiresAtToMaxLifetime,
-    endOfLocalDayFromIsoDate,
-    endOfLocalDayPlusDays,
+    defaultCustomExpiryDate,
+    defaultExpiryPreset,
+    getExpiryValidationError,
     isoPlusDays,
+    isExpiryPresetAllowed,
     mapServerErrorIdToMessage,
-    PRESET_DAYS,
+    resolveTokenExpiresAt,
     todayIso,
 } from 'components/user_settings/security/user_access_token_section/user_access_token_section';
 
@@ -151,66 +153,23 @@ export default class AddBot extends React.PureComponent<Props, State> {
     }
 
     defaultCustomExpiryDate = (): string => {
-        const {maxLifetimeDays} = this.props;
-        if (maxLifetimeDays > 0) {
-            return isoPlusDays(Math.max(1, Math.min(30, maxLifetimeDays)));
-        }
-        return isoPlusDays(30);
+        return defaultCustomExpiryDate(this.props.maxLifetimeDays);
     };
 
     isPresetAllowed = (preset: ExpiryPreset): boolean => {
-        const {maxLifetimeDays} = this.props;
-        if (preset === 'none' || preset === 'custom') {
-            return true;
-        }
-        return maxLifetimeDays <= 0 || PRESET_DAYS[preset] <= maxLifetimeDays;
+        return isExpiryPresetAllowed(preset, this.props.maxLifetimeDays);
     };
 
     defaultExpiryPreset = (): ExpiryPreset => {
-        if (this.props.maxLifetimeDays <= 0) {
-            return 'none';
-        }
-        const presets: ExpiryPreset[] = ['30d', '7d'];
-        for (const preset of presets) {
-            if (this.isPresetAllowed(preset)) {
-                return preset;
-            }
-        }
-        return 'custom';
+        return defaultExpiryPreset(this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
     };
 
     resolveExpiresAt = (): number => {
-        if (this.state.expiryPreset === 'none') {
-            return 0;
-        }
-        if (this.state.expiryPreset === 'custom') {
-            return endOfLocalDayFromIsoDate(this.state.customExpiryDate);
-        }
-        return endOfLocalDayPlusDays(PRESET_DAYS[this.state.expiryPreset]);
+        return resolveTokenExpiresAt(this.state.expiryPreset, this.state.customExpiryDate);
     };
 
     getExpiryValidationError = (): React.ReactNode | null => {
-        if (this.props.bot) {
-            return null;
-        }
-
-        const expiresAt = this.resolveExpiresAt();
-        if (this.state.expiryPreset === 'custom' && expiresAt <= 0) {
-            return mapServerErrorIdToMessage('expires_at_required');
-        }
-        if (this.props.maxLifetimeDays > 0 && expiresAt <= 0) {
-            return mapServerErrorIdToMessage('expires_at_required');
-        }
-        if (expiresAt > 0 && expiresAt <= Date.now()) {
-            return mapServerErrorIdToMessage('expires_at_in_past');
-        }
-        if (expiresAt > 0 && this.props.maxLifetimeDays > 0) {
-            const maxAllowed = endOfLocalDayPlusDays(this.props.maxLifetimeDays);
-            if (expiresAt > maxAllowed) {
-                return mapServerErrorIdToMessage('expires_at_too_far', this.props.maxLifetimeDays);
-            }
-        }
-        return null;
+        return getExpiryValidationError(this.state.expiryPreset, this.state.customExpiryDate, this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0, !this.props.bot);
     };
 
     updateExpiryPreset = (e: ChangeEvent<HTMLSelectElement>) => {

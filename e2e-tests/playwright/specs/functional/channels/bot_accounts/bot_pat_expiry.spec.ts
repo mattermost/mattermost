@@ -6,9 +6,12 @@ import type {Page} from '@playwright/test';
 import {expect, test} from '@mattermost/playwright-lib';
 
 async function dismissWebpackOverlay(page: Page) {
-    await page.locator('#webpack-dev-server-client-overlay').evaluateAll((nodes) => {
-        nodes.forEach((node) => node.remove());
-    }).catch(() => null);
+    await page
+        .locator('#webpack-dev-server-client-overlay')
+        .evaluateAll((nodes) => {
+            nodes.forEach((node) => node.remove());
+        })
+        .catch(() => null);
 }
 
 test.describe('Bot account personal access token expiry @bot_accounts @personal_access_tokens', () => {
@@ -49,7 +52,9 @@ test.describe('Bot account personal access token expiry @bot_accounts @personal_
         await expect(defaultTokenExpiry.locator('option', {hasText: 'No expiry'})).toHaveCount(0);
         await expect(defaultTokenExpiry.locator('option', {hasText: '30 days'})).toHaveCount(1);
         await expect(defaultTokenExpiry.locator('option', {hasText: '90 days'})).toHaveCount(0);
-        await expect(page.getByText('Your administrator requires all personal access tokens to have an expiry date.')).toBeVisible();
+        await expect(
+            page.getByText('Your administrator requires all personal access tokens to have an expiry date.'),
+        ).toBeVisible();
 
         await page.locator('#saveBot').click();
         await page.waitForURL(/\/integrations\/confirm\?type=bots/);
@@ -71,7 +76,9 @@ test.describe('Bot account personal access token expiry @bot_accounts @personal_
         const confirmModal = page.locator('#confirmModal');
         await expect(confirmModal.getByText('Regenerate Token?')).toBeVisible();
         await expect(confirmModal.locator('#regenerateBotTokenExpiry')).toBeVisible();
-        await expect(confirmModal.locator('#regenerateBotTokenExpiry').locator('option', {hasText: 'No expiry'})).toHaveCount(0);
+        await expect(
+            confirmModal.locator('#regenerateBotTokenExpiry').locator('option', {hasText: 'No expiry'}),
+        ).toHaveCount(0);
         await confirmModal.getByRole('button', {name: 'Yes, Regenerate'}).click();
 
         // * The rotated secret is revealed using the same one-time-copy pattern.

@@ -85,6 +85,45 @@ export function isoPlusDays(days: number): string {
     return `${d.getFullYear()}-${m}-${day}`;
 }
 
+export function defaultCustomExpiryDate(maxLifetimeDays: number): string {
+    if (maxLifetimeDays > 0) {
+        return isoPlusDays(Math.max(1, Math.min(30, maxLifetimeDays)));
+    }
+    return isoPlusDays(30);
+}
+
+export function isExpiryPresetAllowed(preset: ExpiryPreset, maxLifetimeDays: number): boolean {
+    if (preset === 'none' || preset === 'custom') {
+        return true;
+    }
+    return maxLifetimeDays <= 0 || PRESET_DAYS[preset] <= maxLifetimeDays;
+}
+
+export function defaultExpiryPreset(maxLifetimeDays: number, enforceExpiry: boolean): ExpiryPreset {
+    // A configured maximum lifetime (> 0) implies tokens must expire, so the
+    // "No expiry" option is not offered and a bounded preset is the default.
+    if (!enforceExpiry) {
+        return 'none';
+    }
+    const presets: ExpiryPreset[] = ['30d', '7d'];
+    for (const p of presets) {
+        if (isExpiryPresetAllowed(p, maxLifetimeDays)) {
+            return p;
+        }
+    }
+    return 'custom';
+}
+
+export function resolveTokenExpiresAt(expiryPreset: ExpiryPreset, customExpiryDate: string, allowExpiry = true): number {
+    if (!allowExpiry || expiryPreset === 'none') {
+        return 0;
+    }
+    if (expiryPreset === 'custom') {
+        return endOfLocalDayFromIsoDate(customExpiryDate);
+    }
+    return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
+}
+
 export type TokenStatus = 'active' | 'expired' | 'inactive';
 
 export function deriveTokenStatus(token: {is_active: boolean; expires_at?: number}): TokenStatus {
@@ -127,6 +166,30 @@ export function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): R
     default:
         return null;
     }
+}
+
+export function getExpiryValidationError(expiryPreset: ExpiryPreset, customExpiryDate: string, maxLifetimeDays: number, enforceExpiry: boolean, allowExpiry = true): React.ReactNode | null {
+    if (!allowExpiry) {
+        return null;
+    }
+
+    const expiresAt = resolveTokenExpiresAt(expiryPreset, customExpiryDate);
+    if (expiryPreset === 'custom' && expiresAt <= 0) {
+        return mapServerErrorIdToMessage('expires_at_required');
+    }
+    if (enforceExpiry && expiresAt <= 0) {
+        return mapServerErrorIdToMessage('expires_at_required');
+    }
+    if (expiresAt > 0 && expiresAt <= Date.now()) {
+        return mapServerErrorIdToMessage('expires_at_in_past');
+    }
+    if (expiresAt > 0 && maxLifetimeDays > 0) {
+        const maxAllowed = endOfLocalDayPlusDays(maxLifetimeDays);
+        if (expiresAt > maxAllowed) {
+            return mapServerErrorIdToMessage('expires_at_too_far', maxLifetimeDays);
+        }
+    }
+    return null;
 }
 
 type OwnProps = {
@@ -220,47 +283,22 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     }
 
     defaultCustomExpiryDate = (): string => {
-        const {maxLifetimeDays} = this.props;
-        if (maxLifetimeDays > 0) {
-            return isoPlusDays(Math.max(1, Math.min(30, maxLifetimeDays)));
-        }
-        return isoPlusDays(30);
+        return defaultCustomExpiryDate(this.props.maxLifetimeDays);
     };
 
     defaultExpiryPreset = (): ExpiryPreset => {
-        // A configured maximum lifetime (> 0) implies tokens must expire, so the
-        // "No expiry" option is not offered and a bounded preset is the default.
-        if (this.props.maxLifetimeDays <= 0) {
-            return 'none';
-        }
-        const presets: ExpiryPreset[] = ['30d', '7d'];
-        for (const p of presets) {
-            if (this.isPresetAllowed(p)) {
-                return p;
-            }
-        }
-        return 'custom';
+        return defaultExpiryPreset(this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
     };
 
     isPresetAllowed = (preset: ExpiryPreset): boolean => {
-        const {maxLifetimeDays} = this.props;
-        if (preset === 'none' || preset === 'custom') {
-            return true;
-        }
-        return maxLifetimeDays <= 0 || PRESET_DAYS[preset] <= maxLifetimeDays;
+        return isExpiryPresetAllowed(preset, this.props.maxLifetimeDays);
     };
 
     // Both the token-creation form and the regenerate-confirmation flow have their
     // own expiry preset/custom-date state, so these accept the selection explicitly
     // and default to the create form's state for the create call sites.
     resolveExpiresAt = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): number => {
-        if (expiryPreset === 'none') {
-            return 0;
-        }
-        if (expiryPreset === 'custom') {
-            return endOfLocalDayFromIsoDate(customExpiryDate);
-        }
-        return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
+        return resolveTokenExpiresAt(expiryPreset, customExpiryDate);
     };
 
     // Validates the given expiry selection and returns a localized error message,
@@ -268,26 +306,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     // button and surface the error inline (so the user sees it without clicking
     // through the confirmation flow) and as the guard in handleCreateToken.
     getExpiryValidationError = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): React.ReactNode | null => {
-        const {maxLifetimeDays} = this.props;
-        const enforceExpiry = maxLifetimeDays > 0;
-        const expiresAt = this.resolveExpiresAt(expiryPreset, customExpiryDate);
-
-        if (expiryPreset === 'custom' && expiresAt <= 0) {
-            return mapServerErrorIdToMessage('expires_at_required');
-        }
-        if (enforceExpiry && expiresAt <= 0) {
-            return mapServerErrorIdToMessage('expires_at_required');
-        }
-        if (expiresAt > 0 && expiresAt <= Date.now()) {
-            return mapServerErrorIdToMessage('expires_at_in_past');
-        }
-        if (expiresAt > 0 && maxLifetimeDays > 0) {
-            const maxAllowed = endOfLocalDayPlusDays(maxLifetimeDays);
-            if (expiresAt > maxAllowed) {
-                return mapServerErrorIdToMessage('expires_at_too_far', maxLifetimeDays);
-            }
-        }
-        return null;
+        return getExpiryValidationError(expiryPreset, customExpiryDate, this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
     };
 
     // Shared expiry picker JSX used by both the create-token form and the
