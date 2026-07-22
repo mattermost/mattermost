@@ -544,6 +544,29 @@ function TeamMembershipTab({
         </div>
     );
 
+    // Advisory (public) teams never block or remove, so the strict "will have access"
+    // / "may be affected" framing would misrepresent the change. Show the match count
+    // with advisory framing instead.
+    const advisoryConfirmMessage = (
+        <div className='TeamMembershipTab__confirmMessage'>
+            <p>
+                <FormattedMessage
+                    id='team_settings.membership_tab.confirm.advisory_note'
+                    defaultMessage='This team is public, so these rules are advisory: no one is blocked or removed. Qualifying users can be auto-added and are shown as recommended.'
+                />
+            </p>
+            {allowedCount !== null && (
+                <p>
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.advisory_allowed_count'
+                        defaultMessage='{count} {count, plural, one {user matches} other {users match}} the current rules.'
+                        values={{count: allowedCount}}
+                    />
+                </p>
+            )}
+        </div>
+    );
+
     const confirmMessage = (
         <div className='TeamMembershipTab__confirmMessage'>
             {allowedCount !== null && (
@@ -734,7 +757,7 @@ function TeamMembershipTab({
                         defaultMessage='Save team membership rules?'
                     />
                 )}
-                message={isRemovingAllRules ? removeRulesMessage : confirmMessage}
+                message={isRemovingAllRules ? removeRulesMessage : (team.allow_open_invite ? advisoryConfirmMessage : confirmMessage)}
                 confirmButtonText={
                     isProcessingSave ? (
                         <FormattedMessage

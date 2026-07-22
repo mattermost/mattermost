@@ -439,8 +439,13 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
         // * No self-exclusion block — the save proceeds to the normal confirmation
-        await expect(page.getByText('Save team membership rules?')).toBeVisible({timeout: 15000});
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Save team membership rules?'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
         await expect(page.getByText('Cannot save access rules')).not.toBeVisible();
+
+        // * Confirmation uses advisory copy (no block/removal claims) on a public team
+        await expect(confirmModal.getByText(/these rules are advisory: no one is blocked or removed/i)).toBeVisible();
+        await expect(confirmModal.getByText(/may be affected/i)).toHaveCount(0);
 
         await teamSettings.close();
     });

@@ -5,8 +5,8 @@ import nock from 'nock';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
-import * as AccessControlActions from 'mattermost-redux/actions/access_control';
 import {AdminTypes} from 'mattermost-redux/action_types';
+import * as AccessControlActions from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';

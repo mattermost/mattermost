@@ -7044,6 +7044,8 @@
   "team_settings.membership_tab.auto_add": "Auto-add members based on access rules",
   "team_settings.membership_tab.auto_add_disabled_description": "Access rules will restrict who can join the team, but qualifying users will not be added automatically.",
   "team_settings.membership_tab.auto_add_enabled_description": "Qualifying users are automatically added as members, and members who no longer match will be removed.",
+  "team_settings.membership_tab.confirm.advisory_allowed_count": "{count} {count, plural, one {user matches} other {users match}} the current rules.",
+  "team_settings.membership_tab.confirm.advisory_note": "This team is public, so these rules are advisory: no one is blocked or removed. Qualifying users can be auto-added and are shown as recommended.",
   "team_settings.membership_tab.confirm.allowed_count": "{count} {count, plural, one {user matches} other {users match}} the current rules and will have access.",
   "team_settings.membership_tab.confirm.cancel": "Cancel",
   "team_settings.membership_tab.confirm.empty_team_warning": "Warning: No users match these rules. Saving will result in an empty private team.",

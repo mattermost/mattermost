@@ -507,6 +507,27 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
+    it('shows advisory confirmation copy on a public team, not the strict impact wording', async () => {
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 3}});
+
+        // baseTeam is public: the confirmation must clarify the advisory nature and
+        // must NOT claim members will be granted access or affected/removed.
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/these rules are advisory: no one is blocked or removed/i)).toBeInTheDocument();
+        });
+        expect(screen.queryByText(/will have access/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/may be affected/i)).not.toBeInTheDocument();
+    });
+
     it('combines the custom rule with the system policy expression when computing confirm counts', async () => {
         // The team has a system/parent policy applied plus a custom rule added in the
         // editor. The confirm count must simulate the SAME expression the sync enforces:
