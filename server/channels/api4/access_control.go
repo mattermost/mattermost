@@ -94,11 +94,14 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
+	// Sysadmin is allowed in every policy-type case; compute the check once and
+	// reuse it. Each case layers its own non-sysadmin fallback on top.
+	hasManageSystem := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
 	switch policy.Type {
 	case model.AccessControlPolicyTypeParent:
-		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 		teamID := r.URL.Query().Get("team_id")
-		if !hasSystemPermission {
+		if !hasManageSystem {
 			if teamID == "" || !model.IsValidId(teamID) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -124,7 +127,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		// override from the authenticated query param so a crafted request cannot assign
 		// the policy to a different team. For system admins, inject only when the body
 		// did not supply scope (preserves the existing sysadmin-sets-scope-explicitly path).
-		if !hasSystemPermission {
+		if !hasManageSystem {
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
 		} else if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
@@ -132,15 +135,12 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			policy.ScopeID = teamID
 		}
 	case model.AccessControlPolicyTypePermission:
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		if !hasManageSystem {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	case model.AccessControlPolicyTypeChannel:
-		// Check if user has system admin permission first
-		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
-		if !hasManageSystemPermission {
+		if !hasManageSystem {
 			// For non-system admins, check channel-specific permission
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
@@ -166,7 +166,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	case model.AccessControlPolicyTypeTeam:
 		// Team-type policies are keyed by the team ID, so policy.ID is the team.
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		if !hasManageSystem {
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
 				return
