@@ -619,6 +619,50 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
+    test('surfaces a delete failure instead of clearing enforcement silently', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.office == "Home"'}],
+                    active: true,
+                },
+                enforced: true,
+            },
+        });
+
+        // deleteAccessControlPolicy resolves with {error} (it never throws), so the
+        // save must inspect the result and surface the failure.
+        const deleteAccessControlPolicy = jest.fn().mockResolvedValue({error: {message: 'server exploded'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                deleteAccessControlPolicy,
+                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('clear-rule-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(deleteAccessControlPolicy).toHaveBeenCalledWith('123');
+            expect(screen.getByText('server exploded')).toBeInTheDocument();
+        });
+    });
+
     test('surfaces a policy action error on save instead of silently succeeding', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
@@ -852,6 +896,60 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         );
         expect(screen.getByText(/1 member does not currently meet the criteria/)).toBeInTheDocument();
         expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+    });
+
+    test('pages through all team members so counts are correct past the first page', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                id: 'parent1',
+                name: 'Engineering Policy',
+                type: 'parent',
+                rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+            },
+        });
+
+        // 250 members across two pages; only the first 200 match the rule. Without
+        // pagination the second page (50 non-matching members) would be missed.
+        const page0 = Array.from({length: 200}, (_, i) => ({user_id: `u${i}`}));
+        const page1 = Array.from({length: 50}, (_, i) => ({user_id: `m${i}`}));
+        const searchUsersForExpression = jest.fn().mockResolvedValue({
+            data: {users: page0.map((member) => ({id: member.user_id}))},
+        });
+        const getTeamMembers = jest.fn().
+            mockResolvedValueOnce({data: page0}).
+            mockResolvedValueOnce({data: page1});
+
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                searchUsersForExpression,
+                getTeamMembers,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+
+        // Both pages were fetched, and the 50 second-page members count as affected.
+        expect(getTeamMembers).toHaveBeenCalledTimes(2);
+        expect(screen.getByText(/50 members do not currently meet the criteria/)).toBeInTheDocument();
     });
 
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {

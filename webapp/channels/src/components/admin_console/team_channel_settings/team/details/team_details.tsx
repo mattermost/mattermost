@@ -596,7 +596,15 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             const isEmptyAbacState = policyEnforced && !hasTeamRules && !hasParentPolicies;
             if (isEmptyAbacState) {
                 try {
-                    await actions.deleteAccessControlPolicy(teamID);
+                    // deleteAccessControlPolicy resolves with {error} on failure rather
+                    // than throwing, so inspect the result; the catch only covers an
+                    // unexpected throw. A "not found" policy is benign (already gone).
+                    const result = await actions.deleteAccessControlPolicy(teamID);
+                    const message = (result?.error as {message?: string} | undefined)?.message ?? '';
+                    if (message && !message.includes('not found')) {
+                        serverError = <FormError error={message}/>;
+                        saveNeeded = true;
+                    }
                 } catch (deleteError) {
                     const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
                     if (message && !message.includes('not found')) {
@@ -873,15 +881,26 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     // to a team, so match against all users and intersect with the team's
                     // current members. Counting matches within the team directly (a
                     // team-scoped .total) undercounts qualifying members to zero.
-                    const [matchResult, membersResult] = await Promise.all([
-                        this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000),
-                        this.props.actions.getTeamMembers(this.props.teamID, 0, 200),
-                    ]);
+                    const matchResult = await this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000);
                     const matchingUserIds = new Set(
                         ((matchResult?.data as {users?: Array<{id: string}>} | null)?.users ?? []).map((u) => u.id),
                     );
-                    const currentMemberIds = ((membersResult?.data as Array<{user_id: string}> | null) ?? []).
-                        map((m) => m.user_id);
+
+                    // Page through every member — a single 200-row page would undercount
+                    // both totals on teams larger than that.
+                    const perPage = 200;
+                    const currentMemberIds: string[] = [];
+                    for (let page = 0; ; page++) {
+                        // eslint-disable-next-line no-await-in-loop
+                        const membersResult = await this.props.actions.getTeamMembers(this.props.teamID, page, perPage);
+                        const batch = (membersResult?.data as Array<{user_id: string}> | null) ?? [];
+                        for (const member of batch) {
+                            currentMemberIds.push(member.user_id);
+                        }
+                        if (batch.length < perPage) {
+                            break;
+                        }
+                    }
                     qualifyingCount = currentMemberIds.filter((id) => matchingUserIds.has(id)).length;
                     affectedCount = currentMemberIds.length - qualifyingCount;
                 } else {
