@@ -286,6 +286,13 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
         const firstDisplayName = `Aardvark E2E Sort Attribute ${timestamp}`;
         const secondDisplayName = `Zebra E2E Sort Attribute ${timestamp}`;
 
+        // No display_name set — the rendered (and sorted-by) value falls back to this
+        // internal name directly. Chosen to alphabetically land between the two display
+        // names above, so its position in the rendered order proves the fallback value
+        // participates in sorting correctly alongside explicit display names, not just
+        // in isolation (the unit tests already cover the fallback alone).
+        const thirdName = `mmm_e2e_sort_fallback_${timestamp}`;
+
         await createGlobalAttributeField(adminClient, firstName, {
             type: 'text',
             attrs: {display_name: firstDisplayName},
@@ -294,6 +301,10 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
             type: 'text',
             attrs: {display_name: secondDisplayName},
         });
+        await createGlobalAttributeField(adminClient, thirdName, {
+            type: 'text',
+            attrs: {},
+        });
 
         try {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -301,17 +312,27 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
 
             await systemConsolePage.page.getByTestId('global-attribute-name').getByText(firstDisplayName).waitFor();
 
-            // * Rendered order follows the displayed Attribute value (Aardvark before Zebra),
-            // not the internal name (which would put "aaa_..." first if sorted that way)
+            // * The fallback field renders under its internal name, since no display_name was set
+            await expect(
+                systemConsolePage.page.getByTestId('global-attribute-name').getByText(thirdName),
+            ).toBeVisible();
+
+            // * Rendered order follows the displayed Attribute value (Aardvark, then the
+            // fallback name, then Zebra) — not the internal name (which would put "aaa_..."
+            // first if sorted that way)
             const names = await systemConsolePage.page.getByTestId('global-attribute-name').allTextContents();
             const firstIndex = names.indexOf(firstDisplayName);
+            const thirdIndex = names.indexOf(thirdName);
             const secondIndex = names.indexOf(secondDisplayName);
             expect(firstIndex).toBeGreaterThanOrEqual(0);
+            expect(thirdIndex).toBeGreaterThanOrEqual(0);
             expect(secondIndex).toBeGreaterThanOrEqual(0);
-            expect(firstIndex).toBeLessThan(secondIndex);
+            expect(firstIndex).toBeLessThan(thirdIndex);
+            expect(thirdIndex).toBeLessThan(secondIndex);
         } finally {
             await deleteGlobalAttributeFieldIfExists(adminClient, firstName);
             await deleteGlobalAttributeFieldIfExists(adminClient, secondName);
+            await deleteGlobalAttributeFieldIfExists(adminClient, thirdName);
         }
     });
 });
