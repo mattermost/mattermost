@@ -17,6 +17,3 @@ This repository has a checked-in Cloud Agent environment under `.cursor/`. Docke
 
 The environment declares `mattermost/enterprise` as a Cursor multi-repo dependency. Cursor clones the repositories as siblings, so `server/Makefile` can use its default `../../enterprise` path; the install hook does not clone or symlink enterprise.
 
-## Store Layer Context Rule
-
-In the store layer, do not use `context.Context` in store method signatures. Use `request.CTX` and only call `rctx.Context()` inside internals that require a standard `context.Context`.
