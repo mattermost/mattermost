@@ -4,6 +4,7 @@
 import {Client4} from '@mattermost/client';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
+import type {PartialExcept} from '@mattermost/types/utilities';
 
 import {createRandomChannel} from './channel';
 import {createNewUserProfile} from './user';
@@ -46,5 +47,12 @@ export class PlaywrightClient4 extends Client4 {
             users.push(user);
         }
         return users;
+    }
+
+    async createTestPost(override: PartialExcept<Post, 'channel_id'>) {
+        return this.createPost({
+            message: 'test post',
+            ...override,
+        });
     }
 }
