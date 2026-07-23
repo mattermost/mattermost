@@ -18,6 +18,84 @@
     }
 }
 
+.radio-setting__clear {
+    display: block;
+    margin-top: 4px;
+    padding-left: 0;
+}
+
+// Interactive dialog inline choices (radio, bool, checkbox_group).
+// Bootstrap positions checkbox/radio inputs with absolute + negative margin,
+// assuming the input precedes label text. Override for label_position support.
+.inline-choice-setting {
+    fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        min-width: 0;
+    }
+
+    .checkbox,
+    .radio {
+        margin-top: 8px;
+
+        &:first-child {
+            margin-top: 0;
+        }
+
+        label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: unset;
+            margin-bottom: 0;
+            padding-left: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        input[type='checkbox'],
+        input[type='radio'] {
+            position: static;
+            float: none;
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+    }
+
+    &__text {
+        line-height: 20px;
+    }
+}
+
+.checkbox-matrix {
+    width: 100%;
+    margin-top: 8px;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 8px 12px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    th[scope='row'] {
+        text-align: left;
+        font-weight: 600;
+    }
+
+    &__corner {
+        border: none;
+    }
+
+    thead th {
+        font-weight: 600;
+    }
+}
+
 .form-group {
     max-width: 100%;
 

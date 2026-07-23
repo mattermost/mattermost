@@ -172,11 +172,84 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
     } else if (type === 'radio') {
         const options = elem.options;
 
-        if (typeof value !== 'undefined' && Array.isArray(options) && !options.some((e) => e.value === value)) {
+        // Only validate the option when a value is actually selected. An empty
+        // (unselected) radio is handled by the required check above; a required
+        // one already errored, and an optional one must be allowed through —
+        // otherwise a null value fails "valid option" and blocks the form.
+        if (!isEmpty && Array.isArray(options) && !options.some((e) => e.value === value)) {
             return defineMessage({
                 id: 'interactive_dialog.error.invalid_option',
                 defaultMessage: 'Must be a valid option',
             });
+        }
+    } else if (type === 'checkbox_group') {
+        if (value !== undefined && value !== null && !Array.isArray(value)) {
+            return defineMessage({
+                id: 'interactive_dialog.error.invalid_format',
+                defaultMessage: 'Must be a list of options',
+            });
+        }
+        if (Array.isArray(value) && value.length > 0 && elem.options) {
+            for (const selected of value) {
+                if (!elem.options.some((opt) => opt.value === selected)) {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_option',
+                        defaultMessage: 'Must be a valid option',
+                    });
+                }
+            }
+        }
+    } else if (type === 'checkbox_matrix') {
+        if (Array.isArray(value) && value.length > 0 && elem.matrix_config) {
+            const rowValues = new Set(elem.matrix_config.rows?.map((row) => row.value) || []);
+            const columnValues = new Set(elem.matrix_config.columns?.map((col) => col.value) || []);
+            const rowSelection = elem.matrix_config.row_selection || 'multiple';
+            const seenRows = new Set<string>();
+            for (const entry of value) {
+                if (typeof entry !== 'string') {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_format',
+                        defaultMessage: 'Invalid matrix selection format',
+                    });
+                }
+                const colonIndex = entry.indexOf(':');
+                if (colonIndex <= 0) {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_format',
+                        defaultMessage: 'Invalid matrix selection format',
+                    });
+                }
+                const rowValue = entry.slice(0, colonIndex);
+                const columnsPart = entry.slice(colonIndex + 1);
+                if (!rowValues.has(rowValue) || seenRows.has(rowValue)) {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_format',
+                        defaultMessage: 'Invalid matrix selection format',
+                    });
+                }
+                seenRows.add(rowValue);
+                const columns = columnsPart.split(',').map((col) => col.trim()).filter(Boolean);
+                if (columns.length === 0) {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_format',
+                        defaultMessage: 'Invalid matrix selection format',
+                    });
+                }
+                if (rowSelection === 'single' && columns.length > 1) {
+                    return defineMessage({
+                        id: 'interactive_dialog.error.invalid_format',
+                        defaultMessage: 'Invalid matrix selection format',
+                    });
+                }
+                for (const col of columns) {
+                    if (!columnValues.has(col)) {
+                        return defineMessage({
+                            id: 'interactive_dialog.error.invalid_format',
+                            defaultMessage: 'Invalid matrix selection format',
+                        });
+                    }
+                }
+            }
         }
     } else if (type === 'date' || type === 'datetime') {
         // Validate date/datetime format and range constraints

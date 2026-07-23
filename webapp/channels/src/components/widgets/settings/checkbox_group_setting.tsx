@@ -3,7 +3,6 @@
 
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import Setting from './setting';
 
@@ -11,17 +10,16 @@ type Props = {
     id: string;
     options?: Array<{text: string; value: string}>;
     label: React.ReactNode;
-    onChange(name: string, value: any): void;
-    value?: string | null;
+    onChange(name: string, value: string[]): void;
+    value?: string[];
     labelClassName?: string;
     inputClassName?: string;
     helpText?: React.ReactNode;
     labelPosition?: 'before' | 'after';
-    isOptional?: boolean;
     disabled?: boolean;
 };
 
-const RadioSetting = ({
+const CheckboxGroupSetting = ({
     labelClassName = '',
     inputClassName = '',
     options = [],
@@ -31,19 +29,24 @@ const RadioSetting = ({
     helpText,
     value,
     labelPosition = 'after',
-    isOptional = false,
     disabled,
 }: Props) => {
+    const selected = value || [];
+
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
-        onChange(id, e.target.value);
-    }, [onChange, id]);
+        const optionValue = e.target.value;
+        const checked = e.target.checked;
 
-    const handleClear = useCallback(() => {
-        onChange(id, null);
-    }, [onChange, id]);
-
-    const selectedValue = value ?? '';
-    const showClear = isOptional && selectedValue !== '';
+        // Read the current selection from `value` inside the callback rather than
+        // depending on the derived `selected` array, which is a fresh `value || []`
+        // on every render and would defeat the memoization (a new callback each
+        // render). Depending on `value` keeps the callback stable across renders.
+        const current = value || [];
+        const next = checked ?
+            [...current, optionValue] :
+            current.filter((v) => v !== optionValue);
+        onChange(id, next);
+    }, [onChange, id, value]);
 
     return (
         <Setting
@@ -53,22 +56,23 @@ const RadioSetting = ({
             helpText={helpText}
             inputId={id}
         >
-            {
-                options.map(({value: option, text}) => {
-                    return (
+            <fieldset>
+                <legend className='form-legend hidden-label'>{label}</legend>
+                {
+                    options.map(({value: optionValue, text}) => (
                         <div
-                            className='radio'
-                            key={option}
+                            className='checkbox'
+                            key={optionValue}
                         >
                             <label>
                                 {labelPosition === 'before' && (
                                     <span className='inline-choice-setting__text'>{text}</span>
                                 )}
                                 <input
-                                    type='radio'
-                                    value={option}
+                                    type='checkbox'
+                                    value={optionValue}
                                     name={id}
-                                    checked={option === selectedValue}
+                                    checked={selected.includes(optionValue)}
                                     onChange={handleChange}
                                     disabled={disabled}
                                 />
@@ -77,23 +81,11 @@ const RadioSetting = ({
                                 )}
                             </label>
                         </div>
-                    );
-                })
-            }
-            {showClear && (
-                <button
-                    type='button'
-                    className='btn btn-link btn-sm radio-setting__clear'
-                    onClick={handleClear}
-                >
-                    <FormattedMessage
-                        id='interactive_dialog.radio.clear'
-                        defaultMessage='Clear selection'
-                    />
-                </button>
-            )}
+                    ))
+                }
+            </fieldset>
         </Setting>
     );
 };
 
-export default memo(RadioSetting);
+export default memo(CheckboxGroupSetting);

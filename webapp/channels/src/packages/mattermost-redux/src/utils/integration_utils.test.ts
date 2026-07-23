@@ -67,6 +67,15 @@ describe('integration utils', () => {
 
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'radio', options: [{text: '', value: null}]}), 'Sale')!.id).toBe('interactive_dialog.error.invalid_option');
         });
+
+        it('should not flag an unselected optional radio as an invalid option', () => {
+            // Regression: fieldsAsElements now populates options for radio fields,
+            // so an unselected (null) optional radio must skip the option check
+            // instead of failing "valid option" and blocking the whole form.
+            const optionalRadio = TestHelper.getDialogElementMock({type: 'radio', optional: true, options: [{text: 'Sales', value: 'Sales'}]});
+            expect(checkDialogElementForError(optionalRadio, null)).toBe(null);
+            expect(checkDialogElementForError(optionalRadio, undefined)).toBe(null);
+        });
     });
 
     describe('checkIfErrorsMatchElements', () => {
