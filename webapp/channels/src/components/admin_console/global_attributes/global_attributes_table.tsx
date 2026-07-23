@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
+import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -179,7 +180,7 @@ function AttributeCell({field, groupId, classificationMarkingsReachable}: Classi
     return (
         <span className='GlobalAttributesTable__attribute'>
             <span
-                className={isClassificationRow ? 'GlobalAttributesTable__name GlobalAttributesTable__name--classification' : 'GlobalAttributesTable__name'}
+                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
                 data-testid='global-attribute-name'
             >
                 {getDisplayName(field)}
