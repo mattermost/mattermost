@@ -1,35 +1,36 @@
 .table-editor {
     margin-bottom: 24px;
 
-    // The bordered controls are the structure (mockup fidelity): a faint outer
-    // border wraps the header labels, rows, and add-attribute button, with no
-    // header fill and no row dividers.
-    &__grid {
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    &__table {
+        width: 100%;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
+        border-collapse: collapse;
     }
 
-    // Header labels and each row share one column template so the labels sit
-    // directly above their controls.
-    &__head,
-    &__row {
-        display: grid;
-        align-items: center;
+    th {
         padding: 8px 12px;
-        gap: 10px;
-        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 2.2fr) 40px;
-    }
-
-    &__column-header {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
         color: var(--center-channel-color-72);
         font-size: 12px;
         font-weight: 600;
+        text-align: left;
     }
 
-    &__cell-actions {
-        display: flex;
-        justify-content: flex-end;
+    td {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        vertical-align: middle;
     }
+
+    .table-editor__column-header-value {
+        padding-inline: 10px;
+    }
+
+    // Set column widths
+    th:nth-child(2), td:nth-child(2) { width: 20%; }
+    th:nth-child(3), td:nth-child(3) { width: 50%; }
+    th:nth-child(4), td:nth-child(4) { width: 30px; text-align: right; }
 
     &__blank-state {
         padding: 16px;

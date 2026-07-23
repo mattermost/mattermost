@@ -7,7 +7,7 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckAllIcon, CheckIcon, ChevronDownIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -114,7 +114,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
         <Menu.Container
             menuButton={{
                 id: 'operator-selector-button',
-                class: classNames('btn field-selector-menu-button', {
+                class: classNames('btn btn-transparent field-selector-menu-button', {
                     disabled,
                 }),
                 children: (
@@ -123,14 +123,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                             size={18}
                             color='rgba(var(--center-channel-color-rgb), 0.64)'
                         />
-                        <span className='field-selector-menu-button__label'>
-                            <FormattedMessage {...currentOperatorDescriptor.label}/>
-                        </span>
-                        <ChevronDownIcon
-                            className='field-selector-menu-button__caret'
-                            size={16}
-                            color='rgba(var(--center-channel-color-rgb), 0.5)'
-                        />
+                        <FormattedMessage {...currentOperatorDescriptor.label}/>
                     </>
                 ),
                 dataTestId: 'operatorSelectorMenuButton',

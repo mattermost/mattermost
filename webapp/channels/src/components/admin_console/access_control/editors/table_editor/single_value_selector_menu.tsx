@@ -176,7 +176,7 @@ const SingleValueSelector = ({
             <Menu.Container
                 menuButton={{
                     id: 'value-selector-button',
-                    class: classNames('btn field-selector-menu-button', {
+                    class: classNames('btn btn-transparent field-selector-menu-button', {
                         disabled,
                     }),
                     children: (

@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {CheckIcon, CodeBracketsIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
@@ -72,19 +71,13 @@ export function channelAttributeMenuItems(
 }
 
 // The button label shown when the row compares against a channel attribute
-// (target mode): a monospace "[] Channel: X" token, mirroring the mockup's
-// variable chip. The bracket glyph marks it as a channel-attribute reference
-// (as opposed to a literal value). Rendered as the first child of the button's
-// inner wrapper, next to the chevron.
+// (target mode): the field's icon plus its display label. Rendered as the
+// first child of the button's inner wrapper, next to the chevron.
 export function SelectedChannelAttributeLabel({field, fallbackName}: {field?: UserPropertyField; fallbackName: string}): JSX.Element {
     return (
         <span className='value-selector-menu-button__target-label'>
-            <CodeBracketsIcon size={12}/>
-            <FormattedMessage
-                id='admin.access_control.table_editor.rhs.channel_target_label'
-                defaultMessage='Channel: {name}'
-                values={{name: field ? getUserPropertyFieldLabel(field) : fallbackName}}
-            />
+            <AttributeIcon attribute={field}/>
+            {field ? getUserPropertyFieldLabel(field) : fallbackName}
         </span>
     );
 }

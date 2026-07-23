@@ -3,27 +3,20 @@
     overflow-y: auto;
 }
 
-// Attribute / operator / value triggers render as discrete bordered input
-// boxes (mockup fidelity) rather than borderless menu buttons in a grid.
 .field-selector-menu-button {
     width: 100%;
-    height: 34px;
+    height: 40px;
     justify-content: start;
-    padding: 0 10px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    font-size: 12px;
+    border: none;
     font-weight: normal;
-
+    
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
-
+    
     &:focus,
     &[aria-expanded="true"] {
-        border-color: var(--button-bg);
-        background: var(--center-channel-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
     }
 
     &.disabled {
@@ -31,37 +24,18 @@
         opacity: 0.6;
     }
 
-    // Attribute / operator label: fills the space between the leading icon and
-    // the trailing caret, ellipsizing rather than pushing the caret out.
-    &__label {
-        overflow: hidden;
-        min-width: 0;
-        flex: 1 1 auto;
-        text-align: start;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    // Trailing dropdown caret, pinned to the right edge.
-    &__caret {
-        flex: 0 0 auto;
-    }
-
     > span > span:first-child:not([style*="flex-wrap: wrap"]) {
         overflow: hidden;
+        padding-inline-start: 10px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 }
 
 .value-selector-menu-button {
-    // Chips wrap onto new lines within the fixed-width Values cell so the
-    // table never expands horizontally past the modal. The row grows
-    // vertically to fit however many values are added.
     &__multi-values-container {
         display: flex;
         overflow: hidden;
-        min-width: 0;
         flex-grow: 1;
         flex-wrap: wrap;
         gap: 2px;
@@ -70,27 +44,17 @@
     &__inner-wrapper {
         display: flex;
         width: 100%;
-        min-width: 0;
         align-items: center;
         justify-content: space-between;
     }
 
-    // Shown in the button when the RHS compares against a channel attribute
-    // (target mode): a monospace "[] Channel: X" token in the accent color,
-    // mirroring the mockup's variable chip.
+    // Icon + label shown in the button when the RHS compares against a channel
+    // attribute (target mode).
     &__target-label {
-        display: inline-flex;
+        display: flex;
         overflow: hidden;
         align-items: center;
-        padding: 2px 8px;
-        border: 1px solid rgba(var(--button-bg-rgb), 0.32);
-        border-radius: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-        font-family: Menlo, monospace;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 4px;
+        gap: 6px;
         white-space: nowrap;
     }
 }
@@ -123,7 +87,6 @@
     .select__multi-value {
         display: flex;
         height: 24px;
-        flex: 0 0 auto;
         align-items: center;
         border-radius: 4px;
         margin: 2px;
@@ -156,19 +119,16 @@
         }
     }
 
-    // Free-text value entry (attributes with no options / no channel targets).
-    // Matches the bordered-box look of the other value/attribute controls.
     &__simple-input {
         width: 100%;
-        height: 34px;
-        padding: 0 10px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        font-size: 12px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        padding-inline-start: 22px;
 
         &:focus {
-            border-color: var(--button-bg);
+            background: rgba(var(--center-channel-color-rgb), 0.06);
             outline: none;
         }
 
