@@ -44,7 +44,13 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
 
-	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	role, appErr := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemManagerRoleId)
+	require.Nil(t, appErr)
+	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(t, appErr)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId + " " + model.SystemManagerRoleId, TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser2.Id,
 			TeamId: th.BasicTeam.Id,
@@ -125,6 +131,9 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to basic user conn 2", &model.WebsocketBroadcast{ConnectionId: user1Conn2ID}, false, false, false, true},
 		{"should omit basic user 2", &model.WebsocketBroadcast{OmitUsers: map[string]bool{th.BasicUser2.Id: true}}, true, false, true, true},
 		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true, false},
+		{"should only send to users with required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id}}, false, true, true, false},
+		{"should require all permissions", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id, model.PermissionReadComplianceExportJob.Id}}, false, false, true, false},
+		{"should treat manage_system as a required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionManageSystem.Id}}, false, false, true, false},
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
 		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},

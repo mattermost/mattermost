@@ -35,6 +35,30 @@ func TestJobAuditable(t *testing.T) {
 	require.Equal(t, job.Data, audit["data"])
 }
 
+func TestPermissionToReadJobType(t *testing.T) {
+	testCases := []struct {
+		name       string
+		jobType    string
+		permission *Permission
+	}{
+		{"data retention", JobTypeDataRetention, PermissionReadDataRetentionJob},
+		{"message export", JobTypeMessageExport, PermissionReadComplianceExportJob},
+		{"elasticsearch indexing", JobTypeElasticsearchPostIndexing, PermissionReadElasticsearchPostIndexingJob},
+		{"elasticsearch aggregation", JobTypeElasticsearchPostAggregation, PermissionReadElasticsearchPostAggregationJob},
+		{"ldap sync", JobTypeLdapSync, PermissionReadLdapSyncJob},
+		{"generic jobs", JobTypeExportProcess, PermissionReadJobs},
+		{"access control sync", JobTypeAccessControlSync, PermissionManageSystem},
+		{"access control team sync", JobTypeAccessControlTeamSync, PermissionManageTeamAccessRules},
+		{"unknown", "unknown", nil},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			require.Equal(t, testCase.permission, PermissionToReadJobType(testCase.jobType))
+		})
+	}
+}
+
 func TestJobIsValid(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		job := &Job{

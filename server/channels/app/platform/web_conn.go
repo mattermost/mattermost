@@ -919,21 +919,34 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+	sessionRoles := wc.GetSession().GetUserRoles()
+	sessionHasPermission := func(permissionId string) bool {
+		if permissionId == model.PermissionManageSystem.Id {
+			if hasReadPrivateDataPermission == nil {
+				hasPermission := wc.Suite.RolesGrantPermission(sessionRoles, model.PermissionManageSystem.Id)
+				hasReadPrivateDataPermission = &hasPermission
+			}
+			return *hasReadPrivateDataPermission
+		}
 
-		if *hasReadPrivateDataPermission {
+		return wc.Suite.RolesGrantPermission(sessionRoles, permissionId)
+	}
+
+	if msg.GetBroadcast().ContainsSanitizedData {
+		if sessionHasPermission(model.PermissionManageSystem.Id) {
 			return false
 		}
 	}
 
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
-		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+		if !sessionHasPermission(model.PermissionManageSystem.Id) {
+			return false
 		}
+	}
 
-		if !*hasReadPrivateDataPermission {
+	for _, permissionId := range msg.GetBroadcast().RequiredPermissions {
+		if !sessionHasPermission(permissionId) {
 			return false
 		}
 	}

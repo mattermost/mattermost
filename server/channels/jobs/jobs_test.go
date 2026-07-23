@@ -757,6 +757,7 @@ func assertPublishedJob(t *testing.T, captured *model.WebSocketEvent, expectedSt
 	var published model.Job
 	require.NoError(t, json.Unmarshal([]byte(jobJSON), &published))
 	require.Equal(t, expectedStatus, published.Status)
+	require.False(t, captured.GetBroadcast().ContainsSensitiveData)
 }
 
 func TestPublishJobStatus(t *testing.T) {
@@ -780,13 +781,14 @@ func TestPublishJobStatus(t *testing.T) {
 
 		job := &model.Job{
 			Id:     "job_id",
-			Type:   "job_type",
+			Type:   model.JobTypeMessageExport,
 			Status: model.JobStatusInProgress,
 			Data:   map[string]string{"requesting_user_id": "user1", "policy_id": "pol1"},
 		}
 		jobServer.publishJobStatus(job, model.JobStatusSuccess)
 
 		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		require.Equal(t, []string{model.PermissionReadComplianceExportJob.Id}, captured.GetBroadcast().RequiredPermissions)
 	})
 
 	t.Run("ClaimJob publishes in_progress", func(t *testing.T) {

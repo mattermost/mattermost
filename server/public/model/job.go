@@ -89,6 +89,42 @@ var AllJobTypes = [...]string{
 	JobTypeScheduledRecap,
 }
 
+func PermissionToReadJobType(jobType string) *Permission {
+	switch jobType {
+	case JobTypeDataRetention:
+		return PermissionReadDataRetentionJob
+	case JobTypeMessageExport:
+		return PermissionReadComplianceExportJob
+	case JobTypeElasticsearchPostIndexing:
+		return PermissionReadElasticsearchPostIndexingJob
+	case JobTypeElasticsearchPostAggregation:
+		return PermissionReadElasticsearchPostAggregationJob
+	case JobTypeLdapSync:
+		return PermissionReadLdapSyncJob
+	case
+		JobTypeMigrations,
+		JobTypePlugins,
+		JobTypeProductNotices,
+		JobTypeExpiryNotify,
+		JobTypeActiveUsers,
+		JobTypeImportProcess,
+		JobTypeImportDelete,
+		JobTypeExportProcess,
+		JobTypeExportDelete,
+		JobTypeCloud,
+		JobTypeMobileSessionMetadata,
+		JobTypeExtractContent,
+		JobTypeCleanupExpiredAccessTokens:
+		return PermissionReadJobs
+	case JobTypeAccessControlSync:
+		return PermissionManageSystem
+	case JobTypeAccessControlTeamSync:
+		return PermissionManageTeamAccessRules
+	}
+
+	return nil
+}
+
 type Job struct {
 	Id             string    `json:"id"`
 	Type           string    `json:"type"`
