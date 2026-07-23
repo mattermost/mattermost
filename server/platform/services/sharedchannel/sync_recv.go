@@ -4,7 +4,6 @@
 package sharedchannel
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"

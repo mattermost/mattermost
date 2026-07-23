@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"testing"

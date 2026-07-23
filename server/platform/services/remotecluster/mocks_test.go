@@ -4,7 +4,6 @@
 package remotecluster
 
 import (
-	"context"
 	"slices"
 	"sync"
 	"testing"
