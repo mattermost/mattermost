@@ -106,6 +106,7 @@ type Store interface {
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
 	Recap() RecapStore
+	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
@@ -835,6 +836,9 @@ type JobStore interface {
 	// matching job already exists (or a concurrent insert wins the serializable
 	// transaction), nil, nil is returned.
 	SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error)
+	// SaveOnceByTypeAndData will only insert the job when there is no pending or
+	// in-progress job with the same type matching the data filter.
+	SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error)
 	// PatchJobData atomically merges data into a job's Data map. Within a
 	// serializable transaction it reads the current Data, calls mergeFn(existing,
 	// patch) to compute the new Data, and writes the result back. Concurrent
@@ -1440,14 +1444,58 @@ type ChannelJoinRequestStore interface {
 
 type RecapStore interface {
 	SaveRecap(recap *model.Recap) (*model.Recap, error)
+	SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error)
 	UpdateRecap(recap *model.Recap) (*model.Recap, error)
 	GetRecap(id string) (*model.Recap, error)
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
+	// MarkRecapSkipped flips a recap to the skipped status with the given reason.
+	// Skipped recaps are excluded from the daily-limit count, so this frees the slot
+	// for a recap that never ran (e.g. its processing job failed to enqueue).
+	MarkRecapSkipped(id, reason string) error
 	MarkRecapAsRead(id string) error
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
+
+	// CountForUserSince returns count of recaps created by user since given timestamp.
+	// Used for daily limit enforcement (pass midnight timestamp in user timezone).
+	// Excludes skipped recaps, but includes soft-deleted recaps because they still
+	// consumed AI usage.
+	CountForUserSince(userId string, since int64) (int64, error)
+
+	// SumTotalMessageCountForUserSince returns the total number of posts processed
+	// by recaps created by user since given timestamp. Excludes skipped recaps, but
+	// includes soft-deleted recaps because they still consumed AI usage.
+	SumTotalMessageCountForUserSince(userId string, since int64) (int64, error)
+
+	// GetLastCompletedManualRecap returns the most recent completed manual recap for user.
+	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including
+	// soft-deleted recaps so deleting a recap does not bypass cooldown.
+	// Returns nil, nil if no manual recap exists.
+	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
+}
+
+type ScheduledRecapStore interface {
+	// CRUD operations
+	Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error)
+	Get(id string) (*model.ScheduledRecap, error)
+	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	Delete(id string) error // Soft delete (sets DeleteAt)
+
+	// Query operations
+	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)
+	GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error)
+
+	// CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user
+	// Used for max scheduled recaps limit enforcement
+	CountForUser(userId string) (int64, error)
+
+	// State updates (efficient single-field updates)
+	UpdateNextRunAt(id string, nextRunAt int64) error
+	MarkExecuted(id string, lastRunAt int64, nextRunAt int64) error
+	SetEnabled(id string, enabled bool) error
 }
