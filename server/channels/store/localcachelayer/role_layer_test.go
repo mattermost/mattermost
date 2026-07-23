@@ -23,7 +23,7 @@ func TestRoleStore(t *testing.T) {
 func TestRoleStoreCache(t *testing.T) {
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
 	logger := mlog.CreateConsoleTestLogger(t)
-	rctx := request.EmptyContext(logger)
+	rctx := request.TestContext(t)
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
