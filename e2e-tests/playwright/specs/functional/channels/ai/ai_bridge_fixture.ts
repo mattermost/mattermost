@@ -36,18 +36,31 @@ function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Ownership token written into the lock file, unique per acquisition. Every mutation checks it so a
-// worker only ever refreshes or removes a lock it still holds — a holder that stalls, gets its lock
-// reclaimed, then resumes can never touch the replacement lock another worker created.
+// Ownership token written into the lock file, unique per acquisition. Cross-process removal/refresh
+// is done atomically (via the owner's file descriptor and rename()), never with a check-then-mutate
+// on the path, so a holder that stalls, gets its lock reclaimed, then resumes can never touch the
+// replacement lock another worker created.
 const OWNER_TOKEN = `${process.pid}-${crypto.randomUUID()}`;
 
-async function ownsLock(): Promise<boolean> {
-    return (await fs.readFile(LOCK_PATH, 'utf8').catch(() => null)) === OWNER_TOKEN;
+// Atomically remove LOCK_PATH only when it still carries `token`. rename() has a single winner, so we
+// never rm the path directly (which could delete a lock another worker recreated): we claim whatever
+// is at the path, and if it is not ours we put it straight back.
+async function removeLockIfOwned(token: string): Promise<void> {
+    const salvage = `${LOCK_PATH}.claim.${OWNER_TOKEN}`;
+    try {
+        await fs.rename(LOCK_PATH, salvage);
+    } catch {
+        return; // Already gone / reclaimed by someone else.
+    }
+    if ((await fs.readFile(salvage, 'utf8').catch(() => null)) === token) {
+        await fs.rm(salvage, {force: true});
+    } else {
+        await fs.rename(salvage, LOCK_PATH).catch(() => fs.rm(salvage, {force: true}));
+    }
 }
 
-// Reclaim the lock only if its holder went stale. rename() is atomic with a single winner, so we
-// never rm LOCK_PATH directly; and we re-check the mtime after claiming so a lock refreshed in the
-// race window is restored to its owner rather than deleted.
+// Reclaim the lock only if its holder went stale. Uses the same atomic claim, with an mtime re-check
+// so a lock refreshed in the race window is restored to its owner rather than deleted.
 async function reclaimIfStale(): Promise<void> {
     const stats = await fs.stat(LOCK_PATH).catch(() => null);
     if (!stats || Date.now() - stats.mtimeMs <= STALE_LOCK_MS) {
@@ -71,11 +84,11 @@ async function reclaimIfStale(): Promise<void> {
 }
 
 async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
+    let handle: Awaited<ReturnType<typeof fs.open>>;
     for (;;) {
         try {
-            const handle = await fs.open(LOCK_PATH, 'wx');
+            handle = await fs.open(LOCK_PATH, 'wx');
             await handle.writeFile(OWNER_TOKEN);
-            await handle.close();
             break;
         } catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
@@ -86,23 +99,19 @@ async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
         }
     }
 
+    // Refresh via the file descriptor (futimes), so the heartbeat only ever touches our own inode —
+    // once our lock is renamed/removed by a reclaimer, this updates an unlinked inode and cannot keep
+    // another worker's replacement lock alive.
     const heartbeat = setInterval(() => {
-        (async () => {
-            if (await ownsLock()) {
-                const now = new Date();
-                await fs.utimes(LOCK_PATH, now, now).catch(() => {});
-            } else {
-                clearInterval(heartbeat);
-            }
-        })().catch(() => {});
+        const now = new Date();
+        handle.utimes(now, now).catch(() => {});
     }, HEARTBEAT_MS);
     heartbeat.unref?.();
 
     return async () => {
         clearInterval(heartbeat);
-        if (await ownsLock()) {
-            await fs.rm(LOCK_PATH, {force: true});
-        }
+        await handle.close().catch(() => {});
+        await removeLockIfOwned(OWNER_TOKEN);
     };
 }
 
