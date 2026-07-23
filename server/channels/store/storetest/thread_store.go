@@ -1284,7 +1284,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.NoError(t, err)
 			require.Len(t, userIDs, 1)
 
-			u, err := ss.User().Get(context.Background(), userIDs[0])
+			u, err := ss.User().Get(rctx, userIDs[0])
 			require.NoError(t, err)
 
 			assert.Equal(t, u.Username, members[0].Username)
@@ -1300,7 +1300,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.Len(t, userIDs, 2)
 
 			for i := range userIDs {
-				u, err := ss.User().Get(context.Background(), userIDs[i])
+				u, err := ss.User().Get(rctx, userIDs[i])
 				require.NoError(t, err)
 
 				assert.Equal(t, u.Username, members[i].Username)
@@ -1334,7 +1334,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.NoError(t, err)
 			require.Len(t, userIDs, 1)
 
-			u, err := ss.User().Get(context.Background(), userIDs[0])
+			u, err := ss.User().Get(rctx, userIDs[0])
 			require.NoError(t, err)
 
 			assert.Equal(t, u.Username, members[0].Username)

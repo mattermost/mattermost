@@ -133,7 +133,7 @@ func (a *App) startUpstreamChannelFetch(postID string) <-chan store.StoreResult[
 func (a *App) startUpstreamUserFetch(userID string) <-chan store.StoreResult[*model.User] {
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()

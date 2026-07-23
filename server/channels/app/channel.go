@@ -61,7 +61,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 	var requestor *model.User
 	var nErr error
 	if userRequestorId != "" {
-		requestor, nErr = a.Srv().Store().User().Get(context.Background(), userRequestorId)
+		requestor, nErr = a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userRequestorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -276,7 +276,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if addMember {
-		user, nErr := a.Srv().Store().User().Get(context.Background(), channel.CreatorId)
+		user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), channel.CreatorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1012,7 +1012,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 	var user *model.User
 	if userID != "" {
 		var nErr error
-		user, nErr = a.Srv().Store().User().Get(context.Background(), userID)
+		user, nErr = a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1705,7 +1705,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	var user *model.User
 	if userID != "" {
 		var nErr error
-		user, nErr = a.Srv().Store().User().Get(context.Background(), userID)
+		user, nErr = a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -2095,7 +2095,7 @@ func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.Use
 }
 
 func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2129,7 +2129,7 @@ func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, ch
 }
 
 func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2162,7 +2162,7 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 }
 
 func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2193,7 +2193,7 @@ func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID s
 }
 
 func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2717,7 +2717,7 @@ func (a *App) JoinChannel(rctx request.CTX, channel *model.Channel, userID strin
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	memberChan := make(chan store.StoreResult[*model.ChannelMember], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -2824,7 +2824,7 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 
 	uc := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		uc <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
@@ -2994,7 +2994,7 @@ func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, calle
 }
 
 func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	user, nErr := a.Srv().Store().User().Get(context.Background(), userIDToRemove)
+	user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -3551,7 +3551,7 @@ func (a *App) SearchChannelsUserNotIn(rctx request.CTX, teamID string, userID st
 }
 
 func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3611,7 +3611,7 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 }
 
 func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3676,7 +3676,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionID string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	var err error
 
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -580,7 +580,7 @@ func (a *App) AddUserToTeam(rctx request.CTX, teamID string, userID string, user
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -666,7 +666,7 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -742,7 +742,7 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1279,7 +1279,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1329,7 +1329,7 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 		}, plugin.UserHasLeftTeamID)
 	})
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), teamMember.UserId)
+	user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), teamMember.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1515,7 +1515,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), senderId)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), senderId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1739,7 +1739,7 @@ func (a *App) prepareInviteGuestsToChannels(rctx request.CTX, teamID string, gue
 	}()
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), senderId)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), senderId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()

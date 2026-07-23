@@ -607,13 +607,13 @@ func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, e
 	return users, nil
 }
 
-func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (us SqlUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
+	row := us.SqlStore.DBXFromContext(rctx.Context()).QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -2200,7 +2200,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(context.Background(), userId)
+	user, err := us.Get(request.EmptyContext(us.logger), userId)
 	if err != nil {
 		return err
 	}
@@ -2269,7 +2269,7 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(context.Background(), userID)
+	user, err := us.Get(request.EmptyContext(us.logger), userID)
 	if err != nil {
 		return nil, err
 	}

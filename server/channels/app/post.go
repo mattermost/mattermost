@@ -256,7 +256,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}()
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), post.UserId)
+	user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

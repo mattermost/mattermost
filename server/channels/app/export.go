@@ -591,7 +591,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 			afterId = bot.UserId
 
 			var ownerUsername string
-			owner, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId)
+			owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
 			if err != nil {
 				var nfErr *store.ErrNotFound
 				if errors.As(err, &nfErr) {
@@ -844,7 +844,7 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store().User().Get(context.Background(), reaction.UserId)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
@@ -1049,7 +1049,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 			continue
 		}
 
-		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
+		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), pref.UserId)
 		if err != nil {
 			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1072,7 +1072,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for i := range prefs {
 				if prefs[i].Name == channel.Id && prefs[i].Value == "true" {
-					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
@@ -1095,7 +1095,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for _, pref := range prefs {
 				if pref.Value == "true" && pref.UserId == member.UserId {
-					user, err := a.Srv().Store().User().Get(context.Background(), member.UserId)
+					user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}

@@ -190,7 +190,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the user was actually updated with the old timestamp
-		verifiedUser, pErr := ss.User().Get(context.Background(), userWithOldTimestamp.Id)
+		verifiedUser, pErr := ss.User().Get(th.Context, userWithOldTimestamp.Id)
 		require.NoError(t, pErr)
 		userWithOldTimestamp = verifiedUser
 

@@ -41,7 +41,7 @@ func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, 
 	}
 
 	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-		user, nErr := a.Srv().Store().User().Get(context.Background(), loggedInUserID)
+		user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), loggedInUserID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -193,7 +193,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		// without being a member.
 		if _, ok := profileMap[post.UserId]; !ok {
 			var sender *model.User
-			sender, err = a.Srv().Store().User().Get(context.Background(), post.UserId)
+			sender, err = a.Srv().Store().User().Get(request.EmptyContext(a.Log()), post.UserId)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
 			}

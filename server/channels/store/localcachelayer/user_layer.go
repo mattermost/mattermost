@@ -245,7 +245,7 @@ func (s *LocalCacheUserStore) DecrementFailedPasswordAttempts(userID string) err
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
-func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *LocalCacheUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 	var cacheItem model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
 		return &cacheItem, nil
@@ -254,13 +254,13 @@ func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, 
 	// If it was invalidated, then we need to query master.
 	s.userProfileByIdsMut.Lock()
 	if s.userProfileByIdsInvalidations[id] {
-		ctx = sqlstore.WithMaster(ctx)
+		rctx = sqlstore.RequestContextWithMaster(rctx)
 		// And then remove the key from the map.
 		delete(s.userProfileByIdsInvalidations, id)
 	}
 	s.userProfileByIdsMut.Unlock()
 
-	user, err := s.UserStore.Get(ctx, id)
+	user, err := s.UserStore.Get(rctx, id)
 	if err != nil {
 		return nil, err
 	}
