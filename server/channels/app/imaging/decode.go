@@ -113,13 +113,14 @@ func (d *Decoder) checkConfigResolution(cfg image.Config, cfgErr error) error {
 	return nil
 }
 
-// exceedsResolution reports whether width*height exceeds max. It divides instead
-// of multiplying so it can't overflow int64 for very large declared dimensions.
-func exceedsResolution(width, height, max int64) bool {
+// exceedsResolution reports whether width*height exceeds maxRes. It divides
+// instead of multiplying so it can't overflow int64 for very large declared
+// dimensions.
+func exceedsResolution(width, height, maxRes int64) bool {
 	if width <= 0 || height <= 0 {
 		return false
 	}
-	return width > max/height
+	return width > maxRes/height
 }
 
 // Decode decodes the given encoded data and returns the decoded image.

@@ -329,17 +329,17 @@ func TestDecoderMaxDecodedResolution(t *testing.T) {
 // images (including dimensions large enough to overflow a naive int64
 // multiplication) without wrapping around.
 func TestExceedsResolution(t *testing.T) {
-	const max = int64(7680 * 4320) // default 8K cap, ~33 MPx
+	const maxRes = int64(7680 * 4320) // default 8K cap, ~33 MPx
 
-	require.False(t, exceedsResolution(100, 100, max))
-	require.False(t, exceedsResolution(7680, 4320, max)) // exactly at the cap
-	require.True(t, exceedsResolution(10000, 10000, max))
+	require.False(t, exceedsResolution(100, 100, maxRes))
+	require.False(t, exceedsResolution(7680, 4320, maxRes)) // exactly at the cap
+	require.True(t, exceedsResolution(10000, 10000, maxRes))
 
 	// width*height here (2^80) overflows int64; the division-based check must
 	// still reject it rather than wrap to a small/negative value.
-	require.True(t, exceedsResolution(1<<40, 1<<40, max))
+	require.True(t, exceedsResolution(1<<40, 1<<40, maxRes))
 
 	// Non-positive dimensions are treated as not exceeding the cap.
-	require.False(t, exceedsResolution(0, 100, max))
-	require.False(t, exceedsResolution(100, 0, max))
+	require.False(t, exceedsResolution(0, 100, maxRes))
+	require.False(t, exceedsResolution(100, 0, maxRes))
 }
