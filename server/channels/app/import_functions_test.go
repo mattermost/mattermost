@@ -5,7 +5,6 @@ package app
 
 import (
 	"archive/zip"
-	"context"
 	"io"
 	"os"
 	"path/filepath"
