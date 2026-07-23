@@ -113,8 +113,8 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
-        expect(screen.getByText('Status:')).toBeInTheDocument();
-        expect(screen.getByText('Running')).toBeInTheDocument();
+        expect(screen.getByText('This plugin is running.')).toBeInTheDocument();
+        expect(screen.getByText('This plugin is running.').closest('.alert-success')).toBeInTheDocument();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });

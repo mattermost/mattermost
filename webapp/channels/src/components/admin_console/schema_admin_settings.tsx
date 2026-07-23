@@ -380,16 +380,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     homepageUrl={this.props.plugin.homepage_url}
                     releaseNotesUrl={this.props.plugin.release_notes_url}
                 />
-                <div className='PluginMetadataPanel__status'>
-                    <strong>
-                        <FormattedMessage
-                            id='admin.plugin.status'
-                            defaultMessage='Status'
-                        />
-                        {': '}
-                    </strong>
-                    {this.renderPluginState(pluginState)}
-                </div>
+                {this.renderPluginStateDescription(pluginState, this.props.pluginStatus?.error)}
                 <PluginEnableButton
                     id={getPluginEnabledConfigKey(this.props.plugin.id)}
                     disabled={this.props.isDisabled}
@@ -400,57 +391,81 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         );
     };
 
-    renderPluginState = (state: number) => {
+    renderPluginStateDescription = (state: number, error?: string) => {
         switch (state) {
         case PluginState.PLUGIN_STATE_NOT_RUNNING:
             return (
-                <FormattedMessage
-                    id='admin.plugin.state.not_running'
-                    defaultMessage='Not running'
-                />
+                <div className='alert alert-info PluginMetadataPanel__status'>
+                    <i className='fa fa-ban'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.not_running.description'
+                        defaultMessage='This plugin is not enabled.'
+                    />
+                </div>
             );
         case PluginState.PLUGIN_STATE_STARTING:
             return (
-                <FormattedMessage
-                    id='admin.plugin.state.starting'
-                    defaultMessage='Starting'
-                />
+                <div className='alert alert-success PluginMetadataPanel__status'>
+                    <i className='fa fa-info'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.starting.description'
+                        defaultMessage='This plugin is starting.'
+                    />
+                </div>
             );
         case PluginState.PLUGIN_STATE_RUNNING:
             return (
+                <div className='alert alert-success PluginMetadataPanel__status'>
+                    <i className='fa fa-check'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.running.description'
+                        defaultMessage='This plugin is running.'
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START: {
+            const errorMessage = error || (
                 <FormattedMessage
-                    id='admin.plugin.state.running'
-                    defaultMessage='Running'
+                    id='admin.plugin.state.failed_to_start.check_logs'
+                    defaultMessage='Check your system logs for errors.'
                 />
             );
-        case PluginState.PLUGIN_STATE_FAILED_TO_START:
+
             return (
-                <FormattedMessage
-                    id='admin.plugin.state.failed_to_start'
-                    defaultMessage='Failed to start'
-                />
+                <div className='alert alert-warning PluginMetadataPanel__status'>
+                    <i className='fa fa-warning'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.failed_to_start.description'
+                        defaultMessage='This plugin failed to start. {error}'
+                        values={{
+                            error: errorMessage,
+                        }}
+                    />
+                </div>
             );
+        }
         case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
             return (
-                <FormattedMessage
-                    id='admin.plugin.state.failed_to_stay_running'
-                    defaultMessage='Crashing'
-                />
+                <div className='alert alert-warning PluginMetadataPanel__status'>
+                    <i className='fa fa-warning'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.failed_to_stay_running.description'
+                        defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
+                    />
+                </div>
             );
         case PluginState.PLUGIN_STATE_STOPPING:
             return (
-                <FormattedMessage
-                    id='admin.plugin.state.stopping'
-                    defaultMessage='Stopping'
-                />
+                <div className='alert alert-info PluginMetadataPanel__status'>
+                    <i className='fa fa-info'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.stopping.description'
+                        defaultMessage='This plugin is stopping.'
+                    />
+                </div>
             );
         default:
-            return (
-                <FormattedMessage
-                    id='admin.plugin.state.unknown'
-                    defaultMessage='Unknown'
-                />
-            );
+            return null;
         }
     };
 

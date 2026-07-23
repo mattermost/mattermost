@@ -2705,7 +2705,6 @@
   "admin.plugin.state.stopping": "Stopping",
   "admin.plugin.state.stopping.description": "This plugin is stopping.",
   "admin.plugin.state.unknown": "Unknown",
-  "admin.plugin.status": "Status",
   "admin.plugin.uninstall_plugin.button": "Uninstall plugin",
   "admin.plugin.upload": "Upload",
   "admin.plugin.upload.overwrite_modal.desc": "A plugin with this ID already exists. Would you like to overwrite it?",
