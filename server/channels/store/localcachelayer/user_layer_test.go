@@ -257,6 +257,8 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 }
 
 func TestUserStoreGetCache(t *testing.T) {
+	rctx := request.TestContext(t)
+
 	fakeUserId := "123"
 	fakeUser := &model.User{
 		Id:          "123",
