@@ -179,7 +179,7 @@ function AttributeCell({field, groupId, classificationMarkingsReachable}: Classi
     return (
         <span className='GlobalAttributesTable__attribute'>
             <span
-                className='GlobalAttributesTable__name'
+                className={isClassificationRow ? 'GlobalAttributesTable__name GlobalAttributesTable__name--classification' : 'GlobalAttributesTable__name'}
                 data-testid='global-attribute-name'
             >
                 {getDisplayName(field)}
