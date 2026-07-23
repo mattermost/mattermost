@@ -418,31 +418,27 @@ function TableEditor({
             return;
         }
 
-        setRows((currentRows) => {
-            const newRow: TableRow = {
-                attribute: firstAvailableAttribute.name,
-                attribute_object_type: firstAvailableAttribute.object_type,
-                operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
-                values: [],
-                attribute_type: firstAvailableAttribute.type || '',
-                hasMaskedValues: false,
-                isNative: isNativeField(firstAvailableAttribute),
-                isBoolean: isNativeBooleanField(firstAvailableAttribute),
-            };
-            const newRows = [...currentRows, newRow];
-            updateExpression(newRows); // Ensure expression is updated immediately
-            setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
-            return newRows;
-        });
-    }, [userAttributes, updateExpression, findFirstAvailableAttribute]);
+        const newRow: TableRow = {
+            attribute: firstAvailableAttribute.name,
+            attribute_object_type: firstAvailableAttribute.object_type,
+            operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
+            values: [],
+            attribute_type: firstAvailableAttribute.type || '',
+            hasMaskedValues: false,
+            isNative: isNativeField(firstAvailableAttribute),
+            isBoolean: isNativeBooleanField(firstAvailableAttribute),
+        };
+        const newRows = [...rows, newRow];
+        setRows(newRows);
+        setAutoOpenAttributeMenuForRow(newRows.length - 1);
+        updateExpression(newRows);
+    }, [userAttributes, updateExpression, findFirstAvailableAttribute, rows]);
 
     const removeRow = useCallback((index: number) => {
-        setRows((currentRows) => {
-            const newRows = currentRows.toSpliced(index, 1);
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = rows.toSpliced(index, 1);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [rows, updateExpression]);
 
     const requestRemoveRow = useCallback((index: number) => {
         // Masked rows have their remove button disabled — the row is read-only
@@ -451,91 +447,86 @@ function TableEditor({
     }, [removeRow]);
 
     const updateRowAttribute = useCallback((index: number, attributeId: string) => {
-        setRows((currentRows) => {
-            // Resolve by unique id, not name: a CPA attribute and a session
-            // attribute can share a name, and only the id pins down the correct
-            // namespace (object_type) for CEL generation.
-            const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
-            const newAttribute = newAttributeObj?.name || '';
-            const newObjectType = newAttributeObj?.object_type || 'user';
+        // Resolve by unique id, not name: a CPA attribute and a session
+        // attribute can share a name, and only the id pins down the correct
+        // namespace (object_type) for CEL generation.
+        const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
+        const newAttribute = newAttributeObj?.name || '';
+        const newObjectType = newAttributeObj?.object_type || 'user';
 
-            const newRows = [...currentRows];
-            const current = newRows[index];
-            const attributeChanged = current.attribute !== newAttribute ||
-                (current.attribute_object_type || 'user') !== newObjectType;
-            newRows[index] = {...current, attribute: newAttribute};
+        const newRows = [...rows];
+        const current = newRows[index];
+        const attributeChanged = current.attribute !== newAttribute ||
+            (current.attribute_object_type || 'user') !== newObjectType;
+        newRows[index] = {...current, attribute: newAttribute};
 
-            if (attributeChanged) {
-                newRows[index].values = [];
+        if (attributeChanged) {
+            newRows[index].values = [];
 
-                const newType = newAttributeObj?.type || '';
-                newRows[index].attribute_type = newType;
-                newRows[index].attribute_object_type = newObjectType;
-                newRows[index].isNative = isNativeField(newAttributeObj);
-                newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
+            const newType = newAttributeObj?.type || '';
+            newRows[index].attribute_type = newType;
+            newRows[index].attribute_object_type = newObjectType;
+            newRows[index].isNative = isNativeField(newAttributeObj);
+            newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
 
-                // Reset the operator to a valid default when the current one isn't
-                // offered for the new attribute. Native attributes advertise an
-                // explicit operator set (e.g. native createat only allows "younger
-                // than"); everything else validates against the attribute type
-                // (rank, multiselect, …).
-                const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
-                if (allowedOperators) {
-                    if (!allowedOperators.includes(newRows[index].operator)) {
-                        newRows[index].operator = defaultOperatorForField(newAttributeObj);
-                    }
-                } else if (!isOperatorValidForType(currentRows[index].operator, newType)) {
-                    newRows[index].operator = defaultOperatorForType(newType);
+            // Reset the operator to a valid default when the current one isn't
+            // offered for the new attribute. Native attributes advertise an
+            // explicit operator set (e.g. native createat only allows "younger
+            // than"); everything else validates against the attribute type
+            // (rank, multiselect, …).
+            const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
+            if (allowedOperators) {
+                if (!allowedOperators.includes(newRows[index].operator)) {
+                    newRows[index].operator = defaultOperatorForField(newAttributeObj);
                 }
-
-                // Values were cleared — row is in an intermediate editing state.
-                // Don't regenerate the expression now; it will be updated when
-                // the user selects new values via updateRowValues.
-                return newRows;
+            } else if (!isOperatorValidForType(current.operator, newType)) {
+                newRows[index].operator = defaultOperatorForType(newType);
             }
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression, userAttributes]);
+
+            // Values were cleared — row is in an intermediate editing state.
+            // Don't regenerate the expression now; it will be updated when
+            // the user selects new values via updateRowValues.
+            setRows(newRows);
+            return;
+        }
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, userAttributes, rows]);
 
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
-        setRows((currentRows) => {
-            const oldOperator = currentRows[index].operator;
-            let newValues = [...currentRows[index].values];
+        const oldOperator = rows[index].operator;
+        let newValues = [...rows[index].values];
 
-            const wasMulti = isMultiValueOperator(oldOperator);
-            const isMulti = isMultiValueOperator(newOperator);
+        const wasMulti = isMultiValueOperator(oldOperator);
+        const isMulti = isMultiValueOperator(newOperator);
 
-            if (isMulti && !wasMulti) {
-                // Transitioning TO a multi-value operator FROM a single-value operator:
-                newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
-            } else if (!isMulti && wasMulti) {
-                // Transitioning TO a single-value operator FROM a multi-value operator:
-                if (newValues.length > 1) {
-                    newValues = [newValues[0]];
-                }
+        if (isMulti && !wasMulti) {
+            // Transitioning TO a multi-value operator FROM a single-value operator:
+            newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
+        } else if (!isMulti && wasMulti) {
+            // Transitioning TO a single-value operator FROM a multi-value operator:
+            if (newValues.length > 1) {
+                newValues = [newValues[0]];
             }
+        }
 
-            const newRows = [...currentRows];
-            newRows[index] = {
-                ...currentRows[index],
-                operator: newOperator,
-                values: newValues,
-            };
+        const newRows = [...rows];
+        newRows[index] = {
+            ...rows[index],
+            operator: newOperator,
+            values: newValues,
+        };
 
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
-        setRows((currentRows) => {
-            const newRows = [...currentRows];
-            newRows[index] = {...newRows[index], values};
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = [...rows];
+        newRows[index] = {...newRows[index], values};
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     return (
         <div
