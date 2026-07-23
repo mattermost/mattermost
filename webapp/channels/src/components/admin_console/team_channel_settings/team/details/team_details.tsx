@@ -6,7 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from '@mattermost/types/access_control';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -802,28 +802,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     hideArchiveConfirmModal = () => this.setState({showArchiveConfirmModal: false});
 
-    // Combine the team's own membership expression with the expressions of any
-    // linked parent policies, ANDed together. The ad-hoc searchUsersForExpression
-    // endpoint does NOT resolve imports server-side, so the effective expression
-    // must be assembled here (mirrors the sync job and the channel access-rules tab).
     private combineTeamAndPolicyExpressions = (teamExpression: string): string => {
         const parentExpressions = this.state.accessControlPolicies.
-            map((policy) => getMembershipRule(policy.rules)?.expression).
-            filter((expr): expr is string => Boolean(expr && expr.trim()));
+            map((policy) => getMembershipRule(policy.rules)?.expression);
 
-        const allExpressions: string[] = [];
-        if (teamExpression.trim()) {
-            allExpressions.push(teamExpression.trim());
-        }
-        allExpressions.push(...parentExpressions);
-
-        if (allExpressions.length === 0) {
-            return '';
-        }
-        if (allExpressions.length === 1) {
-            return allExpressions[0]!;
-        }
-        return allExpressions.map((expr) => `(${expr})`).join(' && ');
+        return combineMembershipExpressions([teamExpression, ...parentExpressions]);
     };
 
     onSave = async () => {
