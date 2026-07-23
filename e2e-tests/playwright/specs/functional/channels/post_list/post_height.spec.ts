@@ -7,11 +7,11 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 
-import {expect, getFileFromAsset, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
-    let userClient: Client4;
+    let userClient: PlaywrightClient4;
     let user: UserProfile;
     let team: Team;
     let channel: ServerChannel;
@@ -508,20 +508,6 @@ test.describe('Post height', () => {
         return {sizeWatcher, postComponent};
     }
 
-    let uploadCounter = 0;
-
-    /** Upload an asset to a channel and return its file id. */
-    async function uploadAsset(filename: string): Promise<string> {
-        const formData = new FormData();
-        // Order matters: channel_id, then client_ids, then files.
-        formData.set('channel_id', channel.id);
-        formData.set('client_ids', `pw-post-list-${uploadCounter++}`);
-        formData.set('files', getFileFromAsset(filename), filename);
-
-        const data = await userClient.uploadFile(formData);
-        return data.file_infos[0].id;
-    }
-
     type SeedOptions = {
         message: string;
         /** Asset filenames to upload and attach to the post. */
@@ -536,17 +522,14 @@ test.describe('Post height', () => {
 
     /** Create a post (with optional attachments, reactions, replies) and return its root post. */
     async function seedPost(opts: SeedOptions) {
-        const fileIds: string[] = [];
-        for (const filename of opts.files ?? []) {
-            fileIds.push(await uploadAsset(filename));
-        }
-
-        const root = await userClient.createPost({
-            channel_id: channel.id,
-            message: opts.message,
-            file_ids: fileIds,
-            props: opts.props,
-        });
+        const root = await userClient.createTestPost(
+            {
+                channel_id: channel.id,
+                message: opts.message,
+                props: opts.props,
+            },
+            opts.files,
+        );
 
         for (const emoji of opts.reactions ?? []) {
             await userClient.addReaction(user.id, root.id, emoji);

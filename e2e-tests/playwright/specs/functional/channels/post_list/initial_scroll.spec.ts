@@ -13,7 +13,7 @@ import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 test.describe.only('Post list initial scroll', () => {
     let adminClient: PlaywrightClient4;
     let adminUser: UserProfile;
-    let userClient: Client4;
+    let userClient: PlaywrightClient4;
     let user: UserProfile;
 
     let team: Team;
@@ -75,7 +75,7 @@ test.describe.only('Post list initial scroll', () => {
         test.beforeEach(async () => {
             // # Make a few posts as the current user so that the channel stays read
             for (let i = 0; i < 3; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createPost(makeTestPost(i));
             }
         });
 
@@ -107,11 +107,11 @@ test.describe.only('Post list initial scroll', () => {
     test.describe('unread channel with less than a screen of text posts', () => {
         test.beforeEach(async () => {
             // # Make a post as the current user to ensure that the New Messages line will show up
-            await userClient.createPost(makeTestPost(user.id, 0));
+            await userClient.createPost(makeTestPost(0));
 
             // # Make a few posts as the admin so that the channel becomes unread
             for (let i = 0; i < 3; i++) {
-                await adminClient.createPost(makeTestPost(adminUser.id, i));
+                await adminClient.createPost(makeTestPost(i));
             }
         });
 
@@ -154,7 +154,7 @@ test.describe.only('Post list initial scroll', () => {
         test.beforeEach(async () => {
             // # Make a few posts as the current user so that the channel stays read
             for (let i = 0; i < 60; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createPost(makeTestPost(i));
             }
         });
 
@@ -187,11 +187,11 @@ test.describe.only('Post list initial scroll', () => {
         test.beforeEach(async () => {
             // # Make some posts as the current user and then some more as the admin so the channel is partially unread
             for (let i = 0; i < 20; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createPost(makeTestPost(i));
             }
 
             for (let i = 0; i < 20; i++) {
-                await adminClient.createPost(makeTestPost(adminUser.id, i));
+                await adminClient.createPost(makeTestPost(i));
             }
         });
 
@@ -233,7 +233,7 @@ test.describe.only('Post list initial scroll', () => {
         test.beforeEach(async () => {
             // # Make a lot of posts as the current user so that the channel stays read
             for (let i = 0; i < 120; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createPost(makeTestPost(i));
             }
         });
 
@@ -266,11 +266,11 @@ test.describe.only('Post list initial scroll', () => {
         test.beforeEach(async () => {
             // # Make some posts as the current user and then some more as the admin so the channel is partially unread
             for (let i = 0; i < 80; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createPost(makeTestPost(i));
             }
 
             for (let i = 0; i < 80; i++) {
-                await adminClient.createPost(makeTestPost(adminUser.id, i));
+                await adminClient.createPost(makeTestPost(i));
             }
         });
 
@@ -308,15 +308,48 @@ test.describe.only('Post list initial scroll', () => {
         });
     });
 
-    test.describe('fully read channel with image attachments', () => {
+    test.describe('fully read channel with multiple pages of image attachments', () => {
+        test.beforeEach(async () => {
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 120; i++) {
+                await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('unread read channel with multiple pages of image attachments', () => {
         test.beforeEach(async () => {
             // # Make some posts as the current user and then some more as the admin so the channel is partially unread
             for (let i = 0; i < 80; i++) {
-                await userClient.createPost(makeTestPost(user.id, i));
+                await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
             }
 
             for (let i = 0; i < 80; i++) {
-                await adminClient.createPost(makeTestPost(adminUser.id, i));
+                await adminClient.createTestPost(makeTestPost(i), ['mattermost.png']);
             }
         });
 
@@ -356,10 +389,9 @@ test.describe.only('Post list initial scroll', () => {
 
     // Helpers
 
-    function makeTestPost(authorId: string, n: number) {
+    function makeTestPost(n: number) {
         return {
             channel_id: channel.id,
-            user_id: authorId,
             message: `message ${n}\nsecond line\nthird line`,
         };
     }
