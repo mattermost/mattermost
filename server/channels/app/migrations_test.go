@@ -346,7 +346,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Read back via the store directly to avoid any read-access filtering
 	// the AC layer might apply for a non-source-plugin caller.
-	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	got, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
 	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"display_name must be backfilled to the field name even on protected/source_only fields")
