@@ -709,4 +709,39 @@ func TestGetUsersNotInAbacTeam(t *testing.T) {
 		require.Equal(t, want[0].Id, users[0].Id)
 		mockACS.AssertExpectations(t)
 	})
+
+	t.Run("full-name term search is gated by ShowFullName for non-admin callers", func(t *testing.T) {
+		testCases := []struct {
+			name             string
+			asAdmin          bool
+			showFullName     bool
+			wantExcludeNames bool
+		}{
+			{"non-admin with ShowFullName off excludes full names", false, false, true},
+			{"non-admin with ShowFullName on allows full names", false, true, false},
+			{"admin always allows full names", true, false, false},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				teamID := model.NewId()
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.PrivacySettings.ShowFullName = model.NewPointer(tc.showFullName)
+				})
+
+				mockACS := &mocks.AccessControlServiceInterface{}
+				th.App.Srv().ch.AccessControl = mockACS
+				t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+				mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+					return opts.ExcludeFullNames == tc.wantExcludeNames
+				})).Return([]*model.User{}, int64(0), (*model.AppError)(nil))
+
+				_, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "smith", "", 20, tc.asAdmin)
+				require.Nil(t, appErr)
+				mockACS.AssertExpectations(t)
+			})
+		}
+	})
 }

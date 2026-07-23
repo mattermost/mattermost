@@ -185,6 +185,12 @@ type SubjectSearchOptions struct {
 	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
 	// before building SQL, so self-inclusion validation checks only the CPA parts.
 	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
+	// ExcludeFullNames drops FirstName/LastName from the Term search fields so a
+	// term query cannot probe users' real names when PrivacySettings.ShowFullName
+	// is off for a non-privileged caller. Mirrors the AllowFullNames gate in the
+	// normal user-search path. Zero value (false) preserves the full-name search
+	// used by privileged callers (e.g. the admin CEL tester).
+	ExcludeFullNames bool `json:"exclude_full_names,omitempty"`
 }
 
 type SubjectCursor struct {
