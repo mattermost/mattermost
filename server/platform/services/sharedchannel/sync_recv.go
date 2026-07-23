@@ -507,7 +507,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
-		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
+		// The post is federated (RemoteId set) and its author is verified above
+		// to belong to the remote, which already enforced mm_blocks_actions
+		// authority. Preserve the prop through the create-time strip, mirroring
+		// how SanitizeProps preserves integration/notification props for
+		// federated posts.
+		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{
+			TriggerWebhooks:      true,
+			SetOnline:            true,
+			AllowMmBlocksActions: post.GetProp(model.PostPropsMmBlocksActions) != nil,
+		})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -548,8 +557,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			}
 		}
 
-		// First update the basic post
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
+		// First update the basic post. The post is federated and remote-owned
+		// (verified above); the origin cluster already enforced mm_blocks_actions
+		// authority, so allow the synced value through the UpdatePost freeze so
+		// button edits (or removals) made upstream propagate to this cluster.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr

@@ -434,4 +434,15 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
         expect(mockDeletePolicy).not.toHaveBeenCalled();
     });
+
+    test('clears a stale navigation-block flag on mount', async () => {
+        // A page that links here (e.g. the per-team System Console page) may have
+        // left navigationBlocked=true. If the editor inherits it, its own leave-guard
+        // raises a spurious "Discard changes?" prompt even though nothing was edited.
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
+        });
+    });
 });
