@@ -340,7 +340,7 @@ type ChannelStore interface {
 
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
-	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
+	LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error
 	GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error)
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
@@ -815,12 +815,12 @@ type ReactionStore interface {
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
-	DeleteAllWithEmojiName(emojiName string) error
+	DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
-	PermanentDeleteByUser(userID string) error
+	PermanentDeleteByUser(rctx request.CTX, userID string) error
 }
 
 type JobStore interface {
@@ -1169,13 +1169,13 @@ type ViewStore interface {
 
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
-	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
-	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
-	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
+	CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, error)
+	GetPendingScheduledPosts(rctx request.CTX, beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
 	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
-	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
-	Get(scheduledPostId string) (*model.ScheduledPost, error)
-	UpdateOldScheduledPosts(beforeTime int64) error
+	UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error
+	Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error)
+	UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
 }
 

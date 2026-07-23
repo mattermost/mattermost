@@ -41,7 +41,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 		// we wait some time before processing each batch to avoid hammering the database with too many requests.
 		time.Sleep(scheduledPostBatchWaitTime)
 
-		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
+		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetPendingScheduledPosts(rctx, beforeTime, afterTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
 		if err != nil {
 			rctx.Logger().Error(
 				"App.ProcessScheduledPosts: failed to fetch pending scheduled posts page from database",
@@ -92,7 +92,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 	// once all scheduled posts are processed, we need to update and close the old ones
 	// as we don't process pending scheduled posts more than 24 hours old.
-	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(beforeTime); err != nil {
+	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(rctx, beforeTime); err != nil {
 		rctx.Logger().Error(
 			"App.ProcessScheduledPosts: failed to update old scheduled posts",
 			mlog.Int("before_time", beforeTime),
@@ -362,7 +362,7 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 
 func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts []*model.ScheduledPost) {
 	for _, failedScheduledPost := range failedScheduledPosts {
-		err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(failedScheduledPost)
+		err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(rctx, failedScheduledPost)
 		if err != nil {
 			// we intentionally don't stop on error as its possible to continue updating other scheduled posts
 			rctx.Logger().Error(

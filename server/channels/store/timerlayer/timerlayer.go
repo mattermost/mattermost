@@ -3674,10 +3674,10 @@ func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userID string, channe
 	return err
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, channelID string, leaveTime int64) error {
+func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error {
 	start := time.Now()
 
-	err := s.ChannelMemberHistoryStore.LogLeaveEvent(userID, channelID, leaveTime)
+	err := s.ChannelMemberHistoryStore.LogLeaveEvent(rctx, userID, channelID, leaveTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8804,10 +8804,10 @@ func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
+func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
 	start := time.Now()
 
-	err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+	err := s.ReactionStore.DeleteAllWithEmojiName(rctx, emojiName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8932,10 +8932,10 @@ func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) PermanentDeleteByUser(userID string) error {
+func (s *TimerLayerReactionStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.ReactionStore.PermanentDeleteByUser(userID)
+	err := s.ReactionStore.PermanentDeleteByUser(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10035,10 +10035,10 @@ func (s *TimerLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role)
 	return result, err
 }
 
-func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+func (s *TimerLayerScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+	result, err := s.ScheduledPostStore.CreateScheduledPost(rctx, scheduledPost)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10051,10 +10051,10 @@ func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 	return result, err
 }
 
-func (s *TimerLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+func (s *TimerLayerScheduledPostStore) Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledPostStore.Get(scheduledPostId)
+	result, err := s.ScheduledPostStore.Get(rctx, scheduledPostId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10083,10 +10083,10 @@ func (s *TimerLayerScheduledPostStore) GetMaxMessageSize() int {
 	return result
 }
 
-func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(rctx request.CTX, beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10099,10 +10099,10 @@ func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64
 	return result, err
 }
 
-func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(rctx request.CTX, userId string, teamId string) ([]*model.ScheduledPost, error) {
 	start := time.Now()
 
-	result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+	result, err := s.ScheduledPostStore.GetScheduledPostsForUser(rctx, userId, teamId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10147,10 +10147,10 @@ func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 	return err
 }
 
-func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error {
 	start := time.Now()
 
-	err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+	err := s.ScheduledPostStore.UpdateOldScheduledPosts(rctx, beforeTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10163,10 +10163,10 @@ func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64)
 	return err
 }
 
-func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
 	start := time.Now()
 
-	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+	err := s.ScheduledPostStore.UpdatedScheduledPost(rctx, scheduledPost)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
