@@ -7,7 +7,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, test, wait} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, wait} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe.only('Post list initial scroll', () => {
@@ -21,6 +21,11 @@ test.describe.only('Post list initial scroll', () => {
 
     let channelsPage: ChannelsPage;
     let page: Page;
+
+    let fileServerUrl: string;
+    setupFileServer().then((serverUrl) => {
+        fileServerUrl = serverUrl;
+    });
 
     test.beforeEach(async ({pw}) => {
         ({adminClient, adminUser, team, user, userClient} = await pw.initSetup());
@@ -350,6 +355,182 @@ test.describe.only('Post list initial scroll', () => {
 
             for (let i = 0; i < 80; i++) {
                 await adminClient.createTestPost(makeTestPost(i), ['mattermost.png']);
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the New Messages line is actually visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // * Verify that the channel starts as unread
+            await channelsPage.sidebarLeft.assertItemUnread(channel.name);
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the New Messages line is still visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('fully read channel with multiple pages of markdown images', () => {
+        test.beforeEach(async () => {
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 120; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `![test image](${fileServerUrl}/mattermost.png)`,
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('unread read channel with multiple pages of markdown images', () => {
+        test.beforeEach(async () => {
+            // # Make some posts as the current user and then some more as the admin so the channel is partially unread
+            for (let i = 0; i < 80; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `![test image](${fileServerUrl}/mattermost.png)`,
+                });
+            }
+
+            for (let i = 0; i < 80; i++) {
+                await adminClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `![test image](${fileServerUrl}/mattermost.png)`,
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the New Messages line is actually visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // * Verify that the channel starts as unread
+            await channelsPage.sidebarLeft.assertItemUnread(channel.name);
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the New Messages line is still visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('fully read channel with multiple pages of link previews', () => {
+        test.beforeEach(async () => {
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 120; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${fileServerUrl}/opengraph.html`,
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({pw}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('unread read channel with multiple pages of link previews', () => {
+        test.beforeEach(async () => {
+            // # Make some posts as the current user and then some more as the admin so the channel is partially unread
+            for (let i = 0; i < 80; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${fileServerUrl}/opengraph.html`,
+                });
+            }
+
+            for (let i = 0; i < 80; i++) {
+                await adminClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${fileServerUrl}/opengraph.html`,
+                });
             }
         });
 
