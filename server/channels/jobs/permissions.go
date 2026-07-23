@@ -30,7 +30,11 @@ func ReadPermissionForType(jobType string) *model.Permission {
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
 		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
+		model.JobTypeCleanupExpiredAccessTokens,
+		model.JobTypeLastAccessiblePost,
+		model.JobTypeLastAccessibleFile,
+		model.JobTypeRefreshMaterializedViews,
+		model.JobTypeScheduledRecap:
 		return model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return model.PermissionManageSystem

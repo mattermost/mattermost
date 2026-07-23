@@ -207,17 +207,18 @@ describe('components/admin_console/jobs/table', () => {
 
     test('should load jobs on mount without polling', () => {
         jest.useFakeTimers();
+        try {
+            renderWithContext(
+                <JobTable {...baseProps}/>,
+            );
 
-        renderWithContext(
-            <JobTable {...baseProps}/>,
-        );
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
 
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.advanceTimersByTime(15000);
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.useRealTimers();
+            jest.advanceTimersByTime(15000);
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('add custom class', () => {

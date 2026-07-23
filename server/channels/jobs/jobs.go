@@ -141,6 +141,8 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	message.Add("job", string(jobJSON))
 	if permission := ReadPermissionForType(job.Type); permission != nil {
 		message.GetBroadcast().RequiredPermissions = []string{permission.Id}
+	} else {
+		message.GetBroadcast().ContainsSensitiveData = true
 	}
 	srv.publish(message)
 }

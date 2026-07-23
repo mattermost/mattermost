@@ -62,6 +62,10 @@ func TestReadPermissionForType(t *testing.T) {
 		{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
 		{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
 		{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
+		{"last accessible post", model.JobTypeLastAccessiblePost, model.PermissionReadJobs},
+		{"last accessible file", model.JobTypeLastAccessibleFile, model.PermissionReadJobs},
+		{"refresh materialized views", model.JobTypeRefreshMaterializedViews, model.PermissionReadJobs},
+		{"scheduled recap", model.JobTypeScheduledRecap, model.PermissionReadJobs},
 		{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
 		{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
 		{"unknown", "unknown", nil},
@@ -781,7 +785,6 @@ func assertPublishedJob(t *testing.T, captured *model.WebSocketEvent, expectedSt
 	var published model.Job
 	require.NoError(t, json.Unmarshal([]byte(jobJSON), &published))
 	require.Equal(t, expectedStatus, published.Status)
-	require.False(t, captured.GetBroadcast().ContainsSensitiveData)
 }
 
 func TestPublishJobStatus(t *testing.T) {
@@ -812,7 +815,25 @@ func TestPublishJobStatus(t *testing.T) {
 		jobServer.publishJobStatus(job, model.JobStatusSuccess)
 
 		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		require.False(t, captured.GetBroadcast().ContainsSensitiveData)
 		require.Equal(t, []string{model.PermissionReadComplianceExportJob.Id}, captured.GetBroadcast().RequiredPermissions)
+	})
+
+	t.Run("unknown job type falls back to sensitive data", func(t *testing.T) {
+		jobServer, _, _ := makeJobServer(t)
+		var captured *model.WebSocketEvent
+		jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+		job := &model.Job{
+			Id:     "job_id",
+			Type:   "unknown_job_type",
+			Status: model.JobStatusInProgress,
+		}
+		jobServer.publishJobStatus(job, model.JobStatusSuccess)
+
+		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		require.True(t, captured.GetBroadcast().ContainsSensitiveData)
+		require.Empty(t, captured.GetBroadcast().RequiredPermissions)
 	})
 
 	t.Run("ClaimJob publishes in_progress", func(t *testing.T) {
