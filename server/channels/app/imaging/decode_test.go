@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"io"
 	"os"
 	"sync"
 	"testing"
@@ -304,4 +305,41 @@ func TestDecoderMaxDecodedResolution(t *testing.T) {
 		require.NoError(t, decErr)
 		require.NotNil(t, img)
 	})
+
+	// A non-seekable reader must still be subject to the cap; the decoder
+	// buffers it internally rather than silently bypassing the check.
+	t.Run("cap enforced on non-seekable reader", func(t *testing.T) {
+		// io.MultiReader is not an io.ReadSeeker.
+		img, format, decErr := d.Decode(io.MultiReader(bytes.NewReader(makePNG(50, 50))))
+		require.Error(t, decErr)
+		require.ErrorContains(t, decErr, "exceeds the maximum allowed")
+		require.Nil(t, img)
+		require.Empty(t, format)
+	})
+
+	t.Run("non-seekable reader within cap decodes from buffer", func(t *testing.T) {
+		img, format, decErr := d.Decode(io.MultiReader(bytes.NewReader(makePNG(5, 5))))
+		require.NoError(t, decErr)
+		require.NotNil(t, img)
+		require.Equal(t, "png", format)
+	})
+}
+
+// TestExceedsResolution verifies the resolution comparison rejects over-limit
+// images (including dimensions large enough to overflow a naive int64
+// multiplication) without wrapping around.
+func TestExceedsResolution(t *testing.T) {
+	const max = int64(7680 * 4320) // default 8K cap, ~33 MPx
+
+	require.False(t, exceedsResolution(100, 100, max))
+	require.False(t, exceedsResolution(7680, 4320, max)) // exactly at the cap
+	require.True(t, exceedsResolution(10000, 10000, max))
+
+	// width*height here (2^80) overflows int64; the division-based check must
+	// still reject it rather than wrap to a small/negative value.
+	require.True(t, exceedsResolution(1<<40, 1<<40, max))
+
+	// Non-positive dimensions are treated as not exceeding the cap.
+	require.False(t, exceedsResolution(0, 100, max))
+	require.False(t, exceedsResolution(100, 0, max))
 }

@@ -4,6 +4,7 @@
 package imaging
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
@@ -59,40 +60,72 @@ func NewDecoder(opts DecoderOptions) (*Decoder, error) {
 	return &d, nil
 }
 
-// checkResolutionLimit rejects images whose declared resolution exceeds the
-// configured MaxDecodedResolution before any pixel data is decoded. It relies
-// on the reader being seekable so the header can be inspected and then rewound
-// for the full decode; non-seekable readers (which production upload paths do
-// not use) are left untouched.
-func (d *Decoder) checkResolutionLimit(rd io.Reader) error {
+// enforceResolutionLimit inspects the image header and rejects images whose
+// declared resolution exceeds the configured MaxDecodedResolution before any
+// pixel data is decoded. It returns the reader to use for the subsequent full
+// decode: seekable readers are rewound to their original position, while
+// non-seekable readers are buffered so the cap is enforced for every input.
+func (d *Decoder) enforceResolutionLimit(rd io.Reader) (io.Reader, error) {
 	if d.opts.MaxDecodedResolution <= 0 {
-		return nil
+		return rd, nil
 	}
 
-	seeker, ok := rd.(io.ReadSeeker)
-	if !ok {
-		return nil
+	if seeker, ok := rd.(io.ReadSeeker); ok {
+		// Preserve the caller's position so an image decoded from a non-zero
+		// offset still lines up for the full decode.
+		start, err := seeker.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return nil, fmt.Errorf("imaging: failed to read image position: %w", err)
+		}
+		cfg, _, cfgErr := image.DecodeConfig(seeker)
+		if _, err := seeker.Seek(start, io.SeekStart); err != nil {
+			return nil, fmt.Errorf("imaging: failed to seek after reading image config: %w", err)
+		}
+		if err := d.checkConfigResolution(cfg, cfgErr); err != nil {
+			return nil, err
+		}
+		return rd, nil
 	}
 
-	cfg, _, cfgErr := image.DecodeConfig(seeker)
-	if _, seekErr := seeker.Seek(0, io.SeekStart); seekErr != nil {
-		return fmt.Errorf("imaging: failed to seek to start after reading image config: %w", seekErr)
+	// Non-seekable reader: buffer the input so the resolution cap can still be
+	// enforced and the data can be decoded afterwards.
+	data, err := io.ReadAll(rd)
+	if err != nil {
+		return nil, fmt.Errorf("imaging: failed to read image data: %w", err)
 	}
+	cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
+	if err := d.checkConfigResolution(cfg, cfgErr); err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(data), nil
+}
+
+// checkConfigResolution rejects a decoded image config whose resolution exceeds
+// the configured cap. A config-decode error is ignored so the subsequent full
+// decode can surface a meaningful error for malformed input.
+func (d *Decoder) checkConfigResolution(cfg image.Config, cfgErr error) error {
 	if cfgErr != nil {
-		// Let the full decode surface a meaningful error for malformed input.
 		return nil
 	}
-
-	if res := int64(cfg.Width) * int64(cfg.Height); res > d.opts.MaxDecodedResolution {
-		return fmt.Errorf("imaging: image resolution %d (%dx%d) exceeds the maximum allowed %d", res, cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
+	if exceedsResolution(int64(cfg.Width), int64(cfg.Height), d.opts.MaxDecodedResolution) {
+		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels", cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
 	}
-
 	return nil
+}
+
+// exceedsResolution reports whether width*height exceeds max. It divides instead
+// of multiplying so it can't overflow int64 for very large declared dimensions.
+func exceedsResolution(width, height, max int64) bool {
+	if width <= 0 || height <= 0 {
+		return false
+	}
+	return width > max/height
 }
 
 // Decode decodes the given encoded data and returns the decoded image.
 func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err error) {
-	if err = d.checkResolutionLimit(rd); err != nil {
+	rd, err = d.enforceResolutionLimit(rd)
+	if err != nil {
 		return nil, "", err
 	}
 
@@ -113,7 +146,8 @@ func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err erro
 // must be called when access to the raw image is not needed anymore.
 // This sets the raw image data pointer to nil in an attempt to help the GC to re-use the underlying data as soon as possible.
 func (d *Decoder) DecodeMemBounded(rd io.Reader) (img image.Image, format string, releaseFunc func(), err error) {
-	if err = d.checkResolutionLimit(rd); err != nil {
+	rd, err = d.enforceResolutionLimit(rd)
+	if err != nil {
 		return nil, "", nil, err
 	}
 
