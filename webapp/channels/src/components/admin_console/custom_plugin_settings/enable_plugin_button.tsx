@@ -13,7 +13,6 @@ import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/action
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
-import FormError from 'components/form_error';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -206,7 +205,12 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
             >
                 {removeButtonMessage}
             </Button>
-            <FormError error={serverError}/>
+            {serverError && (
+                <div className='PluginMetadataPanel__actionError'>
+                    <i className='fa fa-exclamation-circle'/>
+                    {serverError}
+                </div>
+            )}
             {removePluginModal}
         </div>
     );

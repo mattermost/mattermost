@@ -11,7 +11,18 @@
     }
 
     &__status {
+        display: inline-flex;
+        width: fit-content;
         margin-top: 8px;
+    }
+
+    &__actionError {
+        margin-top: 8px;
+        color: var(--error-text);
+
+        .fa {
+            margin-right: 4px;
+        }
     }
 
     &__metadata {
