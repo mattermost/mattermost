@@ -227,7 +227,7 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
-	ev.SetBroadcast(broadcast)
+	ev = ev.SetBroadcast(broadcast)
 	ev = ev.PrecomputeJSON()
 
 	evCopy := ev.DeepCopy()
