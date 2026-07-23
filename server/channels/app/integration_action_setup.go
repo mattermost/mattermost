@@ -89,7 +89,7 @@ func (a *App) resolvePostActionSetup(
 		PostId: postID,
 	}
 
-	userChan := a.startUpstreamUserFetch(userID)
+	userChan := a.startUpstreamUserFetch(rctx, userID)
 	postChan := a.startUpstreamPostFetch(rctx, postID)
 	channelChan := a.startUpstreamChannelFetch(postID)
 
@@ -129,10 +129,10 @@ func (a *App) startUpstreamChannelFetch(postID string) <-chan store.StoreResult[
 	return channelChan
 }
 
-func (a *App) startUpstreamUserFetch(userID string) <-chan store.StoreResult[*model.User] {
+func (a *App) startUpstreamUserFetch(rctx request.CTX, userID string) <-chan store.StoreResult[*model.User] {
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()

@@ -843,7 +843,7 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), reaction.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now

@@ -137,7 +137,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 	}
 
 	// Get the owner of the bot, if one exists. If not, don't send a message
-	ownerUser, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), bot.OwnerId)
+	ownerUser, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return nil, model.NewAppError("CreateBot", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -272,7 +272,7 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 
 	bot.Patch(botPatch)
 
-	user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), botUserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -394,7 +394,7 @@ func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bo
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), botUserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

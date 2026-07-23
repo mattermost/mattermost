@@ -60,7 +60,7 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, err
 	}
 
-	_, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), draft.UserId)
+	_, nErr := a.Srv().Store().User().Get(rctx, draft.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

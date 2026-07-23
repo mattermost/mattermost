@@ -41,7 +41,7 @@ func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, 
 	}
 
 	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-		user, nErr := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), loggedInUserID)
+		user, nErr := a.Srv().Store().User().Get(rctx, loggedInUserID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -57,7 +57,7 @@ func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, 
 	}
 
 	stopNotifications := false
-	if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+	if err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 		if mentions.isUserMentioned(loggedInUserID) {
 			stopNotifications = true
 		}
@@ -104,6 +104,7 @@ func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *
 }
 
 func (a *App) SendPersistentNotifications() error {
+	rctx := request.EmptyContext(a.Log())
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute
 	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 
@@ -136,7 +137,7 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		// Send notifications
-		if err := a.forEachPersistentNotificationPost(posts, a.sendPersistentNotifications); err != nil {
+		if err := a.forEachPersistentNotificationPost(rctx, posts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
 
@@ -152,7 +153,7 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
+func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
 	channelsMap, teamsMap, err := a.channelTeamMapsForPosts(posts)
 	if err != nil {
 		return err
@@ -193,7 +194,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		// without being a member.
 		if _, ok := profileMap[post.UserId]; !ok {
 			var sender *model.User
-			sender, err = a.Srv().Store().User().Get(request.EmptyContext(a.Log()), post.UserId)
+			sender, err = a.Srv().Store().User().Get(rctx, post.UserId)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
 			}
