@@ -13250,5 +13250,45 @@
   {
     "id": "app.pap.simulate.compile_failed",
     "translation": "Nie udało się skompilować polityki na potrzeby symulacji."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "Funkcja polityki uprawnień jest obecnie wyłączona."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "Ta polityka jest nieważna."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "Do przeprowadzenia symulacji potrzebna jest przynajmniej jedna czynność."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "Żeby zasymulować politykę o zasięgu kanału, potrzebny jest kanał."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "Do symulacji potrzebna jest Polityka."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "Do przeprowadzenia symulacji potrzebny jest co najmniej jeden użytkownik."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Nie udało się zainicjować modułu rozpoznawania atrybutów do symulacji polityki."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Zgłoszono zbyt wiele wniosków od użytkowników. Maksymalna dozwolona liczba to {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Punkt zarządzania Polityką nie został zainicjowany."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Typ Polityki \"{{.Type}}\" nie jest obsługiwany przez symulator."
   }
 ]
