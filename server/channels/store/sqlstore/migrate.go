@@ -184,6 +184,10 @@ func (m *Migrator) PreMigrate() error {
 	return m.store.preMigration()
 }
 
+func (m *Migrator) MigrateUserPostDelivery() error {
+	return m.store.migrateUserPostDelivery(m.store.GetInternalMasterDB(), migrationsDirectionUp, true)
+}
+
 func (m *Migrator) DowngradeMigrations(dryRun bool, versions ...string) error {
 	migrations, err := m.engine.Diff(models.Down)
 	if err != nil {

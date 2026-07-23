@@ -267,10 +267,20 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
+		// The post-delivery-tracking schema always lives on the primary DB. Its
+		// own version table keeps it independent of the main migration set, so
+		// running it unconditionally is safe; the table simply stays empty and
+		// unused until the feature is enabled.
+		err = store.migrateUserPostDelivery(store.GetInternalMasterDB(), migrationsDirectionUp, !store.disableMorphLogging)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
+		}
+
+		// When a dedicated second DB is configured, apply the same schema there too.
 		if store.userPostDeliveryDedicated {
-			err = store.migrateUserPostDelivery(migrationsDirectionUp, !store.disableMorphLogging)
+			err = store.migrateUserPostDelivery(store.userPostDeliveryX.DB().DB, migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
+				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations on the dedicated DB")
 			}
 		}
 	}
@@ -1056,7 +1066,7 @@ func (ss *SqlStore) UserPostDelivery() store.UserPostDeliveryStore {
 }
 
 func (ss *SqlStore) DropAllTables() {
-	ss.masterX.Exec(`DO
+	ss.masterX.Exec(fmt.Sprintf(`DO
 		$func$
 		BEGIN
 		   EXECUTE
@@ -1065,9 +1075,10 @@ func (ss *SqlStore) DropAllTables() {
 		    WHERE  relkind = 'r'  -- only tables
 		    AND    relnamespace = 'public'::regnamespace
 			AND NOT relname = 'db_migrations'
+			AND NOT relname = '%s'
 		   );
 		END
-		$func$;`)
+		$func$;`, userPostDeliveryMigrationsTableName))
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
