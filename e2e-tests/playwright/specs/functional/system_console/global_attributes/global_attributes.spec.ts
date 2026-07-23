@@ -378,6 +378,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     // * The read-only subtitle renders under the attribute name
                     await expect(classificationRow.getByText('Read-only')).toBeVisible();
 
+                    // * The Source column identifies this row's true source, not the generic
+                    // "Managed here" every other native field gets
+                    await expect(classificationRow.getByTestId('global-attribute-source')).toContainText(
+                        'Classification Markings',
+                    );
+
                     // * The rightmost cell is a chevron link to the Classification Markings admin
                     // page, not the dot-menu action trigger
                     const chevronLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
@@ -402,6 +408,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     await expect(unrelatedRow.getByRole('button', {name: 'More actions'})).toBeVisible();
                     await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
                     await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
+                    await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
                 } finally {
                     await deleteGlobalAttributeFieldIfExists(adminClient, 'classification');
                     await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);

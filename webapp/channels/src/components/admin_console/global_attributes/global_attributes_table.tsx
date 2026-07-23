@@ -120,13 +120,23 @@ export function getSourceIcon(kind: SourceKind): ComponentType<IconProps> | unde
     return SOURCE_ICONS[kind];
 }
 
-function SourceCell({field}: {field: PropertyField}) {
-    const kind = getSourceKind(field);
+type ClassificationAwareCellProps = {
+    field: PropertyField;
+    groupId: string;
+    classificationMarkingsReachable: boolean;
+};
+
+function SourceCell({field, groupId, classificationMarkingsReachable}: ClassificationAwareCellProps) {
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
+    const isClassificationRow = isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable;
+    const kind = getSourceKind(field);
+
     let content: React.ReactNode;
-    if (kind === 'plugin') {
+    if (isClassificationRow) {
+        content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
+    } else if (kind === 'plugin') {
         content = pluginDisplayName;
     } else if (kind === 'ldap') {
         content = <FormattedMessage {...sourceLabels.ldap}/>;
@@ -136,7 +146,9 @@ function SourceCell({field}: {field: PropertyField}) {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
 
-    const Icon = getSourceIcon(kind);
+    // The classification row identifies its source via text alone ("Classification
+    // Markings"), not a plugin/ldap/saml/managed kind, so it doesn't get one of those icons.
+    const Icon = isClassificationRow ? undefined : getSourceIcon(kind);
 
     return (
         <span
@@ -163,12 +175,6 @@ function OptionsCell({field}: {field: PropertyField}) {
         />
     );
 }
-
-type ClassificationAwareCellProps = {
-    field: PropertyField;
-    groupId: string;
-    classificationMarkingsReachable: boolean;
-};
 
 function classificationSubtitleId(fieldId: string): string {
     return `global-attribute-classification-subtitle-${fieldId}`;
@@ -380,7 +386,13 @@ export default function GlobalAttributesTable() {
             columnHelper.display({
                 id: 'source',
                 header: () => <FormattedMessage {...messages.source}/>,
-                cell: ({row}) => <SourceCell field={row.original}/>,
+                cell: ({row}) => (
+                    <SourceCell
+                        field={row.original}
+                        groupId={groupId}
+                        classificationMarkingsReachable={classificationMarkingsReachable}
+                    />
+                ),
                 enableHiding: false,
             }),
             columnHelper.display({
@@ -466,7 +478,7 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
     classificationSubtitle: {
         id: 'admin.global_attributes.table.attribute.classification_subtitle',
-        defaultMessage: 'Read-only — open the markings page',
+        defaultMessage: 'Read-only',
     },
 });
 
@@ -482,6 +494,10 @@ const sourceLabels = defineMessages({
     ldap: {id: 'admin.global_attributes.table.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.table.source.saml', defaultMessage: 'SAML'},
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
+    classificationMarkings: {
+        id: 'admin.global_attributes.table.source.classification_markings',
+        defaultMessage: 'Classification Markings',
+    },
 });
 
 const optionsLabels = defineMessages({

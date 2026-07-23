@@ -423,9 +423,13 @@ describe('GlobalAttributesTable', () => {
 
             // * The dot-menu is not rendered for this row
             expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
+
+            // * The Source column also identifies this row's true source, rather than the
+            // generic "Managed here" every other native field gets
+            expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Classification Markings');
         });
 
-        it('renders the ordinary dot-menu and no subtitle when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
+        it('renders the ordinary dot-menu, no subtitle, and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             // getBaseState() has no license/FeatureFlags set, so the reachability check is false.
@@ -436,6 +440,7 @@ describe('GlobalAttributesTable', () => {
 
             expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+            expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
         });
 
         it('renders the ordinary dot-menu when the license is sufficient but the ClassificationMarkings flag is off', async () => {
