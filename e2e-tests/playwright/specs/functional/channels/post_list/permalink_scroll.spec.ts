@@ -10,7 +10,7 @@ import type {Post} from '@mattermost/types/posts';
 import {expect, setupFileServer, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
-import {watchPostListScroll, type PostListScrollWatcher} from './initial_scroll.spec';
+import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
 
 test.describe('Post list scroll to permalink', () => {
     let adminClient: PlaywrightClient4;
