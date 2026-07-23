@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -362,7 +363,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		}
 	}
 
-	permission := model.PermissionToReadJobType(jobType)
+	permission := jobs.ReadPermissionForType(jobType)
 	if permission == nil {
 		return false, nil
 	}

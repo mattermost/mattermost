@@ -50,6 +50,30 @@ func expectErrorId(t *testing.T, errId string, appErr *model.AppError) {
 	require.Equal(t, errId, appErr.Id)
 }
 
+func TestReadPermissionForType(t *testing.T) {
+	testCases := []struct {
+		name       string
+		jobType    string
+		permission *model.Permission
+	}{
+		{"data retention", model.JobTypeDataRetention, model.PermissionReadDataRetentionJob},
+		{"message export", model.JobTypeMessageExport, model.PermissionReadComplianceExportJob},
+		{"elasticsearch indexing", model.JobTypeElasticsearchPostIndexing, model.PermissionReadElasticsearchPostIndexingJob},
+		{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
+		{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
+		{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
+		{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
+		{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
+		{"unknown", "unknown", nil},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			require.Equal(t, testCase.permission, ReadPermissionForType(testCase.jobType))
+		})
+	}
+}
+
 func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 	configService := &testutils.StaticConfigService{}
 
