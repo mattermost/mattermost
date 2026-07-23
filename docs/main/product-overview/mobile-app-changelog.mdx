@@ -16,6 +16,73 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## 2.42.2 Release \{#release-v2-42-2}
+ - Release Date: July 18, 2026
+ - Server Versions Supported: Server v10.11.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to server version v10.11.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.5.0 has ended and upgrading to server ESR v10.11.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android operating system 7+ [is required by Google](https://android-developers.googleblog.com/2017/12/improving-app-security-and-performance.html).
+ - iPhone 8+ devices and later with iOS 16.0+ are [required](https://support.apple.com/en-il/guide/iphone/iphe3fa5df43/16.0/ios/16.0).
+
+### Bug Fixes
+ - Fixed an issue where threads could appear blank when opened, and where the code viewer, About Mattermost, and timezone selection screens could display corrupted text.
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
+## 2.42.1 Release \{#release-v2-42-1}
+ - Release Date: July 17, 2026
+ - Server Versions Supported: Server v10.11.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to server version v10.11.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.5.0 has ended and upgrading to server ESR v10.11.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android operating system 7+ [is required by Google](https://android-developers.googleblog.com/2017/12/improving-app-security-and-performance.html).
+ - iPhone 8+ devices and later with iOS 16.0+ are [required](https://support.apple.com/en-il/guide/iphone/iphe3fa5df43/16.0/ios/16.0).
+
+### Bug Fixes
+ - Fixed an issue when logging in with numeric only IDs.
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
+## 2.42.0 Release \{#release-v2-42-0}
+ - Release Date: July 16, 2026
+ - Server Versions Supported: Server v10.11.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to server version v10.11.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.5.0 has ended and upgrading to server ESR v10.11.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android operating system 7+ [is required by Google](https://android-developers.googleblog.com/2017/12/improving-app-security-and-performance.html).
+ - iPhone 8+ devices and later with iOS 16.0+ are [required](https://support.apple.com/en-il/guide/iphone/iphe3fa5df43/16.0/ios/16.0).
+
+### Improvements
+ - Added iOS PushKit + CallKit support for Mattermost Calls. The native iOS incoming-call user interface now appears when a call is received while the app is backgrounded, locked, or closed; users can answer or decline from the lock screen, get lock-screen / control-center controls during an active call, and the system handles audio routing. The Android microphone foreground service was reimplemented as part of `@mattermost/calls-native`, replacing the `@voximplant/react-native-foreground-service` dependency (no user-visible change on Android).
+ - Added support for inline action buttons in markdown messages on mobile via the `mmaction://` link scheme. Buttons render in posts from bots, webhooks and server plugins, and trigger the same interactive dialog flow as the webapp.
+ - Added Offline Persistence Timer support for Mobile Ephemeral Mode. Added settings for monitoring offline usage and honoring organizations to purge the Mattermost app data when needed. Ephemeral mode on mobile depends on the feature flag turned on for the server side.
+ - Added support for conversation-entity backed agent posts (mattermost-plugin-agents v2.0), including server-computed approval state and per-requester tool call scoping.
+ - Removed legacy interactive dialog code path.
+
+### Bug Fixes
+ - Fixed a user interface issue where custom status appeared misaligned in the channel header.
+ - Fixed an issue with the copy code button color with header button theming across Sapphire and Denim themes.
+ - Fixed an issue where an unsaved post could briefly reappear in Saved Messages.
+ - Fixed an issue where pinned messages were displayed in the wrong order.
+ - Fixed an issue where opening an archived channel could hang, and joining an archived channel failed on iOS.
+ - Fixed an issue where scheduled messages with an invalid time displayed "Invalid Date".
+ - Fixed an issue where an archived-channel banner could briefly flicker when dismissing dialogs.
+ - Fixed an issue where archiving a channel redirected users to the channel list instead of keeping users in the archived channel (reported on iOS and Android).
+ - Fixed an issue with the audio selector for Calls on Android devices.
+ - Fixed an issue on Android where it was not possible to download logs or files from the gallery.
+
+### Open Source Components
+ - Removed `@voximplant/react-native-foreground-service` from https://github.com/mattermost/mattermost-mobile/.
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
 ## 2.41.3 Release \{#release-v2-41-3}
  - Release Date: July 7, 2026
  - Server Versions Supported: Server v10.11.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.

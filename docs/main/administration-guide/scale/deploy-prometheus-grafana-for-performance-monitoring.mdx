@@ -129,6 +129,8 @@ See [this Grafana guide](https://grafana.com/docs/grafana/v7.5/dashboards/export
 
 Mattermost provides [custom metrics](/administration-guide/scale/performance-monitoring-metrics#custom-mattermost-metrics) and [standard Go metrics](/administration-guide/scale/performance-monitoring-metrics#standard-go-metrics) that can be used to monitor your system's performance.
 
+When the `AggregatePluginMetrics` feature flag is enabled, plugin-provided metrics are included in the same `/metrics` scrape target and can be filtered by the `plugin_id` label.
+
 ## Next steps
 
 Once you've set up performance monitoring, you may want to:
