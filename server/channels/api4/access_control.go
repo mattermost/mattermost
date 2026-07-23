@@ -94,8 +94,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
-	// Sysadmin is allowed in every policy-type case; compute the check once and
-	// reuse it. Each case layers its own non-sysadmin fallback on top.
+	// Sysadmin is allowed in every case; each case layers its own non-sysadmin fallback.
 	hasManageSystem := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
 	switch policy.Type {

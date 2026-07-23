@@ -375,9 +375,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             });
     }, 150);
 
-    // Strict-team candidate search runs server-side and scoped to the team's
-    // policy, so the picker never buffers the whole matching set (no client-side
-    // cap) and never surfaces a non-qualifying user. Fails closed: on error the
+    // Policy-scoped server search for strict teams. Fails closed: on error the
     // callback gets an empty list rather than falling through to unfiltered search.
     debouncedSearchAbacCandidates = debounce((term: string, callback: (users: UserProfile[]) => void) => {
         const teamId = this.props.currentTeam?.id;

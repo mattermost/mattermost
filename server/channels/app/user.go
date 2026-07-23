@@ -830,11 +830,9 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 }
 
 // GetUsersNotInAbacTeam returns users who satisfy the team's ABAC membership
-// policy, for candidate lists on policy-governed teams. Mirrors
-// GetUsersNotInAbacChannel, with the team as the resource being evaluated. A
-// non-empty term narrows the match to users whose name/username/email prefixes
-// it, so the invite picker can server-side typeahead instead of pre-buffering
-// the whole matching set.
+// policy, for invite candidate lists on policy-governed teams. Mirrors
+// GetUsersNotInAbacChannel. A non-empty term filters by name server-side so the
+// invite picker can typeahead instead of pre-buffering the whole matching set.
 func (a *App) GetUsersNotInAbacTeam(rctx request.CTX, teamID string, term string, cursorID string, limit int, asAdmin bool) ([]*model.User, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
