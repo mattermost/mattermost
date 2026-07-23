@@ -142,8 +142,6 @@ const OVERVIEW_ROOT_ORDER = [
   'accessibility-compliance-policy',
   {group: 'releases'},
   {group: 'faq'},
-  // Locally-added pages not present on live:
-  'whats-new-in-v11',
 ];
 
 // ---------------------------------------------------------------------------
