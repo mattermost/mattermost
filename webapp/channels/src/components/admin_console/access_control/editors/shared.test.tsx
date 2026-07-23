@@ -344,6 +344,33 @@ describe('hasUsableAttributes', () => {
         expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 
+    test('should return true when attributes are owner-managed', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}],
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
     test('should return false when attributes exist but are not usable (not LDAP/SAML/admin/protected and EnableUserManagedAttributes is false)', () => {
         const userAttributes: UserPropertyField[] = [
             {
@@ -611,11 +638,13 @@ describe('toCELEditorAttributes', () => {
             makeField('email', {native: true, operators: ['==']}),
             makeField('unsafe', {}),
             makeField('synced', {ldap: 'ldap_field'}),
+            makeField('owned', {owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}]}),
         ];
 
         expect(toCELEditorAttributes(fields, false)).toEqual([
             {attribute: 'email', values: [], isNative: true, objectType: 'user'},
             {attribute: 'synced', values: [], isNative: false, objectType: 'user'},
+            {attribute: 'owned', values: [], isNative: false, objectType: 'user'},
         ]);
     });
 

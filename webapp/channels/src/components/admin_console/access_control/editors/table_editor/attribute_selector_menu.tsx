@@ -31,6 +31,8 @@ import * as Menu from 'components/menu';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
+import {hasControlledAttributeValues} from '../shared';
+
 import './selector_menus.scss';
 
 type AttributeLabelProps = {
@@ -176,9 +178,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isNative = option.attrs?.native;
         const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
         const isSynced = option.attrs?.ldap || option.attrs?.saml;
-        const isAdminManaged = option.attrs?.managed === 'admin';
-        const isProtected = option.attrs?.protected;
-        const allowed = isSessionAttribute || isNative || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
         const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
 
