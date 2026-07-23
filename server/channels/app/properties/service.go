@@ -60,6 +60,13 @@ func (c *ServiceConfig) validate() error {
 	return nil
 }
 
+func (ps *PropertyService) requestContext(rctx request.CTX) request.CTX {
+	if rctx == nil {
+		return request.EmptyContext(nil)
+	}
+	return rctx
+}
+
 // extractCallerID gets the caller ID from a request context using the configured extractor.
 func (ps *PropertyService) extractCallerID(rctx request.CTX) string {
 	if ps.callerIDExtractor == nil || rctx == nil {

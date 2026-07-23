@@ -18,6 +18,8 @@ import (
 // This is enforced at the service layer to cover all entry points (API,
 // CPA endpoints, plugin API).
 func (ps *PropertyService) rejectTemplateValues(rctx request.CTX, values []*model.PropertyValue) error {
+	rctx = ps.requestContext(rctx)
+
 	// Collect unique field IDs
 	seen := make(map[string]struct{}, len(values))
 	for _, v := range values {
