@@ -39,11 +39,4 @@
         flex-direction: column;
         gap: 12px;
     }
-
-    &__policyEnforcedNotice {
-        margin: 8px 0 0;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        line-height: 20px;
-    }
 }

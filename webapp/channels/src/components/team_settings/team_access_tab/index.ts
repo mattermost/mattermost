@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {
     createAccessControlTeamSyncJob,
+    getAccessControlPolicy,
     getTeamAccessControlPolicy,
     searchUsersForExpression,
 } from 'mattermost-redux/actions/access_control';
@@ -42,6 +43,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             regenerateTeamInviteId,
             getTeamStats,
             getTeamAccessControlPolicy,
+            getAccessControlPolicy,
             searchUsersForExpression,
             createAccessControlTeamSyncJob,
         }, dispatch),

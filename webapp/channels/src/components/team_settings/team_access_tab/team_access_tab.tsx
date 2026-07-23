@@ -5,7 +5,7 @@ import React, {useCallback, useState, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
-import {getMembershipRule} from '@mattermost/types/access_control';
+import {combineMembershipExpressions, getMembershipRule} from '@mattermost/types/access_control';
 
 import ConfirmModal from 'components/confirm_modal';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -72,18 +72,29 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         try {
             const policyResult = await actions.getTeamAccessControlPolicy(team.id);
             const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
-            const expression = getMembershipRule(policyData?.policy?.rules)?.expression ?? '';
+            const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
+
+            // Parent-governed teams keep the rules in the imported policy, not here.
+            const parentIds = policyData?.policy?.imports ?? [];
+            const parentPolicies = await Promise.all(
+                parentIds.map((id) => actions.getAccessControlPolicy(id)),
+            );
+
+            // A dropped import would understate the count; fall back to the generic message.
+            if (parentPolicies.some((result) => result?.error || !result?.data)) {
+                return null;
+            }
+            const parentExpressions = parentPolicies.map((result) =>
+                getMembershipRule((result.data as AccessControlPolicy).rules)?.expression,
+            );
+
+            const expression = combineMembershipExpressions([teamExpression, ...parentExpressions]);
 
             if (!expression) {
                 return null;
             }
 
-            // Count the members who would be removed as (active members) minus
-            // (members matching the rules). Both counts come from the server:
-            // searchUsersForExpression with the team id scopes the match count to
-            // this team's members, and the stats endpoint gives the active total.
-            // This avoids paging the member list, which the server caps at 200 per
-            // request and would silently undercount on larger teams.
+            // active - matching, server-side to avoid paging the member list.
             const [searchResult, statsResult] = await Promise.all([
                 actions.searchUsersForExpression(expression, '', '', 1, undefined, team.id),
                 actions.getTeamStats(team.id),
@@ -173,18 +184,30 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         setAreThereUnsavedChanges(false);
     }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
-    const modeFlipMessage = modeFlipMemberCount === null ? (
-        <FormattedMessage
-            id='team_settings.mode_flip_confirm.message_generic'
-            defaultMessage='Switching to Private will activate strict ABAC enforcement. Some members may not meet the current policy criteria and will be removed at the next sync.'
-        />
-    ) : (
-        <FormattedMessage
-            id='team_settings.mode_flip_confirm.message_with_count'
-            defaultMessage='Switching to Private will activate strict ABAC enforcement. {count} current {count, plural, one {member does} other {members do}} not meet criteria and will be removed at the next sync.'
-            values={{count: modeFlipMemberCount}}
-        />
-    );
+    let modeFlipMessage;
+    if (modeFlipMemberCount === null) {
+        modeFlipMessage = (
+            <FormattedMessage
+                id='team_settings.mode_flip_confirm.message_generic'
+                defaultMessage='Switching to Private will activate strict ABAC enforcement. Some members may not meet the current policy criteria and will be removed at the next sync.'
+            />
+        );
+    } else if (modeFlipMemberCount === 0) {
+        modeFlipMessage = (
+            <FormattedMessage
+                id='team_settings.mode_flip_confirm.message_no_removals'
+                defaultMessage='Switching to Private will activate strict ABAC enforcement. All current members meet the criteria, so no one will be removed at the next sync.'
+            />
+        );
+    } else {
+        modeFlipMessage = (
+            <FormattedMessage
+                id='team_settings.mode_flip_confirm.message_with_count'
+                defaultMessage='Switching to Private will activate strict ABAC enforcement. {count} current {count, plural, one {member does} other {members do}} not meet criteria and will be removed at the next sync.'
+                values={{count: modeFlipMemberCount}}
+            />
+        );
+    }
 
     return (
         <div
@@ -196,8 +219,6 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             <OpenInvite
                 isPublic={isPublicTeam}
                 isGroupConstrained={team.group_constrained}
-                policyEnforced={team.policy_enforced}
-                policyIsActive={team.policy_is_active}
                 onChange={handlePrivacyChange}
             />
             {!team.group_constrained && (
