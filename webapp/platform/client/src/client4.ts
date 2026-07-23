@@ -5083,7 +5083,7 @@ export default class Client4 {
     // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
     // ABAC membership policy and are not yet members, for the policy-filtered
     // invite candidate list.
-    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '', search = '') => {
+    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '', term = '') => {
         const queryStringObj: any = {
             not_in_team: teamId,
             per_page: perPage,
@@ -5092,8 +5092,8 @@ export default class Client4 {
         if (cursorId) {
             queryStringObj.cursor_id = cursorId;
         }
-        if (search) {
-            queryStringObj.search = search;
+        if (term) {
+            queryStringObj.term = term;
         }
 
         return this.doFetch<UserProfile[]>(
