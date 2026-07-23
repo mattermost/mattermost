@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -20,6 +21,8 @@ const (
 	jobDataKeyPostId      = "post_id"
 	jobDataKeyTeamId      = "team_id"
 	jobDataKeyRequestedBy = "requested_by"
+
+	deliveryTrackingPurgeJobWaitTimeout = 15 * time.Second
 )
 
 var (
@@ -130,6 +133,17 @@ func (a *App) purgeDeliveryTrackingContentReview(rctx request.CTX, postID string
 	for _, job := range jobs {
 		if appErr := a.Srv().Jobs.RequestCancellation(rctx, job.Id); appErr != nil {
 			rctx.Logger().Warn("purgeDeliveryTrackingContentReview: failed to cancel in-flight copy job", mlog.String("post_id", postID), mlog.String("job_id", job.Id), mlog.Err(appErr))
+		}
+	}
+
+	// A canceled in-progress job keeps writing batches until its CancellationWatcher
+	// notices (polls every 5s) and finishes the in-flight batch. Deleting before then
+	// leaves orphaned rows the worker re-inserts after the deletion. Wait (bounded) for
+	// each job to actually stop before deleting; if we can't confirm it stopped, we
+	// delete anyway.
+	for _, job := range jobs {
+		if err := a.Srv().Jobs.WaitForJobToStop(rctx, job.Id, deliveryTrackingPurgeJobWaitTimeout); err != nil {
+			rctx.Logger().Warn("purgeDeliveryTrackingContentReview: could not confirm copy job stopped; deleting anyway", mlog.String("post_id", postID), mlog.String("job_id", job.Id), mlog.Err(err))
 		}
 	}
 

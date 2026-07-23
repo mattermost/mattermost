@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CancelWatcherPollingInterval = 5000
+	CancelWatcherPollingInterval    = 5000
+	WaitForJobToStopPollingInterval = 250 * time.Millisecond
 )
 
 // JobLoggerFields returns the logger annotations reflecting the given job metadata.
@@ -349,6 +350,44 @@ func (srv *JobServer) CancellationWatcher(rctx request.CTX, jobId string, cancel
 				close(cancelChan)
 				return
 			}
+		}
+	}
+}
+
+// jobHasStopped reports whether a job has reached a terminal status — its worker has
+// returned and can no longer act on the job's behalf.
+func jobHasStopped(status string) bool {
+	switch status {
+	case model.JobStatusSuccess, model.JobStatusError, model.JobStatusCanceled, model.JobStatusWarning:
+		return true
+	}
+	return false
+}
+
+func (srv *JobServer) WaitForJobToStop(rctx request.CTX, jobID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for {
+		job, err := srv.Store.Job().Get(rctx, jobID)
+		if err != nil {
+			var notFound *store.ErrNotFound
+			if errors.As(err, &notFound) {
+				return nil
+			}
+			return fmt.Errorf("failed to read status of job %s: %w", jobID, err)
+		}
+
+		if jobHasStopped(job.Status) {
+			return nil
+		}
+
+		if !time.Now().Before(deadline) {
+			return fmt.Errorf("timed out after %s waiting for job %s to stop", timeout, jobID)
+		}
+
+		select {
+		case <-rctx.Context().Done():
+			return rctx.Context().Err()
+		case <-time.After(WaitForJobToStopPollingInterval):
 		}
 	}
 }

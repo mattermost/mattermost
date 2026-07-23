@@ -10,12 +10,15 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -970,5 +973,64 @@ func TestPublishJobStatus(t *testing.T) {
 
 		require.Nil(t, jobServer.RequestCancellation(ctx, "job_id"))
 		assertPublishedJob(t, captured, model.JobStatusCancelRequested)
+	})
+}
+
+func TestWaitForJobToStop(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
+	ctx := request.TestContext(t)
+
+	t.Run("returns immediately when the job is already stopped", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(&model.Job{Id: "job_id", Status: model.JobStatusSuccess}, nil)
+
+		require.NoError(t, jobServer.WaitForJobToStop(ctx, "job_id", 5*time.Second))
+	})
+
+	t.Run("treats a missing job as stopped", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(nil, store.NewErrNotFound("Job", "job_id"))
+
+		require.NoError(t, jobServer.WaitForJobToStop(ctx, "job_id", 5*time.Second))
+	})
+
+	t.Run("returns the error when the job status cannot be read", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		// A non-NotFound read error must stop the wait immediately. Once() asserts we
+		// do not retry: a second Get would exceed the expectation and fail the test.
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(nil, errors.New("database is unavailable")).Once()
+
+		require.Error(t, jobServer.WaitForJobToStop(ctx, "job_id", 5*time.Second))
+	})
+
+	t.Run("polls until the job reaches a terminal status", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		// First poll sees the job still running; the next sees it canceled.
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(&model.Job{Id: "job_id", Status: model.JobStatusInProgress}, nil).Once()
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(&model.Job{Id: "job_id", Status: model.JobStatusCanceled}, nil)
+
+		require.NoError(t, jobServer.WaitForJobToStop(ctx, "job_id", 5*time.Second))
+	})
+
+	t.Run("returns an error when the job never stops before the timeout", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		mockStore.JobStore.
+			On("Get", mock.Anything, "job_id").
+			Return(&model.Job{Id: "job_id", Status: model.JobStatusInProgress}, nil)
+
+		require.Error(t, jobServer.WaitForJobToStop(ctx, "job_id", time.Millisecond))
 	})
 }
