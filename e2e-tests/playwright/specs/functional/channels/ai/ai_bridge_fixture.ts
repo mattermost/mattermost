@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -22,65 +21,23 @@ export {expect} from '@mattermost/playwright-lib';
 // The server-side AI bridge mock is process-global: every test resets it and consumes from one shared
 // FIFO completion queue, so AI bridge tests running concurrently (PW_WORKERS > 1) clobber each other.
 // All workers share one machine, so serialize them with a cross-process file lock held per test.
+//
+// The lock is intentionally minimal: acquisition is a single atomic create (open with O_EXCL), and the
+// lock is only ever removed by the worker that created it, on release. There is deliberately no
+// stale-reclamation / hand-off path — reclaiming another worker's lock cannot be made race-free with
+// filesystem primitives (it invites two workers into the critical section), so instead a lock is only
+// released by its owner. Playwright runs fixture teardown even on test timeout/failure, so a held lock
+// is released in every normal path; a genuinely leaked lock (hard worker crash) surfaces as a bounded
+// acquire timeout on the other AI tests rather than as silent concurrent mock access.
 const LOCK_PATH = path.join(os.tmpdir(), 'mm-e2e-ai-bridge-mock.lock');
 
-// The holder refreshes the lock's mtime every heartbeat; a lock older than the stale timeout is
-// assumed abandoned by a crashed worker and reclaimed. Heartbeat << stale so a live holder is safe.
-const HEARTBEAT_MS = duration.four_sec;
-const STALE_LOCK_MS = duration.half_min;
-
-// Extra budget so blocking on the lock cannot trip the per-test timeout; reset once the lock is held.
+// Poll interval while waiting for a held lock, and the extra budget granted for that wait so it does
+// not eat into the per-test timeout.
+const RETRY_INTERVAL_MS = duration.half_sec;
 const LOCK_ACQUIRE_BUDGET_MS = duration.four_min;
 
 function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Ownership token written into the lock file, unique per acquisition. Cross-process removal/refresh
-// is done atomically (via the owner's file descriptor and rename()), never with a check-then-mutate
-// on the path, so a holder that stalls, gets its lock reclaimed, then resumes can never touch the
-// replacement lock another worker created.
-const OWNER_TOKEN = `${process.pid}-${crypto.randomUUID()}`;
-
-// Atomically remove LOCK_PATH only when it still carries `token`. rename() has a single winner, so we
-// never rm the path directly (which could delete a lock another worker recreated): we claim whatever
-// is at the path, and if it is not ours we put it straight back.
-async function removeLockIfOwned(token: string): Promise<void> {
-    const salvage = `${LOCK_PATH}.claim.${OWNER_TOKEN}`;
-    try {
-        await fs.rename(LOCK_PATH, salvage);
-    } catch {
-        return; // Already gone / reclaimed by someone else.
-    }
-    if ((await fs.readFile(salvage, 'utf8').catch(() => null)) === token) {
-        await fs.rm(salvage, {force: true});
-    } else {
-        await fs.rename(salvage, LOCK_PATH).catch(() => fs.rm(salvage, {force: true}));
-    }
-}
-
-// Reclaim the lock only if its holder went stale. Uses the same atomic claim, with an mtime re-check
-// so a lock refreshed in the race window is restored to its owner rather than deleted.
-async function reclaimIfStale(): Promise<void> {
-    const stats = await fs.stat(LOCK_PATH).catch(() => null);
-    if (!stats || Date.now() - stats.mtimeMs <= STALE_LOCK_MS) {
-        return;
-    }
-
-    const salvage = `${LOCK_PATH}.stale.${OWNER_TOKEN}`;
-    try {
-        await fs.rename(LOCK_PATH, salvage);
-    } catch {
-        return; // Another worker reclaimed or the holder released it first; just retry.
-    }
-
-    const salvaged = await fs.stat(salvage).catch(() => null);
-    if (salvaged && Date.now() - salvaged.mtimeMs > STALE_LOCK_MS) {
-        await fs.rm(salvage, {force: true});
-    } else {
-        // Refreshed just before we grabbed it — hand it back to its owner.
-        await fs.rename(salvage, LOCK_PATH).catch(() => fs.rm(salvage, {force: true}));
-    }
 }
 
 async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
@@ -88,30 +45,23 @@ async function acquireAIBridgeLock(): Promise<() => Promise<void>> {
     for (;;) {
         try {
             handle = await fs.open(LOCK_PATH, 'wx');
-            await handle.writeFile(OWNER_TOKEN);
             break;
         } catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
                 throw error;
             }
-            await reclaimIfStale();
-            await sleep(duration.half_sec);
+            await sleep(RETRY_INTERVAL_MS);
         }
     }
 
-    // Refresh via the file descriptor (futimes), so the heartbeat only ever touches our own inode —
-    // once our lock is renamed/removed by a reclaimer, this updates an unlinked inode and cannot keep
-    // another worker's replacement lock alive.
-    const heartbeat = setInterval(() => {
-        const now = new Date();
-        handle.utimes(now, now).catch(() => {});
-    }, HEARTBEAT_MS);
-    heartbeat.unref?.();
-
+    let released = false;
     return async () => {
-        clearInterval(heartbeat);
+        if (released) {
+            return;
+        }
+        released = true;
         await handle.close().catch(() => {});
-        await removeLockIfOwned(OWNER_TOKEN);
+        await fs.rm(LOCK_PATH, {force: true});
     };
 }
 
