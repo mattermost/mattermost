@@ -66,7 +66,9 @@ export type Props = {
         updateAccessControlPoliciesActive: (states: Array<{id: string; active: boolean}>) => Promise<ActionResult>;
         createAccessControlTeamSyncJob: (data: {policy_id?: string}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => Promise<ActionResult>;
+        getTeamMembers: (teamId: string, page?: number, perPage?: number) => Promise<ActionResult>;
         saveTeamAccessPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
+        deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
         getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
         searchUsersForExpression: (expression: string, term: string, after: string, limit: number, channelId?: string, teamId?: string) => Promise<ActionResult>;
     };
@@ -347,10 +349,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     onPolicyRemove = (policyId: string) => {
         const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        const remaining = accessControlPolicies.filter((policy) => policy.id !== policyId);
         this.setState({
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
-            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
+            accessControlPolicies: remaining,
             saveNeeded: true,
+
+            // Removing the last policy with no custom rules leaves nothing to enforce;
+            // drop enforcement so the save cleanly disables ABAC instead of failing the
+            // "must select a policy or define rules" guard (which forced a manual toggle-off).
+            policyEnforced: this.abacRemainsEnforced(remaining),
         });
         this.props.actions.setNavigationBlocked(true);
     };
@@ -361,8 +369,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, ...accessControlPolicies.map((p) => p.id)],
             accessControlPolicies: [],
             saveNeeded: true,
+            policyEnforced: this.abacRemainsEnforced([]),
         });
         this.props.actions.setNavigationBlocked(true);
+    };
+
+    // Enforcement holds as long as something still governs membership: a linked
+    // parent policy or the team's own custom rules.
+    private abacRemainsEnforced = (remainingPolicies: AccessControlPolicy[]): boolean => {
+        const hasTeamRules = Boolean(this.state.teamRulesExpression && this.state.teamRulesExpression.trim());
+        return remainingPolicies.length > 0 || hasTeamRules;
     };
 
     handleNameChange = (name: string) => {
@@ -572,24 +588,39 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         if (this.props.abacSupported) {
             const {policyEnforced, accessControlPolicies, accessControlPoliciesToRemove, teamRulesExpression, teamRulesAutoSync, teamRulesHaveChanges, teamRulesExistingRules} = this.state;
 
-            // Allow save when there are custom rules even without parent policies.
             const hasTeamRules = teamRulesExpression && teamRulesExpression.trim().length > 0;
             const hasParentPolicies = accessControlPolicies.length > 0;
 
-            if (policyEnforced && !hasTeamRules && !hasParentPolicies) {
-                serverError = (
-                    <FormError
-                        error={
-                            <FormattedMessage
-                                id='admin.team_settings.team_detail.policy_required_error'
-                                defaultMessage='You must select a membership policy or define custom access rules when attribute based team access is enabled.'
-                            />}
-                    />
-                );
-                saveNeeded = true;
-                this.setState({serverError, saving: false, saveNeeded, showAbacSaveConfirm: false});
-                actions.setNavigationBlocked(saveNeeded);
-                return;
+            // Nothing left to govern: disabling ABAC. Delete the team's own policy to
+            // clear enforcement server-side (mirrors channel_details). "not found" is benign.
+            const isEmptyAbacState = policyEnforced && !hasTeamRules && !hasParentPolicies;
+            if (isEmptyAbacState) {
+                try {
+                    // deleteAccessControlPolicy resolves with {error} on failure rather
+                    // than throwing, so inspect the result; the catch only covers an
+                    // unexpected throw. A "not found" policy is benign (already gone).
+                    const result = await actions.deleteAccessControlPolicy(teamID);
+                    const message = (result?.error as {message?: string} | undefined)?.message ?? '';
+                    if (message && !message.includes('not found')) {
+                        serverError = <FormError error={message}/>;
+                        saveNeeded = true;
+                    }
+                } catch (deleteError) {
+                    const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
+                    if (message && !message.includes('not found')) {
+                        serverError = <FormError error={message || 'Failed to delete team access policy'}/>;
+                        saveNeeded = true;
+                    }
+                }
+                if (!saveNeeded) {
+                    this.setState({
+                        policyEnforced: false,
+                        teamRulesOriginalExpression: '',
+                        teamRulesOriginalAutoSync: false,
+                        teamRulesAutoSync: false,
+                        teamRulesHaveChanges: false,
+                    });
+                }
             }
 
             // Assign only policies not already on the server.
@@ -621,7 +652,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             }
 
             // Save the team-level rules policy when rules have changes or there are parent policies.
-            if (!saveNeeded && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
+            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -826,33 +857,55 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && (
+        // Disabling ABAC (no rule, no policy) drops enforcement rather than applying
+        // criteria, so it skips the affected-count confirm.
+        const isEmptyAbacState = !this.state.teamRulesExpression.trim() && this.state.accessControlPolicies.length === 0;
+
+        // Confirm only on new criteria that can drop members: a newly linked policy or
+        // an edited expression. Compare against the loaded original, not
+        // teamRulesHaveChanges (true whenever a rule merely exists). Auto-add is
+        // excluded — it drives the add pass, not removals.
+        const ruleExpressionEdited = this.state.teamRulesExpression !== this.state.teamRulesOriginalExpression;
+        const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && !isEmptyAbacState && (
             this.state.accessControlPolicies.some((p) => !this.state.originalPolicyIds.includes(p.id)) ||
-            this.state.accessControlPoliciesToRemove.length > 0 ||
-            this.state.teamRulesHaveChanges
+            ruleExpressionEdited
         );
 
         if (hasAbacChanges) {
             let affectedCount: number | null = null;
             let qualifyingCount: number | null = null;
             try {
-                const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
-                const totalMembers = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 const effectiveExpression = this.combineTeamAndPolicyExpressions(this.state.teamRulesExpression ?? '');
-                if (totalMembers !== null && effectiveExpression.trim()) {
-                    const exprResult = await this.props.actions.searchUsersForExpression(
-                        effectiveExpression,
-                        '',
-                        '',
-                        1,
-                        undefined,
-                        this.props.teamID,
+                if (effectiveExpression.trim()) {
+                    // The expression endpoint neither resolves policy imports nor scopes
+                    // to a team, so match against all users and intersect with the team's
+                    // current members. Counting matches within the team directly (a
+                    // team-scoped .total) undercounts qualifying members to zero.
+                    const matchResult = await this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000);
+                    const matchingUserIds = new Set(
+                        ((matchResult?.data as {users?: Array<{id: string}>} | null)?.users ?? []).map((u) => u.id),
                     );
-                    const qualifying = (exprResult?.data as {total?: number} | null)?.total ?? null;
-                    qualifyingCount = qualifying;
-                    affectedCount = qualifying === null ? totalMembers : totalMembers - qualifying;
+
+                    // Page through every member — a single 200-row page would undercount
+                    // both totals on teams larger than that.
+                    const perPage = 200;
+                    const currentMemberIds: string[] = [];
+                    for (let page = 0; ; page++) {
+                        // eslint-disable-next-line no-await-in-loop
+                        const membersResult = await this.props.actions.getTeamMembers(this.props.teamID, page, perPage);
+                        const batch = (membersResult?.data as Array<{user_id: string}> | null) ?? [];
+                        for (const member of batch) {
+                            currentMemberIds.push(member.user_id);
+                        }
+                        if (batch.length < perPage) {
+                            break;
+                        }
+                    }
+                    qualifyingCount = currentMemberIds.filter((id) => matchingUserIds.has(id)).length;
+                    affectedCount = currentMemberIds.length - qualifyingCount;
                 } else {
-                    affectedCount = totalMembers;
+                    const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
+                    affectedCount = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 }
             } catch {
                 affectedCount = null;
