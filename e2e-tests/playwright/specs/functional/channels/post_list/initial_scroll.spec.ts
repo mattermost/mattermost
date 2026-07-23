@@ -567,6 +567,104 @@ test.describe('Post list initial scroll', () => {
         });
     });
 
+    test.describe('fully read channel with multiple pages of post previews', () => {
+        test.beforeEach(async () => {
+            // # Make a post to link to
+            const linkedPost = await userClient.createTestPost({
+                channel_id: channel.id,
+            });
+
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 120; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`,
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('unread read channel with multiple pages of post previews', () => {
+        test.beforeEach(async () => {
+            // # Make a post to link to
+            const linkedPost = await userClient.createTestPost({
+                channel_id: channel.id,
+            });
+
+            // # Make some posts as the current user and then some more as the admin so the channel is partially unread
+            for (let i = 0; i < 80; i++) {
+                await userClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`,
+                });
+            }
+
+            for (let i = 0; i < 80; i++) {
+                await adminClient.createTestPost({
+                    channel_id: channel.id,
+                    message: `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`,
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the New Messages line is actually visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // * Verify that the channel starts as unread
+            await channelsPage.sidebarLeft.assertItemUnread(channel.name);
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the New Messages line is still visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
     // Helpers
 
     function makeTestPost(n: number) {
