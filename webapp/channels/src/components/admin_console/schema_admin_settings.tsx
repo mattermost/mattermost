@@ -9,10 +9,11 @@ import {Link} from 'react-router-dom';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
-import type {PluginRedux} from '@mattermost/types/plugins';
+import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
@@ -84,6 +85,7 @@ export type SchemaAdminSettingsProps = {
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
     plugin?: PluginRedux;
+    pluginStatus?: PluginStatusRedux;
     pluginVersion?: string;
 } & WrappedComponentProps;
 
@@ -367,6 +369,8 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
+        const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <PluginMetadataPanel
@@ -376,6 +380,16 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     homepageUrl={this.props.plugin.homepage_url}
                     releaseNotesUrl={this.props.plugin.release_notes_url}
                 />
+                <div className='PluginMetadataPanel__status'>
+                    <strong>
+                        <FormattedMessage
+                            id='admin.plugin.status'
+                            defaultMessage='Status'
+                        />
+                        {': '}
+                    </strong>
+                    {this.renderPluginState(pluginState)}
+                </div>
                 <PluginEnableButton
                     id={getPluginEnabledConfigKey(this.props.plugin.id)}
                     disabled={this.props.isDisabled}
@@ -384,6 +398,60 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 />
             </div>
         );
+    };
+
+    renderPluginState = (state: number) => {
+        switch (state) {
+        case PluginState.PLUGIN_STATE_NOT_RUNNING:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.not_running'
+                    defaultMessage='Not running'
+                />
+            );
+        case PluginState.PLUGIN_STATE_STARTING:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.starting'
+                    defaultMessage='Starting'
+                />
+            );
+        case PluginState.PLUGIN_STATE_RUNNING:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.running'
+                    defaultMessage='Running'
+                />
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start'
+                    defaultMessage='Failed to start'
+                />
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_stay_running'
+                    defaultMessage='Crashing'
+                />
+            );
+        case PluginState.PLUGIN_STATE_STOPPING:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.stopping'
+                    defaultMessage='Stopping'
+                />
+            );
+        default:
+            return (
+                <FormattedMessage
+                    id='admin.plugin.state.unknown'
+                    defaultMessage='Unknown'
+                />
+            );
+        }
     };
 
     renderBanner = (setting: AdminDefinitionSettingBanner) => {
