@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -23,6 +23,7 @@ func TestRoleStore(t *testing.T) {
 func TestRoleStoreCache(t *testing.T) {
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
 	logger := mlog.CreateConsoleTestLogger(t)
+	rctx := request.EmptyContext(logger)
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
@@ -30,13 +31,13 @@ func TestRoleStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		role, err := cachedStore.Role().GetByName(context.Background(), "role-name")
+		role, err := cachedStore.Role().GetByName(rctx, "role-name")
 		require.NoError(t, err)
 		assert.Equal(t, role, &fakeRole)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 		require.NoError(t, err)
 		assert.Equal(t, role, &fakeRole)
-		cachedStore.Role().GetByName(context.Background(), "role-name")
+		cachedStore.Role().GetByName(rctx, "role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 	})
 
@@ -46,13 +47,13 @@ func TestRoleStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.Role().GetByName(context.Background(), "role-name")
+		_, err = cachedStore.Role().GetByName(rctx, "role-name")
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 		_, err = cachedStore.Role().Save(&fakeRole)
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "Save", 1)
-		_, err = cachedStore.Role().GetByName(context.Background(), "role-name")
+		_, err = cachedStore.Role().GetByName(rctx, "role-name")
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
@@ -63,13 +64,13 @@ func TestRoleStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.Role().GetByName(context.Background(), "role-name")
+		_, err = cachedStore.Role().GetByName(rctx, "role-name")
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 		_, err = cachedStore.Role().SavePreservingUnknownPermissions(&fakeRole)
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", 1)
-		_, err = cachedStore.Role().GetByName(context.Background(), "role-name")
+		_, err = cachedStore.Role().GetByName(rctx, "role-name")
 		require.NoError(t, err)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
@@ -80,10 +81,10 @@ func TestRoleStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		cachedStore.Role().GetByName(context.Background(), "role-name")
+		cachedStore.Role().GetByName(rctx, "role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 		cachedStore.Role().Delete("123")
-		cachedStore.Role().GetByName(context.Background(), "role-name")
+		cachedStore.Role().GetByName(rctx, "role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
 
@@ -93,10 +94,10 @@ func TestRoleStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		cachedStore.Role().GetByName(context.Background(), "role-name")
+		cachedStore.Role().GetByName(rctx, "role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
 		cachedStore.Role().PermanentDeleteAll()
-		cachedStore.Role().GetByName(context.Background(), "role-name")
+		cachedStore.Role().GetByName(rctx, "role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
 }

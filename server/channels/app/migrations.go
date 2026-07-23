@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -70,6 +69,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 
 	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
+	rctx := request.EmptyContext(s.Log())
 
 	var multiErr *multierror.Error
 	for _, role := range roles {
@@ -80,7 +80,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		mlog.Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
-		fetchedRole, err := s.Store().Role().GetByName(context.Background(), role.Name)
+		fetchedRole, err := s.Store().Role().GetByName(rctx, role.Name)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to migrate role to database: %w", err))
 			continue
@@ -152,9 +152,10 @@ func (s *Server) doEmojisPermissionsMigration() error {
 	var err *model.AppError
 
 	mlog.Info("Migrating emojis config to database.")
+	rctx := request.EmptyContext(s.Log())
 
 	// Emoji creation is set to all by default
-	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	role, err = s.GetRoleByName(rctx, model.SystemUserRoleId)
 	if err != nil {
 		return fmt.Errorf("failed to get role for system user: %w", err)
 	}
@@ -166,7 +167,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		}
 	}
 
-	systemAdminRole, err = s.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	systemAdminRole, err = s.GetRoleByName(rctx, model.SystemAdminRoleId)
 	if err != nil {
 		return fmt.Errorf("failed to get role for system admin: %w", err)
 	}
@@ -210,17 +211,18 @@ func (s *Server) doGuestRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.ChannelGuestRoleId); err != nil {
+	rctx := request.EmptyContext(s.Log())
+	if _, err := s.Store().Role().GetByName(rctx, model.ChannelGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.ChannelGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.TeamGuestRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.TeamGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.TeamGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemGuestRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
@@ -300,17 +302,18 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemManagerRoleId); err != nil {
+	rctx := request.EmptyContext(s.Log())
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemManagerRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemManagerRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemReadOnlyAdminRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemReadOnlyAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemReadOnlyAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemReadOnlyAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemUserManagerRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemUserManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemUserManagerRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemUserManagerRoleId, err))
 		}
@@ -347,7 +350,8 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 		return fmt.Errorf("unknown role id: %q", roleId)
 	}
 	var nfRoleErr *store.ErrNotFound
-	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
+	rctx := request.EmptyContext(s.Log())
+	if _, err := s.Store().Role().GetByName(rctx, roleId); err != nil {
 		if !errors.As(err, &nfRoleErr) {
 			return fmt.Errorf("could not query role %q: %w", roleId, err)
 		}
@@ -412,22 +416,23 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookAdminRoleId); err != nil {
+	rctx := request.EmptyContext(s.Log())
+	if _, err := s.Store().Role().GetByName(rctx, model.PlaybookAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookMemberRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.PlaybookMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookMemberRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookMemberRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.RunAdminRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.RunAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ffailed to create new playbook %q role to database: %w", model.RunAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.RunMemberRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.RunMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunMemberRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.RunMemberRoleId, err))
 		}
