@@ -289,8 +289,8 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         const modeFlipModal = page.locator('.ConfirmModal').filter({hasText: 'Switch to Private Team?'});
         await expect(modeFlipModal).toBeVisible({timeout: 30000});
 
-        // * Modal shows the member count
-        await expect(modeFlipModal.getByText(/\d+ current member/i)).toBeVisible({timeout: 10000});
+        // * The modal warns that the flip activates strict ABAC enforcement.
+        await expect(modeFlipModal.getByText(/activate strict ABAC enforcement/i)).toBeVisible({timeout: 10000});
 
         // # Confirm the flip — mirroring discoverability MM-69100_6 exactly
         await modeFlipModal.getByRole('button', {name: 'Switch to Private'}).click();
