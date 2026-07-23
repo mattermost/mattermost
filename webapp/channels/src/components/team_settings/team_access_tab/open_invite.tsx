@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
@@ -13,12 +13,10 @@ import {Constants} from 'utils/constants';
 type Props = {
     isPublic: boolean;
     isGroupConstrained?: boolean;
-    policyEnforced?: boolean;
-    policyIsActive?: boolean;
     onChange: (isPublic: boolean) => void;
 };
 
-const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActive, onChange}: Props) => {
+const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
     const {formatMessage} = useIntl();
 
     if (isGroupConstrained) {
@@ -56,20 +54,6 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActiv
         );
     }
 
-    // Only lock the cards and show the "managed" notice when auto-add is actively managing membership.
-    // When the policy exists but auto-add is off, cards remain clickable so the mode-flip flow can run.
-    // On a private team the public card is never locked: switching to public reduces restriction and is always allowed.
-    const cardsDisabled = Boolean(policyIsActive) && isPublic;
-
-    const policyNotice = (policyEnforced && policyIsActive) ? (
-        <p className='TeamAccessTab__policyEnforcedNotice'>
-            <FormattedMessage
-                id='team_settings.discoverability.policy_enforced_notice'
-                defaultMessage="This team's membership is managed by a policy. Open access settings do not apply while a policy is active."
-            />
-        </p>
-    ) : null;
-
     const handleChange = (selected: string) => {
         onChange(selected === Constants.OPEN_CHANNEL);
     };
@@ -87,11 +71,6 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActiv
                         id: 'team_settings.discoverability.public_description',
                         defaultMessage: 'Anyone on the server can find and join',
                     }),
-                    disabled: cardsDisabled,
-                    tooltip: cardsDisabled ? formatMessage({
-                        id: 'team_settings.discoverability.policy_enforced_tooltip',
-                        defaultMessage: 'Membership is managed by a policy',
-                    }) : undefined,
                 }}
                 privateButtonProps={{
                     title: formatMessage({
@@ -102,15 +81,9 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActiv
                         id: 'team_settings.discoverability.private_description',
                         defaultMessage: 'Only invited members can join',
                     }),
-                    disabled: cardsDisabled,
-                    tooltip: cardsDisabled ? formatMessage({
-                        id: 'team_settings.discoverability.policy_enforced_tooltip',
-                        defaultMessage: 'Membership is managed by a policy',
-                    }) : undefined,
                 }}
                 onChange={handleChange}
             />
-            {policyNotice}
         </div>
     );
 

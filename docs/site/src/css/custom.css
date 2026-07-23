@@ -96,17 +96,39 @@ body {
 /* Headlines target Trade Gothic Next Heavy proportions: tighter set
  * than Archivo Black's default. We tune letter-spacing per size and
  * apply a mild horizontal squeeze via font-stretch where the platform
- * supports it (no-op on Archivo Black, which is fixed-width). */
-h1, h2, h3, h4 {
+ * supports it (no-op on Archivo Black, which is fixed-width).
+ *
+ * The heavy display face is reserved for h1 page titles. h2-h4 are
+ * in-body section headers, not hero copy, so they use the regular
+ * sans family at a normal bold weight instead of the 900-weight
+ * poster face — otherwise every subheading reads as loud as the
+ * page title. */
+h1 {
   font-family: var(--mm-font-heading);
-  letter-spacing: -0.015em;
+  font-weight: 900;
+  letter-spacing: -0.025em;
   line-height: 1.12;
   font-stretch: 92%;            /* ignored by static fonts; helps with variable Saira if loaded */
 }
 
-h1 { letter-spacing: -0.025em; }
-h2 { letter-spacing: -0.018em; }
-h3 { letter-spacing: -0.012em; }
+.markdown h2, .markdown h3, .markdown h4,
+h2, h3, h4 {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* Search results page ("See all results") — each hit's title is a plain h2
+ * outside `.markdown`, so it inherits the full --ifm-h2-font-size (1.85rem),
+ * as large as an in-article section header. Scoped to the wrapper class
+ * Docusaurus's SearchPage puts on <html> rather than the plugin's own
+ * (hashed) CSS-module class, so this survives dependency upgrades. */
+.search-page-wrapper h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
 
 /* Section heading rhythm — a small marigold rule sits above each h2.
  * Scoped via the `mm-section` class (auto-applied below) so it doesn't
