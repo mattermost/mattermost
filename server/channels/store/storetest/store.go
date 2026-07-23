@@ -75,6 +75,7 @@ type Store struct {
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	RecapStore                      mocks.RecapStore
+	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
@@ -182,6 +183,9 @@ func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
+func (s *Store) ScheduledRecap() store.ScheduledRecapStore {
+	return &s.ScheduledRecapStore
+}
 func (s *Store) ReadReceipt() store.ReadReceiptStore {
 	return &s.ReadReceiptStore
 }
@@ -253,6 +257,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.RecapStore,
+		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,

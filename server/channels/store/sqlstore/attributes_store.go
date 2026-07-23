@@ -25,7 +25,7 @@ type SqlAttributesStore struct {
 }
 
 // attributeViewFor maps a property-field object type to its materialized view.
-// The view is per-object-type (migration 000205) so a refresh of one type's
+// The view is per-object-type (migration 000212) so a refresh of one type's
 // attributes doesn't recompute the others. Unknown types fall back to the user
 // view, preserving the pre-split behavior for callers that pass no type.
 func attributeViewFor(objectType string) (string, error) {
@@ -79,7 +79,7 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Refresh both per-object-type views (migration 000205). v1 refreshes both on
+	// Refresh both per-object-type views (migration 000212). v1 refreshes both on
 	// the existing cadence; selective per-view refresh is a scale follow-up.
 	for _, view := range []string{"UserAttributeView", "ChannelAttributeView"} {
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {

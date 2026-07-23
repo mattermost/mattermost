@@ -8,7 +8,8 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
+import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
@@ -22,11 +23,14 @@ import TagGroup from 'components/widgets/tag/tag_group';
 
 import {Constants} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
+import {getEmailsToPreset, getProfileForEmail, profileHasInput} from 'utils/member_invite_profiles';
 import {getSiteURL} from 'utils/url';
+import {isValidUsername} from 'utils/utils';
 
 import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
 import type {CustomMessageProps, InviteChannels} from './add_to_channels';
 import InviteAs, {InviteType} from './invite_as';
+import MemberProfileInputs from './member_profile_inputs';
 import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
@@ -39,6 +43,7 @@ export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = f
         usersEmails: [],
         usersEmailsSearch: initialSearchValue,
         canInviteGuestsWithMagicLink,
+        profiles: {},
     });
 };
 
@@ -49,6 +54,7 @@ export type InviteState = {
     usersEmails: Array<UserProfile | string>;
     usersEmailsSearch: string;
     canInviteGuestsWithMagicLink: boolean;
+    profiles: Record<string, MemberInviteProfile>;
 };
 
 export type Props = InviteState & {
@@ -79,6 +85,8 @@ export type Props = InviteState & {
     onPaste?: (e: ClipboardEvent) => void;
     useGuestMagicLink: boolean;
     toggleGuestMagicLink: () => void;
+    lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
+    onProfileChange: (profile: MemberInviteProfile) => void;
 };
 
 export default function InviteView(props: Props) {
@@ -198,12 +206,32 @@ export default function InviteView(props: Props) {
         validAddressMessage = messages.validAddressGuest;
     }
 
+    const showMemberProfileInputs = props.inviteType === InviteType.MEMBER &&
+        props.emailInvitationsEnabled &&
+        props.lockProfileFieldsForEmailUsers !== Constants.LOCK_PROFILE_FIELDS.NONE;
+
+    const arePresetProfilesValid = useMemo(() => {
+        if (!showMemberProfileInputs) {
+            return true;
+        }
+
+        // A row may be left fully empty, but any pre-set fields need a valid username to
+        // pass server-side invite validation.
+        return getEmailsToPreset(props.usersEmails).every((email) => {
+            const profile = getProfileForEmail(props.profiles, email);
+            if (!profile || !profileHasInput(profile)) {
+                return true;
+            }
+            return isValidUsername(profile.username.toLowerCase()) === undefined;
+        });
+    }, [showMemberProfileInputs, props.usersEmails, props.profiles]);
+
     const isInviteValid = useMemo(() => {
         if (props.inviteType === InviteType.GUEST) {
             return props.inviteChannels.channels.length > 0 && props.usersEmails.length > 0;
         }
-        return props.usersEmails.length > 0;
-    }, [props.inviteType, props.inviteChannels.channels, props.usersEmails]);
+        return props.usersEmails.length > 0 && arePresetProfilesValid;
+    }, [props.inviteType, props.inviteChannels.channels, props.usersEmails, arePresetProfilesValid]);
 
     const inviteModalPeople = formatMessage({
         id: 'invite_modal.people',
@@ -301,6 +329,13 @@ export default function InviteView(props: Props) {
                     canInviteGuests={props.canInviteGuests}
                 />
                 }
+                {showMemberProfileInputs && (
+                    <MemberProfileInputs
+                        usersEmails={props.usersEmails}
+                        profiles={props.profiles}
+                        onProfileChange={props.onProfileChange}
+                    />
+                )}
                 {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
                     <AddToChannels
                         setCustomMessage={props.setCustomMessage}

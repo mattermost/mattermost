@@ -15,13 +15,13 @@ import (
 )
 
 type AppIface interface {
-	ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, agentID string) (*model.RecapChannelResult, *model.AppError)
+	ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelID, userID, agentID string, options model.RecapProcessingOptions) (*model.RecapChannelResult, *model.AppError)
 	Publish(message *model.WebSocketEvent)
 }
 
 func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
-		return cfg.FeatureFlags.EnableAIRecaps
+		return cfg.AIRecapsEnabled()
 	}
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
@@ -39,6 +39,10 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	userID := job.Data["user_id"]
 	channelIDs := strings.Split(job.Data["channel_ids"], ",")
 	agentID := job.Data["agent_id"]
+	options := model.RecapProcessingOptions{
+		TimePeriod:         job.Data["time_period"],
+		CustomInstructions: job.Data["custom_instructions"],
+	}
 
 	logger.Info("Starting recap job",
 		mlog.String("recap_id", recapID),
@@ -63,7 +67,7 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 		// Process the channel - use a context with the user's session so that
 		// session-dependent code (e.g. auto-translation supplements) works correctly.
 		rctx := request.EmptyContext(logger).WithSession(&model.Session{UserId: userID})
-		result, err := appInstance.ProcessRecapChannel(rctx, recapID, channelID, userID, agentID)
+		result, err := appInstance.ProcessRecapChannelWithOptions(rctx, recapID, channelID, userID, agentID, options)
 		if err != nil {
 			logger.Warn("Failed to process channel",
 				mlog.String("channel_id", channelID),
@@ -83,7 +87,13 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	}
 
 	// Update recap with final data (title is already set by user in CreateRecap)
-	recap, _ := storeInstance.Recap().GetRecap(recapID)
+	recap, err := storeInstance.Recap().GetRecap(recapID)
+	if err != nil || recap == nil {
+		logger.Warn("Recap no longer available while finalizing job",
+			mlog.String("recap_id", recapID),
+			mlog.Err(err))
+		return nil
+	}
 	recap.TotalMessageCount = totalMessages
 	recap.UpdateAt = model.GetMillis()
 

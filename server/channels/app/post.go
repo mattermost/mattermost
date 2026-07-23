@@ -924,20 +924,36 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 		newPost.PreserveIdentityPropsFrom(oldPost)
 
-		// mm_blocks_actions can only be modified by trusted paths that have
-		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
-		// type is intentionally not a sufficient signal: a PAT/OAuth session
-		// from a regular user would otherwise bypass the freeze and inject
-		// mm_blocks_actions on edit, since from_bot on the original post is
-		// user-forgeable. All other callers keep whatever mm_blocks_actions
-		// the original post had (or none).
-		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+		// mm_blocks_actions is a trusted, click-resolved prop. It may only be
+		// *changed* by a caller that is both permitted and actually supplying a
+		// new value. Permission comes either from an explicit flag
+		// (AllowMmBlocksActionsUpdate — the plugin API and post-action
+		// responses) or, for REST callers, from the same authority create
+		// requires plus an ownership check: an integration session (bot / user
+		// access token / OAuth) editing its OWN post. The ownership check is
+		// what makes session type safe here — a user access token cannot inject
+		// mm_blocks_actions onto someone else's post, and from_bot on the
+		// original post is never consulted (it is user-forgeable). An update
+		// that does not carry the prop (e.g. a message-only edit) keeps whatever
+		// the original post had, so buttons are never silently wiped.
+		allowMmBlocksChange := updatePostOptions.AllowMmBlocksActionsUpdate ||
+			(newPost.GetProp(model.PostPropsMmBlocksActions) != nil &&
+				a.sessionMayUpdateMmBlocksActions(rctx, oldPost))
+		if !allowMmBlocksChange {
 			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
 				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
 			} else {
 				newPost.DelProp(model.PostPropsMmBlocksActions)
 			}
 		}
+
+		// Prune mm_blocks_actions to only the actions still referenced by the
+		// post's content. Dispatch authorizes clicks from this registry, not
+		// from whether a button renders, so a preserved entry whose button was
+		// removed would stay callable by any reader. Update-only by design:
+		// only an edit can strand an entry (we preserve the old registry while
+		// content changes); create writes both together. Mirrors webhook.go.
+		model.RefreshInteractiveActionsOnPost(newPost, newPost.GetProp(model.PostPropsMmBlocksActions))
 
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
@@ -1062,6 +1078,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost = sanitizedPost
 
 	return rpost, isMemberForPreviews, nil
+}
+
+// sessionMayUpdateMmBlocksActions reports whether the current session is
+// allowed to add, remove, or modify the mm_blocks_actions prop on oldPost via a
+// REST update/patch. It mirrors the create-time authority — an integration
+// session (bot user, user access token, or OAuth) — and adds an ownership
+// check so a caller can only change buttons on its OWN post. The ownership
+// check is essential: without it a user access token with edit_others_posts
+// could inject action buttons onto another user's or bot's post.
+func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.Post) bool {
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return false
+	}
+	return session.UserId == oldPost.UserId && session.IsIntegration()
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
