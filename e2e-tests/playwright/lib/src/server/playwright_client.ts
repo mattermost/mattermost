@@ -9,6 +9,7 @@ import type {PartialExcept} from '@mattermost/types/utilities';
 
 import {createRandomChannel} from './channel';
 import {createNewUserProfile} from './user';
+
 import {getFileFromAsset} from '@/file';
 
 /**
