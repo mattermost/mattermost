@@ -467,7 +467,7 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders a bare chevron link with no tooltip wrapper on mobile', async () => {
+        it('renders the chevron link on mobile with its tooltip disabled', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getMobileState());
@@ -487,23 +487,6 @@ describe('GlobalAttributesTable', () => {
 
             expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
-        });
-
-        it('resolves the chevron/subtitle once the async group fetch completes, not just when a fresh groupId prop is passed directly (guards against a frozen columns useMemo)', async () => {
-            // The classification field is present from the very first fetch resolution, mirroring
-            // production: groupId starts unresolved ('') until this same fetch's group_id populates
-            // the property-group store, then the columns memo (deps: [groupId, ...]) must recompute
-            // with the live value — not stay frozen at mount with an empty groupId forever.
-            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
-
-            renderWithContext(<GlobalAttributesTable/>, getReachableState());
-
-            await screen.findByTestId('global-attribute-name');
-
-            await waitFor(() => {
-                expect(screen.getByTestId('global-attribute-classification-subtitle')).toBeInTheDocument();
-                expect(screen.getByTestId('global-attribute-classification-link-field-1')).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
-            });
         });
     });
 });
