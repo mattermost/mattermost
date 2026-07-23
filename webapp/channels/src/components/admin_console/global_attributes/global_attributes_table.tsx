@@ -7,22 +7,35 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
 
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ChevronRightIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyFieldsForObjectTypeAndGroup, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 
 import {getPluginDisplayName} from 'selectors/plugins';
+import {getIsMobileView} from 'selectors/views/browser';
 
+import {
+    CLASSIFICATION_MARKINGS_ADMIN_URL,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+} from 'components/admin_console/classification_markings/utils';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
+import {LicenseSkus} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
+import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable} from '../list_table';
 
 import './global_attributes_table.scss';
@@ -47,6 +60,33 @@ export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
 
 export function getDisplayName(field: PropertyField): string {
     return (field.attrs?.display_name as string | undefined) || field.name;
+}
+
+// Identifies the single Classification Markings template field per the ticket's literal
+// name + object_type + group_id combo (not a data-driven ownership flag — see plan
+// Design Decision 1 for why attrs.protected/top-level `protected` don't apply here).
+export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
+    return (
+        field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
+        field.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE &&
+        field.group_id === groupId
+    );
+}
+
+// Mirrors admin_definition.tsx's own `classification_markings` route visibility rule
+// (isHidden: it.any(it.not(it.minLicenseTier(Enterprise)), it.not(it.configIsTrue('FeatureFlags',
+// 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/`it.configIsTrue`
+// helpers the route rule itself calls — not a re-implementation of their bodies, so the two can
+// never drift — reading from the same entities/admin config tree the route rule itself reads
+// (see plan Design Decision 6). Without this, the chevron/subtitle could point at a route that's
+// actually hidden (independent flag from the one gating this listing page).
+function useClassificationMarkingsReachable(): boolean {
+    return useSelector((state: GlobalState) => {
+        const config = getAdminConfig(state);
+        const license = getLicense(state);
+        return it.minLicenseTier(LicenseSkus.Enterprise)(config, state, license) &&
+            it.configIsTrue('FeatureFlags', 'ClassificationMarkings')(config);
+    });
 }
 
 function getTypeLabel(fieldType: FieldType): MessageDescriptor {
@@ -123,9 +163,71 @@ function OptionsCell({field}: {field: PropertyField}) {
     );
 }
 
-function ActionsCell({field}: {field: PropertyField}) {
+type ClassificationAwareCellProps = {
+    field: PropertyField;
+    groupId: string;
+    classificationMarkingsReachable: boolean;
+};
+
+function classificationSubtitleId(fieldId: string): string {
+    return `global-attribute-classification-subtitle-${fieldId}`;
+}
+
+function AttributeCell({field, groupId, classificationMarkingsReachable}: ClassificationAwareCellProps) {
+    const isClassificationRow = isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable;
+
+    return (
+        <span className='GlobalAttributesTable__attribute'>
+            <span
+                className='GlobalAttributesTable__name'
+                data-testid='global-attribute-name'
+            >
+                {getDisplayName(field)}
+            </span>
+            {isClassificationRow && (
+                <span
+                    id={classificationSubtitleId(field.id)}
+                    className='GlobalAttributesTable__subtitle'
+                    data-testid='global-attribute-classification-subtitle'
+                >
+                    <FormattedMessage {...messages.classificationSubtitle}/>
+                </span>
+            )}
+        </span>
+    );
+}
+
+function ActionsCell({field, groupId, classificationMarkingsReachable, isMobileView}: ClassificationAwareCellProps & {isMobileView: boolean}) {
     const {formatMessage} = useIntl();
     const menuId = `global-attribute-actions-${field.id}`;
+
+    if (isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable) {
+        const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
+        const link = (
+            <Link
+                to={CLASSIFICATION_MARKINGS_ADMIN_URL}
+                className='GlobalAttributesTable__classificationLink'
+                aria-label={classificationLinkLabel}
+                aria-describedby={classificationSubtitleId(field.id)}
+                data-testid={`global-attribute-classification-link-${field.id}`}
+            >
+                <ChevronRightIcon
+                    size={18}
+                    aria-hidden={true}
+                />
+            </Link>
+        );
+
+        if (isMobileView) {
+            return link;
+        }
+
+        return (
+            <WithTooltip title={classificationLinkLabel}>
+                {link}
+            </WithTooltip>
+        );
+    }
 
     return (
         <Menu.Container
@@ -192,6 +294,9 @@ export default function GlobalAttributesTable() {
         getPropertyGroupByName(state, GLOBAL_ATTRIBUTES_GROUP_NAME)?.id ?? '',
     );
 
+    const classificationMarkingsReachable = useClassificationMarkingsReachable();
+    const isMobileView = useSelector(getIsMobileView);
+
     const fields = useSelector((state: GlobalState) =>
         getPropertyFieldsForObjectTypeAndGroup(state, GLOBAL_ATTRIBUTES_OBJECT_TYPE, groupId),
     );
@@ -235,13 +340,12 @@ export default function GlobalAttributesTable() {
             columnHelper.accessor((row) => getDisplayName(row), {
                 id: 'attribute',
                 header: () => <FormattedMessage {...messages.attribute}/>,
-                cell: ({getValue}) => (
-                    <span
-                        className='GlobalAttributesTable__name'
-                        data-testid='global-attribute-name'
-                    >
-                        {getValue()}
-                    </span>
+                cell: ({row}) => (
+                    <AttributeCell
+                        field={row.original}
+                        groupId={groupId}
+                        classificationMarkingsReachable={classificationMarkingsReachable}
+                    />
                 ),
                 enableSorting: false,
                 enableHiding: false,
@@ -290,11 +394,18 @@ export default function GlobalAttributesTable() {
             }),
             columnHelper.display({
                 id: 'actions',
-                cell: ({row}) => <ActionsCell field={row.original}/>,
+                cell: ({row}) => (
+                    <ActionsCell
+                        field={row.original}
+                        groupId={groupId}
+                        classificationMarkingsReachable={classificationMarkingsReachable}
+                        isMobileView={isMobileView}
+                    />
+                ),
                 enableHiding: false,
             }),
         ];
-    }, []);
+    }, [groupId, classificationMarkingsReachable, isMobileView]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -352,6 +463,10 @@ const messages = defineMessages({
         defaultMessage: 'No attributes yet. Attributes are currently managed elsewhere; creating them from this page is coming soon.',
     },
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
+    classificationSubtitle: {
+        id: 'admin.global_attributes.table.attribute.classification_subtitle',
+        defaultMessage: 'Read-only — open the markings page',
+    },
 });
 
 const typeLabels = defineMessages({
@@ -380,4 +495,8 @@ const actionsLabels = defineMessages({
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},
+    classificationLink: {
+        id: 'admin.global_attributes.table.actions.classification_link',
+        defaultMessage: 'Open Classification Markings',
+    },
 });

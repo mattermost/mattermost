@@ -10,11 +10,18 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {
+    CLASSIFICATION_MARKINGS_ADMIN_URL,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+} from 'components/admin_console/classification_markings/utils';
+
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon} from './global_attributes_table';
+import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
 
 // The server keys every field under a real group UUID that differs from the
 // group name ('access_control'); fixtures mirror that so the resolve-by-name
@@ -52,6 +59,42 @@ function getBaseState(): DeepPartial<GlobalState> {
             },
         },
     };
+}
+
+type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
+
+// State where the Classification Markings admin page is actually reachable: Enterprise-tier
+// license (matching admin_definition.tsx's minLicenseTier(Enterprise) check) and the
+// ClassificationMarkings feature flag on, read from the same entities/admin config tree the
+// route rule itself reads (see plan Design Decision 6). Both conditions default to "reachable"
+// but can be independently overridden to exercise the AND logic off the all-true/all-false
+// diagonal (e.g. license ok but flag off, or vice versa).
+function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
+    const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true} = overrides;
+    const state = getBaseState();
+    state.entities!.general = {
+        license: {IsLicensed: 'true', SkuShortName: licenseSku},
+    } as EntitiesPartial['general'];
+    state.entities!.admin = {
+        config: {FeatureFlags: {ClassificationMarkings: classificationMarkingsFlagOn}},
+    } as EntitiesPartial['admin'];
+    return state;
+}
+
+function getMobileState(): DeepPartial<GlobalState> {
+    const state = getReachableState();
+    state.views = {browser: {windowSize: WindowSizes.MOBILE_VIEW}} as DeepPartial<GlobalState>['views'];
+    return state;
+}
+
+function makeClassificationField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return makeField({
+        name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+        type: 'rank',
+        attrs: {options: [{id: 'o1', name: 'Low', rank: 1}, {id: 'o2', name: 'High', rank: 2}]},
+        ...overrides,
+    });
 }
 
 describe('GlobalAttributesTable', () => {
@@ -365,6 +408,99 @@ describe('GlobalAttributesTable', () => {
             expect(del!).toHaveTextContent('Coming soon');
         });
     });
+
+    describe('Classification Markings row', () => {
+        it('renders the subtitle and a chevron link (not the dot-menu) when the field matches and the destination is reachable', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            expect(await screen.findByTestId('global-attribute-classification-subtitle')).toHaveTextContent('Read-only');
+
+            const link = screen.getByTestId('global-attribute-classification-link-field-1');
+            expect(link).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
+            expect(link).toHaveAccessibleName('Open Classification Markings');
+
+            // * The dot-menu is not rendered for this row
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
+        });
+
+        it('renders the ordinary dot-menu and no subtitle when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            // getBaseState() has no license/FeatureFlags set, so the reachability check is false.
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
+            expect(trigger).toBeInTheDocument();
+
+            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+        });
+
+        it('renders the ordinary dot-menu when the license is sufficient but the ClassificationMarkings flag is off', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({classificationMarkingsFlagOn: false}));
+
+            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
+            expect(trigger).toBeInTheDocument();
+
+            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+        });
+
+        it('renders the ordinary dot-menu when the ClassificationMarkings flag is on but the license is sub-Enterprise', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({licenseSku: 'professional'}));
+
+            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
+            expect(trigger).toBeInTheDocument();
+
+            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+        });
+
+        it('renders a bare chevron link with no tooltip wrapper on mobile', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getMobileState());
+
+            const link = await screen.findByTestId('global-attribute-classification-link-field-1');
+            expect(link).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
+            expect(link).toHaveAccessibleName('Open Classification Markings');
+        });
+
+        it('leaves an unrelated field (not matching name/object_type/group_id) entirely unaffected even when the destination is reachable', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({type: 'rank'})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
+            expect(trigger).toBeInTheDocument();
+
+            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+        });
+
+        it('resolves the chevron/subtitle once the async group fetch completes, not just when a fresh groupId prop is passed directly (guards against a frozen columns useMemo)', async () => {
+            // The classification field is present from the very first fetch resolution, mirroring
+            // production: groupId starts unresolved ('') until this same fetch's group_id populates
+            // the property-group store, then the columns memo (deps: [groupId, ...]) must recompute
+            // with the live value — not stay frozen at mount with an empty groupId forever.
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            await screen.findByTestId('global-attribute-name');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('global-attribute-classification-subtitle')).toBeInTheDocument();
+                expect(screen.getByTestId('global-attribute-classification-link-field-1')).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
+            });
+        });
+    });
 });
 
 describe('getDisplayName', () => {
@@ -391,5 +527,29 @@ describe('getSourceKind', () => {
         expect(getSourceKind(makeField({attrs: {ldap: 'x', saml: 'y'}}))).toBe('ldap');
         expect(getSourceKind(makeField({attrs: {saml: 'y'}}))).toBe('saml');
         expect(getSourceKind(makeField({attrs: {}}))).toBe('managed');
+    });
+});
+
+describe('isClassificationMarkingsField', () => {
+    const groupId = 'accesscontrolgroupuuid001';
+
+    it('returns true only when name, object_type, and group_id all match', () => {
+        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(true);
+    });
+
+    it('returns false when the name matches but object_type does not', () => {
+        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: 'system', group_id: groupId});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(false);
+    });
+
+    it('returns false when the name and object_type match but group_id does not', () => {
+        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: 'some-other-group'});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(false);
+    });
+
+    it('returns false when object_type and group_id match but the name does not', () => {
+        const field = makeField({name: 'not_classification', object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 });
