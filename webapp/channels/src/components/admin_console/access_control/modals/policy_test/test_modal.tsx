@@ -143,7 +143,7 @@ function TestResultsModal({
                     onClick={handleBack}
                     aria-label={formatMessage({id: 'admin.access_control.test.channel_picker.back', defaultMessage: 'Back to channel selection'})}
                 >
-                    <i className='icon icon-arrow-back-ios'/>
+                    <i className='icon icon-arrow-left'/>
                 </button>
             )}
             {resultsTitle}

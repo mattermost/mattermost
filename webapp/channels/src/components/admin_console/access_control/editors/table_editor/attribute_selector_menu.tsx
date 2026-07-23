@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 
 import {
     CheckIcon,
+    ChevronDownIcon,
     MenuVariantIcon,
     ChevronDownCircleOutlineIcon,
     EmailOutlineIcon,
@@ -282,13 +283,18 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         <Menu.Container
             menuButton={{
                 id: buttonId,
-                class: classNames('btn btn-transparent field-selector-menu-button', {
+                class: classNames('btn field-selector-menu-button', {
                     disabled,
                 }),
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {selectedAttributeLabel}
+                        <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        <ChevronDownIcon
+                            className='field-selector-menu-button__caret'
+                            size={16}
+                            color='rgba(var(--center-channel-color-rgb), 0.5)'
+                        />
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',

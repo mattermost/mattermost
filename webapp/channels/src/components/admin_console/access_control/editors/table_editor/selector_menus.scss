@@ -3,20 +3,27 @@
     overflow-y: auto;
 }
 
+// Attribute / operator / value triggers render as discrete bordered input
+// boxes (mockup fidelity) rather than borderless menu buttons in a grid.
 .field-selector-menu-button {
     width: 100%;
-    height: 40px;
+    height: 34px;
     justify-content: start;
-    border: none;
+    padding: 0 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    font-size: 12px;
     font-weight: normal;
-    
+
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
-    
+
     &:focus,
     &[aria-expanded="true"] {
-        background: rgba(var(--button-bg-rgb), 0.08);
+        border-color: var(--button-bg);
+        background: var(--center-channel-bg);
     }
 
     &.disabled {
@@ -24,9 +31,24 @@
         opacity: 0.6;
     }
 
+    // Attribute / operator label: fills the space between the leading icon and
+    // the trailing caret, ellipsizing rather than pushing the caret out.
+    &__label {
+        overflow: hidden;
+        min-width: 0;
+        flex: 1 1 auto;
+        text-align: start;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Trailing dropdown caret, pinned to the right edge.
+    &__caret {
+        flex: 0 0 auto;
+    }
+
     > span > span:first-child:not([style*="flex-wrap: wrap"]) {
         overflow: hidden;
-        padding-inline-start: 10px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -48,13 +70,22 @@
         justify-content: space-between;
     }
 
-    // Icon + label shown in the button when the RHS compares against a channel
-    // attribute (target mode).
+    // Shown in the button when the RHS compares against a channel attribute
+    // (target mode): a monospace "[] Channel: X" token in the accent color,
+    // mirroring the mockup's variable chip.
     &__target-label {
-        display: flex;
+        display: inline-flex;
         overflow: hidden;
         align-items: center;
-        gap: 6px;
+        padding: 2px 8px;
+        border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+        border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        font-family: Menlo, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
         white-space: nowrap;
     }
 }
@@ -119,16 +150,19 @@
         }
     }
 
+    // Free-text value entry (attributes with no options / no channel targets).
+    // Matches the bordered-box look of the other value/attribute controls.
     &__simple-input {
         width: 100%;
-        height: 40px;
-        border: none;
-        background: transparent;
-        font-size: 14px;
-        padding-inline-start: 22px;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        font-size: 12px;
 
         &:focus {
-            background: rgba(var(--center-channel-color-rgb), 0.06);
+            border-color: var(--button-bg);
             outline: none;
         }
 

@@ -9,9 +9,43 @@
     .GenericModal__body {
         padding: 0 !important;
 
+        // The members-step search (SearchableUserList's default filter row) is
+        // matched to the channel-picker search so the two steps line up: same
+        // 16px inset, same 12px top offset, same bordered input with an inset
+        // magnify icon. The default row has no icon element, so it's drawn with
+        // a ::before (compass-icons magnify glyph).
         .filter-row {
             padding: 0 16px;
-            margin: 5px 0 10px;
+            margin: 12px 0 10px;
+        }
+
+        .filter-row .col-xs-12,
+        .filter-row .col-sm-12 {
+            padding: 0;
+        }
+
+        .filter-row .col-xs-12 {
+            position: relative;
+
+            &::before {
+                position: absolute;
+                top: 50%;
+                left: 12px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                content: "\f0349";
+                font-family: "compass-icons";
+                font-size: 18px;
+                pointer-events: none;
+                transform: translateY(-50%);
+            }
+        }
+
+        // Left padding leaves room for the ::before magnify icon; the border,
+        // radius, and focus ring come from the shared .form-control styling
+        // (matched by the picker input below).
+        .filter-row .filter-textbox {
+            height: 40px;
+            padding: 0 12px 0 38px;
         }
 
         .filtered-user-list .filter-row span.member-count{
@@ -20,66 +54,86 @@
         }
     }
 
+    // The back button sits in the header's left padding gutter (absolute) so
+    // the title text stays at the same x-position as the channel-picker step's
+    // title — no horizontal jump when switching steps.
     &__title {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 4px;
     }
 
     &__back {
+        position: absolute;
+        top: 50%;
+        right: 100%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0;
         border: none;
+        margin-right: 8px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
+        transform: translateY(-50%);
 
         &:hover {
             color: var(--center-channel-color);
         }
 
         .icon {
-            font-size: 20px;
+            font-size: 18px;
+            line-height: 1;
         }
     }
 }
 
 .TestChannelPicker {
     display: flex;
+
+    // Match the members step's SearchableUserList (.filtered-user-list) so the
+    // modal body is the same fixed height on both steps and doesn't jump on
+    // transition. The search stays put; only the list scrolls internally.
+    height: calc(90vh - 120px);
     flex-direction: column;
 
+    // Matched to the members-step search (see .GenericModal__body .filter-row):
+    // same 16px inset, 12px top, bordered input with an inset magnify icon.
     &__search {
-        display: flex;
-        align-items: center;
-        padding: 0 20px;
-        margin: 12px 0;
+        position: relative;
+        flex: 0 0 auto;
+        margin: 12px 16px 10px;
 
         .icon-magnify {
-            margin-right: 8px;
+            position: absolute;
+            top: 50%;
+            left: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             font-size: 18px;
+            pointer-events: none;
+            transform: translateY(-50%);
         }
     }
 
     &__search-input {
+        width: 100%;
         height: 40px;
-        flex: 1;
-        padding: 0 12px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        padding: 0 12px 0 38px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 4px;
         background: transparent;
 
         &:focus {
             border-color: var(--button-bg);
-            box-shadow: inset 0 0 0 1px var(--button-bg);
+            box-shadow: 0 0 0 1px var(--button-bg);
             outline: none;
         }
     }
 
     &__list {
-        max-height: 50vh;
+        min-height: 0;
+        flex: 1;
         overflow-y: auto;
     }
 
@@ -93,7 +147,7 @@
         display: flex;
         width: 100%;
         align-items: center;
-        padding: 8px 20px;
+        padding: 8px 16px;
         border: none;
         background: transparent;
         cursor: pointer;

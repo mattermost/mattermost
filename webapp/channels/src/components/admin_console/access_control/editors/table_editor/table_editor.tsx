@@ -637,155 +637,137 @@ function TableEditor({
             className='table-editor'
             data-testid='table-editor'
         >
-            <table className='table-editor__table'>
-                <thead>
-                    <tr className='table-editor__header-row'>
-                        <th className='table-editor__column-header'>
-                            <FormattedMessage
-                                id='admin.access_control.table_editor.attribute'
-                                defaultMessage='Attribute'
-                            />
-                        </th>
-                        <th className='table-editor__column-header'>
-                            <FormattedMessage
-                                id='admin.access_control.table_editor.operator'
-                                defaultMessage='Operator'
-                            />
-                        </th>
-                        <th className='table-editor__column-header'>
-                            <span className='table-editor__column-header-value'>
-                                <FormattedMessage
-                                    id='admin.access_control.table_editor.values'
-                                    defaultMessage='Values'
-                                />
-                            </span>
-                        </th>
-                        <th className='table-editor__column-header-actions'/>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.length === 0 ? (
-                        <tr>
-                            <td
-                                colSpan={4}
-                                className='table-editor__blank-state'
-                            >
-                                <span>
-                                    {formatMessage({
-                                        id: 'admin.access_control.table_editor.blank_state',
-                                        defaultMessage: 'Select a user attribute and values to create a rule',
-                                    })}
-                                </span>
-                            </td>
-                        </tr>
-                    ) : (
-                        rows.map((row, index) => {
-                            // Resolve by name AND namespace: a CPA and a session
-                            // attribute can share a name, so object_type disambiguates.
-                            // The left picker only offers user attributes, so resolve
-                            // against userFields (channel fields are RHS targets only).
-                            const field = userFields.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
-                            const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
-                            const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
-                            const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
+            <div className='table-editor__grid'>
+                <div className='table-editor__head'>
+                    <span className='table-editor__column-header'>
+                        <FormattedMessage
+                            id='admin.access_control.table_editor.attribute'
+                            defaultMessage='Attribute'
+                        />
+                    </span>
+                    <span className='table-editor__column-header'>
+                        <FormattedMessage
+                            id='admin.access_control.table_editor.operator'
+                            defaultMessage='Operator'
+                        />
+                    </span>
+                    <span className='table-editor__column-header'>
+                        <FormattedMessage
+                            id='admin.access_control.table_editor.values'
+                            defaultMessage='Values'
+                        />
+                    </span>
+                    <span className='table-editor__column-header-actions'/>
+                </div>
+                {rows.length === 0 ? (
+                    <div className='table-editor__blank-state'>
+                        <span>
+                            {formatMessage({
+                                id: 'admin.access_control.table_editor.blank_state',
+                                defaultMessage: 'Select a user attribute and values to create a rule',
+                            })}
+                        </span>
+                    </div>
+                ) : (
+                    rows.map((row, index) => {
+                        // Resolve by name AND namespace: a CPA and a session
+                        // attribute can share a name, so object_type disambiguates.
+                        // The left picker only offers user attributes, so resolve
+                        // against userFields (channel fields are RHS targets only).
+                        const field = userFields.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
+                        const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
+                        const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
+                        const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
 
-                            // Channel attributes this row's user attribute may be
-                            // compared against (offered as the right-hand side
-                            // alongside literal values).
-                            const targets = comparableChannelFields(field);
+                        // Channel attributes this row's user attribute may be
+                        // compared against (offered as the right-hand side
+                        // alongside literal values).
+                        const targets = comparableChannelFields(field);
 
-                            // Comparison operators target any comparable channel
-                            // field; the multiselect list operators (has any of /
-                            // has all of) target a multiselect channel field
-                            // (list-vs-list). comparableChannelFields already
-                            // enforces the shared option scale.
-                            const supportsTarget = targets.length > 0 &&
+                        // Comparison operators target any comparable channel
+                        // field; the multiselect list operators (has any of /
+                        // has all of) target a multiselect channel field
+                        // (list-vs-list). comparableChannelFields already
+                        // enforces the shared option scale.
+                        const supportsTarget = targets.length > 0 &&
                                 (OPERATOR_CONFIG[row.operator]?.type === 'comparison' || isMultiselectOperator(row.operator));
-                            const cellDisabled = disabled || row.hasMaskedValues;
-                            return (
-                                <tr
-                                    key={index}
-                                    className='table-editor__row'
-                                >
-                                    <td className='table-editor__cell'>
-                                        <AttributeSelectorMenu
-                                            currentAttribute={row.attribute}
-                                            currentAttributeObjectType={row.attribute_object_type}
-                                            availableAttributes={userFields}
-                                            disabled={cellDisabled}
-                                            onChange={(attributeId) => updateRowAttribute(index, attributeId)}
-                                            menuId={`attribute-selector-menu-${index}`}
-                                            buttonId={`attribute-selector-button-${index}`}
-                                            autoOpen={index === autoOpenAttributeMenuForRow}
-                                            onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
-                                            enableUserManagedAttributes={enableUserManagedAttributes}
-                                        />
-                                    </td>
-                                    <td className='table-editor__cell'>
-                                        <OperatorSelectorMenu
-                                            currentOperator={row.operator}
-                                            disabled={cellDisabled}
-                                            onChange={(operator) => updateRowOperator(index, operator)}
+                        const cellDisabled = disabled || row.hasMaskedValues;
+                        return (
+                            <div
+                                key={index}
+                                className='table-editor__row'
+                            >
+                                <div className='table-editor__cell'>
+                                    <AttributeSelectorMenu
+                                        currentAttribute={row.attribute}
+                                        currentAttributeObjectType={row.attribute_object_type}
+                                        availableAttributes={userFields}
+                                        disabled={cellDisabled}
+                                        onChange={(attributeId) => updateRowAttribute(index, attributeId)}
+                                        menuId={`attribute-selector-menu-${index}`}
+                                        buttonId={`attribute-selector-button-${index}`}
+                                        autoOpen={index === autoOpenAttributeMenuForRow}
+                                        onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
+                                        enableUserManagedAttributes={enableUserManagedAttributes}
+                                    />
+                                </div>
+                                <div className='table-editor__cell'>
+                                    <OperatorSelectorMenu
+                                        currentOperator={row.operator}
+                                        disabled={cellDisabled}
+                                        onChange={(operator) => updateRowOperator(index, operator)}
 
-                                            // Use the row's own type, kept in sync by
-                                            // addRow/updateRowAttribute/parseExpression. A name-only
-                                            // lookup could resolve the wrong namespace when a user and
-                                            // a session attribute share a name.
-                                            attributeType={row.attribute_type || undefined}
-                                            allowedOperators={allowedOperatorLabelsForField(field)}
-                                        />
-                                    </td>
-                                    <td className='table-editor__cell'>
-                                        <div className='table-editor__value-cell'>
-                                            <ValueSelectorMenu
-                                                row={row}
-                                                disabled={cellDisabled}
-                                                updateValues={(values: string[]) => updateRowValues(index, values)}
-                                                options={row.attribute ? field?.attrs?.options || [] : []}
-                                                placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
-                                                channelFields={supportsTarget ? targets : undefined}
-                                                onSelectTarget={(name: string) => updateRowTarget(index, name)}
-                                            />
-                                            {youngerThanInvalid && (
-                                                <div className='table-editor__value-error'>
-                                                    <FormattedMessage
-                                                        id='admin.access_control.table_editor.value.days_invalid'
-                                                        defaultMessage='Enter a whole number of days (e.g. 30).'
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className='table-editor__cell-actions'>
-                                        <button
-                                            type='button'
-                                            className='table-editor__row-remove'
-                                            onClick={() => requestRemoveRow(index)}
+                                        // Use the row's own type, kept in sync by
+                                        // addRow/updateRowAttribute/parseExpression. A name-only
+                                        // lookup could resolve the wrong namespace when a user and
+                                        // a session attribute share a name.
+                                        attributeType={row.attribute_type || undefined}
+                                        allowedOperators={allowedOperatorLabelsForField(field)}
+                                    />
+                                </div>
+                                <div className='table-editor__cell'>
+                                    <div className='table-editor__value-cell'>
+                                        <ValueSelectorMenu
+                                            row={row}
                                             disabled={cellDisabled}
-                                            aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
-                                        >
-                                            <i className='icon icon-trash-can-outline'/>
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })
-                    )}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td
-                            colSpan={4}
-                            className='table-editor__add-button-container'
-                        >
-                            <AddAttributeButton
-                                onClick={addRow}
-                                disabled={disabled || userFields.length === 0}
-                            />
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+                                            updateValues={(values: string[]) => updateRowValues(index, values)}
+                                            options={row.attribute ? field?.attrs?.options || [] : []}
+                                            placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                            channelFields={supportsTarget ? targets : undefined}
+                                            onSelectTarget={(name: string) => updateRowTarget(index, name)}
+                                        />
+                                        {youngerThanInvalid && (
+                                            <div className='table-editor__value-error'>
+                                                <FormattedMessage
+                                                    id='admin.access_control.table_editor.value.days_invalid'
+                                                    defaultMessage='Enter a whole number of days (e.g. 30).'
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className='table-editor__cell-actions'>
+                                    <button
+                                        type='button'
+                                        className='table-editor__row-remove'
+                                        onClick={() => requestRemoveRow(index)}
+                                        disabled={cellDisabled}
+                                        aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
+                                    >
+                                        <i className='icon icon-trash-can-outline'/>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+                <div className='table-editor__add-button-container'>
+                    <AddAttributeButton
+                        onClick={addRow}
+                        disabled={disabled || userFields.length === 0}
+                    />
+                </div>
+            </div>
 
             <div className='table-editor__actions-row'>
                 <HelpText
