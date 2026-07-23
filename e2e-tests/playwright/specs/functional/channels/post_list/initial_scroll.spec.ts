@@ -312,6 +312,94 @@ test.describe('Post list initial scroll', () => {
         });
     });
 
+    test.describe('fully read channel with multiple pages of long text posts', () => {
+        test.beforeEach(async () => {
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 120; i++) {
+                await userClient.createPost({
+                    channel_id: channel.id,
+                    message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                });
+            }
+        });
+
+        test('should stay at the bottom during initial load', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the bottom when switching to the channel', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
+    test.describe('unread channel with multiple pages of long text posts', () => {
+        test.beforeEach(async () => {
+            // # Make some posts as the current user and then some more as the admin so the channel is partially unread
+            for (let i = 0; i < 80; i++) {
+                await userClient.createPost({
+                    channel_id: channel.id,
+                    message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                });
+            }
+
+            for (let i = 0; i < 80; i++) {
+                await adminClient.createPost({
+                    channel_id: channel.id,
+                    message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                });
+            }
+        });
+
+        test('should stay at the New Messages line during initial load', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // * Verify that the New Messages line is actually visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the New Messages line when switching to the channel', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // * Verify that the channel starts as unread
+            await channelsPage.sidebarLeft.assertItemUnread(channel.name);
+
+            // # Switch to the channel
+            await channelsPage.sidebarLeft.goToItem(channel.name);
+
+            // * Verify that the New Messages line is still visible
+            expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+    });
+
     test.describe('fully read channel with multiple pages of image attachments', () => {
         test.beforeEach(async () => {
             // # Make a lot of posts as the current user so that the channel stays read

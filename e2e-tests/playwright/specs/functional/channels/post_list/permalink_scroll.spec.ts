@@ -296,6 +296,96 @@ test.describe('Post list scroll to permalink', () => {
         });
     });
 
+    test.describe('fully read channel with multiple pages of long text posts', () => {
+        let linkedPost: Post;
+        let linkedPostUrl: string;
+
+        test.beforeEach(async () => {
+            // # Make a lot of posts as the current user so that the channel stays read
+            for (let i = 0; i < 60; i++) {
+                await userClient.createPost({
+                    channel_id: channel.id,
+                    message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                });
+            }
+
+            // # And make a post in the middle to link to
+            linkedPost = await userClient.createPost({
+                channel_id: channel.id,
+                message: 'linked post',
+            });
+            linkedPostUrl = `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`;
+
+            for (let i = 60; i < 120; i++) {
+                await userClient.createPost({
+                    channel_id: channel.id,
+                    message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                });
+            }
+        });
+
+        test('should stay at the linked post during initial load', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that post
+            await page.goto(linkedPostUrl);
+
+            // * Verify that the permalinked post is visible and highlighted
+            const linkedPostComponent = await channelsPage.centerView.getPostById(linkedPost.id);
+            await linkedPostComponent.toBeVisible();
+            await expect(linkedPostComponent.container).toHaveClass(/\bpost--highlight\b/);
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should stay at the linked post when switching to the channel', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Start in Town Square and wait for its contents to load
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.centerView.getLastPost();
+
+            // # Post a permalink pointing to the other channel
+            await channelsPage.centerView.postMessage(linkedPostUrl);
+
+            // # Switch to the channel by clicking on that link
+            await page.locator(`a[href="${linkedPostUrl}"]`).click();
+
+            // * Verify that the permalinked post is visible and highlighted
+            const linkedPostComponent = await channelsPage.centerView.getPostById(linkedPost.id);
+            await linkedPostComponent.toBeVisible();
+            await expect(linkedPostComponent.container).toHaveClass(/\bpost--highlight\b/);
+
+            // * Verify that the post list didn't scroll or change height
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+        });
+
+        test('should move to the linked post when clicking on an in-channel permalink', async ({}) => {
+            const watcher = await watchPostListScroll(page, channel.id);
+
+            // # Open the web app directly to that channel
+            await channelsPage.goto(team.name, channel.name);
+
+            // # Post a permalink pointing to that post
+            await channelsPage.centerView.postMessage(linkedPostUrl);
+
+            // # Clear the observer so that it doesn't include the shifts due to making a post
+            await watcher.reset();
+
+            // # Click on that link
+            await page.locator(`a[href="${linkedPostUrl}"]`).click();
+
+            // * Verify that the permalinked post is visible and highlighted
+            const linkedPostComponent = await channelsPage.centerView.getPostById(linkedPost.id);
+            await linkedPostComponent.toBeVisible();
+            await expect(linkedPostComponent.container).toHaveClass(/\bpost--highlight\b/);
+
+            // * Verify that the post list scrolled up without jumping around
+            expect(await waitForScrollToSettle(watcher)).toHaveLength(2);
+        });
+    });
+
     test.describe('fully read channel with multiple pages of image attachments', () => {
         let linkedPost: Post;
         let linkedPostUrl: string;
