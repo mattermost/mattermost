@@ -570,7 +570,7 @@ test.describe('Post list initial scroll', () => {
     test.describe('fully read channel with multiple pages of post previews', () => {
         test.beforeEach(async () => {
             // # Make a post to link to
-            const linkedPost = await userClient.createTestPost({
+            const firstPost = await userClient.createTestPost({
                 channel_id: channel.id,
             });
 
@@ -578,7 +578,7 @@ test.describe('Post list initial scroll', () => {
             for (let i = 0; i < 120; i++) {
                 await userClient.createTestPost({
                     channel_id: channel.id,
-                    message: `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`,
+                    message: `${userClient.getUrl()}/${team.name}/pl/${firstPost.id}`,
                 });
             }
         });
@@ -695,6 +695,8 @@ export type ScrollObservation = {
 };
 
 export type PostListScrollWatcher = {
+    /** Clear recorded observations. */
+    reset: () => Promise<void>;
     /** Waits until the scroll position settles before returning all observations. */
     waitForObservations: (quietMs: number) => Promise<ScrollObservation[]>;
 };
@@ -705,9 +707,10 @@ export type PostListScrollWatcher = {
 export async function watchPostListScroll(page: Page, channelId: string): Promise<PostListScrollWatcher> {
     const SCROLL_WATCHER_KEY = 'postListScrollWatcher';
 
+    type WatcherState = {observations: ScrollObservation[]; lastKey: string};
+
     await page.addInitScript(
         ([key, channelId]) => {
-            type WatcherState = {observations: ScrollObservation[]; lastKey: string};
             const state: WatcherState = {observations: [], lastKey: ''};
             (window as unknown as Record<string, WatcherState>)[key] = state;
 
@@ -761,8 +764,18 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
 
     const getObservations = async () => {
         return page.evaluate((key) => {
-            const state = (window as unknown as Record<string, {observations: ScrollObservation[]}>)[key];
+            const state = (window as unknown as Record<string, WatcherState>)[key];
             return state ? state.observations : [];
+        }, SCROLL_WATCHER_KEY);
+    };
+
+    const reset = async () => {
+        await page.evaluate((key) => {
+            const state = (window as unknown as Record<string, WatcherState>)[key];
+            if (state) {
+                state.observations = [];
+                state.lastKey = '';
+            }
         }, SCROLL_WATCHER_KEY);
     };
 
@@ -784,5 +797,5 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
         return getObservations();
     };
 
-    return {waitForObservations};
+    return {reset, waitForObservations};
 }
