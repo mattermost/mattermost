@@ -47,6 +47,10 @@
     white-space: normal;
 }
 
+.GlobalAttributesTable__subtitle--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
 .GlobalAttributesTable__classificationLink {
     display: inline-flex;
     width: 28px;

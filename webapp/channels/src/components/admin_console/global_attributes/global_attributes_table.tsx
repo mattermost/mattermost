@@ -187,7 +187,7 @@ function AttributeCell({field, groupId, classificationMarkingsReachable}: Classi
             {isClassificationRow && (
                 <span
                     id={classificationSubtitleId(field.id)}
-                    className='GlobalAttributesTable__subtitle'
+                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
                     data-testid='global-attribute-classification-subtitle'
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
