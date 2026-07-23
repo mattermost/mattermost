@@ -57,7 +57,7 @@ func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, 
 	}
 
 	stopNotifications := false
-	if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+	if err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 		if mentions.isUserMentioned(loggedInUserID) {
 			stopNotifications = true
 		}
@@ -104,6 +104,7 @@ func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *
 }
 
 func (a *App) SendPersistentNotifications() error {
+	rctx := request.EmptyContext(a.Log())
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute
 	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 
@@ -136,7 +137,7 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		// Send notifications
-		if err := a.forEachPersistentNotificationPost(posts, a.sendPersistentNotifications); err != nil {
+		if err := a.forEachPersistentNotificationPost(rctx, posts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
 
@@ -152,13 +153,13 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
+func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
 	channelsMap, teamsMap, err := a.channelTeamMapsForPosts(posts)
 	if err != nil {
 		return err
 	}
 
-	channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, err := a.persistentNotificationsAuxiliaryData(channelsMap, teamsMap)
+	channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, err := a.persistentNotificationsAuxiliaryData(rctx, channelsMap, teamsMap)
 	if err != nil {
 		return err
 	}
@@ -229,7 +230,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 
 	if len(postsForPersistentNotificationCleanup) > 0 {
 		for _, post := range postsForPersistentNotificationCleanup {
-			if appErr := a.DeletePersistentNotification(request.EmptyContext(a.Log()), post); appErr != nil {
+			if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
 				a.Log().Warn("Failed to delete persistent notification for post", mlog.String("post_id", post.Id), mlog.String("channel_id", post.ChannelId), mlog.Err(appErr))
 			}
 		}
@@ -238,7 +239,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	return nil
 }
 
-func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model.Channel, teamsMap map[string]*model.Team) (map[string]map[string]*model.Group, map[string]model.UserMap, map[string]MentionKeywords, map[string]map[string]model.StringMap, error) {
+func (a *App) persistentNotificationsAuxiliaryData(rctx request.CTX, channelsMap map[string]*model.Channel, teamsMap map[string]*model.Team) (map[string]map[string]*model.Group, map[string]model.UserMap, map[string]MentionKeywords, map[string]map[string]model.StringMap, error) {
 	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
 	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
 	channelKeywords := make(map[string]MentionKeywords, len(channelsMap))
@@ -264,7 +265,7 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 			channelNotifyProps[c.Id] = props
 		}
 
-		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
+		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, c.Id, true)
 		if err != nil {
 			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 		}
