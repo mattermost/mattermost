@@ -12,7 +12,10 @@
 
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
-import {CLASSIFICATION_MARKINGS_ADMIN_PATH, setClassificationMarkingsFeatureFlag} from '../site_configuration/classification_markings_helpers';
+import {
+    CLASSIFICATION_MARKINGS_ADMIN_PATH,
+    setClassificationMarkingsFeatureFlag,
+} from '../site_configuration/classification_markings_helpers';
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
