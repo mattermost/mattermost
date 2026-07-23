@@ -29,9 +29,20 @@ The AWS OpenSearch Service is built on the open-source OpenSearch project, which
 Review the following support paths for enterprise search based on the version you're using:
 
 <Tabs>
+<TabItem value="elasticsearch-v9" label="Elasticsearch v9">
+
+[Elasticsearch v9](https://www.elastic.co/guide/en/elasticsearch/reference/current/elasticsearch-intro.html) is supported from Mattermost v11.7. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
+
+</TabItem>
 <TabItem value="elasticsearch-v8" label="Elasticsearch v8">
 
-[Elasticsearch v8](https://www.elastic.co/guide/en/elasticsearch/reference/current/elasticsearch-intro.html) is supported from Mattermost v9.11. While Mattermost supports Elasticsearch v7.17+, we recommend upgrading your Elasticsearch v7 instance to v8.x. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
+[Elasticsearch v8](https://www.elastic.co/guide/en/elasticsearch/reference/8.19/elasticsearch-intro.html) is supported from Mattermost v9.11. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
+
+<Note>
+
+Elasticsearch v7.17 is no longer supported as of Mattermost v11.7. If you're still using Elasticsearch v7, you must upgrade to Elasticsearch v8 or v9.
+
+</Note>
 
 </TabItem>
 <TabItem value="aws-opensearch-service" label="AWS OpenSearch Service">
@@ -43,13 +54,13 @@ See the **AWS Elasticsearch v7.10.x** tab on this page for details on upgrading 
 </TabItem>
 <TabItem value="aws-elasticsearch-v7-10-x" label="AWS Elasticsearch v7.10.x">
 
-If you're using Elasticsearch v7.10.x under AWS’s managed services, you can't use newer Elasticsearch clients like the v8 client without changing backend infrastructure. If you're using AWS Elasticsearch v7.10.x, you must [upgrade to AWS OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/version-migration.html) for future compatibility.
+If you're using Elasticsearch v7.10.x under AWS’s managed services, you can't use newer Elasticsearch clients like the v8 or v9 client without changing backend infrastructure. If you're using AWS Elasticsearch v7.10.x, you must [upgrade to AWS OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/version-migration.html) for future compatibility.
 
 The migration path from Elasticsearch v7.10.x to OpenSearch has been designed to be straightforward, minimizing effort:
 
 1.  Disable "compatibility mode" in OpenSearch.
 2.  Upgrade Mattermost server.
-3.  Update the Mattermost `ElasticsearchSettings.Backend` configuration setting value from `elasticsearch` to `` `opensearch ``<code> manually or using \`mmctl \<mm-ref:administration-guide%2Fmanage%2Fmmctl-command-line-tool%3Ammctl%20config%20set\></code>\_\_. This value cannot be changed using the System Console. See the Mattermost search [backend type](/administration-guide/configure/environment-configuration-settings#backend-type) configuration setting documentation for additional details.
+3.  Update the Mattermost `ElasticsearchSettings.Backend` configuration setting value from `elasticsearch` to `opensearch` manually or using [mmctl](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-set). This value cannot be changed using the System Console. See the Mattermost search [backend type](/administration-guide/configure/environment-configuration-settings#backend-type) configuration setting documentation for additional details.
 4.  Restart the Mattermost server.
 
 </TabItem>
@@ -113,6 +124,29 @@ Failures are returned in the server logs. The error log begins with the string `
 From Mattermost v11, [Support Packet generation](/administration-guide/manage/admin/generating-support-packet) automatically tests the connection to your configured Elasticsearch or AWS OpenSearch server and includes any connection errors in the Support Packet. This provides valuable diagnostic information including server version, installed plugins, and specific error details if the connection fails.
 
 The enterprise search connection test results appear in the Support Packet and can help identify configuration issues such as network connectivity problems, authentication failures, or server availability issues. If connection errors are present, they will be clearly documented with specific error messages to aid in troubleshooting.
+
+### How does Mattermost handle Elasticsearch or OpenSearch outages?
+
+From Mattermost v11.7, the server includes an automatic health monitor for Elasticsearch and OpenSearch connections. The health monitor runs periodic health checks and automatically manages the connection lifecycle:
+
+- **Health checks**: The server checks the health of the search engine cluster every 60 seconds. After 3 consecutive health check failures, the engine is stopped and search falls back to the database.
+- **Fast-fail on first failure**: On the very first health check failure, the engine is immediately marked as unhealthy and search requests are routed to the database. This happens before the consecutive failure threshold is reached, so users experience minimal disruption.
+- **Automatic retry**: When the search engine is unavailable, the server retries connecting with exponential backoff, starting at 15 seconds and doubling up to a maximum of 5 minutes between attempts.
+- **Automatic recovery**: When the search engine becomes available again, the server automatically reconnects and resumes using it for search queries. No manual intervention or server restart is required.
+- **Configuration changes**: Changes to Elasticsearch or OpenSearch configuration settings, or license changes, immediately trigger the health monitor to re-evaluate the connection state.
+- **Monitoring**: A `mattermost_search_engine_status` Prometheus metric reports the health of the search engine (`1` = healthy or not configured, `0` = configured but unavailable). Use this metric to [set up alerts](/administration-guide/scale/performance-alerting) for search engine outages. See [performance monitoring metrics](/administration-guide/scale/performance-monitoring-metrics) for details.
+
+During an outage, you may see the following log messages:
+
+| Level | Log message | Meaning |
+|---|---|---|
+| Error | `Search engine health check failed repeatedly; stopping engine` | The failure threshold was reached and the engine has been stopped. Search falls back to the database. |
+| Warn | `Search engine health check failed` | An individual health check failed. Includes a `consecutive_failures` count. |
+| Warn | `Search engine health check failed: it is now marked as unhealthy` | A previously healthy engine failed a health check and has been marked unhealthy. Search requests will fall back to the database immediately. |
+| Warn | `Search engine watcher: Start() failed, will retry` | A reconnection attempt failed. Includes a `next_backoff` field indicating the time until the next retry. |
+| Info | `Search engine health check succeeded: it is now marked as healthy` | The engine passed a health check after being unhealthy and is now handling search requests again. |
+| Info | `Search engine watcher: engine started successfully` | The engine has recovered and is active again. |
+| Info | `Search engine watcher: engine disabled, parking` | The health monitor is idle because the search engine is disabled in configuration. |
 
 ### My search indexes won't complete, what should I do?
 
