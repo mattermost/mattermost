@@ -1266,29 +1266,6 @@ function regroupCollaborate(collaborateCat) {
   return collaborateCat;
 }
 
-function buildEndUserGuideSidebar(autoCat) {
-  let foundCollaborate = false;
-  for (const it of autoCat.items) {
-    if (it.type !== 'category') continue;
-    let dirName = null;
-    if (it.link && it.link.id) {
-      dirName = it.link.id.split('/')[1];
-    }
-    if (!dirName && it.items) {
-      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
-      if (firstDoc) dirName = firstDoc.id.split('/')[1];
-    }
-    if (dirName === 'collaborate') {
-      regroupCollaborate(it);
-      foundCollaborate = true;
-    }
-  }
-  if (!foundCollaborate) {
-    console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
-  }
-  return autoCat;
-}
-
 // ---------------------------------------------------------------------------
 // Integrations Guide — builder.
 // ---------------------------------------------------------------------------
@@ -1350,11 +1327,16 @@ function buildIntegrationsSidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
-// End User Guide — nests the Agents plugin's usage-tips page under the
-// existing "AI Agents" doc, the same way Configure nests Agents' admin-side
-// pages (see ADMIN_CONFIGURE_GROUPS.agents above). End User Guide is
-// otherwise fully filesystem-driven, so this is a narrow, targeted
-// promotion rather than a full manual-grouping override.
+// End User Guide — builder. Two independent overrides on top of the
+// otherwise filesystem-driven auto-generated sidebar:
+//   1. Nests the Agents plugin's usage-tips page under the existing "AI
+//      Agents" doc, the same way Configure nests Agents' admin-side pages
+//      (see ADMIN_CONFIGURE_GROUPS.agents above) — a narrow, targeted
+//      promotion rather than a full manual-grouping override.
+//   2. Regroups the "Collaborate" sub-category (49 files) into the topic
+//      groups defined in COLLABORATE_GROUPS above, the same
+//      manual-grouping-override pattern used for Administration Guide's
+//      Configure/Manage/Onboard/Scale sections.
 // ---------------------------------------------------------------------------
 
 // Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces
@@ -1386,6 +1368,27 @@ function buildEndUserGuideSidebar(autoCat) {
   if (!promoted) {
     console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents usage-tips nesting was not applied.');
   }
+
+  let foundCollaborate = false;
+  for (const it of autoCat.items) {
+    if (it.type !== 'category') continue;
+    let dirName = null;
+    if (it.link && it.link.id) {
+      dirName = it.link.id.split('/')[1];
+    }
+    if (!dirName && it.items) {
+      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
+      if (firstDoc) dirName = firstDoc.id.split('/')[1];
+    }
+    if (dirName === 'collaborate') {
+      regroupCollaborate(it);
+      foundCollaborate = true;
+    }
+  }
+  if (!foundCollaborate) {
+    console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
+  }
+
   return autoCat;
 }
 
