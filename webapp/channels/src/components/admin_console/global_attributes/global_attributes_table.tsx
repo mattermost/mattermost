@@ -254,12 +254,6 @@ export default function GlobalAttributesTable() {
                 enableHiding: false,
             }),
             columnHelper.display({
-                id: 'usage',
-                header: () => <FormattedMessage {...messages.usage}/>,
-                cell: () => <span data-testid='global-attribute-usage'>{'—'}</span>,
-                enableHiding: false,
-            }),
-            columnHelper.display({
                 id: 'actions',
                 header: () => <FormattedMessage {...messages.actions}/>,
                 cell: ({row}) => <ActionsCell field={row.original}/>,
@@ -319,7 +313,6 @@ const messages = defineMessages({
     appliesTo: {id: 'admin.global_attributes.table.applies_to', defaultMessage: 'Applies to'},
     source: {id: 'admin.global_attributes.table.source', defaultMessage: 'Source'},
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
-    usage: {id: 'admin.global_attributes.table.usage', defaultMessage: 'Usage'},
     actions: {id: 'admin.global_attributes.table.actions', defaultMessage: 'Actions'},
     empty: {
         id: 'admin.global_attributes.table.empty',

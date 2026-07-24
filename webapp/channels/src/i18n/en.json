@@ -1463,7 +1463,6 @@
   "admin.global_attributes.table.type.rank": "Ranked",
   "admin.global_attributes.table.type.select": "Select",
   "admin.global_attributes.table.type.text": "Text",
-  "admin.global_attributes.table.usage": "Usage",
   "admin.global_attributes.title": "Manage Attributes",
   "admin.google.authTitle": "Auth Endpoint:",
   "admin.google.clientIdDescription": "The Client ID you received when registering your application with Google.",

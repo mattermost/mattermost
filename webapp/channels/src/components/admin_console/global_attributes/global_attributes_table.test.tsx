@@ -149,14 +149,6 @@ describe('GlobalAttributesTable', () => {
         expect(await screen.findByTestId('global-attribute-applies-to')).toBeInTheDocument();
     });
 
-    it('renders the Usage column as an explicit placeholder, not a blank cell', async () => {
-        getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
-
-        renderWithContext(<GlobalAttributesTable/>, getBaseState());
-
-        expect(await screen.findByTestId('global-attribute-usage')).toBeInTheDocument();
-    });
-
     it('shows the empty-state message when there are no fields', async () => {
         getPropertyFields.mockResolvedValue([]);
 
