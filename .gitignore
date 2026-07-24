@@ -167,6 +167,10 @@ docker-compose.override.yaml
 **/CLAUDE.md
 .claude
 .cursorrules
+
+# Planning files (local only)
+.planning
+
 .cursor/*
 !.cursor/README.md
 !.cursor/cursor.md

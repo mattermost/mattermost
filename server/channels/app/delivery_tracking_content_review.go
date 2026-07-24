@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -20,6 +21,8 @@ const (
 	jobDataKeyPostId      = "post_id"
 	jobDataKeyTeamId      = "team_id"
 	jobDataKeyRequestedBy = "requested_by"
+
+	deliveryTrackingPurgeJobWaitTimeout = 15 * time.Second
 )
 
 var (
@@ -45,7 +48,7 @@ func (a *App) CreateDeliveryTrackingContentReviewJob(rctx request.CTX, postID, t
 		return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.error", nil, "post is not under review", http.StatusBadRequest)
 	}
 
-	job, appErr := a.Srv().Jobs.CreateJobOnce(
+	job, appErr := a.Srv().Jobs.CreateJobOnceByTypeAndData(
 		rctx,
 		model.JobTypeDeliveryTrackingContentReview,
 		map[string]string{jobDataKeyPostId: postID, jobDataKeyTeamId: teamID, jobDataKeyRequestedBy: requestedBy},
@@ -53,6 +56,20 @@ func (a *App) CreateDeliveryTrackingContentReviewJob(rctx request.CTX, postID, t
 	)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// CreateJobOnceByTypeAndData returns nil when a content-review job for this post
+	// is already pending/in-progress (a dedupe hit). Fetch the in-flight job so this
+	// requester is still recorded on it and returned to the caller.
+	if job == nil {
+		existing, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeDeliveryTrackingContentReview, map[string]string{jobDataKeyPostId: postID}, true, model.JobStatusPending, model.JobStatusInProgress)
+		if err != nil {
+			return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(existing) == 0 {
+			return nil, nil
+		}
+		job = existing[0]
 	}
 
 	merged, err := a.Srv().Store().Job().PatchJobData(job.Id, model.StringMap{jobDataKeyRequestedBy: requestedBy}, mergeRequestedBy)
@@ -130,6 +147,17 @@ func (a *App) purgeDeliveryTrackingContentReview(rctx request.CTX, postID string
 	for _, job := range jobs {
 		if appErr := a.Srv().Jobs.RequestCancellation(rctx, job.Id); appErr != nil {
 			rctx.Logger().Warn("purgeDeliveryTrackingContentReview: failed to cancel in-flight copy job", mlog.String("post_id", postID), mlog.String("job_id", job.Id), mlog.Err(appErr))
+		}
+	}
+
+	// A canceled in-progress job keeps writing batches until its CancellationWatcher
+	// notices (polls every 5s) and finishes the in-flight batch. Deleting before then
+	// leaves orphaned rows the worker re-inserts after the deletion. Wait (bounded) for
+	// each job to actually stop before deleting; if we can't confirm it stopped, we
+	// delete anyway.
+	for _, job := range jobs {
+		if err := a.Srv().Jobs.WaitForJobToStop(rctx, job.Id, deliveryTrackingPurgeJobWaitTimeout); err != nil {
+			rctx.Logger().Warn("purgeDeliveryTrackingContentReview: could not confirm copy job stopped; deleting anyway", mlog.String("post_id", postID), mlog.String("job_id", job.Id), mlog.Err(err))
 		}
 	}
 

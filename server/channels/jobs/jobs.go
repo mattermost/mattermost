@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CancelWatcherPollingInterval = 5000
+	CancelWatcherPollingInterval    = 5000
+	WaitForJobToStopPollingInterval = 250 * time.Millisecond
 )
 
 // JobLoggerFields returns the logger annotations reflecting the given job metadata.
@@ -48,38 +49,31 @@ func (srv *JobServer) CreateJob(rctx request.CTX, jobType string, jobData map[st
 	return job, nil
 }
 
-// CreateJobOnce creates a job unless one is already pending/in-progress for the
-// same type and dedupeData (a subset of jobData used only for deduplication; pass
-// nil to dedupe on type alone). On a dedupe hit it returns the existing in-flight
-// job rather than creating a duplicate.
-func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData, dedupeData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(rctx, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	saved, err := srv.Store.Job().SaveOnce(job, dedupeData)
-	if err != nil {
-		return nil, model.NewAppError("CreateJobOnce", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if saved != nil {
-		return saved, nil
+	if _, err := srv.Store.Job().SaveOnce(job); err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// SaveOnce deduped (a matching job already exists, or a concurrent insert
-	// won the serializable transaction): return the real in-flight job.
-	existing, err := srv.Store.Job().GetByTypeAndData(rctx, jobType, dedupeData, true, model.JobStatusPending, model.JobStatusInProgress)
-	if err != nil {
-		return nil, model.NewAppError("CreateJobOnce", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(existing) > 0 {
-		return existing[0], nil
-	}
-
-	// Rare: the in-flight job finished between SaveOnce and this fetch. The
-	// requested work is effectively already done; return the (non-persisted)
-	// job as a marker.
 	return job, nil
+}
+
+func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType string, jobData map[string]string, data map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(rctx, jobType, jobData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	savedJob, err := srv.Store.Job().SaveOnceByTypeAndData(job, data)
+	if err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return savedJob, nil
 }
 
 func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
@@ -349,6 +343,44 @@ func (srv *JobServer) CancellationWatcher(rctx request.CTX, jobId string, cancel
 				close(cancelChan)
 				return
 			}
+		}
+	}
+}
+
+// jobHasStopped reports whether a job has reached a terminal status — its worker has
+// returned and can no longer act on the job's behalf.
+func jobHasStopped(status string) bool {
+	switch status {
+	case model.JobStatusSuccess, model.JobStatusError, model.JobStatusCanceled, model.JobStatusWarning:
+		return true
+	}
+	return false
+}
+
+func (srv *JobServer) WaitForJobToStop(rctx request.CTX, jobID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for {
+		job, err := srv.Store.Job().Get(rctx, jobID)
+		if err != nil {
+			var notFound *store.ErrNotFound
+			if errors.As(err, &notFound) {
+				return nil
+			}
+			return fmt.Errorf("failed to read status of job %s: %w", jobID, err)
+		}
+
+		if jobHasStopped(job.Status) {
+			return nil
+		}
+
+		if !time.Now().Before(deadline) {
+			return fmt.Errorf("timed out after %s waiting for job %s to stop", timeout, jobID)
+		}
+
+		select {
+		case <-rctx.Context().Done():
+			return rctx.Context().Err()
+		case <-time.After(WaitForJobToStopPollingInterval):
 		}
 	}
 }

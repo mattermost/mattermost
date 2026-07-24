@@ -151,3 +151,37 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		require.Len(t, rowsByPost(t, postID), 2, "rows at/after the cutoff must remain")
 	})
 }
+
+// TestUserPostDeliveryStoreDisabled verifies the "always create on primary"
+// behavior: even with the feature disabled, the UserPostDelivery table is
+// provisioned on the primary DB by the always-run migration, while
+// Store().UserPostDelivery() stays the no-op store because no delivery pool is
+// opened.
+func TestUserPostDeliveryStoreDisabled(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires live database")
+	}
+
+	logger := mlog.CreateTestLogger(t)
+
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// No delivery-tracking settings and no feature flag: the feature is off.
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+	defer func() {
+		ss.Close()
+		storetest.CleanupSqlSettings(settings)
+	}()
+
+	// The table is created on the primary DB regardless of the feature state.
+	exists, err := ss.tableExists(userPostDeliveryTableName)
+	require.NoError(t, err)
+	require.True(t, exists, "UserPostDelivery table should exist on the primary DB even when the feature is disabled")
+
+	// With no delivery pool opened, the store is the no-op implementation.
+	require.IsType(t, noopUserPostDeliveryStore{}, ss.UserPostDelivery(), "disabled feature should yield the no-op store")
+}
