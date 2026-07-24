@@ -11995,6 +11995,10 @@
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
   },
   {
+    "id": "model.config.is_valid.email_address.app_error",
+    "translation": "{{.Setting}} must be a valid email address."
+  },
+  {
     "id": "model.config.is_valid.email_push_notification_buffer.app_error",
     "translation": "Invalid push notification buffer size for email settings. Must be a positive number."
   },
@@ -12183,6 +12187,10 @@
     "translation": "Invalid format: {{.Error}}"
   },
   {
+    "id": "model.config.is_valid.log_level.app_error",
+    "translation": "Invalid log level {{.Value}} for {{.Setting}}."
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
@@ -12295,6 +12303,10 @@
     "translation": "One or more app download links are not valid URLs."
   },
   {
+    "id": "model.config.is_valid.non_negative_number.app_error",
+    "translation": "{{.Setting}} must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.invalid_event",
     "translation": "Invalid flagging event specified."
   },
@@ -12325,6 +12337,14 @@
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
     "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.port.app_error",
+    "translation": "{{.Setting}} must be a valid port."
+  },
+  {
+    "id": "model.config.is_valid.positive_number.app_error",
+    "translation": "{{.Setting}} must be a positive number."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -12409,6 +12429,10 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Invalid Username attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.s3_upload_part_size.app_error",
+    "translation": "{{.Setting}} must be at least {{.Min}} bytes."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
@@ -12503,6 +12527,10 @@
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
   },
   {
+    "id": "model.config.is_valid.tls_min_ver.app_error",
+    "translation": "Invalid TLS minimum version {{.Value}}. Must be '1.0', '1.1', '1.2', or '1.3'."
+  },
+  {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
@@ -12513,6 +12541,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.webserver_mode.app_error",
+    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",

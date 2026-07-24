@@ -120,6 +120,57 @@ func TestConfigIsValid(t *testing.T) {
 	})
 }
 
+func TestSupportSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &SupportSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("invalid support email", func(t *testing.T) {
+		settings := &SupportSettings{
+			SupportEmail: NewPointer("not-an-email"),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.email_address.app_error", appErr.Id)
+	})
+
+	t.Run("negative custom terms reacceptance period", func(t *testing.T) {
+		settings := &SupportSettings{
+			CustomTermsOfServiceReAcceptancePeriod: NewPointer(-1),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.non_negative_number.app_error", appErr.Id)
+	})
+}
+
+func TestAnnouncementSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &AnnouncementSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("notices fetch frequency must be positive", func(t *testing.T) {
+		settings := &AnnouncementSettings{
+			NoticesFetchFrequency: NewPointer(0),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.positive_number.app_error", appErr.Id)
+	})
+}
+
 func TestConfigEmptySiteName(t *testing.T) {
 	c1 := Config{
 		TeamSettings: TeamSettings{
@@ -191,6 +242,114 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		"BurnOnReadSchedulerFrequencySeconds is zero": {
 			ServiceSettings: ServiceSettings{
 				BurnOnReadSchedulerFrequencySeconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"TLSMinVer is invalid": {
+			ServiceSettings: ServiceSettings{
+				TLSMinVer: new("1.4"),
+			},
+			ExpectError: true,
+		},
+		"TLSStrictTransportMaxAge is negative": {
+			ServiceSettings: ServiceSettings{
+				TLSStrictTransportMaxAge: NewPointer(int64(-1)),
+			},
+			ExpectError: true,
+		},
+		"WebserverMode is invalid": {
+			ServiceSettings: ServiceSettings{
+				WebserverMode: new("brotli"),
+			},
+			ExpectError: true,
+		},
+		"WebsocketPort is out of range": {
+			ServiceSettings: ServiceSettings{
+				WebsocketPort: new(65536),
+			},
+			ExpectError: true,
+		},
+		"WebsocketSecurePort is negative": {
+			ServiceSettings: ServiceSettings{
+				WebsocketSecurePort: new(-1),
+			},
+			ExpectError: true,
+		},
+		"IdleTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				IdleTimeout: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthWebInDays is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthWebInDays: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthWebInHours is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthWebInHours: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthMobileInDays is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthMobileInDays: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthMobileInHours is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthMobileInHours: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthSSOInDays is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthSSOInDays: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthSSOInHours is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthSSOInHours: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionCacheInMinutes is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionCacheInMinutes: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionIdleTimeoutInMinutes is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionIdleTimeoutInMinutes: new(0),
+			},
+			ExpectError: false,
+		},
+		"SessionIdleTimeoutInMinutes is negative": {
+			ServiceSettings: ServiceSettings{
+				SessionIdleTimeoutInMinutes: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MinimumHashtagLength is zero": {
+			ServiceSettings: ServiceSettings{
+				MinimumHashtagLength: new(0),
+			},
+			ExpectError: true,
+		},
+		"ClusterLogTimeoutMilliseconds is zero": {
+			ServiceSettings: ServiceSettings{
+				ClusterLogTimeoutMilliseconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"AWSMeteringTimeoutSeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				AWSMeteringTimeoutSeconds: new(0),
 			},
 			ExpectError: true,
 		},
@@ -293,6 +452,44 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			appErr := settings.isValid()
 			require.NotNil(t, appErr)
 			require.Equal(t, "model.config.is_valid.email_push_notification_buffer.app_error", appErr.Id)
+		})
+	}
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*EmailSettings)
+		errID  string
+	}{
+		{
+			name: "invalid feedback email",
+			mutate: func(settings *EmailSettings) {
+				settings.FeedbackEmail = NewPointer("not-an-email")
+			},
+			errID: "model.config.is_valid.email_address.app_error",
+		},
+		{
+			name: "invalid reply-to address",
+			mutate: func(settings *EmailSettings) {
+				settings.ReplyToAddress = NewPointer("not-an-email")
+			},
+			errID: "model.config.is_valid.email_address.app_error",
+		},
+		{
+			name: "invalid SMTP port",
+			mutate: func(settings *EmailSettings) {
+				settings.SMTPPort = NewPointer("65536")
+			},
+			errID: "model.config.is_valid.port.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &EmailSettings{}
+			settings.SetDefaults(false)
+			tc.mutate(settings)
+
+			appErr := settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
 		})
 	}
 }
@@ -488,6 +685,46 @@ func TestFileSettingsExtractContentTimeout(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, "model.config.is_valid.extract_content_timeout.app_error", err.Id)
 	})
+}
+
+func TestFileSettingsLowerConfidenceBounds(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*FileSettings)
+		errID  string
+	}{
+		{
+			name: "MaxImageResolution zero",
+			mutate: func(settings *FileSettings) {
+				settings.MaxImageResolution = NewPointer(int64(0))
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+		{
+			name: "AmazonS3UploadPartSizeBytes below S3 minimum",
+			mutate: func(settings *FileSettings) {
+				settings.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes - 1))
+			},
+			errID: "model.config.is_valid.s3_upload_part_size.app_error",
+		},
+		{
+			name: "ExportAmazonS3UploadPartSizeBytes below S3 minimum",
+			mutate: func(settings *FileSettings) {
+				settings.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes - 1))
+			},
+			errID: "model.config.is_valid.s3_upload_part_size.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.mutate(&cfg.FileSettings)
+
+			appErr := cfg.FileSettings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
 }
 
 func TestFileSettingsAzureAuthMode(t *testing.T) {
@@ -1565,6 +1802,22 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
+			Name: "invalid LDAP port",
+			LdapSettings: LdapSettings{
+				Enable:   new(false),
+				LdapPort: new(65536),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid LDAP query timeout",
+			LdapSettings: LdapSettings{
+				Enable:       new(false),
+				QueryTimeout: new(0),
+			},
+			ExpectError: true,
+		},
+		{
 			Name: "missing server",
 			LdapSettings: LdapSettings{
 				Enable:            new(true),
@@ -2087,6 +2340,24 @@ func TestLogSettingsIsValid(t *testing.T) {
 				`),
 			},
 			ExpectError: false,
+		},
+		"invalid console level": {
+			LogSettings: LogSettings{
+				ConsoleLevel: new("verbose"),
+			},
+			ExpectError: true,
+		},
+		"invalid file level": {
+			LogSettings: LogSettings{
+				FileLevel: new("verbose"),
+			},
+			ExpectError: true,
+		},
+		"negative max field size": {
+			LogSettings: LogSettings{
+				MaxFieldSize: new(-1),
+			},
+			ExpectError: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -2870,6 +3141,46 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			test.config.SetDefaults()
 
 			require.Equal(t, test.value, test.config.DataRetentionSettings.GetFileRetentionHours())
+		})
+	}
+}
+
+func TestDataRetentionSettingsIsValid(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*DataRetentionSettings)
+		errID  string
+	}{
+		{
+			name: "BatchSize zero",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.BatchSize = NewPointer(0)
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+		{
+			name: "TimeBetweenBatchesMilliseconds negative",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.TimeBetweenBatchesMilliseconds = NewPointer(-1)
+			},
+			errID: "model.config.is_valid.non_negative_number.app_error",
+		},
+		{
+			name: "RetentionIdsBatchSize zero",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.RetentionIdsBatchSize = NewPointer(0)
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &DataRetentionSettings{}
+			settings.SetDefaults()
+			tc.mutate(settings)
+
+			appErr := settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
 		})
 	}
 }
