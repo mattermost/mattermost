@@ -1446,24 +1446,28 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             // Disable plugin
             handlePluginDisabled({data: {manifest}});
 
-            // Assert handlePluginDisabled is idempotent
+            // Second disable still clears Redux plugin registrations (Product/AppBar), but
+            // skips script/uninitialize cleanup that already ran on the first disable.
             handlePluginDisabled({data: {manifest}});
 
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
+            expect(store.dispatch).toHaveBeenCalledTimes(4);
 
             const dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
             const dispatchRemovedArg = store.dispatch.mock.calls[1][0];
-
             expect(typeof dispatchRemovedArg).toBe('function');
+
+            // Repeated disable still dispatches removeWebappPlugin.
+            expect(typeof store.dispatch.mock.calls[3][0]).toBe('function');
+
             dispatchRemovedArg(store.dispatch);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(5);
-            const dispatchReceivedArg3 = store.dispatch.mock.calls[4][0];
-            expect(dispatchReceivedArg3.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
-            expect(dispatchReceivedArg3.data).toBe(manifest);
+            expect(store.dispatch).toHaveBeenCalledTimes(6);
+            const dispatchReceivedArg = store.dispatch.mock.calls[5][0];
+            expect(dispatchReceivedArg.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
+            expect(dispatchReceivedArg.data).toBe(manifest);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
