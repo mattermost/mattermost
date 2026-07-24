@@ -20,8 +20,8 @@
 
 .radio-setting__clear {
     display: block;
-    margin-top: 4px;
     padding-left: 0;
+    margin-top: 4px;
 }
 
 // Interactive dialog inline choices (radio, bool, checkbox_group).
@@ -29,10 +29,10 @@
 // assuming the input precedes label text. Override for label_position support.
 .inline-choice-setting {
     fieldset {
-        margin: 0;
+        min-width: 0;
         padding: 0;
         border: 0;
-        min-width: 0;
+        margin: 0;
     }
 
     .checkbox,
@@ -45,23 +45,23 @@
 
         label {
             display: inline-flex;
-            align-items: center;
-            gap: 8px;
             min-height: unset;
-            margin-bottom: 0;
+            align-items: center;
             padding-left: 0;
-            font-weight: normal;
+            margin-bottom: 0;
             cursor: pointer;
+            font-weight: normal;
+            gap: 8px;
         }
 
         input[type='checkbox'],
         input[type='radio'] {
             position: static;
-            float: none;
             width: 16px;
             height: 16px;
-            margin: 0;
             flex-shrink: 0;
+            margin: 0;
+            float: none;
         }
     }
 
@@ -83,8 +83,8 @@
     }
 
     th[scope='row'] {
-        text-align: left;
         font-weight: 600;
+        text-align: left;
     }
 
     &__corner {

@@ -23,13 +23,6 @@ function openCheckboxDemoDialog() {
     cy.get('#appsModal').should('be.visible');
 }
 
-function closeCheckboxDemoDialog() {
-    cy.get('#appsModal').within(() => {
-        cy.get('#appsModalCancel').click();
-    });
-    cy.get('#appsModal').should('not.exist');
-}
-
 describe('Interactive Dialog - Checkbox Elements', () => {
     before(() => {
         cy.apiSaveTeammateNameDisplayPreference('username');
@@ -57,6 +50,12 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 webhookUtils.getCheckboxGroupDialog(data.id, webhookBaseUrl);
             });
         });
+    });
+
+    afterEach(() => {
+        // # Reload the page after each test to close any dialog left open, so the
+        // next test's cy.postMessage isn't blocked by a modal covering the textbox.
+        cy.reload();
     });
 
     it('MM-T9001 - checkbox_group renders label before and label after', () => {
@@ -93,8 +92,6 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 });
             });
         });
-
-        closeCheckboxDemoDialog();
     });
 
     it('MM-T9002 - checkbox_matrix multiple toggles checkboxes per row', () => {
@@ -102,7 +99,9 @@ describe('Interactive Dialog - Checkbox Elements', () => {
 
         cy.get('#appsModal').within(() => {
             cy.get('[data-testid="severity_multiple"]').within(() => {
-                cy.get('table.checkbox-matrix').should('be.visible');
+                // The demo dialog is taller than the modal body; scroll the matrix
+                // into view before asserting visibility (be.visible does not auto-scroll).
+                cy.get('table.checkbox-matrix').scrollIntoView().should('be.visible');
                 cy.get('table.checkbox-matrix tbody tr').should('have.length', 3);
                 cy.get('table.checkbox-matrix thead th').should('have.length', 3);
                 cy.get('input[type="checkbox"]').should('have.length', 6);
@@ -115,8 +114,6 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 });
             });
         });
-
-        closeCheckboxDemoDialog();
     });
 
     it('MM-T9003 - checkbox_matrix single uses radio inputs per row', () => {
@@ -135,8 +132,6 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 });
             });
         });
-
-        closeCheckboxDemoDialog();
     });
 
     it('MM-T9004 - optional radio shows clear selection control', () => {
@@ -145,12 +140,10 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         cy.get('#appsModal').within(() => {
             cy.get('[data-testid="department"]').within(() => {
                 cy.get('input[type="radio"][value="sales"]').should('be.checked');
-                cy.get('.radio-setting__clear').should('be.visible').click();
+                cy.get('.radio-setting__clear').scrollIntoView().should('be.visible').click();
                 cy.get('input[type="radio"]:checked').should('not.exist');
             });
         });
-
-        closeCheckboxDemoDialog();
     });
 
     it('MM-T9005 - required checkbox_group blocks submit when empty', () => {
@@ -164,8 +157,6 @@ describe('Interactive Dialog - Checkbox Elements', () => {
             cy.get('#appsModalSubmit').click();
             cy.get('[data-testid="waiver_group_label_before"]').find('.error-text').should('be.visible');
         });
-
-        closeCheckboxDemoDialog();
     });
 
     it('MM-T9006 - bool and optional checkbox_group render on demo dialog', () => {
@@ -182,7 +173,5 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 cy.get('label.control-label').should('contain', '(optional)');
             });
         });
-
-        closeCheckboxDemoDialog();
     });
 });
