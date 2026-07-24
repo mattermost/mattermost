@@ -334,3 +334,70 @@ export async function saveCreateChannelLinkedField(templateFieldId: string): Pro
 export async function saveDeleteChannelLinkedField(fieldId: string): Promise<void> {
     await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, fieldId);
 }
+
+// --- User field API (clearance attribute for classification enforcement) ---
+//
+// A user field linked to the template mirrors the classification levels as its
+// option scale, so ABAC policies can gate access with `user.attributes.<name>`
+// compared against a channel's classification. Values are inherited wholesale
+// from the template (no per-level mapping), exactly like the channel field.
+
+export const CLASSIFICATIONS_USER_OBJECT_TYPE = 'user';
+
+// Default name for the clearance field created from this page. Hardcoded for
+// now; a future change may let admins name/map it.
+export const CLEARANCE_FIELD_NAME = 'Clearance';
+
+/**
+ * Fetches all user fields linked to the given classification template — the
+ * clearance-attribute candidates shown in the enforcement dropdown.
+ */
+export async function fetchUserLinkedFields(templateFieldId: string): Promise<PropertyField[]> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+    const matches: PropertyField[] = [];
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_USER_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            {cursorId, cursorCreateAt},
+        );
+        for (const f of fields) {
+            if (f.delete_at === 0 && f.linked_field_id === templateFieldId) {
+                matches.push(f);
+            }
+        }
+        if (fields.length === 0) {
+            return matches;
+        }
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return matches;
+}
+
+export async function saveCreateUserLinkedField(templateFieldId: string, name: string): Promise<PropertyField> {
+    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_USER_OBJECT_TYPE, {
+        name,
+        type: 'rank' as PropertyField['type'],
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
+        linked_field_id: templateFieldId,
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
+    });
+}
+
+export async function saveDeleteUserLinkedField(fieldId: string): Promise<void> {
+    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_USER_OBJECT_TYPE, fieldId);
+}
