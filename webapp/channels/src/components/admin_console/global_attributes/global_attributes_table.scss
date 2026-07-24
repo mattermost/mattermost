@@ -27,7 +27,10 @@
         color: inherit;
     }
 
-    &:focus,
+    // Only [aria-expanded="true"] drives the "open" background, not :focus alone —
+    // MUI restores DOM focus to the trigger when the menu closes (e.g. clicking
+    // outside), so :focus persists after close and would otherwise leave the
+    // button looking permanently "active" even once the popover is gone.
     &[aria-expanded='true'] {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: inherit;
