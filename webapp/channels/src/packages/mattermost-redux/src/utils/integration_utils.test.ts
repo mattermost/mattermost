@@ -96,8 +96,8 @@ describe('integration utils', () => {
             expect(checkDialogElementForError(element, [])).toBe(null);
         });
 
-        it('should return invalid_format when the value is not an array', () => {
-            expect(checkDialogElementForError(element, 'r1')!.id).toBe('interactive_dialog.error.invalid_format');
+        it('should return invalid_list when the value is not an array', () => {
+            expect(checkDialogElementForError(element, 'r1')!.id).toBe('interactive_dialog.error.invalid_list');
         });
 
         it('should return invalid_option when a selected value is not in the options', () => {

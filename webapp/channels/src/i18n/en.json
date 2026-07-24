@@ -5657,6 +5657,7 @@
   "interactive_dialog.error.before_min_date": "Selected time is before the minimum allowed date.",
   "interactive_dialog.error.invalid_file": "Invalid file upload.",
   "interactive_dialog.error.invalid_format": "Invalid matrix selection format",
+  "interactive_dialog.error.invalid_list": "Must be a list of options",
   "interactive_dialog.error.invalid_option": "Must be a valid option",
   "interactive_dialog.error.required": "This field is required.",
   "interactive_dialog.error.too_short": "Minimum input length is {minLength}.",

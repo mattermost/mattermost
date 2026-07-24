@@ -185,7 +185,7 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
     } else if (type === 'checkbox_group') {
         if (value !== undefined && value !== null && !Array.isArray(value)) {
             return defineMessage({
-                id: 'interactive_dialog.error.invalid_format',
+                id: 'interactive_dialog.error.invalid_list',
                 defaultMessage: 'Must be a list of options',
             });
         }
