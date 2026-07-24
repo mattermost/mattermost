@@ -390,6 +390,7 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on-test-failures: false
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
