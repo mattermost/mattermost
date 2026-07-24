@@ -29,17 +29,29 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // Most sections build their sidebar straight from the filesystem: each
 // subdirectory becomes a category, each file a doc, sorted by
 // `sidebar_position` frontmatter then filename (see buildCategory below).
-// Overview, Deployment Guide, Administration Guide > Configure, and
-// Integrations Guide are flat piles of 15-40 files that read badly as one
-// long alphabetical list, so each gets a manual grouping override applied
-// at sidebar-render time only — the files themselves stay flat on disk, so
-// URLs don't move.
+// Overview, Deployment Guide, Administration Guide > Configure/Manage/
+// Onboard/Scale, End User Guide > Collaborate, and Integrations Guide are
+// flat piles of 15-49 files that read badly as one long alphabetical list,
+// so each gets a manual grouping override applied at sidebar-render time
+// only — the files themselves stay flat on disk, so URLs don't move.
 //
 // Each override is a `*_GROUPS` map (group key -> {label, landing?, items})
 // plus a `*_ROOT_ORDER`/`*_ORDER` array giving the top-level order (plain
 // strings for standalone docs, `{group: 'key'}` for a group from the map).
 // A `*_HIDDEN` set lists files that got re-parented into a group so the
-// orphan check below doesn't re-append them at the section root.
+// orphan check below doesn't re-append them at the section root. A group's
+// `items` can itself contain nested `{label, items}` sub-groups (see e.g.
+// OVERVIEW_GROUPS.subscription's "Cloud" sub-group below) — that's what
+// gets you a 3rd level of TOC nesting (Guide > Group > Sub-group > page)
+// when a section's flat list is large enough to need it.
+//
+// This pattern isn't a single generic engine — each section with an
+// override gets its own small `buildXItem`/`regroupX` pair (see
+// buildCollaborateItem/regroupCollaborate for the newest one) that mirrors
+// the others in shape. Adding an override for a new section means copying
+// that shape, not extending a shared function; sections without one of
+// these overrides just render every level of their filesystem tree as-is
+// (buildCategory already recurses to unlimited depth on its own).
 //
 // Adding a new file to one of these sections: add its basename to the
 // relevant group's `items` (or to the root order array, if standalone). If
@@ -560,6 +572,136 @@ const ADMIN_MANAGE_HIDDEN = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
+// End User Guide — Collaborate — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Collaborate is a flat 49-file dump (Channels, Messaging, Calls, Teams, and
+// Accessibility topics all interleaved alphabetically) — the section
+// End-user Guide > Collaborate feedback (Eric Sethna review, item 6) called
+// out as "overwhelming". This override groups it by topic, same pattern as
+// Administration Guide's Configure/Manage/Onboard/Scale (see #37591/#37630).
+//
+// `collaborate-within-channels` doubles as both the Channels group's landing
+// page and a regular grouped item — it already reads as a "Channels" hub
+// page in its own "Learn more" section, which the `channels` group's item
+// list below mirrors.
+
+const COLLABORATE_GROUPS = {
+  channels: {
+    label: 'Channels',
+    landing: 'collaborate-within-channels',
+    items: [
+      'channel-types',
+      'browse-channels',
+      'create-channels',
+      'join-leave-channels',
+      'navigate-between-channels',
+      'channel-naming-conventions',
+      'channel-header-purpose',
+      'rename-channels',
+      'archive-unarchive-channels',
+      'favorite-channels',
+      'mark-channels-unread',
+      'manage-channel-members',
+      'manage-channel-bookmarks',
+      'display-channel-banners',
+      'autotranslate-messages',
+      'convert-public-channels',
+      'convert-group-messages',
+    ],
+  },
+  messaging: {
+    label: 'Messaging & Threads',
+    items: [
+      'send-messages',
+      'communicate-with-messages',
+      'reply-to-messages',
+      'organize-conversations',
+      'format-messages',
+      'mark-messages-unread',
+      'mention-people',
+      'message-priority',
+      'message-reminders',
+      'schedule-messages',
+      'save-pin-messages',
+      'flag-messages',
+      'forward-messages',
+      'search-for-messages',
+      'share-links',
+      'share-files-in-messages',
+      'react-with-emojis-gifs',
+    ],
+  },
+  calls: {
+    label: 'Calls & Screen Sharing',
+    items: [
+      'make-calls',
+      'audio-and-screensharing',
+    ],
+  },
+  teamsAndRoles: {
+    label: 'Teams, Groups & Roles',
+    items: [
+      'organize-using-teams',
+      'team-settings',
+      'organize-using-custom-user-groups',
+      'learn-about-roles',
+      'invite-people',
+    ],
+  },
+  integrations: {
+    label: 'Integrations & Connected Apps',
+    items: [
+      'extend-mattermost-with-integrations',
+      'agents-context-management',
+      'collaborate-within-connected-microsoft-teams',
+    ],
+  },
+  accessibility: {
+    label: 'Keyboard Shortcuts & Accessibility',
+    items: [
+      'keyboard-shortcuts',
+      'team-keyboard-shortcuts',
+      'keyboard-accessibility',
+      'view-system-information',
+    ],
+  },
+};
+
+// Top-level Collaborate order. Strings are doc basenames relative to
+// end-user-guide/collaborate/; objects reference COLLABORATE_GROUPS keys.
+const COLLABORATE_ORDER = [
+  {group: 'channels'},
+  {group: 'messaging'},
+  {group: 'calls'},
+  {group: 'teamsAndRoles'},
+  {group: 'integrations'},
+  {group: 'accessibility'},
+];
+
+// Files re-parented into groups — exclude from the orphan check.
+const COLLABORATE_HIDDEN = new Set([
+  'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
+  'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
+  'rename-channels', 'archive-unarchive-channels', 'favorite-channels',
+  'mark-channels-unread', 'manage-channel-members', 'manage-channel-bookmarks',
+  'display-channel-banners', 'autotranslate-messages', 'convert-public-channels',
+  'convert-group-messages',
+  'send-messages', 'communicate-with-messages', 'reply-to-messages', 'organize-conversations',
+  'format-messages', 'mark-messages-unread', 'mention-people', 'message-priority',
+  'message-reminders', 'schedule-messages', 'save-pin-messages', 'flag-messages',
+  'forward-messages', 'search-for-messages', 'share-links', 'share-files-in-messages',
+  'react-with-emojis-gifs',
+  'make-calls', 'audio-and-screensharing',
+  'organize-using-teams', 'team-settings', 'organize-using-custom-user-groups',
+  'learn-about-roles', 'invite-people',
+  'extend-mattermost-with-integrations', 'agents-context-management',
+  'collaborate-within-connected-microsoft-teams',
+  'keyboard-shortcuts', 'team-keyboard-shortcuts', 'keyboard-accessibility',
+  'view-system-information',
+]);
+
+// ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
 // ---------------------------------------------------------------------------
 //
@@ -1066,6 +1208,78 @@ function buildAdminGuideSidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
+// End User Guide — builder (regroups the "Collaborate" sub-category).
+// ---------------------------------------------------------------------------
+
+function buildCollaborateItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `end-user-guide/collaborate/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  const g = COLLABORATE_GROUPS[spec.group];
+  if (!g) throw new Error(`unknown collaborate group: ${spec.group}`);
+  const items = g.items.map((it) => buildCollaborateItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `end-user-guide/collaborate/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Collaborate" sub-category's items (in place,
+// preserving its position among End User Guide's other sub-categories) with
+// the manual grouping above — same pattern as regroupAdminConfigure/Manage.
+function regroupCollaborate(collaborateCat) {
+  const leafLabels = collectLeafLabels(collaborateCat);
+  const items = COLLABORATE_ORDER.map((spec) => buildCollaborateItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of COLLABORATE_HIDDEN) hiddenIds.add(`end-user-guide/collaborate/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Collaborate file(s) missing from COLLABORATE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  collaborateCat.items = items;
+  return collaborateCat;
+}
+
+function buildEndUserGuideSidebar(autoCat) {
+  let foundCollaborate = false;
+  for (const it of autoCat.items) {
+    if (it.type !== 'category') continue;
+    let dirName = null;
+    if (it.link && it.link.id) {
+      dirName = it.link.id.split('/')[1];
+    }
+    if (!dirName && it.items) {
+      const firstDoc = it.items.find((c) => c.type === 'doc' && c.id);
+      if (firstDoc) dirName = firstDoc.id.split('/')[1];
+    }
+    if (dirName === 'collaborate') {
+      regroupCollaborate(it);
+      foundCollaborate = true;
+    }
+  }
+  if (!foundCollaborate) {
+    console.warn('[sidebar] WARN: End User Guide "Collaborate" sub-category not found — COLLABORATE_GROUPS override was not applied.');
+  }
+  return autoCat;
+}
+
+// ---------------------------------------------------------------------------
 // Integrations Guide — builder.
 // ---------------------------------------------------------------------------
 
@@ -1186,6 +1400,8 @@ function main() {
       cat = buildDeploymentSidebar(cat);
     } else if (dir === 'administration-guide') {
       cat = buildAdminGuideSidebar(cat);
+    } else if (dir === 'end-user-guide') {
+      cat = buildEndUserGuideSidebar(cat);
     } else if (dir === 'integrations-guide') {
       cat = buildIntegrationsSidebar(cat);
     } else if (dir === 'end-user-guide') {
