@@ -78,7 +78,7 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
-func (jss SqlJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error) {
+func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	jsonData, err := json.Marshal(job.Data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed marshalling job data")
@@ -95,21 +95,13 @@ func (jss SqlJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	countBuilder := jss.getQueryBuilder().
+	query, args, err := jss.getQueryBuilder().
 		Select("COUNT(*)").
 		From("Jobs").
 		Where(sq.Eq{
 			"Status": []string{model.JobStatusPending, model.JobStatusInProgress},
 			"Type":   job.Type,
-		})
-	// Narrow the dedupe scope to jobs whose Data matches every dedupeData entry,
-	// so callers can be one-job-per-entity (e.g. per post) instead of
-	// one-job-per-type. Mirrors GetByTypeAndData's JSON predicate.
-	for key, value := range dedupeData {
-		countBuilder = countBuilder.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
-	}
-
-	query, args, err := countBuilder.ToSql()
+		}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}
@@ -218,6 +210,78 @@ func (jss SqlJobStore) PatchJobData(jobID string, patch model.StringMap, mergeFn
 	}
 
 	return merged, nil
+}
+
+// SaveOnceByTypeAndData inserts the job only when no pending or in-progress job already exists
+// with the same type and matching data filter. Unlike SaveOnce (which dedupes per type), this
+// allows many concurrent jobs of the same type while keeping at most one queued per entity
+// identified by the data filter (e.g. one job per scheduled_recap_id). Returns (nil, nil) when a
+// matching job already exists.
+func (jss SqlJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+	if len(data) == 0 {
+		return nil, errors.New("data filter cannot be empty")
+	}
+
+	jsonData, err := json.Marshal(job.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling job data")
+	}
+	if jss.IsBinaryParamEnabled() {
+		jsonData = AppendBinaryFlag(jsonData)
+	}
+
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	query, args, err := jss.jobTypeAndDataQuery(
+		jss.getQueryBuilder().Select("COUNT(*)").From("Jobs"),
+		job.Type,
+		data,
+		model.JobStatusPending,
+		model.JobStatusInProgress,
+	).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var count int64
+	err = tx.Get(&count, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to count pending and in-progress jobs with type=%s and data filter", job.Type)
+	}
+
+	if count > 0 {
+		return nil, nil
+	}
+
+	query, args, err = jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	if err = tx.Commit(); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return job, nil
 }
 
 // UpdateOptimistically updates the job only if its current status matches currentStatus.
@@ -467,9 +531,8 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
-func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
-	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
-
+func (jss SqlJobStore) jobTypeAndDataQuery(query sq.SelectBuilder, jobType string, data map[string]string, statuses ...string) sq.SelectBuilder {
+	query = query.Where(sq.Eq{"Type": jobType})
 	// Add status filtering if provided - enables full usage of idx_jobs_status_type index
 	if len(statuses) > 0 {
 		query = query.Where(sq.Eq{"Status": statuses})
@@ -479,6 +542,12 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 	for key, value := range data {
 		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
 	}
+
+	return query
+}
+
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	query := jss.jobTypeAndDataQuery(jss.jobQuery, jobType, data, statuses...)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

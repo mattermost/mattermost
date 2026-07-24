@@ -117,6 +117,7 @@ type SqlStoreStores struct {
 	autotranslation               store.AutoTranslationStore
 	ContentFlagging               store.ContentFlaggingStore
 	recap                         store.RecapStore
+	scheduledRecap                store.ScheduledRecapStore
 	readReceipt                   store.ReadReceiptStore
 	temporaryPost                 store.TemporaryPostStore
 	channelJoinRequest            store.ChannelJoinRequestStore
@@ -267,10 +268,20 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
+		// The post-delivery-tracking schema always lives on the primary DB. Its
+		// own version table keeps it independent of the main migration set, so
+		// running it unconditionally is safe; the table simply stays empty and
+		// unused until the feature is enabled.
+		err = store.migrateUserPostDelivery(store.GetInternalMasterDB(), migrationsDirectionUp, !store.disableMorphLogging)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
+		}
+
+		// When a dedicated second DB is configured, apply the same schema there too.
 		if store.userPostDeliveryDedicated {
-			err = store.migrateUserPostDelivery(migrationsDirectionUp, !store.disableMorphLogging)
+			err = store.migrateUserPostDelivery(store.userPostDeliveryX.DB().DB, migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
+				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations on the dedicated DB")
 			}
 		}
 	}
@@ -342,6 +353,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
+	store.stores.scheduledRecap = newSqlScheduledRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
@@ -1035,6 +1047,10 @@ func (ss *SqlStore) Recap() store.RecapStore {
 	return ss.stores.recap
 }
 
+func (ss *SqlStore) ScheduledRecap() store.ScheduledRecapStore {
+	return ss.stores.scheduledRecap
+}
+
 func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 	return ss.stores.readReceipt
 }
@@ -1056,7 +1072,7 @@ func (ss *SqlStore) UserPostDeliveryContentReview() store.UserPostDeliveryConten
 }
 
 func (ss *SqlStore) DropAllTables() {
-	ss.masterX.Exec(`DO
+	ss.masterX.Exec(fmt.Sprintf(`DO
 		$func$
 		BEGIN
 		   EXECUTE
@@ -1065,9 +1081,10 @@ func (ss *SqlStore) DropAllTables() {
 		    WHERE  relkind = 'r'  -- only tables
 		    AND    relnamespace = 'public'::regnamespace
 			AND NOT relname = 'db_migrations'
+			AND NOT relname = '%s'
 		   );
 		END
-		$func$;`)
+		$func$;`, userPostDeliveryMigrationsTableName))
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {

@@ -92,7 +92,8 @@ func TestReviewerActionCancelsInFlightDeliveryTrackingJob(t *testing.T) {
 	seedContentReviewRows(t, th, post.Id)
 
 	// Seed an in-progress copy job for the post. RequestCancellation transitions an
-	// in-progress job to CancelRequested; no worker is running to advance it further.
+	// in-progress job to CancelRequested; the test advances it to Canceled below,
+	// standing in for the worker acknowledging the cancel.
 	job, err := th.App.Srv().Store().Job().Save(&model.Job{
 		Id:       model.NewId(),
 		Type:     model.JobTypeDeliveryTrackingContentReview,
@@ -108,11 +109,11 @@ func TestReviewerActionCancelsInFlightDeliveryTrackingJob(t *testing.T) {
 
 	require.Eventually(t, func() bool {
 		updated, jErr := th.App.Srv().Store().Job().Get(th.Context, job.Id)
-		if jErr != nil {
-			return false
-		}
-		return updated.Status == model.JobStatusCancelRequested || updated.Status == model.JobStatusCanceled
-	}, 10*time.Second, 100*time.Millisecond, "expected in-flight copy job to be canceled")
+		return jErr == nil && updated.Status == model.JobStatusCancelRequested
+	}, 10*time.Second, 100*time.Millisecond, "expected in-flight copy job to be cancel-requested")
+
+	_, err = th.App.Srv().Store().Job().UpdateStatus(job.Id, model.JobStatusCanceled)
+	require.NoError(t, err)
 
 	requireContentReviewEventuallyEmpty(t, th, post.Id)
 }

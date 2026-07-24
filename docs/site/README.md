@@ -44,6 +44,45 @@ work.
 regenerated and checked in manually via `node scripts/gen-active-redirects.mjs`
 when the legacy redirect map changes, not on every build.)
 
+#### Manual grouping overrides
+
+Most top-level sections build their sidebar straight from the filesystem:
+each subdirectory becomes a category, each file a doc, sorted by
+`sidebar_position` frontmatter then filename. But a few sections are flat
+piles of 15-40 files (or split across an inconsistent filesystem nesting
+that doesn't reflect any real grouping) that read badly as-is, so
+`gen-documentation-sidebar.mjs` layers a **manual grouping override** on
+top of the auto-generated tree for those sections only: Overview
+(`OVERVIEW_GROUPS`/`OVERVIEW_ROOT_ORDER`), Deployment Guide
+(`DEPLOYMENT_GROUPS`/`DEPLOYMENT_ROOT_ORDER`), Administration Guide →
+Configure (`ADMIN_CONFIGURE_GROUPS`/`ADMIN_CONFIGURE_ORDER`),
+Administration Guide → Manage (`ADMIN_MANAGE_GROUPS`/`ADMIN_MANAGE_ORDER`),
+and Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
+
+The override only changes how the sidebar renders — files stay flat on
+disk at their existing paths, so URLs don't move. Each override is a pair
+of constants near the top of the script:
+
+- A `*_GROUPS` map of group key → `{label, landing?, items}`, where `items`
+  are doc basenames (relative to that section's directory) or nested
+  inline group objects.
+- A `*_ROOT_ORDER`/`*_ORDER` array listing the top-level order: plain
+  strings for standalone docs, `{group: 'key'}` for a group from the map
+  above.
+
+**Adding a new file to one of these sections:** the script fails loudly if
+you forget it — it logs a `WARN: N file(s) missing from *_ORDER` and falls
+back to appending the orphaned file(s) at the root of that section, so a
+forgotten file surfaces as a warning during `npm run build:sidebars`
+rather than silently disappearing. Add the new file's basename to the
+relevant group's `items` (or to the root order array, if it's a
+standalone/uncategorized page) to place it deliberately instead of
+leaving it at the root.
+
+**Adding a whole new manually-grouped section:** copy the pattern of an
+existing one (Integrations Guide is the simplest example), then wire it
+into `main()` alongside the existing `dir === '...'` checks.
+
 The API reference section (`docs/api/reference/`, also gitignored) has the
 same requirement: `docusaurus-plugin-openapi-docs` needs `docusaurus
 gen-api-docs mattermost` run before it has any pages to render. `prestart`
