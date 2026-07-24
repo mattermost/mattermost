@@ -13290,5 +13290,125 @@
   {
     "id": "app.pap.simulate.unsupported_type",
     "translation": "Typ Polityki \"{{.Type}}\" nie jest obsługiwany przez symulator."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Nie udało się cofnąć przypisania polityki kontroli dostępu do zespołów."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operacja odrzucona: wywołanie hooka wtyczki {{.PluginID}} zakończone niepowodzeniem"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operacja odrzucona: wymagana wtyczka nie jest aktywna"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "Nie masz uprawnień do wykonania tej operacji."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "Atrybut access_mode jest nieprawidłowy."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Twoja licencja nie obsługuje tej grupy właściwości."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "Określona właściwość nie istnieje."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "To pole właściwości jest zarządzane przez zewnętrzną synchronizację i nie można go modyfikować bezpośrednio."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "Osiągnięto maksymalną liczbę pól właściwości dla tej grupy."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "Osiągnięto maksymalną liczbę pól właściwości dla tego typu obiektu."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Nie można pobrać pól właściwości dla grupy."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Nieprawidłowe atrybuty pól właściwości."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "Nie masz uprawnień, żeby oznaczyć to pole właściwości jako zarządzane przez administratora."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "Podane pole właściwości nie istnieje."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Pola właściwości rankingu nie są włączone."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "W partii wartości właściwości występuje zduplikowany identyfikator pola."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Pole właściwości {{.FieldID}} nie zostało znalezione."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Nieprawidłowy identyfikator pola właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "Wszystkie wartości właściwości w partii muszą należeć do tej samej grupy właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Typ obiektu pola właściwości nie pasuje do żądania."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Walidacja wartości właściwości nie powiodła się."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Nie udało się oznaczyć streszczeń jako obejrzanych."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Zaplanowany post odrzucony przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Aktualizacja zaplanowanego posta została odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Identyfikator urządzenia nie może być pusty."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "Identyfikator urządzenia VoIP nie może być pusty."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Pól atrybutów sesji nie można tworzyć ani usuwać; można zmieniać tylko wartości „enabled”, „ttl_seconds” i „grace_period_seconds”."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "Twój osobisty token dostępu stracił ważność."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "Podana data „expires_at” jest już miniona."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Osobisty token dostępu musi zawierać datę wygaśnięcia, bo serwer narzuca maksymalny czas ważności tokenu."
   }
 ]
