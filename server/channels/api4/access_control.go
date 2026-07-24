@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,28 @@ import (
 func shouldRedactExpressions(c *Context) bool {
 	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
 		c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
+// preserveSystemManagedFields pins parent imports and team-scope metadata to the stored values:
+// attaching/detaching parents belongs to the assign/unassign endpoints, so a channel/team admin
+// editing rules here can't change them. No stored policy (first-time create) means they start empty.
+func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) *model.AppError {
+	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policy.ID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			policy.Imports = nil
+			policy.Scope = ""
+			policy.ScopeID = ""
+			return nil
+		}
+		return appErr
+	}
+
+	// Clone so a later mutation of policy.Imports can't reach back into the stored object.
+	policy.Imports = slices.Clone(stored.Imports)
+	policy.Scope = stored.Scope
+	policy.ScopeID = stored.ScopeID
+	return nil
 }
 
 func (api *API) InitAccessControlPolicy() {
@@ -136,6 +159,36 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
+		}
+	case model.AccessControlPolicyTypeTeam:
+		// Team-type policies are keyed by the team ID, so policy.ID is the team.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			if !model.IsValidId(policy.ID) {
+				c.SetInvalidParam("policy.id")
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), policy.ID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			// Hard-block a team admin from saving rules that would lock themselves
+			// out of their own team.
+			for _, rule := range policy.Rules {
+				if appErr := c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, rule.Expression); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
 				c.Err = appErr
 				return
 			}
