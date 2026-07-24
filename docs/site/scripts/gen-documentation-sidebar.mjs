@@ -1216,8 +1216,18 @@ function buildCollaborateItem(spec, leafLabels) {
     const id = `end-user-guide/collaborate/${spec}`;
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
   }
+  if (spec.items) {
+    // Inline subgroup (no COLLABORATE_GROUPS lookup) — mirrors
+    // buildAdminManageItem/buildAdminManageGroup, so a group's items can
+    // nest a further {label, items} sub-group for a 4th nesting level.
+    return buildCollaborateGroup(spec, leafLabels);
+  }
   const g = COLLABORATE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown collaborate group: ${spec.group}`);
+  return buildCollaborateGroup(g, leafLabels);
+}
+
+function buildCollaborateGroup(g, leafLabels) {
   const items = g.items.map((it) => buildCollaborateItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
   if (g.landing) cat.link = {type: 'doc', id: `end-user-guide/collaborate/${g.landing}`};
