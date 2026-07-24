@@ -330,6 +330,10 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			Name:     "test-permission-policy",
 			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
+			// Permission policies must target exactly one role; without it the
+			// model-level IsValid pre-check in CreateOrUpdateAccessControlPolicy
+			// rejects the policy before SavePolicy is ever reached.
+			Roles: []string{model.SystemAdminRoleId},
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.department == 'engineering'",
