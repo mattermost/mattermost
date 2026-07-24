@@ -15,6 +15,13 @@
     font-weight: variables.$font-weight--semibold;
 }
 
+.GlobalAttributesTable__wrapper {
+    td.actions,
+    th.actions {
+        text-align: right;
+    }
+}
+
 // .btn.btn-transparent's shared :hover/:active rule (_buttons.scss) paints both states
 // identically with a solid var(--button-bg) fill + var(--button-color) icon (designed
 // for high-contrast solid buttons), which both makes "hovering" and "menu is open" look
