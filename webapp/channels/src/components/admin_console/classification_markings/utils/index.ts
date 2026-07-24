@@ -392,6 +392,10 @@ export async function saveCreateUserLinkedField(templateFieldId: string, name: s
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
+
+        // Admin-managed: clearance is assigned by an admin/integration, so users
+        // cannot self-edit their own value.
+        attrs: {managed: 'admin'},
         permission_field: 'admin',
         permission_values: 'admin',
         permission_options: 'admin',

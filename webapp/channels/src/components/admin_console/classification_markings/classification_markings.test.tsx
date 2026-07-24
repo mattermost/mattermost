@@ -1274,6 +1274,7 @@ describe('Channel classification linked field branches', () => {
                     name: CLEARANCE_FIELD_NAME,
                     type: 'rank',
                     linked_field_id: field.id,
+                    attrs: expect.objectContaining({managed: 'admin'}),
                 }),
             );
         });
