@@ -20,6 +20,7 @@ import (
 func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, rctx, ss) })
 	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, rctx, ss) })
+	t.Run("JobSaveOnceByTypeAndData", func(t *testing.T) { testJobSaveOnceByTypeAndData(t, rctx, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, rctx, ss) })
 	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, rctx, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, rctx, ss) })
@@ -103,6 +104,89 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, id := range ids {
 		ss.Job().Delete(id)
 	}
+}
+
+func testJobSaveOnceByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
+	jobType := model.NewId()
+	dedupeID1 := model.NewId()
+	dedupeID2 := model.NewId()
+	dataFilter1 := map[string]string{"scheduled_recap_id": dedupeID1}
+	dataFilter2 := map[string]string{"scheduled_recap_id": dedupeID2}
+
+	job1 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"scheduled_recap_id": dedupeID1,
+			"payload":            model.NewId(),
+		},
+	}
+	savedJob1, err := ss.Job().SaveOnceByTypeAndData(job1, dataFilter1)
+	require.NoError(t, err)
+	require.NotNil(t, savedJob1)
+	defer func() { _, _ = ss.Job().Delete(savedJob1.Id) }()
+
+	job2 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"scheduled_recap_id": dedupeID2,
+			"payload":            model.NewId(),
+		},
+	}
+	savedJob2, err := ss.Job().SaveOnceByTypeAndData(job2, dataFilter2)
+	require.NoError(t, err)
+	require.NotNil(t, savedJob2)
+	defer func() { _, _ = ss.Job().Delete(savedJob2.Id) }()
+
+	jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, dataFilter1, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
+	jobs, err = ss.Job().GetByTypeAndData(rctx, jobType, dataFilter2, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	duplicateIDs := make([]string, 0, 2)
+	duplicateDedupeID := model.NewId()
+	start := make(chan struct{})
+	for i := range 2 {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+
+			job := &model.Job{
+				Id:     model.NewId(),
+				Type:   jobType,
+				Status: model.JobStatusPending,
+				Data: map[string]string{
+					"scheduled_recap_id": duplicateDedupeID,
+					"payload":            model.NewId(),
+				},
+			}
+
+			savedJob, saveErr := ss.Job().SaveOnceByTypeAndData(job, map[string]string{"scheduled_recap_id": duplicateDedupeID})
+			require.NoError(t, saveErr)
+			if savedJob != nil {
+				mu.Lock()
+				duplicateIDs = append(duplicateIDs, savedJob.Id)
+				mu.Unlock()
+			}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+	for _, id := range duplicateIDs {
+		defer func(id string) { _, _ = ss.Job().Delete(id) }(id)
+	}
+
+	jobs, err = ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{"scheduled_recap_id": duplicateDedupeID}, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
 }
 
 func testJobGetAllByType(t *testing.T, rctx request.CTX, ss store.Store) {

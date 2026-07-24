@@ -41,6 +41,7 @@ import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
+import ChannelsMobileNavbar from './channels/mobile_navbar';
 import PostDotMenu from './channels/post_dot_menu';
 import PostMenu from './channels/post_menu';
 import PostReminderMenu from './channels/post_reminder_menu';
@@ -129,6 +130,7 @@ const components = {
     InvitePeopleModal,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,
@@ -220,6 +222,7 @@ export {
     InvitePeopleModal,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,

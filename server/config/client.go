@@ -22,6 +22,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
+	props["LockProfileFieldsForEmailUsers"] = model.TeamSettingsLockProfileFieldsNone
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 	props["EnableChannelCategorySorting"] = strconv.FormatBool(*c.TeamSettings.EnableChannelCategorySorting)
@@ -243,6 +244,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
+			props["LockProfileFieldsForEmailUsers"] = *c.TeamSettings.LockProfileFieldsForEmailUsers
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {

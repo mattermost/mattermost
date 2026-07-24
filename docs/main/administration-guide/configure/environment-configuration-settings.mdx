@@ -696,7 +696,7 @@ Your database admin must configure the functionality according to supported valu
 
 #### AWS High Availablity RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Maximum open connections
 
@@ -892,7 +892,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Search replicas
 
@@ -917,7 +917,7 @@ Each database connection string in the array must be in the same form used for t
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Replica lag settings
 
@@ -1711,9 +1711,14 @@ With self-hosted deployments, you can configure file storage settings by going t
 
 <Note>
 
-Mattermost currently supports storing files on the local filesystem and Amazon S3 or S3-compatible containers. We have tested Mattermost with [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/), but not all S3-compatible containers on the market. If you are looking to use other S3-compatible containers, we recommend completing your own testing. You can also use local storage or a network drive using NFS.
+Mattermost supports storing files on the local filesystem, Amazon S3 or S3-compatible containers, and Azure Blob Storage. We have tested Mattermost with [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/), but not all S3-compatible containers on the market. If you are looking to use other S3-compatible containers, we recommend completing your own testing. You can also use local storage or a network drive using NFS.
 
 </Note>
+<Tip>
+
+For a step-by-step walk-through covering Azure resource provisioning, System Console configuration, and verification, see [Configure Azure Blob Storage as the Mattermost file store](/administration-guide/configure/azure-blob-storage).
+
+</Tip>
 
 ### File storage system
 
@@ -1724,11 +1729,17 @@ Mattermost currently supports storing files on the local filesystem and Amazon S
 </colgroup>
 <tbody>
 <tr>
-<td><p>The type of file storage system used. Can be either Local File System or Amazon S3.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> Files and images are stored in the specified local file directory.</li><li><strong>amazons3</strong>: Files and images are stored on Amazon S3 based on the access key, bucket, and region fields provided. The driver is compatible with other S3-compatible services, such as Digital Ocean Spaces.</li></ul></td>
+<td><p>The type of file storage system used. Can be Local File System, Amazon S3, or Azure Blob Storage.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> Files and images are stored in the specified local file directory.</li><li><strong>amazons3</strong>: Files and images are stored on Amazon S3 based on the access key, bucket, and region fields provided. The driver is compatible with other S3-compatible services, such as Digital Ocean Spaces.</li><li><strong>azureblob</strong>: Files and images are stored on Azure Blob Storage based on the storage account name, shared key, and container fields provided.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DriverName</code> &gt; <code>"local"</code></li><li>Environment variable: <code>MM_FILESETTINGS_DRIVERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
+
+<Note>
+
+After saving a new file storage system, restart every Mattermost server in the deployment for the change to take effect. The file storage backend is initialized at startup and isn't rebuilt automatically when `FileSettings` change at runtime.
+
+</Note>
 
 ### Local storage directory
 
@@ -2115,6 +2126,147 @@ A smaller part size can result in more requests and an increase in latency, whil
 <tr>
 <td><p>The amount of time, in milliseconds, before requests to Amazon S3 storage time out.</p><p>Default is 30000 (30 seconds).</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AmazonS3RequestTimeoutMilliseconds</code> &gt; <code>30000</code></li><li>Environment variable: <code>MM_FILESETTINGS_AMAZONS3REQUESTTIMEOUTMILLISECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure Storage account
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The name of your Azure Storage account.</p><p>A string with the storage account name as it appears in the Azure portal. Must be 3-24 lowercase letters and numbers.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureStorageAccount</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURESTORAGEACCOUNT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure container
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The name of the container in your Azure Storage account where Mattermost stores uploads.</p><p>A string with the container name.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureContainer</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURECONTAINER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure path prefix
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>An optional path prefix to use for blobs in your Azure container.</p><p>A string containing the path prefix. Leave empty to write at the container root.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzurePathPrefix</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREPATHPREFIX</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure authentication
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Selects how Mattermost authenticates to the Azure Storage account.</p><ul><li><code>shared_key</code>: <strong>(Default)</strong> Mattermost signs requests with the Storage Account access key in <code>FileSettings.AzureAccessKey</code>. Works for any deployment (on-premises, non-Azure cloud, local development).</li><li><code>default_credential</code>: Mattermost obtains an Entra ID token via the Azure SDK's <code>DefaultAzureCredential</code> chain (managed identity, workload identity, service-principal environment variables, or <code>az login</code> — in that order) and signs requests with it. <code>FileSettings.AzureAccessKey</code> is ignored. Recommended for deployments on Azure where the host already provides a managed identity.<br/><br/>The identity the SDK selects must hold <strong>Storage Blob Data Contributor</strong> (or equivalent) on the storage account or container.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureAuthMode</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREAUTHMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure Storage account key
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The shared key for your Azure Storage account. Used only when <code>FileSettings.AzureAuthMode</code> is <code>shared_key</code>. Find this value in the Azure portal under your storage account's <strong>Security + networking &gt; Access keys</strong> blade.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureAccessKey</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREACCESSKEY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Treat the shared key as a secret. Azure provides two keys to support rotation without downtime: update Mattermost to one key, regenerate the other, then swap on the next rotation cycle.
+
+</Note>
+
+### Azure cloud
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Selects which Azure cloud Mattermost connects to. The choice determines which host the Azure SDK signs requests against.</p><ul><li><code>commercial</code>: <strong>(Default)</strong> Vhost-style against <code>{'{account}'}.blob.core.windows.net</code>. Only the storage account name is required.</li><li><code>government</code>: Vhost-style against <code>{'{account}'}.blob.core.usgovcloudapi.net</code> (Azure Government). Only the storage account name is required.</li><li><code>custom</code>: Mattermost uses the value of <code>FileSettings.AzureEndpoint</code> as the full Blob service URL. Use this for Azurite, reverse proxies, Azure China, or any other Azure cloud that doesn't have a built-in preset.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureCloud</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURECLOUD</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure endpoint
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Full Blob service URL, including scheme and storage account. Used only when <code>FileSettings.AzureCloud</code> is <code>custom</code>; ignored for the <code>commercial</code> and <code>government</code> clouds (which derive the URL from the storage account name).</p><p>Mattermost passes this URL to the Azure SDK unchanged, so the storage account must already be embedded in the hostname (vhost-style, for example <code>https://acmemattermost.blob.core.chinacloudapi.cn/</code>) or in the path (path-style, for example <code>http://localhost:10000/devstoreaccount1/</code> for Azurite). Shared-key auth signs against the host this URL points at, so make sure it actually serves the storage account configured in <code>FileSettings.AzureStorageAccount</code>.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureEndpoint</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREENDPOINT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable secure Azure Blob Storage connections
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable secure connections to Azure Blob Storage.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables only secure Azure Blob Storage connections.</li><li><strong>false</strong>: Allows insecure connections. Only set to <strong>false</strong> when pointing at a local emulator without TLS.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureSSL</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURESSL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure request timeout
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The amount of time, in milliseconds, before requests to Azure Blob Storage time out.</p><p>Default is 30000 (30 seconds). Increase only if your network needs more time for large objects.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureRequestTimeoutMilliseconds</code> &gt; <code>30000</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREREQUESTTIMEOUTMILLISECONDS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -3857,18 +4009,20 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Enables the ability to specify an alternate filestore | - System Config path: <strong>N/A</strong> | target for Mattermost | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code> | <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fbulk-export-tool">bulk exports</a> and | - Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code> | <a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">compliance exports</a>. | | | | - <strong>True</strong>: A new <code>ExportFileBackend()</code> is generated | | under <code>FileSettings</code> using new configuration values | | for the following configuration settings: | | | | - <code>ExportDriverName</code> | | - <code>ExportDirectory</code> | | - <code>ExportAmazonS3AccessKeyId</code> | | - <code>ExportAmazonS3SecretAccessKey</code> | | - <code>ExportAmazonS3Bucket</code> | | - <code>ExportAmazonS3PathPrefix</code> | | - <code>ExportAmazonS3Region</code> | | - <code>ExportAmazonS3Endpoint</code> | | - <code>ExportAmazonS3SSL</code> | | - <code>ExportAmazonS3SignV2</code> | | - <code>ExportAmazonS3SSE</code> | | - <code>ExportAmazonS3Trace</code> | | - <code>ExportAmazonS3RequestTimeoutMilliseconds</code> | | - <code>ExportAmazonS3PresignExpiresSeconds</code> | | | | - <strong>False</strong>: (<strong>Default</strong>) Standard | | <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">file storage | |</a> | is used. Standard file storage will also be used when the configuration setting | | or value is omitted. | |</td>
+<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fbulk-export-tool">bulk exports</a> and <a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code></li><li>Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-- When an alternate filestore target is configured, Mattermost Cloud admins can generate an S3 presigned URL for exports using the `/exportlink [job-id|zip file|latest]` slash command. See the [Mattermost data migration](/administration-guide/manage/cloud-data-export#create-the-export) documentation for details. Alternatively, Cloud and self-hosted admins can use the [mmctl export generate-presigned-url](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-generate-presigned-url) command to generate a presigned URL directly from mmctl.
-- Generating an S3 presigned URL requires the feature flag `EnableExportDirectDownload` to be set to `true`, the storage must be compatible with generating an S3 link, and this experimental configuration setting must be set to `true`. Presigned URLs for exports aren't supported for systems with shared storage.
+- When an alternate filestore target is configured, Mattermost Cloud admins can generate a presigned download URL for exports using the `/exportlink [job-id|zip file|latest]` slash command. On Amazon S3 this is an S3 presigned URL; on Azure Blob Storage it's a Shared Access Signature (SAS) URL. The lifetimes of these URLs are controlled, respectively, by `ExportAmazonS3PresignExpiresSeconds` or `ExportAzurePresignExpiresSeconds`. See the [Mattermost data migration](/administration-guide/manage/cloud-data-export#create-the-export) documentation for details. Alternatively, Cloud and self-hosted admins can use the [mmctl export generate-presigned-url](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-generate-presigned-url) command to generate a presigned URL directly from mmctl.
+- Generating a presigned URL requires the feature flag `EnableExportDirectDownload` to be set to `true`, the storage must support presigned links (Amazon S3 or Azure Blob Storage), and this experimental configuration setting must be set to `true`. Presigned URLs for exports aren't supported for systems with shared storage.
 
 </Note>

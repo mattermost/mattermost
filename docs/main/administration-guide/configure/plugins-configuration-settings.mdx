@@ -942,6 +942,32 @@ Avoid enabling both this experimental configuration setting and the [Enable simu
 
 </Note>
 
+### Enable video calls in DMs (Experimental)
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables experimental video calls in direct message (DM) channels.</li><li><strong>false</strong>: <strong>(Default)</strong> Video calls are disabled.</li></ul><p>Video is supported in DM calls on the desktop and web apps only. Mobile users can't start video calls; when joining a DM call that includes video, they receive voice and screen sharing only. Call recordings capture voice and screen sharing only — video isn't recorded.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enablevideo</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_VIDEO</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+The ability to enable video calls in DMs is currently [Experimental](/administration-guide/manage/feature-labels#experimental).
+
+</Note>
+<Note>
+
+If your deployment offloads calls to the [RTCD service](/administration-guide/configure/calls-rtcd-setup), video in DM calls requires **rtcd v1.2.2 or later**. We recommend running the rtcd version that ships with your Calls plugin release (rtcd v1.2.5 for Calls v1.12.0) and keeping rtcd updated alongside the plugin. Deployments that use the plugin's built-in RTC server (no RTCD) support video without additional configuration.
+
+</Note>
+
 ### Enable DC signaling (Experimental)
 
 <table>

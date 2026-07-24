@@ -9,6 +9,12 @@ on:
       COMMIT_SHA:
         type: string
         required: true
+      # Commit status context shown on the PR. Details (⋯) links to the preview
+      # when status is success. Empty skips status updates.
+      STATUS_CONTEXT:
+        type: string
+        required: false
+        default: docs-preview
     secrets:
       AWS_DOCS_PR_PREVIEW_KEY_ID:
         required: true
@@ -23,10 +29,10 @@ concurrency:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
-  preview:
-    name: Build and deploy preview
+  deploy:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -89,3 +95,37 @@ jobs:
             "s3://${BUCKET_NAME}/mattermost/pr-${PR_NUMBER}/" \
             --delete \
             --no-progress
+
+      - name: Set preview URL
+        id: preview
+        env:
+          BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
+          PR_NUMBER: ${{ inputs.PR_NUMBER }}
+        run: |
+          echo "url=http://${BUCKET_NAME}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${PR_NUMBER}/" >> "$GITHUB_OUTPUT"
+
+      # Details (⋯) on this check links to the preview URL via target_url.
+      - name: Set success commit status
+        if: ${{ inputs.STATUS_CONTEXT != '' }}
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: ${{ inputs.STATUS_CONTEXT }}
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} succeeded"
+          status: success
+          target_url: ${{ steps.preview.outputs.url }}
+
+      - name: Set failure commit status
+        if: ${{ always() && inputs.STATUS_CONTEXT != '' && (failure() || cancelled()) }}
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: ${{ inputs.STATUS_CONTEXT }}
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} failed"
+          status: failure
