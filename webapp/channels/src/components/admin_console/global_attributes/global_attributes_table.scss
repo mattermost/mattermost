@@ -7,7 +7,21 @@
 .GlobalAttributesTable__source {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
+}
+
+.GlobalAttributesTable__source {
     color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
+// Per design (Figma node 6207:13241): the label is full-opacity
+// center-channel-color, only the leading icon is faded to 0.64.
+.GlobalAttributesTable__type {
+    color: var(--center-channel-color);
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
 }
 
 .GlobalAttributesTable__name {

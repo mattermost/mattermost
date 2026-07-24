@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
+import type {ComponentType} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ContentCopyIcon, DotsHorizontalIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, SortAscendingIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
@@ -30,6 +32,18 @@ const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
 const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 
 const columnHelper = createColumnHelper<PropertyField>();
+
+// Same set as the User Attributes page's type selector (user_properties_type_menu.tsx).
+const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
+    text: MenuVariantIcon,
+    select: ChevronDownCircleOutlineIcon,
+    multiselect: FormatListBulletedIcon,
+    rank: SortAscendingIcon,
+};
+
+function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
+    return TYPE_ICONS[fieldType] ?? MenuVariantIcon;
+}
 
 export function getDisplayName(field: PropertyField): string {
     return (field.attrs?.display_name as string | undefined) || field.name;
@@ -220,14 +234,20 @@ export default function GlobalAttributesTable() {
             columnHelper.accessor('type', {
                 id: 'type',
                 header: () => <FormattedMessage {...messages.type}/>,
-                cell: ({getValue}) => (
-                    <span
-                        className='GlobalAttributesTable__type'
-                        data-testid='global-attribute-type'
-                    >
-                        <FormattedMessage {...getTypeLabel(getValue())}/>
-                    </span>
-                ),
+                cell: ({getValue}) => {
+                    const fieldType = getValue();
+                    const Icon = getTypeIcon(fieldType);
+
+                    return (
+                        <span
+                            className='GlobalAttributesTable__type'
+                            data-testid='global-attribute-type'
+                        >
+                            <Icon size={16}/>
+                            <FormattedMessage {...getTypeLabel(fieldType)}/>
+                        </span>
+                    );
+                },
                 enableSorting: false,
                 enableHiding: false,
             }),
