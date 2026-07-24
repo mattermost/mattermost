@@ -49,11 +49,24 @@
   --ifm-toc-border-color:    var(--mm-border-subtle);
   --ifm-hr-border-color:     var(--mm-border-subtle);
 
+  /* Body text color: Infima's own default (--ifm-color-content) isn't
+   * derived from our brand palette at all, so pin it to --mm-text-primary
+   * for a guaranteed, auditable near-black (Vishal Choudhary: body text
+   * should read as dark as the old docs site). */
+  --ifm-font-color-base:      var(--mm-text-primary);
+  --ifm-color-content:        var(--mm-text-primary);
+  --ifm-font-color-secondary: var(--mm-text-secondary);
+  --ifm-color-content-secondary: var(--mm-text-secondary);
+
   /* Sidebar */
   --ifm-menu-color:                  var(--mm-denim-700);
   --ifm-menu-color-active:           var(--mm-color-denim);
-  --ifm-menu-color-background-active: var(--mm-denim-50);
-  --ifm-menu-color-background-hover: var(--mm-denim-50);
+  /* --mm-denim-100, not -50: the sidebar container itself now sits on
+   * --mm-bg-subtle (= --mm-denim-50, see .theme-doc-sidebar-container) to
+   * pop the main content area, so the active/hover highlight needs to be
+   * a visibly darker step or it'd disappear into its own background. */
+  --ifm-menu-color-background-active: var(--mm-denim-100);
+  --ifm-menu-color-background-hover: var(--mm-denim-100);
   --ifm-menu-link-padding-vertical:   0.45rem;
   --ifm-menu-link-padding-horizontal: 0.85rem;
 }
@@ -79,6 +92,12 @@
   --ifm-menu-color-active:            var(--mm-color-white);
   --ifm-menu-color-background-active: var(--mm-denim-700);
   --ifm-menu-color-background-hover:  var(--mm-denim-700);
+
+  /* See light-mode block above — same rationale, dark-mode near-white. */
+  --ifm-font-color-base:      var(--mm-text-primary);
+  --ifm-color-content:        var(--mm-text-primary);
+  --ifm-font-color-secondary: var(--mm-text-secondary);
+  --ifm-color-content-secondary: var(--mm-text-secondary);
 }
 
 /* === Type rhythm === */
@@ -117,6 +136,29 @@ h2, h3, h4 {
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.25;
+}
+
+/* Bold runs in body copy (Ben Cooke: a color+bold combo was hard to read
+ * and may need letter-spacing). Archivo Black's ultra-heavy weight is
+ * reserved for h1/display use, so this only affects normal-weight prose
+ * bolding, where a touch of extra tracking keeps adjacent heavy glyphs
+ * from visually merging — subtle enough not to loosen word shapes. */
+.markdown strong,
+.markdown b {
+  letter-spacing: 0.01em;
+}
+
+/* Links: color alone (however high-contrast) isn't a reliable signal that
+ * text is clickable, and both our light and dark link colors sit close in
+ * luminance to surrounding body text (see tokens.css). Underlining by
+ * default — not just on hover — gives a non-color cue per WCAG 1.4.1 and
+ * directly answers "links are hard to spot" (Vishal Choudhary, Marco
+ * Kundt, Eric Sethna's doc item 5). Scoped to prose so nav/footer/sidebar
+ * links keep their own treatments. */
+.markdown a {
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.15em;
 }
 
 /* Search results page ("See all results") — each hit's title is a plain h2
@@ -255,7 +297,15 @@ h2, h3, h4 {
 
 /* === Sidebar === */
 
+/* Left nav, right TOC, and the main reading column previously all shared
+ * the same page background, so nothing set the article apart as "the
+ * content" (Vishal Choudhary). Tinting just the side chrome with
+ * --mm-bg-subtle — and leaving the main column on --mm-bg-page/-surface —
+ * makes the reading pane read as the brighter, foregrounded surface
+ * without touching body text color (kept dark per --mm-text-primary
+ * above). */
 .theme-doc-sidebar-container {
+  background-color: var(--mm-bg-subtle);
   border-right: 1px solid var(--mm-border-subtle) !important;
 }
 [data-theme='dark'] .theme-doc-sidebar-container {
@@ -285,14 +335,22 @@ h2, h3, h4 {
 }
 
 /* Categories at any depth — including OpenAPI tag groups in the API
- * sidebar (users → Users, audit logs → Audit Logs) — render in Trade
- * Gothic Heavy with title case. (`::first-letter` doesn't apply to
- * the menu link's flex layout, so we use text-transform: capitalize
- * which capitalizes the first letter of every word.) */
+ * sidebar (users → Users, audit logs → Audit Logs) — render in title
+ * case. (`::first-letter` doesn't apply to the menu link's flex layout,
+ * so we use text-transform: capitalize which capitalizes the first
+ * letter of every word.)
+ *
+ * Font: Archivo Black's 900-weight display face reads fine for a short,
+ * single word/acronym at large size (e.g. an "IME" page title) but not
+ * for the multi-word, small-size (0.82rem) category labels here — at
+ * that size the heavy strokes and tight default kerning make the letters
+ * crowd together (Eric Sethna's doc item 1). Same problem the navbar
+ * link comment below already solved for nav items: use the body sans
+ * face at a bold weight instead of the poster face. */
 .menu .menu__list-item-collapsible > .menu__link,
 .menu > .menu__list > .menu__list-item > .menu__link {
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: capitalize;
   font-size: 0.82rem;
@@ -315,14 +373,40 @@ h2, h3, h4 {
 
 code {
   background-color: var(--mm-denim-50);
+  color: var(--mm-text-primary);
   border: 1px solid var(--mm-border-subtle);
   border-radius: 3px;
   padding: 0.1em 0.35em;
   font-size: 0.88em;
+  /* Infima's `code` selector has no line-height of its own, so an inline
+   * code span inherits the surrounding paragraph's --ifm-line-height-base
+   * (1.65). Combined with this element's own padding/border, that inflates
+   * the whole text line's height whenever a short inline code span shows
+   * up mid-paragraph or mid-list-item, hurting skimmability (Eric Sethna's
+   * doc item 9). Multi-line fences are unaffected: `pre code` resets
+   * line-height to `inherit` from `pre` with higher selector specificity,
+   * and `.theme-code-block .prism-code` sets its own line-height too. */
+  line-height: 1.2;
 }
 [data-theme='dark'] code {
   background-color: var(--mm-denim-800);
   border-color: var(--mm-denim-700);
+}
+
+/* === Admonitions / callouts ===
+ * Michael Roberson: dark-mode "note" callout text was nearly the same
+ * color as its background. Eric Sethna's doc (item 8): dark callouts in
+ * general are "hard on the eyes". Infima's default alert coloring comes
+ * from generic --ifm-color-secondary/-success/-info/etc. contrast pairs
+ * that were never wired to our brand tokens, so we pin explicit,
+ * contrast-checked colors here instead. Left border/accent-bar colors
+ * are intentionally left untouched — a parallel "remove yellow left
+ * border" workstream is reworking those on the same selectors. */
+[data-theme='dark'] .alert {
+  --ifm-alert-foreground-color: var(--mm-callout-text);
+}
+[data-theme='dark'] .alert--secondary {
+  --ifm-alert-background-color: var(--mm-callout-note-bg);
 }
 
 .theme-code-block {
@@ -430,8 +514,7 @@ blockquote {
 
 /* Docusaurus's default `.theme-doc-markdown` is fluid; we don't constrain
  * it. The OpenAPI plugin's 2-column layout (request panel on the right)
- * needs the full width of the article column. Long-form prose pages get
- * comfortable measure via the article container's natural max-width. */
+ * needs the full width of the article column. */
 .theme-doc-markdown {
   font-size: 1rem;
 }
@@ -440,6 +523,27 @@ blockquote {
   margin-top: 0.5rem;
   font-size: 2.4rem;
   letter-spacing: -0.025em;
+}
+
+/* Prose measure (Rohith Chandran): on wide viewports the article column
+ * ran the full ~1600px container width, well past a comfortable line
+ * length. Cap the top-level text blocks at ~760px (roughly 80-90
+ * characters at this font-size/line-height) instead of the `.markdown`
+ * wrapper itself — the OpenAPI plugin renders its 2-column request/
+ * response UI *inside* `.markdown` too (see the openapi h2 rules above),
+ * so constraining the wrapper would squeeze that layout. The direct-child
+ * combinator only catches the article's own top-level prose (paragraphs,
+ * lists, headings, blockquotes); anything nested a level deeper inside a
+ * custom component (OpenAPI panels, tabs, etc.) is untouched. */
+.markdown > p,
+.markdown > ul,
+.markdown > ol,
+.markdown > blockquote,
+.markdown > h1,
+.markdown > h2:not([class*="openapi"]),
+.markdown > h3,
+.markdown > h4 {
+  max-width: 760px;
 }
 
 /* Widen the docs main container so the sidebar isn't pushed to the edge
@@ -473,10 +577,12 @@ blockquote {
   min-width: 0;
 }
 
-/* TOC right column (per-page) */
+/* TOC right column (per-page) — same side-panel treatment as the left
+ * sidebar, see comment above `.theme-doc-sidebar-container`. */
 .table-of-contents {
+  background-color: var(--mm-bg-subtle);
   border-left: 1px solid var(--mm-border-subtle);
-  padding: 0.4rem 0 0.4rem 1rem;
+  padding: 0.4rem 0.75rem 0.4rem 1rem;
   font-size: 0.82rem;
 }
 .table-of-contents__link--active,
