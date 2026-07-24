@@ -399,15 +399,24 @@ function TableEditor({
     useEffect(() => {
         if (isInternalChange.current) {
             isInternalChange.current = false;
-            return;
+            return undefined;
         }
 
         if (!value || value.trim() === '') {
             setRows([]);
-            return;
+            return undefined;
         }
 
+        // Guard against out-of-order resolution: if `value` changes again (or the
+        // component unmounts) before this getVisualAST resolves, ignore the stale
+        // result so a previous parse can't overwrite the current rows (which would
+        // surface as a row showing another attribute's values/operators).
+        let cancelled = false;
+
         actions.getVisualAST(value).then((result) => {
+            if (cancelled) {
+                return;
+            }
             if (result.error) {
                 setRows([]);
 
@@ -420,6 +429,9 @@ function TableEditor({
 
             setRows(parseExpression(result.data));
         }).catch((err) => {
+            if (cancelled) {
+                return;
+            }
             setRows([]);
             if (onValidate) {
                 onValidate(false);
@@ -430,6 +442,10 @@ function TableEditor({
                 onParseError(err.message);
             }
         });
+
+        return () => {
+            cancelled = true;
+        };
     }, [value]);
 
     useEffect(() => {
@@ -730,11 +746,17 @@ function TableEditor({
                                             disabled={cellDisabled}
                                             onChange={(operator) => updateRowOperator(index, operator)}
 
-                                            // Use the row's own type, kept in sync by
-                                            // addRow/updateRowAttribute/parseExpression. A name-only
-                                            // lookup could resolve the wrong namespace when a user and
-                                            // a session attribute share a name.
-                                            attributeType={row.attribute_type || undefined}
+                                            // Prefer the resolved field's live type over the
+                                            // row's stored attribute_type. The stored value is a
+                                            // snapshot — from the server visual AST at parse time,
+                                            // or the field type when the row was added — and can
+                                            // drift from the current attribute definition: a saved
+                                            // rank rule whose server AST labeled the attribute
+                                            // 'select' would otherwise show the default operator set
+                                            // instead of the ranked one. `field` is resolved by name
+                                            // AND object_type, so this keeps the namespace
+                                            // disambiguation the stored type was introduced for.
+                                            attributeType={field?.type || row.attribute_type || undefined}
                                             allowedOperators={allowedOperatorLabelsForField(field)}
                                         />
                                     </td>

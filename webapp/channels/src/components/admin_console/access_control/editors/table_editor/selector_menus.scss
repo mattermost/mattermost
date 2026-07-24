@@ -10,10 +10,17 @@
     border: none;
     font-weight: normal;
     
-    &:hover {
+    // These triggers also carry `btn btn-transparent`, whose :hover/:active paint
+    // the whole button solid blue (var(--button-bg)) with white text — which would
+    // swallow the channel-attribute chip. Keep the hover a subtle neutral wash.
+    // The extra .btn.btn-transparent qualifiers out-specify _buttons.scss.
+    &:hover,
+    &.btn.btn-transparent:hover,
+    &.btn.btn-transparent:active {
         background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: inherit;
     }
-    
+
     &:focus,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 0.08);
@@ -48,13 +55,22 @@
         justify-content: space-between;
     }
 
-    // Icon + label shown in the button when the RHS compares against a channel
-    // attribute (target mode).
+    // Shown in the button when the RHS compares against a channel attribute
+    // (target mode): a monospace "[] Channel: X" token in the accent color,
+    // mirroring the mockup's variable chip.
     &__target-label {
-        display: flex;
+        display: inline-flex;
         overflow: hidden;
         align-items: center;
-        gap: 6px;
+        padding: 2px 8px;
+        border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+        border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        font-family: Menlo, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
         white-space: nowrap;
     }
 }

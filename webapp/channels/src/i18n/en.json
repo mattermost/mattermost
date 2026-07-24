@@ -465,6 +465,7 @@
   "admin.access_control.table_editor.operator.younger_than": "younger than (days)",
   "admin.access_control.table_editor.remove_row": "Remove row",
   "admin.access_control.table_editor.rhs.channel_attributes_section": "Channel attributes",
+  "admin.access_control.table_editor.rhs.channel_target_label": "Channel: {name}",
   "admin.access_control.table_editor.rhs.values_section": "Values",
   "admin.access_control.table_editor.selector.custom_attributes": "Custom attributes",
   "admin.access_control.table_editor.selector.filter_attributes": "Search attributes...",
