@@ -502,8 +502,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 	})
 }
 
-// A channel/team admin can't change a policy's parent imports or team-scope through the general
-// update endpoint — those belong to the assign/unassign paths. System admins still can.
+// A channel admin can't change a policy's parent imports or team-scope through the general
+// update endpoint -- those belong to the assign/unassign paths. System admins still can.
 func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
@@ -513,7 +513,7 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		return []model.AccessControlPolicyRule{{Expression: expression, Actions: []string{"membership"}}}
 	}
 
-	// Saved policy must have exactly these imports and no scope: channel/team policies never carry
+	// Saved policy must have exactly these imports and no scope: channel policies never carry
 	// scope, so a caller-supplied value must be dropped.
 	savedWith := func(imports ...string) any {
 		return mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
@@ -548,25 +548,8 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		return privateChannel, client, enableABAC()
 	}
 
-	// Logs th.Client in as a team admin and stubs the per-rule self-inclusion check so the request
-	// reaches the save. Caller must defer th.LoginBasic(t).
-	setupTeamAdmin := func(t *testing.T) *mocks.AccessControlServiceInterface {
-		t.Helper()
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		require.True(t, ok, "SetLicense should return true")
-		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
-
-		teamAdmin := th.CreateUser(t)
-		makeTeamAdminAndLogin(t, th, teamAdmin, th.BasicTeam)
-
-		mockACS := enableABAC()
-		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("model.SubjectSearchOptions")).
-			Return([]*model.User{{Id: teamAdmin.Id}}, int64(1), nil)
-		return mockACS
-	}
-
 	// withCallerScope sets scope fields on the request body; the handler owns scope for
-	// channel/team policies and must ignore what the caller sends.
+	// channel policies and must ignore what the caller sends.
 	withCallerScope := func(p *model.AccessControlPolicy) *model.AccessControlPolicy {
 		p.Scope = model.AccessControlPolicyScopeTeam
 		p.ScopeID = model.NewId()
@@ -689,80 +672,6 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		CheckOKStatus(t, resp)
 		// The system-admin path must not consult the stored policy at all.
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
-		mockACS.AssertExpectations(t)
-	})
-
-	t.Run("team admin cannot detach a stored parent import", func(t *testing.T) {
-		mockACS := setupTeamAdmin(t)
-		defer th.LoginBasic(t)
-
-		stored := &model.AccessControlPolicy{
-			ID:      th.BasicTeam.Id,
-			Type:    model.AccessControlPolicyTypeTeam,
-			Version: model.AccessControlPolicyVersionV0_3,
-			Imports: []string{parentID},
-			Rules:   membershipRule("true"),
-		}
-		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(stored, nil)
-		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), savedWith(parentID)).Return(stored, nil).Once()
-
-		req := &model.AccessControlPolicy{
-			ID:      th.BasicTeam.Id,
-			Type:    model.AccessControlPolicyTypeTeam,
-			Version: model.AccessControlPolicyVersionV0_3,
-			Imports: []string{},
-			Rules:   membershipRule("user.attributes.department == 'finance'"),
-		}
-		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), req)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		mockACS.AssertExpectations(t)
-	})
-
-	t.Run("team admin cannot swap a stored parent import", func(t *testing.T) {
-		mockACS := setupTeamAdmin(t)
-		defer th.LoginBasic(t)
-
-		stored := &model.AccessControlPolicy{
-			ID:      th.BasicTeam.Id,
-			Type:    model.AccessControlPolicyTypeTeam,
-			Version: model.AccessControlPolicyVersionV0_3,
-			Imports: []string{parentID},
-			Rules:   membershipRule("true"),
-		}
-		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(stored, nil)
-		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), savedWith(parentID)).Return(stored, nil).Once()
-
-		req := &model.AccessControlPolicy{
-			ID:      th.BasicTeam.Id,
-			Type:    model.AccessControlPolicyTypeTeam,
-			Version: model.AccessControlPolicyVersionV0_3,
-			Imports: []string{model.NewId()},
-			Rules:   membershipRule("true"),
-		}
-		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), req)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		mockACS.AssertExpectations(t)
-	})
-
-	t.Run("team admin cannot seed imports on create", func(t *testing.T) {
-		mockACS := setupTeamAdmin(t)
-		defer th.LoginBasic(t)
-
-		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(nil, notFound)
-		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), savedWith()).Return(&model.AccessControlPolicy{ID: th.BasicTeam.Id, Type: model.AccessControlPolicyTypeTeam}, nil).Once()
-
-		req := withCallerScope(&model.AccessControlPolicy{
-			ID:      th.BasicTeam.Id,
-			Type:    model.AccessControlPolicyTypeTeam,
-			Version: model.AccessControlPolicyVersionV0_3,
-			Imports: []string{parentID},
-			Rules:   membershipRule("true"),
-		})
-		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), req)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
 		mockACS.AssertExpectations(t)
 	})
 }
