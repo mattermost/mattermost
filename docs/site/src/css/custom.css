@@ -148,17 +148,16 @@ h2, h3, h4 {
   letter-spacing: 0.01em;
 }
 
-/* Links: color alone (however high-contrast) isn't a reliable signal that
- * text is clickable, and both our light and dark link colors sit close in
- * luminance to surrounding body text (see tokens.css). Underlining by
- * default — not just on hover — gives a non-color cue per WCAG 1.4.1 and
- * directly answers "links are hard to spot" (Vishal Choudhary, Marco
- * Kundt, Eric Sethna's doc item 5). Scoped to prose so nav/footer/sidebar
- * links keep their own treatments. */
+/* Links: color alone isn't a reliable signal that text is clickable, so we
+ * still need a non-color cue per WCAG 1.4.1 (Vishal Choudhary, Marco Kundt,
+ * Eric Sethna's doc item 5) — but a default underline on every inline link
+ * reads as visual noise in body copy. Medium weight is the cue instead:
+ * it's visibly heavier than surrounding text without adding a line under
+ * every link, and it doesn't compete with `.markdown strong`'s bold weight.
+ * Underline is reserved for hover/focus (--ifm-link-hover-decoration).
+ * Scoped to prose so nav/footer/sidebar links keep their own treatments. */
 .markdown a {
-  text-decoration: underline;
-  text-decoration-thickness: from-font;
-  text-underline-offset: 0.15em;
+  font-weight: 600;
 }
 
 /* Search results page ("See all results") — each hit's title is a plain h2
@@ -395,18 +394,44 @@ code {
 
 /* === Admonitions / callouts ===
  * Michael Roberson: dark-mode "note" callout text was nearly the same
- * color as its background. Eric Sethna's doc (item 8): dark callouts in
- * general are "hard on the eyes". Infima's default alert coloring comes
- * from generic --ifm-color-secondary/-success/-info/etc. contrast pairs
- * that were never wired to our brand tokens, so we pin explicit,
- * contrast-checked colors here instead. Left border/accent-bar colors
- * are intentionally left untouched — a parallel "remove yellow left
- * border" workstream is reworking those on the same selectors. */
+ * color as its background. Eric Sethna's doc (item 8, PR item 13): dark
+ * callouts in general are "hard on the eyes" — this applies to every
+ * admonition type (note/tip/info/warning/danger), not just "note", so the
+ * background override below now covers all five. Infima's default alert
+ * coloring comes from generic --ifm-color-secondary/-success/-info/etc.
+ * contrast pairs that were never wired to our brand tokens, so we pin
+ * explicit, contrast-checked colors here instead. Left border/accent-bar
+ * colors (--ifm-alert-border-color) are intentionally left untouched — a
+ * parallel "remove yellow left border" workstream is reworking those on
+ * the same selectors.
+ *
+ * The heading label (e.g. "NOTE") and icon inherit --ifm-alert-foreground-
+ * color from Infima by default, so fixing that one variable on `.alert`
+ * should already fix both — but we set them explicitly too, in case a
+ * theme upgrade changes that inheritance, since a low-contrast label was
+ * the most visible part of the "hard on the eyes" complaint. */
 [data-theme='dark'] .alert {
   --ifm-alert-foreground-color: var(--mm-callout-text);
 }
+[data-theme='dark'] .alert__heading,
+[data-theme='dark'] .alert__icon svg {
+  color: var(--mm-callout-text);
+  fill: var(--mm-callout-text);
+}
 [data-theme='dark'] .alert--secondary {
   --ifm-alert-background-color: var(--mm-callout-note-bg);
+}
+[data-theme='dark'] .alert--info {
+  --ifm-alert-background-color: var(--mm-denim-700);
+}
+[data-theme='dark'] .alert--success {
+  --ifm-alert-background-color: #14442c;
+}
+[data-theme='dark'] .alert--warning {
+  --ifm-alert-background-color: #4a3a10;
+}
+[data-theme='dark'] .alert--danger {
+  --ifm-alert-background-color: #4a1f1f;
 }
 
 .theme-code-block {
@@ -419,12 +444,27 @@ code {
   border-color: var(--mm-denim-700);
 }
 
+/* Light mode uses the "github" Prism theme, whose own background is
+ * near-white — forcing our --mm-denim-50 tint here keeps it inside the
+ * brand palette instead of pure white, and github's token colors were
+ * designed for that kind of light background, so contrast stays intact.
+ *
+ * Dark mode uses the "dracula" Prism theme (docusaurus.config.ts). Its
+ * token colors (strings, comments, keywords, etc.) were authored against
+ * Dracula's own #282a36 background. Forcing that background to our much
+ * darker --mm-denim-800 (as light mode does with denim-50) broke that
+ * pairing — several token colors read low-contrast/muddy against a
+ * background darker than the one they were tuned for, which is the "code
+ * blocks still not great in dark mode" feedback. Leaving Dracula's own
+ * background alone (no dark-mode override below) keeps its
+ * well-tested token contrast intact; the surrounding .theme-code-block
+ * border still ties it into the page's dark chrome. */
 .theme-code-block .prism-code {
   font-size: 0.85rem;
   background: var(--mm-denim-50) !important;
 }
 [data-theme='dark'] .theme-code-block .prism-code {
-  background: var(--mm-denim-800) !important;
+  background: unset !important;
 }
 
 /* Copy button — denim border, marigold on hover */
@@ -449,11 +489,16 @@ table {
 table thead {
   background: var(--mm-color-denim);
 }
+/* Same small/multi-word-in-a-900-weight-display-face problem as the TOC
+ * category labels above (Eric Sethna's doc item 1) — column headers like
+ * "Feature category" are frequently two-plus words at 0.78rem, where
+ * Archivo Black's heavy strokes crowd together. Use the same fix: base
+ * sans face at bold weight instead of the poster face. */
 table thead th {
   color: var(--mm-color-white);
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   font-size: 0.78rem;
   padding: 0.85rem 1rem;
@@ -494,6 +539,11 @@ blockquote {
   color: var(--ifm-footer-color);
   padding: 3.5rem 1rem 2.5rem;
 }
+/* Footer column titles ("Docs", "Community", "More") stay on the heading
+ * face: they're short, single words — the large-short-string case the
+ * heavy display face handles fine, same as h1 page titles (Eric Sethna's
+ * doc item 1's contrast is specifically small *multi-word* labels; see
+ * the TOC category and table-header comments above for those fixes). */
 .footer__title {
   color: var(--ifm-footer-title-color);
   font-family: var(--mm-font-heading);
