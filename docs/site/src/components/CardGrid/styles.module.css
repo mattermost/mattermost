@@ -13,10 +13,9 @@
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;
-  padding: 1.1rem 1.25rem 1.1rem 1.1rem;
+  padding: 1.1rem 1.25rem;
   background: var(--mm-bg-surface);
   border: 1px solid var(--mm-border-subtle);
-  border-left: 3px solid var(--mm-color-marigold);
   border-radius: 4px;
   text-decoration: none;
   color: inherit;
@@ -25,7 +24,7 @@
 .card:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px -16px rgba(30, 50, 92, 0.25);
-  border-color: var(--mm-color-marigold);
+  border-color: var(--mm-border-strong);
   text-decoration: none;
   color: inherit;
 }
@@ -33,7 +32,6 @@
 [data-theme='dark'] .card {
   background: var(--mm-denim-800);
   border-color: var(--mm-denim-700);
-  border-left-color: var(--mm-color-marigold);
 }
 
 .icon {
