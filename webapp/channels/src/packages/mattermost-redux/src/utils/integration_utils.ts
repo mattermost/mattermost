@@ -200,6 +200,12 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             }
         }
     } else if (type === 'checkbox_matrix') {
+        if (value !== undefined && value !== null && !Array.isArray(value)) {
+            return defineMessage({
+                id: 'interactive_dialog.error.invalid_format',
+                defaultMessage: 'Invalid matrix selection format',
+            });
+        }
         if (Array.isArray(value) && value.length > 0 && elem.matrix_config) {
             const rowValues = new Set(elem.matrix_config.rows?.map((row) => row.value) || []);
             const columnValues = new Set(elem.matrix_config.columns?.map((col) => col.value) || []);

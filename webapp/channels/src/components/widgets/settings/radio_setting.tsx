@@ -5,6 +5,8 @@ import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import Setting from './setting';
 
 type Props = {
@@ -81,16 +83,18 @@ const RadioSetting = ({
                 })
             }
             {showClear && (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-link btn-sm radio-setting__clear'
+                    emphasis='quaternary'
+                    size='sm'
+                    className='radio-setting__clear'
                     onClick={handleClear}
                 >
                     <FormattedMessage
                         id='interactive_dialog.radio.clear'
                         defaultMessage='Clear selection'
                     />
-                </button>
+                </Button>
             )}
         </Setting>
     );

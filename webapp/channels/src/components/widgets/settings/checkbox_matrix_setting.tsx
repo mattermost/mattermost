@@ -16,7 +16,7 @@ type Props = {
     disabled?: boolean;
 };
 
-function parseMatrixValue(entries: string[]): Map<string, Set<string>> {
+export function parseMatrixValue(entries: string[]): Map<string, Set<string>> {
     const selection = new Map<string, Set<string>>();
     for (const entry of entries) {
         const colonIndex = entry.indexOf(':');
@@ -35,7 +35,7 @@ function parseMatrixValue(entries: string[]): Map<string, Set<string>> {
     return selection;
 }
 
-function encodeMatrixValue(selection: Map<string, Set<string>>): string[] {
+export function encodeMatrixValue(selection: Map<string, Set<string>>): string[] {
     const entries: string[] = [];
     selection.forEach((columns, rowValue) => {
         if (columns.size > 0) {

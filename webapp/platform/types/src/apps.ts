@@ -504,6 +504,7 @@ export type AppField = {
 
     label_position?: 'before' | 'after';
     matrix_config?: MatrixConfig;
+
     // Action button props
     action_button_url?: string;
     action_button_context?: Record<string, string>;

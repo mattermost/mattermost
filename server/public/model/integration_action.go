@@ -892,6 +892,7 @@ func (e *DialogElement) IsValid() error {
 
 	case "checkbox_matrix":
 		multiErr = multierror.Append(multiErr, validateDialogElementMatrixConfig(e)...)
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
 		if e.Default != "" {
 			multiErr = multierror.Append(multiErr, validateMatrixDefaultValue(e.Default, e.EffectiveMatrixConfig())...)
 		}
@@ -1047,14 +1048,14 @@ func validateDialogElementMatrixConfigPlacement(e *DialogElement) error {
 	return nil
 }
 
-func validateDialogElementOptions(options []*PostActionOptions, min, max int, fieldName, disallowedChars string) []error {
+func validateDialogElementOptions(options []*PostActionOptions, minOptions, maxOptions int, fieldName, disallowedChars string) []error {
 	var errs []error
-	if len(options) < min {
-		errs = append(errs, errors.Errorf("%s must contain at least %d option(s), got %d", fieldName, min, len(options)))
+	if len(options) < minOptions {
+		errs = append(errs, errors.Errorf("%s must contain at least %d option(s), got %d", fieldName, minOptions, len(options)))
 		return errs
 	}
-	if len(options) > max {
-		errs = append(errs, errors.Errorf("%s may not contain more than %d option(s), got %d", fieldName, max, len(options)))
+	if len(options) > maxOptions {
+		errs = append(errs, errors.Errorf("%s may not contain more than %d option(s), got %d", fieldName, maxOptions, len(options)))
 	}
 	seen := make(map[string]bool, len(options))
 	for i, option := range options {
@@ -1090,12 +1091,8 @@ func validateDialogElementMatrixConfig(e *DialogElement) []error {
 	// ";" separates row entries, ":" separates a row from its columns, and ","
 	// separates columns. Allowing them in a row/column value would corrupt
 	// parsing of the default string in validateMatrixDefaultValue.
-	for _, err := range validateDialogElementOptions(cfg.Rows, 1, MaxDialogMatrixRows, "matrix_config.rows", ":,;") {
-		errs = append(errs, err)
-	}
-	for _, err := range validateDialogElementOptions(cfg.Columns, 1, MaxDialogMatrixColumns, "matrix_config.columns", ":,;") {
-		errs = append(errs, err)
-	}
+	errs = append(errs, validateDialogElementOptions(cfg.Rows, 1, MaxDialogMatrixRows, "matrix_config.rows", ":,;")...)
+	errs = append(errs, validateDialogElementOptions(cfg.Columns, 1, MaxDialogMatrixColumns, "matrix_config.columns", ":,;")...)
 	return errs
 }
 

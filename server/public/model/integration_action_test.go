@@ -2645,6 +2645,49 @@ func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
 		assert.Contains(t, err.Error(), "must not contain")
 	})
 
+	t.Run("checkbox_matrix rejects default column not in columns", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:nonexistent",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not in matrix_config.columns")
+	})
+
+	t.Run("checkbox_matrix rejects duplicate row in default string", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high;reason_1:severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate row")
+	})
+
+	t.Run("checkbox_matrix rejects multiple columns in one row when row_selection is single", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows:         matrixConfig.Rows,
+				Columns:      matrixConfig.Columns,
+				RowSelection: DialogMatrixRowSelectionSingle,
+			},
+			Default: "reason_1:high,severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "row_selection is single")
+	})
+
 	t.Run("checkbox_matrix rejects semicolon in row value", func(t *testing.T) {
 		// ";" separates row entries in the default string, so a row value
 		// containing it would corrupt default parsing and must be rejected.
