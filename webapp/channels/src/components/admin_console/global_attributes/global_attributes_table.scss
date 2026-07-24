@@ -52,6 +52,13 @@
         letter-spacing: 0.02em;
         text-transform: uppercase;
     }
+
+    // 12px top/bottom (vs. the shared 16px) so the row's total height matches
+    // the 32px Actions button: 32 + 12 + 12 = 56px.
+    table.adminConsoleListTable tbody tr td {
+        padding-block-end: 12px;
+        padding-block-start: 12px;
+    }
 }
 
 // .btn.btn-transparent's shared :hover/:active rule (_buttons.scss) paints both states
