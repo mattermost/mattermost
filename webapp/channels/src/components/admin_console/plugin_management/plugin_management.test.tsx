@@ -11,10 +11,6 @@ import {PluginManagement} from 'components/admin_console/plugin_management/plugi
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext} from 'tests/react_testing_utils';
 
-jest.mock('components/admin_console/content_flagging/user_multiselector/user_multiselector', () => ({
-    UserSelector: () => <div data-testid='mock-user-selector'/>,
-}));
-
 describe('components/PluginManagement', () => {
     const defaultProps = {
         intl: defaultIntl,
@@ -28,7 +24,6 @@ describe('components/PluginManagement', () => {
                 AutomaticPrepackagedPlugins: true,
                 MarketplaceURL: 'marketplace.example.com',
                 RequirePluginSignature: false,
-                PluginAccessControl: {},
             },
             ExperimentalSettings: {
                 RestrictSystemAdmin: false,
@@ -289,7 +284,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
+    test('should match snapshot, with installed plugins and empty settings schema still shows settings link', () => {
         const props = {
             ...defaultProps,
             config: {

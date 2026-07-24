@@ -251,7 +251,8 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		}, plugin.OnConfigurationChangeID)
 	})
 
-	// Notify clients when plugin UI access-control enable flags change in config.
+	// Notify clients when plugin UI access-control enable flags change in config
+	// (e.g. mmctl / config file edits that do not go through SetPluginAccessControl).
 	ch.RemoveConfigListener(ch.pluginAccessControlListenerID)
 	ch.pluginAccessControlListenerID = ch.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if reflect.DeepEqual(oldCfg.PluginSettings.PluginAccessControl, newCfg.PluginSettings.PluginAccessControl) {
@@ -505,17 +506,21 @@ func (a *App) SetPluginAccessControl(rctx request.CTX, pluginID string, settings
 		return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_body.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	seen := make(map[string]struct{}, len(settings.AllowedUserIds))
-	userIDs := make([]string, 0, len(settings.AllowedUserIds))
-	for _, userID := range settings.AllowedUserIds {
-		if !model.IsValidId(userID) {
-			return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_user_id.app_error", nil, "user_id="+userID, http.StatusBadRequest)
+	// Everyone (Enable=false) always clears the allow-list; selected-users mode stores the provided IDs.
+	userIDs := []string{}
+	if settings.Enable {
+		seen := make(map[string]struct{}, len(settings.AllowedUserIds))
+		userIDs = make([]string, 0, len(settings.AllowedUserIds))
+		for _, userID := range settings.AllowedUserIds {
+			if !model.IsValidId(userID) {
+				return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_user_id.app_error", nil, "user_id="+userID, http.StatusBadRequest)
+			}
+			if _, ok := seen[userID]; ok {
+				continue
+			}
+			seen[userID] = struct{}{}
+			userIDs = append(userIDs, userID)
 		}
-		if _, ok := seen[userID]; ok {
-			continue
-		}
-		seen[userID] = struct{}{}
-		userIDs = append(userIDs, userID)
 	}
 
 	if err := a.Srv().Store().PluginAccessControl().SetUserIDs(rctx, pluginID, userIDs); err != nil {

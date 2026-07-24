@@ -1,0 +1,48 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PluginAccessControlSettings {
+    &__usersResizer {
+        display: flex;
+        overflow: hidden;
+        height: 160px;
+        min-height: 120px;
+        max-height: 480px;
+        box-sizing: border-box;
+        flex-direction: column;
+        resize: vertical;
+
+        // Fill the resizable area so the field border and gripper stay together.
+        .UserMultiSelector {
+            display: flex;
+            height: 100%;
+            min-height: 0;
+            flex: 1 1 auto;
+            flex-direction: column;
+
+            // react-select outer container (also has .Input)
+            > div {
+                display: flex;
+                height: 100%;
+                min-height: 0;
+                flex: 1 1 auto;
+                flex-direction: column;
+            }
+
+            .UserMultiSelector__control {
+                display: flex;
+
+                // Beat react-select's inline min-height so the gripper resizes the field.
+                height: 100% !important;
+                min-height: 100% !important;
+                flex: 1 1 auto;
+                align-items: flex-start;
+            }
+
+            .UserMultiSelector__value-container {
+                align-content: flex-start;
+                overflow-y: auto;
+            }
+        }
+    }
+}

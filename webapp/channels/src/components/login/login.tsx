@@ -46,6 +46,7 @@ import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
+import {loadPluginsIfNecessary} from 'plugins';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
@@ -762,6 +763,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const postSubmit = async () => {
         await dispatch(loadMe());
+
+        // Sync webapp plugins for this user. Root only initializes plugins once on first
+        // mount; without this, plugins loaded while logged-out (unfiltered) or from a prior
+        // session can remain visible after login as a restricted user.
+        await loadPluginsIfNecessary();
 
         // check for query params brought over from signup_user_complete
         const inviteToken = searchParam.get('t') || '';

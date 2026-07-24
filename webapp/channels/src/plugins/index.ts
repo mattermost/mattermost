@@ -87,27 +87,20 @@ function arePluginsEnabled(state: GlobalState): boolean {
     return true;
 }
 
-// initializePlugins queries the server for all enabled plugins and loads each in turn.
+// initializePlugins queries the server for enabled plugins visible to the current user
+// and loads each in turn. Skips loading when logged out: unauthenticated /plugins/webapp
+// returns all client manifests, and login is an SPA navigation that would otherwise leave
+// those Product/AppBar registrations visible for a later restricted user.
 export async function initializePlugins(): Promise<void> {
     if (!arePluginsEnabled(store.getState())) {
         return;
     }
 
-    const {data, error} = await store.dispatch(getPlugins());
-    if (error) {
-        console.error(error); //eslint-disable-line no-console
+    if (!store.getState().entities.users.currentUserId) {
         return;
     }
 
-    if (data == null || data.length === 0) {
-        return;
-    }
-
-    await Promise.all(data.map(async (m: ClientPluginManifest) => {
-        return loadPlugin(m as PluginManifest).catch((loadErr: Error) => {
-            console.error(loadErr.message); //eslint-disable-line no-console
-        });
-    }));
+    await loadPluginsIfNecessary();
 }
 
 // getPlugins queries the server for all enabled plugins
@@ -198,17 +191,23 @@ function initializePlugin(manifest: PluginManifest): void {
 }
 
 // removePlugin triggers any uninitialize callback on the registered plugin, unregisters any
-// event handlers, and removes the plugin script from the DOM entirely. The plugin is responsible
-// for removing any of its registered components.
+// event handlers, and removes the plugin script from the DOM entirely.
+//
+// Always clears Redux registrations (Product, AppBar, etc.) even when the module-level
+// loadedPlugins map does not have the plugin — otherwise access-control and similar
+// live updates can leave menu/app-bar entries visible while plugin APIs are already denied.
 export function removePlugin(manifest: PluginManifest): void {
-    if (!loadedPlugins[manifest.id]) {
-        return;
+    const wasLoaded = Boolean(loadedPlugins[manifest.id]);
+    if (wasLoaded) {
+        console.log('Removing ' + describePlugin(manifest)); //eslint-disable-line no-console
+        delete loadedPlugins[manifest.id];
     }
-    console.log('Removing ' + describePlugin(manifest)); //eslint-disable-line no-console
-
-    delete loadedPlugins[manifest.id];
 
     store.dispatch(removeWebappPlugin(manifest));
+
+    if (!wasLoaded) {
+        return;
+    }
 
     const plugin = window.plugins[manifest.id];
     if (plugin && plugin.uninitialize) {
@@ -277,11 +276,23 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         }
     });
 
-    // Remove old plugins
-    Object.keys(oldManifests).forEach((id: string) => {
+    // Remove plugins the server no longer returns for this user (disabled, uninstalled, or
+    // filtered by plugin access control). Also sweep loadedPlugins in case a script was loaded
+    // without a matching Redux manifest entry.
+    const idsToRemove = new Set<string>();
+    Object.keys(oldManifests).forEach((id) => {
         if (!Object.hasOwn(newManifests, id)) {
-            const oldManifest = oldManifests[id];
-            removePlugin(oldManifest);
+            idsToRemove.add(id);
         }
+    });
+    Object.keys(loadedPlugins).forEach((id) => {
+        if (!Object.hasOwn(newManifests, id)) {
+            idsToRemove.add(id);
+        }
+    });
+
+    idsToRemove.forEach((id) => {
+        const manifest = oldManifests[id] || loadedPlugins[id];
+        removePlugin(manifest);
     });
 }
