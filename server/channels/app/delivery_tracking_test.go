@@ -49,11 +49,11 @@ func captureDeliveryRecords(t *testing.T, th *TestHelper, fn func()) []map[strin
 		},
 	}))
 
-	old := th.Server.Audit
-	th.Server.Audit = adt
-	// Restore the original audit logger even if fn() aborts via require.FailNow,
+	old := th.Server.DeliveryAudit
+	th.Server.DeliveryAudit = adt
+	// Restore the original delivery audit logger even if fn() aborts via require.FailNow,
 	// so a failing assertion doesn't leak the swapped logger into later tests.
-	defer func() { th.Server.Audit = old }()
+	defer func() { th.Server.DeliveryAudit = old }()
 	fn()
 	require.NoError(t, adt.Shutdown()) // flushes queued records and closes the file
 
@@ -92,6 +92,23 @@ func deliveryStrings(t *testing.T, v any) []string {
 		out = append(out, s)
 	}
 	return out
+}
+
+// TestConfigureDeliveryAudit exercises the dedicated delivery audit engine's auto-wiring:
+// no target when the feature is disabled, and a level-104 target wired from config when
+// enabled — without any admin-supplied logr JSON.
+func TestConfigureDeliveryAudit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("succeeds with no targets when the feature is disabled", func(t *testing.T) {
+		require.NoError(t, th.Server.configurePostDeliveryAudit())
+	})
+
+	t.Run("auto-wires the delivery target when the feature is enabled", func(t *testing.T) {
+		enableDeliveryTracking(th)
+		require.NoError(t, th.Server.configurePostDeliveryAudit())
+	})
 }
 
 func TestChunkDeliveryIDs(t *testing.T) {

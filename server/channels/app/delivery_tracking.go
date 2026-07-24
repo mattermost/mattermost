@@ -39,7 +39,7 @@ func (a *App) shouldTrackPushDelivery(msg *model.PushNotification) bool {
 }
 
 func (a *App) emitDeliveryRecord(meta map[string]any) {
-	a.Srv().Audit.LogRecord(mlog.LvlAuditPostDelivery, model.AuditRecord{
+	a.Srv().DeliveryAudit.LogRecord(mlog.LvlAuditPostDelivery, model.AuditRecord{
 		EventName: AuditEventPostDelivery,
 		Status:    model.AuditStatusSuccess,
 		Meta:      meta,
