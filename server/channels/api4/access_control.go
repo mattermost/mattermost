@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -19,6 +20,28 @@ import (
 // in a policy must also receive redacted raw expressions.
 func shouldRedactExpressions(c *Context) bool {
 	return c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
+// preserveSystemManagedFields pins parent imports and team-scope metadata to the stored values:
+// attaching/detaching parents belongs to the assign/unassign endpoints, so a channel/team admin
+// editing rules here can't change them. No stored policy (first-time create) means they start empty.
+func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) *model.AppError {
+	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policy.ID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			policy.Imports = nil
+			policy.Scope = ""
+			policy.ScopeID = ""
+			return nil
+		}
+		return appErr
+	}
+
+	// Clone so a later mutation of policy.Imports can't reach back into the stored object.
+	policy.Imports = slices.Clone(stored.Imports)
+	policy.Scope = stored.Scope
+	policy.ScopeID = stored.ScopeID
+	return nil
 }
 
 func (api *API) InitAccessControlPolicy() {
@@ -135,6 +158,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				c.Err = appErr
 				return
 			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
 		}
 	case model.AccessControlPolicyTypeTeam:
 		// Team-type policies are keyed by the team ID, so policy.ID is the team.
@@ -154,6 +182,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 					c.Err = appErr
 					return
 				}
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
+				c.Err = appErr
+				return
 			}
 		}
 	default:
