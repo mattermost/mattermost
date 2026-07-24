@@ -41,6 +41,7 @@ export default [
             'max-lines': ['warn', {max: 800, skipBlankLines: true, skipComments: true}],
             'no-await-in-loop': 'off',
             'no-console': 'error',
+            'no-empty-pattern': ['error', {allowObjectPatternsAsParameters: true}],
             'no-loop-func': 0,
             'no-process-env': 0,
             'no-process-exit': 0,

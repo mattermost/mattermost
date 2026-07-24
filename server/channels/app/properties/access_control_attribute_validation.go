@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -121,6 +122,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if managed != "" && managed != "admin" {
 		return fmt.Errorf("invalid managed %q (must be empty or %q): %w", managed, "admin", ErrInvalidFieldAttrs)
 	}
+	if err := h.sanitizeAndValidateOwners(field); err != nil {
+		return err
+	}
 	if dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string); utf8.RuneCountInString(dn) > model.PropertyFieldNameMaxRunes {
 		return fmt.Errorf("display_name exceeds max length of %d runes: %w", model.PropertyFieldNameMaxRunes, ErrInvalidFieldAttrs)
 	}
@@ -221,6 +225,111 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	return nil
 }
 
+// sanitizeAndValidateOwners normalizes and validates the owners attr on a
+// field. Each entry is trimmed and must be well-formed ({id, type, scopes}
+// with a recognized type); scopes are trimmed and deduped; duplicate owner
+// entries (same type+id) are merged. Owners may not be combined with
+// managed="admin". An empty or absent list is removed so HasPropertyFieldOwners
+// stays false. The normalized list is written back in canonical form
+// ([]any of maps) so downstream readers see a single shape.
+//
+// Defensive bounds (see the Property Owner* constants) cap the id and scope
+// lengths and the number of owners/scopes so a buggy or hostile owner cannot
+// bloat the Attrs blob. They are deliberately far above real usage.
+//
+// An unrecognized owner type is rejected here, but an owner that simply does
+// not correspond to any real installed plugin/service is intentionally
+// accepted: it is a harmless no-op (the field stays locked to its real owners),
+// so the system fails safe and access is checked at the moment of action.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *model.PropertyField) error {
+	raw, ok := field.Attrs[model.PropertyAttrsOwners]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	data, err := json.Marshal(raw)
+	if err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var owners []model.PropertyOwner
+	if err = json.Unmarshal(data, &owners); err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	if len(owners) == 0 {
+		delete(field.Attrs, model.PropertyAttrsOwners)
+		return nil
+	}
+
+	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
+		return fmt.Errorf("owners cannot be combined with managed=admin: %w", ErrInvalidFieldAttrs)
+	}
+
+	normalized := make([]model.PropertyOwner, 0, len(owners))
+	indexByKey := make(map[string]int, len(owners))
+	for _, owner := range owners {
+		owner.ID = strings.TrimSpace(owner.ID)
+		owner.Type = strings.TrimSpace(owner.Type)
+		if owner.ID == "" {
+			return fmt.Errorf("invalid owners: owner id cannot be empty: %w", ErrInvalidFieldAttrs)
+		}
+		if utf8.RuneCountInString(owner.ID) > model.PropertyOwnerIDMaxRunes {
+			return fmt.Errorf("invalid owners: owner id exceeds max length of %d runes: %w", model.PropertyOwnerIDMaxRunes, ErrInvalidFieldAttrs)
+		}
+		if !model.IsValidPropertyOwnerType(owner.Type) {
+			return fmt.Errorf("invalid owners: unknown owner type %q: %w", owner.Type, ErrInvalidFieldAttrs)
+		}
+
+		scopes := make([]string, 0, len(owner.Scopes))
+		for _, scope := range owner.Scopes {
+			scope = strings.TrimSpace(scope)
+			if scope == "" || slices.Contains(scopes, scope) {
+				continue
+			}
+			if utf8.RuneCountInString(scope) > model.PropertyOwnerScopeMaxRunes {
+				return fmt.Errorf("invalid owners: scope exceeds max length of %d runes: %w", model.PropertyOwnerScopeMaxRunes, ErrInvalidFieldAttrs)
+			}
+			if !model.IsValidPropertyOwnerScope(scope) {
+				return fmt.Errorf("invalid owners: scope %q contains invalid characters: %w", scope, ErrInvalidFieldAttrs)
+			}
+			scopes = append(scopes, scope)
+		}
+		owner.Scopes = scopes
+
+		key := owner.Type + "\x00" + owner.ID
+		if idx, dup := indexByKey[key]; dup {
+			for _, scope := range owner.Scopes {
+				if !slices.Contains(normalized[idx].Scopes, scope) {
+					normalized[idx].Scopes = append(normalized[idx].Scopes, scope)
+				}
+			}
+			continue
+		}
+		indexByKey[key] = len(normalized)
+		normalized = append(normalized, owner)
+	}
+
+	if len(normalized) > model.PropertyOwnersMaxPerField {
+		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", len(normalized), model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
+	}
+	for _, owner := range normalized {
+		if len(owner.Scopes) > model.PropertyOwnerScopesMax {
+			return fmt.Errorf("invalid owners: owner %q has too many scopes (%d), max is %d: %w", owner.ID, len(owner.Scopes), model.PropertyOwnerScopesMax, ErrInvalidFieldAttrs)
+		}
+	}
+
+	out, err := json.Marshal(normalized)
+	if err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var canonical []any
+	if err = json.Unmarshal(out, &canonical); err != nil {
+		return fmt.Errorf("invalid owners: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	field.Attrs[model.PropertyAttrsOwners] = canonical
+	return nil
+}
+
 // validateRankOptions enforces that every option on a rank field carries a
 // positive, unique rank. It is the single source of truth for rank validity
 // and runs on every rank path: it rejects a directly-authored field (create or
@@ -284,6 +393,12 @@ func rankSortKey(rank *int) int {
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
 //     treated as non-admin and rejected.
+//   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
+//     Human value writes are already blocked authoritatively by
+//     checkOwnerValueWriteAccess in the property-service hook, but pinning
+//     sysadmin here is the safe fallback: if the owners list is ever dropped,
+//     the field defaults to admin-only rather than becoming writable by every
+//     member.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
@@ -301,6 +416,8 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
+		field.PermissionValues = &sysadmin
+	} else if model.HasPropertyFieldOwners(field) {
 		field.PermissionValues = &sysadmin
 	} else if field.PermissionValues == nil {
 		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)

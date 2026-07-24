@@ -216,6 +216,63 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 	})
 }
 
+func TestExpressionWithTeamContext(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	expression := "user.attributes.team == 'Engineering'"
+
+	t.Run("requester who does not match the expression gets empty results", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Id: model.NewId()})
+
+		// Requester self-check returns no match → guard returns empty without
+		// ever querying the full user set.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == th.BasicUser.Id
+		})).Return([]*model.User{}, int64(0), nil)
+
+		users, count, appErr := th.App.TestExpressionWithTeamContext(rctx, expression, model.SubjectSearchOptions{})
+		require.Nil(t, appErr)
+		require.Empty(t, users)
+		require.Zero(t, count)
+	})
+
+	t.Run("requester who matches sees the full result set", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Id: model.NewId()})
+
+		// Self-check matches the requester.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == th.BasicUser.Id
+		})).Return([]*model.User{th.BasicUser}, int64(1), nil)
+
+		// Full query (TestExpression) for the unrestricted set.
+		matched := []*model.User{th.BasicUser, th.BasicUser2}
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == ""
+		})).Return(matched, int64(2), nil)
+
+		users, count, appErr := th.App.TestExpressionWithTeamContext(rctx, expression, model.SubjectSearchOptions{})
+		require.Nil(t, appErr)
+		require.Len(t, users, 2)
+		require.Equal(t, int64(2), count)
+	})
+}
+
 func TestSearchTeamAccessPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -586,5 +643,160 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, policy.ID)
 		require.Nil(t, appErr)
 		assert.True(t, owned, "channelless policy with scope should pass ownership check")
+	})
+}
+
+// TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion verifies that the
+// team-specific self-inclusion guard at CreateOrUpdateAccessControlPolicy:124
+// is correctly wired into the create/update path. ValidateTeamAdminSelfInclusion
+// is tested in isolation elsewhere; these tests confirm the integration.
+func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
+	t.Run("team admin excluded by own expression is rejected before save", func(t *testing.T) {
+		// AttributeValueMasking defaults to true
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = false // keep the masking path out of scope
+		}).InitBasic(t)
+
+		callerID := th.BasicUser.Id
+		rctx := th.Context.WithSession(&model.Session{
+			UserId: callerID,
+			Id:     model.NewId(),
+			Roles:  model.SystemUserRoleId, // not a system admin
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		// Guard calls QueryUsersForExpression with the caller as subject; return
+		// empty — caller does not satisfy the expression.
+		mockACS.On("QueryUsersForExpression",
+			mock.AnythingOfType("*request.Context"),
+			"false",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.SubjectID == callerID
+			}),
+		).Return([]*model.User{}, int64(0), nil).Once()
+
+		// SavePolicy must NOT be called — the guard rejects the request first.
+
+		teamPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "false"},
+			},
+		}
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.team.access_policies.self_exclusion.app_error", appErr.Id)
+		assert.Nil(t, result)
+	})
+
+	t.Run("team admin included by own expression passes the guard and saves", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+
+		callerID := th.BasicUser.Id
+		rctx := th.Context.WithSession(&model.Session{
+			UserId: callerID,
+			Id:     model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		// Guard: caller satisfies the expression → guard passes.
+		mockACS.On("QueryUsersForExpression",
+			mock.AnythingOfType("*request.Context"),
+			"true",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.SubjectID == callerID
+			}),
+		).Return([]*model.User{{Id: callerID}}, int64(1), nil).Once()
+
+		savedPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+		// SavePolicy is reached after the guard passes.
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
+			Return(savedPolicy, (*model.AppError)(nil)).Once()
+
+		teamPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+	})
+
+	t.Run("system admin bypasses the team self-inclusion guard", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+
+		// System admin session — HasPermissionTo(PermissionManageSystem) returns true.
+		rctx := th.Context.WithSession(&model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Id:     model.NewId(),
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		// QueryUsersForExpression must NOT be called — guard is skipped for system admins.
+
+		savedPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "false"},
+			},
+		}
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
+			Return(savedPolicy, (*model.AppError)(nil)).Once()
+
+		teamPolicy := &model.AccessControlPolicy{
+			ID:   th.BasicTeam.Id,
+			Type: model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{
+				// Expression that would exclude most users — system admin saves it anyway.
+				{Actions: []string{"membership"}, Expression: "false"},
+			},
+		}
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
 	})
 }

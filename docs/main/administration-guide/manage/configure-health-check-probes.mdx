@@ -30,7 +30,7 @@ A sample request is included below. The endpoint checks if the server is up and 
 This endpoint can also be provided to schedulers like [Kubernetes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/).
 
 ``` go
-import github.com/mattermost/mattermost/tree/master/server/public/model"
+import "github.com/mattermost/mattermost/server/public/model"
 
 Client := model.NewAPIv4Client("https://your-mattermost-url.com")
 Client.Login("email@domain.com", "Password1")

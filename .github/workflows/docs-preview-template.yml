@@ -6,12 +6,15 @@ on:
       PR_NUMBER:
         type: string
         required: true
-      TRIGGERING_ACTOR:
-        type: string
-        required: true
       COMMIT_SHA:
         type: string
         required: true
+      # Commit status context shown on the PR. Details (⋯) links to the preview
+      # when status is success. Empty skips status updates.
+      STATUS_CONTEXT:
+        type: string
+        required: false
+        default: docs-preview
     secrets:
       AWS_DOCS_PR_PREVIEW_KEY_ID:
         required: true
@@ -26,11 +29,10 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
+  statuses: write
 
 jobs:
-  preview:
-    name: Build and deploy preview
+  deploy:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -94,17 +96,36 @@ jobs:
             --delete \
             --no-progress
 
-      - name: Post preview URL comment
-        # Plain gh CLI instead of a third-party action -- posts a new comment
-        # every run (same behavior peter-evans/create-or-update-comment had
-        # here, since it wasn't given a comment-id/body-includes matcher).
+      - name: Set preview URL
+        id: preview
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ inputs.PR_NUMBER }}
-          TRIGGERING_ACTOR: ${{ inputs.TRIGGERING_ACTOR }}
-          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
           BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
+          PR_NUMBER: ${{ inputs.PR_NUMBER }}
         run: |
-          BODY=$(printf 'Newest code from %s and commit %s has docs preview environment ready:\n\n**[Open preview environment](http://%s.s3-website-us-east-1.amazonaws.com/mattermost/pr-%s/)**' \
-            "$TRIGGERING_ACTOR" "$COMMIT_SHA" "$BUCKET_NAME" "$PR_NUMBER")
-          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "$BODY"
+          echo "url=http://${BUCKET_NAME}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${PR_NUMBER}/" >> "$GITHUB_OUTPUT"
+
+      # Details (⋯) on this check links to the preview URL via target_url.
+      - name: Set success commit status
+        if: ${{ inputs.STATUS_CONTEXT != '' }}
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: ${{ inputs.STATUS_CONTEXT }}
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} succeeded"
+          status: success
+          target_url: ${{ steps.preview.outputs.url }}
+
+      - name: Set failure commit status
+        if: ${{ always() && inputs.STATUS_CONTEXT != '' && (failure() || cancelled()) }}
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: ${{ inputs.STATUS_CONTEXT }}
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} failed"
+          status: failure
