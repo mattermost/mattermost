@@ -61,6 +61,11 @@
 // background and color here. Matching .btn-transparent in this selector too (not just
 // our own class) so specificity ties with the rule it overrides, rather than losing to it.
 .btn-transparent.GlobalAttributesTable__actionsButton {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: inherit;
