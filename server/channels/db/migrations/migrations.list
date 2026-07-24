@@ -411,8 +411,6 @@ channels/db/migrations/postgres/000207_create_scheduled_recaps_next_run_at_index
 channels/db/migrations/postgres/000207_create_scheduled_recaps_next_run_at_index.up.sql
 channels/db/migrations/postgres/000208_create_scheduled_recaps_enabled_next_run_index.down.sql
 channels/db/migrations/postgres/000208_create_scheduled_recaps_enabled_next_run_index.up.sql
-channels/db/migrations/postgres/000209_create_post_previews_previewed_in_post_id_index.down.sql
-channels/db/migrations/postgres/000209_create_post_previews_previewed_in_post_id_index.up.sql
 channels/db/migrations/postgres/000209_create_scheduled_recaps_user_delete_index.down.sql
 channels/db/migrations/postgres/000209_create_scheduled_recaps_user_delete_index.up.sql
 channels/db/migrations/postgres/000210_add_recap_skip_fields.down.sql
@@ -425,5 +423,7 @@ channels/db/migrations/postgres/000213_create_user_post_delivery_content_review.
 channels/db/migrations/postgres/000213_create_user_post_delivery_content_review.up.sql
 channels/db/migrations/postgres/000214_create_post_previews.down.sql
 channels/db/migrations/postgres/000214_create_post_previews.up.sql
+channels/db/migrations/postgres/000215_create_post_previews_previewed_in_post_id_index.down.sql
+channels/db/migrations/postgres/000215_create_post_previews_previewed_in_post_id_index.up.sql
 channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.down.sql
 channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.up.sql
