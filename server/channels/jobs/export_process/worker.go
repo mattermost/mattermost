@@ -58,6 +58,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.TeamName = teamName
 		}
 
+		channelName, ok := job.Data["channel_name"]
+		if ok && channelName != "" {
+			opts.ChannelName = channelName
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 
