@@ -16,6 +16,16 @@
 }
 
 .GlobalAttributesTable__wrapper {
+    // The shared .adminConsoleListTableContainer rule (list_table.scss) sets
+    // overflow: auto unconditionally, which clips the table into its own
+    // scrollable box. On this page that box ends up a pixel or two shorter
+    // than the table's actual content, so a scrollbar renders even though
+    // nothing is really cut off. Let it grow naturally; the page itself
+    // (.admin-console__wrapper) already scrolls when content overflows.
+    .adminConsoleListTableContainer {
+        overflow: visible;
+    }
+
     td.actions,
     th.actions {
         text-align: right;
