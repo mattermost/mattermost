@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,27 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+// preserveSystemManagedFields pins parent imports and team-scope metadata to the stored values:
+// attaching/detaching parents belongs to the assign/unassign endpoints, so a channel/team admin
+// editing rules here can't change them. No stored policy (first-time create) means they start empty.
+func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) *model.AppError {
+	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policy.ID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			policy.Imports = nil
+			policy.Scope = ""
+			policy.ScopeID = ""
+			return nil
+		}
+		return appErr
+	}
+
+	// Clone so a later mutation of policy.Imports can't reach back into the stored object.
+	policy.Imports = slices.Clone(stored.Imports)
+	policy.Scope = stored.Scope
+	policy.ScopeID = stored.ScopeID
+	return nil
+}
 func (api *API) InitAccessControlPolicy() {
 	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
 		return
@@ -114,6 +136,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			if appErr := preserveSystemManagedFields(c, &policy); appErr != nil {
 				c.Err = appErr
 				return
 			}
