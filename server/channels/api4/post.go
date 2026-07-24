@@ -590,12 +590,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !post.IsSystemMessage() {
-		c.App.RecordPostDelivery(c.AppContext.Session().UserId, post.Id, model.DeliveryTargetUser, model.DeliveryMechanismProduct)
-	}
-
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
+	}
+
+	// Record delivery only when a body is actually returned (not on a 304), matching
+	// the list endpoints and avoiding an over-count on ETag-matched polling.
+	if !post.IsSystemMessage() {
+		c.App.RecordPostDelivery(c.AppContext.Session().UserId, post.Id, model.DeliveryTargetUser, model.DeliveryMechanismProduct)
 	}
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
