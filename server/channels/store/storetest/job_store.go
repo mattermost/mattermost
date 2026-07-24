@@ -23,7 +23,6 @@ import (
 func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, rctx, ss) })
 	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, rctx, ss) })
-	t.Run("JobSaveOnceWithData", func(t *testing.T) { testJobSaveOnceWithData(t, rctx, ss) })
 	t.Run("JobPatchJobData", func(t *testing.T) { testJobPatchJobData(t, rctx, ss) })
 	t.Run("JobSaveOnceByTypeAndData", func(t *testing.T) { testJobSaveOnceByTypeAndData(t, rctx, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, rctx, ss) })
@@ -85,7 +84,7 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 				},
 			}
 
-			job, err := ss.Job().SaveOnce(job, nil)
+			job, err := ss.Job().SaveOnce(job)
 			if err != nil {
 				var pqErr *pq.Error
 				if errors.As(err, &pqErr) {
@@ -109,46 +108,6 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, id := range ids {
 		ss.Job().Delete(id)
 	}
-}
-
-// testJobSaveOnceWithData verifies dedupeData narrows SaveOnce's dedup scope: two
-// jobs of the same type but for different post_ids both insert, while a second
-// job for the same post_id is deduped.
-func testJobSaveOnceWithData(t *testing.T, rctx request.CTX, ss store.Store) {
-	jobType := model.NewId()
-	postA := model.NewId()
-	postB := model.NewId()
-
-	newJobForPost := func(postID string) *model.Job {
-		return &model.Job{
-			Id:     model.NewId(),
-			Type:   jobType,
-			Status: model.JobStatusPending,
-			// requested_by differs per call to prove only post_id gates dedup.
-			Data: map[string]string{"post_id": postID, "requested_by": model.NewId()},
-		}
-	}
-
-	firstJob, err := ss.Job().SaveOnce(newJobForPost(postA), map[string]string{"post_id": postA})
-	require.NoError(t, err)
-	require.NotNil(t, firstJob, "first job for a post is inserted")
-
-	dedupedJob, err := ss.Job().SaveOnce(newJobForPost(postA), map[string]string{"post_id": postA})
-	require.NoError(t, err)
-	require.Nil(t, dedupedJob, "a second job for the same post is deduped even with different Data")
-
-	otherPostJob, err := ss.Job().SaveOnce(newJobForPost(postB), map[string]string{"post_id": postB})
-	require.NoError(t, err)
-	require.NotNil(t, otherPostJob, "a job for a different post is not deduped")
-
-	for _, postID := range []string{postA, postB} {
-		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{"post_id": postID}, true, model.JobStatusPending)
-		require.NoError(t, err)
-		require.Len(t, jobs, 1, "exactly one pending job per post")
-	}
-
-	ss.Job().Delete(firstJob.Id)
-	ss.Job().Delete(otherPostJob.Id)
 }
 
 // testJobPatchJobData verifies PatchJobData's read-merge-write contract: the merge

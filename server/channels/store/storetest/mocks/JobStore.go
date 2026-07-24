@@ -456,9 +456,9 @@ func (_m *JobStore) Save(job *model.Job) (*model.Job, error) {
 	return r0, r1
 }
 
-// SaveOnce provides a mock function with given fields: job, dedupeData
-func (_m *JobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error) {
-	ret := _m.Called(job, dedupeData)
+// SaveOnce provides a mock function with given fields: job
+func (_m *JobStore) SaveOnce(job *model.Job) (*model.Job, error) {
+	ret := _m.Called(job)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveOnce")
@@ -466,19 +466,19 @@ func (_m *JobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*mod
 
 	var r0 *model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Job, map[string]string) (*model.Job, error)); ok {
-		return rf(job, dedupeData)
+	if rf, ok := ret.Get(0).(func(*model.Job) (*model.Job, error)); ok {
+		return rf(job)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Job, map[string]string) *model.Job); ok {
-		r0 = rf(job, dedupeData)
+	if rf, ok := ret.Get(0).(func(*model.Job) *model.Job); ok {
+		r0 = rf(job)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Job, map[string]string) error); ok {
-		r1 = rf(job, dedupeData)
+	if rf, ok := ret.Get(1).(func(*model.Job) error); ok {
+		r1 = rf(job)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -49,37 +49,16 @@ func (srv *JobServer) CreateJob(rctx request.CTX, jobType string, jobData map[st
 	return job, nil
 }
 
-// CreateJobOnce creates a job unless one is already pending/in-progress for the
-// same type and dedupeData (a subset of jobData used only for deduplication; pass
-// nil to dedupe on type alone). On a dedupe hit it returns the existing in-flight
-// job rather than creating a duplicate.
-func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData, dedupeData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(rctx, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	saved, err := srv.Store.Job().SaveOnce(job, dedupeData)
-	if err != nil {
-		return nil, model.NewAppError("CreateJobOnce", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if saved != nil {
-		return saved, nil
+	if _, err := srv.Store.Job().SaveOnce(job); err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// SaveOnce deduped (a matching job already exists, or a concurrent insert
-	// won the serializable transaction): return the real in-flight job.
-	existing, err := srv.Store.Job().GetByTypeAndData(rctx, jobType, dedupeData, true, model.JobStatusPending, model.JobStatusInProgress)
-	if err != nil {
-		return nil, model.NewAppError("CreateJobOnce", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(existing) > 0 {
-		return existing[0], nil
-	}
-
-	// Rare: the in-flight job finished between SaveOnce and this fetch. The
-	// requested work is effectively already done; return the (non-persisted)
-	// job as a marker.
 	return job, nil
 }
 

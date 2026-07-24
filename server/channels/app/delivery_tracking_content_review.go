@@ -48,7 +48,7 @@ func (a *App) CreateDeliveryTrackingContentReviewJob(rctx request.CTX, postID, t
 		return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.error", nil, "post is not under review", http.StatusBadRequest)
 	}
 
-	job, appErr := a.Srv().Jobs.CreateJobOnce(
+	job, appErr := a.Srv().Jobs.CreateJobOnceByTypeAndData(
 		rctx,
 		model.JobTypeDeliveryTrackingContentReview,
 		map[string]string{jobDataKeyPostId: postID, jobDataKeyTeamId: teamID, jobDataKeyRequestedBy: requestedBy},
@@ -56,6 +56,20 @@ func (a *App) CreateDeliveryTrackingContentReviewJob(rctx request.CTX, postID, t
 	)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// CreateJobOnceByTypeAndData returns nil when a content-review job for this post
+	// is already pending/in-progress (a dedupe hit). Fetch the in-flight job so this
+	// requester is still recorded on it and returned to the caller.
+	if job == nil {
+		existing, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeDeliveryTrackingContentReview, map[string]string{jobDataKeyPostId: postID}, true, model.JobStatusPending, model.JobStatusInProgress)
+		if err != nil {
+			return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(existing) == 0 {
+			return nil, nil
+		}
+		job = existing[0]
 	}
 
 	merged, err := a.Srv().Store().Job().PatchJobData(job.Id, model.StringMap{jobDataKeyRequestedBy: requestedBy}, mergeRequestedBy)

@@ -830,12 +830,10 @@ type ReactionStore interface {
 
 type JobStore interface {
 	Save(job *model.Job) (*model.Job, error)
-	// SaveOnce inserts the job only if no other pending/in-progress job matches
-	// the same Type and the given dedupeData (a subset of job.Data, matched by
-	// exact value). Pass nil/empty dedupeData to dedupe on Type alone. If a
-	// matching job already exists (or a concurrent insert wins the serializable
-	// transaction), nil, nil is returned.
-	SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error)
+	// SaveOnce will only insert the job with the same category once.
+	// If this method is called concurrently with another job of the same type,
+	// then nil, nil is returned.
+	SaveOnce(job *model.Job) (*model.Job, error)
 	// SaveOnceByTypeAndData will only insert the job when there is no pending or
 	// in-progress job with the same type matching the data filter.
 	SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error)

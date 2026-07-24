@@ -6074,10 +6074,10 @@ func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error) {
+func (s *TimerLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.SaveOnce(job, dedupeData)
+	result, err := s.JobStore.SaveOnce(job)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

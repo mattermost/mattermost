@@ -78,7 +78,7 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
-func (jss SqlJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error) {
+func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	jsonData, err := json.Marshal(job.Data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed marshalling job data")
@@ -95,21 +95,13 @@ func (jss SqlJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	countBuilder := jss.getQueryBuilder().
+	query, args, err := jss.getQueryBuilder().
 		Select("COUNT(*)").
 		From("Jobs").
 		Where(sq.Eq{
 			"Status": []string{model.JobStatusPending, model.JobStatusInProgress},
 			"Type":   job.Type,
-		})
-	// Narrow the dedupe scope to jobs whose Data matches every dedupeData entry,
-	// so callers can be one-job-per-entity (e.g. per post) instead of
-	// one-job-per-type. Mirrors GetByTypeAndData's JSON predicate.
-	for key, value := range dedupeData {
-		countBuilder = countBuilder.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
-	}
-
-	query, args, err := countBuilder.ToSql()
+		}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}

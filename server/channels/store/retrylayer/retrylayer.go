@@ -7533,11 +7533,11 @@ func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 
 }
 
-func (s *RetryLayerJobStore) SaveOnce(job *model.Job, dedupeData map[string]string) (*model.Job, error) {
+func (s *RetryLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.SaveOnce(job, dedupeData)
+		result, err := s.JobStore.SaveOnce(job)
 		if err == nil {
 			return result, nil
 		}
