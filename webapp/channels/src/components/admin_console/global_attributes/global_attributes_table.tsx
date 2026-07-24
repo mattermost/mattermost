@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, SortAscendingIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
@@ -41,7 +41,7 @@ const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
     rank: SortAscendingIcon,
 };
 
-function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
+export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
     return TYPE_ICONS[fieldType] ?? MenuVariantIcon;
 }
 
@@ -69,6 +69,16 @@ export function getSourceKind(field: PropertyField): SourceKind {
     return 'managed';
 }
 
+const SOURCE_ICONS: Partial<Record<SourceKind, ComponentType<IconProps>>> = {
+    plugin: PowerPlugOutlineIcon,
+    ldap: SyncIcon,
+    saml: SyncIcon,
+};
+
+export function getSourceIcon(kind: SourceKind): ComponentType<IconProps> | undefined {
+    return SOURCE_ICONS[kind];
+}
+
 function SourceCell({field}: {field: PropertyField}) {
     const kind = getSourceKind(field);
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
@@ -85,11 +95,14 @@ function SourceCell({field}: {field: PropertyField}) {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
 
+    const Icon = getSourceIcon(kind);
+
     return (
         <span
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
+            {Icon && <Icon size={16}/>}
             {content}
         </span>
     );

@@ -206,7 +206,15 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     // * Each seeded field's display name, type, source, and options render correctly
                     await expect(row.getByTestId('global-attribute-name')).toHaveText(seed.displayName);
                     await expect(row.getByTestId('global-attribute-type')).toContainText(seed.expectedType);
+                    // * A leading icon renders alongside the label, including for the
+                    // unmapped "date" type (fallback icon, not a blank cell)
+                    await expect(row.getByTestId('global-attribute-type').locator('svg')).toBeVisible();
                     await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+                    // * "Managed here" is the one source kind reachable through the admin
+                    // API (plugin/ldap/saml require server-side attrs the API blocks from
+                    // non-plugin callers — those icon mappings are unit-test-only) and it
+                    // renders with no leading icon, unlike plugin/ldap/saml sources
+                    await expect(row.getByTestId('global-attribute-source').locator('svg')).toHaveCount(0);
                     await expect(row.getByTestId('global-attribute-options')).toContainText(seed.expectedOptions);
                 }
             } finally {

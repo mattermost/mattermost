@@ -4,6 +4,7 @@
 import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
+import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -13,7 +14,7 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
-import GlobalAttributesTable, {getDisplayName, getSourceKind} from './global_attributes_table';
+import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon} from './global_attributes_table';
 
 // The server keys every field under a real group UUID that differs from the
 // group name ('access_control'); fixtures mirror that so the resolve-by-name
@@ -192,13 +193,14 @@ describe('GlobalAttributesTable', () => {
             ['select', 'Select'],
             ['multiselect', 'Multiselect'],
             ['rank', 'Ranked'],
-        ])('renders the %s type with the %s label', async (type, label) => {
+        ])('renders the %s type with the %s label and a leading icon', async (type, label) => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: type as PropertyField['type']})]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
             const cell = await screen.findByTestId('global-attribute-type');
             expect(cell).toHaveTextContent(label);
+            expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
         it('renders a defined fallback (not a blank cell) for a FieldType outside text/select/multiselect/rank', async () => {
@@ -208,6 +210,21 @@ describe('GlobalAttributesTable', () => {
 
             const cell = await screen.findByTestId('global-attribute-type');
             expect(cell).toHaveTextContent('Other');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
+        });
+
+        // Pins the exact icon set to the one used by the User Attributes page's
+        // type selector (user_properties_type_menu.tsx) — verified against the
+        // Figma design (node 6207:13241), which confirmed the "Ranked" glyph is
+        // literally the sort-ascending icon, not an approximation.
+        it.each([
+            ['text', MenuVariantIcon],
+            ['select', ChevronDownCircleOutlineIcon],
+            ['multiselect', FormatListBulletedIcon],
+            ['rank', SortAscendingIcon],
+            ['date', MenuVariantIcon],
+        ])('maps the %s field type to the expected icon component', (type, icon) => {
+            expect(getTypeIcon(type as PropertyField['type'])).toBe(icon);
         });
     });
 
@@ -267,7 +284,9 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, state);
 
-            expect(await screen.findByTestId('global-attribute-source')).toHaveTextContent('Example Plugin');
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('Example Plugin');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
         it('shows AD/LDAP when attrs.ldap is set', async () => {
@@ -275,7 +294,9 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-            expect(await screen.findByTestId('global-attribute-source')).toHaveTextContent('AD/LDAP');
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('AD/LDAP');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
         it('shows SAML when attrs.saml is set', async () => {
@@ -283,15 +304,31 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-            expect(await screen.findByTestId('global-attribute-source')).toHaveTextContent('SAML');
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('SAML');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
-        it('falls back to "Managed here" when no source signal is present', async () => {
+        it('falls back to "Managed here" (no icon) when no source signal is present', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {}})]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-            expect(await screen.findByTestId('global-attribute-source')).toHaveTextContent('Managed here');
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('Managed here');
+            expect(cell.querySelector('svg')).not.toBeInTheDocument();
+        });
+
+        it.each([
+            ['plugin', PowerPlugOutlineIcon],
+            ['ldap', SyncIcon],
+            ['saml', SyncIcon],
+        ])('maps the %s source kind to the expected icon component', (kind, icon) => {
+            expect(getSourceIcon(kind as ReturnType<typeof getSourceKind>)).toBe(icon);
+        });
+
+        it('maps the managed source kind to no icon', () => {
+            expect(getSourceIcon('managed')).toBeUndefined();
         });
     });
 
