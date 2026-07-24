@@ -1439,7 +1439,6 @@
   "admin.gitlab.tokenTitle": "Token Endpoint:",
   "admin.gitlab.userTitle": "User API Endpoint:",
   "admin.global_attributes.subtitle": "Define an attribute once, then choose which resources can use it.",
-  "admin.global_attributes.table.actions": "Actions",
   "admin.global_attributes.table.actions.coming_soon": "Coming soon",
   "admin.global_attributes.table.actions.delete": "Delete attribute",
   "admin.global_attributes.table.actions.duplicate": "Duplicate attribute",

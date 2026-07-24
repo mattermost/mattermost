@@ -255,7 +255,6 @@ export default function GlobalAttributesTable() {
             }),
             columnHelper.display({
                 id: 'actions',
-                header: () => <FormattedMessage {...messages.actions}/>,
                 cell: ({row}) => <ActionsCell field={row.original}/>,
                 enableHiding: false,
             }),
@@ -313,7 +312,6 @@ const messages = defineMessages({
     appliesTo: {id: 'admin.global_attributes.table.applies_to', defaultMessage: 'Applies to'},
     source: {id: 'admin.global_attributes.table.source', defaultMessage: 'Source'},
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
-    actions: {id: 'admin.global_attributes.table.actions', defaultMessage: 'Actions'},
     empty: {
         id: 'admin.global_attributes.table.empty',
         defaultMessage: 'No attributes yet. Attributes are currently managed elsewhere; creating them from this page is coming soon.',
