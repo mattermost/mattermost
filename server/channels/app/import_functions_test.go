@@ -759,7 +759,7 @@ func TestImportImportUser(t *testing.T) {
 		data := imports.UserImportData{
 			Username: new(model.NewUsername()),
 		}
-		appErr := th.App.importUser(th.Context, &data, true)
+		appErr := th.App.importUser(th.Context, &data, true, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 		// Check that no more users are in the DB.
@@ -776,7 +776,7 @@ func TestImportImportUser(t *testing.T) {
 			Username: new(model.NewUsername()),
 			Email:    new(model.NewId() + "@example.com"),
 		}
-		appErr := th.App.importUser(th.Context, &data, true)
+		appErr := th.App.importUser(th.Context, &data, true, false)
 		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 		// Check that no more users are in the DB.
@@ -792,7 +792,7 @@ func TestImportImportUser(t *testing.T) {
 		data := imports.UserImportData{
 			Username: new(model.NewUsername()),
 		}
-		appErr := th.App.importUser(th.Context, &data, false)
+		appErr := th.App.importUser(th.Context, &data, false, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 		// Check that no more users are in the DB.
@@ -818,7 +818,7 @@ func TestImportImportUser(t *testing.T) {
 			LastName:  new(model.NewId()),
 			Position:  new(model.NewId()),
 		}
-		appErr := th.App.importUser(th.Context, &data, false)
+		appErr := th.App.importUser(th.Context, &data, false, false)
 		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 		// Check that one more user is in the DB.
@@ -864,7 +864,7 @@ func TestImportImportUser(t *testing.T) {
 			LastName:  new(model.NewId()),
 			Position:  new(model.NewId()),
 		}
-		appErr := th.App.importUser(th.Context, &data, false)
+		appErr := th.App.importUser(th.Context, &data, false, false)
 		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 		// Check that one more user is in the DB.
@@ -888,7 +888,7 @@ func TestImportImportUser(t *testing.T) {
 		data.Roles = new("system_admin system_user")
 		data.Locale = new("zh_CN")
 
-		appErr = th.App.importUser(th.Context, &data, false)
+		appErr = th.App.importUser(th.Context, &data, false, false)
 		require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 		// Check user count the same.
@@ -933,7 +933,7 @@ func TestImportImportUser(t *testing.T) {
 			AuthData:    &username,
 			AuthService: new("ldap"),
 		}
-		appErr := th.App.importUser(th.Context, &data, false)
+		appErr := th.App.importUser(th.Context, &data, false, false)
 		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 		// Check that one more user is in the DB.
@@ -947,20 +947,20 @@ func TestImportImportUser(t *testing.T) {
 
 		// Check Password and AuthData together.
 		data.Password = new(model.NewTestPassword())
-		appErr = th.App.importUser(th.Context, &data, false)
+		appErr = th.App.importUser(th.Context, &data, false, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 		data.AuthData = nil
 		data.AuthService = nil
-		appErr = th.App.importUser(th.Context, &data, false)
+		appErr = th.App.importUser(th.Context, &data, false, false)
 		require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 		data.Password = new("")
-		appErr = th.App.importUser(th.Context, &data, false)
+		appErr = th.App.importUser(th.Context, &data, false, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 		data.Password = new(strings.Repeat("0123456789", 10))
-		appErr = th.App.importUser(th.Context, &data, false)
+		appErr = th.App.importUser(th.Context, &data, false, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 		// Check that no more user is in the DB.
@@ -1023,7 +1023,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, true)
+			appErr = th.App.importUser(th.Context, &data, true, false)
 			assert.NotNil(t, appErr)
 		})
 
@@ -1038,7 +1038,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, true)
+			appErr = th.App.importUser(th.Context, &data, true, false)
 			assert.NotNil(t, appErr)
 		})
 
@@ -1053,7 +1053,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, true)
+			appErr = th.App.importUser(th.Context, &data, true, false)
 			assert.NotNil(t, appErr)
 		})
 
@@ -1068,7 +1068,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, true)
+			appErr = th.App.importUser(th.Context, &data, true, false)
 			assert.Nil(t, appErr)
 		})
 
@@ -1083,7 +1083,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, true)
+			appErr = th.App.importUser(th.Context, &data, true, false)
 			assert.Nil(t, appErr)
 
 			// Check no new member objects were created because dry run mode.
@@ -1107,7 +1107,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, false)
+			appErr = th.App.importUser(th.Context, &data, false, false)
 			assert.NotNil(t, appErr)
 		})
 
@@ -1122,7 +1122,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, false)
+			appErr = th.App.importUser(th.Context, &data, false, false)
 			assert.NotNil(t, appErr)
 		})
 
@@ -1137,7 +1137,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, false)
+			appErr = th.App.importUser(th.Context, &data, false, false)
 			assert.NotNil(t, appErr)
 
 			// Check no new member objects were created because all tests should have failed so far.
@@ -1161,7 +1161,7 @@ func TestImportImportUser(t *testing.T) {
 					},
 				},
 			}
-			appErr = th.App.importUser(th.Context, &data, false)
+			appErr = th.App.importUser(th.Context, &data, false, false)
 			assert.NotNil(t, appErr)
 
 			// Check only new team member object created because dry run mode.
@@ -1199,7 +1199,7 @@ func TestImportImportUser(t *testing.T) {
 			username = model.NewUsername()
 			data.Username = &username
 			data.Email = new(model.NewId() + "@example.com")
-			appErr2 := th.App.importUser(th.Context, &data, false)
+			appErr2 := th.App.importUser(th.Context, &data, false, false)
 			assert.Nil(t, appErr2)
 
 			// Check only new channel member object created because dry run mode.
@@ -1251,7 +1251,7 @@ func TestImportImportUser(t *testing.T) {
 			data.Username = &username
 			data.Email = new(model.NewId() + "@example.com")
 
-			appErr2 := th.App.importUser(th.Context, &data, false)
+			appErr2 := th.App.importUser(th.Context, &data, false, false)
 			assert.Nil(t, appErr2)
 
 			user, err2 := th.App.GetUserByUsername(username)
@@ -1325,7 +1325,7 @@ func TestImportImportUser(t *testing.T) {
 			ShowUnreadScrollPosition: new("start_from_newest"),
 			LimitVisibleDmsGms:       new("20"),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		// Check their values.
@@ -1363,7 +1363,7 @@ func TestImportImportUser(t *testing.T) {
 			TutorialStep:       new("2"),
 			EmailInterval:      new("hour"),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		// Check their values again.
@@ -1386,7 +1386,7 @@ func TestImportImportUser(t *testing.T) {
 			ChannelTrigger:   new("true"),
 			CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(username)
@@ -1412,7 +1412,7 @@ func TestImportImportUser(t *testing.T) {
 			CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
 			MentionKeys:      new("valid,misc"),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(username)
@@ -1438,7 +1438,7 @@ func TestImportImportUser(t *testing.T) {
 			CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
 			MentionKeys:      new("misc"),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(username)
@@ -1463,7 +1463,7 @@ func TestImportImportUser(t *testing.T) {
 			ChannelTrigger:   new("false"),
 			CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
 		}
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(username)
@@ -1495,7 +1495,7 @@ func TestImportImportUser(t *testing.T) {
 			MentionKeys:      new("misc"),
 		}
 
-		appErr2 = th.App.importUser(th.Context, &data, false)
+		appErr2 = th.App.importUser(th.Context, &data, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(username)
@@ -1603,7 +1603,7 @@ func TestImportImportUser(t *testing.T) {
 				},
 			},
 		}
-		appErr2 = th.App.importUser(th.Context, userData, false)
+		appErr2 = th.App.importUser(th.Context, userData, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(*userData.Username)
@@ -1645,7 +1645,7 @@ func TestImportImportUser(t *testing.T) {
 				},
 			},
 		}
-		appErr2 = th.App.importUser(th.Context, deletedUserData, false)
+		appErr2 = th.App.importUser(th.Context, deletedUserData, false, false)
 		assert.Nil(t, appErr2)
 
 		user, appErr2 = th.App.GetUserByUsername(*deletedUserData.Username)
@@ -1716,7 +1716,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		}
 
-		appErr = th.App.importUser(th.Context, deletedGuestData, false)
+		appErr = th.App.importUser(th.Context, deletedGuestData, false, false)
 		assert.Nil(t, appErr)
 
 		user, appErr := th.App.GetUserByUsername(*deletedGuestData.Username)
@@ -1747,7 +1747,7 @@ func TestImportImportUser(t *testing.T) {
 			Roles:    new("system_guest"),
 		}
 
-		appErr := th.App.importUser(th.Context, guestData, false)
+		appErr := th.App.importUser(th.Context, guestData, false, false)
 		require.Nil(t, appErr, "Failed to import guest user without memberships")
 
 		user, appErr := th.App.GetUserByUsername(*guestData.Username)
@@ -2134,7 +2134,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 			MentionKeys: new(""),
 		},
 	}
-	require.Nil(t, th.App.importUser(th.Context, &data, false))
+	require.Nil(t, th.App.importUser(th.Context, &data, false, false))
 
 	user, err := th.App.GetUserByUsername(username)
 	require.Nil(t, err)
@@ -2192,7 +2192,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user, err := th.App.GetUserByUsername(username)
 	require.Nil(t, err, "Failed to get user from database.")
@@ -2201,7 +2201,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user2, err := th.App.GetUserByUsername(username2)
 	require.Nil(t, err, "Failed to get user from database.")
@@ -3251,7 +3251,7 @@ func TestImportImportPost(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
@@ -3260,7 +3260,7 @@ func TestImportImportPost(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user from database.")
@@ -5691,7 +5691,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user3, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -5701,7 +5701,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user2.")
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user2 from database.")
@@ -5711,7 +5711,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user3.")
 	user3, appErr = th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -5720,7 +5720,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user4.")
 
 	user4, appErr := th.App.GetUserByUsername(username4)
@@ -5925,7 +5925,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	appErr := th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user.")
 	user1, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user1 from database.")
@@ -5934,7 +5934,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user2.")
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user2 from database.")
@@ -6059,7 +6059,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user2.")
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user2 from database.")
@@ -6069,7 +6069,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user3.")
 	user3, appErr := th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -6078,7 +6078,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
 		Email:    new(model.NewId() + "@example.com"),
-	}, false)
+	}, false, false)
 	require.Nil(t, appErr, "Failed to import user4.")
 
 	user4, appErr := th.App.GetUserByUsername(username4)

@@ -2769,7 +2769,26 @@ func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error
 	return userIDs, nil
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string) ([]*model.PostForExport, error) {
+func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string) ([]string, error) {
+	userIDs := []string{}
+	err := s.GetReplica().Select(&userIDs,
+		`SELECT DISTINCT Posts.UserId
+		FROM Posts
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		WHERE Teams.Name = ?
+		  AND Channels.Name = ?
+		  AND Posts.DeleteAt = 0
+		  AND Channels.DeleteAt = 0
+		  AND Teams.DeleteAt = 0`,
+		teamName, channelName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get post author IDs for channel")
+	}
+	return userIDs, nil
+}
+
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string, channelNameFilter string) ([]*model.PostForExport, error) {
 	for {
 		rootIds := []string{}
 		err := s.GetReplica().Select(&rootIds,
@@ -2802,6 +2821,10 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 
 		if teamNameFilter != "" {
 			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Teams.Name": teamNameFilter})
+		}
+
+		if channelNameFilter != "" {
+			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.Name": channelNameFilter})
 		}
 
 		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"

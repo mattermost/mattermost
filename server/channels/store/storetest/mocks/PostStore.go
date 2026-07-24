@@ -475,39 +475,9 @@ func (_m *PostStore) GetOldestEntityCreationTime() (int64, error) {
 	return r0, r1
 }
 
-// GetPostAuthorIDsForTeam provides a mock function with given fields: teamName
-func (_m *PostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
-	ret := _m.Called(teamName)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPostAuthorIDsForTeam")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]string, error)); ok {
-		return rf(teamName)
-	}
-	if rf, ok := ret.Get(0).(func(string) []string); ok {
-		r0 = rf(teamName)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels, teamName
-func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string) ([]*model.PostForExport, error) {
-	ret := _m.Called(limit, afterID, includeArchivedChannels, teamName)
+// GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels, teamName, channelNameFilter
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetParentsForExportAfter")
@@ -515,19 +485,19 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, include
 
 	var r0 []*model.PostForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string, bool, string) ([]*model.PostForExport, error)); ok {
-		return rf(limit, afterID, includeArchivedChannels, teamName)
+	if rf, ok := ret.Get(0).(func(int, string, bool, string, string) ([]*model.PostForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	}
-	if rf, ok := ret.Get(0).(func(int, string, bool, string) []*model.PostForExport); ok {
-		r0 = rf(limit, afterID, includeArchivedChannels, teamName)
+	if rf, ok := ret.Get(0).(func(int, string, bool, string, string) []*model.PostForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PostForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string, bool, string) error); ok {
-		r1 = rf(limit, afterID, includeArchivedChannels, teamName)
+	if rf, ok := ret.Get(1).(func(int, string, bool, string, string) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -558,6 +528,66 @@ func (_m *PostStore) GetPostAfterTime(channelID string, timestamp int64, collaps
 
 	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
 		r1 = rf(channelID, timestamp, collapsedThreads)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostAuthorIDsForChannel provides a mock function with given fields: teamName, channelName
+func (_m *PostStore) GetPostAuthorIDsForChannel(teamName string, channelName string) ([]string, error) {
+	ret := _m.Called(teamName, channelName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostAuthorIDsForChannel")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]string, error)); ok {
+		return rf(teamName, channelName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(teamName, channelName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(teamName, channelName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostAuthorIDsForTeam provides a mock function with given fields: teamName
+func (_m *PostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+	ret := _m.Called(teamName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostAuthorIDsForTeam")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]string, error)); ok {
+		return rf(teamName)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(teamName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamName)
 	} else {
 		r1 = ret.Error(1)
 	}

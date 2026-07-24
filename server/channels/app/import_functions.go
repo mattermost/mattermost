@@ -332,7 +332,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	return nil
 }
 
-func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
+func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, existingUsersOnly bool) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -361,6 +361,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	var nErr error
 	user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
 	if nErr != nil {
+		if existingUsersOnly {
+			rctx.Logger().Warn("Skipping user not found on destination during channel-scoped import", mlog.String("username", *data.Username))
+			return nil
+		}
 		user = &model.User{}
 		user.MakeNonNil()
 		user.SetDefaultNotifications()

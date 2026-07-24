@@ -113,7 +113,7 @@ func TestExportUserChannels(t *testing.T) {
 
 	_, appErr = th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
 	require.Nil(t, appErr)
-	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false)
+	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false, "")
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
@@ -1746,6 +1746,213 @@ func parseExportLines(t *testing.T, b *bytes.Buffer) map[string][]map[string]any
 	}
 	require.NoError(t, scanner.Err())
 	return result
+}
+
+func TestBulkExportSingleChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("exports only posts from the target channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a second channel with its own post.
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherPost := &model.Post{ChannelId: otherChannel.Id, Message: "other-channel-post", UserId: th.BasicUser.Id}
+		_, _, appErr := th.App.CreatePost(th.Context, otherPost, otherChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		targetPost := &model.Post{ChannelId: th.BasicChannel.Id, Message: "target-channel-post", UserId: th.BasicUser.Id}
+		_, _, appErr = th.App.CreatePost(th.Context, targetPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		for _, pl := range lines["post"] {
+			post := pl["post"].(map[string]any)
+			assert.Equal(t, th.BasicChannel.Name, post["channel"], "post from wrong channel included in export")
+		}
+		require.NotEmpty(t, lines["post"], "expected at least one post in export")
+	})
+
+	t.Run("exports only members of the target channel as users", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a user in the team but not in BasicChannel.
+		outsideUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, outsideUser, th.BasicTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedUsers := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			user := ul["user"].(map[string]any)
+			exportedUsers[user["username"].(string)] = true
+		}
+
+		assert.False(t, exportedUsers[outsideUser.Username], "user not in channel should not be exported")
+		assert.True(t, exportedUsers[th.BasicUser.Username], "channel member should be exported")
+	})
+
+	t.Run("version line contains channel scope metadata", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		require.Len(t, lines["version"], 1)
+		info, ok := lines["version"][0]["info"].(map[string]any)
+		require.True(t, ok, "version line missing info field")
+
+		additionalRaw, ok := info["additional"]
+		require.True(t, ok, "version info missing additional field")
+
+		additionalBytes, err := json.Marshal(additionalRaw)
+		require.NoError(t, err)
+
+		var scope imports.ExportScopeAdditional
+		require.NoError(t, json.Unmarshal(additionalBytes, &scope))
+		assert.Equal(t, th.BasicTeam.Name, scope.TeamName)
+		assert.Equal(t, th.BasicChannel.Name, scope.ChannelName)
+	})
+
+	t.Run("DMs are excluded from channel-scoped export", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a DM between BasicUser and BasicUser2.
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		dmPost := &model.Post{ChannelId: dm.Id, Message: "dm-post", UserId: th.BasicUser.Id}
+		_, _, appErr = th.App.CreatePost(th.Context, dmPost, dm, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		assert.Empty(t, lines["direct_channel"], "DMs should not appear in channel-scoped export")
+		assert.Empty(t, lines["direct_post"], "DM posts should not appear in channel-scoped export")
+	})
+
+	t.Run("includes post authors who left the channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a user, add to channel, have them post, then remove from channel.
+		leavingUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, leavingUser, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, leavingUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "leaving-user-post", UserId: leavingUser.Id}
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		appErr = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, leavingUser.Id)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedUsers := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			user := ul["user"].(map[string]any)
+			exportedUsers[user["username"].(string)] = true
+		}
+		assert.True(t, exportedUsers[leavingUser.Username], "post author who left channel should still be exported")
+	})
+
+	t.Run("exported user has only target channel in their memberships", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Add BasicUser to a second channel in the same team.
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, otherChannel, false)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		for _, ul := range lines["user"] {
+			user := ul["user"].(map[string]any)
+			if user["username"].(string) != th.BasicUser.Username {
+				continue
+			}
+			teams, ok := user["teams"].([]any)
+			require.True(t, ok, "user should have teams")
+			for _, ti := range teams {
+				team := ti.(map[string]any)
+				channels, ok := team["channels"].([]any)
+				if !ok {
+					continue
+				}
+				for _, ci := range channels {
+					ch := ci.(map[string]any)
+					assert.Equal(t, th.BasicChannel.Name, ch["name"], "user should only have target channel in memberships")
+				}
+			}
+		}
+	})
+
+	t.Run("empty channel export contains no posts", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		emptyChannel := th.CreateChannel(t, th.BasicTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: emptyChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		assert.Empty(t, lines["post"], "empty channel should produce no posts in export")
+	})
+
+	t.Run("invalid channel name returns error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: "nonexistent-channel-xyz",
+		})
+		require.NotNil(t, appErr, "exporting a nonexistent channel should return an error")
+	})
 }
 
 func TestBulkExportSingleTeam(t *testing.T) {
