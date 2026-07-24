@@ -39,7 +39,7 @@ const GlobalAttributes: React.FC = () => {
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div
-                    className='admin-console__container GlobalAttributes__container'
+                    className='admin-console__container'
                     data-testid='global_attributes'
                 >
                     <GlobalAttributesTable/>

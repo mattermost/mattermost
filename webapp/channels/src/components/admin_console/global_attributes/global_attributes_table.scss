@@ -29,6 +29,12 @@
     font-weight: variables.$font-weight--semibold;
 }
 
+.GlobalAttributesTable__empty {
+    padding: 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-align: center;
+}
+
 .GlobalAttributesTable__wrapper {
     // The shared .adminConsoleListTableContainer rule (list_table.scss) sets
     // overflow: auto unconditionally, which clips the table into its own
