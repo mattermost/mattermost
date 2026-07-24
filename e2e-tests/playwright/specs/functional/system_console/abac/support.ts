@@ -387,8 +387,10 @@ export async function fillSingleConditionValue(page: Page, value: string): Promi
     const menuButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
 
     // Wait for whichever variant rendered after the operator was chosen.
-    await page.locator('.values-editor__simple-input, [data-testid="valueSelectorMenuButton"]').first().
-        waitFor({state: 'visible', timeout: 10000});
+    await page
+        .locator('.values-editor__simple-input, [data-testid="valueSelectorMenuButton"]')
+        .first()
+        .waitFor({state: 'visible', timeout: 10000});
 
     if (await inlineInput.isVisible().catch(() => false)) {
         await inlineInput.fill(value);

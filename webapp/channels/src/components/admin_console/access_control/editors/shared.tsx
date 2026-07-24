@@ -6,10 +6,12 @@ import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
@@ -403,10 +405,16 @@ interface TestResultsProps {
     teamId?: string;
     isStacked?: boolean;
     onExited: () => void;
+
+    /** Plugin override for the members search, forwarded from
+     *  CELEditorActions.searchUsers. When provided it replaces the built-in
+     *  searchUsersForExpression thunk (the plugin resolves its own channel, so
+     *  the picker's channel id is not threaded into it). */
+    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
 }
 
 // The built-in expression test/simulate results modal.
-export function TestResults({expression, channelId, teamId, isStacked, onExited}: TestResultsProps): JSX.Element {
+export function TestResults({expression, channelId, teamId, isStacked, onExited, searchUsers}: TestResultsProps): JSX.Element {
     const requireChannel = !channelId && referencesResourceAttributes(expression);
     return (
         <TestResultsModal
@@ -415,8 +423,14 @@ export function TestResults({expression, channelId, teamId, isStacked, onExited}
             requireChannel={requireChannel}
             actions={{
                 openModal: () => {},
-                searchUsers: (term: string, after: string, limit: number, pickedChannelId?: string) =>
-                    searchUsersForExpression(expression, term, after, limit, pickedChannelId ?? channelId, teamId),
+                searchUsers: (term: string, after: string, limit: number, pickedChannelId?: string) => {
+                    if (searchUsers) {
+                        // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                        const search = searchUsers;
+                        return () => search(expression, term, after, limit);
+                    }
+                    return searchUsersForExpression(expression, term, after, limit, pickedChannelId ?? channelId, teamId);
+                },
             }}
         />
     );

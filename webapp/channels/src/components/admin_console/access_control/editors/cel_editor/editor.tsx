@@ -5,11 +5,12 @@ import * as monaco from 'monaco-editor';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AccessControlTestResult} from '@mattermost/types/access_control';
+import type {AccessControlTestResult, CELExpressionError} from '@mattermost/types/access_control';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {MonacoLanguageProvider} from './language_provider';
 
@@ -89,8 +90,9 @@ export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<stri
         map((attr) => attr.attribute).
         filter((name) => !name.includes(' ') && name.trim() !== '');
     const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
-    const nativeNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && attr.isNative));
-    const cpaNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && !attr.isNative));
+    const userAttrs = userAttributes.filter((attr) => !attr.objectType || attr.objectType === USER_OBJECT_TYPE);
+    const nativeNames = cleanNames(userAttrs.filter((attr) => attr.isNative));
+    const cpaNames = cleanNames(userAttrs.filter((attr) => !attr.isNative));
 
     const schemas: Record<string, string[]> = {
         user: ['attributes', ...(sessionAttrNames.length ? ['session'] : []), ...nativeNames],
@@ -106,7 +108,17 @@ export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<stri
     return schemas;
 }
 
-interface CELEditorProps {
+/** Optional overrides for the editor's network calls, used by plugins consuming window.Components.AccessControlCELEditor. */
+export interface CELEditorActions {
+
+    /** Overrides Client4.checkAccessControlExpression. */
+    checkExpression?: (expression: string) => Promise<CELExpressionError[]>;
+
+    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
+    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+}
+
+export interface CELEditorProps {
     value: string;
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
@@ -143,6 +155,7 @@ interface CELEditorProps {
      *  default "Test access rule" copy. */
     testButtonLabel?: React.ReactNode;
     hasMaskedRows?: boolean;
+    actions?: CELEditorActions;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
@@ -161,6 +174,7 @@ function CELEditor({
     onTestClick,
     testButtonLabel,
     hasMaskedRows = false,
+    actions,
 }: CELEditorProps): JSX.Element {
     const intl = useIntl();
     const [editorState, setEditorState] = useState({
@@ -185,6 +199,8 @@ function CELEditor({
         schemas.resource = ['attributes'];
         schemas['resource.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
     }
+
+    const injectedCheckExpression = actions?.checkExpression;
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -224,7 +240,12 @@ function CELEditor({
         setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
-            const errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
+            let errors: CELExpressionError[];
+            if (injectedCheckExpression) {
+                errors = await injectedCheckExpression(expression);
+            } else {
+                errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
+            }
             const isValid = errors.length === 0;
             setEditorState((prev) => ({
                 ...prev,
@@ -244,7 +265,7 @@ function CELEditor({
             }));
             onValidate?.(false);
         }
-    }, [onValidate]);
+    }, [onValidate, injectedCheckExpression, channelId, teamId]);
 
     // Update the validateSyntax ref whenever it changes
     useEffect(() => {
@@ -503,6 +524,7 @@ function CELEditor({
                     teamId={teamId}
                     isStacked={true}
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                    searchUsers={actions?.searchUsers}
                 />
             )}
             {showHelpModal && (

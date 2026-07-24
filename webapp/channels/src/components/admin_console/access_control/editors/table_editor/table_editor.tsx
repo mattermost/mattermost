@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AccessControlVisualAST} from '@mattermost/types/access_control';
+import type {AccessControlTestResult, AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
@@ -124,7 +124,7 @@ export function isRowValueValid(row: TableRow): boolean {
     return true;
 }
 
-interface TableEditorProps {
+export interface TableEditorProps {
     value: string;
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
@@ -136,6 +136,9 @@ interface TableEditorProps {
     teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
+
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
@@ -832,6 +835,7 @@ function TableEditor({
                     teamId={teamId}
                     isStacked={true}
                     onExited={() => setShowTestResults(false)}
+                    searchUsers={actions.searchUsers}
                 />
             )}
             {showHelpModal && (
