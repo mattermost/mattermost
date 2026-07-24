@@ -4,45 +4,31 @@
 // configure/agents-admin-guide.mdx and end-user-guide/agents.mdx) and a
 // handful of nested reference pages have real content to link to.
 //
-// Why a staging script instead of pointing the submodule directly at the
-// path docs pages live under: git submodules can't do a sparse "just this
-// subfolder" checkout at the submodule mount point itself — the submodule
-// always mounts the whole mattermost-plugin-agents repo (README, LICENSE,
-// CLAUDE.md, .github/, Go source, etc.), and only docs/ (+ its img/) is
-// meant to become real pages. So the submodule is vendored at
-// vendor/mattermost-plugin-agents (out of the doc tree), and this script
-// copies+lightly-transforms only vendor/mattermost-plugin-agents/docs/**
-// into main/agents/docs/ before the sidebar is generated. This mirrors the
-// production Sphinx repo, which achieves the same "only docs/ becomes
-// pages" effect via conf.py exclude_patterns/redirect lists on the same
-// full-repo submodule checkout.
+// Why staging instead of checking out the submodule directly under docs/:
+// submodules can't do a sparse "just this subfolder" checkout, and the repo
+// also has README/LICENSE/Go source/etc. we don't want as pages. So it's
+// vendored out-of-tree at vendor/mattermost-plugin-agents, and this script
+// copies+transforms only its docs/** into main/agents/docs/ before the
+// sidebar is generated — same effect as Sphinx's conf.py exclude/redirect
+// rules on its own full-repo submodule checkout.
 //
-// Navigation model mirrors Sphinx exactly (see source/end-user-guide/
-// agents.rst and source/administration-guide/configure/agents-admin-
-// guide.rst in the old docs repo): Sphinx never gives Agents its own
-// top-level nav section. It `.. include::`s admin_guide.md/user_guide.md
-// bodies directly into the two curated pages, and only gives a handful of
-// files (providers, aws_bedrock_setup, sovereign_ai, usage_tips) their own
-// nested pages via a small hidden toctree on those same two pages. The
-// rest of the submodule's docs/ (load-testing, upgrading_to_2.0, all of
-// features/) are never referenced in any Sphinx toctree — reachable only
-// by direct URL, not by navigating the site. This script reproduces that
-// three-way split:
-//   - INLINE_PARTIALS: staged twice — once as a normal (but unlisted) doc
-//     for direct-link parity with Sphinx's orphan pages, and once as a
-//     Docusaurus "Markdown partial" (leading underscore, auto-excluded
-//     from routing/sidebars) that the curated pages `import` and render
-//     inline, reproducing the live `.. include::` behavior.
-//   - NAV_CHILDREN: normal listed docs. gen-documentation-sidebar.mjs
-//     nests these under the curated pages via cross-directory {doc: ...}
-//     group items (see ADMIN_CONFIGURE_GROUPS.agents / the End User Guide
-//     promotion in that script).
-//   - Everything else: staged as normal but *unlisted* docs — built and
-//     linkable (several of these files link to each other), but absent
-//     from the sidebar, matching Sphinx never listing them anywhere.
+// Navigation mirrors Sphinx exactly (source/end-user-guide/agents.rst,
+// source/administration-guide/configure/agents-admin-guide.rst): no
+// top-level Agents nav section. admin_guide.md/user_guide.md are `..
+// include::`d into the two curated pages; providers/aws_bedrock_setup/
+// sovereign_ai/usage_tips get their own nested pages via a small hidden
+// toctree; everything else (load-testing, upgrading_to_2.0, features/*) is
+// direct-URL-only, never in any toctree. Reproduced as a three-way split:
+//   - INLINE_PARTIALS: staged as an unlisted doc (direct-link parity) AND
+//     as a Markdown partial (leading underscore) the curated pages
+//     `import` and render inline, reproducing `.. include::`.
+//   - NAV_CHILDREN: normal listed docs, nested under the curated pages by
+//     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items.
+//   - Everything else: unlisted docs — built and linkable, absent from
+//     the sidebar.
 //
-// Re-run safely at any time (e.g. after `git submodule update --remote`) to
-// re-sync with upstream — it fully regenerates its output directories.
+// Re-run safely at any time (e.g. after `git submodule update --remote`) —
+// it fully regenerates its output directories.
 //
 // Usage: node docs/site/scripts/stage-agents-docs.mjs
 
