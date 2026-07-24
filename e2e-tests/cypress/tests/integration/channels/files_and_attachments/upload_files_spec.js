@@ -266,12 +266,12 @@ describe('Upload Files', () => {
                 // # Filter out the url from the css background property.
                 // Chromium may return url("https://...") or url(https://...) depending
                 // on the version, so use a regex instead of splitting on quotes.
-const bgImage = imageDiv.css('background-image');
-const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-expect(match, `unexpected background-image: ${bgImage}`).to.not.be.null;
-const imageURL = match[1];
+                const bgImage = imageDiv.css('background-image');
+                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                expect(match, `unexpected background-image: ${bgImage}`).to.not.be.null;
+                const imageURL = match[1];
 
-downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
+                downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
             });
         });
 
