@@ -104,7 +104,7 @@ function ActionsCell({field}: {field: PropertyField}) {
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: 'btn btn-transparent',
+                class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
                 children: <DotsHorizontalIcon size={18}/>,
                 dataTestId: menuId,
                 'aria-label': formatMessage(actionsLabels.tooltip),
