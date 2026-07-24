@@ -367,6 +367,50 @@ export async function createPrivateChannelForABAC(client: Client4, teamId: strin
 }
 
 /**
+ * Fill a single-value condition in the table editor's value cell.
+ *
+ * The value editor renders one of two ways depending on the attribute and what
+ * comparison targets are available:
+ *   - an always-visible inline input (.values-editor__simple-input), for a
+ *     free-text attribute with no comparable channel-attribute targets; or
+ *   - a dropdown (valueSelectorMenuButton) whose "Add value..." field is only
+ *     revealed after the menu is opened, used when channel attributes are
+ *     offered as comparison targets (resource attributes) or the attribute has
+ *     options.
+ *
+ * Since channel (resource) attributes are system-wide, whether the dropdown
+ * appears depends on data that other specs may have created on the shared
+ * server. Handle both variants so the helper is agnostic to that.
+ */
+export async function fillSingleConditionValue(page: Page, value: string): Promise<void> {
+    const inlineInput = page.locator('.values-editor__simple-input').first();
+    const menuButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+
+    // Wait for whichever variant rendered after the operator was chosen.
+    await page.locator('.values-editor__simple-input, [data-testid="valueSelectorMenuButton"]').first().
+        waitFor({state: 'visible', timeout: 10000});
+
+    if (await inlineInput.isVisible().catch(() => false)) {
+        await inlineInput.fill(value);
+        await inlineInput.press('Tab'); // commit (onBlur)
+        await page.waitForTimeout(300);
+        return;
+    }
+
+    // Dropdown variant: open the menu, then fill the "Add value..." field inside it.
+    await menuButton.click({force: true});
+    const menuInput = page.locator('input[placeholder*="Add value" i]').first();
+    await menuInput.waitFor({state: 'visible', timeout: 10000});
+    await menuInput.fill(value);
+
+    // Tab commits (input onBlur) and closes the menu (menu closeMenuOnTab), so
+    // the dropdown doesn't overlay later actions. Enter would commit but leave
+    // the menu open, and Escape is swallowed by the input's stopPropagation.
+    await menuInput.press('Tab');
+    await page.waitForTimeout(300);
+}
+
+/**
  * Create basic policy using Table Editor (Simple mode)
  */
 /**
@@ -493,10 +537,7 @@ export async function createBasicPolicy(
             await page.waitForTimeout(300);
         } else {
             // Single-value operator
-            const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
-            await valueInput.waitFor({state: 'visible', timeout: 10000});
-            await valueInput.fill(options.value);
-            await page.waitForTimeout(500);
+            await fillSingleConditionValue(page, options.value);
         }
     } // end if (clickedAddAttribute)
 
