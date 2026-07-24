@@ -505,7 +505,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 // A channel admin can't change a policy's parent imports or team-scope through the general
 // update endpoint -- those belong to the assign/unassign paths. System admins still can.
 func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	parentID := model.NewId()
 
