@@ -10731,6 +10731,10 @@
     "translation": "Invalid AD/LDAP Guest Filter."
   },
   {
+    "id": "ent.ldap.validate_group_filter.app_error",
+    "translation": "Invalid AD/LDAP Group Filter."
+  },
+  {
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -11839,6 +11843,10 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
+    "translation": "{{.Setting}} must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
@@ -11951,6 +11959,14 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
+    "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 0."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.index_shards.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 1."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
   },
@@ -11977,6 +11993,10 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+  },
+  {
+    "id": "model.config.is_valid.email_push_notification_buffer.app_error",
+    "translation": "Invalid push notification buffer size for email settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -12017,6 +12037,10 @@
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.export_file_driver.app_error",
+    "translation": "Invalid export driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
@@ -12387,6 +12411,26 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
+    "translation": "BurnOnReadDurationSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
+    "translation": "BurnOnReadSchedulerFrequencySeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
+    "translation": "FeatureFlagSyncIntervalSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
+    "translation": "RefreshPostStatsRunTime must be a time in the format \"hh:mm\"."
+  },
+  {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://."
   },
@@ -12427,8 +12471,16 @@
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
+    "translation": "Invalid migrations statement timeout for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
+    "translation": "Invalid replica monitor interval for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
