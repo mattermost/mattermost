@@ -44,6 +44,14 @@
     th.actions {
         text-align: right;
     }
+
+    table.adminConsoleListTable thead tr th {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
 }
 
 // .btn.btn-transparent's shared :hover/:active rule (_buttons.scss) paints both states
