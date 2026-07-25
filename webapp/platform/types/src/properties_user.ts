@@ -23,7 +23,35 @@ export type UserPropertyFieldGroupID = 'custom_profile_attributes' | 'session_at
 export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_attributes';
 export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 
+// Custom profile attributes and native user attributes both target the `user`
+// object type; session attributes are the exception (`session`).
+export const USER_OBJECT_TYPE = 'user';
+
+/**
+ * Session attributes are the only property fields targeting the `session`
+ * object type, so identity is keyed off `object_type` rather than the group
+ * id. The server assigns each field a real group UUID, so comparing against
+ * the group NAME never matches live data.
+ */
+export function isSessionAttributeField(field: Pick<PropertyField, 'object_type'>): boolean {
+    return field.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE;
+}
+
 export type UserPropertyValueType = 'phone' | 'url' | '';
+
+export type PropertyFieldOwnerType = 'plugin' | 'service' | 'role' | 'user';
+
+/**
+ * An identity that owns (manages the data of) a user attribute. Read-only in
+ * the admin UI: ownership is assigned by the owning integration (e.g. the SCIM
+ * plugin), not from the System Console. The UI renders a badge from the owner
+ * id and scope.
+ */
+export type PropertyFieldOwner = {
+    id: string;
+    type: PropertyFieldOwnerType;
+    scopes: string[];
+};
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
@@ -39,6 +67,11 @@ export type UserPropertyField = PropertyField & {
         source_plugin_id?: string;
         access_mode?: '' | 'source_only' | 'shared_only';
         display_name?: string;
+        owners?: PropertyFieldOwner[];
+
+        // Session-attribute-only: platforms the field applies to (e.g. desktop,
+        // mobile, browser). Present on `session`-object-type fields.
+        platforms?: string[];
 
         // Native user attributes (e.g. user.email) are referenced as `user.<name>`
         // rather than `user.attributes.<name>`. `native` marks such synthetic fields;

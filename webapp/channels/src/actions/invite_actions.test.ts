@@ -33,9 +33,12 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     },
 }));
 
+const mockSendEmailInvitesCalls: Array<{team: string; emails: string[]; profiles?: unknown}> = [];
+
 jest.mock('mattermost-redux/actions/teams', () => ({
     getTeamMembersByIds: () => ({type: 'MOCK_RECEIVED_ME'}),
-    sendEmailInvitesToTeamGracefully: (team: string, emails: string[]) => {
+    sendEmailInvitesToTeamGracefully: (team: string, emails: string[], profiles?: unknown) => {
+        mockSendEmailInvitesCalls.push({team, emails, profiles});
         if (team === 'incorrect-default-smtp') {
             return ({type: 'MOCK_RECEIVED_ME', data: emails.map((email) => ({email, error: {message: '(From server) SMTP is not configured in System Console.', id: 'api.team.invite_members.unable_to_send_email_with_defaults.app_error'}}))});
         } else if (emails.length > 21) { // Poor attempt to mock rate limiting.
@@ -163,6 +166,46 @@ describe('actions/invite_actions', () => {
                     ],
                 },
             });
+        });
+
+        it('should pass only the filled-in profiles of invited emails to the invite request', async () => {
+            mockSendEmailInvitesCalls.length = 0;
+            const emails = ['email-one@email-one.com', 'email-two@email-two.com'];
+            const profiles = {
+                'email-one@email-one.com': {
+                    email: 'email-one@email-one.com',
+                    username: 'email.one',
+                    first_name: 'Email',
+                    last_name: 'One',
+                },
+                'email-two@email-two.com': {
+                    email: 'email-two@email-two.com',
+                    username: '',
+                    first_name: '',
+                    last_name: '',
+                },
+                'not-invited@example.com': {
+                    email: 'not-invited@example.com',
+                    username: 'not.invited',
+                    first_name: 'Not',
+                    last_name: 'Invited',
+                },
+            };
+            await store.dispatch(sendMembersInvites('correct', [], emails, profiles));
+            expect(mockSendEmailInvitesCalls).toHaveLength(1);
+            expect(mockSendEmailInvitesCalls[0].profiles).toEqual([{
+                email: 'email-one@email-one.com',
+                username: 'email.one',
+                first_name: 'Email',
+                last_name: 'One',
+            }]);
+        });
+
+        it('should pass no profiles when none are provided', async () => {
+            mockSendEmailInvitesCalls.length = 0;
+            await store.dispatch(sendMembersInvites('correct', [], ['email-one@email-one.com']));
+            expect(mockSendEmailInvitesCalls).toHaveLength(1);
+            expect(mockSendEmailInvitesCalls[0].profiles).toEqual([]);
         });
 
         it('should generate list of failures for emails on invite fails', async () => {

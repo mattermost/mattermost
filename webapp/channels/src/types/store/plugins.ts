@@ -338,6 +338,14 @@ export type ProductComponent = PluginComponent & {
      * @default true
      */
     wrapped: boolean;
+
+    /**
+     * When `true`, the host owns team handling for the product so the plugin doesn't have to:
+     * mounted under `/:team{baseURL}`, it resolves/selects the team and renders only once the
+     * current team matches the URL. When `false`, it mounts at `baseURL` globally.
+     * @default false
+     */
+    isTeamScoped: boolean;
 };
 
 export type NeedsTeamComponent = PluginComponent & {

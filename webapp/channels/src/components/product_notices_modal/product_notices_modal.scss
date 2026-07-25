@@ -44,6 +44,10 @@
         margin: 0 3px;
         background-color: var(--center-channel-color);
         vertical-align: middle;
+
+        &.active {
+            background-color: var(--button-bg);
+        }
     }
 
     svg {

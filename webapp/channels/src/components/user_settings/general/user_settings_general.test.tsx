@@ -57,6 +57,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPositionAttributeSet: false,
         samlPositionAttributeSet: false,
         ldapPictureAttributeSet: false,
+        lockProfileFieldsForEmailUsers: 'none' as const,
+        canEditOtherUsers: false,
         enableCustomProfileAttributes: false,
     };
 
@@ -80,7 +82,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         },
     };
 
-    test('submitUser() should have called updateMe', () => {
+    test('submitUser() should have called updateMe', async () => {
         const updateMe = jest.fn().mockResolvedValue({data: true});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
         const ref = React.createRef<UserSettingsGeneralTab>();
@@ -91,7 +93,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             />,
         );
 
-        ref.current!.submitUser(requiredProps.user, false);
+        await act(async () => {
+            ref.current!.submitUser(requiredProps.user, false);
+        });
         expect(updateMe).toHaveBeenCalledTimes(1);
         expect(updateMe).toHaveBeenCalledWith(requiredProps.user);
     });
@@ -182,7 +186,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(container.querySelectorAll('#position').length).toBe(0);
     });
 
-    test('should not show image field when LDAP picture attribute is set', () => {
+    test('should show the current image without edit actions when LDAP picture attribute is set', () => {
         const props = {...requiredProps};
         props.user = {...user};
         props.user.auth_service = 'ldap';
@@ -198,7 +202,96 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         rerender(
             <UserSettingsGeneral {...{...props, ldapPictureAttributeSet: true}}/>,
         );
-        expect(container.querySelector('.profile-img')).toBeFalsy();
+        expect(container.querySelector('.profile-img')).toBeTruthy();
+        expect(screen.queryByTestId('inputSettingPictureButton')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('saveSettingPicture')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
+    });
+
+    describe('locked profile fields for email users', () => {
+        const lockedProps = {
+            ...requiredProps,
+            user: {...user},
+            lockProfileFieldsForEmailUsers: 'all' as const,
+        };
+
+        test('should hide fully locked field editors', () => {
+            const {rerender} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    activeSection='name'
+                />,
+            );
+
+            expect(screen.queryByLabelText('First Name')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Last Name')).not.toBeInTheDocument();
+            expect(screen.getByText('This field is managed by your System Admin. Contact them to request a change.')).toBeInTheDocument();
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    activeSection='username'
+                />,
+            );
+            expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    activeSection='nickname'
+                />,
+            );
+            expect(screen.queryByLabelText('Nickname')).not.toBeInTheDocument();
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    activeSection='position'
+                />,
+            );
+            expect(screen.queryByLabelText('Position')).not.toBeInTheDocument();
+        });
+
+        test('should allow an empty last name to be filled once', () => {
+            renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    user={{...user, first_name: 'First', last_name: ''}}
+                    activeSection='name'
+                />,
+            );
+
+            expect(screen.getByLabelText('First Name')).toBeDisabled();
+            expect(screen.getByLabelText('Last Name')).toBeEnabled();
+        });
+
+        test('should keep the current picture visible without edit actions when all fields are locked', () => {
+            const {container} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    activeSection='picture'
+                />,
+            );
+
+            expect(container.querySelector('.profile-img')).toBeTruthy();
+            expect(screen.queryByTestId('inputSettingPictureButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('saveSettingPicture')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
+        });
+
+        test('should show the login provider message instead of the admin lock', () => {
+            renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedProps}
+                    user={{...user, auth_service: 'ldap'}}
+                    ldapFirstNameAttributeSet={true}
+                    activeSection='name'
+                />,
+            );
+
+            expect(screen.getByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+            expect(screen.queryByText('This field is managed by your System Admin. Contact them to request a change.')).not.toBeInTheDocument();
+        });
     });
 
     test('it should display an error about a username conflicting with a group name', async () => {

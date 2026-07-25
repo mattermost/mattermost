@@ -1,21 +1,20 @@
 ---
 title: "Reply to messages"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Reply to messages by selecting the **Reply** <img src="/img/ui/reply-outline_F0F20.svg" alt="Reply icon." className="theme-icon" /> icon next to the message text.
 
 ![Reply to Mattermost messages](/images/reply-to-message.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long press on a message and select **Reply** or simply tap on it to reply.
 
@@ -23,7 +22,9 @@ Long press on a message and select **Reply** or simply tap on it to reply.
 
 ![Tap on a Message to send a reply.](/images/mobile-reply-to-a-message-by-tapping-on-it.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 Depending on how your system admin has configured Mattermost, you may be able to [edit](/end-user-guide/collaborate/send-messages#edit-messages), [restore](/end-user-guide/collaborate/send-messages#restore-a-previous-version-of-an-edited-message), and [delete](/end-user-guide/collaborate/send-messages#delete-messages) messages after you've sent them.
 

@@ -59,7 +59,7 @@ exports[`messageHtmlToComponent Inline markdown image 1`] = `
   >
     <div
       class="file-preview__button"
-      style="display: inline-block;"
+      style="display: block;"
     >
       <figure
         class="image-loaded-container"
@@ -99,7 +99,7 @@ exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = 
     >
       <div
         class="file-preview__button"
-        style="display: inline-block;"
+        style="display: block;"
       >
         <figure
           class="image-loaded-container"

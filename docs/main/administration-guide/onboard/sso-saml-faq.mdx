@@ -26,6 +26,19 @@ Existing accounts won't update until they log in to the server.
 
 </Note>
 
+## Why does login fail with "one of the attributes is incorrect" / "`<attribute>` attribute is missing"?
+
+A login failure with the error `SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator.` — accompanied in the server logs by a detail such as `email attribute is missing` or `name attribute is missing` — means the assertion from your Identity Provider (IdP) did not contain an attribute whose name **exactly** matches what you configured in the Mattermost SAML attribute settings.
+
+Mattermost matches each attribute by its full `Name` (or `FriendlyName`) as it appears in the assertion, character-for-character. The named attribute in the error message is the value you entered in Mattermost that could not be found.
+
+This most often happens because the IdP sends attributes under a namespace. For example, Microsoft Entra ID emits its built-in claims under `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/` by default, so an attribute that looks like `email` in the Entra ID admin UI is actually sent in the assertion as `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/email`. Entering only `email` in Mattermost will not match.
+
+To resolve this:
+
+- Capture and decode the SAML response (for example, with the [SAML-tracer](https://addons.mozilla.org/firefox/addon/saml-tracer/) browser extension) and read the `Name` attribute of each `<Attribute>` element in the `<AttributeStatement>`.
+- Set each Mattermost attribute field to the **exact** `Name` value from the assertion — including any namespace prefix — or reconfigure the IdP to emit the claim under the short name you want to use in Mattermost.
+
 ## Can SAML via Microsoft ADFS be configured with Integrated Windows Authentication (IWA)?
 
 Yes. IWA is supported on the browser, with support added to iOS and Android mobile apps in Q2/2019 (mobile apps v1.18 and later).

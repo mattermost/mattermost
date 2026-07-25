@@ -1,6 +1,9 @@
 ---
 title: "Mattermost Calls Deployment Guide"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 This guide walks System Administrators step-by-step through deploying Mattermost Calls, from preparation and network readiness through to pilot testing and production rollout. You'll find clear decision points, verification checks, and troubleshooting tips to help you confirm each phase of the deployment is working before you move on.
@@ -73,12 +76,12 @@ Use this checklist to confirm you have the infrastructure, skills, and access re
 
 - [ ] You can provision at least one dedicated Linux server or VM if you plan to use the RTCD service.
 
-  _See [Infrastructure Decisions](#infrastructure-decisions) (Step 1.2) if you're unsure if you need RTCD._
+  _See [Infrastructure Decisions](#12-infrastructure-decisions) (Step 1.2) if you're unsure if you need RTCD._
 
 - [ ] You can provision a dedicated Linux server or VM for the `calls-offloader` service if you need recording, transcription, or live captions.
 - [ ] You are prepared to deploy a TURN server if your users cannot reliably reach the media service on UDP or TCP `8443`.
 
-  _See [Networking Decisions](#networking-decisions) (Step 1.3) if you're unsure if you need a TURN server._
+  _See [Networking Decisions](#13-networking-decisions) (Step 1.3) if you're unsure if you need a TURN server._
 
 - [ ] You have the appropriate [Mattermost edition and license](/../../product-overview/editions-and-offerings) for the features you need:
   - **Mattermost Entry or Team Edition**: 1-1 calling and screen sharing (Up to 40 minutes)
@@ -98,7 +101,7 @@ Use this checklist to confirm you have the infrastructure, skills, and access re
 
 - [ ] You know how end users will connect to Calls (From private networks, VPN, or from the public internet)
 
-  _This impacts your [networking decisions](#networking-decisions) (Step 1.3)_
+  _This impacts your [networking decisions](#13-networking-decisions) (Step 1.3)_
 
 - [ ] You can open the required inbound and outbound firewall rules, or you can engage the network or security team that manages them.
 
@@ -159,7 +162,8 @@ To determine if you'll need RTCD, start by answering the following questions abo
 
 Use the tabs below to view the reference architecture for each deployment model:
 
-````{tab} Integrated
+<Tabs>
+<TabItem value="integrated" label="Integrated">
 
 An **Integrated** deployment does not require any additional infrastructure:
 
@@ -195,9 +199,8 @@ Reference architecture when using the Recording service with Integrated Calls:
 
 - **Mattermost Enterprise** or **Enterprise Advanced**
 
-````
-
-````{tab} RTCD
+</TabItem>
+<TabItem value="rtcd" label="RTCD">
 
 An **RTCD Server** is added as a dedicated media service that processes all call audio and screen sharing media.
 
@@ -245,7 +248,8 @@ For most production deployments that need recording, RTCD plus `calls-offloader`
 
 </Note>
 
-````
+</TabItem>
+</Tabs>
 
 ### 1.3 Networking Decisions
 
@@ -334,7 +338,8 @@ Work through one server at a time so you can verify nothing is missed before mov
 
 **Only open the ports relevant for your chosen deployment architecture (Integrated or RTCD):**
 
-````{tab} Integrated
+<Tabs>
+<TabItem value="integrated" label="Integrated">
 
 ##### Mattermost server ports
 
@@ -372,9 +377,8 @@ If you deployed a TURN server in Step 1.4, open only the ports required by the t
 | 5349 | TCP | Inbound | Mattermost clients | TURN server | (Optional) If you configure TURN over TLS. Do not open this port unless you are explicitly using it. |
 | 49152-65535 | UDP | Inbound | Mattermost clients | TURN server | TURN relay port range required to relay media. |
 
-````
-
-````{tab} RTCD
+</TabItem>
+<TabItem value="rtcd" label="RTCD">
 
 ##### Mattermost server ports
 
@@ -418,7 +422,8 @@ If you deployed a TURN server in Step 1.4, open these ports. If you are using `c
 | 5349 | TCP | Inbound | Mattermost clients | TURN server | (Optional) If you configure TURN over TLS. Do not open this port unless you are explicitly using it. |
 | 49152-65535 | UDP | Inbound | Mattermost clients | TURN server | TURN relay port range required to relay media. |
 
-````
+</TabItem>
+</Tabs>
 
 ### 1.6 Networking Checks
 
@@ -526,7 +531,8 @@ Now you will configure Calls following the relevant path for your deployment arc
 
 Select your path in the tab below to follow the appropriate installation and configuration instructions:
 
-````{tab} Path A: Integrated
+<Tabs>
+<TabItem value="path-a-integrated" label="Path A: Integrated">
 
 ### Path A: Configure Integrated Calls
 
@@ -602,9 +608,8 @@ Now smoke test your Calls deployment with your test accounts:
 
 </Important>
 
-````
-
-````{tab} Path B: Install and Configure RTCD
+</TabItem>
+<TabItem value="path-b-install-and-configure-rtcd" label="Path B: Install and Configure RTCD">
 
 ### Path B: Install and Configure RTCD
 
@@ -662,7 +667,7 @@ Once RTCD is installed, configured, and reachable, update the Calls plugin to us
 
 Before your pilot, set up Calls monitoring so you can see sessions, errors, CPU, and memory while real users are testing.
 
-Calls monitoring uses Prometheus (a tool that collects metrics from your servers) and Grafana (a dashboard that visualizes those metrics). If you don't have these set up yet, see [Mattermost monitoring setup](../../administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring.md) before continuing. If you already have Prometheus and Grafana running, add the following scrape targets and import the dashboard:
+Calls monitoring uses Prometheus (a tool that collects metrics from your servers) and Grafana (a dashboard that visualizes those metrics). If you don't have these set up yet, see [Mattermost monitoring setup](../../administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring.mdx) before continuing. If you already have Prometheus and Grafana running, add the following scrape targets and import the dashboard:
 
 - **RTCD metrics**: `http://YOUR_RTCD_SERVER:8045/metrics`
 - **Calls plugin metrics**: `http://YOUR_MATTERMOST_SERVER:8067/plugins/com.mattermost.calls/metrics`
@@ -697,7 +702,8 @@ If these checks fail, try these troubleshooting techniques first:
 
 </Important>
 
-````
+</TabItem>
+</Tabs>
 
 ---
 

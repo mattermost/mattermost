@@ -27,7 +27,7 @@ type UserAccessToken struct {
 	ExpiresAt int64 `json:"expires_at"`
 	// LastNotifiedAt is the Unix timestamp in milliseconds at which the token
 	// owner was last warned that the token is approaching expiry. It is nil until
-	// the first warning is sent. The pat_expiry_notify job uses it to dedup: the
+	// the first warning is sent. The notify_expiring_access_tokens job uses it to dedup: the
 	// warning bucket already covered is recovered from (ExpiresAt - LastNotifiedAt),
 	// so the same (or a less urgent) warning is not re-sent every run. Storing the
 	// moment rather than the bucket keeps the column independent of the day cascade
