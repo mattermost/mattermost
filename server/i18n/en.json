@@ -10727,12 +10727,12 @@
     "translation": "Invalid AD/LDAP Filter."
   },
   {
-    "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "Invalid AD/LDAP Guest Filter."
-  },
-  {
     "id": "ent.ldap.validate_group_filter.app_error",
     "translation": "Invalid AD/LDAP Group Filter."
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -11843,16 +11843,16 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
-    "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
-    "translation": "{{.Setting}} must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
+    "translation": "{{.Setting}} must be a positive number."
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
@@ -11983,6 +11983,10 @@
     "translation": "Search Request Timeout must be at least 1 second."
   },
   {
+    "id": "model.config.is_valid.email_address.app_error",
+    "translation": "{{.Setting}} must be a valid email address."
+  },
+  {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
     "translation": "Invalid email batching buffer size for email settings. Must be zero or a positive number."
   },
@@ -11993,10 +11997,6 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
-  },
-  {
-    "id": "model.config.is_valid.email_address.app_error",
-    "translation": "{{.Setting}} must be a valid email address."
   },
   {
     "id": "model.config.is_valid.email_push_notification_buffer.app_error",
@@ -12379,6 +12379,10 @@
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'."
   },
   {
+    "id": "model.config.is_valid.s3_upload_part_size.app_error",
+    "translation": "{{.Setting}} must be at least {{.Min}} bytes."
+  },
+  {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
     "translation": "Invalid Admin attribute. Must be in the form 'field=value'."
   },
@@ -12429,10 +12433,6 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Invalid Username attribute. Must be set."
-  },
-  {
-    "id": "model.config.is_valid.s3_upload_part_size.app_error",
-    "translation": "{{.Setting}} must be at least {{.Min}} bytes."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
@@ -12539,12 +12539,12 @@
     "translation": "Invalid value for user status away timeout. Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
-  },
-  {
     "id": "model.config.is_valid.webserver_mode.app_error",
     "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
