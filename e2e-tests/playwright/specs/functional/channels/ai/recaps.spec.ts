@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './ai_bridge_fixture';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 /**
