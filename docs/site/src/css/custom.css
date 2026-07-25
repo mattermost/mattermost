@@ -370,7 +370,16 @@ h2, h3, h4 {
 
 /* === Code === */
 
-code {
+/* `:not(pre) > code`, not bare `code`: the code block's own `<code>` (inside
+ * `<pre>`) is also just a `code` element, and this rule's specificity
+ * ([data-theme='dark'] + tag = 0-1-1) beats Infima's `pre code { background:
+ * transparent }` (0-0-2 tags only). Left unscoped, this inline-code
+ * background painted almost the entire visible area of every dark-mode code
+ * block with --mm-denim-800 (near page-black), which is *why* the code block
+ * background fix below kept looking like a no-op — the lighter fill was only
+ * ever visible in the thin padding gap around the near-black `<code>` on top
+ * of it. Confirmed via computed styles + matched CSS rules, not a guess. */
+:not(pre) > code {
   background-color: var(--mm-denim-50);
   color: var(--mm-text-primary);
   border: 1px solid var(--mm-border-subtle);
@@ -387,7 +396,7 @@ code {
    * and `.theme-code-block .prism-code` sets its own line-height too. */
   line-height: 1.2;
 }
-[data-theme='dark'] code {
+[data-theme='dark'] :not(pre) > code {
   background-color: var(--mm-denim-800);
   border-color: var(--mm-denim-700);
 }
@@ -418,11 +427,23 @@ code {
   color: var(--mm-callout-text);
   fill: var(--mm-callout-text);
 }
-[data-theme='dark'] .alert--secondary {
-  --ifm-alert-background-color: var(--mm-callout-note-bg);
-}
+/* --mm-denim-700 (the previous note/info background) sits at only ~1.1:1
+ * background-to-page contrast — same hue family as the page, so however
+ * "correct" the text-on-it contrast measured, the box itself didn't read
+ * as a distinct surface (dark-on-dark hue collision). success/warning/
+ * danger don't have this problem because green/amber/red are a different
+ * hue family from the navy page — human contrast perception isn't
+ * luminance-only the way the WCAG ratio is. Fix: give note/info a border
+ * for a crisp edge (separate from --ifm-alert-border-color/the left
+ * accent bar, so it doesn't touch that reserved variable) plus the
+ * brand's actual denim-500 primary as the fill, which is ~4x page
+ * luminance — enough to read as a highlighted card without a hue swap. */
+[data-theme='dark'] .alert--secondary,
 [data-theme='dark'] .alert--info {
-  --ifm-alert-background-color: var(--mm-denim-700);
+  --ifm-alert-background-color: var(--mm-denim-500);
+  border-top: 1px solid var(--mm-denim-300);
+  border-right: 1px solid var(--mm-denim-300);
+  border-bottom: 1px solid var(--mm-denim-300);
 }
 [data-theme='dark'] .alert--success {
   --ifm-alert-background-color: #14442c;
@@ -440,8 +461,12 @@ code {
   box-shadow: none !important;
 }
 
+/* --mm-denim-700 (#121E37) is only ~1.1:1 contrast from the page
+ * background (#0E1525) — same dark-navy hue family, no visible edge.
+ * denim-400 is a real jump in lightness, giving the block a border that
+ * actually reads as a boundary. */
 [data-theme='dark'] .theme-code-block {
-  border-color: var(--mm-denim-700);
+  border-color: var(--mm-denim-400);
 }
 
 /* Light mode uses the "github" Prism theme, whose own background is
@@ -455,16 +480,44 @@ code {
  * darker --mm-denim-800 (as light mode does with denim-50) broke that
  * pairing — several token colors read low-contrast/muddy against a
  * background darker than the one they were tuned for, which is the "code
- * blocks still not great in dark mode" feedback. Leaving Dracula's own
- * background alone (no dark-mode override below) keeps its
- * well-tested token contrast intact; the surrounding .theme-code-block
- * border still ties it into the page's dark chrome. */
+ * blocks still not great in dark mode" feedback.
+ *
+ * Two earlier attempts at the dark-mode rule were both wrong:
+ *   1. `background: unset !important` — looked like a no-op but wasn't:
+ *      `background` is a non-inherited shorthand, so `unset` resolves to
+ *      `initial` (transparent), which still wins over Prism's inline
+ *      `style="background-color: ..."` because of `!important`. That
+ *      showed the page's own background through the block.
+ *   2. No dark-mode rule at all — the light-mode rule below is unscoped
+ *      (no `[data-theme]` selector), so with no more-specific override it
+ *      also applied in dark mode, forcing denim-50 (near-white) onto a
+ *      dark page.
+ *   3. Hardcoding dracula's own background (#282a36) — this actually
+ *      *is* dracula's background (verified via computed style), but
+ *      dracula's own bg and our page bg (#0E1525) are both so dark that
+ *      the contrast between them is only ~1.3:1 — visually "the same",
+ *      confirmed live (not a screenshot-only judgment: checked computed
+ *      background-color in devtools against the page's). Same dark-on-
+ *      dark collision as the callout background bug elsewhere.
+ * Fix: lighten the fill further than dracula's own tuning would, well
+ * past the ~1.9:1 first attempt (still "pretty much the same" per live
+ * feedback) to ~2.9:1 — low-luminance colors need a bigger jump than the
+ * contrast-ratio formula implies to look different to the eye at all
+ * (light mode's page-white vs. fill-denim-50 is a similarly small ~1.1:1
+ * ratio but reads as obviously different, because human contrast
+ * sensitivity drops sharply in the low end of the luminance range dark
+ * mode lives in). Trade-off: dracula's dimmest token (comments, #6272a4)
+ * loses some of its contrast against this lighter fill — acceptable,
+ * since comments are already the intentionally de-emphasized token and
+ * stay distinguishable via italics, and none of this site's shell/curl
+ * examples use inline comments anyway. Paired with the denim-400 border
+ * below for a visible edge. */
 .theme-code-block .prism-code {
   font-size: 0.85rem;
   background: var(--mm-denim-50) !important;
 }
 [data-theme='dark'] .theme-code-block .prism-code {
-  background: unset !important;
+  background: #52607A !important;
 }
 
 /* Copy button — denim border, marigold on hover */
