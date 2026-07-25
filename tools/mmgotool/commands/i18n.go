@@ -209,10 +209,12 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(baseFileList)
 
-	enterpriseDirExists := false
+	enterpriseDirUsable := false
 	if enterpriseDir != "" {
 		if stat, err := os.Stat(enterpriseDir); err == nil && stat.IsDir() {
-			enterpriseDirExists = true
+			if entries, readErr := os.ReadDir(enterpriseDir); readErr == nil && len(entries) > 0 {
+				enterpriseDirUsable = true
+			}
 		}
 	}
 
@@ -227,7 +229,7 @@ func extractCmdF(command *cobra.Command, args []string) error {
 			// Contributor mode runs without enterprise sources in many OSS-only
 			// environments. In that case, preserve existing base-file keys so the
 			// extractor does not delete enterprise translations it cannot see.
-			if contributorMode && !enterpriseDirExists {
+			if contributorMode && !enterpriseDirUsable {
 				continue
 			}
 			if contributorMode && strings.HasPrefix(translationKey, enterpriseKeyPrefix) {
