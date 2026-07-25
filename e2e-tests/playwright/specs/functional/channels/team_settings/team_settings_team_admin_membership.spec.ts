@@ -177,7 +177,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await teamSettings.close();
     });
 
-    test('MM-69100_27 team admin save-confirmation shows correct allowed and restricted counts', async ({pw}) => {
+    test('MM-69100_27 team admin save-confirmation shows advisory copy on a public team', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();
         if (!adminUser) {
@@ -238,9 +238,11 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Save team membership rules?'});
         await expect(confirmModal).toBeVisible({timeout: 15000});
 
-        // * 2 users match (teamAdmin + user1); 1 current member does not (user2 / Marketing)
-        await expect(confirmModal.getByText(/2 users match/i)).toBeVisible({timeout: 10000});
-        await expect(confirmModal.getByText(/1 current member does not match/i)).toBeVisible({timeout: 10000});
+        // * Advisory copy on a public team: match count shown, no removal/affected wording
+        await expect(confirmModal.getByText(/2 users match the current rules/i)).toBeVisible({timeout: 10000});
+        await expect(confirmModal.getByText(/these rules are advisory: no one is blocked or removed/i)).toBeVisible();
+        await expect(confirmModal.getByText(/does not match/i)).toHaveCount(0);
+        await expect(confirmModal.getByText(/may be affected/i)).toHaveCount(0);
 
         // # Cancel without saving
         await confirmModal.getByRole('button', {name: 'Cancel'}).click();
@@ -292,12 +294,11 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         // * The modal warns that the flip activates strict ABAC enforcement.
         await expect(modeFlipModal.getByText(/activate strict ABAC enforcement/i)).toBeVisible({timeout: 10000});
 
-        // # Confirm the flip — mirroring discoverability MM-69100_6 exactly
+        // # Confirm the flip — confirming saves immediately (no second click)
         await modeFlipModal.getByRole('button', {name: 'Switch to Private'}).click();
         await expect(modeFlipModal).not.toBeVisible({timeout: 5000});
 
-        await expect(teamSettings.saveButton).toBeVisible();
-        await teamSettings.save();
+        // * The save auto-completes and the panel reports success
         await teamSettings.verifySavedMessage();
 
         // * Team is now private. Privacy is driven by allow_open_invite alone; the
