@@ -408,9 +408,10 @@ interface TestResultsProps {
 
     /** Plugin override for the members search, forwarded from
      *  CELEditorActions.searchUsers. When provided it replaces the built-in
-     *  searchUsersForExpression thunk (the plugin resolves its own channel, so
-     *  the picker's channel id is not threaded into it). */
-    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+     *  searchUsersForExpression thunk. The picker's chosen channel id is
+     *  threaded in as the trailing arg so a resource.attributes.* rule can be
+     *  resolved against it (the override may ignore it if it resolves its own). */
+    searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
 }
 
 // The built-in expression test/simulate results modal.
@@ -426,8 +427,11 @@ export function TestResults({expression, channelId, teamId, isStacked, onExited,
                 searchUsers: (term: string, after: string, limit: number, pickedChannelId?: string) => {
                     if (searchUsers) {
                         // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                        // Thread the picker's channel (falling back to the editor's own
+                        // scope) so a resource.attributes.* rule resolves against it —
+                        // without this, such a rule tested here fails to sqlize server-side.
                         const search = searchUsers;
-                        return () => search(expression, term, after, limit);
+                        return () => search(expression, term, after, limit, pickedChannelId ?? channelId);
                     }
                     return searchUsersForExpression(expression, term, after, limit, pickedChannelId ?? channelId, teamId);
                 },

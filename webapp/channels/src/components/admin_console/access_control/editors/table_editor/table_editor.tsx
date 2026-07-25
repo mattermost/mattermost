@@ -137,8 +137,9 @@ export interface TableEditorProps {
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
 
-        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
-        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal.
+         *  Receives the test modal's chosen channel id as the trailing arg. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
