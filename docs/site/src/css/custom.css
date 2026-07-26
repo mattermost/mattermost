@@ -396,9 +396,15 @@ h2, h3, h4 {
    * and `.theme-code-block .prism-code` sets its own line-height too. */
   line-height: 1.2;
 }
+/* Same dark-on-dark collision as blockquote/callout/code-block: denim-800
+ * (#0C1424) and denim-700 (#121E37) are both within ~1:1 contrast of the
+ * page background (#0E1525), so inline code like `ClusterEncryptionKey`
+ * had no visible chip around it in dark mode. --mm-bg-surface + denim-400
+ * match the fill/border already used for code blocks elsewhere in this
+ * file, for a consistent "raised surface" look across all code UI. */
 [data-theme='dark'] :not(pre) > code {
-  background-color: var(--mm-denim-800);
-  border-color: var(--mm-denim-700);
+  background-color: var(--mm-bg-surface);
+  border-color: var(--mm-denim-400);
 }
 
 /* === Admonitions / callouts ===
@@ -565,8 +571,10 @@ table tbody td {
 table tbody tr:nth-child(even) {
   background: var(--mm-denim-50);
 }
+/* Same collision as blockquote/callout/code — denim-800 zebra striping
+ * was indistinguishable from the page background in dark mode. */
 [data-theme='dark'] table tbody tr:nth-child(even) {
-  background: var(--mm-denim-800);
+  background: var(--mm-bg-surface);
 }
 
 /* === Blockquote === */
@@ -578,6 +586,15 @@ blockquote {
   margin: 1.5rem 0;
   border-radius: 0 4px 4px 0;
   color: var(--mm-text-primary);
+}
+/* --mm-bg-subtle in dark mode is denim-800 (#0C1424), effectively the same
+ * color as the page background (#0E1525) — the same dark-on-dark hue
+ * collision already fixed for the Note callout and code blocks, just on
+ * plain Markdown blockquotes (the `>` syntax), which hadn't been touched
+ * yet. The marigold left border already reads fine (different hue family),
+ * only the fill needed the surface-level bump. */
+[data-theme='dark'] blockquote {
+  background: var(--mm-bg-surface);
 }
 
 /* === Footer === */
