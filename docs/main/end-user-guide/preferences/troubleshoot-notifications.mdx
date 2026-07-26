@@ -1,6 +1,7 @@
 ---
 title: "Troubleshoot notifications"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -10,7 +11,7 @@ The Mattermost notifications you receive depend on your [Mattermost preferences]
 
 ## Send yourself a test notification
 
-From Mattermost v10.3, you can send yourself a test notification by selecting **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" />, and going to the **Notifications** options.
+From Mattermost v10.3, you can send yourself a test notification by selecting **Settings** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" />, and going to the **Notifications** options.
 
 Under **Troubleshooting notifications** select the **Send a test notification** option. If notifications are working, you'll receive a system-bot direct message in Mattermost confirming that notifications are working.
 
@@ -23,7 +24,7 @@ Start by ensuring that your Mattermost preferences have notifications enabled.
 <Tabs>
 <TabItem value="desktop" label="Desktop">
 
-1.  Select **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> in the top right corner of Mattermost.
+1.  Select **Settings** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> in the top right corner of Mattermost.
 2.  Select **Desktop and mobile notifications**.
 
 If **Send notifications for** is set to **Nothing**, then Mattermost notifications are currently disabled. Select either the **All new messages** or **Mentions, direct messages, and group messages** option instead, and save your changes.
@@ -33,7 +34,7 @@ If **Send notifications for** is set to **Nothing**, then Mattermost notificatio
 </TabItem>
 <TabItem value="web" label="Web">
 
-1.  Select **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> in the top right corner of Mattermost.
+1.  Select **Settings** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> in the top right corner of Mattermost.
 2.  Select **Desktop and mobile notifications**.
 
 If **Send notifications for** is set to **Nothing**, then Mattermost notifications are currently disabled. Select either the **All new messages** or **Mentions, direct messages, and group messages** option instead.
@@ -42,7 +43,7 @@ If **Send notifications for** is set to **Nothing**, then Mattermost notificatio
 <TabItem value="mobile" label="Mobile">
 
 1.  Tap on your profile picture in the bottom right corner of Mattermost.
-2.  Tap **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" />.
+2.  Tap **Settings** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" />.
 3.  Tap **Notifications**.
 4.  Tap **Push Notifications**.
 5.  Ensure that **All new messages** or **Mentions, direct messages, and group messages** option is selected.
@@ -204,19 +205,19 @@ Also ensure that macOS’ **Focus mode** is turned off. See the Apple Support [F
 
 Desktop notifications are triggered under to following conditions. Click to expand the flow chart.
 
-<img src="/images/desktop_notification_chart.png" width="239" height="232" alt="A flow diagram shows how Mattermost Desktop App notifications are triggered when a message is posted." />
+<img src={useBaseUrl('/images/desktop_notification_chart.png')} width="239" height="232" alt="A flow diagram shows how Mattermost Desktop App notifications are triggered when a message is posted." />
 
 ### What determines if an email notification should be triggered?
 
 Email notifications are triggered under to following conditions. Click to expand the flow chart.
 
-<img src="/images/email_notification_chart.png" width="239" height="232" alt="A flow diagram shows how Mattermost email notifications are triggered when a message is posted." />
+<img src={useBaseUrl('/images/email_notification_chart.png')} width="239" height="232" alt="A flow diagram shows how Mattermost email notifications are triggered when a message is posted." />
 
 ### What determines if a mobile push notification should be triggered?
 
 Mobile push notifications are triggered under to following conditions. Click to expand the flow chart.
 
-<img src="/images/push_notification_chart.png" width="239" height="232" alt="A flow diagram shows how Mattermost mobile push notifications are triggered when a message is posted." />
+<img src={useBaseUrl('/images/push_notification_chart.png')} width="239" height="232" alt="A flow diagram shows how Mattermost mobile push notifications are triggered when a message is posted." />
 
 ### Are mobile push notifications free?
 

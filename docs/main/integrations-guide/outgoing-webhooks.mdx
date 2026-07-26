@@ -1,6 +1,8 @@
 ---
 title: "Outgoing Webhooks"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 **Technical complexity:** [Low-code](./faq#low-code)
@@ -219,7 +221,7 @@ The JSON response can contain the following parameters:
 
 This response would produce a threaded reply to the original message that triggered the webhook.
 
-<img src="/images/outgoing_webhooks_full_example.png" width="400" alt="Example of a full response from an outgoing webhook." />
+<img src={useBaseUrl('/images/outgoing_webhooks_full_example.png')} width="400" alt="Example of a full response from an outgoing webhook." />
 
 You can also include [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/) and [interactive messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/) in your response to create more advanced workflows.
 

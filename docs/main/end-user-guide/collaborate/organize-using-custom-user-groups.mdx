@@ -1,6 +1,8 @@
 ---
 title: "Manage custom groups"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 Custom groups reduce noise and improve focus by notifying the right people in a channel at the right time, while maintaining transparency for all members in that channel. Custom user groups let you notify up to 256 users at a time rather than notifying users individually.
@@ -21,7 +23,7 @@ Once a custom user group has been created, you can mention that group the same w
 
 ## Create a custom group
 
-1.  Using Mattermost in a web browser or the desktop app, select <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> at the top of the channel sidebar, then select **Create New User Group**.
+1.  Using Mattermost in a web browser or the desktop app, select <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> at the top of the channel sidebar, then select **Create New User Group**.
 2.  Specify a name and mention. The mention is the handle you use to @mention a notification to the group. Group names must be unique across the Mattermost [workspace](/end-user-guide/end-user-guide-index). If a name is in use as a channel name, display name, or another custom group's name, it won't be available.
 3.  Search for and select members to add to the custom user group, then select **Create Group**.
 
@@ -49,11 +51,11 @@ You can filter the list of groups to display only groups you're a member of, or 
 
 ### Change name or mention
 
-1.  From the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon to the right of any custom group, select **View Group**.
+1.  From the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon to the right of any custom group, select **View Group**.
 
 > ![Access tools to manage your custom user groups.](/images/manage-user-groups.png)
 
-2.  From the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Edit Details**.
+2.  From the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Edit Details**.
 
 > ![Edit details of a custom user group.](/images/edit-custom-group.png)
 
@@ -70,16 +72,16 @@ Hover over a member, then select the **Trash** icon to remove them from the grou
 
 ### Join a group
 
-While viewing the members of a group, from the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Join Group**.
+While viewing the members of a group, from the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Join Group**.
 
 ### Leave a group
 
-From the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Leave Group**.
+From the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Leave Group**.
 
 ### Archive group
 
-From the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Archive Group**. When you archive a custom user group, you won’t be able to mention the group’s handle or view its members. However, the group isn't deleted from the list, and all members remain in the group unless they're manually removed.
+From the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, select **Archive Group**. When you archive a custom user group, you won’t be able to mention the group’s handle or view its members. However, the group isn't deleted from the list, and all members remain in the group unless they're manually removed.
 
 ### Unarchive group
 
-From Mattermost v9.1, you can restore an archived group. From the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, filter the list of groups to show only archived groups. Select an archived group view details about the group, if preferreed, and then select **Restore Group**.
+From Mattermost v9.1, you can restore an archived group. From the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon, filter the list of groups to show only archived groups. Select an archived group view details about the group, if preferreed, and then select **Restore Group**.

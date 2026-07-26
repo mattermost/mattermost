@@ -1,6 +1,7 @@
 ---
 title: "Send messages"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -19,14 +20,14 @@ From Mattermost v11.5, you can access help resources for message formatting by s
 <Tabs>
 <TabItem value="web-desktop" label="Web/Desktop">
 
-Enter a message in the text field, then select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" /> to send the message.
+Enter a message in the text field, then select **Send** <img src={useBaseUrl('/img/ui/send_F048A.svg')} alt="Select the Send icon to post your message." className="theme-icon" /> to send the message.
 
 <Tip>
 
 You can also use a keyboard to send messages:
 
 - Press <kbd>Enter</kbd> on Windows or Linux, or <kbd>↵</kbd> on Mac.
-- You can configure Mattermost to require <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac to send multi-line messages. Select the **gear** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon to go to **Settings**, then select **Advanced \> Send messages on CTRL+ENTER**.
+- You can configure Mattermost to require <kbd>Shift</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⇧</kbd> <kbd>↵</kbd> on Mac to send multi-line messages. Select the **gear** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon to go to **Settings**, then select **Advanced \> Send messages on CTRL+ENTER**.
 
 </Tip>
 
@@ -37,7 +38,7 @@ You can also use a keyboard to send messages:
 
 ![Type a message in the text box at the bottom of the mobile app.](/images/mobile-type-a-message-in-a-channel.jpg)
 
-2.  Tap **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" /> icon to send it in the channel.
+2.  Tap **Send** <img src={useBaseUrl('/img/ui/send_F048A.svg')} alt="Select the Send icon to post your message." className="theme-icon" /> icon to send it in the channel.
 
 ![Tap on the send icon to send the message in the channel.](/images/mobile-sending-a-message.gif)
 
@@ -51,12 +52,12 @@ You can use AI to enhance your messages before sending them. This feature helps 
 
 From Mattermost v11.5, when you use AI Rewrite while composing a reply in a thread, the AI incorporates context from the thread to generate suggestions that better fit the ongoing conversation.
 
-From Mattermost v11.7, Rewrite is accessed through the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu, alongside any custom prompts your system admin has made available.
+From Mattermost v11.7, Rewrite is accessed through the **AI Actions** <img src={useBaseUrl('/img/ui/creation-outline_F1C2B.svg')} alt="AI Actions icon." className="theme-icon" /> menu, alongside any custom prompts your system admin has made available.
 
 On Web/Desktop or Mobile:
 
 > 1.  Type your message in the message compose field.
-> 2.  Open the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu from the message actions, then select **Rewrite**.
+> 2.  Open the **AI Actions** <img src={useBaseUrl('/img/ui/creation-outline_F1C2B.svg')} alt="AI Actions icon." className="theme-icon" /> menu from the message actions, then select **Rewrite**.
 > 3.  Select a bot from the list of available AI agents.
 > 4.  Choose from available rewrite options:
 >     - **Improve writing**: Enhance clarity and professionalism
@@ -67,11 +68,11 @@ On Web/Desktop or Mobile:
 >     - **Summarize**: Condense your message to key points
 >     - **Custom prompt**: Specify your own transformation instructions
 > 5.  Review the AI-generated suggestion. Select **Regenerate** to try again or **Discard** to return to your original message.
-> 6.  Select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+> 6.  Select **Send** <img src={useBaseUrl('/img/ui/send_F048A.svg')} alt="Select the Send icon to post your message." className="theme-icon" />
 
 <Tip>
 
-From Mattermost v11.7, system admins can publish custom prompts that appear alongside Rewrite in the **AI Actions** <img src="/img/ui/creation-outline_F1C2B.svg" alt="AI Actions icon." className="theme-icon" /> menu. If you don't see a custom prompt you expect, check with your system admin.
+From Mattermost v11.7, system admins can publish custom prompts that appear alongside Rewrite in the **AI Actions** <img src={useBaseUrl('/img/ui/creation-outline_F1C2B.svg')} alt="AI Actions icon." className="theme-icon" /> menu. If you don't see a custom prompt you expect, check with your system admin.
 
 </Tip>
 
@@ -91,8 +92,8 @@ From Mattermost v11.3, burn-on-read messages stay concealed until recipients rev
 <TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Compose your message.
-2.  Select the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
-3.  Select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+2.  Select the **Burn-on-read** <img src={useBaseUrl('/img/ui/fire_F0238.svg')} alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
+3.  Select **Send** <img src={useBaseUrl('/img/ui/send_F048A.svg')} alt="Select the Send icon to post your message." className="theme-icon" />
 
 </TabItem>
 <TabItem value="mobile" label="Mobile">
@@ -100,8 +101,8 @@ From Mattermost v11.3, burn-on-read messages stay concealed until recipients rev
 From Mattermost mobile v2.38.0, you can send burn-on-read messages from the mobile app.
 
 1.  Compose your message.
-2.  Tap the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
-3.  Tap **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
+2.  Tap the **Burn-on-read** <img src={useBaseUrl('/img/ui/fire_F0238.svg')} alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
+3.  Tap **Send** <img src={useBaseUrl('/img/ui/send_F048A.svg')} alt="Select the Send icon to post your message." className="theme-icon" />
 
 </TabItem>
 </Tabs>
@@ -109,7 +110,7 @@ From Mattermost mobile v2.38.0, you can send burn-on-read messages from the mobi
 
 Recipients see a concealed placeholder with **Reveal**. After revealing, a timer shows when the message will be deleted.
 
-As the message sender, hover over the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon above the sent message to see how many recipients have read the message. You can also delete the burn-on-read message for all recipients before the timer expires by selecting the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon above the sent message.
+As the message sender, hover over the **Burn-on-read** <img src={useBaseUrl('/img/ui/fire_F0238.svg')} alt="Burn on Read icon." className="theme-icon" /> icon above the sent message to see how many recipients have read the message. You can also delete the burn-on-read message for all recipients before the timer expires by selecting the **Burn-on-read** <img src={useBaseUrl('/img/ui/fire_F0238.svg')} alt="Burn on Read icon." className="theme-icon" /> icon above the sent message.
 
 ## Draft messages
 
@@ -122,12 +123,12 @@ By default, message drafts are synchronized on the Mattermost server and are acc
 
 Draft messages are added to a **Drafts** view available at the top of the channel sidebar.
 
-<img src="/images/Global-Drafts-Animated-GIF.gif" width="700" alt="Global drafts makes it easy for you to find all messages in progress." />
+<img src={useBaseUrl('/images/Global-Drafts-Animated-GIF.gif')} width="700" alt="Global drafts makes it easy for you to find all messages in progress." />
 
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-When composing a message, you can simply choose to complete it later. The partially composed message is kept in the text field and an **Edit** option <img src="/img/ui/pencil-outline_F0CB6.svg" alt="Edit icon." className="theme-icon" /> displays next to the channel name.
+When composing a message, you can simply choose to complete it later. The partially composed message is kept in the text field and an **Edit** option <img src={useBaseUrl('/img/ui/pencil-outline_F0CB6.svg')} alt="Edit icon." className="theme-icon" /> displays next to the channel name.
 
 From Mattermost v10.5, you'll find local draft messages under **Drafts**. Drafts synchronized to the Mattermost server will be listed under **Drafts** in a future mobile app release.
 
@@ -144,7 +145,7 @@ All users can edit their own sent messages, unless the system admin has [restric
 <Tabs>
 <TabItem value="web-desktop" label="Web/Desktop">
 
-1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you've sent.
+1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you've sent.
 
 > ![Select the More option to edit or delete a sent message.](/images/more-actions.png)
 
@@ -191,7 +192,7 @@ Restoring a previous version of the message is available in the Mattermost deskt
 
 1.  Select the word **Edited** next to your message.
 2.  In the right pane, review all previous versions of the message.
-3.  Select the **Restore** <img src="/img/ui/restore_F099B.svg" alt="Use the Restore icon to restore a previous version of an edited message." className="theme-icon" /> icon next to the version you want to restore.
+3.  Select the **Restore** <img src={useBaseUrl('/img/ui/restore_F099B.svg')} alt="Use the Restore icon to restore a previous version of an edited message." className="theme-icon" /> icon next to the version you want to restore.
 4.  Select **Confirm**.
 
 ![Select Edited next to an edited message, and then select the version you want to restore.](/images/restore-previous-edited-message.gif)
@@ -203,7 +204,7 @@ Restoring a previous version of the message is available in the Mattermost deskt
 
 All users can delete their own sent messages, unless the system admin has [restricted the ability to do so](/administration-guide/onboard/advanced-permissions).
 
-1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you want to delete.
+1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you want to delete.
 2.  Select **Delete** to delete your own messages. Select **Delete** again to confirm.
 
 </TabItem>

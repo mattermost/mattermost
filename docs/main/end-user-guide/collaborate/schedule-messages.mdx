@@ -1,6 +1,7 @@
 ---
 title: "Schedule messages"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -36,7 +37,7 @@ You can manage scheduled messages with the following actions:
 - **Reschedule message**: Change when the message should be sent.
 - **Send now**: Confirm that you want to send the message immediately.
 
-<img src="/images/manage-scheduled-message.png" width="600" alt="Once a message is scheduled, you can delete, edit, and reschedule it, copy the message text, or send it immediately." />
+<img src={useBaseUrl('/images/manage-scheduled-message.png')} width="600" alt="Once a message is scheduled, you can delete, edit, and reschedule it, copy the message text, or send it immediately." />
 
 <Note>
 
@@ -55,10 +56,10 @@ Scheduled messages may fail for the following reasons:
 
 If a scheduled message fails to send, you'll be alerted 2 ways:
 
-- A red badge displays a total scheduled post count in the left pane next to **Drafts**. <img src="/img/ui/schedule-count-red-badge.png" alt="Total count of scheduled messages." />
+- A red badge displays a total scheduled post count in the left pane next to **Drafts**. <img src={useBaseUrl('/img/ui/schedule-count-red-badge.png')} alt="Total count of scheduled messages." />
 - An alert banner dislays on the **Scheduled** tab
 
-<img src="/images/troubleshoot-scheduled-message.png" width="600" alt="If a scheduled draft message can&#39;t be sent, Mattermost provides context about why it can&#39;t be sent on the Scheduled tab under Drafts." />
+<img src={useBaseUrl('/images/troubleshoot-scheduled-message.png')} width="600" alt="If a scheduled draft message can&#39;t be sent, Mattermost provides context about why it can&#39;t be sent on the Scheduled tab under Drafts." />
 
 <Note>
 

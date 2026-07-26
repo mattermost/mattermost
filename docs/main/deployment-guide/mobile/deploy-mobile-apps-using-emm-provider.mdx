@@ -1,6 +1,8 @@
 ---
 title: "Deploy using an EMM provider"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-ent" />
 
 You can enhance mobile security by deploying the Mattermost mobile app with [Enterprise Mobility Management (EMM)](https://en.wikipedia.org/wiki/Enterprise_mobility_management) and Mattermost AppConfig compatibility to secure mobile endpoints with management application configuration.
@@ -67,85 +69,85 @@ The following table shows all the configuration options that can be sent from th
       <td><strong><code>inAppPinCode</code></strong><br /><em>String</em></td>
       <td>Require users to authenticate as the device owner before using the app. Prompts for fingerprint or passcode when the app first opens and when the app has been in the background for more than five minutes.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>blurApplicationScreen</code></strong><br /><em>String</em></td>
       <td>Blur the app when it's set to background to protect any confidential on-screen information. On Android, it also prevents taking screenshots of the app.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>jailbreakDetection</code></strong><br /><em>String</em></td>
       <td>Disable app launch on jailbroken or rooted devices.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>copyAndPasteProtection</code></strong><br /><em>String</em></td>
       <td>Disable the ability to copy from or paste into any text inputs in the app.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /> (since v1.24.0)</td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /> (since v1.24.0)</td>
     </tr>
     <tr>
       <td><strong><code>serverUrl</code></strong><br /><em>String</em></td>
       <td>Set a default Mattermost server URL. Supports a single server only while v2.0 of the mobile app supports multiple server connections.</td>
       <td>Valid: URL</td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>serverName</code></strong><br /><em>String</em></td>
       <td>Automatically populates the server display name for the URL specified in serverURL.</td>
       <td>Valid: alphanumeric or empty</td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>allowOtherServers</code></strong><br /><em>String</em></td>
       <td>Allow the user to change the above server URL. If set to <code>true</code>, users can connect to multiple servers that aren't specified in the server URL setting. If set to <code>false</code>, users can only connect to a single defined server.</td>
       <td>Default: <code>true</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>username</code></strong><br /><em>String</em></td>
       <td>Set the username or email address to use to authenticate against the Mattermost Server.</td>
       <td></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>useVPN</code></strong><br /><em>String</em></td>
       <td>Enable connection to the Mattermost Server to use a per-app VPN or VPN on-demand.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
       <td></td>
     </tr>
     <tr>
       <td><strong><code>timeoutVPN</code></strong><br /><em>String</em></td>
       <td>Set how long the request waits (in milliseconds) for an initial VPN connection to establish before timeout.</td>
       <td>Default: 30000</td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
       <td></td>
     </tr>
     <tr>
       <td><strong><code>vendor</code></strong><br /><em>String</em></td>
       <td>Name of the EMM vendor or company deploying the app. Used in help text when prompting for passcodes so users are aware why the app is being protected.</td>
       <td>Default: Mattermost</td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
     <tr>
       <td><strong><code>inAppSessionAuth</code></strong><br /><em>String</em></td>
       <td>Use the app's internal browser for SSO instead of an external browser. From Mattermost v10.2 and mobile v2.2.1, deprecated in favor of the <a href="../../administration-guide/configure/site-configuration-settings.html#mobile-external-browser">mobile external browser</a> server configuration setting.</td>
       <td>Default: <code>false</code><br />Valid: <code>true | false</code></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
-      <td><img src="/img/ui/checkmark.svg" alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
+      <td><img src={useBaseUrl('/img/ui/checkmark.svg')} alt="Supported" width="16" height="16" /></td>
     </tr>
   </tbody>
 </table>

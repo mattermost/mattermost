@@ -1,6 +1,7 @@
 ---
 title: "Connect to multiple Mattermost workspaces"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -46,7 +47,7 @@ If you're using the desktop app prior to release v5.0, individual servers displa
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-Tap the **Servers** <img src="/img/ui/server-variant_E81F.svg" alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
+Tap the **Servers** <img src={useBaseUrl('/img/ui/server-variant_E81F.svg')} alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
 
 1.  Tap **Add a server**.
 2.  Enter the server URL. Server URLs must begin with either `http://` or `https://`.
@@ -60,7 +61,7 @@ Can't find your Mattermost server URL? Ask your company’s IT department or you
 3.  Enter the server's Display Name.
 4.  Optionally toggle the **Advanced Options** section to enter an **Authentication secret**. This is an additional security measure that some organizations use. Your system admin can provide you with the secret if required.
 
-> <img src="/images/mobile-server-add-psk.jpg" width="300" alt="Mobile app server setup screen showing the optional authentication secret field." />
+> <img src={useBaseUrl('/images/mobile-server-add-psk.jpg')} width="300" alt="Mobile app server setup screen showing the optional authentication secret field." />
 
 5.  Tap **Done**.
 
@@ -86,11 +87,11 @@ Can't find your Mattermost server URL? Ask your company’s IT department or you
 
 1.  Swipe left on an existing server entry to reveal additional options. Tap **Edit**.
 
-> <img src="/images/swipe-left-to-remove.gif" width="300" alt="In the Mattermost mobile app, swipe left on an existing server connection entry to edit the connection." />
+> <img src={useBaseUrl('/images/swipe-left-to-remove.gif')} width="300" alt="In the Mattermost mobile app, swipe left on an existing server connection entry to edit the connection." />
 
 2.  Modify the server's display name or authentication secret, and then tap **Save**.
 
-> <img src="/images/mobile-edit-server.jpg" width="300" alt="Mobile app edit server screen showing display name fields." />
+> <img src={useBaseUrl('/images/mobile-edit-server.jpg')} width="300" alt="Mobile app edit server screen showing display name fields." />
 >
 > To view or update the authentication secret, expand the **Advanced Options** section. If a secret is currently configured, it will be pre-filled in the field.
 
@@ -114,11 +115,11 @@ Removing a server from your desktop app doesn't delete its data. You can add the
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-Tap the **Servers** <img src="/img/ui/server-variant_E81F.svg" alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
+Tap the **Servers** <img src={useBaseUrl('/img/ui/server-variant_E81F.svg')} alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
 
 Swipe left on an existing server entry to reveal additional options. Tap **Remove**.
 
-<img src="/images/swipe-left-to-remove.gif" width="400" alt="In the Mattermost mobile app, swipe left on an existing server connection entry to delete the connection." />
+<img src={useBaseUrl('/images/swipe-left-to-remove.gif')} width="400" alt="In the Mattermost mobile app, swipe left on an existing server connection entry to delete the connection." />
 
 </TabItem>
 </Tabs>
@@ -148,7 +149,7 @@ Granting a system permission sets it to **Accept**, and revoking it sets it to *
 
 From desktop v6.0, you can keep multiple workspaces open at the same time and work across them without constant switching to improve situational awareness and operational efficiency. This capability is especially useful for organizations that operate in distributed or multi-domain environments, as it enhances cross-system interoperability and command-level situational awareness.
 
-Select the **New tab** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon at the top of the desktop app to open a new tab for the current workspace. You can drag and drop to reorder the tabs in the main desktop window.
+Select the **New tab** <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon at the top of the desktop app to open a new tab for the current workspace. You can drag and drop to reorder the tabs in the main desktop window.
 
 Open internal Mattermost links in a new tab or window by right-clicking on the link and selecting **Open in new tab** or **Open in new window**.
 
