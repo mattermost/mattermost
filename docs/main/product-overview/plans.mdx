@@ -4,6 +4,7 @@ title: "Mattermost Plans"
 <style>
   table.mattermost-plans &#123;
     border-collapse: collapse;
+    table-layout: fixed;
     width: 100%;
     font-size: 0.95em;
   &#125;
@@ -11,6 +12,25 @@ title: "Mattermost Plans"
     border: 1px solid #888;
     padding: 6px 8px;
     vertical-align: top;
+    word-wrap: break-word;
+  &#125;
+  /* Without explicit widths, `table-layout: fixed` divides columns evenly,
+     which starves the long "Feature Category" labels and forces every row
+     onto multiple wrapped lines while the edition columns (mostly a short
+     checkmark/version string) sit on mostly-empty space. */
+  table.mattermost-plans th:first-child, table.mattermost-plans td:first-child &#123;
+    width: 28%;
+  &#125;
+  table.mattermost-plans th:nth-child(2), table.mattermost-plans td:nth-child(2),
+  table.mattermost-plans th:nth-child(3), table.mattermost-plans td:nth-child(3),
+  table.mattermost-plans th:nth-child(4), table.mattermost-plans td:nth-child(4),
+  table.mattermost-plans th:nth-child(5), table.mattermost-plans td:nth-child(5),
+  table.mattermost-plans th:nth-child(6), table.mattermost-plans td:nth-child(6) &#123;
+    width: 10%;
+    text-align: center;
+  &#125;
+  table.mattermost-plans th:last-child, table.mattermost-plans td:last-child &#123;
+    width: 22%;
   &#125;
   /* Dark mode border color */
   body:not([data-custom-theme="light"]) table.mattermost-plans th, 
