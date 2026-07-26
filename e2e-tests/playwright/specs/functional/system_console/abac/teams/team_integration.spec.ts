@@ -945,10 +945,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
     /**
      * @objective Sync status footer appears inside the Team-specific membership rules panel
-     * when membership policy enforcement is enabled, showing "Never synced." and
-     * a "Sync now" link for a team that has not yet been synced.
+     * for a team that already has a persisted membership policy, showing "Never synced."
+     * and a "Sync now" link for a team that has not yet been synced.
      */
-    test('MM-68846-T16 - sync footer appears inside Team-specific membership rules panel when enforcement is enabled', async ({
+    test('MM-68846-T16 - sync footer appears for a team with a persisted membership policy', async ({
         pw,
     }) => {
         test.setTimeout(120000);
@@ -958,6 +958,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         cleanupClient = adminClient;
         await enableTeamMembershipPolicies(adminClient);
 
+        // # A team already governed by a saved policy (persisted server-side).
+        const policyName = `Sync Footer Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         const policyFetchDoneT16 = page
@@ -965,9 +971,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT16;
-
-        // # Enable membership policy enforcement so the Team-specific membership rules panel renders
-        await setToggle(page, true);
 
         // * Team-specific membership rules panel is shown
         const rulesPanel = page.locator('#team_level_access_rules');
@@ -985,6 +988,49 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
+     * @objective The sync footer stays hidden until a membership policy is persisted:
+     * enabling enforcement and staging a policy link (before the first Save) exposes
+     * nothing to sync, so "Sync now" must not be offered.
+     */
+    test('MM-68846-T23 - sync footer is hidden before the first policy is saved', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const policyName = `Unsaved Footer Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT23 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT23;
+
+        // # Enable enforcement and stage a policy link, but do NOT save.
+        await setToggle(page, true);
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await modal.waitFor({state: 'visible', timeout: 5000});
+        const policyRow = await findPolicyRow(modal, policyName);
+        await policyRow.click();
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
+
+        // * No persisted policy yet, so the sync footer (and its "Sync now") is withheld.
+        await expect(rulesPanel.locator('.SyncStatusFooter')).toHaveCount(0);
+    });
+
+    /**
      * @objective Clicking "Sync now" in the Team-specific membership rules panel of the
      * Team Details admin page enqueues an access_control_team_sync job scoped
      * to the team.
@@ -999,6 +1045,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         cleanupClient = adminClient;
         await enableTeamMembershipPolicies(adminClient);
 
+        // # A team already governed by a saved policy so the sync footer is offered.
+        const policyName = `Sync Now Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         const policyFetchDoneT17 = page
@@ -1006,8 +1058,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT17;
-
-        await setToggle(page, true);
 
         const rulesPanel = page.locator('#team_level_access_rules');
         await expect(rulesPanel).toBeVisible({timeout: 10000});

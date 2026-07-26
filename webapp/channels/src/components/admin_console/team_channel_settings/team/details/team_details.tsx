@@ -364,6 +364,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         return remainingPolicies.length > 0 || hasTeamRules;
     };
 
+    // A membership policy is persisted only once it has been saved — the original
+    // (server-loaded/last-saved) imports or expression are set. Staged links and
+    // custom rules don't touch these, so nothing to sync exists before the first save.
+    private hasPersistedAbacPolicy = (): boolean => {
+        return this.state.originalPolicyIds.length > 0 || Boolean(this.state.teamRulesOriginalExpression.trim());
+    };
+
     handleNameChange = (name: string) => {
         this.setState({name, nameError: undefined, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
@@ -989,7 +996,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             syncFooter={
                                 <TeamMembershipSyncFooter
                                     teamId={this.props.teamID}
-                                    hasAbacPolicy={true}
+                                    hasAbacPolicy={this.hasPersistedAbacPolicy()}
                                 />
                             }
                         />

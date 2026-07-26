@@ -56,8 +56,16 @@ jest.mock('./team_level_access_rules', () => {
                     data-testid='clear-rule-button'
                     onClick={() => props.onRulesChange(true, '', false)}
                 >{'clear'}</button>
+                {props.syncFooter}
             </div>
         );
+    };
+});
+
+// Surface the footer's hasAbacPolicy gate without its network/polling internals.
+jest.mock('./team_membership_sync_footer', () => {
+    return function MockTeamMembershipSyncFooter(props: any) {
+        return props.hasAbacPolicy ? <div data-testid='team-membership-sync-footer'/> : null;
     };
 });
 
@@ -1076,5 +1084,46 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await waitFor(() => expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument());
         expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
         expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeDisabled();
+    });
+
+    test('hides the sync footer until a membership policy is persisted', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
+        const searchPolicies = jest.fn().mockResolvedValue({
+            data: {policies: [{id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: [], imports: [], active: false}], total: 1},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, searchPolicies},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        // Enforce ABAC and stage a policy link — nothing is persisted yet.
+        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByText('Link to a policy'));
+        await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+        await userEvent.click(screen.getByText('Engineering Policy'));
+
+        // Rules section renders, but the sync footer is withheld pre-save.
+        await waitFor(() => expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument());
+        expect(screen.queryByTestId('team-membership-sync-footer')).not.toBeInTheDocument();
+    });
+
+    test('shows the sync footer when the team already has a persisted policy', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: [], active: false},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('team-membership-sync-footer')).toBeInTheDocument());
     });
 });
