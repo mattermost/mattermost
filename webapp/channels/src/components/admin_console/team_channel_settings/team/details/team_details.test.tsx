@@ -1010,6 +1010,48 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
     });
 
+    test('falls back to a generic confirmation when the match query fails, not a false empty-team warning', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                id: 'parent1',
+                name: 'Engineering Policy',
+                type: 'parent',
+                rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+            },
+        });
+
+        // The expression endpoint returns {error} rather than throwing.
+        const searchUsersForExpression = jest.fn().mockResolvedValue({error: {message: 'PDP unavailable'}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: [{user_id: 'sysadmin'}]});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+
+        // A failed count must not masquerade as "nobody qualifies".
+        expect(screen.getByText(/Are you sure you want to apply the membership policy/)).toBeInTheDocument();
+        expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/will be added/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/will be removed/)).not.toBeInTheDocument();
+    });
+
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},

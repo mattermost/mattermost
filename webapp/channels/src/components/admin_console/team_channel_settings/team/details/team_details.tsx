@@ -871,8 +871,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     // current members. Counting matches within the team directly (a
                     // team-scoped .total) undercounts qualifying members to zero.
                     const matchResult = await this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000);
+
+                    // These actions resolve to {error} rather than throwing, so a failed
+                    // query would otherwise look like "zero matches" and produce a
+                    // confidently wrong preview (e.g. a false empty-team warning). Treat
+                    // any failure as "unknown" so the modal falls back to the generic prompt.
+                    if (matchResult?.error || !matchResult?.data) {
+                        throw new Error('failed to evaluate matching users');
+                    }
                     const matchingUserIds = new Set(
-                        ((matchResult?.data as {users?: Array<{id: string}>} | null)?.users ?? []).map((u) => u.id),
+                        ((matchResult.data as {users?: Array<{id: string}>}).users ?? []).map((u) => u.id),
                     );
 
                     // Page through every member — a single 200-row page would undercount
@@ -882,6 +890,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     for (let page = 0; ; page++) {
                         // eslint-disable-next-line no-await-in-loop
                         const membersResult = await this.props.actions.getTeamMembers(this.props.teamID, page, perPage);
+                        if (membersResult?.error) {
+                            throw new Error('failed to load team members');
+                        }
                         const batch = (membersResult?.data as Array<{user_id: string}> | null) ?? [];
                         for (const member of batch) {
                             currentMemberIds.push(member.user_id);
@@ -961,10 +972,12 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal, showAbacSaveConfirm, abacAffectedCount, abacQualifyingCount, abacAddCount, teamRulesAutoSync} = this.state;
 
         // The auto-add pass adds matching non-members; a private team also removes
-        // members who no longer match. The team ends empty only when nothing is kept
-        // and nothing will be added.
+        // members who no longer match. Use the edited privacy state (allAllowedChecked),
+        // not the last-saved prop, since the admin may be flipping public/private in the
+        // same save. The team ends empty only when nothing is kept and nothing is added.
+        const willBePrivate = !allAllowedChecked;
         const willAutoAdd = teamRulesAutoSync && abacAddCount !== null && abacAddCount > 0;
-        const willEndEmpty = !team.allow_open_invite && abacQualifyingCount === 0 && !willAutoAdd;
+        const willEndEmpty = willBePrivate && abacQualifyingCount === 0 && !willAutoAdd;
         const missingGroup = (og: {id: string}) => !groups.find((g) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
         const nonArchivedContent = (
@@ -1127,7 +1140,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                                             />
                                         </p>
                                     )}
-                                    {!team.allow_open_invite && abacAffectedCount !== null && abacAffectedCount > 0 && (
+                                    {willBePrivate && abacAffectedCount !== null && abacAffectedCount > 0 && (
                                         <p>
                                             <FormattedMessage
                                                 id='admin.team_settings.team_detail.save_confirm.body'
