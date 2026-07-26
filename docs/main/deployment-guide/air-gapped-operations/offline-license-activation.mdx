@@ -41,7 +41,7 @@ Offline activation produces a **license file** that is signed by Mattermost's cu
 | Renewal | Automatic prompt 60 days before expiry | Manual: customer-success issues new file; operator re-uploads |
 | Automated utilization reporting | Daily POST to `customers.mattermost.com` | **Disabled** — Mattermost does not contact `customers.mattermost.com` from inside the enclave. Reporting is done manually at renewal. |
 
-:::important Automated license utilization reporting must be disabled
+:::important[Automated license utilization reporting must be disabled]
 The `EnableLicenseReporting` server setting must be set to `false` in `config.json`. Otherwise, Mattermost attempts (and silently fails) a daily POST to `customers.mattermost.com`. The failure does not affect functionality, but it pollutes egress logs and triggers boundary alerts. See [Disable Phone-Home Features](./disable-phone-home-features).
 :::
 

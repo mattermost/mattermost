@@ -11,7 +11,7 @@ description: 12-step procedure to stand up a working Mattermost cluster in an ai
 
 This runbook brings a Mattermost cluster online inside a network-isolated enclave. It assumes you are the **deploying operator** with administrative access to the enclave's package mirror, container registry, certificate authority, and DNS.
 
-:::important Prerequisites
+:::important[Prerequisites]
 - An enclave with internal-only DNS, an internal package mirror (Linux distro repos), and an internal container registry (Harbor / Artifactory / equivalent).
 - An offline-activatable Enterprise or Enterprise Advanced license — see [Offline License Activation](./offline-license-activation).
 - A staged Mattermost Server release tarball + checksums verified out-of-band, and a Mattermost Operator Helm chart (Kubernetes) or Linux package (`.deb` / `.rpm`).
