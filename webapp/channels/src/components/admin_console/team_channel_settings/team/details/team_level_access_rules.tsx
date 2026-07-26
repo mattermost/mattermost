@@ -28,9 +28,8 @@ interface TeamLevelAccessRulesProps {
     isDisabled?: boolean;
     syncFooter?: React.ReactNode;
 
-    // A team is governed as soon as it imports a parent policy, even with no
-    // custom expression. Auto-add applies to that governed membership, so the
-    // toggle must be reachable in the parent-only case too.
+    // Auto-add applies to a parent-only team too, so the toggle stays reachable
+    // without a custom expression.
     hasParentPolicies?: boolean;
 }
 
@@ -77,8 +76,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         onRulesChange(hasChanges, expression, autoSyncMembers);
     }, [hasChanges, expression, autoSyncMembers, onRulesChange]);
 
-    // Auto-add is meaningful whenever the team has any membership rule — a custom
-    // expression or an imported parent policy.
+    // Any membership rule — custom expression or imported parent policy — gates auto-add.
     const hasMembershipRule = expression.trim() !== '' || hasParentPolicies;
 
     useEffect(() => {

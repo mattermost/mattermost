@@ -320,9 +320,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        // Linking a parent policy does not change auto-add — it stays whatever the
-        // admin last set (default off). Auto-add is the team child's own flag,
-        // toggled explicitly in the rules section, not inherited from the parent.
+        // Linking a parent does not seed auto-add: it is the team child's own flag,
+        // set explicitly in the rules section, never inherited from the parent.
         this.setState({
             accessControlPolicies: [...accessControlPolicies, policy],
             policyEnforced: true,

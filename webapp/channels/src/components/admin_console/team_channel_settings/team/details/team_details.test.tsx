@@ -1031,9 +1031,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // Auto-add is now toggled only from the rules section. On a parent-governed
-        // team the checkbox is reachable even with no custom expression; toggling it
-        // flips the team child's active. The parent policy is untouched.
+        // Parent-governed team: the rules-section checkbox is reachable and flips the
+        // team child's active without touching the parent policy.
         const autoAdd = screen.getByTestId('auto-add-members-checkbox');
         expect(autoAdd).not.toBeChecked();
         await userEvent.click(autoAdd);
