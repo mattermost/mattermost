@@ -49,10 +49,9 @@
   --ifm-toc-border-color:    var(--mm-border-subtle);
   --ifm-hr-border-color:     var(--mm-border-subtle);
 
-  /* Body text color: Infima's own default (--ifm-color-content) isn't
-   * derived from our brand palette at all, so pin it to --mm-text-primary
-   * for a guaranteed, auditable near-black (Vishal Choudhary: body text
-   * should read as dark as the old docs site). */
+  /* Infima's own default body color isn't derived from our brand palette
+   * at all — pin it to --mm-text-primary for a guaranteed, auditable
+   * near-black. */
   --ifm-font-color-base:      var(--mm-text-primary);
   --ifm-color-content:        var(--mm-text-primary);
   --ifm-font-color-secondary: var(--mm-text-secondary);
@@ -61,10 +60,10 @@
   /* Sidebar */
   --ifm-menu-color:                  var(--mm-denim-700);
   --ifm-menu-color-active:           var(--mm-color-denim);
-  /* --mm-denim-100, not -50: the sidebar container itself now sits on
-   * --mm-bg-subtle (= --mm-denim-50, see .theme-doc-sidebar-container) to
-   * pop the main content area, so the active/hover highlight needs to be
-   * a visibly darker step or it'd disappear into its own background. */
+  /* denim-100, not -50: the sidebar container itself now sits on
+   * --mm-bg-subtle (= denim-50, see .theme-doc-sidebar-container), so the
+   * active/hover highlight needs a visibly darker step or it'd disappear
+   * into its own background. */
   --ifm-menu-color-background-active: var(--mm-denim-100);
   --ifm-menu-color-background-hover: var(--mm-denim-100);
   --ifm-menu-link-padding-vertical:   0.45rem;
@@ -117,14 +116,10 @@ body {
  * apply a mild horizontal squeeze via font-stretch where the platform
  * supports it (no-op on Archivo Black, which is fixed-width).
  *
- * h1 page titles previously reserved the 900-weight Archivo Black
- * poster face, on the theory that hero copy should read louder than
- * in-body section headers. In practice every page title (e.g.
- * "Compliance with Mattermost") came across as too heavy/shouty at
- * body-copy reading distance — the same complaint that got h2-h4
- * moved off the poster face already. h1 now matches that same
- * sans-at-700 treatment, just at its own larger --ifm-h1-font-size,
- * for one consistent title weight across every page. */
+ * h1 used to be 900-weight Archivo Black, but that read as too
+ * heavy/shouty for page titles at body-copy reading distance — same
+ * complaint that already moved h2-h4 to this sans-at-700 treatment, so
+ * h1 now shares it too (just at its own larger --ifm-h1-font-size). */
 h1,
 .markdown h2, .markdown h3, .markdown h4,
 h2, h3, h4 {
@@ -134,24 +129,19 @@ h2, h3, h4 {
   line-height: 1.25;
 }
 
-/* Bold runs in body copy (Ben Cooke: a color+bold combo was hard to read
- * and may need letter-spacing). Archivo Black's ultra-heavy weight is
- * reserved for h1/display use, so this only affects normal-weight prose
- * bolding, where a touch of extra tracking keeps adjacent heavy glyphs
+/* A touch of extra tracking on bold prose keeps adjacent heavy glyphs
  * from visually merging — subtle enough not to loosen word shapes. */
 .markdown strong,
 .markdown b {
   letter-spacing: 0.01em;
 }
 
-/* Links: color alone isn't a reliable signal that text is clickable, so we
- * still need a non-color cue per WCAG 1.4.1 (Vishal Choudhary, Marco Kundt,
- * Eric Sethna's doc item 5) — but a default underline on every inline link
- * reads as visual noise in body copy. Medium weight is the cue instead:
- * it's visibly heavier than surrounding text without adding a line under
- * every link, and it doesn't compete with `.markdown strong`'s bold weight.
- * Underline is reserved for hover/focus (--ifm-link-hover-decoration).
- * Scoped to prose so nav/footer/sidebar links keep their own treatments. */
+/* Color alone isn't a reliable "this is a link" signal (WCAG 1.4.1), but a
+ * default underline on every inline link reads as visual noise in body
+ * copy. Medium weight is the non-color cue instead — heavier than body
+ * text, without competing with `.markdown strong`'s bold weight or adding
+ * an underline (reserved for hover/focus). Scoped to prose so nav/footer/
+ * sidebar links keep their own treatments. */
 .markdown a {
   font-weight: 600;
 }
@@ -294,11 +284,9 @@ h2, h3, h4 {
 
 /* Left nav, right TOC, and the main reading column previously all shared
  * the same page background, so nothing set the article apart as "the
- * content" (Vishal Choudhary). Tinting just the side chrome with
- * --mm-bg-subtle — and leaving the main column on --mm-bg-page/-surface —
- * makes the reading pane read as the brighter, foregrounded surface
- * without touching body text color (kept dark per --mm-text-primary
- * above). */
+ * content". Tinting just the side chrome with --mm-bg-subtle — leaving
+ * the main column on --mm-bg-page/-surface — makes the reading pane read
+ * as the brighter, foregrounded surface. */
 .theme-doc-sidebar-container {
   background-color: var(--mm-bg-subtle);
   border-right: 1px solid var(--mm-border-subtle) !important;
@@ -336,12 +324,9 @@ h2, h3, h4 {
  * letter of every word.)
  *
  * Font: Archivo Black's 900-weight display face reads fine for a short,
- * single word/acronym at large size (e.g. an "IME" page title) but not
- * for the multi-word, small-size (0.82rem) category labels here — at
- * that size the heavy strokes and tight default kerning make the letters
- * crowd together (Eric Sethna's doc item 1). Same problem the navbar
- * link comment below already solved for nav items: use the body sans
- * face at a bold weight instead of the poster face. */
+ * single word/acronym at large size (e.g. an "IME" page title), but at
+ * this small size (0.82rem) its heavy strokes and tight kerning crowd
+ * multi-word labels together — use the body sans face at bold instead. */
 .menu .menu__list-item-collapsible > .menu__link,
 .menu > .menu__list > .menu__list-item > .menu__link {
   font-family: var(--mm-font-sans);
@@ -366,15 +351,12 @@ h2, h3, h4 {
 
 /* === Code === */
 
-/* `:not(pre) > code`, not bare `code`: the code block's own `<code>` (inside
+/* `:not(pre) > code`, not bare `code`: a code block's own `<code>` (inside
  * `<pre>`) is also just a `code` element, and this rule's specificity
- * ([data-theme='dark'] + tag = 0-1-1) beats Infima's `pre code { background:
- * transparent }` (0-0-2 tags only). Left unscoped, this inline-code
- * background painted almost the entire visible area of every dark-mode code
- * block with --mm-denim-800 (near page-black), which is *why* the code block
- * background fix below kept looking like a no-op — the lighter fill was only
- * ever visible in the thin padding gap around the near-black `<code>` on top
- * of it. Confirmed via computed styles + matched CSS rules, not a guess. */
+ * ([data-theme='dark'] + tag) beats Infima's `pre code { background:
+ * transparent }` (two tags only). Left unscoped, this inline-code
+ * background painted over almost the entire visible area of every
+ * dark-mode code block. */
 :not(pre) > code {
   background-color: var(--mm-denim-50);
   color: var(--mm-text-primary);
@@ -383,13 +365,10 @@ h2, h3, h4 {
   padding: 0.1em 0.35em;
   font-size: 0.88em;
   /* Infima's `code` selector has no line-height of its own, so an inline
-   * code span inherits the surrounding paragraph's --ifm-line-height-base
-   * (1.65). Combined with this element's own padding/border, that inflates
-   * the whole text line's height whenever a short inline code span shows
-   * up mid-paragraph or mid-list-item, hurting skimmability (Eric Sethna's
-   * doc item 9). Multi-line fences are unaffected: `pre code` resets
-   * line-height to `inherit` from `pre` with higher selector specificity,
-   * and `.theme-code-block .prism-code` sets its own line-height too. */
+   * code span inherits the paragraph's 1.65 --ifm-line-height-base,
+   * inflating the whole line's height wherever one shows up mid-sentence.
+   * Multi-line fences are unaffected — `pre code` has higher specificity
+   * and `.theme-code-block .prism-code` sets its own line-height. */
   line-height: 1.2;
 }
 /* Same dark-on-dark collision as blockquote/callout/code-block: denim-800
@@ -404,23 +383,18 @@ h2, h3, h4 {
 }
 
 /* === Admonitions / callouts ===
- * Michael Roberson: dark-mode "note" callout text was nearly the same
- * color as its background. Eric Sethna's doc (item 8, PR item 13): dark
- * callouts in general are "hard on the eyes" — this applies to every
- * admonition type (note/tip/info/warning/danger), not just "note", so the
- * background override below now covers all five. Infima's default alert
- * coloring comes from generic --ifm-color-secondary/-success/-info/etc.
- * contrast pairs that were never wired to our brand tokens, so we pin
- * explicit, contrast-checked colors here instead. Left border/accent-bar
- * colors (--ifm-alert-border-color) are intentionally left untouched — a
- * parallel "remove yellow left border" workstream is reworking those on
- * the same selectors.
+ * Dark-mode callout text/label/icon were nearly the same color as the
+ * background across all five admonition types (note/tip/info/warning/
+ * danger) — Infima's default alert coloring was never wired to our brand
+ * tokens. Pin explicit, contrast-checked colors instead. Left border/
+ * accent-bar colors (--ifm-alert-border-color) are intentionally left
+ * untouched — a parallel "remove yellow left border" workstream reworks
+ * those on the same selectors.
  *
- * The heading label (e.g. "NOTE") and icon inherit --ifm-alert-foreground-
- * color from Infima by default, so fixing that one variable on `.alert`
- * should already fix both — but we set them explicitly too, in case a
- * theme upgrade changes that inheritance, since a low-contrast label was
- * the most visible part of the "hard on the eyes" complaint. */
+ * Heading label and icon are set explicitly (not just via the shared
+ * --ifm-alert-foreground-color below) since the label was the most
+ * visibly low-contrast part, in case a theme upgrade changes the
+ * inheritance. */
 [data-theme='dark'] .alert {
   --ifm-alert-foreground-color: var(--mm-callout-text);
 }
@@ -429,17 +403,12 @@ h2, h3, h4 {
   color: var(--mm-callout-text);
   fill: var(--mm-callout-text);
 }
-/* --mm-denim-700 (the previous note/info background) sits at only ~1.1:1
- * background-to-page contrast — same hue family as the page, so however
- * "correct" the text-on-it contrast measured, the box itself didn't read
- * as a distinct surface (dark-on-dark hue collision). success/warning/
- * danger don't have this problem because green/amber/red are a different
- * hue family from the navy page — human contrast perception isn't
- * luminance-only the way the WCAG ratio is. Fix: give note/info a border
- * for a crisp edge (separate from --ifm-alert-border-color/the left
- * accent bar, so it doesn't touch that reserved variable) plus the
- * brand's actual denim-500 primary as the fill, which is ~4x page
- * luminance — enough to read as a highlighted card without a hue swap. */
+/* denim-700 (the previous note/info background) is ~1.1:1 from the page
+ * — same navy hue family, no visible surface. success/warning/danger
+ * don't have this problem since green/amber/red are a different hue
+ * family from the page. Fix: denim-500 (brand primary, ~4x page
+ * luminance) as the fill, plus a border (separate from the reserved
+ * --ifm-alert-border-color/left accent bar) for a crisp edge. */
 [data-theme='dark'] .alert--secondary,
 [data-theme='dark'] .alert--info {
   --ifm-alert-background-color: var(--mm-denim-500);
@@ -471,49 +440,21 @@ h2, h3, h4 {
   border-color: var(--mm-denim-400);
 }
 
-/* Light mode uses the "github" Prism theme, whose own background is
- * near-white — forcing our --mm-denim-50 tint here keeps it inside the
- * brand palette instead of pure white, and github's token colors were
- * designed for that kind of light background, so contrast stays intact.
+/* Light mode uses the "github" Prism theme (near-white bg) — --mm-denim-50
+ * keeps it in the brand palette without breaking github's token contrast.
  *
- * Dark mode uses the "dracula" Prism theme (docusaurus.config.ts). Its
- * token colors (strings, comments, keywords, etc.) were authored against
- * Dracula's own #282a36 background. Forcing that background to our much
- * darker --mm-denim-800 (as light mode does with denim-50) broke that
- * pairing — several token colors read low-contrast/muddy against a
- * background darker than the one they were tuned for, which is the "code
- * blocks still not great in dark mode" feedback.
- *
- * Two earlier attempts at the dark-mode rule were both wrong:
- *   1. `background: unset !important` — looked like a no-op but wasn't:
- *      `background` is a non-inherited shorthand, so `unset` resolves to
- *      `initial` (transparent), which still wins over Prism's inline
- *      `style="background-color: ..."` because of `!important`. That
- *      showed the page's own background through the block.
- *   2. No dark-mode rule at all — the light-mode rule below is unscoped
- *      (no `[data-theme]` selector), so with no more-specific override it
- *      also applied in dark mode, forcing denim-50 (near-white) onto a
- *      dark page.
- *   3. Hardcoding dracula's own background (#282a36) — this actually
- *      *is* dracula's background (verified via computed style), but
- *      dracula's own bg and our page bg (#0E1525) are both so dark that
- *      the contrast between them is only ~1.3:1 — visually "the same",
- *      confirmed live (not a screenshot-only judgment: checked computed
- *      background-color in devtools against the page's). Same dark-on-
- *      dark collision as the callout background bug elsewhere.
- * Fix: lighten the fill further than dracula's own tuning would, well
- * past the ~1.9:1 first attempt (still "pretty much the same" per live
- * feedback) to ~2.9:1 — low-luminance colors need a bigger jump than the
- * contrast-ratio formula implies to look different to the eye at all
- * (light mode's page-white vs. fill-denim-50 is a similarly small ~1.1:1
- * ratio but reads as obviously different, because human contrast
- * sensitivity drops sharply in the low end of the luminance range dark
- * mode lives in). Trade-off: dracula's dimmest token (comments, #6272a4)
- * loses some of its contrast against this lighter fill — acceptable,
- * since comments are already the intentionally de-emphasized token and
- * stay distinguishable via italics, and none of this site's shell/curl
- * examples use inline comments anyway. Paired with the denim-400 border
- * below for a visible edge. */
+ * Dark mode uses "dracula" (docusaurus.config.ts), whose token colors are
+ * tuned against its own #282a36 background — don't hardcode a different
+ * background here, or token colors go muddy/low-contrast. But dracula's own
+ * #282a36 is only ~1.3:1 from our page bg (#0E1525), i.e. visually the same,
+ * so it still needs lightening. #52607A (~2.9:1) is that lighter fill;
+ * denim-400 below gives it a real border. Needed to go further than the
+ * contrast ratio alone suggests — low-luminance colors require a bigger
+ * jump than the formula implies to look distinct to the eye. Trade-off:
+ * dracula's comment token (#6272a4, already its dimmest/de-emphasized one)
+ * loses some contrast against this fill, acceptable since it stays
+ * distinguishable via italics and this site's examples don't use inline
+ * comments anyway. */
 .theme-code-block .prism-code {
   font-size: 0.85rem;
   background: var(--mm-denim-50) !important;
@@ -544,11 +485,9 @@ table {
 table thead {
   background: var(--mm-color-denim);
 }
-/* Same small/multi-word-in-a-900-weight-display-face problem as the TOC
- * category labels above (Eric Sethna's doc item 1) — column headers like
- * "Feature category" are frequently two-plus words at 0.78rem, where
- * Archivo Black's heavy strokes crowd together. Use the same fix: base
- * sans face at bold weight instead of the poster face. */
+/* Same problem as the TOC category labels above — multi-word headers
+ * like "Feature category" at 0.78rem crowd together in Archivo Black.
+ * Same fix: base sans face at bold weight. */
 table thead th {
   color: var(--mm-color-white);
   font-family: var(--mm-font-sans);
@@ -584,11 +523,9 @@ blockquote {
   color: var(--mm-text-primary);
 }
 /* --mm-bg-subtle in dark mode is denim-800 (#0C1424), effectively the same
- * color as the page background (#0E1525) — the same dark-on-dark hue
- * collision already fixed for the Note callout and code blocks, just on
- * plain Markdown blockquotes (the `>` syntax), which hadn't been touched
- * yet. The marigold left border already reads fine (different hue family),
- * only the fill needed the surface-level bump. */
+ * as the page background — same collision already fixed for callouts and
+ * code blocks. The marigold left border already reads fine; only the
+ * fill needed the surface-level bump. */
 [data-theme='dark'] blockquote {
   background: var(--mm-bg-surface);
 }
@@ -606,10 +543,9 @@ blockquote {
   padding: 3.5rem 1rem 2.5rem;
 }
 /* Footer column titles ("Docs", "Community", "More") stay on the heading
- * face: they're short, single words — the large-short-string case the
- * heavy display face handles fine, same as h1 page titles (Eric Sethna's
- * doc item 1's contrast is specifically small *multi-word* labels; see
- * the TOC category and table-header comments above for those fixes). */
+ * face: short, single words are the case Archivo Black handles fine —
+ * it's small multi-word labels (TOC categories, table headers above)
+ * that crowd together at this weight. */
 .footer__title {
   color: var(--ifm-footer-title-color);
   font-family: var(--mm-font-heading);

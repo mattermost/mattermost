@@ -61,14 +61,10 @@
   --mm-text-on-accent: var(--mm-color-black);  /* black text on marigold */
   --mm-border-subtle:  var(--mm-denim-100);
   --mm-border-strong:  var(--mm-denim-300);
-  /* Link color is intentionally NOT --mm-color-denim (#1E325C): at 12.6:1
-   * against white it clears WCAG AA easily, but its luminance is so close
-   * to --mm-text-primary's (contrast between the two is only ~1.5:1) that
-   * links and body copy read as the same shade of "dark" (Vishal
-   * Choudhary, Marco Kundt). This lighter, more saturated blue keeps a
-   * healthy 6.5:1+ against the page background while sitting clearly
-   * apart from body text on a luminance scale. See PR description for the
-   * full contrast math. */
+  /* Not --mm-color-denim (#1E325C): it clears WCAG AA against white
+   * (12.6:1) but sits only ~1.5:1 from --mm-text-primary, so links and
+   * body copy read as the same shade of "dark". This blue keeps 6.5:1+
+   * against the page while staying clearly apart from body text. */
   --mm-link:           #3D5D96;
   --mm-link-hover:     var(--mm-denim-700);
   --mm-accent:         var(--mm-color-marigold);
@@ -87,20 +83,17 @@
   --mm-text-on-accent: var(--mm-color-black);
   --mm-border-subtle:  var(--mm-denim-700);
   --mm-border-strong:  var(--mm-denim-500);
-  /* --mm-color-sky (#C5D2EC) passes AA against the dark page background
-   * (~12:1), but its luminance sits only ~1.5:1 from white body text, so
-   * links disappear into surrounding copy (Marco Kundt; Eric Sethna's doc
-   * item 5). This more saturated, mid-brightness blue keeps ~6.4:1
-   * against the page background while reading clearly darker than white
-   * body text. */
+  /* Not --mm-color-sky (#C5D2EC): passes AA against the page (~12:1),
+   * but sits only ~1.5:1 from white body text, so links disappear into
+   * surrounding copy. This blue keeps ~6.4:1 against the page while
+   * reading clearly darker than white body text. */
   --mm-link:           #5B9BF0;
   --mm-link-hover:     var(--mm-color-white);
   --mm-accent:         var(--mm-color-marigold);
-  /* Dark-mode callouts (Michael Roberson item 1, Eric Sethna's doc item 8):
-   * Infima's default secondary-alert text/background pairing isn't wired
-   * to our palette, so we pin explicit, contrast-checked brand colors
-   * instead. Left border/accent-bar colors are deliberately left alone —
-   * a parallel "remove yellow left border" workstream touches those. */
+  /* Infima's default secondary-alert text/background pairing isn't wired
+   * to our palette — pin explicit, contrast-checked brand colors instead.
+   * Left border/accent-bar colors are deliberately left alone — a
+   * parallel "remove yellow left border" workstream touches those. */
   --mm-callout-text:      var(--mm-denim-50);
   --mm-callout-note-bg:   var(--mm-denim-700);
 }

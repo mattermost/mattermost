@@ -13,16 +13,12 @@
   box-shadow: 0 1px 2px rgba(30, 50, 92, 0.04);
 }
 
-/* --mm-denim-800 (the old dark-mode fill) and --mm-border-subtle
- * (--mm-denim-700, the border on the base .callout rule above) both sit
- * within ~1:1 contrast of the page background (#0E1525) — same navy hue
- * family, so the box had no visible edge or fill distinct from the page
- * ("Note still not great, same issue as code blocks" — verified live in
- * dark mode). --mm-bg-surface is a step lighter for the fill; the
- * border uses --mm-border-strong (denim-500) instead of -subtle for an
- * edge that actually reads as one. */
+/* The base rule's --mm-border-subtle resolves to denim-700 in dark mode —
+ * ~1:1 contrast from the page background (#0E1525), so the box had no
+ * visible edge. --mm-border-strong (denim-500) is a real step up. Fill
+ * needs no override: --mm-bg-surface above already resolves to a
+ * theme-appropriate value per mode. */
 [data-theme='dark'] .callout {
-  background: var(--mm-bg-surface);
   border-color: var(--mm-border-strong);
 }
 
@@ -71,12 +67,9 @@
 .note    .bar { background: var(--mm-color-denim); }
 .note    .label { color: var(--mm-denim-600); }
 /* Every other kind below pairs its light-mode label color with a
- * dark-mode override — "note" was missing one, so its label fell back
- * to this light-mode-only denim-600 in dark mode too: dark navy text on
- * a dark navy background, unreadable (this is the "Note" contrast bug —
- * distinct from the .callout background/border fix above). Matches the
- * theme-aware --mm-text-secondary the base `.label` rule already uses
- * before this kind-specific override replaces it. */
+ * dark-mode override — "note" was missing one, so it fell back to this
+ * light-mode-only denim-600 in dark mode too: dark navy text on a dark
+ * navy background. */
 [data-theme='dark'] .note .label { color: var(--mm-denim-200); }
 
 .tip     .bar { background: #2C7A4F; }            /* operational green */
