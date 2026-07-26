@@ -314,21 +314,19 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.props.actions.setNavigationBlocked(true);
     };
 
-    onPolicySelected = (policy: AccessControlPolicy, autoAdd?: boolean) => {
+    onPolicySelected = (policy: AccessControlPolicy) => {
         const {accessControlPolicies} = this.state;
         if (accessControlPolicies.find((p) => p.id === policy.id)) {
             return;
         }
 
-        // The team child policy carries a single auto-add flag (teamRulesAutoSync,
-        // persisted as the child's active). Seed it from the checkbox chosen in the
-        // selection modal, which itself defaults to the parent policy's own active.
-        // The parent policy is never modified — only the team child's flag changes.
+        // Linking a parent policy does not change auto-add — it stays whatever the
+        // admin last set (default off). Auto-add is the team child's own flag,
+        // toggled explicitly in the rules section, not inherited from the parent.
         this.setState({
             accessControlPolicies: [...accessControlPolicies, policy],
             policyEnforced: true,
             saveNeeded: true,
-            teamRulesAutoSync: autoAdd === undefined ? this.state.teamRulesAutoSync : autoAdd,
         });
         this.props.actions.setNavigationBlocked(true);
     };
@@ -988,6 +986,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             initialExpression={this.state.teamRulesExpression}
                             initialAutoSync={this.state.teamRulesAutoSync}
                             isDisabled={this.props.isDisabled}
+                            hasParentPolicies={this.state.accessControlPolicies.length > 0}
                             syncFooter={
                                 <TeamMembershipSyncFooter
                                     teamId={this.props.teamID}

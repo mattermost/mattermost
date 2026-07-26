@@ -27,6 +27,11 @@ interface TeamLevelAccessRulesProps {
     initialAutoSync?: boolean;
     isDisabled?: boolean;
     syncFooter?: React.ReactNode;
+
+    // A team is governed as soon as it imports a parent policy, even with no
+    // custom expression. Auto-add applies to that governed membership, so the
+    // toggle must be reachable in the parent-only case too.
+    hasParentPolicies?: boolean;
 }
 
 const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
@@ -37,6 +42,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     initialAutoSync = false,
     isDisabled = false,
     syncFooter,
+    hasParentPolicies = false,
 }) => {
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
 
@@ -71,11 +77,15 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         onRulesChange(hasChanges, expression, autoSyncMembers);
     }, [hasChanges, expression, autoSyncMembers, onRulesChange]);
 
+    // Auto-add is meaningful whenever the team has any membership rule — a custom
+    // expression or an imported parent policy.
+    const hasMembershipRule = expression.trim() !== '' || hasParentPolicies;
+
     useEffect(() => {
-        if (!expression.trim()) {
+        if (!hasMembershipRule) {
             setAutoSyncMembers(false);
         }
-    }, [expression]);
+    }, [hasMembershipRule]);
 
     const handleExpressionChange = useCallback((newExpression: string) => {
         setExpression(newExpression);
@@ -83,17 +93,17 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     }, []);
 
     const handleAutoSyncToggle = useCallback(() => {
-        if (isDisabled || !expression.trim()) {
+        if (isDisabled || !hasMembershipRule) {
             return;
         }
         setAutoSyncMembers((prev) => !prev);
-    }, [isDisabled, expression]);
+    }, [isDisabled, hasMembershipRule]);
 
     const handleParseError = useCallback((error: string) => {
         setFormError(error);
     }, []);
 
-    const autoSyncDisabled = isDisabled || !expression.trim();
+    const autoSyncDisabled = isDisabled || !hasMembershipRule;
 
     const renderAutoSyncSection = () => {
         return (

@@ -277,4 +277,67 @@ describe('TeamLevelAccessRules', () => {
 
         expect(screen.getByText('Invalid expression syntax')).toBeInTheDocument();
     });
+
+    it('should enable auto-sync checkbox for a parent-governed team even with no custom expression', async () => {
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        expect(screen.getByRole('checkbox')).not.toBeDisabled();
+    });
+
+    it('should call onRulesChange with autoSync when toggled on a parent-only team', async () => {
+        const onRulesChange = jest.fn();
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                hasParentPolicies={true}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        await userEvent.click(screen.getByRole('checkbox'));
+
+        expect(onRulesChange).toHaveBeenCalledWith(true, '', true);
+    });
+
+    it('should keep auto-sync checkbox disabled when neither a custom expression nor a parent policy exists', async () => {
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                initialExpression=''
+                hasParentPolicies={false}
+            />,
+        );
+
+        await screen.findByTestId('table-editor');
+
+        expect(screen.getByRole('checkbox')).toBeDisabled();
+    });
+
+    it('should not reset auto-sync to false for a parent-only team when the expression is empty', () => {
+        const onRulesChange = jest.fn();
+        renderWithContext(
+            <TeamLevelAccessRules
+                {...defaultProps}
+                onRulesChange={onRulesChange}
+                initialExpression=''
+                initialAutoSync={true}
+                hasParentPolicies={true}
+            />,
+        );
+
+        // A parent policy alone is enough to govern membership, so the empty-expression
+        // reset effect must not clear the auto-add flag.
+        expect(onRulesChange).toHaveBeenLastCalledWith(false, '', true);
+    });
 });

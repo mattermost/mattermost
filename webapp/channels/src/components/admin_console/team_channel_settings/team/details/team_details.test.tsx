@@ -1002,7 +1002,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
-    test('toggling auto-add from the Membership policies list persists the team child active on save', async () => {
+    test('toggling auto-add on a parent-governed team persists the team child active on save', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
         });
@@ -1031,19 +1031,49 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // The per-policy Auto-add checkbox in the Membership policies list starts
-        // unchecked (child.active = false) and toggles the team child's auto-add.
-        const autoAdd = screen.getByLabelText('Auto-add members for Engineering Policy');
+        // Auto-add is now toggled only from the rules section. On a parent-governed
+        // team the checkbox is reachable even with no custom expression; toggling it
+        // flips the team child's active. The parent policy is untouched.
+        const autoAdd = screen.getByTestId('auto-add-members-checkbox');
         expect(autoAdd).not.toBeChecked();
         await userEvent.click(autoAdd);
-        expect(screen.getByLabelText('Auto-add members for Engineering Policy')).toBeChecked();
 
         await userEvent.click(screen.getByText('Save'));
 
-        // The team child's active is flipped to true; the parent policy is untouched.
+        // Saving rule changes surfaces the Apply membership policy confirmation.
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+
         await waitFor(() => {
             expect(updateAccessControlPoliciesActive).toHaveBeenCalledWith([{id: '123', active: true}]);
         });
         expect(saveTeamAccessPolicy).toHaveBeenCalled();
+    });
+
+    test('linking a parent policy does not seed auto-add from the parent active flag', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
+        const searchPolicies = jest.fn().mockResolvedValue({
+            data: {policies: [{id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: [], imports: [], active: true}], total: 1},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                searchPolicies,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        // Enforce ABAC, then link a parent policy whose own active flag is true.
+        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByText('Link to a policy'));
+        await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+        await userEvent.click(screen.getByText('Engineering Policy'));
+
+        // The linked policy is active, but the team's auto-add checkbox must stay off —
+        // the seed was dropped, so auto-add is only set explicitly by the admin.
+        await waitFor(() => expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument());
+        expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
     });
 });
