@@ -56,6 +56,14 @@ jest.mock('./team_level_access_rules', () => {
                     data-testid='clear-rule-button'
                     onClick={() => props.onRulesChange(true, '', false)}
                 >{'clear'}</button>
+
+                {/* Reproduces the real editor removing the only rule while its frozen
+                    original is empty: it reports hasChanges=false even though the
+                    expression changed relative to what was loaded. */}
+                <button
+                    data-testid='remove-loaded-rule-button'
+                    onClick={() => props.onRulesChange(false, '', false)}
+                >{'remove'}</button>
                 {props.syncFooter}
             </div>
         );
@@ -1008,6 +1016,45 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.getByText(/3 qualifying users will be added/)).toBeInTheDocument();
         expect(screen.getByText(/1 member does not currently meet the criteria/)).toBeInTheDocument();
         expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+    });
+
+    test('enables Save when the only custom rule is removed, even if the editor reports hasChanges=false', async () => {
+        // The rules editor freezes its "original" at first mount (before the policy
+        // loads for an already-enforced team), so removing the only rule returns the
+        // expression to the frozen-empty original and the editor reports no change.
+        // team_details must still detect the change against its own loaded original.
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: [],
+                    rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+                    active: false,
+                },
+                enforced: true,
+            },
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
+        });
+
+        // No unsaved changes on load.
+        expect(screen.getByText('Save').closest('button')).toBeDisabled();
+
+        // Remove the only rule (editor reports hasChanges=false).
+        await userEvent.click(screen.getByTestId('remove-loaded-rule-button'));
+
+        // Save must enable — the expression differs from the loaded original.
+        expect(screen.getByText('Save').closest('button')).not.toBeDisabled();
     });
 
     test('falls back to a generic confirmation when the match query fails, not a false empty-team warning', async () => {

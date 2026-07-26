@@ -292,16 +292,20 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         });
     };
 
-    private handleTeamRulesChange = (hasChanges: boolean, expression: string, autoSync: boolean) => {
-        const hasRealTeamRulesChanges = hasChanges && (
+    private handleTeamRulesChange = (_hasChanges: boolean, expression: string, autoSync: boolean) => {
+        // TeamLevelAccessRules reports its own hasChanges, but it freezes its "original"
+        // values at first mount — which for an already-enforced team happens before the
+        // policy loads, so that flag is unreliable (e.g. removing the only rule returns
+        // the expression to the frozen-empty original and reads as "no change"). Compare
+        // against our own loaded/last-saved originals instead.
+        const hasRealTeamRulesChanges =
             expression !== this.state.teamRulesOriginalExpression ||
-            autoSync !== this.state.teamRulesOriginalAutoSync
-        );
+            autoSync !== this.state.teamRulesOriginalAutoSync;
 
         this.setState({
             teamRulesExpression: expression,
             teamRulesAutoSync: autoSync,
-            teamRulesHaveChanges: hasChanges,
+            teamRulesHaveChanges: hasRealTeamRulesChanges,
             policyEnforced: true,
         });
 
@@ -922,6 +926,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 qualifyingCount = null;
                 addCount = null;
             }
+
             // Hand off to the confirmation modal; clear the busy state so the panel isn't
             // spinning behind it (the modal's Apply button drives the actual save).
             this.setState({saving: false, showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
