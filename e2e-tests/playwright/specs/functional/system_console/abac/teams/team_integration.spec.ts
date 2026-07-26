@@ -1163,13 +1163,14 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const policyPanel = page.locator('#team_access_control_with_policy');
         await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
 
-        // * The table has Policy Name and Actions headers, but no Auto-add column
-        await expect(policyPanel.getByText('Policy Name')).toBeVisible();
-        await expect(policyPanel.getByText('Actions')).toBeVisible();
-        await expect(policyPanel.getByText('Auto-add', {exact: true})).toHaveCount(0);
+        // * The header row has Policy Name and Actions, but no Auto-add column
+        const header = policyPanel.locator('.team-policy-list__header');
+        await expect(header.getByText('Policy Name')).toBeVisible();
+        await expect(header.getByText('Actions')).toBeVisible();
+        await expect(header.getByText('Auto-add', {exact: true})).toHaveCount(0);
 
-        // * No per-policy auto-add checkbox lives in the table
-        await expect(policyPanel.locator('input[type="checkbox"]')).toHaveCount(0);
+        // * No per-policy auto-add checkbox lives in the policy list rows
+        await expect(policyPanel.locator('.team-policy-list input[type="checkbox"]')).toHaveCount(0);
 
         // * The rules section carries the renamed title
         await expect(page.locator('#team_level_access_rules').getByText('Team-specific membership rules')).toBeVisible({

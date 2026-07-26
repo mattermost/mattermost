@@ -1071,8 +1071,10 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(screen.getByText('Engineering Policy'));
 
         // The linked policy is active, but the team's auto-add checkbox must stay off —
-        // the seed was dropped, so auto-add is only set explicitly by the admin.
+        // the seed was dropped, so auto-add is only set explicitly by the admin. It is
+        // still interactive (reachable), just unchecked.
         await waitFor(() => expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument());
         expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeDisabled();
     });
 });
