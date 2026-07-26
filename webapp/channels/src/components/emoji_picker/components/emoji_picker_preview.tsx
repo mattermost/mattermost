@@ -28,7 +28,7 @@ function EmojiPickerPreview({emoji}: Props) {
     const previewImage = (
         <img
             id='emojiPickerSpritePreview'
-            alt={'emoji preview image'}
+            alt=''
             className='emoji-picker__preview-image'
             src={getEmojiImageUrl(emoji)}
         />
