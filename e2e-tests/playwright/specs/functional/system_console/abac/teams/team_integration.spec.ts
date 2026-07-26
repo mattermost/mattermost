@@ -944,11 +944,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
-     * @objective Sync status footer appears inside the Custom access rules panel
+     * @objective Sync status footer appears inside the Team-specific membership rules panel
      * when membership policy enforcement is enabled, showing "Never synced." and
      * a "Sync now" link for a team that has not yet been synced.
      */
-    test('MM-68846-T16 - sync footer appears inside Custom access rules panel when enforcement is enabled', async ({
+    test('MM-68846-T16 - sync footer appears inside Team-specific membership rules panel when enforcement is enabled', async ({
         pw,
     }) => {
         test.setTimeout(120000);
@@ -966,10 +966,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT16;
 
-        // # Enable membership policy enforcement so the Custom access rules panel renders
+        // # Enable membership policy enforcement so the Team-specific membership rules panel renders
         await setToggle(page, true);
 
-        // * Custom access rules panel is shown
+        // * Team-specific membership rules panel is shown
         const rulesPanel = page.locator('#team_level_access_rules');
         await expect(rulesPanel).toBeVisible({timeout: 10000});
 
@@ -985,11 +985,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
-     * @objective Clicking "Sync now" in the Custom access rules panel of the
+     * @objective Clicking "Sync now" in the Team-specific membership rules panel of the
      * Team Details admin page enqueues an access_control_team_sync job scoped
      * to the team.
      */
-    test('MM-68846-T17 - clicking "Sync now" in Team Details Custom access rules panel enqueues a team sync job', async ({
+    test('MM-68846-T17 - clicking "Sync now" in Team Details Team-specific membership rules panel enqueues a team sync job', async ({
         pw,
     }) => {
         test.setTimeout(120000);
@@ -1018,7 +1018,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         const testStartTime = Date.now();
 
-        // # Click "Sync now" inside the Custom access rules panel
+        // # Click "Sync now" inside the Team-specific membership rules panel
         await syncFooter.locator('.SyncStatusFooter__link').click();
 
         // * A new team sync job scoped to this team is enqueued
@@ -1115,7 +1115,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // # Stage a team-page edit so the navigation-block flag is set, then open the
         // # linked policy in the editor (a plain link that never resets that flag).
-        await policyPanel.locator('.team-policy-list__auto-add-checkbox').first().check();
+        // The auto-add checkbox is reachable because the team is governed by a parent policy.
+        await page.locator('[data-testid="team-auto-add-members-checkbox"]').check();
         await policyPanel.getByLabel('Go to the policy').click();
 
         // * The policy editor loads
@@ -1128,5 +1129,107 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // * No spurious discard prompt, and we land on the Membership Policies list
         await expect(page.getByText('Discard Changes?')).toHaveCount(0);
         await expect(page).toHaveURL(/membership_policies$/, {timeout: 10000});
+    });
+
+    /**
+     * @objective The Membership policies table exposes only Policy Name and Actions —
+     * auto-add is a single team-level flag owned by the rules section, not a per-policy
+     * column, so the table carries no auto-add checkbox. The rules section is titled
+     * "Team-specific membership rules".
+     */
+    test('MM-68846-T21 - membership policies table has no auto-add column and the rules section is renamed', async ({
+        pw,
+    }) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const policyName = `Table Layout Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT21 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT21;
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+
+        // * The table has Policy Name and Actions headers, but no Auto-add column
+        await expect(policyPanel.getByText('Policy Name')).toBeVisible();
+        await expect(policyPanel.getByText('Actions')).toBeVisible();
+        await expect(policyPanel.getByText('Auto-add', {exact: true})).toHaveCount(0);
+
+        // * No per-policy auto-add checkbox lives in the table
+        await expect(policyPanel.locator('input[type="checkbox"]')).toHaveCount(0);
+
+        // * The rules section carries the renamed title
+        await expect(page.locator('#team_level_access_rules').getByText('Team-specific membership rules')).toBeVisible({
+            timeout: 10000,
+        });
+    });
+
+    /**
+     * @objective A team governed only by an imported parent policy (no custom rule) can
+     * still toggle auto-add — the rules-section checkbox is enabled even with an empty
+     * custom expression — and toggling it persists the team child policy's active flag.
+     */
+    test('MM-68846-T22 - auto-add is interactive for a parent-only team and persists on save', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        // # A parent-governed team with no custom rule (assigned inactive by default).
+        const policyName = `Parent Only Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT22 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT22;
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        const autoAddCheckbox = page.locator('[data-testid="team-auto-add-members-checkbox"]');
+
+        // * Enabled purely because a parent policy governs the team (no custom expression),
+        // * and off to start.
+        await expect(autoAddCheckbox).toBeEnabled({timeout: 5000});
+        await expect(autoAddCheckbox).not.toBeChecked();
+
+        // # Turn auto-add on and save
+        await autoAddCheckbox.click();
+        await expect(autoAddCheckbox).toBeChecked();
+        await page.getByRole('button', {name: 'Save'}).click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(confirmModal).not.toBeVisible({timeout: 10000});
+
+        // * The team child policy's active flag is now true on the server
+        await expect
+            .poll(async () => (await getTeamAccessControlPolicy(adminClient, team.id))?.policy?.active, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 2000],
+                message: 'team child policy active should persist after enabling auto-add',
+            })
+            .toBe(true);
     });
 });
