@@ -92,7 +92,7 @@ describe('TeamLevelAccessRules', () => {
     it('should render the component with correct title and subtitle', () => {
         renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
 
-        expect(screen.getByText('Custom access rules')).toBeInTheDocument();
+        expect(screen.getByText('Team-specific membership rules')).toBeInTheDocument();
         expect(screen.getByText('User attributes and values as additional rules to restrict team membership')).toBeInTheDocument();
     });
 

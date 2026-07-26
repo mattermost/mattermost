@@ -157,7 +157,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                 id='team_level_access_rules'
                 title={defineMessage({
                     id: 'admin.team_settings.team_detail.rules.title',
-                    defaultMessage: 'Custom access rules',
+                    defaultMessage: 'Team-specific membership rules',
                 })}
                 subtitle={defineMessage({
                     id: 'admin.team_settings.team_detail.rules.subtitle',
