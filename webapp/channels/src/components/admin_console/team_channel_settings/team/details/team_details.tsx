@@ -110,6 +110,7 @@ type State = {
     showAbacSaveConfirm: boolean;
     abacAffectedCount: number | null;
     abacQualifyingCount: number | null;
+    abacAddCount: number | null;
 
     teamRulesExpression: string;
     teamRulesOriginalExpression: string;
@@ -157,6 +158,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             showAbacSaveConfirm: false,
             abacAffectedCount: null,
             abacQualifyingCount: null,
+            abacAddCount: null,
 
             teamRulesExpression: '',
             teamRulesOriginalExpression: '',
@@ -715,6 +717,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             showAbacSaveConfirm: false,
             abacAffectedCount: null,
             abacQualifyingCount: null,
+            abacAddCount: null,
         }, () => {
             actions.setNavigationBlocked(saveNeeded);
             if (!saveNeeded && !serverError) {
@@ -859,6 +862,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         if (hasAbacChanges) {
             let affectedCount: number | null = null;
             let qualifyingCount: number | null = null;
+            let addCount: number | null = null;
             try {
                 const effectiveExpression = this.combineTeamAndPolicyExpressions(this.state.teamRulesExpression ?? '');
                 if (effectiveExpression.trim()) {
@@ -886,8 +890,14 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             break;
                         }
                     }
+                    const currentMemberSet = new Set(currentMemberIds);
                     qualifyingCount = currentMemberIds.filter((id) => matchingUserIds.has(id)).length;
                     affectedCount = currentMemberIds.length - qualifyingCount;
+
+                    // Matching non-members that the auto-add pass will pull in. Without
+                    // this the modal only previews removals and wrongly warns of an empty
+                    // team even when the sync is about to populate it.
+                    addCount = [...matchingUserIds].filter((id) => !currentMemberSet.has(id)).length;
                 } else {
                     const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
                     affectedCount = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
@@ -895,8 +905,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             } catch {
                 affectedCount = null;
                 qualifyingCount = null;
+                addCount = null;
             }
-            this.setState({showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount});
+            this.setState({showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
             return;
         }
 
@@ -947,7 +958,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal, showAbacSaveConfirm, abacAffectedCount, abacQualifyingCount} = this.state;
+        const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal, showAbacSaveConfirm, abacAffectedCount, abacQualifyingCount, abacAddCount, teamRulesAutoSync} = this.state;
+
+        // The auto-add pass adds matching non-members; a private team also removes
+        // members who no longer match. The team ends empty only when nothing is kept
+        // and nothing will be added.
+        const willAutoAdd = teamRulesAutoSync && abacAddCount !== null && abacAddCount > 0;
+        const willEndEmpty = !team.allow_open_invite && abacQualifyingCount === 0 && !willAutoAdd;
         const missingGroup = (og: {id: string}) => !groups.find((g) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
         const nonArchivedContent = (
@@ -1093,7 +1110,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             }
                             message={
                                 <div>
-                                    {abacQualifyingCount === 0 && !team.allow_open_invite && (
+                                    {willEndEmpty && (
                                         <p className='text-warning'>
                                             <FormattedMessage
                                                 id='admin.team_settings.team_detail.save_confirm.empty_team_warning'
@@ -1101,11 +1118,20 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                                             />
                                         </p>
                                     )}
-                                    {abacQualifyingCount !== 0 && abacAffectedCount !== null && abacAffectedCount > 0 && (
+                                    {willAutoAdd && (
+                                        <p>
+                                            <FormattedMessage
+                                                id='admin.team_settings.team_detail.save_confirm.add_body'
+                                                defaultMessage='{count} qualifying {count, plural, one {user} other {users}} will be added at the next sync.'
+                                                values={{count: abacAddCount}}
+                                            />
+                                        </p>
+                                    )}
+                                    {!team.allow_open_invite && abacAffectedCount !== null && abacAffectedCount > 0 && (
                                         <p>
                                             <FormattedMessage
                                                 id='admin.team_settings.team_detail.save_confirm.body'
-                                                defaultMessage='{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be affected at next sync.'
+                                                defaultMessage='{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be removed at the next sync.'
                                                 values={{count: abacAffectedCount}}
                                             />
                                         </p>
@@ -1131,7 +1157,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                                 />
                             }
                             onConfirm={this.handleSubmit}
-                            onCancel={() => this.setState({showAbacSaveConfirm: false, abacAffectedCount: null, abacQualifyingCount: null, saving: false})}
+                            onCancel={() => this.setState({showAbacSaveConfirm: false, abacAffectedCount: null, abacQualifyingCount: null, abacAddCount: null, saving: false})}
                         />
                         {!isLocalArchived && nonArchivedContent}
                     </div>

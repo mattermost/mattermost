@@ -960,6 +960,56 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.getByText(/50 members do not currently meet the criteria/)).toBeInTheDocument();
     });
 
+    test('previews auto-add additions instead of a false empty-team warning', async () => {
+        // A private team whose only current member does not match, but many non-members
+        // do. With auto-add on the sync populates the team, so the modal must preview the
+        // additions and must NOT warn of an empty team.
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                id: 'parent1',
+                name: 'Engineering Policy',
+                type: 'parent',
+                rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+            },
+        });
+
+        // Three matching users, none currently on the team; the sole member does not match.
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'e1'}, {id: 'e2'}, {id: 'e3'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: [{user_id: 'sysadmin'}]});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                searchUsersForExpression,
+                getTeamMembers,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+
+        // Additions previewed, one non-matching member flagged for removal, no empty warning.
+        expect(screen.getByText(/3 qualifying users will be added/)).toBeInTheDocument();
+        expect(screen.getByText(/1 member does not currently meet the criteria/)).toBeInTheDocument();
+        expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+    });
+
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
