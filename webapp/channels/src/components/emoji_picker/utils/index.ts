@@ -264,8 +264,10 @@ export function createCategoryAndEmojiRows(
         return [[], []];
     }
 
-    // If search is active, return filtered emojis
-    if (filter.length) {
+    // If search is active, return filtered emojis. Use the normalized term so
+    // whitespace-only input behaves like an empty search.
+    const normalizedFilter = normalizeEmojiSearchTerm(filter);
+    if (normalizedFilter.length) {
         const searchCategoryRow: CategoryHeaderRow = {
             index: 0,
             type: CATEGORY_HEADER_ROW,
@@ -279,7 +281,7 @@ export function createCategoryAndEmojiRows(
         };
 
         const recentEmojiIds = categories?.[RECENT]?.emojiIds ?? [];
-        const filteredEmojis = getFilteredEmojis(allEmojis, filter, recentEmojiIds, userSkinTone);
+        const filteredEmojis = getFilteredEmojis(allEmojis, normalizedFilter, recentEmojiIds, userSkinTone);
         const [searchEmojisRows] = splitEmojisToRows(filteredEmojis, 0, SEARCH_RESULTS, 1);
 
         const searchEmojiRowsWithCategoryHeader: CategoryOrEmojiRow[] = [searchCategoryRow, ...searchEmojisRows];

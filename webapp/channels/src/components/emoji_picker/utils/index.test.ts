@@ -436,6 +436,24 @@ describe('createCategoryAndEmojiRows', () => {
         expect(createCategoryAndEmojiRows(allEmojis as any, [] as any, '', '')).toEqual([[], []]);
     });
 
+    test('Should treat a whitespace-only filter the same as an empty filter', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            thumbsup: thumbsupEmoji,
+        };
+
+        const categories = {
+            'people-body': {
+                id: 'people-body',
+                name: 'people-body',
+                emojiIds: ['smile', 'thumbsup'],
+            },
+        };
+
+        expect(createCategoryAndEmojiRows(allEmojis as any, categories as any, '   ', '')).
+            toEqual(createCategoryAndEmojiRows(allEmojis as any, categories as any, '', ''));
+    });
+
     test('Should return search results on filter is on', () => {
         const allEmojis = {
             smile: smileEmoji,
