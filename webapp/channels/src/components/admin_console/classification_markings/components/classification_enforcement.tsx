@@ -15,12 +15,10 @@ const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_pol
 
 const msg = defineMessages({
     sectionTitle: {id: 'admin.classification_markings.enforcement.section_title', defaultMessage: 'Classification Enforcement'},
-    sectionDescription: {id: 'admin.classification_markings.enforcement.section_description', defaultMessage: "Restrict access to classified resources based on a user's clearance. When enforced, users must hold a ranked clearance attribute that meets each resource's classification level."},
-    enforceTitle: {id: 'admin.classification_markings.enforcement.enforce.title', defaultMessage: 'Enforce classification markings'},
-    enforceHelp: {id: 'admin.classification_markings.enforcement.enforce.help', defaultMessage: "When enabled, access can be gated by a user's clearance attribute. This is managed by a corresponding <link>membership policy</link>."},
+    sectionDescription: {id: 'admin.classification_markings.enforcement.section_description', defaultMessage: "Enable the clearance attribute, then create a membership policy using it to restrict access to classified resources based on a user's clearance."},
     clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
     clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
-    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels on save, so a membership policy can reference user.attributes.Clearance. Unchecking removes it on save.'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
 });
 
 type Props = {
@@ -64,22 +62,14 @@ export default function ClassificationEnforcement({clearanceEnabled, onClearance
                 >
                     <GlobalBannerSectionSetting>
                         <Setting
-                            inputId='classificationEnforce'
-                            label={<FormattedMessage {...msg.enforceTitle}/>}
+                            inputId='clearanceAttribute'
+                            label={<FormattedMessage {...msg.clearanceTitle}/>}
                             helpText={
                                 <FormattedMessage
-                                    {...msg.enforceHelp}
+                                    {...msg.clearanceHelp}
                                     values={{link: membershipPolicyLink}}
                                 />
                             }
-                            setByEnv={false}
-                        />
-                    </GlobalBannerSectionSetting>
-                    <GlobalBannerSectionSetting>
-                        <Setting
-                            inputId='clearanceAttribute'
-                            label={<FormattedMessage {...msg.clearanceTitle}/>}
-                            helpText={<FormattedMessage {...msg.clearanceHelp}/>}
                             setByEnv={false}
                         >
                             <label className='checkbox-inline'>
