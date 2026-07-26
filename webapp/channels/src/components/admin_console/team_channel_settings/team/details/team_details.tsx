@@ -860,6 +860,10 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         );
 
         if (hasAbacChanges) {
+            // Computing the preview pages through team members and can take a moment on
+            // large teams; show the Save button as busy so it doesn't look frozen.
+            this.setState({saving: true});
+
             let affectedCount: number | null = null;
             let qualifyingCount: number | null = null;
             let addCount: number | null = null;
@@ -918,7 +922,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 qualifyingCount = null;
                 addCount = null;
             }
-            this.setState({showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
+            // Hand off to the confirmation modal; clear the busy state so the panel isn't
+            // spinning behind it (the modal's Apply button drives the actual save).
+            this.setState({saving: false, showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
             return;
         }
 
