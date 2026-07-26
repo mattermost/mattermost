@@ -127,6 +127,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             href={safeLink}
             title={openGraphData?.title || openGraphData?.url || link}
             location='post_attachment_opengraph'
+            data-testid='link-preview'
         >
             {rest.currentUserId === post.user_id && !isInPermalink && (
                 <WithTooltip
@@ -207,11 +208,13 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
     };
 
     const collapsedLabel = formatMessage({id: 'link_preview.image_preview', defaultMessage: 'Show image preview'});
+    const expandedLabel = formatMessage({id: 'link_preview.hide_image_preview', defaultMessage: 'Hide image preview'});
 
     const imageCollapseButton = (
         <button
             className='preview-toggle style--none'
             onClick={toggleImagePreview}
+            aria-label={isEmbedVisible ? expandedLabel : collapsedLabel}
         >
             {isEmbedVisible ? (
                 <MenuDownIcon

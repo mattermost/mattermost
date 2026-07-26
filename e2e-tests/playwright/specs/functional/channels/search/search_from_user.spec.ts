@@ -5,8 +5,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that the "from:" search modifier autocompletes a username and returns that user's posts.
+ *
+ * MM-T376 covers the same from:user autocomplete behavior and is covered by this test.
  */
-test('MM-T377 completes a from: user search from the autocomplete', {tag: '@search'}, async ({pw}) => {
+test('MM-T376 MM-T377 completes a from: user search from the autocomplete', {tag: '@search'}, async ({pw}) => {
     // # Create the test user plus another user who authors a post
     const {user, team, adminClient} = await pw.initSetup();
     const [author] = await adminClient.createUsers(team.id, 1, 'author');
@@ -28,7 +30,7 @@ test('MM-T377 completes a from: user search from the autocomplete', {tag: '@sear
     await searchInput.fill('from:');
 
     // # Select the author from the autocomplete suggestions
-    await channelsPage.searchBox.container.getByText(author.username, {exact: false}).first().click();
+    await channelsPage.searchBox.selectSuggestionMatching(author.username);
 
     // * Verify the username is placed into the query without the leading @
     expect(await searchInput.inputValue()).toContain(`from:${author.username}`);

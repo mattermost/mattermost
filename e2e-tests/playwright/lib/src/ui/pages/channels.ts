@@ -41,6 +41,7 @@ export default class ChannelsPage {
     readonly browseChannelsModal;
     readonly directChannelsModal;
     readonly keyboardShortcutsModal;
+    readonly imagePreviewModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -94,6 +95,9 @@ export default class ChannelsPage {
             page.getByRole('dialog', {name: /Edit Header/}),
         );
         this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
+        this.imagePreviewModal = new components.ImagePreviewModal(
+            page.getByRole('dialog').filter({has: page.getByAltText('preview url image')}),
+        );
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
@@ -396,6 +400,32 @@ export default class ChannelsPage {
         const teamButton = this.page.locator(`#${teamName}TeamButton`);
         await teamButton.waitFor();
         await teamButton.click();
+    }
+
+    getTeamButton(teamDisplayName: string) {
+        const escapedName = teamDisplayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return this.page.getByRole('button', {name: new RegExp(`^${escapedName} team`, 'i')});
+    }
+
+    async switchToTeamByDisplayName(teamDisplayName: string) {
+        await this.getTeamButton(teamDisplayName).click();
+    }
+
+    async toHaveTeamMentionCount(teamDisplayName: string, count: number) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(
+            `${teamDisplayName.toLowerCase()} team, ${count} mentions`,
+        );
+    }
+
+    async toHaveTeamNoUnread(teamDisplayName: string) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team`);
+    }
+
+    async toHaveTeamUnread(teamDisplayName: string, teamId: string) {
+        const teamButton = this.getTeamButton(teamDisplayName);
+        await expect(teamButton).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team unread`);
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toBeVisible();
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toHaveText('');
     }
 
     /**

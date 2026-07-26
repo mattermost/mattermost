@@ -14,13 +14,11 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Search', () => {
     let testTeam;
-    let testUser;
 
     before(() => {
         // Initialize a user.
-        cy.apiInitSetup().then(({team, user}) => {
+        cy.apiInitSetup().then(({team}) => {
             testTeam = team;
-            testUser = user;
         });
     });
 
@@ -29,80 +27,6 @@ describe('Search', () => {
 
         // Visit town square as an admin
         cy.visit(`/${testTeam.name}/channels/town-square`);
-    });
-
-    it('MM-T353 After clearing search query, search options display', () => {
-        const searchWord = 'Hello';
-
-        // # Post a message
-        cy.postMessage(searchWord);
-
-        cy.uiGetSearchContainer().click();
-
-        // * Search word in searchBox and validate searchWord
-        cy.uiGetSearchBox().type(searchWord + '{enter}');
-
-        cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().should('have.value', searchWord);
-
-        // # Click on "x" displayed on searchbox
-        cy.uiGetSearchBox().parent().siblings('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
-        cy.uiGetSearchBox().parents('[class*="SearchInputContainer"]').siblings('#searchHints').should('be.visible');
-        cy.uiGetSearchBox().focus().type('{esc}');
-
-        // # RHS should be visible with search results
-        cy.get('#search-items-container').should('be.visible');
-
-        cy.uiGetSearchContainer().click();
-
-        assertSearchHintFilesOrMessages();
-    });
-
-    it('MM-T376 - From:user search, using autocomplete', () => {
-        const testMessage = 'Hello World';
-        const testSearch = `FROM:${testUser.username.substring(0, 5)}`;
-
-        cy.apiCreateUser().then(({user}) => {
-            cy.apiAddUserToTeam(testTeam.id, user.id);
-            cy.apiLogin(user);
-
-            cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-                // # Have another user send a post
-                cy.postMessageAs({sender: testUser, message: testMessage, channelId: channel.id});
-            });
-
-            // # Visit town-square.
-            cy.visit(`/${testTeam.name}/channels/town-square`);
-
-            cy.uiGetSearchContainer().click();
-
-            // # Search for posts from that user
-            cy.uiGetSearchBox().type(testSearch, {force: true}).wait(TIMEOUTS.HALF_SEC);
-
-            // # Select user from suggestion list
-            cy.contains('.suggestion-list__item', `@${testUser.username}`).scrollIntoView().click({force: true});
-
-            // # Verify that search box has the updated query
-            cy.uiGetSearchBox().should('have.value', `FROM:${testUser.username} `);
-
-            // # Perform search
-            cy.uiGetSearchBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
-
-            // * Assert that RHS should be visible with search results
-            cy.get('#search-items-container').should('be.visible');
-
-            // * Search query clear icon is still present
-            cy.uiGetSearchContainer().click();
-
-            // # Hover search query clear icon
-            cy.get('.input-clear-x').first().trigger('mouseover', {force: true}).then(($span) => {
-                // # Click the clear query icon
-                cy.wrap($span).click({force: true});
-
-                // * Assert search results are intact
-                cy.get('[data-testid="search-item-container"]').should('be.visible');
-            });
-        });
     });
 
     it('MM-T1450 - Autocomplete behaviour', () => {

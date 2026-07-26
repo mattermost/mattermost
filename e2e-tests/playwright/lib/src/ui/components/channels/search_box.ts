@@ -58,6 +58,12 @@ export default class SearchBox {
         return this.searchHints.getByTestId('suggestion-selected');
     }
 
+    async selectSuggestionMatching(text: string) {
+        const suggestion = this.container.getByText(text, {exact: false}).first();
+        await expect(suggestion).toBeVisible();
+        await suggestion.click();
+    }
+
     /**
      * Locates a day cell in the "on:" date-filter day picker by day-of-month.
      * Matches on the leading day number in the accessible name (e.g. "15th January (Tuesday)"),

@@ -9,6 +9,7 @@ import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder
 import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
+import LinkPreview from './link_preview';
 
 export default class ChannelsPost {
     readonly container: Locator;
@@ -37,7 +38,7 @@ export default class ChannelsPost {
         this.profileIcon = container.getByTestId('profile-icon');
         this.emoticon = container.locator('.emoticon');
         this.messageText = container.locator('.post-message__text p');
-        this.editedIndicator = container.getByRole('button', {name: 'Edited'});
+        this.editedIndicator = container.getByText('Edited', {exact: true});
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -72,6 +73,29 @@ export default class ChannelsPost {
         return postIdWithPossibleTimestamp.split(':')[0];
     }
 
+    async toHaveId(postId: string) {
+        await expect.poll(() => this.getId()).toBe(postId);
+    }
+
+    async toBeEdited() {
+        await expect(this.editedIndicator).toBeVisible();
+    }
+
+    async isSystemMessage() {
+        return this.container.evaluate((element) => element.classList.contains('post--system'));
+    }
+
+    async toBeSystemMessage() {
+        await expect(this.container).toHaveClass(/post--system/);
+        await expect(this.container).not.toHaveClass(/same--root|other--root|current--user|post--comment|post--root/);
+        await expect(this.container.locator('.status-wrapper .status svg')).not.toBeVisible();
+    }
+
+    async toBeSystemMessageContaining(text: string | RegExp) {
+        await this.toBeSystemMessage();
+        await expect(this.container).toContainText(text);
+    }
+
     async getProfileImage(username: string) {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
@@ -82,6 +106,35 @@ export default class ChannelsPost {
      */
     getLink(name: string): Locator {
         return this.container.getByRole('link', {name});
+    }
+
+    getInlineImage(altText: string) {
+        return this.body.getByAltText(altText);
+    }
+
+    getInlineImageLink(altText: string) {
+        return this.body.getByRole('link').filter({has: this.container.page().getByAltText(altText)});
+    }
+
+    async openInlineImagePreview(altText: string) {
+        await this.getInlineImage(altText).click();
+    }
+
+    async toHaveStrikethroughText(text: string) {
+        const strikethrough = this.body.getByText(text, {exact: true});
+        await expect(strikethrough).toBeVisible();
+        await expect(strikethrough).toHaveJSProperty('tagName', 'DEL');
+    }
+
+    async toBeDeleted(originalMessage?: string) {
+        await expect(this.container).toContainText('(message deleted)');
+        if (originalMessage) {
+            await expect(this.container).not.toContainText(originalMessage);
+        }
+    }
+
+    getLinkPreview() {
+        return new LinkPreview(this.body.getByTestId('link-preview'));
     }
 
     async openAThread() {

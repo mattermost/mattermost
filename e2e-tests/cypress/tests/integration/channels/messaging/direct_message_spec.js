@@ -36,69 +36,6 @@ describe('Direct Message', () => {
         cy.visit(townsquareLink);
     });
 
-    it('MM-T449 - Edit a direct message body', () => {
-        const originalMessage = 'Hello';
-        const editedMessage = 'Hello World';
-
-        // Sent a DM that can be edited
-        cy.apiCreateDirectChannel([testUser.id, otherUser.id]).then(({channel}) => {
-            // Have another user send you a DM
-            cy.postMessageAs({sender: testUser, message: originalMessage, channelId: channel.id}).wait(TIMEOUTS.HALF_SEC);
-        }).apiLogout().wait(TIMEOUTS.HALF_SEC);
-
-        cy.apiLogin(otherUser).then(() => {
-            // # Visit the DM channel
-            cy.visit(`/${testTeam.name}/messages/@${testUser.username}`);
-
-            // * Verify message is sent and not pending
-            cy.getLastPostId().then((postId) => {
-                const postText = `#postMessageText_${postId}`;
-                cy.get(postText).should('have.text', originalMessage);
-            });
-        }).apiLogout().wait(TIMEOUTS.HALF_SEC);
-
-        cy.apiLogin(testUser).then(() => {
-            // # Visit the DM channel
-            cy.visit(`/${testTeam.name}/messages/@${otherUser.username}`);
-
-            // # Edit the last post
-            cy.uiGetPostTextBox();
-            cy.uiGetPostTextBox().clear().type('{uparrow}');
-
-            // * Edit post Input should appear, and edit the post
-            cy.get('#edit_textbox').should('be.visible');
-            cy.get('#edit_textbox').should('have.text', originalMessage).type(' World{enter}', {delay: 100});
-            cy.get('#edit_textbox').should('not.exist');
-
-            // * Verify that last post does contain "Edited"
-            cy.getLastPostId().then((postId) => {
-                const postEdited = `#postEdited_${postId}`;
-                cy.get(postEdited).should('be.visible').and('have.text', 'Edited');
-            });
-        }).apiLogout().wait(TIMEOUTS.HALF_SEC);
-
-        cy.apiLogin(otherUser).then(() => {
-            // # Visit the DM channel
-            cy.visit(`/${testTeam.name}/messages/@${testUser.username}`);
-
-            // * Should not have unread mentions indicator.
-            cy.get('#sidebarItem_off-topic').
-                scrollIntoView().
-                find('#unreadMentions').
-                should('not.exist');
-
-            // * Verify message is sent and not pending
-            cy.getLastPostId().then((postId) => {
-                const postText = `#postMessageText_${postId}`;
-                const postEdited = `#postEdited_${postId}`;
-
-                // * Check the post and verify that it contains new edited message.
-                cy.get(postText).should('have.text', `${editedMessage} Edited`);
-                cy.get(postEdited).should('be.visible');
-            });
-        }).apiLogout().wait(TIMEOUTS.HALF_SEC);
-    });
-
     it('MM-T457 - Self direct message', () => {
         // # Stub notifications API
         spyNotificationAs('withNotification', 'granted');

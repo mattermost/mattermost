@@ -4,6 +4,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
 <div>
   <a
     class="PostAttachmentOpenGraph"
+    data-testid="link-preview"
     href="https://www.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=post_attachment_opengraph&uid=user-1&sid=&edition=team&server_version="
     location="post_attachment_opengraph"
     rel="noopener noreferrer"
@@ -39,6 +40,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
       >
         <div>
           <button
+            aria-label="Hide image preview"
             class="preview-toggle style--none"
           >
             <svg
@@ -121,6 +123,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
     >
       <div>
         <button
+          aria-label="Hide image preview"
           class="preview-toggle style--none"
         >
           <svg
