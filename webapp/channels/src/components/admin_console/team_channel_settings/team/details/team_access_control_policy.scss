@@ -38,19 +38,6 @@
         white-space: nowrap;
     }
 
-    &__col-auto-add {
-        display: flex;
-        width: 96px;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-    }
-
-    &__auto-add-checkbox {
-        margin: 0;
-        cursor: pointer;
-    }
-
     &__col-actions {
         display: flex;
         flex-shrink: 0;

@@ -333,18 +333,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.props.actions.setNavigationBlocked(true);
     };
 
-    onAutoAddChange = (autoAdd: boolean) => {
-        // Toggle auto-add on an already-linked team from the Membership policies
-        // list. Updates only the team child's flag (teamRulesAutoSync → child
-        // active on save); the linked parent policy is left untouched.
-        this.setState({
-            teamRulesAutoSync: autoAdd,
-            policyEnforced: true,
-            saveNeeded: true,
-        });
-        this.props.actions.setNavigationBlocked(true);
-    };
-
     onPolicyRemove = (policyId: string) => {
         const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
         const remaining = accessControlPolicies.filter((policy) => policy.id !== policyId);
@@ -986,11 +974,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     <>
                         <TeamAccessControl
                             parentPolicies={this.state.accessControlPolicies}
-                            autoAddMembers={this.state.teamRulesAutoSync}
                             actions={{
                                 onPolicySelected: this.onPolicySelected,
                                 onPolicyRemove: this.onPolicyRemove,
-                                onAutoAddChange: this.onAutoAddChange,
                                 searchPolicies: this.props.actions.searchPolicies,
                             }}
                         />
