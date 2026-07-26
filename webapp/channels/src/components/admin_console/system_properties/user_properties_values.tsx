@@ -26,6 +26,7 @@ import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
 import UserPropertyRankValues from './user_properties_rank_values';
+import {isLinkedField} from './user_properties_utils';
 
 type Props = {
     field: UserPropertyField;
@@ -227,7 +228,10 @@ const UserPropertyValues = ({
     }
 
     const isProtected = Boolean(field.attrs?.protected);
-    const isDisabled = field.delete_at !== 0 || isProtected;
+
+    // Linked fields inherit their options from the template they link to; the
+    // server rejects an options change on them.
+    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field);
 
     return (
         <>

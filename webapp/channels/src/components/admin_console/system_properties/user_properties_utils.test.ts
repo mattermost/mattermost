@@ -15,6 +15,8 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import {
+    isLinkedField,
+    newPendingField,
     useUserPropertyFields,
     ValidationWarningNameInvalidCEL,
     ValidationWarningNameRequired,
@@ -621,5 +623,26 @@ describe('useUserPropertyFields', () => {
         const [fields] = result.current;
         const pendingNames = fields.order.slice(-2).map((id) => fields.data[id].name);
         expect(pendingNames).toEqual(['Text', 'Text_2']);
+    });
+});
+
+describe('isLinkedField', () => {
+    it('is true only when the field links to a template field', () => {
+        expect(isLinkedField({})).toBe(false);
+        expect(isLinkedField({linked_field_id: ''})).toBe(false);
+        expect(isLinkedField({linked_field_id: 'template-field-id'})).toBe(true);
+    });
+});
+
+describe('newPendingField', () => {
+    it('drops the template link when duplicating a linked field', () => {
+        const pending = newPendingField({
+            name: 'clearance_copy',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        } as UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>);
+
+        expect(pending.linked_field_id).toBeUndefined();
+        expect(isLinkedField(pending)).toBe(false);
     });
 });
