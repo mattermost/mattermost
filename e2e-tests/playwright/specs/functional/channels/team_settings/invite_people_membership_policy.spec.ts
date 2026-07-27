@@ -217,8 +217,16 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
         await expect(inviteModal.container).toBeVisible({timeout: 10000});
 
-        // * Banner still shown (governed)
-        await expect(inviteModal.container.locator('.InviteView__policyBanner')).toBeVisible({timeout: 10000});
+        // * Banner still shown (governed) but with softened advisory copy
+        const banner = inviteModal.container.locator('.InviteView__policyBanner');
+        await expect(banner).toBeVisible({timeout: 10000});
+        await expect(banner.getByText('This team has membership requirements')).toBeVisible();
+        await expect(banner.getByText(/can still join, but will not be automatically added/i)).toBeVisible();
+        await expect(banner.getByText('Team access is restricted by user attributes')).toHaveCount(0);
+
+        // * Invite-link warning uses the advisory wording (no join block)
+        const linkWarning = inviteModal.container.locator('.InviteView__inviteLinkWarning');
+        await expect(linkWarning).toHaveText(/can join even if they do not meet the membership requirements/i);
 
         // # Search with the shared prefix to surface both users
         await inviteModal.inviteInput.pressSequentially(userPrefix);
