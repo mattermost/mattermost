@@ -11,6 +11,7 @@ import (
 	"maps"
 	"os"
 	"reflect"
+	"slices"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -28,6 +29,8 @@ const (
 	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
 	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	SpaceRolesCreationMigrationKey                 = "SpaceRolesCreationMigrationComplete"
+	SpaceSchemesCreationMigrationKey               = "SpaceSchemesCreationMigrationComplete"
 	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
@@ -374,6 +377,213 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
 
 func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
 	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
+}
+
+// validateCanonicalSpaceRole rejects a role row that carries an atomic space
+// capability role's name but is not the canonical definition: adopting a
+// foreign row would hand its arbitrary permission set to every member granted
+// that capability. A legitimate hit is only ever a fresh install's
+// MakeDefaultRoles() seed or another HA node's identical insert.
+func validateCanonicalSpaceRole(existing, canonical *model.Role) error {
+	if !existing.BuiltIn || existing.SchemeManaged || existing.SchemeId != nil {
+		return fmt.Errorf("role %q already exists but is not the canonical space capability role definition; rename or delete the conflicting role to proceed", existing.Name)
+	}
+	if !maps.Equal(asPermissionSet(existing.Permissions), asPermissionSet(canonical.Permissions)) {
+		return fmt.Errorf("role %q already exists with a non-canonical permission set %v; rename or delete the conflicting role to proceed", existing.Name, existing.Permissions)
+	}
+	return nil
+}
+
+// validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
+// scheme's name but cannot serve as one: adopting a foreign row would rewrite
+// that scheme's generated role permission sets on every boot, and a row without
+// a full set of generated channel roles would fail the closure with a
+// not-found on an empty role name.
+func validateAdoptableSpaceScheme(existing *model.Scheme) error {
+	// The scheme select carries no DeleteAt filter, so a soft-deleted row comes
+	// back like any other; adopting one would mark the migration complete while
+	// leaving no live preset behind.
+	if existing.DeleteAt != 0 {
+		return fmt.Errorf("scheme %q already exists but is deleted; restore or permanently remove the conflicting scheme to proceed", existing.Name)
+	}
+	if existing.Scope != model.SchemeScopeChannel {
+		return fmt.Errorf("scheme %q already exists with scope %q instead of %q; rename or delete the conflicting scheme to proceed", existing.Name, existing.Scope, model.SchemeScopeChannel)
+	}
+	if existing.DefaultChannelUserRole == "" || existing.DefaultChannelAdminRole == "" || existing.DefaultChannelGuestRole == "" {
+		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles; rename or delete the conflicting scheme to proceed", existing.Name)
+	}
+	return nil
+}
+
+func (s *Server) doSpaceRolesCreationMigration() error {
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(SpaceRolesCreationMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	for _, roleID := range model.SpaceCapabilityRoleIDs {
+		canonical := roles[roleID]
+		existing, err := s.Store().Role().GetByName(context.Background(), roleID)
+		if err == nil {
+			if vErr := validateCanonicalSpaceRole(existing, canonical); vErr != nil {
+				return vErr
+			}
+			continue
+		}
+		if !errors.As(err, &nfErr) {
+			return fmt.Errorf("could not query role %q: %w", roleID, err)
+		}
+
+		if _, err := s.Store().Role().Save(canonical); err != nil {
+			mlog.Warn("Couldn't save the space capability role, this can be an expected case", mlog.String("role_name", roleID), mlog.Err(err))
+
+			// The store wraps the raw duplicate-key error, so a lost HA insert
+			// race is detected by re-reading the row on the primary: a lagging
+			// replica could miss the other node's just-committed insert and
+			// fatal the boot.
+			existing, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID)
+			if rErr != nil {
+				return fmt.Errorf("failed to create space capability role %q: %w", roleID, err)
+			}
+			if vErr := validateCanonicalSpaceRole(existing, canonical); vErr != nil {
+				return vErr
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  SpaceRolesCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
+		return fmt.Errorf("failed to mark space roles creation migration as completed: %w", err)
+	}
+
+	return nil
+}
+
+// applySpaceSchemeRolePermissions reads a scheme-generated role, strips the
+// moderated permissions inherited from the global role it was seeded from when
+// strip is set, adds any missing target permissions, and saves only when the
+// set changed. Racing nodes converge: the function is idempotent, so running
+// it again from the result of a prior run — or interleaved with another
+// node's run — always lands on the same final permission set.
+func (s *Server) applySpaceSchemeRolePermissions(roleName string, target []*model.Permission, strip bool) error {
+	role, err := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleName)
+	if err != nil {
+		return fmt.Errorf("could not query scheme role %q: %w", roleName, err)
+	}
+
+	perms := asPermissionSet(role.Permissions)
+	changed := false
+	if strip {
+		for moderated := range model.ChannelModeratedPermissionsMap {
+			if perms[moderated] {
+				delete(perms, moderated)
+				changed = true
+			}
+		}
+	}
+	for _, p := range target {
+		if !perms[p.Id] {
+			perms[p.Id] = true
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+
+	newPermissions := make([]string, 0, len(perms))
+	for p := range perms {
+		newPermissions = append(newPermissions, p)
+	}
+	// Deterministic order keeps racing HA nodes and re-runs writing identical
+	// rows, and keeps role diffs readable.
+	slices.Sort(newPermissions)
+	role.Permissions = newPermissions
+	if _, err := s.Store().Role().Save(role); err != nil {
+		return fmt.Errorf("failed to save scheme role %q: %w", roleName, err)
+	}
+	return nil
+}
+
+func (s *Server) doSpaceSchemesCreationMigration() error {
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(SpaceSchemesCreationMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	presets := []struct {
+		name        string
+		displayName string
+		userPerms   []*model.Permission
+	}{
+		{model.SchemeNameSpaceContribute, model.SchemeDisplayNameSpaceContribute, model.SpaceDefaultContributePermissions},
+		{model.SchemeNameSpaceComment, model.SchemeDisplayNameSpaceComment, model.SpaceDefaultCommentPermissions},
+		{model.SchemeNameSpaceReadOnly, model.SchemeDisplayNameSpaceReadOnly, model.SpaceDefaultReadOnlyPermissions},
+	}
+
+	for _, preset := range presets {
+		scheme, err := s.Store().Scheme().GetByName(context.Background(), preset.name)
+		if err != nil {
+			if !errors.As(err, &nfErr) {
+				return fmt.Errorf("could not query scheme %q: %w", preset.name, err)
+			}
+			scheme, err = s.Store().Scheme().Save(&model.Scheme{
+				Name:        preset.name,
+				DisplayName: preset.displayName,
+				Scope:       model.SchemeScopeChannel,
+			})
+			if err != nil {
+				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case", mlog.String("scheme_name", preset.name), mlog.Err(err))
+
+				// Same lost-HA-insert-race recovery as the space roles
+				// migration: re-read on the primary before treating the save
+				// error as real. The original save error is the root cause, so
+				// it is the one wrapped when the re-read also misses.
+				var rErr error
+				scheme, rErr = s.Store().Scheme().GetByName(store.WithMaster(context.Background()), preset.name)
+				if rErr != nil {
+					return fmt.Errorf("failed to create space scheme %q: %w", preset.name, err)
+				}
+			}
+		}
+
+		if vErr := validateAdoptableSpaceScheme(scheme); vErr != nil {
+			return vErr
+		}
+
+		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelUserRole, preset.userPerms, true); err != nil {
+			return err
+		}
+		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelAdminRole, model.SpaceAdminRolePermissions, false); err != nil {
+			return err
+		}
+		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelGuestRole, model.SpaceDefaultReadOnlyPermissions, true); err != nil {
+			return err
+		}
+	}
+
+	system := model.System{
+		Name:  SpaceSchemesCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
+		return fmt.Errorf("failed to mark space schemes creation migration as completed: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -1292,10 +1502,18 @@ func (s *Server) doAppMigrations() {
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
 		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
+		{"Space Roles Creation Migration", s.doSpaceRolesCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
 		{"Playbooks Roles Creation Migration", s.doPlaybooksRolesCreationMigration},
+		// Runs after the generic permissions migrations: those match scheme-generated
+		// channel roles by common name and would re-add the moderated permissions this
+		// migration strips from the space preset schemes' generated roles. Also after
+		// the playbooks roles migration: creating a scheme of any scope loads every
+		// default role name, the playbook and run roles included, and fails if one is
+		// missing — on an upgrade those rows exist only once that migration has run.
+		{"Space Schemes Creation Migration", s.doSpaceSchemesCreationMigration},
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},

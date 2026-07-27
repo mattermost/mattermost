@@ -68,6 +68,19 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Remove the "System" table entry that marks the space roles creation migration as done.
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(SpaceRolesCreationMigrationKey); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Remove the "System" table entry that marks the space schemes creation
+	// migration as done. The purge above deletes the preset schemes themselves,
+	// and nothing else recreates them: unlike the roles, they are not rebuilt
+	// from MakeDefaultRoles by the advanced permissions migration.
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(SpaceSchemesCreationMigrationKey); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
 	a.DoAppMigrations()
 

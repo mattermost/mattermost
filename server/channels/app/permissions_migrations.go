@@ -1345,6 +1345,41 @@ func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, e
 	}, nil
 }
 
+func (a *App) getAddSpacePermissionsMigration() (permissionsMap, error) {
+	systemAdminPerms := []string{
+		model.PermissionReadSpace.Id,
+		model.PermissionCreateSpace.Id,
+		model.PermissionManageSpace.Id,
+		model.PermissionDeleteSpace.Id,
+	}
+	// A persisted system_admin role row receives new permissions only through
+	// explicit migration additions, so the seven channel-scoped space
+	// permissions ride here too — without them the sysadmin override would
+	// resolve nothing on upgraded installs while working on fresh ones.
+	for _, p := range model.SpaceChannelScopedPermissions {
+		systemAdminPerms = append(systemAdminPerms, p.Id)
+	}
+
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.TeamGuestRoleId),
+			Add: []string{model.PermissionReadSpace.Id},
+		},
+		permissionTransformation{
+			On:  isRole(model.TeamUserRoleId),
+			Add: []string{model.PermissionReadSpace.Id, model.PermissionCreateSpace.Id},
+		},
+		permissionTransformation{
+			On:  isRole(model.TeamAdminRoleId),
+			Add: []string{model.PermissionManageSpace.Id, model.PermissionDeleteSpace.Id},
+		},
+		permissionTransformation{
+			On:  isRole(model.SystemAdminRoleId),
+			Add: systemAdminPerms,
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1408,6 +1443,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
+		{Key: model.MigrationKeyAddSpacePermissions, Migration: a.getAddSpacePermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
