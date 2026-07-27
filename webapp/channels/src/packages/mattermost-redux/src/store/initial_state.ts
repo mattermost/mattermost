@@ -106,6 +106,8 @@ const state: GlobalState = {
         recaps: {
             byId: {},
             allIds: [],
+            scheduledRecaps: {},
+            limitStatus: null,
         },
         preferences: {
             myPreferences: {},
@@ -147,6 +149,7 @@ const state: GlobalState = {
             appsBotIDs: [],
             appsOAuthAppIDs: [],
             dialogTriggerId: '',
+            dialogs: {},
             outgoingOAuthConnections: {},
         },
         files: {

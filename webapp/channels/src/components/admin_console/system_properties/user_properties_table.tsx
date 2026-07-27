@@ -9,7 +9,8 @@ import styled, {css} from 'styled-components';
 
 import {AlertOutlineIcon, InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
+import {type UserPropertyField} from '@mattermost/types/properties_user';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import AlertBanner from 'components/alert_banner';
@@ -684,6 +685,7 @@ export const ValidationBanners = ({warnings}: ValidationBannersProps) => {
             {presentTypes.map((id) => (
                 <AlertBanner
                     key={id}
+                    id={id}
                     mode='warning'
                     title={<FormattedMessage {...nameBannerTitles[id]}/>}
                     message={

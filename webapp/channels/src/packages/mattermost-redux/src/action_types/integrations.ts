@@ -29,4 +29,5 @@ export default keyMirror({
     RECEIVED_DIALOG_TRIGGER_ID: null,
     RECEIVED_DIALOG_ARGUMENTS: null,
     RECEIVED_DIALOG: null,
+    REMOVE_DIALOG: null,
 });

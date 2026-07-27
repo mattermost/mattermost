@@ -180,6 +180,7 @@ describe('UserAccessTokenSection component', () => {
             revokeUserAccessToken: jest.fn().mockResolvedValue({}),
             enableUserAccessToken: jest.fn().mockResolvedValue({}),
             disableUserAccessToken: jest.fn().mockResolvedValue({}),
+            rotateUserAccessToken: jest.fn().mockResolvedValue({data: {}}),
             clearUserAccessTokens: jest.fn(),
         },
         ...overrides,
@@ -342,6 +343,80 @@ describe('UserAccessTokenSection component', () => {
             renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true, expires_at: FROZEN_NOW + (3 * DAY_MS)}}});
             expect(screen.getByText('Active')).toBeInTheDocument();
             expect(screen.getByText('Expires in 3 days')).toBeInTheDocument();
+        });
+
+        test('does not show a Regenerate link for a disabled token', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: false}}});
+            expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('regenerate token', () => {
+        test('shows a confirmation modal naming the token before regenerating', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}}});
+
+            fireEvent.click(screen.getByText('Regenerate'));
+
+            expect(screen.getByText('Regenerate Token?')).toBeInTheDocument();
+            expect(screen.getByText(/Are you sure you want to regenerate/)).toBeInTheDocument();
+        });
+
+        test('rotates the token and displays the new secret on confirmation', async () => {
+            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', description: 'my token', is_active: true, token: 'new-secret'}});
+            const setRequireConfirm = jest.fn();
+            renderSection({
+                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                setRequireConfirm,
+                actions: {...getBaseProps().actions, rotateUserAccessToken},
+            });
+
+            fireEvent.click(screen.getByText('Regenerate'));
+            fireEvent.click(screen.getByText('Yes, Regenerate'));
+
+            expect(setRequireConfirm).toHaveBeenCalledWith(true, expect.any(Function));
+            expect(await screen.findByText(/new-secret/)).toBeInTheDocument();
+            expect(rotateUserAccessToken).toHaveBeenCalledWith('t1', undefined);
+        });
+
+        test('lets the user pick a new expiry before regenerating', async () => {
+            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', description: 'my token', is_active: true, token: 'new-secret'}});
+            renderSection({
+                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                actions: {...getBaseProps().actions, rotateUserAccessToken},
+            });
+
+            fireEvent.click(screen.getByText('Regenerate'));
+            change(document.body, '#regenerateTokenExpiry', '7d');
+            fireEvent.click(screen.getByText('Yes, Regenerate'));
+
+            await screen.findByText(/new-secret/);
+            expect(rotateUserAccessToken).toHaveBeenCalledWith('t1', endOfLocalDayPlusDays(7));
+        });
+
+        test('disables the confirm button until a required custom expiry date is chosen', () => {
+            renderSection({
+                maxLifetimeDays: 30,
+                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+            });
+
+            fireEvent.click(screen.getByText('Regenerate'));
+            change(document.body, '#regenerateTokenExpiry', 'custom');
+            change(document.body, '#regenerateTokenExpiryCustom', '');
+
+            expect(screen.getByText('Yes, Regenerate').closest('button')).toBeDisabled();
+        });
+
+        test('shows the server error message when rotation fails', async () => {
+            const rotateUserAccessToken = jest.fn().mockResolvedValue({error: {message: 'rotate failed'}});
+            renderSection({
+                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                actions: {...getBaseProps().actions, rotateUserAccessToken},
+            });
+
+            fireEvent.click(screen.getByText('Regenerate'));
+            fireEvent.click(screen.getByText('Yes, Regenerate'));
+
+            expect(await screen.findByText('rotate failed')).toBeInTheDocument();
         });
     });
 });

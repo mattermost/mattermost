@@ -1,0 +1,403 @@
+---
+title: "Command line tools"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+In self-managed deployments, a `mattermost` command is available for configuring the system from the directory where the Mattermost server is installed. For an overview of the Mattermost command line interface (CLI), [read this article](https://medium.com/@santosjs/plugging-in-to-the-mattermost-cli-8cdcef2bd1f6) from Santos.
+
+<Important>
+
+From Mattermost v6.0, the majority of these CLI commands have been replaced with equivalents available using the [mmctl command line tool](/administration-guide/manage/mmctl-command-line-tool). However, [mattermost import](/administration-guide/manage/command-line-tools#mattermost-import) commands, [mattermost export](/administration-guide/manage/command-line-tools#mattermost-export) commands, and related subcommands, remain available and fully supported from Mattermost v6.0.
+
+</Important>
+
+These `mattermost` commands include the following functionality:
+
+**Compliance Export**
+
+- Export data
+- Schedule an export job
+
+**Database**
+
+- Initialize the database, execute migrations, and load custom defaults
+- Migrate the database schema for unapplied migrations
+- Reset the database to its initial state
+- Return the most recently applied version number
+- Roll back database migrations
+
+**Server Operations**
+
+- Start the Mattermost job server
+- Run the Mattermost server
+- Display Mattermost version information
+
+## Use the CLI
+
+<Tabs>
+<TabItem value="via-mattermost" label="Via Mattermost">
+
+To run the CLI commands, you must be in the Mattermost root directory. On a default installation of Mattermost, the root directory is `/opt/mattermost`. If you followed our standard [installation process](/deployment-guide/deployment-guide-index), you must run the commands as the user `mattermost`. The name of the executable is `mattermost`, and it can be found in the `/opt/mattermost/bin` directory.
+
+For example, to get the Mattermost version on a default installation of Mattermost:
+
+``` sh
+cd /opt/mattermost/
+sudo -u mattermost bin/mattermost version
+```
+
+<Note>
+
+- Ensure you run the Mattermost binary as the `mattermost` user. Running it as `root` user (for example) may cause complications with permissions as the binary initiates plugins and accesses various files when running CLI commands. Running the server as `root` may result in ownership of the plugins and files to be overwritten as well as other potential permissions errors.
+
+- When running CLI commands on a Mattermost installation that has the configuration stored in the database, you might need to pass the database connection string as:
+
+  ``` sh
+  bin/mattermost --config="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+  ```
+
+</Note>
+
+</TabItem>
+<TabItem value="via-gitlab-omnibus" label="Via GitLab Omnibus">
+
+On GitLab Omnibus, you must be in the following directory when you run CLI commands: `/opt/gitlab/embedded/service/mattermost`. Also, you must run the commands as the user *mattermost* and specify the location of the configuration file. The executable is `/opt/gitlab/embedded/bin/mattermost`.
+
+For example, to get the Mattermost version on GitLab Omnibus:
+
+``` sh
+cd /opt/gitlab/embedded/service/mattermost
+sudo /opt/gitlab/embedded/bin/chpst -e /opt/gitlab/etc/mattermost/env -P -U mattermost:mattermost -u mattermost:mattermost /opt/gitlab/embedded/bin/mattermost version
+```
+
+<Note>
+
+The example commands on this documentation page are for a default installation of Mattermost. You must modify the commands so that they work on GitLab Omnibus.
+
+</Note>
+
+</TabItem>
+<TabItem value="via-docker-install" label="Via Docker Install">
+
+On Docker install, the `/mattermost/bin` directory was added to `PATH`, so you can use the CLI directly with the `docker exec` command. Note that the container name may be `mattermostdocker_app_1` if you installed Mattermost with `docker-compose.yml`.
+
+For example, to get the Mattermost version on a Docker Install:
+
+``` sh
+docker exec -it <your-mattermost-container-name> mattermost version
+```
+
+</TabItem>
+<TabItem value="via-docker-preview" label="Via Docker Preview">
+
+The Docker Install tab details and command references below also apply to the [Mattermost docker preview image](https://github.com/mattermost/mattermost-docker-preview).
+
+</TabItem>
+</Tabs>
+
+
+<Note>
+
+\- The CLI is run in a single node which bypasses the mechanisms that a [High Availability environment](/administration-guide/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks that change configuration settings require a server restart. - Parameters in CLI commands are order-specific. - If special characters (`!`, `|`, `(`, `)`, `\`, `'`, or `"`) are used, the entire argument needs to be surrounded by single quotes, or the individual characters need to be escaped out.
+
+</Note>
+
+## mattermost CLI commands
+
+Description  
+Commands for configuring and managing your Mattermost instance and users.
+
+Options  
+``` text
+-c, --config {string}           Configuration file to use. (default "config.json")
+--disableconfigwatch {boolean}  When true, the config.json file will not be reloaded automatically when another process changes it (default "false")
+```
+
+Child Commands  
+- [mattermost db](#mattermost-db) - Database commands
+- [mattermost export](#mattermost-export) - Compliance export commands
+- [mattermost help](#mattermost-help) - Generate full documentation for the CLI
+- [mattermost import](#mattermost-import) - Legacy import command
+- [mattermost jobserver](#mattermost-jobserver) - Start the Mattermost job server
+- [mattermost server](#mattermost-server) - Run the Mattermost server
+- [mattermost version](#mattermost-version) - Display version information
+
+## mattermost db
+
+Description  
+Commands related to the database
+
+Child Commands  
+- [mattermost db downgrade](#mattermost-db-downgrade) - Roll back database migrations. Requires either an update plan to roll back to, or comma-separated version numbers to be rolled back.
+- [mattermost db init](#mattermost-db-init) - Initialize the database, execute migrations, and load custom defaults
+- [mattermost db migrate](/administration-guide/manage/command-line-tools#mattermost-db-migrate) - Migrate the database schema for unapplied migrations
+- [mattermost db reset](#mattermost-db-reset) - Reset the database to its initial state
+- [mattermost db version](#mattermost-db-version) - Return the most recently applied version number
+
+Options  
+``` text
+-h, --help   help for db
+-c, --config string   Configuration file to use
+```
+
+### mattermost db downgrade
+
+Description  
+Rolls back database migrations. Requires either an update plan to roll back to, or comma-separated version numbers to be rolled back.
+
+Format  
+``` sh
+mattermost db downgrade
+```
+
+Example  
+``` sh
+mattermost db downgrade 99,100,101
+```
+
+Options  
+``` text
+--<plan-file> string      Runs the rollback migrations defined in the plan file.
+```
+
+### mattermost db init
+
+Description  
+Initializes the database for a given data source name (DSN), executes migrations, and loads custom defaults when specified.
+
+Format  
+``` sh
+mattermost db init
+```
+
+Examples  
+Use the `config` flag to pass the DSN:
+
+``` sh
+mattermost db init --config postgres://localhost/mattermost
+```
+
+Run this command to use the `MM_CONFIG` environment variable:
+
+``` sh
+MM_CONFIG=postgres://localhost/mattermost mattermost db init
+```
+
+Run this command to set a custom defaults file to be loaded into the database:
+
+``` sh
+MM_CUSTOM_DEFAULTS_PATH=custom.json MM_CONFIG=postgres://localhost/mattermost mattermost db init
+```
+
+### mattermost db migrate
+
+Description  
+Migrates the database schema if there are any unapplied migrations.
+
+Child Commands  
+- [mattermost db downgrade](#mattermost-db-downgrade) - Roll back database migrations.
+
+Format  
+``` sh
+mattermost db migrate
+```
+
+Example  
+``` sh
+mattermost db migrate
+```
+
+Options  
+``` text
+--auto-recover bool     If the migration plan receives an error during migrations, this command will try to rollback migrations already applied within the plan. Not recommended without reviewing migration plan by combining --save-plan and --dry-run options.
+--save-plan bool        Saves the plan for the migration into the file store so that it can be used for reviewing the plan or for downgrading.
+--dry-run bool          Does not apply the migrations, but it validates how the migration would run based on the given conditions.
+```
+
+### mattermost db reset
+
+Description  
+Resets the database to its initial state. Doesn't start the application server. Only starts the store layer and truncates the tables, excluding the `migrations` table.
+
+Format  
+``` sh
+mattermost db reset
+```
+
+Example  
+``` sh
+bin/mattermost db reset
+```
+
+### mattermost db version
+
+Description  
+Returns the most recently applied version number.
+
+Format  
+``` sh
+mattermost db version
+```
+
+------------------------------------------------------------------------------------------------------------------------
+
+## mattermost export
+
+<PlanAvailability slug="ent-plus" />
+
+Description  
+Commands for exporting data for compliance and for merging multiple Mattermost instances.
+
+Child Commands  
+- [mattermost export actiance](#mattermost-export-actiance) - Deprecated from Mattermost v10.5 in favor of [mattermost export schedule](#mattermost-export-schedule).
+- [mattermost export csv](#mattermost-export-csv) - Deprecated from Mattermost v10.5.
+- [mattermost export global-relay-zip](#mattermost-export-global-relay-zip) - Deprecated from Mattermost v10.5.
+- [mattermost export schedule](#mattermost-export-schedule) - Schedule a compliance export job.
+- [mattermost export bulk](#mattermost-export-bulk) - Export data to a file compatible with the Mattermost [Bulk Import format](/administration-guide/onboard/bulk-loading-data). Deprecated in favor of [mmctl export commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-export).
+
+### mattermost export actiance
+
+From Mattermost v10.5, this command has been deprecated. It will be added to the mmctl command line tool in a future version. Until then, please use [mattermost export schedule](#mattermost-export-schedule).
+
+### mattermost export csv
+
+From Mattermost v10.5, this command has been deprecated. It will be added to the mmctl command line tool in a future version.
+
+### mattermost export global-relay-zip
+
+From Mattermost v10.5, this command has been deprecated. It will be added to the mmctl command line tool in a future version.
+
+### mattermost export schedule
+
+Description  
+Schedule an export job in a format suitable for importing into a third-party archive system.
+
+Format  
+``` sh
+mattermost export schedule
+```
+
+Example  
+``` sh
+bin/mattermost export schedule --exportFrom=1513102632
+```
+
+Options  
+``` text
+--exportFrom string     Unix timestamp (seconds since epoch, UTC) to export data from.
+--timeoutSeconds string Set how long the export should run for before timing out.
+```
+
+### mattermost export bulk
+
+From Mattermost v6.0, this command has been deprecated in favor of [mmctl export commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-export) as the supported way to export data out of Mattermost.
+
+------------------------------------------------------------------------------------------------------------------------
+
+## mattermost help
+
+Description  
+Generate full documentation in Markdown format for the Mattermost command line tools.
+
+Format  
+``` sh
+mattermost help {outputdir}
+```
+
+<div id="command-line-tools-mattermost-jobserver">
+
+------------------------------------------------------------------------------------------------------------------------
+
+</div>
+
+## mattermost import
+
+Description  
+Import data into Mattermost.
+
+Child Command  
+- [mattermost import bulk](#mattermost-import-bulk) - Import a Mattermost Bulk Import File. Deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import).
+- [mattermost import slack](#mattermost-import-slack) - Import a team from Slack.
+
+### mattermost import bulk
+
+From Mattermost v6.0, this command has been deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) as the supported way to import data into Mattermost.
+
+### mattermost import slack
+
+See the [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) documentation as the preferred way to import Slack data into Mattermost.
+
+Description  
+Import a team from a Slack export zip file.
+
+Format  
+. code-block:: sh
+
+mattermost import slack &#123;team&#125; &#123;file&#125;
+
+Example  
+``` sh
+bin/mattermost import slack myteam slack_export.zip
+```
+
+------------------------------------------------------------------------------------------------------------------------
+
+## mattermost jobserver
+
+Description  
+Start the Mattermost job server.
+
+Format  
+``` sh
+mattermost jobserver
+```
+
+Example  
+``` sh
+bin/mattermost jobserver
+```
+
+------------------------------------------------------------------------------------------------------------------------
+
+## mattermost server
+
+Description  
+Runs the Mattermost server.
+
+Format  
+``` sh
+mattermost server
+```
+
+------------------------------------------------------------------------------------------------------------------------
+
+## mattermost version
+
+<Note>
+
+From Mattermost v6.5, this CLI command no longer interacts with the database. The [mattermost db migrate](/administration-guide/manage/command-line-tools#mattermost-db-migrate) CLI command has been introduced to trigger schema migrations.
+
+</Note>
+
+Desription  
+Displays Mattermost version information.
+
+Format  
+``` sh
+mattermost version
+```
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Troubleshooting
+
+### Executing a command hangs and doesn't complete
+
+If you have Bleve search indexing enabled, temporarily disable it in **System Console \> Experimental \> Bleve** and run the command again. You can also optionally use the new [mmctl Command Line Tool](/administration-guide/manage/mmctl-command-line-tool).
+
+Bleve does not support multiple processes opening and manipulating the same index. Therefore, if the Mattermost server is running, an attempt to run the CLI will lock when trying to open the indeces.
+
+If you aren't using the Bleve search indexing, feel free to post in our [Troubleshooting forum](https://forum.mattermost.com/c/trouble-shoot/16) to get help.

@@ -5,7 +5,8 @@ import React from 'react';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField, FieldVisibility, FieldValueType} from '@mattermost/types/properties';
+import type {FieldVisibility, FieldValueType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -38,6 +39,7 @@ jest.mock('../../../../channel_settings_modal/channel_access_rules_confirm_modal
 const mockAccessControlSettings = {
     EnableAttributeBasedAccessControl: true,
     EnableUserManagedAttributes: true,
+    EnableChannelPolicyIndicators: true,
 };
 
 jest.mock('mattermost-redux/selectors/entities/access_control', () => ({

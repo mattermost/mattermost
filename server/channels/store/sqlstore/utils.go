@@ -200,6 +200,35 @@ type rowScanner interface {
 	Err() error
 }
 
+// neutralizeNonWordHyphens replaces any '-' that isn't flanked by a word
+// rune (letter or digit) on both sides with a space, so malformed hyphen
+// usage (leading/trailing/standalone/repeated) can't reach to_tsquery, while
+// compound words like "t-shirt" are preserved.
+func neutralizeNonWordHyphens(s string) string {
+	if !strings.ContainsRune(s, '-') {
+		return s
+	}
+	runes := []rune(s)
+	for i, r := range runes {
+		if r != '-' {
+			continue
+		}
+		hasLeft := i > 0 && isWordRune(runes[i-1])
+		hasRight := i < len(runes)-1 && isWordRune(runes[i+1])
+		if !hasLeft || !hasRight {
+			runes[i] = ' '
+		}
+	}
+	return string(runes)
+}
+
+// isWordRune reports whether r can be part of a word for hyphen-flanking
+// purposes. Combining marks (e.g. a decomposed accent) count too, since they
+// attach to the preceding base letter rather than acting as a boundary.
+func isWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
+}
+
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
 func scanRowsIntoMap[K comparable, V any](rows rowScanner, scanner func(rows rowScanner) (K, V, error), defaults map[K]V) (map[K]V, error) {
 	results := make(map[K]V, len(defaults))

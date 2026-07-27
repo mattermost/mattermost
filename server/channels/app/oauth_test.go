@@ -1458,6 +1458,58 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 		require.Contains(t, appErr.Id, "client_id_mismatch")
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
+
+	t.Run("RefreshToken_InvalidatesOldTokenInCache", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestCacheInvalidation")
+		code := getAuthorizationCode(oapp, "")
+
+		// Get initial access token (newSession adds it to the session cache).
+		initialResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.AccessTokenGrantType,
+			oapp.CallbackUrls[0],
+			code,
+			oapp.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, initialResp.AccessToken)
+		require.NotEmpty(t, initialResp.RefreshToken)
+
+		oldToken := initialResp.AccessToken
+
+		// Confirm the old session is reachable (from cache or DB).
+		_, appErr = th.App.GetSession(oldToken)
+		require.Nil(t, appErr, "old token should be valid before refresh")
+
+		// Rotate the token.
+		newResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.RefreshTokenGrantType,
+			oapp.CallbackUrls[0],
+			"",
+			oapp.ClientSecret,
+			initialResp.RefreshToken,
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, newResp.AccessToken)
+		require.NotEqual(t, oldToken, newResp.AccessToken)
+
+		// The old token must be rejected immediately, the session cache must
+		// have been cleared so the removed DB row is not masked.
+		_, appErr = th.App.GetSession(oldToken)
+		require.NotNil(t, appErr, "old token must be invalid after refresh")
+
+		// The new token must still be accepted.
+		_, appErr = th.App.GetSession(newResp.AccessToken)
+		require.Nil(t, appErr, "new token must remain valid after refresh")
+	})
 }
 
 func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {

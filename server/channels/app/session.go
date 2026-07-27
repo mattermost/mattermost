@@ -699,6 +699,102 @@ func (a *App) RevokeUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 	return a.RevokeSession(rctx, session)
 }
 
+// revokeNonCompliantBatchLimit bounds both the number of rows fetched by
+// GetNonCompliantExpiry and the corresponding DeleteByIds call, keeping the
+// transaction footprint bounded even when a large number of tokens are
+// non-compliant. revokeNonCompliantMaxBatches caps the iterations of a single
+// revoke call so a runaway loop can't develop.
+const (
+	revokeNonCompliantBatchLimit = 1000
+	revokeNonCompliantMaxBatches = 1000
+)
+
+// maxUserAccessTokenExpiry returns the latest ExpiresAt a token may carry to
+// comply with the current ServiceSettings.MaximumPersonalAccessTokenLifetimeDays
+// policy, along with whether a policy is in effect. When no maximum is
+// configured (0), no policy applies and every token is compliant.
+func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if maxDays <= 0 {
+		return 0, false
+	}
+
+	return model.GetMillis() + maxDays*24*60*60*1000, true
+}
+
+// CountNonCompliantUserAccessTokens returns the number of active, non-bot
+// personal access tokens that violate the current maximum lifetime policy. It
+// lets an admin preview the blast radius before revoking. When no policy is in
+// effect it returns 0 — nothing is non-compliant.
+func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
+	if !enabled {
+		return 0, nil
+	}
+
+	count, err := a.Srv().Store().UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	if err != nil {
+		return 0, model.NewAppError("CountNonCompliantUserAccessTokens", "app.user_access_token.count_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
+// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
+// access token that violates the current maximum lifetime policy, along with any
+// sessions minted from them. It returns the number of tokens actually deleted.
+// Work is done in bounded batches to keep transactions small, and the per-user
+// session cache is cleared so stale sessions aren't served from memory. When no
+// policy is in effect the call is refused — there is nothing to revoke and a
+// caller reaching this path likely has a stale view of the config. Auditing is
+// the caller's responsibility, matching RevokeUserAccessToken.
+func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
+	if !enabled {
+		return 0, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.no_policy.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var totalRevoked int64
+	allRevoked := false
+	for range revokeNonCompliantMaxBatches {
+		userIDs, err := a.Srv().Store().UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
+		if err != nil {
+			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(userIDs) == 0 {
+			allRevoked = true
+			break
+		}
+
+		totalRevoked += int64(len(userIDs))
+
+		seen := make(map[string]struct{}, len(userIDs))
+		for _, userID := range userIDs {
+			if _, ok := seen[userID]; !ok {
+				seen[userID] = struct{}{}
+				a.ClearSessionCacheForUser(userID)
+			}
+		}
+
+		if len(userIDs) < revokeNonCompliantBatchLimit {
+			allRevoked = true
+			break
+		}
+	}
+
+	if !allRevoked {
+		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.partial.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return totalRevoked, nil
+}
+
 func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {
 	var session *model.Session
 	session, _ = a.ch.srv.platform.GetSessionContext(rctx, token.Token)
@@ -715,19 +811,70 @@ func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessTo
 }
 
 func (a *App) EnableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {
-	var session *model.Session
-	session, _ = a.ch.srv.platform.GetSessionContext(rctx, token.Token)
-
-	err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id)
-	if err != nil {
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id); err != nil {
 		return model.NewAppError("EnableUserAccessToken", "app.user_access_token.update_token_enable.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if session == nil {
-		return nil
+	return nil
+}
+
+// RotateUserAccessToken generates a new secret for the token, sets a fresh
+// expiry, and immediately invalidates the old secret and its sessions.  The
+// returned token carries the new secret (shown once, like CreateUserAccessToken).
+func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessToken, expiresAt int64) (*model.UserAccessToken, *model.AppError) {
+	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("RotateUserAccessToken", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("RotateUserAccessToken", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
 
-	return nil
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
+		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	if !user.IsBot {
+		// Validate against the proposed expiry using a throwaway copy so token
+		// isn't mutated unless the rotation actually succeeds.
+		rotated := &model.UserAccessToken{
+			Id:        token.Id,
+			UserId:    token.UserId,
+			ExpiresAt: expiresAt,
+		}
+		if err := a.validateUserAccessTokenExpiry(rotated); err != nil {
+			return nil, err
+		}
+	}
+
+	// Capture the old session before the store update so we can evict it from
+	// the cache after the secret changes.
+	oldSession, _ := a.ch.srv.platform.GetSessionContext(rctx, token.Token)
+
+	newSecret := model.NewId()
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenRotate(token.Id, newSecret, expiresAt); err != nil {
+		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.rotate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if oldSession != nil {
+		if err := a.RevokeSession(rctx, oldSession); err != nil {
+			rctx.Logger().Warn("Failed to revoke old session after token rotate", mlog.String("token_id", token.Id), mlog.Err(err))
+		}
+	}
+
+	token.Token = newSecret
+	token.ExpiresAt = expiresAt
+
+	if !user.IsBot {
+		if err := a.Srv().EmailService.SendUserAccessTokenRotatedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+			rctx.Logger().Error("Unable to send user access token rotated email", mlog.Err(err), mlog.String("user_id", user.Id))
+		}
+	}
+
+	return token, nil
 }
 
 func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {

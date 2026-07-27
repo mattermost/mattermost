@@ -929,7 +929,7 @@ export function highlightSearchTerms(
         const alias = `$MM_SEARCHTERM${index}$`;
 
         tokens.set(alias, {
-            value: `<span class="search-highlight">${word}</span>`,
+            value: `<span class="search-highlight" data-testid="search-highlight">${word}</span>`,
             originalText: word,
         });
 
@@ -963,7 +963,7 @@ export function highlightSearchTerms(
                 const newAlias = `$MM_SEARCHTERM${index}$`;
 
                 newTokens.set(newAlias, {
-                    value: `<span class="search-highlight">${alias}</span>`,
+                    value: `<span class="search-highlight" data-testid="search-highlight">${alias}</span>`,
                     originalText: token.originalText,
                 });
 
@@ -1036,7 +1036,7 @@ export function handleUnicodeEmoji(text: string, emojiMap: EmojiMap, searchPatte
         }
 
         // wrap unsupported unicode emoji in span to style as needed
-        return `<span class="emoticon emoticon--unicode">${emojiMatch}</span>`;
+        return `<span class="emoticon emoticon--unicode" data-testid="channel-banner-unicode-emoji">${emojiMatch}</span>`;
     });
 
     return output;

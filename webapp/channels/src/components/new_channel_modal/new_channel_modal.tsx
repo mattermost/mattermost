@@ -402,8 +402,11 @@ const NewChannelModal = () => {
         url,
         purpose,
         type,
+        defaultCategoryName,
         managedCategoryName,
-    }), [currentTeamId, displayName, url, purpose, type, managedCategoryName]);
+        classificationId: classificationEnabled ? selectedClassificationId : undefined,
+        bannerText: classificationEnabled ? bannerText : undefined,
+    }), [currentTeamId, displayName, url, purpose, type, defaultCategoryName, managedCategoryName, classificationEnabled, selectedClassificationId, bannerText]);
 
     const newBoardInfoIcon = (
         <WithTooltip

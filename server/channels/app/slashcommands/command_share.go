@@ -301,7 +301,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 		accepted := formatBool(args.T, status.IsInviteAccepted)
 		online := formatBool(args.T, isOnline(status.LastPingAt))
 
-		lastSync := formatTimestamp(status.NextSyncAt)
+		lastSync := formatTimestamp(status.LastSyncAt)
 
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n",
 			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)

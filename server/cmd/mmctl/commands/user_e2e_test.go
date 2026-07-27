@@ -294,6 +294,26 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		}
 	})
 
+	s.RunForAllClients("Get list of active users", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("active", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+			s.Require().NotContains(inactivePool, user.Username)
+			s.Require().Equal(int64(0), user.DeleteAt)
+		}
+	})
+
 	// create users with team
 	for range 10 {
 		userData := model.User{

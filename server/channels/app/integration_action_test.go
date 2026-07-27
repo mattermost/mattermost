@@ -709,6 +709,12 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
+	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
+	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
+	// from_webhook, so the post-action update preserves it. (v12 will move the from_* markers
+	// into the default strip list — see SanitizeProps doc in public/model/post.go — and this
+	// assertion should flip back to nil.)
 	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
@@ -1627,6 +1633,74 @@ func TestDoActionRequest(t *testing.T) {
 		require.NotNil(t, resp)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		assert.Contains(t, err.Error(), "status=400")
+		resp.Body.Close()
+	})
+
+	t.Run("should preserve 429 status code from plugin", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte("Rate limited"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
+		assert.Equal(t, http.StatusTooManyRequests, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=429")
+		resp.Body.Close()
+	})
+
+	t.Run("should preserve 503 status code from plugin", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("Service unavailable"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+		assert.Equal(t, http.StatusServiceUnavailable, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=503")
+		resp.Body.Close()
+	})
+
+	t.Run("should map other 5xx status codes to 502 Bad Gateway", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("Internal error"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		assert.Equal(t, http.StatusBadGateway, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=500")
+		resp.Body.Close()
+	})
+
+	t.Run("should sanitize other 4xx status codes to 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Not found"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=404")
 		resp.Body.Close()
 	})
 
@@ -2703,7 +2777,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 
 	t.Run("non-integration edit of bot post reverts mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
-			Message:       "bot post with inline actions",
+			Message:       "bot post with inline actions [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2716,13 +2790,15 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
 		// A non-integration session tries to swap mm_blocks_actions wholesale.
+		// The message keeps referencing "keep" so reconciliation retains the
+		// (reverted) original action; only the guard is under test here.
 		newInline := buildMmBlocksActionsProp(
 			"swap",
 			"http://127.0.0.1/plugins/myplugin/swapped",
 			map[string]any{"k": "attacker"},
 		)
 		edit := created.Clone()
-		edit.Message = "edited message"
+		edit.Message = "edited message [keep](mmaction://keep)"
 		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		// th.Context has an empty/zero session — not an integration.
@@ -2738,7 +2814,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		assert.Nil(t, updated.GetMmBlocksActionSpec("swap"))
 
 		// Message change should still be applied.
-		assert.Equal(t, "edited message", updated.Message)
+		assert.Equal(t, "edited message [keep](mmaction://keep)", updated.Message)
 	})
 
 	t.Run("non-integration edit cannot add mm_blocks_actions when original had none", func(t *testing.T) {
@@ -2771,7 +2847,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		// mm_blocks_actions. A PAT-holding user could otherwise inject
 		// mm_blocks_actions on any post they can edit.
 		botPost := &model.Post{
-			Message:       "bot post for integration edit",
+			Message:       "bot post for integration edit [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2806,7 +2882,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 
 	t.Run("AllowMmBlocksActionsUpdate option accepts new mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
-			Message:       "bot post for plugin-path edit",
+			Message:       "bot post for plugin-path edit [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2823,6 +2899,8 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 			map[string]any{"k": "plugin"},
 		)
 		edit := created.Clone()
+		// Point the content at the new action so reconciliation keeps it.
+		edit.Message = "plugin-path edit [plugin](mmaction://plugin)"
 		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		// Non-integration session, but AllowMmBlocksActionsUpdate grants write.
@@ -2833,6 +2911,116 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		integration := updated.GetMmBlocksActionSpec("plugin")
 		require.NotNil(t, integration)
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/plugin", integration.URL)
+	})
+
+	t.Run("integration session can modify mm_blocks_actions on its own post", func(t *testing.T) {
+		// A bot editing its OWN post over REST may change its buttons — this is
+		// the case the freeze previously blocked with no available flag.
+		botPost := &model.Post{
+			Message:       "bot post for own-post edit [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		// Integration session belonging to the post's own bot author.
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+		require.True(t, ownCtx.Session().IsIntegration())
+
+		newInline := buildMmBlocksActionsProp(
+			"refreshed",
+			"http://127.0.0.1/plugins/myplugin/refreshed",
+			map[string]any{"k": "new"},
+		)
+		edit := created.Clone()
+		// New content references the new action; reconciliation keeps it and
+		// drops the now-unreferenced "keep".
+		edit.Message = "refreshed message [refreshed](mmaction://refreshed)"
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		// The new value lands; the old one is gone.
+		refreshed := updated.GetMmBlocksActionSpec("refreshed")
+		require.NotNil(t, refreshed, "bot editing its own post should be able to change mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/refreshed", refreshed.URL)
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"))
+		assert.Equal(t, "refreshed message [refreshed](mmaction://refreshed)", updated.Message)
+	})
+
+	t.Run("message-only edit that keeps the button preserves mm_blocks_actions", func(t *testing.T) {
+		// A message-only edit that still references the action must not wipe
+		// its button — the update carries no mm_blocks_actions, so the original
+		// is preserved, and the content still references it, so reconciliation
+		// keeps it.
+		botPost := &model.Post{
+			Message:       "bot post for message-only edit [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+
+		edit := created.Clone()
+		edit.Message = "message only change [keep](mmaction://keep)"
+		edit.DelProp(model.PostPropsMmBlocksActions)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		keep := updated.GetMmBlocksActionSpec("keep")
+		require.NotNil(t, keep, "message-only edit that keeps the button must not wipe mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", keep.URL)
+		assert.Equal(t, "message only change [keep](mmaction://keep)", updated.Message)
+	})
+
+	t.Run("dropping the button from content revokes the lingering action", func(t *testing.T) {
+		// The reviewer's scenario: a post with an action is edited to remove
+		// the button from its content while the update omits mm_blocks_actions.
+		// The guard preserves the old registry value, but reconciliation prunes
+		// it against the new content — since nothing references the action any
+		// more, it is genuinely revoked rather than left callable-but-invisible.
+		botPost := &model.Post{
+			Message:       "bot post that will lose its button [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+		require.NotNil(t, created.GetMmBlocksActionSpec("keep"))
+
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+
+		// The edit removes the button reference and does not carry the prop.
+		edit := created.Clone()
+		edit.Message = "the button is gone now"
+		edit.DelProp(model.PostPropsMmBlocksActions)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"), "action unreferenced by content must be pruned")
+		assert.Nil(t, updated.GetAction("keep"), "pruned action must not be dispatchable at click time")
+		assert.Equal(t, "the button is gone now", updated.Message)
 	})
 }
 
@@ -2866,7 +3054,7 @@ func TestCreateWebhookPostKeepsMmBlocksActions(t *testing.T) {
 			},
 			model.PostPropsMmBlocksActions: inline,
 		},
-		"", "", nil)
+		"", "", nil, false)
 	require.Nil(t, appErr)
 
 	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions),
@@ -2913,7 +3101,7 @@ func TestCreateWebhookPostKeepsMmBlocksActionsOnInteractiveSplit(t *testing.T) {
 			},
 			model.PostPropsMmBlocksActions: inline,
 		},
-		"", "", nil)
+		"", "", nil, false)
 	require.Nil(t, appErr)
 	require.True(t, strings.HasPrefix(returned.Message, marker))
 	require.Nil(t, returned.GetProp(model.PostPropsMmBlocks))
@@ -3342,7 +3530,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 		w.WriteHeader(http.StatusOK)
 		resp := `{
 			"update": {
-				"message": "updated via plugin",
+				"message": "updated via plugin [orig](mmaction://orig)",
 				"props": {
 					"mm_blocks_actions": {
 						"broken": {"type": "external", "url": ""}
@@ -3363,7 +3551,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 		nil,
 	)
 	botPost := &model.Post{
-		Message:       "bot post with valid inline actions",
+		Message:       "bot post with valid inline actions [orig](mmaction://orig)",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        botUser.Id,
@@ -3400,7 +3588,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 	// Message update still applied — the invalid mm_blocks_actions were
 	// restored to the original value with a warning, so the rest of the
 	// response.Update is persisted.
-	assert.Equal(t, "updated via plugin", stored.Message)
+	assert.Equal(t, "updated via plugin [orig](mmaction://orig)", stored.Message)
 	// The broken action from the plugin response must never be stored.
 	assert.Nil(t, stored.GetMmBlocksActionSpec("broken"), "invalid mm_blocks action from plugin response must not be persisted")
 	// The original valid mm_blocks_actions must survive — an invalid plugin
@@ -3422,6 +3610,12 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	// from_bot and from_plugin are now server-set: from_bot via user.IsBot,
+	// from_plugin via the FromPlugin CreatePostFlag. Forged client-supplied
+	// values would be stripped by SanitizeProps.
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	// Plugin response deliberately omits from_bot / from_plugin from props.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"update": {"message": "updated", "props": {"A": "AA"}}}`)
@@ -3432,7 +3626,7 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		Message:       "interactive",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        th.BasicUser.Id,
+		UserId:        botUser.Id,
 		Props: model.StringInterface{
 			model.PostPropsAttachments: []*model.MessageAttachment{{
 				Text: "hello",
@@ -3444,12 +3638,13 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 					},
 				}},
 			}},
-			model.PostPropsFromBot:    "true",
-			model.PostPropsFromPlugin: "true",
 		},
 	}
 
-	post, _, appErr := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, appErr := th.App.CreatePostAsUserWithFlags(intSeedCtx, &interactivePost, "", model.CreatePostFlags{
+		SetOnline:  true,
+		FromPlugin: true,
+	})
 	require.Nil(t, appErr)
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
@@ -3463,4 +3658,525 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromBot), "from_bot must be retained across plugin update response")
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromPlugin), "from_plugin must be retained across plugin update response")
 	assert.Equal(t, "AA", stored.GetProp("A"), "plugin-supplied prop applied")
+}
+
+func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := model.SubmitDialogResponse{}
+		b, _ := json.Marshal(resp)
+		_, _ = w.Write(b)
+	}))
+	defer ts.Close()
+
+	baseSubmit := model.SubmitDialogRequest{
+		URL:        ts.URL,
+		UserId:     th.BasicUser.Id,
+		ChannelId:  th.BasicChannel.Id,
+		TeamId:     th.BasicTeam.Id,
+		CallbackId: "someid",
+		State:      "somestate",
+		Submission: map[string]any{"name1": "value1"},
+	}
+
+	t.Run("empty FileIds passes validation", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = nil
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("deduplication happens before count check", func(t *testing.T) {
+		// Create one valid file
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		// Build FileIds with the same ID repeated MaxDialogFileIds+1 times.
+		// After dedup this should be 1 ID, which is within the limit.
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			ids[i] = fileInfo.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("too many file IDs after dedup returns error", func(t *testing.T) {
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			ids[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
+	t.Run("duplicates that would exceed limit raw but not after dedup passes", func(t *testing.T) {
+		// Create exactly MaxDialogFileIds unique files
+		uniqueIds := make([]string, model.MaxDialogFileIds)
+		for i := range uniqueIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			uniqueIds[i] = fi.Id
+		}
+		// Add a duplicate so raw count is MaxDialogFileIds+1
+		ids := make([]string, 0, len(uniqueIds)+1)
+		ids = append(ids, uniqueIds...)
+		ids = append(ids, uniqueIds[0])
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("valid file ID owned by submitting user passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("file ID not found returns 400 invalid_file_id", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = []string{model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("file owned by different user returns 403 file_not_owned", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("batch with a valid owned file and a missing file returns 400 invalid_file_id", func(t *testing.T) {
+		// The batched GetByIds returns only the existing file; the not-found ID must
+		// still be detected by diffing the found set against the requested IDs.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id, model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("batch with an owned file and another user's file returns 403 file_not_owned", func(t *testing.T) {
+		// Ownership must be enforced across every file in the batch, not just a single ID.
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{ownFile.Id, otherFile.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via submission (empty FileIds) is rejected", func(t *testing.T) {
+		// A client puts another user's file ID in a submission value while sending no
+		// FileIds. Integrations read submission values, so this must still be blocked.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("own file ID referenced only via submission passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("ID-shaped submission value that is not a real file is treated as text", func(t *testing.T) {
+		// A textarea value that happens to be a valid-format ID but isn't a file must
+		// not block submission.
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"notes": model.NewId()}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("many ID-shaped non-file submission values are not rejected (e.g. select fields)", func(t *testing.T) {
+		// Regression guard: a dialog with more than MaxDialogFileIds ID-shaped values
+		// that are NOT files (user/channel select IDs) must not trip the file-count cap.
+		submission := make(map[string]any)
+		for i := range model.MaxDialogFileIds + 5 {
+			submission[fmt.Sprintf("select_%d", i)] = model.NewId()
+		}
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = submission
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("submission ID scan fails closed when breadth cap is exceeded", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		padded := make([]any, 0, maxTokens+1)
+		for range maxTokens {
+			padded = append(padded, model.NewId())
+		}
+		require.Len(t, padded, maxTokens)
+
+		padded = append(padded, otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"overflow": padded}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("submission ID scan fails closed for comma-separated padding attack", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		var b strings.Builder
+		for i := range maxTokens {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(model.NewId())
+		}
+		b.WriteString(", ")
+		b.WriteString(otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"documents": b.String()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("unowned file ID smuggled via a nested submission map is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"metadata": map[string]any{"document": fileInfo.Id},
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via comma-separated submission string is rejected", func(t *testing.T) {
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"documents": ownFile.Id + ", " + otherFile.Id,
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("declared and submission file IDs combined cannot exceed MaxDialogFileIds", func(t *testing.T) {
+		declaredIds := make([]string, model.MaxDialogFileIds/2)
+		for i := range declaredIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			declaredIds[i] = fi.Id
+		}
+		submissionIds := make([]string, model.MaxDialogFileIds-len(declaredIds)+1)
+		for i := range submissionIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			submissionIds[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = declaredIds
+		submit.Submission = map[string]any{"extra": submissionIds}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
+	t.Run("unowned file ID smuggled via a submission array is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"attachments": []any{fileInfo.Id}}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("deeply nested submission value is depth-bounded and does not exhaust the stack", func(t *testing.T) {
+		// Built in-memory (not via JSON), so this bypasses the json decoder's own depth
+		// limit and exercises our explicit recursion guard directly. Nesting far beyond
+		// the depth cap must be traversed only up to the cap and then ignored — no panic,
+		// no stack overflow — and the submission still succeeds.
+		var nested any = model.NewId()
+		for range 5000 {
+			nested = []any{nested}
+		}
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"deep": nested}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+}
+
+func TestExecuteDialogAction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("happy path — returns non-empty trigger ID and integration receives dialog_action request", func(t *testing.T) {
+		var received model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewDecoder(r.Body).Decode(&received)
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"key": "value"},
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+		assert.Len(t, triggerId, 26)
+
+		assert.Equal(t, "dialog_action", received.Type)
+		assert.Equal(t, th.BasicUser.Id, received.UserId)
+		assert.Equal(t, th.BasicUser.Username, received.UserName)
+		assert.Equal(t, th.BasicChannel.Id, received.ChannelId)
+		assert.Equal(t, th.BasicTeam.Id, received.TeamId)
+		assert.Equal(t, "value", received.Context["key"])
+		assert.NotEmpty(t, received.TriggerId)
+	})
+
+	t.Run("empty TeamId works — no error for DM/GM channels", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel := th.CreateDmChannel(t, user1)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: dmChannel.Id,
+			TeamId:    "",
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+	})
+
+	t.Run("oversized context is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		oversizedContext := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
+			oversizedContext[fmt.Sprintf("k%d", i)] = "v"
+		}
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   oversizedContext,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context key exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{strings.Repeat("k", model.MaxActionQueryKeyLength+1): "v"},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context value exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"k": strings.Repeat("v", model.MaxActionQueryValueLength+1)},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("invalid URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "not-a-valid-url",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("empty URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("non-existent channel returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: model.NewId(), // valid-format but non-existent
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("non-existent team returns 500", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		// The api4 handler overwrites TeamId with channel.TeamId before calling
+		// ExecuteDialogAction, so the only way to exercise the app-layer team
+		// lookup error branch is via a direct call with a bogus TeamId and a
+		// valid channel whose TeamId is empty (DM channel, so the handler would
+		// set TeamId="" and skip the lookup).  Here we call the app layer directly
+		// with a real channel but a synthetic non-existent TeamId so the store
+		// lookup fails.
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    model.NewId(), // valid-format but non-existent
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path drains body and returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		// DoActionRequest maps upstream 5xx (other than 429/503) to 502 Bad Gateway.
+		assert.Equal(t, http.StatusBadGateway, appErr.StatusCode)
+	})
 }

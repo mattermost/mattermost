@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import type {TableRow} from 'components/admin_console/access_control/editors/table_editor/value_selector_menu';
 
 describe('parseExpression', () => {
     test('handles "==" operator mapping to "is"', () => {
@@ -24,6 +26,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'department',
+                attribute_object_type: 'user',
                 operator: 'is',
                 values: ['Engineering'],
                 attribute_type: 'text',
@@ -55,6 +58,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'clearance',
+                attribute_object_type: 'user',
                 operator: label,
                 values: ['Secret'],
                 attribute_type: 'rank',
@@ -79,6 +83,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'location',
+                attribute_object_type: 'user',
                 operator: 'in',
                 values: ['US', 'CA'],
                 attribute_type: 'text',
@@ -103,6 +108,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'role',
+                attribute_object_type: 'user',
                 operator: 'is not',
                 values: ['guest'],
                 attribute_type: 'text',
@@ -127,6 +133,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'email',
+                attribute_object_type: 'user',
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',
@@ -158,6 +165,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'email',
+                attribute_object_type: 'user',
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',
@@ -165,6 +173,7 @@ describe('parseExpression', () => {
             },
             {
                 attribute: 'department',
+                attribute_object_type: 'user',
                 operator: 'is',
                 values: ['Engineering'],
                 attribute_type: 'text',
@@ -189,6 +198,7 @@ describe('parseExpression', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'department',
+                attribute_object_type: 'user',
                 operator: 'is',
                 values: ['foo'],
                 attribute_type: 'text',
@@ -259,6 +269,7 @@ describe('parseExpression with multiselect attributes', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'skills',
+                attribute_object_type: 'user',
                 operator: 'has all of',
                 values: ['JavaScript', 'Python'],
                 attribute_type: 'multiselect',
@@ -283,6 +294,7 @@ describe('parseExpression with multiselect attributes', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'programs',
+                attribute_object_type: 'user',
                 operator: 'has any of',
                 values: ['Dragon', 'Phoenix'],
                 attribute_type: 'multiselect',
@@ -307,12 +319,56 @@ describe('parseExpression with multiselect attributes', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'skills',
+                attribute_object_type: 'user',
                 operator: 'has all of',
                 values: ['JavaScript'],
                 attribute_type: 'multiselect',
                 hasMaskedValues: false,
             },
         ]);
+    });
+});
+
+describe('parseExpression with session attributes', () => {
+    test('round-trips a user.session.* node into a session row', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.session.ip_address',
+                    operator: '==',
+                    value: '10.0.0.1',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'ip_address',
+                attribute_object_type: 'session',
+                operator: 'is',
+                values: ['10.0.0.1'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+
+    test('still throws on an unknown namespace', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.bogus.ip_address',
+                    operator: '==',
+                    value: '10.0.0.1',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(() => parseExpression(ast)).toThrow('Unknown attribute: user.bogus.ip_address');
     });
 });
 
@@ -399,6 +455,25 @@ describe('findFirstAvailableAttributeFromList', () => {
 
         const result = findFirstAvailableAttributeFromList(attributes, false);
         expect(result?.name).toBe('valid_synced_attribute');
+    });
+
+    test('returns a session attribute even when not synced/managed and user-managed is off', () => {
+        // Session attributes are always selectable in the picker, so addRow must
+        // be able to default to one when it is the only usable option.
+        const sessionAttr: UserPropertyField = {
+            ...createMockAttribute('ip_address'),
+            group_id: 'session_attributes',
+            object_type: 'session',
+            target_type: 'system',
+        };
+        const attributes = [
+            createMockAttribute('unsafe_attribute'), // user, not synced/managed → not selectable
+            sessionAttr,
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('ip_address');
+        expect(result?.object_type).toBe('session');
     });
 });
 
@@ -570,6 +645,274 @@ describe('rowToCEL', () => {
         });
         expect(cel).toBe('user.attributes.program in ["Alpha"]');
     });
+
+    // --- Session-attribute namespace tests ---
+
+    test('session row emits the user.session namespace for equality', () => {
+        const cel = rowToCEL({
+            attribute: 'ip_address',
+            attribute_object_type: 'session',
+            operator: 'is',
+            values: ['10.0.0.1'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.session.ip_address == "10.0.0.1"');
+    });
+
+    test('session row emits the user.session namespace for in / startsWith / masked variants', () => {
+        expect(rowToCEL({
+            attribute: 'ip_range',
+            attribute_object_type: 'session',
+            operator: 'in',
+            values: ['a', 'b'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+        })).toBe('user.session.ip_range in ["a", "b"]');
+
+        expect(rowToCEL({
+            attribute: 'platform',
+            attribute_object_type: 'session',
+            operator: 'starts with',
+            values: ['mac'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        })).toBe('user.session.platform.startsWith("mac")');
+
+        expect(rowToCEL({
+            attribute: 'ip_address',
+            attribute_object_type: 'session',
+            operator: 'in',
+            values: [],
+            attribute_type: 'text',
+            hasMaskedValues: true,
+        })).toBe('user.session.ip_address in []');
+    });
+
+    test('user row (object type undefined or "user") keeps the user.attributes namespace', () => {
+        expect(rowToCEL({
+            attribute: 'department',
+            operator: 'is',
+            values: ['Eng'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        })).toBe('user.attributes.department == "Eng"');
+
+        expect(rowToCEL({
+            attribute: 'department',
+            attribute_object_type: 'user',
+            operator: 'is',
+            values: ['Eng'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        })).toBe('user.attributes.department == "Eng"');
+    });
+});
+
+describe('parseExpression with native user attributes', () => {
+    test('parses native string attribute (user.email)', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.email',
+                    operator: '==',
+                    value: 'a@b.com',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'email',
+                attribute_object_type: 'user',
+                operator: 'is',
+                values: ['a@b.com'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+                isNative: true,
+            },
+        ]);
+    });
+
+    test('parses native boolean attribute (user.verified == true) stringifying the literal', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.verified',
+                    operator: '==',
+                    value: true,
+                    value_type: 0,
+                    attribute_type: 'select',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'verified',
+                attribute_object_type: 'user',
+                operator: 'is',
+                values: ['true'],
+                attribute_type: 'select',
+                hasMaskedValues: false,
+                isNative: true,
+                isBoolean: true,
+            },
+        ]);
+    });
+
+    test('parses native youngerThanDays helper (numeric arg stringified)', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.createat',
+                    operator: 'youngerThanDays',
+                    value: 30,
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'createat',
+                attribute_object_type: 'user',
+                operator: 'younger than',
+                values: ['30'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+                isNative: true,
+            },
+        ]);
+    });
+});
+
+describe('rowToCEL with native user attributes', () => {
+    test('native string equality uses the user.<name> prefix and quotes the value', () => {
+        const cel = rowToCEL({
+            attribute: 'email',
+            operator: 'is',
+            values: ['a@b.com'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.email == "a@b.com"');
+    });
+
+    test('native boolean equality emits an unquoted literal', () => {
+        const cel = rowToCEL({
+            attribute: 'verified',
+            operator: 'is',
+            values: ['true'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            isNative: true,
+            isBoolean: true,
+        });
+        expect(cel).toBe('user.verified == true');
+    });
+
+    test('native boolean inequality emits an unquoted literal', () => {
+        const cel = rowToCEL({
+            attribute: 'isbot',
+            operator: 'is not',
+            values: ['true'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            isNative: true,
+            isBoolean: true,
+        });
+        expect(cel).toBe('user.isbot != true');
+    });
+
+    test('native string method call uses the user.<name> prefix', () => {
+        const cel = rowToCEL({
+            attribute: 'email',
+            operator: 'contains',
+            values: ['@example.com'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.email.contains("@example.com")');
+    });
+
+    test.each([
+        ['30', 'user.createat.youngerThanDays(30)'],
+        ['007', 'user.createat.youngerThanDays(7)'],
+    ])('youngerThanDays normalizes valid integer %p', (input, expected) => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: [input],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe(expected);
+    });
+
+    test.each([
+        ['ten', 'user.createat.youngerThanDays(ten)'],
+        ['30abc', 'user.createat.youngerThanDays(30abc)'],
+        ['-5', 'user.createat.youngerThanDays(-5)'],
+        ['3.5', 'user.createat.youngerThanDays(3.5)'],
+    ])('youngerThanDays emits invalid value %p verbatim so it errors on save', (input, expected) => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: [input],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe(expected);
+    });
+
+    test('youngerThanDays emits an unquoted integer argument', () => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: ['30'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.createat.youngerThanDays(30)');
+    });
+});
+
+describe('isRowValueValid', () => {
+    const makeRow = (value: string): TableRow => ({
+        attribute: 'createat',
+        operator: 'younger than',
+        values: value === '' ? [] : [value],
+        attribute_type: 'text',
+        hasMaskedValues: false,
+        isNative: true,
+    });
+
+    test.each(['30', '0', '007'])('accepts non-negative integer %p', (value) => {
+        expect(isRowValueValid(makeRow(value))).toBe(true);
+    });
+
+    test.each(['', 'ten', '30abc', '-5', '3.5'])('rejects invalid youngerThanDays value %p', (value) => {
+        expect(isRowValueValid(makeRow(value))).toBe(false);
+    });
+
+    test('non-native rows are always considered valid', () => {
+        expect(isRowValueValid({
+            attribute: 'team',
+            operator: 'is',
+            values: ['anything'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        })).toBe(true);
+    });
 });
 
 describe('isSimpleExpression', () => {
@@ -603,6 +946,18 @@ describe('isSimpleExpression', () => {
 
     test('nested function calls are NOT simple', () => {
         expect(isSimpleExpression('size(user.attributes.roles) > 0')).toBe(false);
+    });
+
+    test('native attribute conditions are simple', () => {
+        expect(isSimpleExpression('user.email == "a@b.com"')).toBe(true);
+        expect(isSimpleExpression('user.verified == true')).toBe(true);
+        expect(isSimpleExpression('user.isbot != false')).toBe(true);
+        expect(isSimpleExpression('user.email.contains("@x")')).toBe(true);
+        expect(isSimpleExpression('user.createat.youngerThanDays(30)')).toBe(true);
+    });
+
+    test('native and CPA conditions combined with AND are simple', () => {
+        expect(isSimpleExpression('user.verified == true && user.attributes.dept == "Eng"')).toBe(true);
     });
 });
 
@@ -669,5 +1024,35 @@ describe('isSimpleCondition', () => {
         // Guards the ranked-operator regex change: `size(...) > 0` style
         // numeric comparisons must still fall through to advanced mode.
         expect(isSimpleCondition('user.attributes.count > 0')).toBe(false);
+    });
+
+    test('native boolean equality', () => {
+        expect(isSimpleCondition('user.verified == true')).toBe(true);
+        expect(isSimpleCondition('user.isbot != false')).toBe(true);
+    });
+
+    test('native string equality and methods', () => {
+        expect(isSimpleCondition('user.email == "a@b.com"')).toBe(true);
+        expect(isSimpleCondition('user.email.endsWith("@x.com")')).toBe(true);
+    });
+
+    test('native youngerThanDays helper', () => {
+        expect(isSimpleCondition('user.createat.youngerThanDays(7)')).toBe(true);
+    });
+
+    test('unsupported native field/operator pairings are not simple', () => {
+        // Boolean fields only support true/false equality, not quoted strings or methods.
+        expect(isSimpleCondition('user.verified == "true"')).toBe(false);
+        expect(isSimpleCondition('user.isbot.contains("x")')).toBe(false);
+
+        // String/method operators belong to email only, not createat or the booleans.
+        expect(isSimpleCondition('user.createat == "x"')).toBe(false);
+        expect(isSimpleCondition('user.email == true')).toBe(false);
+
+        // youngerThanDays is exclusive to createat.
+        expect(isSimpleCondition('user.email.youngerThanDays(7)')).toBe(false);
+
+        // Unknown native names do not round-trip through the table editor.
+        expect(isSimpleCondition('user.id == "abc"')).toBe(false);
     });
 });
