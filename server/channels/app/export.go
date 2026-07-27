@@ -330,9 +330,9 @@ func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.
 func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
 	var cnt int
 	for _, role := range allRoles {
-		// The atomic space capability roles are seeded by migration on every
-		// server, so the destination defines them itself and an exported copy
-		// would only compete with that definition.
+		// Every server seeds the atomic space capability roles by migration, so
+		// a server importing this file already has its own; an exported copy
+		// would only compete with them.
 		if model.IsSpaceCapabilityRoleID(role.Name) {
 			continue
 		}
@@ -390,11 +390,12 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
 			}
 
-			// The space preset schemes are seeded by migration on every server, so
-			// the destination already has its own. Exporting them would carry a
-			// reserved name into an import that now refuses to create it. Their
-			// generated roles are recorded above, so skipping the scheme does not
-			// leak them into the standalone role export below.
+			// Every server seeds the space preset schemes by migration, so a
+			// server importing this file already has its own. Exporting them
+			// would carry a reserved name into an import that now refuses to
+			// create a scheme under it. Their generated roles are recorded
+			// above, so skipping the scheme does not leak them into the
+			// standalone role export below.
 			if model.IsSpaceSchemeName(scheme.Name) {
 				continue
 			}

@@ -608,12 +608,14 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
-		// The channel-scoped space permissions are exempt from the higher-scope
-		// ceiling: the built-in channel roles never carry them (space authority
-		// comes only from space schemes), so requiring higher-scope presence
-		// would strip every space-scheme grant at resolution time. A space
-		// permission on the role's own stored set is carried through; the
-		// downward direction (higher scope propagating in) is left intact.
+		// The channel-scoped space permissions are exempt from the rules below.
+		// A non-moderated permission is decided by the higher-scoped built-in
+		// role alone, and those roles never carry space permissions — space
+		// authority comes only from space schemes — so deciding these the same
+		// way would drop every grant a space preset scheme makes and leave its
+		// members with no page access. A space permission on the role's own
+		// stored set is carried through; the downward direction (higher scope
+		// propagating in) is left intact.
 		//
 		// The test is the permission rather than the owning scheme because a
 		// Role knows only its SchemeId, and resolving that to a scheme name

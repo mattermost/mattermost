@@ -835,8 +835,8 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	// A SchemeId change alters which generated roles every member resolves to,
 	// but the member-roles cache embeds those role names at cache-build time
 	// and is only invalidated per-user by member writes. Fan the invalidation
-	// across the channel so the permission change is authorization-visible on
-	// the next request instead of at cache expiry.
+	// across the channel so the new permissions apply on the next request
+	// instead of when the cache expires.
 	oldSchemeId, newSchemeId := "", ""
 	if oldChannel.SchemeId != nil {
 		oldSchemeId = *oldChannel.SchemeId
