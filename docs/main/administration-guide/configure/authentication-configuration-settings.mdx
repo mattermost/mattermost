@@ -1,6 +1,8 @@
 ---
 title: "Authentication configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 Mattermost supports up to 4 distinct, concurrent methods of user authentication:
@@ -10,7 +12,7 @@ Mattermost supports up to 4 distinct, concurrent methods of user authentication:
 - An LDAP instance (e.g., Active Directory, OpenLDAP)
 - Email and Password
 
-Review and manage the following authentication configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Authentication**:
+Review and manage the following authentication configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Authentication**:
 
 - [Signup](#signup)
 - [Email](#email)
@@ -952,7 +954,7 @@ If a sync is `Pending` and does not complete, check that **Enable Synchronizatio
 </Note>
 
 <figure>
-<img src="../../images/ldap-sync-table.png" alt="../../images/ldap-sync-table.png" />
+<img src={useBaseUrl('/images/ldap-sync-table.png')} alt="/images/ldap-sync-table.png" />
 </figure>
 
 ### Config settings not available in the AD/LDAP Wizard

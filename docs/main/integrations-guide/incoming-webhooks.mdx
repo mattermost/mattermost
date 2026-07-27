@@ -1,6 +1,8 @@
 ---
 title: "Incoming Webhooks"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 **Technical complexity:** [No-code](./faq#no-code)
@@ -63,15 +65,15 @@ For compatibility with Slack incoming webhooks, if no `Content-Type` header is s
 
 Here are some examples of simple messages posted using incoming webhooks:
 
-<img src="../images/github-incoming-webhook.png" width="400" alt="Example of a GitHub notification posted to Mattermost using an incoming webhook." />
+<img src={useBaseUrl('/images/github-incoming-webhook.png')} width="400" alt="Example of a GitHub notification posted to Mattermost using an incoming webhook." />
 
-<img src="../images/jira-incoming-webhook.png" width="400" alt="Example of a Jira notification posted to Mattermost using an incoming webhook." />
+<img src={useBaseUrl('/images/jira-incoming-webhook.png')} width="400" alt="Example of a Jira notification posted to Mattermost using an incoming webhook." />
 
-<img src="../images/mattermost-incoming-webhook.png" width="400" alt="Example of a Mattermost notification posted to Mattermost using an incoming webhook." />
+<img src={useBaseUrl('/images/mattermost-incoming-webhook.png')} width="400" alt="Example of a Mattermost notification posted to Mattermost using an incoming webhook." />
 
-<img src="../images/fastlane-incoming-webhook.png" width="400" alt="Example of a Fastlane notification posted to Mattermost using an incoming webhook." />
+<img src={useBaseUrl('/images/fastlane-incoming-webhook.png')} width="400" alt="Example of a Fastlane notification posted to Mattermost using an incoming webhook." />
 
-<img src="../images/weblate-incoming-webhook.png" width="400" alt="Example of a Weblate notification posted to Mattermost using an incoming webhook." />
+<img src={useBaseUrl('/images/weblate-incoming-webhook.png')} width="400" alt="Example of a Weblate notification posted to Mattermost using an incoming webhook." />
 
 ## Parameters
 
@@ -152,7 +154,7 @@ The JSON payload can contain the following parameters:
 
 This renders as:
 
-<img src="../images/incoming_webhooks_full_example.png" width="400" alt="Example of a webhook post with a custom username, icon, and formatted text." />
+<img src={useBaseUrl('/images/incoming_webhooks_full_example.png')} width="400" alt="Example of a webhook post with a custom username, icon, and formatted text." />
 
 ### Example with Card Prop
 
