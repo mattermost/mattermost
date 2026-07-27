@@ -34,12 +34,15 @@ export type WysiwygEditorProps = {
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
 
-    // 'markdown' matches the channel composer. 'json' skips the
-    // Markdown serializer and expects value as a stringified ProseMirror JSON
+    // 'json' expects `value` as stringified ProseMirror JSON. Mount-only.
     contentType?: 'markdown' | 'json';
 
-    // Extra Tiptap extensions to register at mount
+    // Registered at mount, later changes are ignored.
     extensions?: any[];
+
+    // Fires when Tiptap can't parse `value` (unknown node, schema mismatch).
+    // In 'json' mode, use it to hold back autosave.
+    onContentError?: (error: Error) => void;
 };
 
 export type SuggestionListProps = {
@@ -128,6 +131,9 @@ export type PublishedWysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+
+    // Null before create / after destroy. In 'json' mode use `getJSON()`;
+    // `getMarkdown()` is unavailable.
     getEditor: () => any;
 };
 

@@ -137,7 +137,7 @@ describe('WysiwygEditor', () => {
         expect(mockCapturedConfig.current?.content).toEqual(doc);
     });
 
-    test('json mode falls back to raw string when value is not valid JSON', () => {
+    test('json mode falls back to an empty doc when value is not valid JSON', () => {
         renderWithContext(
             <WysiwygEditor
                 {...baseProps}
@@ -146,7 +146,51 @@ describe('WysiwygEditor', () => {
             />,
         );
 
-        expect(mockCapturedConfig.current?.content).toBe('not json');
+        expect(mockCapturedConfig.current?.content).toEqual({type: 'doc', content: [{type: 'paragraph'}]});
+    });
+
+    test('json mode falls back to an empty doc when value parses to a non-object', () => {
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                value='"just a string"'
+                contentType='json'
+            />,
+        );
+
+        expect(mockCapturedConfig.current?.content).toEqual({type: 'doc', content: [{type: 'paragraph'}]});
+    });
+
+    test('json mode enables emitContentError and forwards the callback', () => {
+        const onContentError = jest.fn();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                contentType='json'
+                onContentError={onContentError}
+            />,
+        );
+
+        expect(mockCapturedConfig.current?.emitContentError).toBe(true);
+
+        const err = new Error('bad node');
+        mockCapturedConfig.current?.onContentError?.({error: err});
+        expect(onContentError).toHaveBeenCalledWith(err);
+    });
+
+    test('handlePaste short-circuits in json mode so markdown paste conversion is skipped', () => {
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                contentType='json'
+            />,
+        );
+
+        const handlePaste = mockCapturedConfig.current?.editorProps?.handlePaste;
+        const event = {clipboardData: {getData: () => '# heading'}} as any;
+
+        expect(handlePaste?.({} as any, event)).toBe(false);
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {

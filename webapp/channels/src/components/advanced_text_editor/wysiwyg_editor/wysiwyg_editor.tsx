@@ -20,7 +20,7 @@ import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import emojiRegex from 'emoji-regex';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {editLatestPost} from 'actions/views/create_comment';
@@ -110,7 +110,13 @@ type Props = {
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     contentType?: 'markdown' | 'json';
     extensions?: Extensions;
+    onContentError?: (error: Error) => void;
 };
+
+const EMPTY_JSON_DOC = {type: 'doc', content: [{type: 'paragraph'}]} as const;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     value,
@@ -128,6 +134,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     onKeyDown,
     contentType = 'markdown',
     extensions: extraExtensions,
+    onContentError,
 }, ref) => {
     const jsonMode = contentType === 'json';
     const dispatch = useDispatch();
@@ -195,19 +202,30 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         baseExtensions.push(...extraExtensions);
     }
 
-    let initialContent: string | Record<string, unknown> = value;
-    if (jsonMode && value) {
-        try {
-            initialContent = JSON.parse(value);
-        } catch {
-            initialContent = value;
+    const initialContent = useMemo<string | Record<string, unknown>>(() => {
+        if (!jsonMode) {
+            return value;
         }
-    }
+        if (!value) {
+            return EMPTY_JSON_DOC;
+        }
+        try {
+            const parsed = JSON.parse(value);
+            return isPlainObject(parsed) ? parsed : EMPTY_JSON_DOC;
+        } catch {
+            return EMPTY_JSON_DOC;
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const onContentErrorRef = useLatest(onContentError);
 
     const editor = useEditor({
         extensions: baseExtensions,
         content: initialContent,
         contentType: jsonMode ? undefined : 'markdown',
+        emitContentError: jsonMode,
+        onContentError: ({error}) => onContentErrorRef.current?.(error),
         editable: !disabled,
         editorProps: {
             attributes: {
