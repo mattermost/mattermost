@@ -1,0 +1,200 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.SessionAttributes__content {
+    // Repeat the class via interpolation to triple specificity and override
+    // the admin console's default content max-width. Dart Sass rejects the
+    // bare `&&&` shorthand, so `&#{&}#{&}` produces the same compound selector.
+    &#{&}#{&} {
+        max-width: none;
+    }
+
+    // Shrink-wrap the panel card to the table so it doesn't leave white space
+    // on wide screens; the table's own overflow handles narrow viewports.
+    .AdminPanel {
+        width: fit-content;
+        max-width: 100%;
+    }
+}
+
+.SessionAttributes__table-region {
+    width: fit-content;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.SessionAttributes__empty {
+    padding: 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-align: center;
+}
+
+.SessionAttributes__table-wrapper {
+    .adminConsoleListTableContainer {
+        padding: 2px 0;
+        overflow-x: auto;
+    }
+
+    table.adminConsoleListTable {
+        width: max-content;
+        min-width: var(--session-attributes-table-min-width, 0);
+        max-width: 100%;
+
+        td,
+        th {
+            &::after,
+            &::before {
+                display: none !important;
+            }
+        }
+
+        thead {
+            border-top: none;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            tr {
+                th {
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                    padding-block-end: 8px;
+                    padding-block-start: 8px;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                border-top: none;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+                // !important is required to beat the admin-console list table's
+                // default row border color; the width/style come from the
+                // shorthand above.
+                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+
+                td {
+                    // Tighter row height (~48px) than the shared list table default.
+                    padding-block: 4px;
+
+                    &:last-child {
+                        padding-inline-end: 12px;
+                    }
+                }
+            }
+        }
+
+        tfoot {
+            border-top: none;
+        }
+    }
+}
+
+.SessionAttributes__col-header {
+    display: inline-block;
+
+    &--right {
+        width: 100%;
+        text-align: right;
+    }
+}
+
+.SessionAttributes__display-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.SessionAttributes__name-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.SessionAttributes__name-text {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-family: 'Menlo', 'Monaco', monospace;
+    font-size: 12px;
+}
+
+.SessionAttributes__server-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.SessionAttributes__type-cell {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    gap: 6px;
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}
+
+.SessionAttributes__duration {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+}
+
+.SessionAttributes__actions {
+    display: flex;
+    justify-content: flex-end;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.SessionAttributes__platforms {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.SessionAttributes__platform-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 4px;
+    background: transparent;
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    &[data-active='true'] {
+        background: var(--button-bg-08, rgba(var(--button-bg-rgb), 0.08));
+
+        svg {
+            color: var(--button-bg);
+        }
+    }
+}
+
+.SessionAttributes__menu-check {
+    color: var(--button-bg, #1c58d9);
+}
+
+.SessionAttributes__status-chip {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+
+    svg {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+
+    &[data-enabled='true'] {
+        color: var(--center-channel-color);
+
+        svg {
+            color: var(--online-indicator);
+        }
+    }
+}

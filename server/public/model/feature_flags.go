@@ -87,6 +87,9 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
+	// Enable the Global Attributes management page in the System Console
+	GlobalAttributes bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -99,6 +102,10 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: IntegratedBoards - Remove this when GA is released
 	// Enable the Integrated Boards feature within Mattermost channels
 	IntegratedBoards bool
+
+	// FEATURE_FLAG_REMOVAL: EnableDocs - Remove this when GA is released
+	// Enable the Docs (spaces and pages) feature within Mattermost channels
+	EnableDocs bool
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
@@ -181,6 +188,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIRecaps = false
 
 	f.IntegratedBoards = false
+
+	f.EnableDocs = false
 
 	f.CJKSearch = true
 
