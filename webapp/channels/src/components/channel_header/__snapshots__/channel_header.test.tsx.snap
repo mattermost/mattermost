@@ -84,7 +84,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -165,7 +165,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -259,7 +259,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -353,7 +353,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -447,7 +447,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -541,7 +541,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -635,7 +635,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -739,7 +739,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -833,7 +833,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -925,7 +925,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1020,7 +1020,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1114,7 +1114,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1208,7 +1208,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1302,7 +1302,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1396,7 +1396,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
@@ -1506,7 +1506,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>
