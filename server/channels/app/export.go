@@ -396,7 +396,7 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 			// create a scheme under it. Their generated roles are recorded
 			// above, so skipping the scheme does not leak them into the
 			// standalone role export below.
-			if model.IsSpaceSchemeName(scheme.Name) {
+			if scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
 				continue
 			}
 

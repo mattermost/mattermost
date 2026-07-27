@@ -345,11 +345,6 @@ func permissionIDSet(perms []*model.Permission) map[string]bool {
 	return asPermissionSet(model.PermissionIDs(perms))
 }
 
-// TestSpaceSeedingMigrations asserts against a real database that the boot
-// seeding created the atomic capability roles and the three preset schemes
-// with exactly the canonical permission sets — moderated permissions stripped
-// from the generated user and guest roles, the admin role granted the full
-// admin slice.
 // TestSpaceSeedingSurvivesPermissionsReset pins that a permissions reset — which
 // purges every scheme and role, then re-runs the migrations — leaves the space
 // presets rebuilt. The reset only re-runs migrations whose System key it clears,
@@ -388,6 +383,11 @@ func TestSpaceSeedingSurvivesPermissionsReset(t *testing.T) {
 	}
 }
 
+// TestSpaceSeedingMigrations asserts against a real database that the boot
+// seeding created the atomic capability roles and the three preset schemes
+// with exactly the canonical permission sets — moderated permissions stripped
+// from the generated user and guest roles, the admin role granted the full
+// admin slice.
 func TestSpaceSeedingMigrations(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -633,10 +633,10 @@ func TestCreateRoleClearsSchemeId(t *testing.T) {
 
 // TestSpaceCapabilityRoleConfinedToSpaces pins that the atomic capability
 // roles, which are excluded from BuiltInSchemeManagedRoleIDs so they can ride
-// in ExplicitRoles, cannot be applied through the generic channel-member role
-// sink. Spaces get them by writing ExplicitRoles at the store instead — the
-// path TestSpacePresetResolutionThroughRealSpace exercises — because this sink
-// resolves scheme roles through GetChannel, which excludes spaces.
+// in ExplicitRoles, are refused by the channel-member role sink on an ordinary
+// channel and accepted there only once the channel resolves to a space. The
+// sink settles that with a dedicated space lookup rather than the scheme-role
+// resolution it uses for ordinary channels.
 func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

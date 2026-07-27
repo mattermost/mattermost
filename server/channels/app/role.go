@@ -172,8 +172,7 @@ func asPermissionSet(permissions []string) map[string]bool {
 }
 
 // hasSpaceChannelScopedPermission reports whether any of the permissions is one
-// of the channel-scoped space permissions. Callers use it to skip the guard's
-// work entirely — the overwhelming majority of role writes touch none of them.
+// of the channel-scoped space permissions.
 func hasSpaceChannelScopedPermission(permissions []string) bool {
 	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
 }
@@ -272,8 +271,9 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.DeleteAt = 0
 	role.BuiltIn = false
 	role.SchemeManaged = false
-	// SchemeId is the guard's only non-rejecting branch, so a caller-supplied
-	// value would let a created role borrow a channel scheme's scope.
+	// Resetting SchemeId closes the guard's scheme-based bypass: a
+	// caller-supplied id pointing at a space preset would otherwise let a
+	// created role borrow that scheme's scope and pass unrejected.
 	role.SchemeId = nil
 
 	// On the create path there is no stored role, so every guarded permission

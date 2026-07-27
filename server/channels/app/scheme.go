@@ -93,11 +93,10 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	return scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
-// checkSpaceSchemeName rejects creating or renaming a scheme to a seeded space
-// preset name or a space-private custom scheme name: a pre-migration name
-// squat would be silently adopted by the seeding migration's get-or-create,
-// and a squat on the custom prefix would otherwise sit in a namespace the
-// permission scope guard once read as proof of space authority.
+// checkSpaceSchemeName rejects creating or renaming a scheme to one of the
+// three seeded space preset names: a pre-migration name squat would be silently
+// adopted by the seeding migration's get-or-create, and the permission scope
+// guard reads a preset name as proof of space authority.
 //
 // Deliberately not gated on the docs feature flag, for the same reason as
 // checkSpacePermissionScope: the seeding runs unconditionally, so the names are

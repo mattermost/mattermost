@@ -902,26 +902,23 @@ func (a *App) DeleteChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 
 // rejectSpaceSchemeOnOrdinaryChannel refuses to put a space preset scheme on a
 // channel that is not a space. The preset carries the page permissions and has
-// the moderated ones stripped from its generated roles, so attaching it to an
-// ordinary channel would both grant page authority there and take create_post
-// away. An id that resolves to no scheme is left alone: scheme ids are assigned
-// at save time, so an id matching no row cannot later become a preset, and
-// validating that a channel's scheme exists is not this guard's job.
+// the moderated ones stripped from its generated user and guest roles, so
+// attaching it to an ordinary channel would both grant page authority there and
+// take create_post away from every member below admin. An id that resolves to
+// no scheme is left alone: scheme ids are assigned at save time, so an id
+// matching no row cannot later become a preset, and validating that a channel's
+// scheme exists is not this guard's job.
 func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil
 	}
 
-	scheme, err := a.Srv().Store().Scheme().Get(*schemeId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return nil
-		}
-		return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	isPreset, appErr := a.isSeededSpaceScheme(*schemeId)
+	if appErr != nil {
+		return appErr
 	}
 
-	if model.IsSpaceSchemeName(scheme.Name) {
+	if isPreset {
 		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
