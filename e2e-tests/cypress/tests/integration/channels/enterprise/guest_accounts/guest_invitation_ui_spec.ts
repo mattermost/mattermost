@@ -151,7 +151,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         });
 
         // # Close the Modal
-        cy.get('#closeIcon').should('be.visible').click();
+        cy.findByTestId('invitationModal').findByRole('button', {name: 'Close'}).should('be.visible').click();
 
         // # Enable Guest Accounts
         // # Disable Email Invitations

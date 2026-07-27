@@ -1,6 +1,7 @@
 ---
 title: "Invite people to your workspace"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -28,7 +29,7 @@ Anyone can invite people to Mattermost teams and channels, unless your system ad
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-1.  Tap the <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon in the top right corner of the screen and tap **Invite people to the team**.
+1.  Tap the <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon in the top right corner of the screen and tap **Invite people to the team**.
 
 > ![When you select +, you can access more options from the popup window.](/images/mobile-invite-people-to-the-team.png)
 
@@ -53,6 +54,7 @@ Anyone can invite people to Mattermost teams and channels, unless your system ad
 - An invite link can be used by anyone and doesn’t change unless it’s re-generated or revoked by a system admin or team admin via **Team Settings \> Access \> Invite Code**.
 - Your system admin must [enable email invitations](/administration-guide/configure/authentication-configuration-settings#enable-email-invitations) and configure [email](/administration-guide/configure/environment-configuration-settings#smtp) for Mattermost to send email-based invitations.
   - Invitation links sent by email expire after 48 hours and can only be used once.
+- When profile fields are managed by your system admin, email invitations may include fields to preset the invitee's name and username. These values are applied during signup and become admin-managed.
 - Your system admin can [cancel all email invitations](/administration-guide/configure/authentication-configuration-settings#invalidate-pending-email-invites) that haven't yet been accepted within the System Console.
 
 </Note>

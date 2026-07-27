@@ -1,6 +1,7 @@
 ---
 title: "Make calls"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -69,7 +70,7 @@ On iOS, audio will automatically come through a connected device. You can overri
 
 From Mattermost v9.9, and Mattermost mobile v2.17, call host controls are available and include the ability to [transfer host duties](#transfer-host-duties), [remove call participants](#remove-call-participants), [stop a screen share](#stop-a-screen-share), [mute or unmute participants](#mute-participants), [lower raised hands](#lower-raised-hands), and [end the call for everyone](#end-the-call-for-everyone).
 
-Host controls are available to call hosts and admins in both the call widget by selecting the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a participant's name, and in the expanded the call window as hosts hover over a call participant in the list.
+Host controls are available to call hosts and admins in both the call widget by selecting the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a participant's name, and in the expanded the call window as hosts hover over a call participant in the list.
 
 ### Transfer host duties
 
@@ -160,7 +161,7 @@ A chat thread is created automatically for every new call.
 <Tabs>
 <TabItem value="web-desktop" label="Web/Desktop">
 
-Open the chat thread in the widget by selecting the **Gear** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon, then select **Show chat thread**. Alternatively, expand the call window using the arrows in the top-right of the call widget. From there, select the chat icon to access the chat thread.
+Open the chat thread in the widget by selecting the **Gear** <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon, then select **Show chat thread**. Alternatively, expand the call window using the arrows in the top-right of the call widget. From there, select the chat icon to access the chat thread.
 
 </TabItem>
 <TabItem value="mobile" label="Mobile">
@@ -218,7 +219,7 @@ Alternatively, expand the call window using the arrows in the top-right of the a
 
 <PlanAvailability slug="ent-plus" />
 
-From Mattermost v9.7, and Mattermost mobile app v.2.16, all call participants can display real-time text captions by selecting the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon and **Show live captions** when the call is being recorded, and when [live captions are enabled](/administration-guide/configure/plugins-configuration-settings#enable-live-captions). Live captions can be helpful in cases where noise is preventing you from hearing the audio of participants clearly.
+From Mattermost v9.7, and Mattermost mobile app v.2.16, all call participants can display real-time text captions by selecting the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon and **Show live captions** when the call is being recorded, and when [live captions are enabled](/administration-guide/configure/plugins-configuration-settings#enable-live-captions). Live captions can be helpful in cases where noise is preventing you from hearing the audio of participants clearly.
 
 By default, live captions display in English. Your Mattermost system admin can [specify a different language for live captions](/administration-guide/configure/plugins-configuration-settings#live-captions-language) in the System Console.
 
@@ -252,7 +253,11 @@ Yes! From Mattermost v8.0 and Calls v0.17.0, desktop app and web users can go to
 
 ### Is video supported?
 
-The integration currently supports only voice calling and screen sharing. We're considering video support in the future.
+From Mattermost Calls plugin v1.12.0, experimental video support is available in direct message (DM) calls on the desktop and web apps. It's disabled by default; a system admin can enable it using the [Enable video calls in DMs (Experimental)](/administration-guide/configure/plugins-configuration-settings#enable-video-calls-in-dms-experimental) plugin setting in the System Console. The following limitations apply:
+
+- Video is available in DM calls only. All other calls continue to support voice calling and screen sharing only.
+- Video isn't available on the mobile app. Mobile users can't start a video call, and when they join a DM call that includes video, it behaves like an audio call — they hear voice and see shared screens, but don't see video.
+- Call recordings don't capture video. Recordings include voice and screen sharing only.
 
 ### Can I password-protect a call?
 
@@ -270,7 +275,7 @@ The only external service used is Mattermost official STUN server (`stun.global.
 
 ### My audio doesn't work when I join a call
 
-If you can hear the other participants in the call but they can't hear you, select the Gear icon <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> next to the call end button in the widget. From there, you can check and change your audio output and microphone settings. Select <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> again to close the menu. Alternatively, you can [manage your audio and microphone preferences](/end-user-guide/preferences/manage-your-plugin-preferences) in **Settings**.
+If you can hear the other participants in the call but they can't hear you, select the Gear icon <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> next to the call end button in the widget. From there, you can check and change your audio output and microphone settings. Select <img src={useBaseUrl('/img/ui/settings-outline_F08BB.svg')} alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> again to close the menu. Alternatively, you can [manage your audio and microphone preferences](/end-user-guide/preferences/manage-your-plugin-preferences) in **Settings**.
 
 ### My call is disconnected after a few seconds
 

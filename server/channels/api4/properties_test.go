@@ -89,6 +89,39 @@ func TestSessionAttributesFieldEditing(t *testing.T) {
 	})
 }
 
+func TestSessionAttributesFeatureFlagGate(t *testing.T) {
+	// Routes are registered through the ClassificationMarkings flag so the
+	// generic Properties API is reachable while the SessionAttributes feature
+	// flag stays off.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.ClassificationMarkings = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	groupName := model.SessionAttributesPropertyGroupName
+	objectType := model.PropertyFieldObjectTypeSession
+	search := model.PropertyFieldSearch{
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		PerPage:    100,
+	}
+
+	t.Run("admin read returns 501 when feature flag is off", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, objectType, search)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.session_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("non-admin read returns 501 when feature flag is off", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), groupName, objectType, search)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.session_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+}
+
 func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 

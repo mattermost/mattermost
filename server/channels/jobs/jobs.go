@@ -61,6 +61,20 @@ func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData ma
 	return job, nil
 }
 
+func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType string, jobData map[string]string, data map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(rctx, jobType, jobData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	savedJob, err := srv.Store.Job().SaveOnceByTypeAndData(job, data)
+	if err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return savedJob, nil
+}
+
 func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
