@@ -512,10 +512,13 @@ table tbody tr:nth-child(even) {
   background: var(--mm-bg-surface);
 }
 
-/* === Blockquote === */
+/* === Blockquote ===
+ * Neutral denim border + subtle tint — marigold is reserved for CTAs and
+ * interactive accents (see tokens.css), not an unconditional bar on every
+ * quoted paragraph. */
 
 blockquote {
-  border-left: 4px solid var(--mm-color-marigold);
+  border-left: 3px solid var(--mm-border-strong);
   background: var(--mm-bg-subtle);
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
