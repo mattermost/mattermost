@@ -163,6 +163,113 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 	return role, err
 }
 
+func asPermissionSet(permissions []string) map[string]bool {
+	set := make(map[string]bool, len(permissions))
+	for _, p := range permissions {
+		set[p] = true
+	}
+	return set
+}
+
+// hasSpaceChannelScopedPermission reports whether any of the permissions is one
+// of the channel-scoped space permissions. Callers use it to skip the guard's
+// work entirely — the overwhelming majority of role writes touch none of them.
+func hasSpaceChannelScopedPermission(permissions []string) bool {
+	for _, p := range permissions {
+		if model.IsSpaceChannelScopedPermissionID(p) {
+			return true
+		}
+	}
+	return false
+}
+
+// spacePermissionAddDiff returns the channel-scoped space permissions present
+// in the incoming permission set and absent from the stored one. A diff, not a
+// presence check: removing a leaked grant must stay possible. The stored set is
+// built only once a guarded permission actually turns up, so a role write
+// carrying none allocates nothing.
+func spacePermissionAddDiff(incoming, stored []string) []string {
+	var added []string
+	var storedSet map[string]bool
+	for _, p := range incoming {
+		if !model.IsSpaceChannelScopedPermissionID(p) {
+			continue
+		}
+		if storedSet == nil {
+			storedSet = asPermissionSet(stored)
+		}
+		if !storedSet[p] {
+			added = append(added, p)
+		}
+	}
+	return added
+}
+
+// checkSpacePermissionScope rejects a role write that adds any channel-scoped
+// space permission (the six page operations and admin_space) to a role outside
+// the seeded space presets' own generated roles; system_admin is the single
+// exception. The guard governs the App sinks only; migration seeding writes
+// store-direct, below it.
+//
+// Deliberately not gated on the docs feature flag. The permissions, roles and
+// preset schemes are seeded unconditionally at boot, so a grant planted while
+// the flag was off would survive the flip and become live space authority, and
+// nothing re-validates stored rows at enable time.
+func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *model.AppError {
+	added := spacePermissionAddDiff(role.Permissions, stored)
+	if len(added) == 0 {
+		return nil
+	}
+
+	reject := func() *model.AppError {
+		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_permission_scope.app_error",
+			map[string]any{"RoleName": role.Name}, "permissions="+strings.Join(added, ","), http.StatusBadRequest)
+	}
+
+	if role.Name == model.SystemAdminRoleId {
+		// system_admin legitimately carries every space permission, so an add
+		// here is never a scope violation.
+		return nil
+	}
+
+	if model.IsSpaceCapabilityRoleID(role.Name) {
+		// Widening an atomic capability role is a code+migration change, never
+		// a runtime role write.
+		return reject()
+	}
+
+	if model.IsBuiltInRole(role.Name) {
+		// Team/system built-ins and the global channel-scoped built-ins.
+		return reject()
+	}
+
+	if role.SchemeId != nil && *role.SchemeId != "" {
+		scheme, err := a.Srv().Store().Scheme().Get(*role.SchemeId)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(err, &nfErr) {
+				// A store failure is not a scope violation; reporting it as one
+				// would tell the caller their role is malformed when the database
+				// is simply unreachable. Both outcomes refuse the write.
+				return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			// Fail closed: an unresolvable scheme cannot prove space scope.
+			return reject()
+		}
+		// Channel scope alone is too wide: an ordinary customer channel scheme
+		// is channel-scoped too, so accepting it would let a delegated admin
+		// inject space authority into channels that are not spaces. Only a
+		// seeded preset's own generated roles may carry these permissions.
+		if scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
+			return nil
+		}
+		return reject()
+	}
+
+	// nil SchemeId with an unrecognized name: fail closed.
+	return reject()
+}
+
 func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.Id = ""
 	role.CreateAt = 0
@@ -170,6 +277,15 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.DeleteAt = 0
 	role.BuiltIn = false
 	role.SchemeManaged = false
+	// SchemeId is the guard's only non-rejecting branch, so a caller-supplied
+	// value would let a created role borrow a channel scheme's scope.
+	role.SchemeId = nil
+
+	// On the create path there is no stored role, so every guarded permission
+	// in the incoming set counts as an add.
+	if appErr := a.checkSpacePermissionScope(role, nil); appErr != nil {
+		return nil, appErr
+	}
 
 	var err error
 	role, err = a.Srv().Store().Role().Save(role)
@@ -187,6 +303,41 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	// The sink holds no prior permission set, so re-read the stored role to
+	// diff against before saving: only an *add* of a guarded permission is
+	// rejected, never a removal. The read asks for the primary, but a warm cache
+	// entry is still returned, so the baseline can be stale. Usually that only
+	// costs a spurious rejection; in the window where a cluster peer's removal
+	// has not yet invalidated this node's entry, the stale-wider baseline can
+	// also let a re-add through, so this read tightens the guard rather than
+	// completing it.
+	//
+	// Only a write carrying one of the guarded permissions needs a baseline at
+	// all: with none of them incoming there is no add to find, whatever the
+	// stored row says. Skipping the read there keeps every ordinary role write —
+	// which is nearly all of them — at its previous cost.
+	var storedPermissions []string
+	if role.Name != "" && hasSpaceChannelScopedPermission(role.Permissions) {
+		storedRole, err := a.Srv().Store().Role().GetByName(store.WithMaster(context.Background()), role.Name)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(err, &nfErr) {
+				// An unreadable stored role cannot be diffed against; failing
+				// here beats misreporting the cause as a scope violation.
+				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		} else if role.Id == "" || storedRole.Id == role.Id {
+			// The save is keyed by Id but this lookup is keyed by Name, so only
+			// trust the row when the two agree: a role whose Id and Name pointed
+			// at different rows would otherwise be diffed against the wrong
+			// baseline and skip the guard entirely.
+			storedPermissions = storedRole.Permissions
+		}
+	}
+	if appErr := a.checkSpacePermissionScope(role, storedPermissions); appErr != nil {
+		return nil, appErr
+	}
+
 	savedRole, err := a.Srv().Store().Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
