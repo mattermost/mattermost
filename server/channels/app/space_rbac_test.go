@@ -557,7 +557,7 @@ func TestSpacePresetResolutionThroughRealSpace(t *testing.T) {
 
 // TestSpaceDefaultSwitchImmediatelyEffective proves the UpdateChannel
 // SchemeId-change invalidation: with the member-roles cache warm, a default
-// switch is authorization-visible on the very next request.
+// switch takes effect on the very next request.
 func TestSpaceDefaultSwitchImmediatelyEffective(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -721,20 +721,21 @@ func TestCreateChannelRejectsSpaceScheme(t *testing.T) {
 	require.NotNil(t, created)
 }
 
-// TestUpdateChannelSchemeUnresolvableSchemeFailsClosed pins that an unresolvable
-// scheme is refused rather than waved through: it cannot prove it is not a
-// preset, and would leave the channel pointing at a scheme resolving to nothing.
-func TestUpdateChannelSchemeUnresolvableSchemeFailsClosed(t *testing.T) {
+// TestUpdateChannelSchemeUnresolvableSchemeIsNotRejected pins the guard's scope:
+// it refuses the space presets, and leaves an id that resolves to no scheme to
+// the write path rather than validating that a channel's scheme exists.
+func TestUpdateChannelSchemeUnresolvableSchemeIsNotRejected(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	missing := model.NewId()
-	_, appErr := th.App.UpdateChannelScheme(th.Context, &model.Channel{
+	updated, appErr := th.App.UpdateChannelScheme(th.Context, &model.Channel{
 		Id:       th.BasicChannel.Id,
 		SchemeId: &missing,
 	})
-	require.NotNil(t, appErr)
-	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	require.Nil(t, appErr)
+	require.NotNil(t, updated.SchemeId)
+	assert.Equal(t, missing, *updated.SchemeId)
 }
 
 // schemeIsNotASpacePreset makes the by-id identity read answer with an ordinary

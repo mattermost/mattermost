@@ -175,12 +175,7 @@ func asPermissionSet(permissions []string) map[string]bool {
 // of the channel-scoped space permissions. Callers use it to skip the guard's
 // work entirely — the overwhelming majority of role writes touch none of them.
 func hasSpaceChannelScopedPermission(permissions []string) bool {
-	for _, p := range permissions {
-		if model.IsSpaceChannelScopedPermissionID(p) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
 }
 
 // spacePermissionAddDiff returns the channel-scoped space permissions present

@@ -832,25 +832,27 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	// A SchemeId change alters which generated roles every member resolves to,
-	// but the member-roles cache embeds those role names at cache-build time
-	// and is only invalidated per-user by member writes. Fan the invalidation
-	// across the channel so the new permissions apply on the next request
-	// instead of when the cache expires.
-	oldSchemeId, newSchemeId := "", ""
-	if oldChannel.SchemeId != nil {
-		oldSchemeId = *oldChannel.SchemeId
-	}
-	if channel.SchemeId != nil {
-		newSchemeId = *channel.SchemeId
-	}
-	if oldSchemeId != newSchemeId {
-		// Enumerating members to invalidate them one by one would page the
-		// member list and emit two cluster messages per member, all inside this
-		// request; the cache is keyed by user, so there is no per-channel key to
-		// evict instead. A scheme change is a rare admin action, so purge the
-		// whole cache once instead.
-		a.Srv().Store().Channel().ClearMembersForUserCache()
+	// Switching a space's default capability preset repoints its backing
+	// channel's SchemeId, which changes the generated roles every member
+	// resolves to. The member-roles cache holds the role names from when the
+	// entry was built and is only invalidated per user when a member row is
+	// written, so purge it here to make the switch apply on the next request
+	// instead of when the entry expires.
+	if channel.IsSpace() {
+		oldSchemeId, newSchemeId := "", ""
+		if oldChannel.SchemeId != nil {
+			oldSchemeId = *oldChannel.SchemeId
+		}
+		if channel.SchemeId != nil {
+			newSchemeId = *channel.SchemeId
+		}
+		if oldSchemeId != newSchemeId {
+			// The cache is keyed by user, so there is no per-channel key to
+			// evict; enumerating members one by one would page the member list
+			// and emit two cluster messages per member inside this request. A
+			// preset switch is a rare admin action, so purge the cache once.
+			a.Srv().Store().Channel().ClearMembersForUserCache()
+		}
 	}
 
 	// Space backing channels are internal: skip the channel_updated broadcast.
@@ -902,9 +904,9 @@ func (a *App) DeleteChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 // channel that is not a space. The preset carries the page permissions and has
 // the moderated ones stripped from its generated roles, so attaching it to an
 // ordinary channel would both grant page authority there and take create_post
-// away. A scheme that cannot be resolved is refused rather than waved through:
-// an absent scheme cannot prove it is not a preset, and leaves the channel
-// pointing at a scheme that resolves to nothing either way.
+// away. An id that resolves to no scheme is left alone: scheme ids are assigned
+// at save time, so an id matching no row cannot later become a preset, and
+// validating that a channel's scheme exists is not this guard's job.
 func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil
@@ -914,7 +916,7 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return nil
 		}
 		return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

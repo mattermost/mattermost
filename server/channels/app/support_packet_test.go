@@ -629,8 +629,11 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 24)
-		assert.Empty(t, permissions.Schemes)
+		// Every server seeds the three space preset schemes, which generate an
+		// admin/user/guest role each, alongside the four atomic space
+		// capability roles: 24 + 9 + 4.
+		assert.Len(t, permissions.Roles, 37)
+		assert.Len(t, permissions.Schemes, 3)
 	})
 
 	scheme, appErr := th.App.CreateScheme(&model.Scheme{
@@ -643,12 +646,20 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 34) // 24 default roles + 10 custom roles from the scheme
-		require.Len(t, permissions.Schemes, 1)
-		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
-		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
-		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].DisplayName, "DisplayName should be obfuscated")
-		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Description, "Description should be obfuscated")
+		assert.Len(t, permissions.Roles, 47)   // 37 default roles + 10 custom roles from the scheme
+		require.Len(t, permissions.Schemes, 4) // 3 seeded space preset schemes + the custom one
+
+		var custom *model.Scheme
+		for _, s := range permissions.Schemes {
+			if s.Id == scheme.Id {
+				custom = s
+				break
+			}
+		}
+		require.NotNil(t, custom, "the custom scheme should be included")
+		assert.Equal(t, model.FakeSetting, custom.Name, "Name should be obfuscated")
+		assert.Equal(t, model.FakeSetting, custom.DisplayName, "DisplayName should be obfuscated")
+		assert.Equal(t, model.FakeSetting, custom.Description, "Description should be obfuscated")
 	})
 
 	t.Run("with custom role", func(t *testing.T) {
@@ -664,8 +675,8 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 
 		permissions := generatePermissionInfo(t)
 
-		require.Len(t, permissions.Schemes, 1)
-		require.Len(t, permissions.Roles, 35) // 24 default roles + 10 custom roles from the scheme + 1 custom role
+		require.Len(t, permissions.Schemes, 4)
+		require.Len(t, permissions.Roles, 48) // 37 default roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {
 			// Confirm that sensitive fields are obfuscated
