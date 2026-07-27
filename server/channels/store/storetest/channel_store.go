@@ -148,6 +148,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetPinnedPostCount", func(t *testing.T) { testChannelStoreGetPinnedPostCount(t, rctx, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, rctx, ss) })
 	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, rctx, ss) })
+	t.Run("CountSpaceChannelsByScheme", func(t *testing.T) { testChannelStoreCountSpaceChannelsByScheme(t, rctx, ss) })
 	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, rctx, ss) })
 	t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, rctx, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, rctx, ss) })
@@ -7803,6 +7804,59 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, rctx request.CTX, ss store
 	channel.Id = ""
 	_, nErr = ss.Channel().Save(rctx, channel, 1)
 	assert.NoError(t, nErr)
+}
+
+func testChannelStoreCountSpaceChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {
+	scheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	}
+	scheme, err := ss.Scheme().Save(scheme)
+	require.NoError(t, err)
+
+	teamID := model.NewId()
+	saveChannel := func(channelType model.ChannelType, schemeID *string) *model.Channel {
+		c := &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Name",
+			Name:        model.NewId(),
+			Type:        channelType,
+			SchemeId:    schemeID,
+		}
+		saved, sErr := ss.Channel().Save(rctx, c, 100)
+		require.NoError(t, sErr)
+		return saved
+	}
+
+	// An unreferenced scheme counts zero.
+	count, err := ss.Channel().CountSpaceChannelsByScheme(scheme.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+
+	// An ordinary channel on the scheme must not count: only spaces do.
+	saveChannel(model.ChannelTypeOpen, &scheme.Id)
+	count, err = ss.Channel().CountSpaceChannelsByScheme(scheme.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count, "non-space channels must not be counted")
+
+	space := saveChannel(model.ChannelTypeSpace, &scheme.Id)
+	count, err = ss.Channel().CountSpaceChannelsByScheme(scheme.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), count)
+
+	// A soft-deleted space still holds its SchemeId and is restorable, so it
+	// must keep the scheme pinned.
+	require.NoError(t, ss.Channel().Delete(space.Id, model.GetMillis()))
+	count, err = ss.Channel().CountSpaceChannelsByScheme(scheme.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), count, "soft-deleted spaces must still be counted")
+
+	// An unknown scheme id counts zero rather than erroring.
+	count, err = ss.Channel().CountSpaceChannelsByScheme(model.NewId())
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count)
 }
 
 func testChannelStoreGetChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {

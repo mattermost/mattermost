@@ -1415,6 +1415,22 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerChannelStore) CountSpaceChannelsByScheme(schemeID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CountSpaceChannelsByScheme(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountSpaceChannelsByScheme", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
 	start := time.Now()
 
@@ -10153,10 +10169,10 @@ func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	return result, err
 }
 
-func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
+func (s *TimerLayerSchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
 	start := time.Now()
 
-	result, err := s.SchemeStore.GetByName(schemeName)
+	result, err := s.SchemeStore.GetByName(ctx, schemeName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

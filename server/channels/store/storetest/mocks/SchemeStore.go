@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -160,9 +162,9 @@ func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: schemeName
-func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
-	ret := _m.Called(schemeName)
+// GetByName provides a mock function with given fields: ctx, schemeName
+func (_m *SchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
+	ret := _m.Called(ctx, schemeName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByName")
@@ -170,19 +172,19 @@ func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 
 	var r0 *model.Scheme
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.Scheme, error)); ok {
-		return rf(schemeName)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Scheme, error)); ok {
+		return rf(ctx, schemeName)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
-		r0 = rf(schemeName)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Scheme); ok {
+		r0 = rf(ctx, schemeName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(schemeName)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, schemeName)
 	} else {
 		r1 = ret.Error(1)
 	}

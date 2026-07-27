@@ -4068,6 +4068,20 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 	return userInfo, nil
 }
 
+func (s SqlChannelStore) CountSpaceChannelsByScheme(schemeId string) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Channels").
+		Where(sq.Eq{"SchemeId": schemeId}).
+		Where(sq.Eq{"Type": model.ChannelTypeSpace})
+
+	var count int64
+	if err := s.GetMaster().GetBuilder(&count, query); err != nil {
+		return 0, errors.Wrapf(err, "failed to count space channels with schemeId=%s", schemeId)
+	}
+	return count, nil
+}
+
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).Where(sq.NotEq{"Type": nonMessageBackingChannelTypes}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))

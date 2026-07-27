@@ -300,6 +300,11 @@ type ChannelStore interface {
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
+	// CountSpaceChannelsByScheme counts the space backing channels carrying the
+	// scheme, deliberately including soft-deleted channels: a deleted space is
+	// restorable and keeps its SchemeId. Reads from the primary so a
+	// just-created space is not missed due to replica lag.
+	CountSpaceChannelsByScheme(schemeID string) (int64, error)
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
@@ -906,7 +911,7 @@ type RoleStore interface {
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
-	GetByName(schemeName string) (*model.Scheme, error)
+	GetByName(ctx context.Context, schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)
 	PermanentDeleteAll() error

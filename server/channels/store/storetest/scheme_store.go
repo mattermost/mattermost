@@ -279,7 +279,7 @@ func testSchemeStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Len(t, d1.Id, 26)
 
 	// Get a valid scheme
-	d2, err := ss.Scheme().GetByName(d1.Name)
+	d2, err := ss.Scheme().GetByName(context.Background(), d1.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, d1.Id, d2.Id)
 	assert.Equal(t, s1.DisplayName, d2.DisplayName)
@@ -297,7 +297,7 @@ func testSchemeStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, d1.DefaultChannelGuestRole, d2.DefaultChannelGuestRole)
 
 	// Get an invalid scheme
-	_, err = ss.Scheme().GetByName(model.NewId())
+	_, err = ss.Scheme().GetByName(context.Background(), model.NewId())
 	assert.Error(t, err)
 }
 

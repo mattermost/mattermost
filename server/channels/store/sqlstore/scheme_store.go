@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -336,10 +337,10 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
+func (s *SqlSchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Name": schemeName})
-	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
+	if err := s.DBXFromContext(ctx).GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}

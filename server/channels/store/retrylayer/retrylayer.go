@@ -1593,6 +1593,27 @@ func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 
 }
 
+func (s *RetryLayerChannelStore) CountSpaceChannelsByScheme(schemeID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.CountSpaceChannelsByScheme(schemeID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
 
 	tries := 0
@@ -12810,11 +12831,11 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 
 }
 
-func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
+func (s *RetryLayerSchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
 
 	tries := 0
 	for {
-		result, err := s.SchemeStore.GetByName(schemeName)
+		result, err := s.SchemeStore.GetByName(ctx, schemeName)
 		if err == nil {
 			return result, nil
 		}
