@@ -56,7 +56,6 @@ const TOP_LEVEL = [
   {dir: 'end-user-guide',       label: 'End User Guide'},
   {dir: 'integrations-guide',   label: 'Integrations Guide'},
   {dir: 'get-help',             label: 'Get Help'},
-  {dir: 'agents',               label: 'Agents'},
 ];
 
 // ---------------------------------------------------------------------------
@@ -380,6 +379,23 @@ const ADMIN_CONFIGURE_GROUPS = {
       'optimize-your-workspace',
     ],
   },
+  // Nests the Agents plugin's own provider/setup pages (vendored from the
+  // mattermost-plugin-agents submodule, staged by stage-agents-docs.mjs
+  // into main/agents/docs/) under the admin guide landing page, instead of
+  // a standalone top-level "Agents" section — mirrors Sphinx, which hides
+  // these behind a small toctree on administration-guide/configure/
+  // agents-admin-guide.rst rather than giving Agents its own nav entry.
+  // Items use the {doc: '<full id>'} form since they live outside
+  // administration-guide/configure/.
+  agents: {
+    label: 'AI Agents Configuration',
+    landing: 'agents-admin-guide',
+    items: [
+      {doc: 'agents/docs/providers'},
+      {doc: 'agents/docs/aws_bedrock_setup'},
+      {doc: 'agents/docs/sovereign_ai'},
+    ],
+  },
 };
 
 // Top-level Configure order. Strings are doc basenames relative to
@@ -389,7 +405,7 @@ const ADMIN_CONFIGURE_GROUPS = {
 const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
   {group: 'search'},
-  'agents-admin-guide',
+  {group: 'agents'},
   {group: 'calls'},
   {group: 'storage'},
   {group: 'email'},
@@ -903,10 +919,27 @@ function buildDeploymentSidebar(autoCat) {
 // Administration Guide — builder (regroups the "Configure" sub-category).
 // ---------------------------------------------------------------------------
 
+// Resolves the label for a fully-qualified doc id (one that lives outside
+// the section currently being built, e.g. an Agents doc nested under
+// Administration Guide → Configure) by reading its own frontmatter
+// directly, since it won't be present in that section's `leafLabels` map.
+function docLabelById(id) {
+  for (const ext of ['.mdx', '.md']) {
+    const abs = join(SRC, `${id}${ext}`);
+    if (existsSync(abs)) {
+      return readFm(abs, 'sidebar_label') || readFm(abs, 'title') || humanize(id.split('/').pop());
+    }
+  }
+  throw new Error(`doc id not found on disk: ${id}`);
+}
+
 function buildAdminConfigureItem(spec, leafLabels) {
   if (typeof spec === 'string') {
     const id = `administration-guide/configure/${spec}`;
     return {type: 'doc', id, label: leafLabels[id] || humanize(spec)};
+  }
+  if (spec.doc) {
+    return {type: 'doc', id: spec.doc, label: docLabelById(spec.doc)};
   }
   const g = ADMIN_CONFIGURE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
@@ -1093,6 +1126,46 @@ function buildIntegrationsSidebar(autoCat) {
 }
 
 // ---------------------------------------------------------------------------
+// End User Guide — nests the Agents plugin's usage-tips page under the
+// existing "AI Agents" doc, the same way Configure nests Agents' admin-side
+// pages (see ADMIN_CONFIGURE_GROUPS.agents above). End User Guide is
+// otherwise fully filesystem-driven, so this is a narrow, targeted
+// promotion rather than a full manual-grouping override.
+// ---------------------------------------------------------------------------
+
+// Finds the {type: 'doc', id: docId} leaf anywhere in `items` and replaces
+// it in place with a category that links to that same doc and nests
+// `children` (each a fully-qualified doc id) underneath it. Returns true if
+// the promotion was applied, so callers can warn when it wasn't.
+function promoteDocToCategory(items, docId, children) {
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.type === 'doc' && it.id === docId) {
+      items[i] = {
+        type: 'category',
+        label: it.label,
+        collapsed: true,
+        link: {type: 'doc', id: docId},
+        items: children.map((childId) => ({type: 'doc', id: childId, label: docLabelById(childId)})),
+      };
+      return true;
+    }
+    if (it.type === 'category' && it.items && promoteDocToCategory(it.items, docId, children)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function buildEndUserGuideSidebar(autoCat) {
+  const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', ['agents/docs/usage_tips']);
+  if (!promoted) {
+    console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents usage-tips nesting was not applied.');
+  }
+  return autoCat;
+}
+
+// ---------------------------------------------------------------------------
 // Entry point.
 // ---------------------------------------------------------------------------
 
@@ -1115,6 +1188,8 @@ function main() {
       cat = buildAdminGuideSidebar(cat);
     } else if (dir === 'integrations-guide') {
       cat = buildIntegrationsSidebar(cat);
+    } else if (dir === 'end-user-guide') {
+      cat = buildEndUserGuideSidebar(cat);
     }
     sidebar.push(cat);
   }
