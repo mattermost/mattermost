@@ -83,6 +83,38 @@ leaving it at the root.
 existing one (Integrations Guide is the simplest example), then wire it
 into `main()` alongside the existing `dir === '...'` checks.
 
+**Nesting a doc from one section under a page in another section:** most
+group `items` are plain basenames relative to that section's own
+directory, but `buildAdminConfigureItem` also accepts `{doc: '<full id>'}`
+for cross-directory references (their label is read directly from the
+target file's frontmatter via `docLabelById`, since it won't be in that
+section's `leafLabels` map). This is how `ADMIN_CONFIGURE_GROUPS.agents`
+nests the vendored Agents plugin pages (`main/agents/docs/`, staged by
+`stage-agents-docs.mjs` — not one of the `TOP_LEVEL` sections, so it has
+no top-level nav entry of its own) under
+`administration-guide/configure/agents-admin-guide`. The same page is
+also nested for End User Guide's `end-user-guide/agents` doc, but since
+that section has no manual grouping override at all, it uses the smaller
+standalone `promoteDocToCategory` helper instead of a full `*_GROUPS`
+override — copy that pattern for other one-off single-doc nestings rather
+than building a whole grouping override for a section that's otherwise
+fine auto-generated.
+
+**Inlining another doc's content onto a page** (rather than just linking
+or nesting it): Docusaurus's built-in [Markdown
+partials](https://docusaurus.io/docs/next/create-doc#markdown-partials)
+feature — any `.md`/`.mdx` file with a leading underscore in its name is
+excluded from the docs plugin's routing/sidebars and can be `import`ed
+into another MDX file and rendered as `<Component />`. `stage-agents-docs.mjs`
+uses this to reproduce Sphinx's `.. include:: /agents/docs/admin_guide.md`
+behavior: it stages `admin_guide.md`/`user_guide.md` as normal (but
+`unlisted: true`) docs for direct-link parity, *and* as
+`_admin_guide_partial.mdx`/`_user_guide_partial.mdx` partials that
+`administration-guide/configure/agents-admin-guide.mdx` and
+`end-user-guide/agents.mdx` import and render inline — so those two pages
+show the full vendored guide content directly, with zero extra clicks,
+instead of just linking out to a separate page.
+
 The API reference section (`docs/api/reference/`, also gitignored) has the
 same requirement: `docusaurus-plugin-openapi-docs` needs `docusaurus
 gen-api-docs mattermost` run before it has any pages to render. `prestart`

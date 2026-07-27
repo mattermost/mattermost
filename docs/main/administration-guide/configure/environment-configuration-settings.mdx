@@ -1,6 +1,7 @@
 ---
 title: "Environment configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -9,7 +10,7 @@ import Inc1_rate_limiting_configuration_settings from './rate-limiting-configura
 
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
+Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
 
 - [Web server](#web-server)
 - [Database](#database)
@@ -834,7 +835,7 @@ MySQL databases must be configured to support searching strings shorter than thr
 </colgroup>
 <tbody>
 <tr>
-<td>When <a href="mm-doc:%2Fadministration-guide%2Fscale%2Fenterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
+<td>When <a href="/administration-guide/scale/enterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
 </tr>
 </tbody>
 </table>
@@ -862,7 +863,7 @@ However, the ability to perform database searches in Mattermost is a critical fe
 
 ### Applied schema migrations
 
-A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
+A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
 
 ### Active search backend
 
@@ -3746,7 +3747,7 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Aallow%20file%20downloads%20on%20mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -4014,7 +4015,7 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 </colgroup>
 <tbody>
 <tr>
-<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fbulk-export-tool">bulk exports</a> and <a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
+<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="/administration-guide/manage/bulk-export-tool">bulk exports</a> and <a href="/administration-guide/comply/compliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="/administration-guide/configure/environment-configuration-settings#file-storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
 <td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code></li><li>Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code></li></ul></td>
 </tr>
 </tbody>
