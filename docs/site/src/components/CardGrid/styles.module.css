@@ -86,10 +86,13 @@
 }
 
 .title {
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
+  /* Mixed-case, multi-word labels (e.g. "For End Users") read as too
+   * heavy/shouty in Archivo Black at 900 — same issue already fixed for
+   * h1-h4 — so use the sans face at a lighter bold weight instead. */
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
   font-size: 1.05rem;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   margin-bottom: 0.35rem;
   color: var(--mm-text-primary);
 }

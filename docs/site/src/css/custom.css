@@ -599,6 +599,19 @@ blockquote {
   padding-right: clamp(1rem, 2vw, 2rem);
 }
 
+/* theme-classic's DocItem/Layout only caps the article column at 75% via
+ * its own `docItemCol` class when a TOC renders alongside it — pages with
+ * `hide_table_of_contents: true` (e.g. the homepage) get a lone full-width
+ * `.col` instead, so prose reads much wider than on every other doc page.
+ * Recreate the same 75% cap here, keyed off the `<article>` that's always
+ * a descendant of the doc content column, regardless of TOC presence. */
+@media (min-width: 997px) {
+  .docMainContainer_TBSr .col:has(> div > article),
+  [class*='docMainContainer'] .col:has(> div > article) {
+    max-width: 75%;
+  }
+}
+
 /* Without max-width, the doc content flex column no longer has an upper
  * bound to shrink against, so a wide code block (long lines, e.g. inline
  * YAML comments) inflates its own intrinsic min-content size and drags the
