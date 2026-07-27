@@ -96,6 +96,7 @@ import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import SessionAttributesFeatureDiscovery from './feature_discovery/features/session_attributes';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
+import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -718,6 +719,20 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'BoardAttributes',
                     component: BoardAttributes,
+                },
+            },
+            global_attributes: {
+                url: 'system_attributes/manage_attributes',
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
+                searchableStrings: globalAttributesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributes',
+                    component: GlobalAttributes,
                 },
             },
             attribute_based_access_control: {

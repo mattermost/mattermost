@@ -1,6 +1,7 @@
 ---
 title: "Mattermost Calls Deployment Guide"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -167,7 +168,7 @@ Use the tabs below to view the reference architecture for each deployment model:
 
 An **Integrated** deployment does not require any additional infrastructure:
 
-<img src="../../images/calls-deployment-integrated.png" alt="Integrated Calls deployment" />
+<img src={useBaseUrl('/images/calls-deployment-integrated.png')} alt="Integrated Calls deployment" />
 **When to use it**
 
 - You are evaluating Calls for the first time.
@@ -189,7 +190,7 @@ The **Recording** service (`calls-offloader`) can optionally be added to an **In
 
 Reference architecture when using the Recording service with Integrated Calls:
 
-<img src="../../images/calls-deployment-integrated-recording-v2.png" alt="Calls deployment with Integrated Calls and recording" />
+<img src={useBaseUrl('/images/calls-deployment-integrated-recording-v2.png')} alt="Calls deployment with Integrated Calls and recording" />
 **Components**
 
 - **Mattermost server**: Calls plugin is pre-installed.
@@ -204,7 +205,7 @@ Reference architecture when using the Recording service with Integrated Calls:
 
 An **RTCD Server** is added as a dedicated media service that processes all call audio and screen sharing media.
 
-<img src="../../images/calls-deployment-rtcd.png" alt="Calls deployment with RTCD" />
+<img src={useBaseUrl('/images/calls-deployment-rtcd.png')} alt="Calls deployment with RTCD" />
 The Mattermost server is still responsible for signaling (setting up, managing, and ending calls) and channel state (who is joining or leaving, who has muted, and overall call status), but the call media itself flows directly between clients and the RTCD server, completely bypassing the Mattermost server.
 
 **When to use it**
@@ -231,7 +232,7 @@ The **Recording** service (`calls-offloader`) can optionally be added to an **RT
 
 Reference architecture when using the Recording service with RTCD:
 
-<img src="../../images/calls-deployment-rtcd-recording.png" alt="Calls deployment with RTCD and recording" />
+<img src={useBaseUrl('/images/calls-deployment-rtcd-recording.png')} alt="Calls deployment with RTCD and recording" />
 **Components**
 
 - **Mattermost server**: Calls plugin is pre-installed.
