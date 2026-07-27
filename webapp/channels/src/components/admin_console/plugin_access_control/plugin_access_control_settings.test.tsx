@@ -12,7 +12,7 @@ jest.mock('components/admin_console/content_flagging/user_multiselector/user_mul
 }));
 
 describe('PluginAccessControlSettings', () => {
-    test('selecting Everyone clears AllowedUserIds', async () => {
+    test('selecting Everyone preserves AllowedUserIds', async () => {
         const user = userEvent.setup();
         const onAccessControlChange = jest.fn();
         const accessControl: PluginAccessControlUI = {
@@ -32,7 +32,7 @@ describe('PluginAccessControlSettings', () => {
 
         expect(onAccessControlChange).toHaveBeenCalledWith({
             Enable: false,
-            AllowedUserIds: [],
+            AllowedUserIds: ['user-a', 'user-b'],
         });
     });
 });

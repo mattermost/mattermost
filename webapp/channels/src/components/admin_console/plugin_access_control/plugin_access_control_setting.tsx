@@ -82,7 +82,7 @@ const PluginAccessControlSetting = ({
         try {
             await Client4.setPluginAccessControl(pluginId, {
                 enable: Boolean(acl.Enable),
-                allowed_user_ids: acl.Enable ? (acl.AllowedUserIds || []) : [],
+                allowed_user_ids: acl.AllowedUserIds || [],
             });
             dirtyRef.current = false;
             return {error: undefined};

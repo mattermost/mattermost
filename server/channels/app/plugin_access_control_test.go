@@ -115,11 +115,11 @@ func TestIsPluginVisibleToUser(t *testing.T) {
 	})
 }
 
-func TestSetPluginAccessControlClearsUsersWhenDisabled(t *testing.T) {
+func TestSetPluginAccessControlPreservesUsersWhenDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	pluginID := "testplugin-clear-users"
+	pluginID := "testplugin-preserve-users"
 	t.Cleanup(func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			delete(cfg.PluginSettings.PluginAccessControl, pluginID)
@@ -135,7 +135,7 @@ func TestSetPluginAccessControlClearsUsersWhenDisabled(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, []string{th.BasicUser.Id}, settings.AllowedUserIds)
 
-	// Everyone mode must wipe allow-list rows even if the client still sends user IDs.
+	// Everyone mode keeps the allow-list so re-enabling selected-users restores prior choices.
 	require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
 		Enable:         false,
 		AllowedUserIds: []string{th.BasicUser.Id, th.BasicUser2.Id},
@@ -143,5 +143,5 @@ func TestSetPluginAccessControlClearsUsersWhenDisabled(t *testing.T) {
 	settings, appErr = th.App.GetPluginAccessControl(th.Context, pluginID)
 	require.Nil(t, appErr)
 	assert.False(t, settings.Enable)
-	assert.Empty(t, settings.AllowedUserIds)
+	assert.ElementsMatch(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, settings.AllowedUserIds)
 }

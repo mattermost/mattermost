@@ -38,12 +38,11 @@ const PluginAccessControlSettings = ({
     const {formatMessage} = useIntl();
 
     const handleModeChange = useCallback((_id: string, value: string) => {
-        const selected = value === 'selected';
         onAccessControlChange({
-            Enable: selected,
+            ...accessControl,
 
-            // Everyone means no allow-list; clear selected users so save wipes the DB rows.
-            AllowedUserIds: selected ? accessControl.AllowedUserIds : [],
+            // Keep AllowedUserIds when switching to Everyone so the list is restored if re-enabled.
+            Enable: value === 'selected',
         });
     }, [accessControl, onAccessControlChange]);
 

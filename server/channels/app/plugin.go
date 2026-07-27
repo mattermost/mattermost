@@ -506,21 +506,18 @@ func (a *App) SetPluginAccessControl(rctx request.CTX, pluginID string, settings
 		return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_body.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Everyone (Enable=false) always clears the allow-list; selected-users mode stores the provided IDs.
-	userIDs := []string{}
-	if settings.Enable {
-		seen := make(map[string]struct{}, len(settings.AllowedUserIds))
-		userIDs = make([]string, 0, len(settings.AllowedUserIds))
-		for _, userID := range settings.AllowedUserIds {
-			if !model.IsValidId(userID) {
-				return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_user_id.app_error", nil, "user_id="+userID, http.StatusBadRequest)
-			}
-			if _, ok := seen[userID]; ok {
-				continue
-			}
-			seen[userID] = struct{}{}
-			userIDs = append(userIDs, userID)
+	// Persist the allow-list regardless of Enable so turning Everyone on/off does not wipe saved users.
+	seen := make(map[string]struct{}, len(settings.AllowedUserIds))
+	userIDs := make([]string, 0, len(settings.AllowedUserIds))
+	for _, userID := range settings.AllowedUserIds {
+		if !model.IsValidId(userID) {
+			return model.NewAppError("SetPluginAccessControl", "app.plugin.access_control.invalid_user_id.app_error", nil, "user_id="+userID, http.StatusBadRequest)
 		}
+		if _, ok := seen[userID]; ok {
+			continue
+		}
+		seen[userID] = struct{}{}
+		userIDs = append(userIDs, userID)
 	}
 
 	if err := a.Srv().Store().PluginAccessControl().SetUserIDs(rctx, pluginID, userIDs); err != nil {
