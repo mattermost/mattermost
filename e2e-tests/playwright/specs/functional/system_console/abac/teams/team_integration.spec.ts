@@ -597,7 +597,24 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         createdUserIds.push(mktUser.id);
         await adminClient.addToTeam(team.id, mktUser.id);
         await setUserAttribute(adminClient, mktUser.id, 'Department', 'Marketing');
+
+        // # An Engineering user who is NOT on the team. This makes the "Engineering"
+        // # attribute value indexed so the save-confirm count query resolves with data
+        // # (a rule whose value was never attributed to anyone can otherwise fail to
+        // # evaluate) — while keeping the team's sole member non-qualifying.
+        const engUser = await adminClient.createUser(
+            {
+                email: `eng${suffix}@sample.mattermost.com`,
+                username: `eng${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(engUser.id);
+        await setUserAttribute(adminClient, engUser.id, 'Department', 'Engineering');
         await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [mktUser.id]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [engUser.id]);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
@@ -948,9 +965,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
      * for a team that already has a persisted membership policy, showing "Never synced."
      * and a "Sync now" link for a team that has not yet been synced.
      */
-    test('MM-68846-T16 - sync footer appears for a team with a persisted membership policy', async ({
-        pw,
-    }) => {
+    test('MM-68846-T16 - sync footer appears for a team with a persisted membership policy', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -1265,7 +1280,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(autoAddCheckbox).toBeEnabled({timeout: 5000});
         await expect(autoAddCheckbox).not.toBeChecked();
 
-        // # Turn auto-add on and save
+        // # Turn auto-add on and save. Enabling auto-add backfills matching non-members,
+        // # so the save raises the confirmation previewing the impact (UX spec §4.4).
         await autoAddCheckbox.click();
         await expect(autoAddCheckbox).toBeChecked();
         await page.getByRole('button', {name: 'Save'}).click();

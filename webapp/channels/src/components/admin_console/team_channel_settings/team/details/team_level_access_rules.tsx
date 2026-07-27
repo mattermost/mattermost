@@ -28,8 +28,7 @@ interface TeamLevelAccessRulesProps {
     isDisabled?: boolean;
     syncFooter?: React.ReactNode;
 
-    // Auto-add applies to a parent-only team too, so the toggle stays reachable
-    // without a custom expression.
+    // Keeps the auto-add toggle reachable for a parent-only team (no custom expression).
     hasParentPolicies?: boolean;
 }
 
@@ -68,22 +67,21 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         }
     }, [initialExpression, initialAutoSync]);
 
-    const hasChanges = useMemo(() => {
-        return expression !== originalExpression || autoSyncMembers !== originalAutoSyncMembers;
-    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers]);
-
-    useEffect(() => {
-        onRulesChange(hasChanges, expression, autoSyncMembers);
-    }, [hasChanges, expression, autoSyncMembers, onRulesChange]);
-
     // Any membership rule — custom expression or imported parent policy — gates auto-add.
     const hasMembershipRule = expression.trim() !== '' || hasParentPolicies;
 
+    // Derived, not a reset effect: a setState-in-effect here dueled the prop-sync effect
+    // through the parent echo and looped on rule removal. Auto-add is meaningless anyway
+    // once no rule exists.
+    const effectiveAutoSync = hasMembershipRule && autoSyncMembers;
+
+    const hasChanges = useMemo(() => {
+        return expression !== originalExpression || effectiveAutoSync !== originalAutoSyncMembers;
+    }, [expression, originalExpression, effectiveAutoSync, originalAutoSyncMembers]);
+
     useEffect(() => {
-        if (!hasMembershipRule) {
-            setAutoSyncMembers(false);
-        }
-    }, [hasMembershipRule]);
+        onRulesChange(hasChanges, expression, effectiveAutoSync);
+    }, [hasChanges, expression, effectiveAutoSync, onRulesChange]);
 
     const handleExpressionChange = useCallback((newExpression: string) => {
         setExpression(newExpression);
@@ -114,7 +112,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                             id='teamAutoAddMembersCheckbox'
                             name='autoAddMembers'
                             className='team-access-rules__auto-sync-checkbox'
-                            checked={autoSyncMembers}
+                            checked={effectiveAutoSync}
                             onChange={handleAutoSyncToggle}
                             disabled={autoSyncDisabled}
                             data-testid='team-auto-add-members-checkbox'
@@ -132,7 +130,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                         </label>
                     </div>
                     <p className='team-access-rules__auto-sync-description'>
-                        {autoSyncMembers ? (
+                        {effectiveAutoSync ? (
                             <FormattedMessage
                                 id='team_settings.membership_tab.auto_add_enabled_description'
                                 defaultMessage='Qualifying users are automatically added as members, and members who no longer match will be removed.'
@@ -170,7 +168,10 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                         onValidate={() => setFormError('')}
                         userAttributes={userAttributes}
                         onParseError={handleParseError}
-                        teamId={team.id}
+
+                        // No teamId: passing it scopes "Test access rule" to current team
+                        // members; the test must preview workspace-wide matches like the
+                        // policy and channel editors.
                         actions={{
                             getVisualAST: actions.getVisualAST,
                         }}

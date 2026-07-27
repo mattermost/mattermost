@@ -15,7 +15,10 @@ import TeamLevelAccessRules from './team_level_access_rules';
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
     return function MockTableEditor(props: any) {
         return (
-            <div data-testid='table-editor'>
+            <div
+                data-testid='table-editor'
+                data-team-id={props.teamId ?? ''}
+            >
                 <input
                     data-testid='expression-input'
                     value={props.value}
@@ -94,6 +97,16 @@ describe('TeamLevelAccessRules', () => {
 
         expect(screen.getByText('Team-specific membership rules')).toBeInTheDocument();
         expect(screen.getByText('User attributes and values as additional rules to restrict team membership')).toBeInTheDocument();
+    });
+
+    it('does not scope the access-rule test to team members (no teamId passed to the editor)', async () => {
+        renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
+
+        const editor = await screen.findByTestId('table-editor');
+
+        // teamId would scope "Test access rule" (and its count) to current team members;
+        // it must preview everyone who matches, workspace-wide, like the policy editor.
+        expect(editor).toHaveAttribute('data-team-id', '');
     });
 
     it('should render the TableEditor', async () => {
@@ -407,6 +420,56 @@ describe('TeamLevelAccessRules', () => {
 
         expect(screen.getByRole('checkbox')).toBeChecked();
         expect(screen.getByRole('checkbox')).toBeEnabled();
+    });
+
+    it('removing the only rule clears it and turns auto-add off, reporting the change to the parent', async () => {
+        // A stateful parent that echoes reported values back as initial props, the way
+        // team_details persists them into its own state (stable onRulesChange). Exercises
+        // the full remove-the-only-rule path through that round-trip.
+        const reported: Array<{expression: string; autoSync: boolean}> = [];
+        const Harness = () => {
+            const [expr, setExpr] = React.useState('');
+            const [autoSync, setAutoSync] = React.useState(false);
+
+            // Staggered load: the rule + auto-add arrive after mount, like fetchAccessControlPolicies.
+            React.useEffect(() => {
+                setExpr('user.attributes.Department == "Engineering"');
+                setAutoSync(true);
+            }, []);
+
+            const onRulesChange = React.useCallback((_h: boolean, e: string, a: boolean) => {
+                reported.push({expression: e, autoSync: a});
+                setExpr(e);
+                setAutoSync(a);
+            }, []);
+
+            return (
+                <TeamLevelAccessRules
+                    team={mockTeam}
+                    userAttributes={mockUserAttributes}
+                    onRulesChange={onRulesChange}
+                    initialExpression={expr}
+                    initialAutoSync={autoSync}
+                    hasParentPolicies={false}
+                />
+            );
+        };
+
+        renderWithContext(<Harness/>);
+        await screen.findByTestId('table-editor');
+
+        // Auto-add loaded on with the rule present.
+        expect(screen.getByRole('checkbox')).toBeChecked();
+
+        // Remove the only rule.
+        await userEvent.clear(screen.getByTestId('expression-input'));
+
+        // Rule is gone, auto-add turns off and its checkbox is disabled (nothing to sync),
+        // and the parent was told the expression is empty with auto-add off.
+        expect(screen.getByTestId('expression-input')).toHaveValue('');
+        expect(screen.getByRole('checkbox')).not.toBeChecked();
+        expect(screen.getByRole('checkbox')).toBeDisabled();
+        expect(reported[reported.length - 1]).toEqual({expression: '', autoSync: false});
     });
 
     it('should not reset auto-sync to false for a parent-only team when the expression is empty', () => {

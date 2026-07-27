@@ -64,6 +64,20 @@ jest.mock('./team_level_access_rules', () => {
                     data-testid='remove-loaded-rule-button'
                     onClick={() => props.onRulesChange(false, '', false)}
                 >{'remove'}</button>
+
+                {/* Adds a custom rule WITHOUT enabling auto-add — the real editor's
+                    behavior when you add an attribute row and leave the checkbox off. */}
+                <button
+                    data-testid='add-rule-no-autoadd-button'
+                    onClick={() => props.onRulesChange(true, 'user.attributes.Department == "Engineering"', false)}
+                >{'add-rule'}</button>
+
+                {/* Enables auto-add WITHOUT changing the expression — checking the box on
+                    an already-loaded rule. Isolates the "auto-add newly enabled" trigger. */}
+                <button
+                    data-testid='enable-autoadd-same-expr-button'
+                    onClick={() => props.onRulesChange(true, props.initialExpression ?? '', true)}
+                >{'enable-autoadd'}</button>
                 {props.syncFooter}
             </div>
         );
@@ -538,6 +552,58 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await waitFor(() => {
             expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
         });
+    });
+
+    test('removing the custom rule then the policy still tears down the child policy (order-independent)', async () => {
+        // Regression: emptying ABAC by removing the rule first (forces policyEnforced
+        // true) then the policy (sets it false) must still delete the team's child
+        // policy — otherwise its custom rule is orphaned and reappears on reload.
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: ['parent1'],
+                    rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+                    active: false,
+                },
+                enforced: true,
+            },
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
+        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                deleteAccessControlPolicy,
+                unassignTeamsFromAccessControlPolicy,
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+
+        // Remove the rule first, then the policy — the order that used to skip teardown.
+        await userEvent.click(screen.getByTestId('clear-rule-button'));
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+
+        await userEvent.click(screen.getByText('Save'));
+
+        // No apply modal (teardown applies no removal criteria), the child policy is
+        // deleted (so the custom rule is gone), and the parent is unassigned.
+        expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+        await waitFor(() => expect(deleteAccessControlPolicy).toHaveBeenCalledWith('123'));
+        expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
     });
 
     test('removing a policy while an unedited custom rule remains keeps enforcement on and saves without the apply modal', async () => {
@@ -1097,6 +1163,159 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
         expect(screen.queryByText(/will be added/)).not.toBeInTheDocument();
         expect(screen.queryByText(/will be removed/)).not.toBeInTheDocument();
+    });
+
+    test('shows the empty-team warning with auto-add OFF even when qualifying non-members exist (T11)', async () => {
+        // Mirrors e2e MM-68846-T11: private team, one non-matching member, matching
+        // non-members exist elsewhere, auto-add OFF. The sole member is removed and
+        // nothing is added, so the team ends empty and the warning must show.
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: [], rules: [], active: false}, enforced: true},
+        });
+
+        // Two matching users exist in the workspace, neither on the team.
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'e1'}, {id: 'e2'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: [{user_id: 'mkt'}]});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument());
+
+        // Add a custom rule but leave auto-add OFF.
+        await userEvent.click(screen.getByTestId('add-rule-no-autoadd-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
+
+        // Empty-team warning shows; the add line does NOT (auto-add off).
+        expect(screen.getByText(/No current members meet the criteria/)).toBeInTheDocument();
+        expect(screen.queryByText(/will be added/)).not.toBeInTheDocument();
+    });
+
+    test('does not show a removal line for a public (advisory) team', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: [], rules: [], active: false}, enforced: true},
+        });
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'e1'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: [{user_id: 'mkt'}]});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: true}, // PUBLIC / advisory
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('add-rule-no-autoadd-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
+
+        // Advisory teams never remove members, so no removal line and no empty-team warning.
+        expect(screen.queryByText(/will be removed at the next sync/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+    });
+
+    test('falls back to a generic confirmation when loading team members fails', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: [], rules: [], active: false}, enforced: true},
+        });
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'e1'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({error: {message: 'network error'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('add-rule-no-autoadd-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
+
+        // Member load failed → unknown counts → generic prompt only.
+        expect(screen.getByText(/Are you sure you want to apply the membership policy/)).toBeInTheDocument();
+        expect(screen.queryByText(/will be removed/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
+    });
+
+    test('does not preview additions when every matching user is already a member', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+
+        // Both matching users are already members → addCount = 0.
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'u1'}, {id: 'u2'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: [{user_id: 'u1'}, {user_id: 'u2'}]});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument());
+
+        // Turn auto-add ON, then save.
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
+
+        // No non-members to add, so the add line is absent even with auto-add on.
+        expect(screen.queryByText(/will be added/)).not.toBeInTheDocument();
+    });
+
+    test('enabling auto-add alone raises the apply-policy confirmation previewing additions', async () => {
+        // Enabling auto-add without editing the expression must still confirm on save and
+        // preview the backfill count (UX spec §4.4: auto-add off→on shows the count).
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                policy: {
+                    id: '123',
+                    type: 'team',
+                    imports: [],
+                    rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+                    active: false,
+                },
+                enforced: true,
+            },
+        });
+
+        // One matching non-member exists → add-count of 1.
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'e1'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: []});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, searchUsersForExpression, getTeamMembers},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => expect(screen.getByTestId('enable-autoadd-same-expr-button')).toBeInTheDocument());
+
+        // Enable auto-add with no expression change, then save.
+        await userEvent.click(screen.getByTestId('enable-autoadd-same-expr-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
+        expect(screen.getByText(/1 qualifying user will be added/)).toBeInTheDocument();
     });
 
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {
