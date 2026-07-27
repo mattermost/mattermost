@@ -26,6 +26,10 @@
   border-left-color: var(--mm-color-denim, #1E325C);
 }
 
+[data-theme='dark'] .edition {
+  border-left-color: var(--mm-denim-300, #8499C5);
+}
+
 .key {
   font-weight: 700;
   text-transform: uppercase;

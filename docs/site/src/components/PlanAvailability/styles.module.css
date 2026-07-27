@@ -21,6 +21,7 @@
 
 [data-theme='dark'] .plan {
   background: rgba(255, 255, 255, 0.04);
+  border-left-color: var(--mm-denim-300, #8499C5);
   color: var(--mm-text-primary);
 }
 
