@@ -118,7 +118,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single large image',
-            // TODO skip this on iPad because images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Skip this on iPad because images that are too wide but above the minimum height cause layout shift
             skipProjects: ['ipad'],
             seedOptions: {
                 message: 'post with a single large image',
@@ -242,7 +242,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large Markdown image',
-            // TODO images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `![large image](${baseUrl}/huge-image.jpg)`,
@@ -277,7 +277,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // TODO Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
+            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
             skipProjects: ['firefox'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
@@ -312,7 +312,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
-            // TODO images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/huge-image.jpg`,
@@ -465,7 +465,7 @@ test.describe('Post height', () => {
         await postComponent.toContainText('edited post');
 
         // * Verify that the post height didn't change
-        // TODO The post height shouldn't increase when it's edited, but it increases by 1px
+        // MM-69980 The post height shouldn't increase when it's edited, but it increases by 1px
         expect(await sizeWatcher.getObservations()).toHaveLength(2);
 
         // # Edit the post to be multiple linesfrom another client
