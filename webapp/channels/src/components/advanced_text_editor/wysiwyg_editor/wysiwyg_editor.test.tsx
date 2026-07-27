@@ -58,7 +58,12 @@ describe('WysiwygEditor', () => {
     });
 
     test('json mode omits the Markdown extension and drops the markdown contentType', () => {
-        renderWithContext(<WysiwygEditor {...baseProps} contentType='json'/>);
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                contentType='json'
+            />,
+        );
 
         expect(extensionNames()).not.toContain('markdown');
         expect(mockCapturedConfig.current?.contentType).toBeUndefined();
