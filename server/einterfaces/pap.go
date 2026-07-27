@@ -52,6 +52,11 @@ type PolicyAdministrationPointInterface interface {
 	// System Console and Channel Settings.
 	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
 
+	// InvalidatePolicyCache clears cached state for the given policies.
+	// Callers that write to the store directly, bypassing SavePolicy, should
+	// call this afterwards to keep the cache consistent.
+	InvalidatePolicyCache(rctx request.CTX, policies []*model.AccessControlPolicy)
+
 	// OnPropertyFieldOptionsChanged signals the access control service that
 	// a property field's options changed (e.g. an admin re-ranked or
 	// renamed options on a rank-typed field). The service invalidates any
