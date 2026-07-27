@@ -28,7 +28,7 @@ describe('Messaging', () => {
         cy.get('.markdown-inline-img__container').should('be.visible');
 
         // # Hover over image then click to open preview image
-        cy.get('.file-preview__button').trigger('mouseover').click();
+        cy.get('.markdown-inline-img__container img').first().trigger('mouseover').click();
 
         // * Confirm image is visible
         cy.findByTestId('imagePreview').should('be.visible');
