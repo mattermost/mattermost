@@ -113,11 +113,10 @@ While the full STIG checklist is on the roadmap, customers can begin hardening t
 1. **Apply OS STIG** for the host OS (RHEL 9 / Ubuntu 22.04 / Windows Server).
 2. **Apply PostgreSQL STIG** for the database tier.
 3. **Apply Web Server SRG** to the NGINX reverse proxy.
-4. **Apply Mattermost configuration** from the [Required configuration summary on the FedRAMP Moderate page](./fedramp-moderate#required-configuration) — this satisfies the majority of Application Security and Development SRG requirements applicable to Mattermost.
-5. **Deploy using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
-6. **Disable phone-home features** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
-7. **Configure audit log export** to a STIG-compliant SIEM.
-8. **Configure IdP-side** policies for MFA, PIV/CAC, session lifetime, account lockout.
+4. **Deploy using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
+5. **Disable internet-dependent features** — see [Configure for Air-Gapped Operation](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
+6. **Configure audit log export** to a STIG-compliant SIEM.
+7. **Configure IdP-side** policies for MFA, PIV/CAC, session lifetime, account lockout.
 
 ## Customer responsibility
 
@@ -125,7 +124,7 @@ DISA STIG compliance is **deployment-specific and customer-led**. Mattermost pro
 
 - Default configurations aligned with SRG requirements where Mattermost owns the control.
 - This mapping document for the controls Mattermost contributes to.
-- Validated configuration guidance for the [FedRAMP Moderate](./fedramp-moderate) and [DoD IL4 / IL5](./dod-il-4-5) baselines that share many SRG requirements.
+- Documented configuration guidance for the [DoD IL4 / IL5](./dod-il-4-5) baseline, which shares many SRG requirements.
 
 Customers are responsible for OS-tier, database-tier, proxy-tier, and CAP-tier hardening, plus the assessment + authorization process.
 
@@ -134,4 +133,3 @@ Customers are responsible for OS-tier, database-tier, proxy-tier, and CAP-tier h
 - [DISA STIG library](https://public.cyber.mil/stigs/downloads/) — canonical source.
 - [Application Security and Development SRG](https://public.cyber.mil/stigs/srg-stig-tools/) — the primary applicable SRG.
 - [DoD IL4 / IL5](./dod-il-4-5) — companion compliance page; STIG and IL4/IL5 are typically pursued together.
-- [FedRAMP Moderate](./fedramp-moderate) — the underlying NIST 800-53 baseline that backs both IL and STIG requirements.

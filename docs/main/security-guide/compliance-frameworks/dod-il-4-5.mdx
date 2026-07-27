@@ -18,10 +18,8 @@ description: Mattermost's posture against the DoD Cloud Computing Security Requi
 
 This page documents Mattermost's posture against the DoD Cloud Computing Security Requirements Guide (CC SRG) Impact Level (IL) 4 and Impact Level 5 baselines. IL4 covers Controlled Unclassified Information (CUI) including export-controlled and mission-critical data. IL5 covers National Security Systems data and unclassified information requiring a higher level of protection than IL4.
 
-:::important[Status]
-Current status is **Roadmap** — see the `<AttestationStatus>` badge above. Mattermost is FedRAMP Moderate–aligned (see [FedRAMP Moderate](./fedramp-moderate)), which is the standard prerequisite for IL4 sponsorship. IL5 additionally requires US-citizen-only operational support and dedicated infrastructure.
-
-This page documents the gap honestly: what controls are met today via the FedRAMP Moderate baseline, what additional controls IL4/IL5 require beyond FedRAMP Moderate, and the customer's role in deploying Mattermost inside an authorized boundary.
+:::important Status
+Current status is **Roadmap** — see the `<AttestationStatus>` badge above. This page documents the gap honestly: what controls are met today, what additional controls IL4/IL5 require, and the customer's role in deploying Mattermost inside an authorized boundary.
 :::
 
 ## Authorization landscape
@@ -33,14 +31,12 @@ This page documents the gap honestly: what controls are met today via the FedRAM
 | **IL5** | National Security Systems, mission-critical | DISA NIPRNet (dedicated) | Self-Hosted Enterprise on AWS GovCloud (US) or Azure Government, dedicated single-tenant infrastructure, US-citizen-only operational support, customer-managed authorization boundary. |
 | **IL6** | Classified up to Secret | SIPRNet | Self-Hosted Enterprise in customer-managed enclave (out of scope for this page — see [Air-Gapped Operations](../../deployment-guide/air-gapped-operations/)). |
 
-## Baseline inheritance from FedRAMP Moderate
+## Baseline mapping
 
-A Mattermost deployment that meets the configuration on the [FedRAMP Moderate](./fedramp-moderate) page inherits the majority of the IL4 / IL5 control baseline. The CC SRG explicitly maps DoD impact levels to NIST 800-53 baselines:
+The CC SRG explicitly maps DoD impact levels to NIST 800-53 baselines:
 
 - **IL4** ≈ FedRAMP Moderate + DoD-specific overlays.
 - **IL5** ≈ FedRAMP High + DoD-specific overlays, with the additional dedicated-infrastructure and US-person operational support requirements.
-
-Customers pursuing IL4 / IL5 authorization should start with the FedRAMP Moderate configuration as the baseline.
 
 ## Additional controls beyond FedRAMP Moderate
 
@@ -117,5 +113,4 @@ Mattermost will provide attestation letters, FIPS certificates, and configuratio
 
 - [DoD Cloud Computing Security Requirements Guide](https://public.cyber.mil/dccs/dccs-documents/) — the canonical CC SRG.
 - [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final) — the underlying control catalog.
-- [FedRAMP Moderate](./fedramp-moderate) — the baseline Mattermost is aligned to today.
 - [Mattermost Trust Portal](https://mattermost.com/trust/) — current attestation status and supporting evidence.
