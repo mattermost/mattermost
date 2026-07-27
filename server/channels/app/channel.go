@@ -245,6 +245,15 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
+	// A space carries a preset scheme legitimately; any other channel would be
+	// borrowing one. CreateChannel takes SchemeId straight from the caller, so
+	// without this guard it would bypass the check UpdateChannelScheme enforces.
+	if !channel.IsSpace() {
+		if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("CreateChannel", channel.SchemeId); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
 	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
@@ -823,6 +832,27 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
+	// A SchemeId change alters which generated roles every member resolves to,
+	// but the member-roles cache embeds those role names at cache-build time
+	// and is only invalidated per-user by member writes. Fan the invalidation
+	// across the channel so the permission change is authorization-visible on
+	// the next request instead of at cache expiry.
+	oldSchemeId, newSchemeId := "", ""
+	if oldChannel.SchemeId != nil {
+		oldSchemeId = *oldChannel.SchemeId
+	}
+	if channel.SchemeId != nil {
+		newSchemeId = *channel.SchemeId
+	}
+	if oldSchemeId != newSchemeId {
+		// Enumerating members to invalidate them one by one would page the
+		// member list and emit two cluster messages per member, all inside this
+		// request; the cache is keyed by user, so there is no per-channel key to
+		// evict instead. A scheme change is a rare admin action, so purge the
+		// whole cache once instead.
+		a.Srv().Store().Channel().ClearMembersForUserCache()
+	}
+
 	// Space backing channels are internal: skip the channel_updated broadcast.
 	if channel.IsSpace() {
 		return channel, nil
@@ -868,12 +898,45 @@ func (a *App) DeleteChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 	return a.UpdateChannelScheme(rctx, channel)
 }
 
+// rejectSpaceSchemeOnOrdinaryChannel refuses to put a space preset scheme on a
+// channel that is not a space. The preset carries the page permissions and has
+// the moderated ones stripped from its generated roles, so attaching it to an
+// ordinary channel would both grant page authority there and take create_post
+// away. A scheme that cannot be resolved is refused rather than waved through:
+// an absent scheme cannot prove it is not a preset, and leaves the channel
+// pointing at a scheme that resolves to nothing either way.
+func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string) *model.AppError {
+	if schemeId == nil || *schemeId == "" {
+		return nil
+	}
+
+	scheme, err := a.Srv().Store().Scheme().Get(*schemeId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if model.IsSpaceSchemeName(scheme.Name) {
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 // UpdateChannelScheme saves the new SchemeId of the channel passed.
 func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	var oldChannel *model.Channel
 	var err *model.AppError
 	if oldChannel, err = a.GetChannel(rctx, channel.Id); err != nil {
 		return nil, err
+	}
+
+	// GetChannel excludes spaces, so anything reaching here is not one.
+	if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", channel.SchemeId); appErr != nil {
+		return nil, appErr
 	}
 
 	oldChannel.SchemeId = channel.SchemeId
@@ -1120,7 +1183,17 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
-		return
+		if err.StatusCode != http.StatusNotFound {
+			return
+		}
+		// Space backing channels are opaque to the generic resolver but carry the scheme whose
+		// roles their members are assigned from, so resolve them by their exact type. Read from
+		// master: spaces are uncached, so assigning roles right after create would otherwise miss
+		// against a lagging replica.
+		channel, err = a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
+		if err != nil {
+			return
+		}
 	}
 
 	if channel.SchemeId != nil && *channel.SchemeId != "" {
@@ -1433,6 +1506,11 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
+	// Resolved on the first space capability role in newRoles and reused for the
+	// rest: a role update carrying none — every ordinary channel — pays no read,
+	// and one carrying several pays a single one.
+	spaceResolved, isSpace := false, false
+
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(rctx, roleName)
@@ -1445,6 +1523,30 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 				return nil, err
+			}
+			// The atomic space capability roles sit outside the built-in check
+			// above, so they reach here as explicit roles. They are the
+			// per-member capability grants on a space's backing channel; on any
+			// other channel they would smuggle space authority onto a member,
+			// so they are refused unless the channel is a space.
+			if model.IsSpaceCapabilityRoleID(roleName) {
+				if !spaceResolved {
+					_, chErr := a.Srv().Store().Channel().GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
+					if chErr != nil {
+						var nfErr *store.ErrNotFound
+						if !errors.As(chErr, &nfErr) {
+							// Only a not-found answers "this is not a space". A store
+							// failure refuses the write either way, but reporting it as
+							// a scope violation would blame the caller's role for an
+							// unreachable database.
+							return nil, model.NewAppError("UpdateChannelMemberRoles", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(chErr)
+						}
+					}
+					spaceResolved, isSpace = true, chErr == nil
+				}
+				if !isSpace {
+					return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				}
 			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
