@@ -73,6 +73,21 @@ export async function createParentPolicy(client: Client4, name: string) {
     });
 }
 
+// Parent policy with a real membership expression, assignable to a team (v0.3).
+export async function createParentMembershipPolicy(client: Client4, name: string, expression: string) {
+    return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
+        method: 'put',
+        body: JSON.stringify({
+            id: '',
+            name,
+            type: 'parent',
+            version: 'v0.3',
+            revision: 0,
+            rules: [{expression, actions: ['membership']}],
+        }),
+    });
+}
+
 export async function assignChannelsToPolicy(client: Client4, policyId: string, channelIds: string[]) {
     const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/assign`;
     const response = await fetch(url, {
