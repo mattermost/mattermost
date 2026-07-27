@@ -31,9 +31,16 @@
   text-decoration: none;
   color: inherit;
 }
+/* --mm-focus-ring (marigold) is ~1.7:1 against the white card surface,
+ * well under the 3:1 WCAG 1.4.11 minimum for non-text UI indicators.
+ * Use denim instead, which passes on both the light and dark surface. */
 .card:focus-visible {
-  outline: 2px solid var(--mm-focus-ring);
+  outline: 2px solid var(--mm-color-denim);
   outline-offset: 2px;
+}
+
+[data-theme='dark'] .card:focus-visible {
+  outline-color: var(--mm-denim-300, #8499C5);
 }
 
 [data-theme='dark'] .card {
