@@ -144,6 +144,11 @@ type Server struct {
 
 	Audit *audit.Audit
 
+	// DeliveryAudit is a dedicated audit engine for post-delivery tracking records,
+	// isolated from Audit so a slow/unavailable delivery DB can never stall or drop the
+	// primary compliance audit stream.
+	DeliveryAudit *audit.Audit
+
 	joinCluster  bool
 	skipPostInit bool
 
@@ -527,6 +532,16 @@ func NewServer(options ...Option) (*Server, error) {
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
+
+		deliveryQueueSize := audit.DefMaxQueueSize
+		if qs := s.platform.Config().DeliveryTrackingSettings.AuditQueueSize; qs != nil && *qs > 0 {
+			deliveryQueueSize = *qs
+		}
+		s.DeliveryAudit = &audit.Audit{}
+		s.DeliveryAudit.Init(deliveryQueueSize)
+		if err = s.configurePostDeliveryAudit(); err != nil {
+			mlog.Error("Error configuring delivery audit", mlog.Err(err))
+		}
 	}
 
 	s.platform.RemoveUnlicensedLogTargets(license)
@@ -793,6 +808,12 @@ func (s *Server) Shutdown() {
 	s.StopPushNotificationsHubWorkers()
 
 	s.platform.StopSearchEngine()
+
+	if s.DeliveryAudit != nil {
+		if err = s.DeliveryAudit.Shutdown(); err != nil {
+			s.Log().Warn("Failed to shut down delivery audit", mlog.Err(err))
+		}
+	}
 
 	if err = s.Audit.Shutdown(); err != nil {
 		s.Log().Warn("Failed to shut down audit", mlog.Err(err))

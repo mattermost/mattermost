@@ -18,7 +18,7 @@ import (
 )
 
 // fakeUserPostDeliveryStore records every MarkBulk row and can be told to fail a
-// set number of leading calls to exercise the retry / back-pressure paths.
+// set number of leading calls to exercise the drop-on-failure path.
 type fakeUserPostDeliveryStore struct {
 	mu        sync.Mutex
 	rows      map[model.UserPostDelivery]int // row -> times persisted
@@ -140,17 +140,17 @@ func TestUserPostDeliveryTarget_FanInArray(t *testing.T) {
 	}
 }
 
-func TestUserPostDeliveryTarget_RetriesOnFailureNoDrop(t *testing.T) {
+func TestUserPostDeliveryTarget_DropsFailedBatchNoRetry(t *testing.T) {
 	fake := newFakeUserPostDeliveryStore()
-	fake.failFirst = 2 // first two flushes fail; the row must survive and be retried
+	fake.failFirst = 1 // the batch's single flush fails; it must be dropped, not retried
 	tgt := newTestTarget(t, fake)
 
 	enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user1", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechanismProduct})
 	require.NoError(t, tgt.Shutdown())
 
 	rows, calls := fake.snapshot()
-	require.Greater(t, calls, 2, "should have retried past the failing calls")
-	require.Equal(t, 1, rows[rec("post1", "user1", model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
+	require.GreaterOrEqual(t, calls, 1, "batch should have been attempted at least once")
+	require.Empty(t, rows, "a failed batch must be dropped, not retried into a later success")
 }
 
 func TestUserPostDeliveryTarget_ExtractShapes(t *testing.T) {

@@ -28,9 +28,7 @@ const (
 	deliveryShards        = 8
 	deliveryShardQueue    = 4096
 	deliveryBatchSize     = 1000
-	deliveryMaxPending    = 4000
 	deliveryFlushInterval = 100 * time.Millisecond
-	deliveryShutdownTries = 3
 )
 
 func init() {
@@ -71,10 +69,6 @@ type deliveryItem struct {
 // ON CONFLICT rows or deadlock. Sharding on target_id (not post_id) keeps a
 // large fan-out parallel; only fan-in concentrates on one shard, bounded by
 // page size.
-//
-// Back-pressure is lossless: when a shard is full Write blocks rather than
-// dropping, and a failed flush is retried rather than discarded. A flush timer
-// bounds in-memory residency, so a hard crash loses at most a few seconds.
 type UserPostDeliveryTarget struct {
 	store  store.UserPostDeliveryStore
 	logger *mlog.Logger
@@ -82,8 +76,7 @@ type UserPostDeliveryTarget struct {
 	numShards     int
 	shardQueue    int           // per-shard channel capacity
 	batchSize     int           // flush when a shard accumulates this many unique rows
-	maxPending    int           // stop draining a shard above this backlog (back-pressure)
-	flushInterval time.Duration // caps in-memory residency and sets the retry cadence
+	flushInterval time.Duration // caps in-memory residency and the flush cadence
 
 	shards  []chan deliveryItem
 	done    chan struct{}
@@ -104,7 +97,6 @@ func NewUserPostDeliveryTarget(s store.UserPostDeliveryStore, logger *mlog.Logge
 		numShards:     deliveryShards,
 		shardQueue:    deliveryShardQueue,
 		batchSize:     deliveryBatchSize,
-		maxPending:    deliveryMaxPending,
 		flushInterval: deliveryFlushInterval,
 	}
 }
@@ -239,11 +231,13 @@ func (t *UserPostDeliveryTarget) shardLoop(in chan deliveryItem) {
 	ticker := time.NewTicker(t.flushInterval)
 	defer ticker.Stop()
 
-	// flush attempts one MarkBulk; on error it keeps pending so the rows retry on
-	// the next tick rather than being dropped.
-	flush := func() bool {
+	// flush attempts one MarkBulk and always clears pending afterward. The store's
+	// retry layer already retries transient failures; anything still failing here
+	// is dropped with a warning rather than retained, so a slow or down delivery DB
+	// can never build unbounded back-pressure onto the shared audit pipeline.
+	flush := func() {
 		if len(pending) == 0 {
-			return true
+			return
 		}
 		batch := make([]model.UserPostDelivery, 0, len(pending))
 		for it := range pending {
@@ -254,31 +248,19 @@ func (t *UserPostDeliveryTarget) shardLoop(in chan deliveryItem) {
 				Mechanism:  it.mechanism,
 			})
 		}
-		if err := t.store.MarkBulk(context.Background(), batch); err != nil {
-			if t.logger != nil {
-				t.logger.Error(
-					"user_post_delivery_db: bulk flush failed, will retry",
-					mlog.Int("batch_size", len(batch)),
-					mlog.Err(err),
-				)
-			}
-			return false
+		if err := t.store.MarkBulk(context.Background(), batch); err != nil && t.logger != nil {
+			t.logger.Warn(
+				"user_post_delivery_db: bulk flush failed, dropping batch",
+				mlog.Int("batch_size", len(batch)),
+				mlog.Err(err),
+			)
 		}
 		clear(pending)
-		return true
 	}
 
 	for {
-		// Above maxPending, stop draining (a nil channel disables that select
-		// case) so the shard fills and back-pressure flows to Write instead of
-		// pending growing unbounded. The ticker still fires, retrying the backlog.
-		inCh := in
-		if len(pending) >= t.maxPending {
-			inCh = nil
-		}
-
 		select {
-		case item := <-inCh:
+		case item := <-in:
 			pending[item] = struct{}{}
 			if len(pending) >= t.batchSize {
 				flush()
@@ -293,9 +275,9 @@ func (t *UserPostDeliveryTarget) shardLoop(in chan deliveryItem) {
 }
 
 // finalize drains buffered items (no new ones arrive once done is closed) and
-// makes a bounded best-effort flush; rows still unwritten if the DB is down at
-// shutdown are lost.
-func (t *UserPostDeliveryTarget) finalize(in chan deliveryItem, pending map[deliveryItem]struct{}, flush func() bool) {
+// makes a single best-effort flush; rows that fail to persist at shutdown are
+// dropped with a warning, same as the runtime path.
+func (t *UserPostDeliveryTarget) finalize(in chan deliveryItem, pending map[deliveryItem]struct{}, flush func()) {
 DrainLoop:
 	for {
 		select {
@@ -305,9 +287,7 @@ DrainLoop:
 			break DrainLoop
 		}
 	}
-	for attempt := 0; attempt < deliveryShutdownTries && !flush(); attempt++ {
-		time.Sleep(t.flushInterval)
-	}
+	flush()
 }
 
 func (t *UserPostDeliveryTarget) logBlocked(queueLen int) {

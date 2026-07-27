@@ -12059,6 +12059,10 @@
     "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
   },
   {
+    "id": "model.config.is_valid.delivery_tracking_audit_queue_size.app_error",
+    "translation": "Invalid audit queue size for delivery tracking settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.delivery_tracking_conn_max_idle_time_milliseconds.app_error",
     "translation": "Invalid connection maximum idle time for delivery tracking settings. Must be a non-negative number."
   },

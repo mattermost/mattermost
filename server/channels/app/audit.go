@@ -129,28 +129,9 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 }
 
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
-	adt.OnQueueFull = s.onAuditTargetQueueFull
+	adt.OnQueueFull = s.onComplianceAuditQueueFull
 	adt.OnError = s.onAuditError
-
-	adt.Factories = &mlog.Factories{
-		TargetFactory: func(targetType string, _ json.RawMessage) (logr.Target, error) {
-			switch strings.ToLower(targetType) {
-			case audittargets.DeliveryDBTargetType:
-				return audittargets.NewUserPostDeliveryTarget(s.Store().UserPostDelivery(), s.Log()), nil
-			}
-			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
-		},
-
-		// The delivery target reads fields directly off the LogRec and ignores the
-		// formatted bytes, so a real formatter (e.g. "json") would just burn CPU on
-		// the target's single host goroutine. NoopFormatter skips it.
-		FormatterFactory: func(format string, _ json.RawMessage) (logr.Formatter, error) {
-			if strings.ToLower(format) == audittargets.DeliveryNoopFormat {
-				return audittargets.NoopFormatter{}, nil
-			}
-			return nil, fmt.Errorf("audit formatter %q is unrecognized", format)
-		},
-	}
+	adt.Factories = nil
 
 	var logConfigSrc config.LogConfigSrc
 	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
@@ -186,15 +167,63 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	return adt.Configure(cfg)
 }
 
-func (s *Server) onAuditTargetQueueFull(qname string, level mlog.Level, maxQSize int) bool {
-	// Block (lossless) only for delivery-tracking records; all other audit records
-	// still drop on overflow so unrelated audit logging never stalls the request path.
-	if level == mlog.LvlAuditPostDelivery && s.platform.Config().PostDeliveryTrackingEnabled() {
-		s.Log().Warn("Audit queue full; blocking until drain (delivery tracking enabled).", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
-		return false // block, do not drop
+func (s *Server) configurePostDeliveryAudit() error {
+	s.DeliveryAudit.OnQueueFull = s.onPostDeliveryAuditQueueFull
+	s.DeliveryAudit.OnError = s.onAuditError
+	s.DeliveryAudit.Factories = &mlog.Factories{
+		TargetFactory: func(targetType string, _ json.RawMessage) (logr.Target, error) {
+			switch strings.ToLower(targetType) {
+			case audittargets.DeliveryDBTargetType:
+				return audittargets.NewUserPostDeliveryTarget(s.Store().UserPostDelivery(), s.Log()), nil
+			}
+			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
+		},
+
+		// The delivery target reads fields directly off the LogRec and ignores the
+		// formatted bytes, so a real formatter (e.g. "json") would just burn CPU on
+		// the target's single host goroutine. NoopFormatter skips it.
+		FormatterFactory: func(format string, _ json.RawMessage) (logr.Formatter, error) {
+			if strings.ToLower(format) == audittargets.DeliveryNoopFormat {
+				return audittargets.NoopFormatter{}, nil
+			}
+			return nil, fmt.Errorf("audit formatter %q is unrecognized", format)
+		},
 	}
+
+	// Only wire the target when the feature is enabled; otherwise the engine has zero
+	// targets and any record is discarded cheaply.
+	if !s.platform.Config().PostDeliveryTrackingEnabled() {
+		return s.DeliveryAudit.Configure(mlog.LoggerConfiguration{})
+	}
+
+	queueSize := audit.DefMaxQueueSize
+	if qs := s.platform.Config().DeliveryTrackingSettings.AuditQueueSize; qs != nil && *qs > 0 {
+		queueSize = *qs
+	}
+
+	cfg := mlog.LoggerConfiguration{
+		"_deliveryAudit": mlog.TargetCfg{
+			Type:         audittargets.DeliveryDBTargetType,
+			Format:       audittargets.DeliveryNoopFormat,
+			Levels:       []mlog.Level{mlog.LvlAuditPostDelivery},
+			Options:      json.RawMessage("{}"),
+			MaxQueueSize: queueSize,
+		},
+	}
+	return s.DeliveryAudit.Configure(cfg)
+}
+
+func (s *Server) onComplianceAuditQueueFull(qname string, level mlog.Level, maxQSize int) bool {
 	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
 	return true // drop it
+}
+
+func (s *Server) onPostDeliveryAuditQueueFull(qname string, level mlog.Level, maxQSize int) bool {
+	// Lossless: block until the delivery target drains. This blocks only the dedicated
+	// delivery engine and the request/hub goroutine emitting the record — never the
+	// compliance audit stream.
+	s.Log().Warn("Delivery audit queue full; blocking until drain.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
+	return false // block, do not drop
 }
 
 func (s *Server) onAuditError(err error) {
