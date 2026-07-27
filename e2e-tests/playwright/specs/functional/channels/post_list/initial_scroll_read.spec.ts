@@ -49,7 +49,7 @@ test.describe('Post list initial scroll in read channel', () => {
             name: 'empty channel',
             setupPosts: async () => {
                 // # Delete the "User has joined the channel" posts to ensure that the channel is completely empty
-                const posts = await adminClient.getPosts(channel.id, 0, 1);
+                const posts = await adminClient.getPosts(channel.id);
                 for (const postId of posts.order) {
                     await adminClient.deletePost(postId);
                 }
