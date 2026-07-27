@@ -744,6 +744,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.space_role.app_error",
+    "translation": "The provided role grants space permissions and can only be applied to a member of a space."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Invalid channel member update: A channel member always has a user scheme."
   },
@@ -4059,6 +4063,10 @@
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
   {
+    "id": "api.team.update_team_member_roles.space_role.app_error",
+    "translation": "The provided role grants space permissions and can only be applied to a member of a space."
+  },
+  {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
     "translation": "Invalid team member update: A team member always has a user scheme."
   },
@@ -6001,6 +6009,10 @@
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
     "translation": "Spaces cannot have their privacy changed through this endpoint."
+  },
+  {
+    "id": "app.channel.update_channel_scheme.space_scheme.app_error",
+    "translation": "This scheme is reserved for spaces and cannot be applied to a channel."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -8941,6 +8953,10 @@
     "translation": "The role was not valid."
   },
   {
+    "id": "app.role.save.space_permission_scope.app_error",
+    "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by space scheme roles."
+  },
+  {
     "id": "app.role.send_updated_role_event.app_error",
     "translation": "An error occurred while broadcasting the role update."
   },
@@ -9055,6 +9071,10 @@
     "translation": "Unable to delete this scheme."
   },
   {
+    "id": "app.scheme.delete.space_scheme.app_error",
+    "translation": "This scheme is used by spaces and cannot be deleted."
+  },
+  {
     "id": "app.scheme.get.app_error",
     "translation": "Unable to get the scheme."
   },
@@ -9073,6 +9093,14 @@
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
     "translation": "The provided scheme is invalid."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_name.app_error",
+    "translation": "The scheme name \"{{.SchemeName}}\" is reserved for spaces."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_rename.app_error",
+    "translation": "The space scheme \"{{.SchemeName}}\" cannot be renamed."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
