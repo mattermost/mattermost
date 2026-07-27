@@ -13410,5 +13410,85 @@
   {
     "id": "app.user_access_token.expires_at_required.app_error",
     "translation": "Osobisty token dostępu musi zawierać datę wygaśnięcia, bo serwer narzuca maksymalny czas ważności tokenu."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Podana data expires_at przekracza skonfigurowany maksymalny okres ważności osobistego tokenu dostępu ({{.Days}} dni)."
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Nie udało się usunąć plików zbiorczo"
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Importy muszą być powiązane z nadrzędną polityką członkostwa."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Członkostwo nie może być łączone z innymi działaniami w tej samej regule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Reguły dotyczące uprawnień można stosować wyłącznie w ramach polityk kanałów."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Zasady uprawnień wymagają, żeby nazwa nie była pusta i mieściła się w maksymalnej długości określonej w Polityce."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Nazwy reguł uprawnień muszą być unikalne w ramach danej polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Nieprawidłowa rola dla tej reguły."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Reguły członkostwa nie mogą odwoływać się do atrybutów sesji (user.session). Zamiast tego użyj polityki uprawnień."
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Tylko kanały prywatne można oznaczyć jako widoczne."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Ograniczenia grupowe można nakładać tylko na kanały publiczne i prywatne."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Nazwa wyświetlana na tablicy nie może być pusta."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Kanały tablicy muszą należeć do zespołu."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Typ kanału musi to być BO (otwarta tablica) albo BP (prywatna tablica)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Zakładki w tablicy nie mogą odwoływać się do pliku."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "W zakładkach na forum nie można podać adresu URL obrazka."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "URL linku zakładki tablicy musi być ścieżką względną witryny zaczynającą się od /, nie może zawierać :// i nie może przekraczać maksymalnej długości."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Zakładki w tablicy wymagają prawidłowego identyfikatora docelowego."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Identyfikator docelowy jest dozwolony tylko w przypadku typów zakładek, które odwołują się do innego elementu."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
   }
 ]
