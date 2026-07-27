@@ -4110,7 +4110,7 @@ type AccessControlSettings struct {
 	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
-	EnableAccessControlAuditLogging   *bool `access:"write_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
