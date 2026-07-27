@@ -61,12 +61,12 @@ test.describe('Post list scroll to permalink', () => {
         {
             name: 'with a page of text posts',
             setupPostsBefore: async () => {
-                for (let i = 0; i < 60; i++) {
+                for (let i = 0; i < 30; i++) {
                     await userClient.createPost(makeTestPost(i));
                 }
             },
             setupPostsAfter: async () => {
-                for (let i = 60; i < 120; i++) {
+                for (let i = 30; i < 60; i++) {
                     await userClient.createPost(makeTestPost(i));
                 }
             },
@@ -75,18 +75,12 @@ test.describe('Post list scroll to permalink', () => {
             name: 'with multiple pages of text posts',
             setupPostsBefore: async () => {
                 for (let i = 0; i < 60; i++) {
-                    await userClient.createPost({
-                        channel_id: channel.id,
-                        message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
-                    });
+                    await userClient.createPost(makeTestPost(i));
                 }
             },
             setupPostsAfter: async () => {
                 for (let i = 60; i < 120; i++) {
-                    await userClient.createPost({
-                        channel_id: channel.id,
-                        message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
-                    });
+                    await userClient.createPost(makeTestPost(i));
                 }
             },
         },
@@ -94,12 +88,18 @@ test.describe('Post list scroll to permalink', () => {
             name: 'with multiple pages of long text posts',
             setupPostsBefore: async () => {
                 for (let i = 0; i < 60; i++) {
-                    await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
+                    await userClient.createPost({
+                        channel_id: channel.id,
+                        message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                    });
                 }
             },
             setupPostsAfter: async () => {
                 for (let i = 60; i < 120; i++) {
-                    await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
+                    await userClient.createPost({
+                        channel_id: channel.id,
+                        message: new Array(100).fill(`this is a long post ${i}`).join('\n'),
+                    });
                 }
             },
         },
@@ -107,18 +107,12 @@ test.describe('Post list scroll to permalink', () => {
             name: 'with multiple pages of image attachments',
             setupPostsBefore: async () => {
                 for (let i = 0; i < 60; i++) {
-                    await userClient.createTestPost({
-                        channel_id: channel.id,
-                        message: `![test image](${fileServerUrl}/mattermost.png)`,
-                    });
+                    await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
                 }
             },
             setupPostsAfter: async () => {
                 for (let i = 60; i < 120; i++) {
-                    await userClient.createTestPost({
-                        channel_id: channel.id,
-                        message: `![test image](${fileServerUrl}/mattermost.png)`,
-                    });
+                    await userClient.createTestPost(makeTestPost(i), ['mattermost.png']);
                 }
             },
         },

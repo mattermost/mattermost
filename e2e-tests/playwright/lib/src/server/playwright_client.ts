@@ -64,14 +64,14 @@ export class PlaywrightClient4 extends Client4 {
         if (!post.file_ids) {
             post.file_ids = await Promise.all(
                 files.map((filename) => {
-                    return new Promise<string>(async (resolve) => {
+                    return new Promise<string>((resolve) => {
                         const formData = new FormData();
                         formData.set('channel_id', post.channel_id);
                         formData.set('files', getFileFromAsset(filename), filename);
 
-                        const data = await this.uploadFile(formData);
-
-                        resolve(data.file_infos[0].id);
+                        this.uploadFile(formData).then((data) => {
+                            resolve(data.file_infos[0].id);
+                        });
                     });
                 }),
             );

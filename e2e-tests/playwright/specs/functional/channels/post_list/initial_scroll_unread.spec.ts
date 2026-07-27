@@ -182,7 +182,7 @@ test.describe('Post list initial scroll in unread channel', () => {
                 await channelsPage.goto(team.name, channel.name);
 
                 // * Verify that the New Messages line is actually visible
-                expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+                await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
 
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
@@ -203,7 +203,7 @@ test.describe('Post list initial scroll in unread channel', () => {
                 await channelsPage.sidebarLeft.goToItem(channel.name);
 
                 // * Verify that the New Messages line is still visible
-                expect(await channelsPage.centerView.notificationSeparator).toBeVisible();
+                await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
 
                 // * Verify that the post list didn't scroll or change height
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
