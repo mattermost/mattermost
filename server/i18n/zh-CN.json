@@ -12938,10 +12938,6 @@
     "translation": "未启用全部标为已读功能。"
   },
   {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "无法将查询合并到操作 URL 中。"
-  },
-  {
     "id": "api.post.do_action.query.app_error",
     "translation": "操作查询无效。"
   },

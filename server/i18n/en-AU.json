@@ -11712,10 +11712,6 @@
     "translation": "Card posts are not enabled on this server."
   },
   {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "Failed to merge query into action URL."
-  },
-  {
     "id": "api.post.do_action.query.app_error",
     "translation": "Invalid action query."
   },

@@ -12792,10 +12792,6 @@
     "translation": "Funkcja „Oznacz wszystko jako przeczytane” nie jest włączona."
   },
   {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "Nie udało się połączyć zapytania z URL-em akcji."
-  },
-  {
     "id": "api.post.do_action.query.app_error",
     "translation": "Nieprawidłowe zapytanie dotyczące akcji."
   },
