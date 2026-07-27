@@ -1,0 +1,50 @@
+# OpenTelemetry Collector configuration for PostgreSQL log collection
+
+receivers:
+  filelog/postgres:
+    include: [ /var/log/postgresql/*.json ]
+    start_at: beginning
+    operators:
+      - type: json_parser
+
+processors:
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+
+  resource:
+    attributes:
+      - key: host.name
+        value: "<HOSTNAME>"
+        action: upsert
+      - key: service.instance.id
+        value: "<HOSTNAME>"
+        action: upsert
+      - key: service.name
+        value: "<SERVICE_NAME>"
+        action: upsert
+
+  transform/severity:
+    log_statements:
+      - context: log
+        statements:
+          - set(log.severity_text, log.attributes["error_severity"]) where log.attributes["error_severity"] != nil
+          - set(log.severity_number, 9) where log.attributes["error_severity"] == "LOG" or log.attributes["error_severity"] == "DETAIL" or log.attributes["error_severity"] == "STATEMENT"
+          - set(log.severity_number, 13) where log.attributes["error_severity"] == "WARNING"
+          - set(log.severity_number, 17) where log.attributes["error_severity"] == "ERROR" or log.attributes["error_severity"] == "FATAL" or log.attributes["error_severity"] == "PANIC"
+
+exporters:
+  otlp_http/loki:
+    endpoint: "http://<LOKI_HOST>:3100/otlp"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    logs/postgres:
+      receivers: [ filelog/postgres ]
+      processors: [ resource, transform/severity, batch ]
+      exporters: [ otlp_http/loki ]

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
@@ -20,7 +18,6 @@ import SettingItemMax from 'components/setting_item_max';
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
 
-import EnableConcurrentReactExperimentalSection from './enable_concurrent_react_experimental_section';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 import WysiwygEditorSection from './wysiwyg_editor_section';
@@ -796,13 +793,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
                     {formattingSectionDivider}
-                    <EnableConcurrentReactExperimentalSection
-                        activeSection={this.props.activeSection}
-                        onUpdateSection={this.handleUpdateSection}
-                        adminMode={this.props.adminMode}
-                        renderOnOffLabel={this.renderOnOffLabel}
-                    />
-                    <div className='divider-light'/>
                     {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}

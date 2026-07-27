@@ -1,6 +1,7 @@
 ---
 title: "Browse channels"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -9,7 +10,7 @@ import TabItem from '@theme/TabItem';
 <Tabs>
 <TabItem value="web-desktop" label="Web/Desktop">
 
-1.  Select the **Plus** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon at the top of the channel sidebar to see all available public channels you can join that you're not already a member of.
+1.  Select the **Plus** <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon at the top of the channel sidebar to see all available public channels you can join that you're not already a member of.
 2.  Select **Browse Channels**.
 3.  Search for channels by name or scroll through the list.
 4.  Select **Join** next to any channel to become a member of that channel.
@@ -20,10 +21,16 @@ From Mattermost v9.1, you can filter the list of channels by public, private, or
 
 </Tip>
 
+<Note>
+
+From Mattermost v11.8.0, if your organization uses membership policies, **Browse Channels** may include a **Recommended** filter. Recommended channels are public channels your attributes match. You can still browse and join public channels according to your organization's normal channel permissions.
+
+</Note>
+
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-1.  Tap the **Plus** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon located in the top right corner of the app.
+1.  Tap the **Plus** <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon located in the top right corner of the app.
 
 ![Tap the plus icon to view additional options.](/images/mobile-select-a-channel.jpg)
 

@@ -1,0 +1,146 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.team-policy-list {
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+
+    &__header,
+    &__row {
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__header {
+        border-bottom-color: rgba(var(--center-channel-color-rgb), 0.16);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+        padding-block: 10px;
+        text-transform: uppercase;
+    }
+
+    &__row {
+        background: var(--center-channel-bg);
+        padding-block: 12px;
+
+        &:last-of-type {
+            border-bottom: none;
+        }
+    }
+
+    &__col-name {
+        overflow: hidden;
+        flex: 1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__col-auto-add {
+        display: flex;
+        width: 96px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__auto-add-checkbox {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    &__col-actions {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 2px;
+    }
+
+    &__policy-name {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__action-btn {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        text-decoration: none;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        i {
+            font-size: 13px;
+        }
+    }
+
+    &__action-remove {
+        &:hover {
+            background-color: rgba(var(--dnd-indicator-rgb), 0.08);
+            color: var(--dnd-indicator);
+        }
+    }
+
+    &__empty {
+        padding: 20px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 8px 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+        gap: 4px;
+    }
+
+    &__pagination-count {
+        margin-right: 4px;
+    }
+
+    &__pagination-btn {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.32;
+        }
+
+        i {
+            font-size: 12px;
+        }
+    }
+}

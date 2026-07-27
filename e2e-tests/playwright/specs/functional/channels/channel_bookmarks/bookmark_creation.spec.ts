@@ -50,8 +50,8 @@ test('MM-T5602 adds a link bookmark to the channel bookmarks bar', {tag: '@chann
     await channelsPage.bookmarkCreateModal.addLink('https://www.mattermost.com');
 
     // * Verify the bookmark appears in the channel bookmarks bar
-    await expect(channelsPage.channelBookmarksBar).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.getByRole('link', {name: /mattermost/i})).toBeVisible();
+    await channelsPage.channelBookmarksBar.toBeVisible();
+    await expect(channelsPage.channelBookmarksBar.getBookmark(/mattermost/i)).toBeVisible();
 });
 
 /**
@@ -77,6 +77,6 @@ test('MM-T5603 adds a file bookmark to the channel bookmarks bar', {tag: '@chann
     await channelsPage.bookmarkCreateModal.addButton.click();
 
     // * Verify the file bookmark appears in the channel bookmarks bar
-    await expect(channelsPage.channelBookmarksBar).toBeVisible();
-    await expect(channelsPage.channelBookmarksBar.getByText(/mattermost-icon/i)).toBeVisible();
+    await channelsPage.channelBookmarksBar.toBeVisible();
+    await expect(channelsPage.channelBookmarksBar.getBookmark(/mattermost-icon/i)).toBeVisible();
 });
