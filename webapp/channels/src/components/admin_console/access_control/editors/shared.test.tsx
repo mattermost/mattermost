@@ -634,11 +634,32 @@ describe('isSimpleExpression / isSimpleCondition with session attributes', () =>
 
 describe('toCELEditorAttributes', () => {
     test('keeps native attributes (flagged) and drops unsafe CPA when user-managed is off', () => {
+        const owned: UserPropertyField = {
+            id: 'id-owned',
+            name: 'owned',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            target_id: '',
+            target_type: '',
+            object_type: 'user',
+            attrs: {
+                sort_order: 0,
+                visibility: 'always',
+                value_type: '',
+                owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}],
+            },
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        };
+
         const fields = [
             makeField('email', {native: true, operators: ['==']}),
             makeField('unsafe', {}),
             makeField('synced', {ldap: 'ldap_field'}),
-            makeField('owned', {owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}]}),
+            owned,
         ];
 
         expect(toCELEditorAttributes(fields, false)).toEqual([
