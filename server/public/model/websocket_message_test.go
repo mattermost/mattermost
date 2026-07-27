@@ -125,6 +125,37 @@ func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
 	assert.Equal(t, before, after)
 }
 
+func TestWebSocketEvent_WithoutRecordPostDeliveryID(t *testing.T) {
+	t.Run("strips the marker from the client frame but keeps it for the cluster", func(t *testing.T) {
+		event := NewWebSocketEvent(WebsocketEventPosted, "", "chan", "user", nil, "")
+		event.GetBroadcast().RecordPostDeliveryID = "post123"
+
+		// The marker must survive cluster serialization so a peer node's hub can
+		// record deliveries for its own connections.
+		clusterJSON, err := event.ToJSON()
+		require.NoError(t, err)
+		require.True(t, bytes.Contains(clusterJSON, []byte("record_post_delivery_id")), "marker must cross the cluster")
+		require.True(t, bytes.Contains(clusterJSON, []byte("post123")))
+
+		stripped, postID := event.WithoutRecordPostDeliveryID()
+		require.Equal(t, "post123", postID)
+		require.Empty(t, stripped.GetBroadcast().RecordPostDeliveryID, "stripped copy must not carry the marker")
+		require.Equal(t, "post123", event.GetBroadcast().RecordPostDeliveryID, "original must be unchanged (copy-on-write)")
+
+		// The client frame (precomputed JSON) must not contain the marker.
+		clientJSON, err := stripped.PrecomputeJSON().ToJSON()
+		require.NoError(t, err)
+		require.False(t, bytes.Contains(clientJSON, []byte("record_post_delivery_id")), "the marker must not be serialized to clients")
+	})
+
+	t.Run("no-op when the marker is unset", func(t *testing.T) {
+		event := NewWebSocketEvent(WebsocketEventPosted, "", "chan", "user", nil, "")
+		stripped, postID := event.WithoutRecordPostDeliveryID()
+		require.Empty(t, postID)
+		require.Same(t, event, stripped, "returns the same event without copying when there is nothing to strip")
+	})
+}
+
 var stringSink []byte
 
 func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {

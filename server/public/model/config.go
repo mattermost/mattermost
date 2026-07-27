@@ -1624,6 +1624,7 @@ type DeliveryTrackingSettings struct {
 	MaxOpenConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AuditQueueSize              *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
 }
 
 func (s *DeliveryTrackingSettings) SetDefaults() {
@@ -1680,6 +1681,12 @@ func (s *DeliveryTrackingSettings) SetDefaults() {
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = new(30)
 	}
+
+	if s.AuditQueueSize == nil {
+		// Depth of the dedicated delivery audit engine's queue; matches the default
+		// audit queue size (audit.DefMaxQueueSize).
+		s.AuditQueueSize = new(10000)
+	}
 }
 
 func (s *DeliveryTrackingSettings) isValid() *AppError {
@@ -1711,6 +1718,10 @@ func (s *DeliveryTrackingSettings) isValid() *AppError {
 
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_query_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.AuditQueueSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_audit_queue_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
