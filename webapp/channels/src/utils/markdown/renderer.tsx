@@ -5,7 +5,6 @@ import marked from 'marked';
 import type {MarkedOptions} from 'marked';
 
 import EmojiMap from 'utils/emoji_map';
-import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
 import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
 
@@ -111,8 +110,8 @@ export default class Renderer extends marked.Renderer {
     public image(href: string, title: string, text: string) {
         const dimensions = parseImageDimensions(href);
 
-        let src = dimensions.href;
-        src = PostUtils.getImageSrc(src, this.formattingOptions.proxyImages);
+        // Don't pass the image through the proxy yet because that's handled by MarkdownImage
+        const src = dimensions.href;
 
         let out = `<img src="${src}" alt="${text}"`;
         if (title) {
