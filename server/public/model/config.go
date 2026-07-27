@@ -1612,19 +1612,19 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 // Disabled by default. DataSource defaults to empty: when Enable is true but
 // DataSource is left unset, the sub-store falls back to the primary DB.
 type DeliveryTrackingSettings struct {
-	Enable                      *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableForAllChannels        *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AuditQueueSize              *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Enable                      *bool
+	EnableForAllChannels        *bool
+	DriverName                  *string
+	DataSource                  *string
+	DataSourceReplicas          []string
+	DataSourceSearchReplicas    []string
+	MaxIdleConns                *int
+	ConnMaxLifetimeMilliseconds *int
+	ConnMaxIdleTimeMilliseconds *int
+	MaxOpenConns                *int
+	Trace                       *bool
+	QueryTimeout                *int
+	AuditQueueSize              *int
 }
 
 func (s *DeliveryTrackingSettings) SetDefaults() {
