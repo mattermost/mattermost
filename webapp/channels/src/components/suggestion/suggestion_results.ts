@@ -1,94 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
+import type {
+    Loading,
+    ProviderResults,
+    SuggestionResults,
+} from '@mattermost/shared/types/global';
 
-/**
- * SuggestionResult stores a list of suggestions rendered by the SuggestionBox/SuggestionList.
- */
-export type SuggestionResults<Item = unknown> = SuggestionResultsGrouped<Item> | SuggestionResultsUngrouped<Item>;
+export type {
+    Loading,
+    ProviderResults,
+    ProviderResultsGroup,
+    SuggestionResults,
+    SuggestionResultsUngrouped,
+} from '@mattermost/shared/types/global';
 
-export type SuggestionResultsGrouped<Item = unknown> = {
-
-    /**
-     * The text before the cursor that will be replaced if the corresponding autocomplete term is selected
-     */
-    matchedPretext: string;
-
-    groups: Array<SuggestionResultsGroup<Item>>;
-};
-
-export type SuggestionResultsGroup<Item = unknown> = {
-
-    /**
-     * A unique identifier for this type of group
-     */
-    key: string;
-
-    /**
-     * The label for the group displayed to the user.
-     * If omitted, the group will be rendered without a header.
-     */
-    label?: MessageDescriptor;
-
-    /**
-     * A list of strings which the previously typed text may be replaced by.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    terms: string[];
-
-    /**
-     * A list of objects backing the terms which may be used in rendering.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    items: Array<Item | Loading>;
-
-    /**
-     * A list of react components that can be used to render their corresponding item.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    components: React.ElementType[];
-};
-
-export type SuggestionResultsUngrouped<Item = unknown> = {
-
-    /**
-     * The text before the cursor that will be replaced if the corresponding autocomplete term is selected
-     */
-    matchedPretext: string;
-
-    /**
-     * A list of strings which the previously typed text may be replaced by.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    terms: string[];
-
-    /**
-     * A list of objects backing the terms which may be used in rendering.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    items: Array<Item | Loading>;
-
-    /**
-     * A list of react components that can be used to render their corresponding item.
-     *
-     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
-     */
-    components: React.ElementType[];
-};
-
-export type Loading = {
-    loading: boolean;
-};
-
-/**
- * Returns true if the item is an actual item and not an indicator that more results are being loaded.
- */
 export function isItemLoaded<Item>(item: Item | Loading): item is Item {
     return !item || typeof item !== 'object' || !('loading' in item) || !item.loading;
 }
@@ -102,16 +28,10 @@ export function emptyResults<Item>(): SuggestionResults<Item> {
     };
 }
 
-/**
- * Returns true if there are any items being suggested or if suggestions are being loaded.
- */
 export function hasResults(results: SuggestionResults): boolean {
     return countResults(results) > 0;
 }
 
-/**
- * Returns true if there are any items being suggested, even if more are being loaded.
- */
 export function hasLoadedResults(results: SuggestionResults): boolean {
     if ('groups' in results) {
         return results.groups.some((group) => group.items.some(isItemLoaded));
@@ -120,9 +40,6 @@ export function hasLoadedResults(results: SuggestionResults): boolean {
     return results.items.some(isItemLoaded);
 }
 
-/**
- * Returns the number of items being suggested and loading indicators in the results.
- */
 export function countResults(results: SuggestionResults): number {
     if ('groups' in results) {
         return results.groups.reduce((count, group) => count + group.items.length, 0);
@@ -131,9 +48,6 @@ export function countResults(results: SuggestionResults): number {
     return results.items.length;
 }
 
-/**
- * Given a term in the suggestions, returns the corresponding item or undefined if it can't be found.
- */
 export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: string): Item | undefined {
     if ('groups' in results) {
         for (const group of results.groups) {
@@ -150,9 +64,6 @@ export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: str
     return index === -1 ? undefined : results.items[index] as Item;
 }
 
-/**
- * Returns a flat array of terms being suggested for cases where that's needed like for keyboard navigation.
- */
 export function flattenTerms(results: SuggestionResults | ProviderResults): string[] {
     if ('groups' in results) {
         return results.groups.flatMap((group) => group.terms);
@@ -161,9 +72,6 @@ export function flattenTerms(results: SuggestionResults | ProviderResults): stri
     return results.terms;
 }
 
-/**
- * Returns a flat array of items being suggested for cases where we need to iterate over them.
- */
 export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): Item[] {
     if ('groups' in results) {
         return results.groups.flatMap((group) => group.items as Item);
@@ -174,9 +82,6 @@ export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderRe
     return results.items as Item[];
 }
 
-/**
- * Returns true if any of the items being suggested is rendered with the corresponding component.
- */
 export function hasSuggestionWithComponent(results: SuggestionResults, componentType: React.ElementType) {
     if ('groups' in results) {
         return results.groups.some((group) => group.components.includes(componentType));
@@ -185,41 +90,6 @@ export function hasSuggestionWithComponent(results: SuggestionResults, component
     return results.components.includes(componentType);
 }
 
-/**
- * ProviderResults is similar to {@link SuggestionResults}, but it accepts a single component for convenience in cases where
- * all of the results are rendered with the same component. It's up to the calling code to normalize this object
- */
-export type ProviderResults<Item = unknown> = ProviderResultsGrouped<Item> | ProviderResultsUngrouped<Item>;
-
-export type ProviderResultsGrouped<Item = unknown> = {
-    matchedPretext: string;
-    groups: Array<ProviderResultsGroup<Item>>;
-};
-
-export type ProviderResultsGroup<Item = unknown> = {
-    key: string;
-    label?: MessageDescriptor;
-
-    terms: string[];
-    items: Array<Item | Loading>;
-} & ComponentOrComponents;
-
-export type ProviderResultsUngrouped<Item = unknown> = {
-    matchedPretext: string;
-    terms: string[];
-    items: Array<Item | Loading>;
-} & ComponentOrComponents;
-
-type ComponentOrComponents = {
-    component: React.ElementType;
-} | {
-    components: React.ElementType[];
-};
-
-/**
- * Converts the results from a Provider which may have one or multiple components specified into one which always
- * contains an array of components.
- */
 export function normalizeResultsFromProvider<Item>(providerResults: ProviderResults<Item>): SuggestionResults<Item> {
     if ('components' in providerResults) {
         return providerResults;

@@ -1167,6 +1167,10 @@ func (a *App) userAllowsEmail(rctx request.CTX, user *model.User, channelMemberN
 		return false
 	}
 
+	if post.IsAccessControlTeamMembershipNotification() {
+		return false
+	}
+
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting

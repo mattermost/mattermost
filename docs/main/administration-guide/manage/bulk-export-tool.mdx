@@ -1,7 +1,9 @@
 ---
 title: "Bulk export tool"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Moving data from one Mattermost instance into another begins with exporting data to a [JSONL](https://jsonlines.org) file using the [bulk loading feature](/administration-guide/onboard/bulk-loading-data). This tool is useful if you have created a server for a proof of concept, have created another server for production use, and now want to retain the history from the proof of concept instance.
@@ -34,9 +36,8 @@ For requests to add additional attributes or objects to our exporter, please add
 
 ## Bulk export data
 
-<div class="tab">
-
-Use mmctl
+<Tabs>
+<TabItem value="use-mmctl" label="Use mmctl">
 
 1.  Create a full export file including attachments by running the [mmctl export create -- attachments](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-create) command. See the [Mattermost data migration](/administration-guide/manage/cloud-data-export#create-the-export) documentation for details.
 2.  While the job is running, you can check its status by running the [mmctl export job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-job-show) command.
@@ -45,11 +46,8 @@ Use mmctl
 > 1.  Identify the name of the completed export file by running the [mmctl export list](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-list) command.
 > 2.  Download the export file to your local machine by running the [mmctl export download](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-download) command.
 
-</div>
-
-<div class="tab">
-
-Use CLI
+</TabItem>
+<TabItem value="use-cli" label="Use CLI">
 
 <Note>
 
@@ -71,7 +69,9 @@ To run the export command:
 
 3.  Retrieve your file from the location you specified.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 All Mattermost bulk export data files will begin with a `Version` object as the first line of the file. This indicates the version of the Mattermost bulk import file format with which the exported data is compatible.
 

@@ -101,6 +101,7 @@ export type WebSocketMessage = (
 
     Messages.ContentFlaggingReportValueUpdated |
 
+    Messages.JobUpdated |
     Messages.RecapUpdated |
 
     Messages.FileDownloadRejected |

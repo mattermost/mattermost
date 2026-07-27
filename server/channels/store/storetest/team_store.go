@@ -684,6 +684,17 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 	_, err = ss.Team().Save(&q)
 	require.NoError(t, err)
 
+	// Invite-only team must also count as private.
+	pi := model.Team{}
+	pi.DisplayName = "ADisplayName" + NewTestID()
+	pi.Name = NewTestID()
+	pi.Email = MakeEmail()
+	pi.Type = model.TeamInvite
+	pi.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&pi)
+	require.NoError(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
@@ -731,6 +742,18 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 			p.DisplayName,
 			1,
 			p.Id,
+		},
+		{
+			"Search for invite-only (Type I) private team by name",
+			pi.Name,
+			1,
+			pi.Id,
+		},
+		{
+			"Search for invite-only (Type I) private team by displayName",
+			pi.DisplayName,
+			1,
+			pi.Id,
 		},
 		{
 			"Search for private team without results",
@@ -3247,10 +3270,19 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, rctx request.CTX, ss store.S
 	_, err = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, err)
 
+	// A space backing channel with non-zero counters must not surface as an unread.
+	cSpace := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Space", Type: model.ChannelTypeSpace, TotalMsgCount: 100}
+	_, nErr = ss.Channel().Save(rctx, cSpace, -1)
+	require.NoError(t, nErr)
+	cmSpace := &model.ChannelMember{ChannelId: cSpace.Id, UserId: uid, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90, MentionCount: 5}
+	_, err = ss.Channel().SaveMember(rctx, cmSpace)
+	require.NoError(t, err)
+
 	ms1, nErr := ss.Team().GetChannelUnreadsForAllTeams("", uid)
 	require.NoError(t, nErr)
 	membersMap := make(map[string]bool)
 	for i := range ms1 {
+		require.NotEqual(t, cSpace.Id, ms1[i].ChannelId, "space backing channel must not contribute to unreads")
 		id := ms1[i].TeamId
 		if _, ok := membersMap[id]; !ok {
 			membersMap[id] = true
@@ -3301,9 +3333,20 @@ func testGetChannelUnreadsForTeam(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, nErr)
 
+	// A space backing channel with non-zero counters must not surface as an unread.
+	cSpace := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Space", Type: model.ChannelTypeSpace, TotalMsgCount: 100}
+	_, nErr = ss.Channel().Save(rctx, cSpace, -1)
+	require.NoError(t, nErr)
+	cmSpace := &model.ChannelMember{ChannelId: cSpace.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90, MentionCount: 5}
+	_, nErr = ss.Channel().SaveMember(rctx, cmSpace)
+	require.NoError(t, nErr)
+
 	ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 	require.Len(t, ms, 2, "wrong length")
+	for i := range ms {
+		require.NotEqual(t, cSpace.Id, ms[i].ChannelId, "space backing channel must not contribute to unreads")
+	}
 
 	require.Equal(t, 10, int(ms[0].MsgCount), "subtraction failed")
 }

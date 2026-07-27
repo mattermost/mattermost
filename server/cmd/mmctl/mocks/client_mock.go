@@ -2298,6 +2298,22 @@ func (mr *MockClientMockRecorder) RevokeUserAccessToken(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeUserAccessToken", reflect.TypeOf((*MockClient)(nil).RevokeUserAccessToken), arg0, arg1)
 }
 
+// RotateUserAccessToken mocks base method.
+func (m *MockClient) RotateUserAccessToken(arg0 context.Context, arg1 string, arg2 int64) (*model.UserAccessToken, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RotateUserAccessToken", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.UserAccessToken)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RotateUserAccessToken indicates an expected call of RotateUserAccessToken.
+func (mr *MockClientMockRecorder) RotateUserAccessToken(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RotateUserAccessToken", reflect.TypeOf((*MockClient)(nil).RotateUserAccessToken), arg0, arg1, arg2)
+}
+
 // SearchTeams mocks base method.
 func (m *MockClient) SearchTeams(arg0 context.Context, arg1 *model.TeamSearch) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()

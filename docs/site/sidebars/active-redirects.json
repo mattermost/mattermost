@@ -1001,7 +1001,7 @@
     },
     {
       "from": "/deploy/server/containers/install-docker",
-      "to": "/deployment-guide/server/containers/install-docker"
+      "to": "/deployment-guide/server/deploy-containers"
     },
     {
       "from": "/deploy/server/deploy-containers",

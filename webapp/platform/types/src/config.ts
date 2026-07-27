@@ -3,6 +3,8 @@
 
 import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
 
+export type LockProfileFieldsSetting = 'none' | 'name_and_username' | 'all';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -128,7 +130,6 @@ export type ClientConfig = {
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
-    FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
@@ -162,6 +163,7 @@ export type ClientConfig = {
     LdapPositionAttributeSet: string;
     LdapPictureAttributeSet: string;
     LockTeammateNameDisplay: string;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ManagedResourcePaths: string;
     MaxFileSize: string;
     MaxPostSize: string;
@@ -247,6 +249,7 @@ export type ClientConfig = {
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
     EnableUserManagedAttributes: string;
+    EnableChannelPolicyIndicators: string;
 
     // Auto Translation Settings
     AutoTranslationLanguages: string;
@@ -472,6 +475,7 @@ export type TeamSettings = {
     TeammateNameDisplay: string;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ExperimentalPrimaryTeam: string;
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
@@ -1059,6 +1063,7 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
+    EnableChannelPolicyIndicators: boolean;
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
 };
@@ -1092,6 +1097,28 @@ export type ContentFlaggingSettings = {
     NotificationSettings: ContentFlaggingNotificationSettings;
     ReviewerSettings: ContentFlaggingReviewerSetting;
     AdditionalSettings: ContentFlaggingAdditionalSettings;
+};
+
+export type RecapLimitSettings = {
+    MaxRecapsPerDay: number;
+    MaxScheduledRecaps: number;
+    MaxChannelsPerRecap: number;
+    MaxPostsPerRecap: number;
+    MaxTokensPerRecap: number;
+    MaxPostsPerDay: number;
+    CooldownMinutes: number;
+};
+
+export type AIRecapSettings = {
+    Enable: boolean;
+    DefaultLimits: RecapLimitSettings;
+    EnforceRecapsPerDay: boolean;
+    EnforceScheduledRecaps: boolean;
+    EnforceChannelsPerRecap: boolean;
+    EnforcePostsPerRecap: boolean;
+    EnforceTokensPerRecap: boolean;
+    EnforcePostsPerDay: boolean;
+    EnforceCooldown: boolean;
 };
 
 export type AdminConfig = {
@@ -1141,6 +1168,7 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
+    AIRecapSettings: AIRecapSettings;
     MobileEphemeralModeSettings: MobileEphemeralModeSettings;
 };
 

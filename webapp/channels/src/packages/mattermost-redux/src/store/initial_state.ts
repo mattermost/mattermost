@@ -112,6 +112,8 @@ const state: GlobalState = {
         recaps: {
             byId: {},
             allIds: [],
+            scheduledRecaps: {},
+            limitStatus: null,
         },
         preferences: {
             myPreferences: {},
