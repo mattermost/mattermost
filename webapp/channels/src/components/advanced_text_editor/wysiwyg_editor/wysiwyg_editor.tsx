@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Extensions} from '@tiptap/core';
 import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
@@ -95,7 +96,7 @@ export type WysiwygEditorHandle = {
 
 type Props = {
     value: string;
-    onChange: (markdown: string) => void;
+    onChange: (content: string) => void;
     onSubmit: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -107,6 +108,8 @@ type Props = {
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    contentType?: 'markdown' | 'json';
+    extensions?: Extensions;
 };
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
@@ -123,7 +126,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
     onKeyDown,
+    contentType = 'markdown',
+    extensions: extraExtensions,
 }, ref) => {
+    const jsonMode = contentType === 'json';
     const dispatch = useDispatch();
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
@@ -144,6 +150,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     }, SERIALIZE_DEBOUNCE_MS);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
+        if (jsonMode) {
+            debouncedOnChange(JSON.stringify(editor.getJSON()));
+            return;
+        }
+
         // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
         // empty paragraphs at doc start/end.
         const md = editor.getMarkdown().trimEnd().
@@ -151,38 +162,52 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             replace(/\n\n&nbsp;$/g, '').
             replace(/^&nbsp;$/, '');
         debouncedOnChange(md);
-    }, [debouncedOnChange]);
+    }, [debouncedOnChange, jsonMode]);
+
+    const baseExtensions: Extensions = [
+        StarterKit.configure({
+            heading: {levels: [1, 2, 3, 4, 5, 6]},
+            codeBlock: false,
+            link: false,
+        }),
+        CodeBlockLowlight.configure({
+            lowlight,
+        }),
+        Link.configure({
+            openOnClick: false,
+            autolink: true,
+            linkOnPaste: true,
+        }),
+        Placeholder.configure({
+            placeholder: () => placeholderRef.current,
+            showOnlyCurrent: true,
+        }),
+        Table.configure({resizable: false, cellMinWidth: 80}),
+        TableRow,
+        TableCell,
+        TableHeader,
+        EmojiDecorations,
+    ];
+    if (!jsonMode) {
+        baseExtensions.push(Markdown.configure({markedOptions: {gfm: true}}));
+    }
+    if (extraExtensions?.length) {
+        baseExtensions.push(...extraExtensions);
+    }
+
+    let initialContent: string | Record<string, unknown> = value;
+    if (jsonMode && value) {
+        try {
+            initialContent = JSON.parse(value);
+        } catch {
+            initialContent = value;
+        }
+    }
 
     const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                heading: {levels: [1, 2, 3, 4, 5, 6]},
-                codeBlock: false,
-                link: false,
-            }),
-            CodeBlockLowlight.configure({
-                lowlight,
-            }),
-            Link.configure({
-                openOnClick: false,
-                autolink: true,
-                linkOnPaste: true,
-            }),
-            Placeholder.configure({
-                placeholder: () => placeholderRef.current,
-                showOnlyCurrent: true,
-            }),
-            Table.configure({resizable: false, cellMinWidth: 80}),
-            TableRow,
-            TableCell,
-            TableHeader,
-            Markdown.configure({
-                markedOptions: {gfm: true},
-            }),
-            EmojiDecorations,
-        ],
-        content: value,
-        contentType: 'markdown',
+        extensions: baseExtensions,
+        content: initialContent,
+        contentType: jsonMode ? undefined : 'markdown',
         editable: !disabled,
         editorProps: {
             attributes: {
@@ -191,6 +216,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
             },
             handlePaste: (_view, event) => {
+                if (jsonMode) {
+                    return false;
+                }
+
                 const text = event.clipboardData?.getData('text/plain');
                 if (!text) {
                     return false;

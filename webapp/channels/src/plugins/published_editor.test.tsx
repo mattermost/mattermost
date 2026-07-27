@@ -89,6 +89,7 @@ describe('WysiwygEditor handle forwarding', () => {
         expect(typeof handle!.focus).toBe('function');
         expect(typeof handle!.blur).toBe('function');
         expect(typeof handle!.getInputBox).toBe('function');
+        expect(typeof handle!.getEditor).toBe('function');
     });
 });
 

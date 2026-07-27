@@ -21,7 +21,7 @@ export type ActionResult<Data = unknown, Error = unknown> = {
 
 export type WysiwygEditorProps = {
     value: string;
-    onChange: (markdown: string) => void;
+    onChange: (content: string) => void;
     onSubmit: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -33,6 +33,13 @@ export type WysiwygEditorProps = {
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+
+    // 'markdown' matches the channel composer. 'json' skips the
+    // Markdown serializer and expects value as a stringified ProseMirror JSON
+    contentType?: 'markdown' | 'json';
+
+    // Extra Tiptap extensions to register at mount
+    extensions?: any[];
 };
 
 export type SuggestionListProps = {
@@ -121,6 +128,7 @@ export type PublishedWysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+    getEditor: () => any;
 };
 
 export type PublishedFormattingBarHandle = {
