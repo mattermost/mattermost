@@ -19,7 +19,7 @@ export default class SystemConsoleSidebarHeader {
         this.headerInfo = container.getByTestId('admin-sidebar-header-info');
         this.title = container.getByText('System Console');
         this.userName = container.getByText(/^@/);
-        this.menuButton = container.getByRole('button', {name: 'Menu Icon'});
+        this.menuButton = container.getByRole('button', {name: 'Admin Console Menu'});
     }
 
     async toBeVisible() {
