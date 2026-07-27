@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
@@ -18,7 +19,36 @@ const (
 	SchemeScopeChannel         = "channel"
 	SchemeScopePlaybook        = "playbook"
 	SchemeScopeRun             = "run"
+
+	// Seeded space default-capability preset schemes. Channel-scoped schemes
+	// attached to space backing channels; the namespaced names guarantee the
+	// seeding migration's get-or-create can never adopt a pre-existing customer
+	// scheme carrying a generic name.
+	SchemeNameSpaceContribute = "docs_space_contribute"
+	SchemeNameSpaceComment    = "docs_space_comment"
+	SchemeNameSpaceReadOnly   = "docs_space_readonly"
+
+	SchemeDisplayNameSpaceContribute = "Space Contribute Scheme"
+	SchemeDisplayNameSpaceComment    = "Space Comment Scheme"
+	SchemeDisplayNameSpaceReadOnly   = "Space Read-Only Scheme"
 )
+
+// SpaceSchemeNames lists the three seeded space preset scheme names.
+var SpaceSchemeNames = []string{
+	SchemeNameSpaceContribute,
+	SchemeNameSpaceComment,
+	SchemeNameSpaceReadOnly,
+}
+
+// IsSpaceSchemeName reports whether name is one of the three seeded space preset
+// scheme names. It serves both as the reservation predicate — these names may
+// not be created or renamed into — and as proof that a scheme is a preset: the
+// boot seeding creates all three unconditionally and scheme names are unique, so
+// by the time any request runs, a match proves the scheme is the seeded row
+// rather than merely carrying its name.
+func IsSpaceSchemeName(name string) bool {
+	return slices.Contains(SpaceSchemeNames, name)
+}
 
 type Scheme struct {
 	Id                        string `json:"id"`
