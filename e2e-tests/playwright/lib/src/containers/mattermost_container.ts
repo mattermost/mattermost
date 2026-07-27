@@ -17,6 +17,7 @@ import {
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
+import {startWithRetry} from './retry';
 
 import {testConfig} from '@/test_config';
 
@@ -74,24 +75,26 @@ export async function startMattermostContainer(
         ...structuralEnv(),
     };
 
-    let builder = new GenericContainer(testConfig.serverImage)
-        .withPlatform('linux/amd64') // The published server images are amd64-only.
-        .withNetworkMode(networkName)
-        .withNetworkAliases(MATTERMOST_ALIAS)
-        .withLabels(TESTCONTAINERS_LABELS)
-        .withExposedPorts(MATTERMOST_PORT)
-        .withEnvironment(env)
-        .withStartupTimeout(5 * 60_000)
-        .withWaitStrategy(
-            Wait.forAll([
-                Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200),
-                Wait.forLogMessage(/All migrations are complete\./, 1),
-            ]),
-        );
+    return startWithRetry('server', async () => {
+        let builder = new GenericContainer(testConfig.serverImage)
+            .withPlatform('linux/amd64') // The published server images are amd64-only.
+            .withNetworkMode(networkName)
+            .withNetworkAliases(MATTERMOST_ALIAS)
+            .withLabels(TESTCONTAINERS_LABELS)
+            .withExposedPorts(MATTERMOST_PORT)
+            .withEnvironment(env)
+            .withStartupTimeout(5 * 60_000)
+            .withWaitStrategy(
+                Wait.forAll([
+                    Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200),
+                    Wait.forLogMessage(/All migrations are complete\./, 1),
+                ]),
+            );
 
-    if (testConfig.testcontainersReuse) {
-        builder = builder.withReuse();
-    }
+        if (testConfig.testcontainersReuse) {
+            builder = builder.withReuse();
+        }
 
-    return builder.start();
+        return builder.start();
+    });
 }

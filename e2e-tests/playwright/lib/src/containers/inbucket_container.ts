@@ -12,25 +12,28 @@ import {
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {INBUCKET_IMAGE} from './default_images';
+import {startWithRetry} from './retry';
 
 import {testConfig} from '@/test_config';
 
 export async function startInbucketContainer(network: StartedNetwork): Promise<StartedTestContainer> {
-    let builder = new GenericContainer(INBUCKET_IMAGE)
-        .withExposedPorts(INBUCKET_WEB_PORT, INBUCKET_SMTP_PORT, INBUCKET_POP3_PORT)
-        .withNetwork(network)
-        .withNetworkAliases(INBUCKET_ALIAS)
-        .withLabels(TESTCONTAINERS_LABELS)
-        .withEnvironment({
-            INBUCKET_WEB_ADDR: `0.0.0.0:${INBUCKET_WEB_PORT}`,
-            INBUCKET_POP3_ADDR: `0.0.0.0:${INBUCKET_POP3_PORT}`,
-            INBUCKET_SMTP_ADDR: `0.0.0.0:${INBUCKET_SMTP_PORT}`,
-        })
-        .withWaitStrategy(Wait.forListeningPorts());
+    return startWithRetry('inbucket', async () => {
+        let builder = new GenericContainer(INBUCKET_IMAGE)
+            .withExposedPorts(INBUCKET_WEB_PORT, INBUCKET_SMTP_PORT, INBUCKET_POP3_PORT)
+            .withNetwork(network)
+            .withNetworkAliases(INBUCKET_ALIAS)
+            .withLabels(TESTCONTAINERS_LABELS)
+            .withEnvironment({
+                INBUCKET_WEB_ADDR: `0.0.0.0:${INBUCKET_WEB_PORT}`,
+                INBUCKET_POP3_ADDR: `0.0.0.0:${INBUCKET_POP3_PORT}`,
+                INBUCKET_SMTP_ADDR: `0.0.0.0:${INBUCKET_SMTP_PORT}`,
+            })
+            .withWaitStrategy(Wait.forListeningPorts());
 
-    if (testConfig.testcontainersReuse) {
-        builder = builder.withReuse();
-    }
+        if (testConfig.testcontainersReuse) {
+            builder = builder.withReuse();
+        }
 
-    return builder.start();
+        return builder.start();
+    });
 }

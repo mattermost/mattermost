@@ -12,9 +12,11 @@ async function globalSetup() {
     } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error(error);
-        throw new Error(
-            `Global setup failed.\n\tEnsure the server at ${testConfig.baseURL} is running and accessible.\n\tPlease check the logs for more details.`,
-        );
+        const message = error instanceof Error ? error.message : String(error);
+        const hint = testConfig.useTestContainers
+            ? 'Check the container named above and its logs under logs/.'
+            : `Ensure the server at ${testConfig.baseURL} is running and accessible.`;
+        throw new Error(`Global setup failed: ${message}\n\t${hint}`, {cause: error});
     }
 
     return async function () {
