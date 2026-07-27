@@ -1,6 +1,8 @@
 ---
 title: "High availability cluster-based deployment"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="ent-plus" />
 
 A high availability cluster-based deployment enables a Mattermost system to maintain service during outages and hardware failures through the use of redundant infrastructure.
@@ -1267,7 +1269,7 @@ For example, if you're deploying Mattermost on AWS with Amazon Aurora we recomme
 
 ### How to find the hostname of the connected websocket?
 
-From Mattermost v10.4, Enterprise customers running self-hosted deployments can go to the **Product** menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> and select **About Mattermost** to see the hostname of the node in the cluster running Mattermost.
+From Mattermost v10.4, Enterprise customers running self-hosted deployments can go to the **Product** menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> and select **About Mattermost** to see the hostname of the node in the cluster running Mattermost.
 
 ## Troubleshooting
 

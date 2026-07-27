@@ -274,8 +274,13 @@ describe('Upload Files', () => {
         // # Now post with the message attachment
         cy.uiGetPostTextBox().clear().type('{enter}');
 
+        // # Wait for the posted image to finish loading. While loading, a data-URI placeholder
+        // # shares the same 'file thumbnail' aria-label as the real image, so reading the src too
+        // # early yields a data URI that has no content-disposition header.
+        cy.uiGetPostBody().find('.image-loading__container').should('not.exist');
+
         // * Check that the image in the post is with valid source link
-        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').then((src) => {
+        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').and('not.include', 'data:').then((src) => {
             downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
         });
     });

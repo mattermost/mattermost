@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -31,9 +31,15 @@ import {isEmptyObject} from 'utils/utils';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import ChannelInfoButton from './channel_info_button';
+import ChannelJoinRequestCountSync from './channel_join_request_count_sync';
 import HeaderIconWrapper from './components/header_icon_wrapper';
 
 import type {PropsFromRedux} from './index';
+
+const membersTooltipMessages = defineMessages({
+    members: {id: 'channel_header.channelMembers', defaultMessage: 'Members'},
+    membersPendingRequests: {id: 'channel_header.channelMembersPendingRequests', defaultMessage: 'Members — pending join requests'},
+});
 
 export type Props = WrappedComponentProps & PropsFromRedux;
 
@@ -303,37 +309,37 @@ class ChannelHeader extends React.PureComponent<Props> {
             const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
                 'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
             });
-            const membersIcon = this.props.memberCount ? (
+            const membersIcon = (
                 <>
-                    <i
-                        aria-hidden='true'
-                        className='icon icon-account-outline channel-header__members'
-                    />
-                    <span
-                        id='channelMemberCountText'
-                        className='icon__text'
-                    >
-                        {this.props.memberCount}
+                    <span className='channel-header__members-icon-wrapper'>
+                        <i
+                            aria-hidden='true'
+                            className='icon icon-account-outline channel-header__members'
+                        />
+                        {this.props.hasPendingJoinRequests && (
+                            <span
+                                className='channel-header__join-request-badge'
+                                aria-hidden='true'
+                                data-testid='channelHeaderJoinRequestBadge'
+                            />
+                        )}
                     </span>
-                </>
-            ) : (
-                <>
-                    <i
-                        aria-hidden='true'
-                        className='icon icon-account-outline channel-header__members'
-                    />
                     <span
                         id='channelMemberCountText'
                         className='icon__text'
                     >
-                        {'-'}
+                        {this.props.memberCount || '-'}
                     </span>
                 </>
             );
 
             memberListButton = (
                 <HeaderIconWrapper
-                    tooltip={this.props.intl.formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
+                    tooltip={this.props.intl.formatMessage(
+                        this.props.hasPendingJoinRequests ?
+                            membersTooltipMessages.membersPendingRequests :
+                            membersTooltipMessages.members,
+                    )}
                     buttonClass={membersIconClass}
                     buttonId={'member_rhs'}
                     onClick={this.toggleChannelMembersRHS}
@@ -379,6 +385,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                 className='channel-header alt a11y__region'
                 data-a11y-sort-order='8'
             >
+                <ChannelJoinRequestCountSync/>
                 <div className='flex-parent'>
                     <div className='flex-child'>
                         <div
