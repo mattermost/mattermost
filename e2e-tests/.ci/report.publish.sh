@@ -93,12 +93,6 @@ if [ -n "${DIAGNOSTIC_WEBHOOK_URL:-}" ]; then
   mme2e_log "Diagnostic report upload enabled."
 fi
 
-if [ -n "${AWS_S3_BUCKET:-}" ]; then
-  : ${AWS_ACCESS_KEY_ID:?}
-  : ${AWS_SECRET_ACCESS_KEY:?}
-  mme2e_log "S3 report upload enabled."
-fi
-
 # Double check that the "results/" subdirectory to collect report informations from exists
 cd "../${TEST}/"
 if [ ! -d "results/" ]; then

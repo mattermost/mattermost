@@ -111,8 +111,9 @@ func (sm *ServerManager) resetDatabases(ctx context.Context) error {
 	return nil
 }
 
-func (sm *ServerManager) startServers(ctx context.Context) error {
-	commonEnv := []string{
+// commonEnv returns the environment variables shared by both server instances.
+func (sm *ServerManager) commonEnv() []string {
+	return []string{
 		"MM_CONNECTEDWORKSPACESSETTINGS_ENABLESHAREDCHANNELS=true",
 		"MM_CONNECTEDWORKSPACESSETTINGS_ENABLEREMOTECLUSTERSERVICE=true",
 		"MM_FEATUREFLAGS_ENABLESHAREDCHANNELSMEMBERSYNC=true",
@@ -121,9 +122,50 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		"MM_LOGSETTINGS_CONSOLELEVEL=ERROR",
 		"MM_LOGSETTINGS_FILELEVEL=INFO",
 		"MM_SQLSETTINGS_DRIVERNAME=postgres",
+		// Both servers run on one host; the test does not exercise metrics. Disable it
+		// so they don't collide on the metrics port (:8067) when the loaded config.json
+		// happens to have metrics enabled.
+		"MM_METRICSSETTINGS_ENABLE=false",
 	}
+}
 
-	logsDir := filepath.Join(sm.cfg.ServerDir, "logs")
+func (sm *ServerManager) logsDir() string {
+	return filepath.Join(sm.cfg.ServerDir, "logs")
+}
+
+// launchServerB starts (or restarts) the Server B process. When truncate is true the
+// stdout log is reset (fresh tool run, matching Server A); when false it is opened in
+// append mode so an in-run restart preserves the pre-restart output.
+func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
+	sm.procB = exec.Command(sm.binary, "server")
+	sm.procB.Dir = sm.cfg.ServerDir
+	sm.procB.Env = append(os.Environ(), sm.commonEnv()...)
+	sm.procB.Env = append(sm.procB.Env,
+		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
+		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
+		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
+	)
+	flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
+	if truncate {
+		flags = os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	}
+	outB, err := os.OpenFile(filepath.Join(logsDir, "server_b_stdout.log"), flags, 0o644)
+	if err != nil {
+		return fmt.Errorf("create server B log file: %w", err)
+	}
+	sm.procB.Stdout = outB
+	sm.procB.Stderr = outB
+	if err := sm.procB.Start(); err != nil {
+		return fmt.Errorf("start server B: %w", err)
+	}
+	return nil
+}
+
+func (sm *ServerManager) startServers(ctx context.Context) error {
+	commonEnv := sm.commonEnv()
+
+	logsDir := sm.logsDir()
 	_ = os.MkdirAll(logsDir, 0o755)
 
 	// Server A
@@ -149,25 +191,9 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 
 	// Server B
 	sm.logger.Info("Starting Server B", mlog.String("url", sm.cfg.ServerBURL))
-	sm.procB = exec.Command(sm.binary, "server")
-	sm.procB.Dir = sm.cfg.ServerDir
-	sm.procB.Env = append(os.Environ(), commonEnv...)
-	sm.procB.Env = append(sm.procB.Env,
-		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
-		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
-		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
-		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
-	)
-	outB, err := os.Create(filepath.Join(logsDir, "server_b_stdout.log"))
-	if err != nil {
+	if err := sm.launchServerB(logsDir, true); err != nil {
 		stopProc(sm.procA)
-		return fmt.Errorf("create server B log file: %w", err)
-	}
-	sm.procB.Stdout = outB
-	sm.procB.Stderr = outB
-	if err := sm.procB.Start(); err != nil {
-		stopProc(sm.procA)
-		return fmt.Errorf("start server B: %w", err)
+		return err
 	}
 
 	// Wait for both — stop started servers on failure
@@ -180,6 +206,23 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// StopServerB gracefully stops the Server B process (SIGINT, then SIGKILL after a
+// timeout). Used by the offline-recovery test to simulate a brief remote outage.
+func (sm *ServerManager) StopServerB() {
+	sm.logger.Info("Stopping Server B...")
+	stopProc(sm.procB)
+	sm.procB = nil
+}
+
+// StartServerB relaunches the Server B process and waits for it to become ready.
+func (sm *ServerManager) StartServerB(ctx context.Context) error {
+	sm.logger.Info("Restarting Server B", mlog.String("url", sm.cfg.ServerBURL))
+	if err := sm.launchServerB(sm.logsDir(), false); err != nil {
+		return err
+	}
+	return sm.waitForServer(ctx, sm.cfg.ServerBURL, "Server B")
 }
 
 func (sm *ServerManager) waitForServer(ctx context.Context, url, name string) error {

@@ -5,7 +5,7 @@ Mission environments demand secure, reliable mobile collaboration, from intellig
 
 Mattermost provides a secure, mission-ready mobile platform built for defense, law enforcement, and public sector operations. Optimized for low-bandwidth and disconnected conditions, Mattermost ensures secure communication on government-issued devices while enabling compliant collaboration on personal phones—without reliance on consumer apps or invasive controls.
 
-With protections including ID-only push notifications, biometric authentication, jailbreak detection, and full MDM/EMM support, Mattermost delivers control, compliance, and usability across a range of challenging field conditions.
+With protections including ID-only push notifications, biometric authentication, jailbreak detection, ephemeral data lifecycle controls, and full MDM/EMM support, Mattermost delivers control, compliance, and usability across a range of challenging field conditions.
 
 ![An infographic illustrating "Security-Optimized Mobility" with two devices side-by-side: A Mattermost server (on the left) and a mobile device (on the right). The Mattermost server displays a list of security features, including "Zero Trust Security (Channel ABAC, Files ABAC)," "Secure File Viewer," "TLS Data in Transit (Post Quantum)," "Authentication and Access Control (MFA, SSO)," "Data Spillage Handling," and more, with asterisks (\*) indicating functionality scheduled for release later in 2025. On the right, the mobile device mirrors corresponding security features, such as "Secure File Viewer," "TLS," "Burn on Read," "End-to-End Encryption," "Biometric Authentication," and others, with blue arrows connecting the related features on the server and the mobile device, signifying seamless integration and support for advanced security across these endpoints.](/images/mission-ready-mobile.png)
 
@@ -29,7 +29,7 @@ When personal devices are the only available channel—whether in partner nation
 
 **Benefits**
 
-- **Enable trusted communications on BYOD** using lightweight AppConfig policies with [EMM optionality](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) that avoids intrusive control while ensuring essential security baselines.
+- **Enable trusted communications on BYOD** using lightweight AppConfig policies with [EMM optionality](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) that avoids intrusive control while ensuring essential security baselines. Pair with [Mobile Ephemeral Mode](/deployment-guide/mobile/mobile-security-features#mobile-ephemeral-mode) to enforce admin-controlled data lifecycle — automatically purging cached messages without requiring MDM connectivity.
 - **Prevent unauthorized data sharing**: Mitigate leakage with [screenshot and screen recording prevention](/deployment-guide/mobile/mobile-security-features#screenshot-and-screen-recording-prevention) and [jailbreak/root detection](/deployment-guide/mobile/mobile-security-features#jailbreak-and-root-detection) that block high-risk mobile behaviors.
 - **Secure access without cloud dependency** via [self-hosted deployments](/deployment-guide/server/server-deployment-planning#deployment-options) or [air-gapped infrastructures](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) that prevent sensitive data from touching public networks.
 - **Deliver rapid alerts with low bandwidth impact** using [ID-only push notifications](/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications), ideal for DDIL (disconnected, intermittent, low-bandwidth) conditions.
@@ -44,6 +44,7 @@ Mattermost on mobile is hardened to operate under mission-grade security expecta
 - **Zero Trust security architecture** with channel- and file-level [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control).
 - **TLS with post-quantum readiness** and end-to-end\* [encryption options](/security-guide/security-guide-index) for high-assurance deployments.
 - **Burn-on-read messaging**: Use [secure file viewers](/security-guide/mobile-security#secure-file-preview), [burn on read messaging](/end-user-guide/collaborate/send-messages#send-burn-on-read-messages), and advanced data spillage controls\* to protect sensitive information and minimize persistent data exposure.
+- **Ephemeral data lifecycle controls**: [Mobile Ephemeral Mode](/deployment-guide/mobile/mobile-security-features#mobile-ephemeral-mode) enforces admin-defined retention limits on approved personal devices — automatically deleting cached content by data age and time offline, with audit logging of deletion events reported to the server on reconnection.
 - **DoD STIG container support** with FIPS 140-3 validation\*, and [audit logging](/administration-guide/manage/logging#audit-logging) to ensure deployment compliance in regulated missions.
 - **Isolated mobile sessions** from host operating systems by partnering with platforms like Hypori in high-assurance BYOD scenarios.
 

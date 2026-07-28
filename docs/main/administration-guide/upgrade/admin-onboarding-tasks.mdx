@@ -36,7 +36,7 @@ If your organization requires more structure and project management artifacts fo
 **DO NOT manipulate the Mattermost database**
 
 - In particular, DO NOT manually delete data from the database directly. Mattermost is designed as a continuous archive and cannot be supported after manual manipulation.
-- If you need to permanently delete a team or user, use the [mmctl user delete](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-delete) command or the [mmctl user deletall](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-deleteall) command.
+- If you need to permanently delete a team or user, use the [mmctl user delete](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-delete) command or the [mmctl user deleteall](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-deleteall) command.
 
 ## Common tasks
 
@@ -135,10 +135,10 @@ Email notifications can be batched together so users don’t get overwhelmed wit
 
 Enable email notifications first by setting **System Console \> Notifications \> Enable Email Notifications** to **true**. See the [Enable email notifications](/administration-guide/configure/site-configuration-settings#enable-email-notifications) configuration settings documentation for details. Note that email notifications require an [SMTP email server](/administration-guide/configure/environment-configuration-settings#smtp-server) to be configured.
 
-Then, enable batched email notifications by setting **System Console \> Notifications \> Enable Email Batching** to **true**. See the [Enable email batching](/administration-guide/configure/site-configuration-settings#enable-email-batching) configuration settings documentation for details. Note that email batching is not available if you are running your deployment in [High Availability](/administration-guide/scale/high-availability-cluster-based-deployment).
+Then, enable batched email notifications by setting **System Console \> Notifications \> Enable Email Batching** to **true**. See the [Enable email batching](/administration-guide/configure/site-configuration-settings#enable-email-batching) configuration settings documentation for details. Note that email batching is not available if you are running your deployment in [High Availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment).
 
 **9. Enable Elasticsearch**
 
-Mattermost Enterprise customers can enable [enterprise search](/administration-guide/scale/enterprise-search) for optimized search performance at enterprise-scale. Both Elasticsearch and AWS OpenSearch solve many known issues with full text database search, such as dots, dashes, and email addresses returning unexpected results.
+Mattermost Enterprise customers can enable [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) for optimized search performance at enterprise-scale. Both Elasticsearch and AWS OpenSearch solve many known issues with full text database search, such as dots, dashes, and email addresses returning unexpected results.
 
-Enable Elasticsearch by setting **System Console \> Elasticsearch \> Enable Indexing** to **true**. See the [Elasticsearch](/administration-guide/configure/environment-configuration-settings#enterprise-search) configuration settings documentation for details. Enabling Elasticsearch requires [setting up an Elasticsearch server](/administration-guide/scale/elasticsearch-setup#set-up-elasticsearch).
+Enable Elasticsearch by setting **System Console \> Elasticsearch \> Enable Indexing** to **true**. See the [Elasticsearch](/administration-guide/configure/environment-configuration-settings#enterprise-search) configuration settings documentation for details. Enabling Elasticsearch requires [setting up an Elasticsearch server](/deployment-guide/reference-architecture/scale/elasticsearch-setup#set-up-elasticsearch).

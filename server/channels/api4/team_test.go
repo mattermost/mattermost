@@ -4285,6 +4285,212 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}, "rate limits")
 }
 
+func TestInviteUsersToTeamWithProfiles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	newInvite := func() *model.MemberInvite {
+		email := th.GenerateTestEmail()
+		return &model.MemberInvite{
+			Emails: []string{email},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:     email,
+				Username:  "un_" + model.NewId(),
+				FirstName: "Pre",
+				LastName:  "Set",
+			}},
+		}
+	}
+	findResendJob := func(t *testing.T, email string) *model.Job {
+		t.Helper()
+		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
+		require.NoError(t, err)
+		for _, job := range resendJobs {
+			if job.Data["teamID"] != th.BasicTeam.Id {
+				continue
+			}
+			var emails []string
+			if json.Unmarshal([]byte(job.Data["emailList"]), &emails) != nil {
+				continue
+			}
+			for _, jobEmail := range emails {
+				if model.NormalizeEmail(jobEmail) == model.NormalizeEmail(email) {
+					return job
+				}
+			}
+		}
+		require.FailNow(t, "resend job not found", "team=%s email=%s", th.BasicTeam.Id, email)
+		return nil
+	}
+
+	t.Run("rejected without an Enterprise license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_license.app_error")
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("rejected when locked profile fields are disabled", func(t *testing.T) {
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_disabled.app_error")
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
+	})
+
+	t.Run("rejected without graceful mode", func(t *testing.T) {
+		invite := newInvite()
+		inviteJSON, err := json.Marshal(invite)
+		require.NoError(t, err)
+		resp, err := th.Client.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/invite/email", string(inviteJSON))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_graceful.app_error")
+	})
+
+	t.Run("accepted from a regular member with invite permission", func(t *testing.T) {
+		invite := newInvite()
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+
+		resendJob := findResendJob(t, invite.Emails[0])
+		var profiles []*model.MemberInviteProfile
+		require.NoError(t, json.Unmarshal([]byte(resendJob.Data["profilesList"]), &profiles))
+		require.Equal(t, invite.Profiles, profiles)
+	})
+
+	t.Run("accepted from a system admin", func(t *testing.T) {
+		invitesWithErrors, _, err := th.SystemAdminClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
+
+	t.Run("accepted from local mode with profile data in the token", func(t *testing.T) {
+		invite := newInvite()
+		invitesWithErrors, _, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeTeamInvitation)
+		require.NoError(t, err)
+		var tokenData map[string]string
+		for _, token := range tokens {
+			var data map[string]string
+			require.NoError(t, json.Unmarshal([]byte(token.Extra), &data))
+			if data["email"] == invite.Emails[0] {
+				tokenData = data
+				break
+			}
+		}
+		require.NotNil(t, tokenData)
+		require.Equal(t, invite.Profiles[0].Username, tokenData["username"])
+		require.Equal(t, invite.Profiles[0].FirstName, tokenData["first_name"])
+		require.Equal(t, invite.Profiles[0].LastName, tokenData["last_name"])
+	})
+
+	t.Run("invalid username is rejected in local mode", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Username = "inv@lid username"
+		_, resp, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.member.is_valid.profile_username.app_error")
+	})
+
+	t.Run("profile email must be in the invited email list", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Email = th.GenerateTestEmail()
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.member.is_valid.profile_email.app_error")
+	})
+
+	t.Run("taken username produces a per-email graceful error", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Username = th.BasicUser2.Username
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", invitesWithErrors[0].Error.Id)
+	})
+
+	t.Run("group name collision produces a per-email graceful error", func(t *testing.T) {
+		invite := newInvite()
+		username := invite.Profiles[0].Username
+		group, appErr := th.App.CreateGroup(&model.Group{
+			Name:        &username,
+			DisplayName: "Username collision",
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.DeleteGroup(group.Id)
+			require.Nil(t, appErr)
+		})
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", invitesWithErrors[0].Error.Id)
+	})
+
+	t.Run("mixed valid and taken usernames only fails the taken one", func(t *testing.T) {
+		goodEmail := th.GenerateTestEmail()
+		badEmail := th.GenerateTestEmail()
+		invite := &model.MemberInvite{
+			Emails: []string{goodEmail, badEmail},
+			Profiles: []*model.MemberInviteProfile{
+				{Email: goodEmail, Username: "un_" + model.NewId()},
+				{Email: badEmail, Username: th.BasicUser2.Username},
+			},
+		}
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 2)
+		byEmail := make(map[string]*model.EmailInviteWithError, 2)
+		for _, invited := range invitesWithErrors {
+			byEmail[invited.Email] = invited
+		}
+		require.Nil(t, byEmail[goodEmail].Error)
+		require.NotNil(t, byEmail[badEmail].Error)
+	})
+
+	t.Run("uppercase profile emails and usernames are normalized", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		invite := &model.MemberInvite{
+			Emails: []string{email},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:    strings.ToUpper(email),
+				Username: "UN_" + model.NewId(),
+			}},
+		}
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
+}
+
 func TestInviteGuestsToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -21,7 +21,7 @@ import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {PropertiesState} from './properties';
-import type {Recap} from './recaps';
+import type {Recap, ScheduledRecap, RecapLimitStatus} from './recaps';
 import type {RenderPermissionsState} from './render_permissions';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
@@ -52,6 +52,8 @@ export type GlobalState = {
         recaps: {
             byId: Record<string, Recap>;
             allIds: string[];
+            scheduledRecaps: Record<string, ScheduledRecap>;
+            limitStatus: RecapLimitStatus | null;
         };
         agents: {
             agents: Array<{

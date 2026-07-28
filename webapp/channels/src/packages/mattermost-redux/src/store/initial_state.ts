@@ -72,6 +72,12 @@ const state: GlobalState = {
             messageCounts: {},
             channelsMemberCount: {},
             restrictedDMs: {},
+            joinRequests: {
+                myPendingByChannel: {},
+                byChannel: {},
+                countsByChannel: {},
+                myList: [],
+            },
         },
         channelBookmarks: {
             byChannelId: {},
@@ -106,6 +112,8 @@ const state: GlobalState = {
         recaps: {
             byId: {},
             allIds: [],
+            scheduledRecaps: {},
+            limitStatus: null,
         },
         preferences: {
             myPreferences: {},

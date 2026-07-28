@@ -51,6 +51,9 @@ export type WebSocketMessage = (
     Messages.PermissionPolicyUpdated |
     Messages.TeamAccessControlUpdated |
 
+    Messages.ChannelJoinRequestCreated |
+    Messages.ChannelJoinRequestUpdated |
+
     Messages.Team |
     Messages.UpdateTeamScheme |
     Messages.UserAddedToTeam |

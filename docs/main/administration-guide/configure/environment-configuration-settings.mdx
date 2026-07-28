@@ -1,6 +1,7 @@
 ---
 title: "Environment configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -9,7 +10,7 @@ import Inc1_rate_limiting_configuration_settings from './rate-limiting-configura
 
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
+Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
 
 - [Web server](#web-server)
 - [Database](#database)
@@ -332,7 +333,7 @@ When using the Mattermost Desktop App, additional configuration is required to o
 
 <Note>
 
-Purging the caches may adversely impact performance. [high availability cluster-based deployments](/administration-guide/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
+Purging the caches may adversely impact performance. [high availability cluster-based deployments](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
 
 </Note>
 
@@ -696,7 +697,7 @@ Your database admin must configure the functionality according to supported valu
 
 #### AWS High Availablity RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Maximum open connections
 
@@ -834,14 +835,14 @@ MySQL databases must be configured to support searching strings shorter than thr
 </colgroup>
 <tbody>
 <tr>
-<td>When <a href="mm-doc:%2Fadministration-guide%2Fscale%2Fenterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
+<td>When <a href="/administration-guide/scale/enterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
 </tr>
 </tbody>
 </table>
 
 Search behavior in Mattermost depends on which search engines are enabled:
 
-- When [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [AWS OpenSearch](/administration-guide/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
+- When [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) or [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
 - If Elasticsearch fails or is disabled, Mattermost will attempt to use Bleve search, if enabled. Bleve search has been deprecated in Mattermost v11.0. We recommend using Elasticsearch or OpenSearch for enterprise search capabilities.
 - If these fail or are disabled, Mattermost tries to search the database directly, if this is enabled.
 - If all of the above methods fail or are disabled, the search results will be empty.
@@ -862,7 +863,7 @@ However, the ability to perform database searches in Mattermost is a critical fe
 
 ### Applied schema migrations
 
-A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
+A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
 
 ### Active search backend
 
@@ -892,7 +893,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Search replicas
 
@@ -917,7 +918,7 @@ Each database connection string in the array must be in the same form used for t
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availablility database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database-configuration) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Replica lag settings
 
@@ -1095,7 +1096,7 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 ### Backend type
 
-Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch](/administration-guide/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/administration-guide/scale/enterprise-search) in our product documentation.
+Both [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) in our product documentation.
 
 <table>
 <colgroup>
@@ -1110,7 +1111,7 @@ Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS O
 </tbody>
 </table>
 
-Learn more about [enterprise search version support](/administration-guide/scale/enterprise-search#supported-paths).
+Learn more about [enterprise search version support](/deployment-guide/reference-architecture/scale/enterprise-search#supported-paths).
 
 ### Server connection address
 
@@ -1506,7 +1507,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 
 <Note>
 
-If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/administration-guide/scale/enterprise-search), configure this with a value greater than your data retention policy.
+If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search), configure this with a value greater than your data retention policy.
 
 </Note>
 
@@ -1697,9 +1698,9 @@ During busy periods, this delay will be faster as more traffic is occurring, cau
 
 <Note>
 
-Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch setup](/administration-guide/scale/opensearch-setup) documentation for plugin installation instructions.
+Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch setup](/deployment-guide/reference-architecture/scale/opensearch-setup) documentation for plugin installation instructions.
 
-If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
+If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
 
 </Note>
 
@@ -1711,9 +1712,14 @@ With self-hosted deployments, you can configure file storage settings by going t
 
 <Note>
 
-Mattermost currently supports storing files on the local filesystem and Amazon S3 or S3-compatible containers. We have tested Mattermost with [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/), but not all S3-compatible containers on the market. If you are looking to use other S3-compatible containers, we recommend completing your own testing. You can also use local storage or a network drive using NFS.
+Mattermost supports storing files on the local filesystem, Amazon S3 or S3-compatible containers, and Azure Blob Storage. We have tested Mattermost with [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/), but not all S3-compatible containers on the market. If you are looking to use other S3-compatible containers, we recommend completing your own testing. You can also use local storage or a network drive using NFS.
 
 </Note>
+<Tip>
+
+For a step-by-step walk-through covering Azure resource provisioning, System Console configuration, and verification, see [Configure Azure Blob Storage as the Mattermost file store](/administration-guide/configure/azure-blob-storage).
+
+</Tip>
 
 ### File storage system
 
@@ -1724,11 +1730,17 @@ Mattermost currently supports storing files on the local filesystem and Amazon S
 </colgroup>
 <tbody>
 <tr>
-<td><p>The type of file storage system used. Can be either Local File System or Amazon S3.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> Files and images are stored in the specified local file directory.</li><li><strong>amazons3</strong>: Files and images are stored on Amazon S3 based on the access key, bucket, and region fields provided. The driver is compatible with other S3-compatible services, such as Digital Ocean Spaces.</li></ul></td>
+<td><p>The type of file storage system used. Can be Local File System, Amazon S3, or Azure Blob Storage.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> Files and images are stored in the specified local file directory.</li><li><strong>amazons3</strong>: Files and images are stored on Amazon S3 based on the access key, bucket, and region fields provided. The driver is compatible with other S3-compatible services, such as Digital Ocean Spaces.</li><li><strong>azureblob</strong>: Files and images are stored on Azure Blob Storage based on the storage account name, shared key, and container fields provided.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DriverName</code> &gt; <code>"local"</code></li><li>Environment variable: <code>MM_FILESETTINGS_DRIVERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
+
+<Note>
+
+After saving a new file storage system, restart every Mattermost server in the deployment for the change to take effect. The file storage backend is initialized at startup and isn't rebuilt automatically when `FileSettings` change at runtime.
+
+</Note>
 
 ### Local storage directory
 
@@ -2119,6 +2131,147 @@ A smaller part size can result in more requests and an increase in latency, whil
 </tbody>
 </table>
 
+### Azure Storage account
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The name of your Azure Storage account.</p><p>A string with the storage account name as it appears in the Azure portal. Must be 3-24 lowercase letters and numbers.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureStorageAccount</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURESTORAGEACCOUNT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure container
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The name of the container in your Azure Storage account where Mattermost stores uploads.</p><p>A string with the container name.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureContainer</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURECONTAINER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure path prefix
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>An optional path prefix to use for blobs in your Azure container.</p><p>A string containing the path prefix. Leave empty to write at the container root.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzurePathPrefix</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREPATHPREFIX</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure authentication
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Selects how Mattermost authenticates to the Azure Storage account.</p><ul><li><code>shared_key</code>: <strong>(Default)</strong> Mattermost signs requests with the Storage Account access key in <code>FileSettings.AzureAccessKey</code>. Works for any deployment (on-premises, non-Azure cloud, local development).</li><li><code>default_credential</code>: Mattermost obtains an Entra ID token via the Azure SDK's <code>DefaultAzureCredential</code> chain (managed identity, workload identity, service-principal environment variables, or <code>az login</code> — in that order) and signs requests with it. <code>FileSettings.AzureAccessKey</code> is ignored. Recommended for deployments on Azure where the host already provides a managed identity.<br/><br/>The identity the SDK selects must hold <strong>Storage Blob Data Contributor</strong> (or equivalent) on the storage account or container.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureAuthMode</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREAUTHMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure Storage account key
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The shared key for your Azure Storage account. Used only when <code>FileSettings.AzureAuthMode</code> is <code>shared_key</code>. Find this value in the Azure portal under your storage account's <strong>Security + networking &gt; Access keys</strong> blade.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureAccessKey</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREACCESSKEY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Treat the shared key as a secret. Azure provides two keys to support rotation without downtime: update Mattermost to one key, regenerate the other, then swap on the next rotation cycle.
+
+</Note>
+
+### Azure cloud
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Selects which Azure cloud Mattermost connects to. The choice determines which host the Azure SDK signs requests against.</p><ul><li><code>commercial</code>: <strong>(Default)</strong> Vhost-style against <code>{'{account}'}.blob.core.windows.net</code>. Only the storage account name is required.</li><li><code>government</code>: Vhost-style against <code>{'{account}'}.blob.core.usgovcloudapi.net</code> (Azure Government). Only the storage account name is required.</li><li><code>custom</code>: Mattermost uses the value of <code>FileSettings.AzureEndpoint</code> as the full Blob service URL. Use this for Azurite, reverse proxies, Azure China, or any other Azure cloud that doesn't have a built-in preset.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureCloud</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURECLOUD</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure endpoint
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Full Blob service URL, including scheme and storage account. Used only when <code>FileSettings.AzureCloud</code> is <code>custom</code>; ignored for the <code>commercial</code> and <code>government</code> clouds (which derive the URL from the storage account name).</p><p>Mattermost passes this URL to the Azure SDK unchanged, so the storage account must already be embedded in the hostname (vhost-style, for example <code>https://acmemattermost.blob.core.chinacloudapi.cn/</code>) or in the path (path-style, for example <code>http://localhost:10000/devstoreaccount1/</code> for Azurite). Shared-key auth signs against the host this URL points at, so make sure it actually serves the storage account configured in <code>FileSettings.AzureStorageAccount</code>.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureEndpoint</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREENDPOINT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable secure Azure Blob Storage connections
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable secure connections to Azure Blob Storage.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables only secure Azure Blob Storage connections.</li><li><strong>false</strong>: Allows insecure connections. Only set to <strong>false</strong> when pointing at a local emulator without TLS.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureSSL</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZURESSL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Azure request timeout
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The amount of time, in milliseconds, before requests to Azure Blob Storage time out.</p><p>Default is 30000 (30 seconds). Increase only if your network needs more time for large objects.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AzureRequestTimeoutMilliseconds</code> &gt; <code>30000</code></li><li>Environment variable: <code>MM_FILESETTINGS_AZUREREQUESTTIMEOUTMILLISECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Initial font
 
 <table>
@@ -2361,7 +2514,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 <PlanAvailability slug="ent-plus" />
 
-With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
+With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
 In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
 
@@ -2410,7 +2563,7 @@ In a Mattermost high availability cluster-based deployment, the System Console i
 </tbody>
 </table>
 
-See the [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) documentation for details.
+See the [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) documentation for details.
 
 ### Use IP address
 
@@ -2776,32 +2929,17 @@ Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` t
 </colgroup>
 <tbody>
 <tr>
-<td><p>Whether or not general diagnostics and error reports are sent to Mattermost, Inc.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Send diagnostics and error reports.</li><li><strong>false</strong>: Diagnostics and error reports aren't sent.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableDiagnostics</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEDIAGNOSTICS</code></li></ul></td>
+<td><p>Controls whether server errors and crashes are reported to Mattermost via Sentry.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Error and crash reports are sent to Mattermost's Sentry endpoint.</li><li><strong>false</strong>: No error or crash data is sent.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableDiagnostics</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEDIAGNOSTICS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-See the [telemetry](/administration-guide/manage/telemetry#error-and-diagnostics-reporting-feature) docummentation for details on the information Mattermost collects.
+See the [telemetry](/administration-guide/manage/telemetry#error-and-diagnostics-reporting-feature) documentation for details on the information Mattermost collects.
 
 </Note>
-
-#### Enable verbose diagnostics
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Whether or not verbose general diagnostics information is sent.</p><ul><li><strong>true</strong>: Send verbose diagnostics information.</li><li><strong>false</strong>: <strong>(Default)</strong> Verbose diagnostics information isn't sent.</li></ul></td>
-<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>VerboseDiagnostics</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_VERBOSEDIAGNOSTICS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
 
 #### Enable Sentry reporting
 
@@ -3023,84 +3161,9 @@ When `FileEnabled` is set to **true**, then the [audit file name](#audit-file-na
 
 <Note>
 
-The file name must be set to [enable](#output-audit-logs-to-file) audit logging.
+When [output audit logs to file](#output-audit-logs-to-file) is enabled, the file name must be set. To configure file rotation and advanced audit log output, use the [AdvancedLoggingJSON](#output-audit-logs-to-multiple-targets) setting.
 
 </Note>
-
-#### Maximum file size
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum size in megabytes for audit log files before they are rotated.</p><p>Numerical input. Default is <strong>100</strong> MB.</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxSizeMB</code> &gt; <code>100</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXSIZEMB</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Maximum file age
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum age in days for audit log files before they are deleted.</p><p>Numerical input. Default is <strong>0</strong> (no limit).</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxAgeDays</code> &gt; <code>0</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXAGEDAYS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Maximum file backups
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum number of audit log file backups to retain.</p><p>Numerical input. Default is <strong>0</strong> (no limit).</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxBackups</code> &gt; <code>0</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXBACKUPS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Compress audit log files
-
-<table>
-<colgroup>
-<col style={{width: '35%'}} />
-<col style={{width: '64%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Whether to compress rotated audit log files.</p><ul><li><strong>true</strong>: Rotated audit log files are compressed.</li><li><strong>false</strong>: <strong>(Default)</strong> Rotated audit log files aren't compressed.</li></ul></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileCompress</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILECOMPRESS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Audit log queue size
-
-<table>
-<colgroup>
-<col style={{width: '35%'}} />
-<col style={{width: '64%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum number of audit log entries that can be queued.</p><p>Numerical input. Default is <strong>1000</strong>.</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxQueueSize</code> &gt; <code>1000</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXQUEUESIZE</code></li></ul></td>
-</tr>
-</tbody>
-</table>
 
 #### Audit log certificate
 
@@ -3274,7 +3337,7 @@ After changing this setting, the new session length takes effect after the next 
 
 - This setting has no effect when [extend session length with activity](#extend-session-length-with-activity) is set to **true**.
 - This setting applies to the webapp and the desktop app. For mobile apps, use an [EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) to lock the app when not in use. |
-- In [high availability mode](/administration-guide/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
+- In [high availability mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
 
 </Note>
 
@@ -3604,6 +3667,76 @@ Changing this configuration setting takes effect when mobile users restart their
 
 </Note>
 
+### Mobile ephemeral mode
+
+<PlanAvailability slug="ent-adv" />
+
+See [mobile security features](/deployment-guide/mobile/mobile-security-features) for a full description of how the timers and operations interact.
+
+These settings apply globally to all mobile users. Changes are delivered to connected devices in real time; offline devices continue operating under their last-known configuration until they reconnect. Timer state persists across app and device restarts.
+
+When a timer expires, active cached content such as posts and file previews is purged, and the app notifies the user that data was removed due to policy enforcement. After a purge, users re-sync from the server on reconnection — server URLs are recoverable from keychain entries so server access is not lost.
+
+#### Enable Mobile Ephemeral Mode
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Controls whether mobile clients enforce the server-configured ephemeral data policies.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Ephemeral data policies are enforced.</li><li><strong>false</strong>: Ephemeral data policies are not enforced on mobile clients.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileEnableEphemeralMode</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEENABLEEPHEMERALMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Disconnection timeout
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Grace period in seconds after the WebSocket drops before the device is considered offline. Once elapsed, the Offline Persistence Timer begins counting down.</p><p>Numerical input in seconds. Default is <strong>60</strong>. Values below 5 are not recommended.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileDisconnectionTimeoutSeconds</code> &gt; <code>60</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEDISCONNECTIONTIMEOUTSECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Offline persistence timer
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>How long cached content is retained after the device is considered offline, in hours.</p><p>Numerical input in hours. Default is <strong>2</strong>. Set to <strong>0</strong> for immediate purge on disconnect.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileOfflinePersistenceTimerHours</code> &gt; <code>2</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEOFFLINEPERSISTENCETIMERHOURS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Auto cache cleanup
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Maximum age in days for content cached on the device, regardless of connection status.</p><p>Numerical input in days. Default is <strong>7</strong>. Set to <strong>0</strong> for zero-persistence mode.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileAutoCacheCleanupDays</code> &gt; <code>7</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEAUTOCACHECLEANUPDAYS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable secure file preview on mobile
 
 This setting improves an organization's mobile security posture by restricting file access while still allowing essential file viewing capabilities.
@@ -3614,7 +3747,7 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Aallow%20file%20downloads%20on%20mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -3877,18 +4010,20 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Enables the ability to specify an alternate filestore | - System Config path: <strong>N/A</strong> | target for Mattermost | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code> | <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fbulk-export-tool">bulk exports</a> and | - Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code> | <a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">compliance exports</a>. | | | | - <strong>True</strong>: A new <code>ExportFileBackend()</code> is generated | | under <code>FileSettings</code> using new configuration values | | for the following configuration settings: | | | | - <code>ExportDriverName</code> | | - <code>ExportDirectory</code> | | - <code>ExportAmazonS3AccessKeyId</code> | | - <code>ExportAmazonS3SecretAccessKey</code> | | - <code>ExportAmazonS3Bucket</code> | | - <code>ExportAmazonS3PathPrefix</code> | | - <code>ExportAmazonS3Region</code> | | - <code>ExportAmazonS3Endpoint</code> | | - <code>ExportAmazonS3SSL</code> | | - <code>ExportAmazonS3SignV2</code> | | - <code>ExportAmazonS3SSE</code> | | - <code>ExportAmazonS3Trace</code> | | - <code>ExportAmazonS3RequestTimeoutMilliseconds</code> | | - <code>ExportAmazonS3PresignExpiresSeconds</code> | | | | - <strong>False</strong>: (<strong>Default</strong>) Standard | | <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">file storage | |</a> | is used. Standard file storage will also be used when the configuration setting | | or value is omitted. | |</td>
+<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="/administration-guide/manage/bulk-export-tool">bulk exports</a> and <a href="/administration-guide/comply/compliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="/administration-guide/configure/environment-configuration-settings#file-storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code></li><li>Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-- When an alternate filestore target is configured, Mattermost Cloud admins can generate an S3 presigned URL for exports using the `/exportlink [job-id|zip file|latest]` slash command. See the [Mattermost data migration](/administration-guide/manage/cloud-data-export#create-the-export) documentation for details. Alternatively, Cloud and self-hosted admins can use the [mmctl export generate-presigned-url](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-generate-presigned-url) command to generate a presigned URL directly from mmctl.
-- Generating an S3 presigned URL requires the feature flag `EnableExportDirectDownload` to be set to `true`, the storage must be compatible with generating an S3 link, and this experimental configuration setting must be set to `true`. Presigned URLs for exports aren't supported for systems with shared storage.
+- When an alternate filestore target is configured, Mattermost Cloud admins can generate a presigned download URL for exports using the `/exportlink [job-id|zip file|latest]` slash command. On Amazon S3 this is an S3 presigned URL; on Azure Blob Storage it's a Shared Access Signature (SAS) URL. The lifetimes of these URLs are controlled, respectively, by `ExportAmazonS3PresignExpiresSeconds` or `ExportAzurePresignExpiresSeconds`. See the [Mattermost data migration](/administration-guide/manage/cloud-data-export#create-the-export) documentation for details. Alternatively, Cloud and self-hosted admins can use the [mmctl export generate-presigned-url](/administration-guide/manage/mmctl-command-line-tool#mmctl-export-generate-presigned-url) command to generate a presigned URL directly from mmctl.
+- Generating a presigned URL requires the feature flag `EnableExportDirectDownload` to be set to `true`, the storage must support presigned links (Amazon S3 or Azure Blob Storage), and this experimental configuration setting must be set to `true`. Presigned URLs for exports aren't supported for systems with shared storage.
 
 </Note>
