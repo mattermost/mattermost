@@ -216,6 +216,14 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
 	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
 
+	mockAccessControlPolicyStore := mocks.AccessControlPolicyStore{}
+	mockAccessControlPolicyStore.On("GetMaxUpdateAt", mock.Anything, "channel-id").Return(int64(100), nil)
+	mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+	mockAttributesStore := mocks.AttributesStore{}
+	mockAttributesStore.On("GetUserPropertyValuesEpoch", mock.Anything, "user-id").Return(int64(200), nil)
+	mockStore.On("Attributes").Return(&mockAttributesStore)
+
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
 

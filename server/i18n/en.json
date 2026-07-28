@@ -52,6 +52,10 @@
     "translation": "A group-synced team cannot have a membership policy applied."
   },
   {
+    "id": "api.access_control.decision.unsupported_resource_type.app_error",
+    "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },

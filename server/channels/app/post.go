@@ -1392,7 +1392,10 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 // a file-policy change or user attribute change causes an ETag miss — forcing
 // SanitizePostListMetadataForUser to run instead of returning a stale 304.
 // Format: "base.maxPolicyCreateAt.userCPAUpdateAt". No-op when ABAC is inactive.
-func (a *App) AppendABACEtag(base string, userID string) string {
+//
+// channelID scopes the policy epoch to the permission policies plus that channel's own policy;
+// pass "" when no channel is in scope. Both epochs are cached in the store's local cache layer.
+func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
 	if !a.Config().FeatureFlags.PermissionPolicies ||
 		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||
 		!*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
@@ -1402,7 +1405,7 @@ func (a *App) AppendABACEtag(base string, userID string) string {
 	rctx := request.EmptyContext(a.Log())
 
 	var maxPolicyAt int64
-	if epoch, err := a.getMaxPolicyAtCached(rctx); err == nil {
+	if epoch, err := a.Srv().Store().AccessControlPolicy().GetMaxUpdateAt(rctx, channelID); err == nil {
 		maxPolicyAt = epoch
 	} else {
 		a.Log().Warn("ABAC ETag: failed to get max policy CreateAt; policy component will be 0",
@@ -1434,7 +1437,7 @@ func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads boo
 		}
 	}
 	base := a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, includeTranslations)
-	return a.AppendABACEtag(base, userID)
+	return a.AppendABACEtag(base, userID, channelID)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

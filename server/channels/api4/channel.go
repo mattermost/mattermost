@@ -1091,7 +1091,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId)
+	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId, c.Params.ChannelId)
 	if c.HandleEtag(pinnedEtag, "Get Pinned Posts", w, r) {
 		return
 	}

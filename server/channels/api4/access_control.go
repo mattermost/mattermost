@@ -59,12 +59,17 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 		c.Err = appErr
 		return
 	}
-	// Verify the caller can access the resource before revealing ABAC decisions for it.
-	if req.Resource.Type == model.AccessControlPolicyTypeChannel {
+	// Fail closed on resource types we can't authorize: only channel decisions are exposed
+	// today, so anything else is rejected rather than silently skipping the access check.
+	switch req.Resource.Type {
+	case model.AccessControlPolicyTypeChannel:
 		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+	default:
+		c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.access_control.decision.unsupported_resource_type.app_error", map[string]any{"Type": req.Resource.Type}, "", http.StatusBadRequest)
+		return
 	}
 
 	resp, appErr := c.App.SearchAllowedActionsForCurrentUser(c.AppContext, req)

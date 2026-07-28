@@ -15,6 +15,11 @@ type AccessControlPolicyStore struct {
 	mock.Mock
 }
 
+// ClearEtagCache provides a mock function with no fields
+func (_m *AccessControlPolicyStore) ClearEtagCache() {
+	_m.Called()
+}
+
 // Delete provides a mock function with given fields: rctx, id
 func (_m *AccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	ret := _m.Called(rctx, id)
@@ -123,9 +128,9 @@ func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policy
 	return r0, r1
 }
 
-// GetMaxUpdateAt provides a mock function with given fields: rctx
-func (_m *AccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
-	ret := _m.Called(rctx)
+// GetMaxUpdateAt provides a mock function with given fields: rctx, channelID
+func (_m *AccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMaxUpdateAt")
@@ -133,17 +138,17 @@ func (_m *AccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, err
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX) (int64, error)); ok {
-		return rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (int64, error)); ok {
+		return rf(rctx, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX) int64); ok {
-		r0 = rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) int64); ok {
+		r0 = rf(rctx, channelID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
-		r1 = rf(rctx)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -179,6 +184,11 @@ func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, field
 	}
 
 	return r0, r1
+}
+
+// InvalidateEtagForChannel provides a mock function with given fields: channelID
+func (_m *AccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+	_m.Called(channelID)
 }
 
 // Save provides a mock function with given fields: rctx, policy

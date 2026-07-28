@@ -2018,7 +2018,7 @@ func (a *App) HydrateTeamsPolicyActions(rctx request.CTX, teams []*model.Team) *
 // only need to refresh access control state — not run the full
 // channel_updated reducer/router pipeline.
 func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
-	a.invalidateMaxPolicyAtCache()
+	a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channelID)
 	a.Srv().Store().Channel().InvalidateChannel(channelID)
 
 	channel, appErr := a.GetChannel(rctx, channelID)
@@ -2060,45 +2060,11 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 // publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
 // TypePermission policies are global, so no channel ID is included in the event.
 func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
-	a.invalidateMaxPolicyAtCache()
+	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
+	// Clear the whole epoch cache rather than a single channel key.
+	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
 	a.Publish(messageWs)
-}
-
-const maxPolicyAtCacheTTL = 5 * time.Second
-
-// getMaxPolicyAtCached returns the cached MAX(AccessControlPolicies.CreateAt) for
-// file-action policies, re-querying the DB at most once every 5 s. The value is
-// invalidated immediately on any policy write via invalidateMaxPolicyAtCache.
-func (a *App) getMaxPolicyAtCached(rctx request.CTX) (int64, error) {
-	ch := a.Srv().Channels()
-	ch.maxPolicyAtMu.Lock()
-	if time.Since(ch.maxPolicyAtCachedAt) < maxPolicyAtCacheTTL {
-		v := ch.maxPolicyAtValue
-		ch.maxPolicyAtMu.Unlock()
-		return v, nil
-	}
-	ch.maxPolicyAtMu.Unlock()
-
-	v, err := a.Srv().Store().AccessControlPolicy().GetMaxUpdateAt(rctx)
-	if err != nil {
-		return 0, err
-	}
-
-	ch.maxPolicyAtMu.Lock()
-	ch.maxPolicyAtValue = v
-	ch.maxPolicyAtCachedAt = time.Now()
-	ch.maxPolicyAtMu.Unlock()
-	return v, nil
-}
-
-// invalidateMaxPolicyAtCache forces the next getMaxPolicyAtCached call to re-query
-// the DB, ensuring the updated CreateAt is reflected in subsequent ETags immediately.
-func (a *App) invalidateMaxPolicyAtCache() {
-	ch := a.Srv().Channels()
-	ch.maxPolicyAtMu.Lock()
-	ch.maxPolicyAtCachedAt = time.Time{}
-	ch.maxPolicyAtMu.Unlock()
 }
 
 // publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy

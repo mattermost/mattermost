@@ -942,24 +942,21 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 	return policies, nil
 }
 
-func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
-	// No UpdateAt column; table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
-	// Only include policies with file-action rules so membership-only changes don't
-	// invalidate post-list ETags. TypePermission is always included (no membership rules).
-	hasFileAction := fmt.Sprintf(
-		"EXISTS (SELECT 1 FROM jsonb_array_elements("+
-			"CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END"+
-			") AS rule WHERE rule->'actions' @> '[%q]'::jsonb OR rule->'actions' @> '[%q]'::jsonb)",
-		model.AccessControlPolicyActionUploadFileAttachment,
-		model.AccessControlPolicyActionDownloadFileAttachment,
-	)
-
+// GetMaxUpdateAt returns MAX(CreateAt) across the system-scoped permission policies plus the
+// given channel's own policy row (a channel policy's ID equals the channel ID). There is no
+// UpdateAt column — the table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
+//
+// Matching the channel row by primary key rather than scanning every policy's rules JSON scopes
+// the query to the target channel; the cost is a benign false positive where a membership-only
+// change to this channel's policy also advances the epoch. An empty channelID considers only the
+// permission policies.
+func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("COALESCE(MAX(CreateAt), 0)").
 		From("AccessControlPolicies").
 		Where(sq.Or{
 			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
-			sq.Expr(hasFileAction),
+			sq.Eq{"Id": channelID},
 		}).
 		ToSql()
 	if err != nil {
@@ -972,3 +969,7 @@ func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, e
 	}
 	return epoch, nil
 }
+
+// No-op at the SQL layer; the render-ETag epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {}
+func (s *SqlAccessControlPolicyStore) ClearEtagCache()                           {}

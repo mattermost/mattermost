@@ -255,6 +255,10 @@ func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID
 	return epoch, nil
 }
 
+// No-op at the SQL layer; the per-user epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
+func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
+
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").

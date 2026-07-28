@@ -48,6 +48,16 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("unsupported resource type returns bad request", func(t *testing.T) {
+		// A non-channel resource type must be rejected outright rather than silently skipping
+		// the resource-access check. Discovery mode (no actions) previously returned an empty 200.
+		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeTeam, ID: th.BasicTeam.Id},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("returns allowed when ABAC is inactive", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false

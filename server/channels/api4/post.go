@@ -584,7 +584,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId)
+	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
 	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
@@ -902,7 +902,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId)
+	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
 	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}

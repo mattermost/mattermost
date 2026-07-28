@@ -633,6 +633,12 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
+func (s *RetryLayerAccessControlPolicyStore) ClearEtagCache() {
+
+	s.AccessControlPolicyStore.ClearEtagCache()
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 
 	tries := 0
@@ -717,11 +723,11 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
+		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -756,6 +762,12 @@ func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+
+	s.AccessControlPolicyStore.InvalidateEtagForChannel(channelID)
 
 }
 
@@ -843,6 +855,12 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx reques
 
 }
 
+func (s *RetryLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
+
+	s.AttributesStore.ClearUserPropertyValuesEpochCache()
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -924,6 +942,12 @@ func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+
+	s.AttributesStore.InvalidateUserPropertyValuesEpoch(userID)
 
 }
 

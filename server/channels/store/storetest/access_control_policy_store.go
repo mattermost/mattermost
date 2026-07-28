@@ -29,6 +29,56 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SearchByTeamIDWithScope", func(t *testing.T) { testAccessControlPolicyStoreSearchByTeamIDWithScope(t, rctx, ss) })
 	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
 	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
+	t.Run("GetMaxUpdateAt", func(t *testing.T) { testAccessControlPolicyStoreGetMaxUpdateAt(t, rctx, ss) })
+}
+
+func testAccessControlPolicyStoreGetMaxUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	// baseline is the epoch contributed by any system-scoped permission policies already present
+	// (queried against a channel ID that cannot match anything). Every per-channel assertion is
+	// made relative to it, so the test stays deterministic regardless of unrelated policies.
+	baseline, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, model.NewId())
+	require.NoError(t, err)
+
+	channelID := model.NewId()
+	policy := &model.AccessControlPolicy{
+		ID:       channelID,
+		Name:     "Name",
+		Type:     model.AccessControlPolicyTypeChannel,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Imports:  []string{},
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: "user.properties.program == \"engineering\"",
+			},
+		},
+	}
+	saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+	require.NoError(t, err)
+	require.NotZero(t, saved.CreateAt)
+	t.Cleanup(func() {
+		require.NoError(t, ss.AccessControlPolicy().Delete(rctx, channelID))
+	})
+
+	t.Run("includes the target channel's own policy row", func(t *testing.T) {
+		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, epoch, saved.CreateAt)
+	})
+
+	t.Run("a channel policy does not affect a different channel's epoch", func(t *testing.T) {
+		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, model.NewId())
+		require.NoError(t, err)
+		require.Equal(t, baseline, epoch)
+	})
+
+	t.Run("empty channel id is scoped to permission policies only", func(t *testing.T) {
+		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, "")
+		require.NoError(t, err)
+		require.Equal(t, baseline, epoch)
+	})
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {

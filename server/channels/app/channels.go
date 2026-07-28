@@ -86,10 +86,6 @@ type Channels struct {
 	attributeViewRefreshLast  time.Time
 	attributeViewNeedsRefresh atomic.Bool
 
-	maxPolicyAtMu       sync.Mutex
-	maxPolicyAtValue    int64
-	maxPolicyAtCachedAt time.Time
-
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
 	// and data corruption.
