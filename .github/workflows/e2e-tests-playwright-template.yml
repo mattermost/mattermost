@@ -326,15 +326,6 @@ jobs:
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
-      # The only step that actually tears down the stack: PW_TESTCONTAINERS_REUSE means every
-      # earlier step (including ci/prepare-playwright's own global-teardown call) just adopts the
-      # already-running server instead of stopping it. Also collects container logs and archives
-      # the boot-env drift history (.env.testcontainers) before removing containers.
-      - name: ci/testcontainers-teardown
-        if: always()
-        working-directory: e2e-tests/playwright
-        run: npm run testcontainers:down
-
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
