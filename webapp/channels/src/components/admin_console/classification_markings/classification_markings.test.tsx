@@ -28,6 +28,8 @@ import {
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_USER_OBJECT_TYPE,
+    CLEARANCE_FIELD_NAME,
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
 } from './utils';
@@ -97,6 +99,35 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
         ...overrides,
     };
 }
+
+// A "Clearance" user field linked to the classification template ('field1').
+function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        id: 'clearance_field1',
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLEARANCE_FIELD_NAME,
+        type: 'rank',
+        attrs: {},
+        target_id: '',
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_USER_OBJECT_TYPE,
+        linked_field_id: 'field1',
+        create_at: 5000,
+        update_at: 5000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+        ...overrides,
+    };
+}
+
+// State with ABAC enabled, which reveals the Classification Enforcement section.
+const ABAC_STATE = {
+    entities: {
+        users: {currentUserId: MOCK_USER_ID},
+        admin: {config: {AccessControlSettings: {EnableAttributeBasedAccessControl: true}}},
+    },
+};
 
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
@@ -1203,6 +1234,96 @@ describe('Channel classification linked field branches', () => {
         // and linked field so consumers that read from Redux get it immediately.
         const fieldsById = store.getState().entities.properties.fields.byId;
         expect(fieldsById[existingChannelField.id]).toEqual(existingChannelField);
+    });
+
+    test('should create the linked Clearance user field on save when the clearance checkbox is enabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+
+        // No existing clearance field; everything else already exists (patch, not create).
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return []; // user object type: no clearance yet
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeUserLinkedField());
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByText('Classification Enforcement');
+
+        const user = userEvent.setup();
+        await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(createSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                expect.objectContaining({
+                    name: CLEARANCE_FIELD_NAME,
+                    type: 'rank',
+                    linked_field_id: field.id,
+                    attrs: expect.objectContaining({managed: 'admin'}),
+                }),
+            );
+        });
+        await act(async () => {});
+    });
+
+    test('should delete the linked Clearance user field on save when the clearance checkbox is disabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Clearance exists: return it on the first user-object-type page, then an
+        // empty page to end pagination (per fetchUserLinkedFields invocation).
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByText('Classification Enforcement');
+
+        const user = userEvent.setup();
+        const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
+        expect(checkbox).toBeChecked();
+        await user.click(checkbox); // uncheck
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                clearance.id,
+            );
+        });
+        await act(async () => {});
     });
 
     test('should delete channel-linked field before linked and template when disabling', async () => {

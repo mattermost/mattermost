@@ -150,6 +150,13 @@ describe('UserPropertyValues', () => {
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
 
+    it('is disabled when the field is linked to a template', () => {
+        renderComponent({...baseField, linked_field_id: 'template-field-id'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
+    });
+
     it('shows LDAP sync information when field has LDAP attribute', () => {
         const ldapField = {
             ...baseField,
