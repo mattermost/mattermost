@@ -17,6 +17,16 @@ describe('window.Components exposes plugin modals', () => {
     });
 });
 
+describe('window.Components exposes ABAC policy editors', () => {
+    test('AccessControlTableEditor is defined', () => {
+        expect((window as any).Components.AccessControlTableEditor).toBeDefined();
+    });
+
+    test('AccessControlCELEditor is defined', () => {
+        expect((window as any).Components.AccessControlCELEditor).toBeDefined();
+    });
+});
+
 describe('window.WebappUtils.channels exposes channel actions', () => {
     test('favoriteChannel is defined', () => {
         expect((window as any).WebappUtils.channels.favoriteChannel).toBeDefined();
