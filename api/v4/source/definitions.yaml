@@ -249,6 +249,7 @@ components:
             than the requester, as the value is private to that user.
           type: integer
           format: int64
+          nullable: true
         msg_count:
           type: integer
         mention_count:
@@ -262,6 +263,7 @@ components:
             the requester, as the value is private to that user.
           type: integer
           format: int64
+          nullable: true
     ChannelMemberWithTeamData:
       allOf:
         - $ref: "#/components/schemas/ChannelMember"
