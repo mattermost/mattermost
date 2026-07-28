@@ -419,4 +419,93 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             },
         );
     });
+
+    test.describe('create attribute', () => {
+        /**
+         * @objective Ensure the full create flow works end-to-end: the "New attribute" button
+         * navigates to the create page, the Unique name live-updates from Display name, the
+         * Edit/Done toggle round-trips correctly, and Save creates a real bare Text template
+         * that shows up back in the Manage Attributes list.
+         */
+        test('creates a bare Text attribute via the New attribute page and shows it in the list', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            // Avoids an "E2E" prefix: slugifyForCEL's camelCase/digit-boundary regex
+            // (webapp/channels/src/utils/properties.ts) inserts an underscore between
+            // any lowercase-or-digit character immediately followed by an uppercase
+            // one, so "E2E ..." would actually slugify to "e2_e_..." (verified against
+            // slugifyForCEL directly), not the naively-expected "e2e_...". "Playwright"
+            // has no internal case/digit boundary, so its derived slug is unambiguous.
+            const timestamp = Date.now();
+            const displayName = `Playwright Created Attribute ${timestamp}`;
+            const expectedName = `playwright_created_attribute_${timestamp}`;
+
+            try {
+                // # Log in and open the Manage Attributes page
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                // # Click "New attribute" to open the create page
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+                // # Fill in the Display name; the Unique name caption auto-derives live
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
+
+                // # Exercise the Edit/Done round-trip once, confirming the input is focused
+                // and seeded, then revert back to static display without changing the value
+                await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+                const nameInput = systemConsolePage.page.getByTestId('attributeNameInput');
+                await expect(nameInput).toBeFocused();
+                await expect(nameInput).toHaveValue(expectedName);
+                await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
+
+                // # Save
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * Redirected back to the Manage Attributes list
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * The new attribute renders with the expected Display name, Type, and Source
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-name')).toHaveText(displayName);
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Text');
+                await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a Display name that auto-slugs straight to a reserved CEL word shows
+         * a specific inline error, disables Save, and does not navigate away — without the admin
+         * ever clicking "Edit" to reach the manual Name input.
+         */
+        test('shows an inline error and does not navigate away when the auto-derived Name is a reserved word', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            // # Log in and open the Manage Attributes page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            // # Open the create page
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+            // # Type a Display name that auto-slugs straight to a reserved CEL keyword
+            await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill('For');
+
+            // * Inline validation error is shown without ever clicking "Edit"
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toContainText('reserved word');
+            // * Save is disabled
+            await expect(systemConsolePage.page.getByTestId('saveSetting')).toBeDisabled();
+
+            // * No navigation occurred
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+        });
+    });
 });
