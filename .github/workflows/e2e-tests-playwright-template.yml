@@ -260,13 +260,22 @@ jobs:
         worker_index: ${{ fromJSON(needs.prepare-run.outputs.workers-matrix) }}
     env:
       COMPOSITE_IDENTITY: ${{ needs.prepare-run.outputs.composite-identity-json }}
-      SERVER: "${{ inputs.server }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: playwright
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
+      # testcontainers mode: global setup brings up Postgres, Inbucket, the Mattermost
+      # server, and these services itself. Every worker enables the same fixed set because
+      # dispatch pulls specs from a shared queue, so no worker knows in advance which
+      # service-tagged spec (e.g. @ldap, @saml, @elasticsearch) it will draw.
+      PW_USE_TESTCONTAINERS: "true"
+      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,opensearch,minio,azurite"
+      # Keeps the server alive across this worker's per-spec dispatch invocations instead of
+      # tearing down after each — otherwise ci/prepare-playwright's own global-teardown call would
+      # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
+      # teardown once the whole queue is done.
+      PW_TESTCONTAINERS_REUSE: "true"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)
@@ -304,15 +313,9 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
           fail-on-cache-miss: true
-      - name: ci/cloud-init
-        working-directory: e2e-tests
-        run: make cloud-init
-      - name: ci/start-server
-        working-directory: e2e-tests
-        run: make start-server
-      # Run the `setup` project so per-spec dispatches can pass --no-deps
-      # and skip plugin-load + server-deployment checks. node_modules,
-      # lib/dist, and chromium are all restored from cache.
+      # Brings up the stack via Testcontainers in `testcontainers` mode (global setup). Also runs the
+      # `setup` project so per-spec dispatches can pass --no-deps and skip plugin-load +
+      # server-deployment checks. node_modules, lib/dist, and chromium are all restored from cache.
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
@@ -328,10 +331,14 @@ jobs:
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
-      - name: ci/cloud-teardown
+      # The only step that actually tears down the stack: PW_TESTCONTAINERS_REUSE means every
+      # earlier step (including ci/prepare-playwright's own global-teardown call) just adopts the
+      # already-running server instead of stopping it. Also collects container logs and archives
+      # the boot-env drift history (.env.testcontainers) before removing containers.
+      - name: ci/testcontainers-teardown
         if: always()
-        working-directory: e2e-tests
-        run: make cloud-teardown
+        working-directory: e2e-tests/playwright
+        run: npm run testcontainers:down
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
