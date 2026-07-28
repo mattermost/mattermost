@@ -580,6 +580,12 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	if err != nil {
 		return siteURLPrefix
 	}
+	// path.Clean("") is ".", which no real path has as a prefix, so a root
+	// SiteURL (empty path) would reject every same-origin relative redirect.
+	prefixPath := path.Clean(prefixParsed.Path)
+	if prefixPath == "." {
+		prefixPath = "/"
+	}
 	// mobile access
 	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) &&
 		parsed.Host == callbackHost &&
@@ -591,7 +597,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
-	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+	safePath := strings.HasPrefix(path.Clean(parsed.Path), prefixPath)
 
 	if sameScheme && sameHost && safePath {
 		return targetURL
@@ -618,7 +624,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		return siteURLPrefix
 	}
 
-	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
+	if !strings.HasPrefix(path.Clean(parsed.Path), prefixPath) {
 		return siteURLPrefix
 	}
 

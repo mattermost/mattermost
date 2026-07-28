@@ -985,6 +985,26 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target, []string{"mmauth://"}))
 		})
 	}
+
+	// Root SiteURL (empty path). SetSiteURLHeader strips the trailing slash, so
+	// the site path is "" and path.Clean gives ".". Same-origin relative targets
+	// (e.g. the /oauth/authorize resume after SSO login) must be preserved, while
+	// cross-origin targets must still collapse to the site root.
+	const rootSiteURL = "https://xxx.yyy"
+
+	for target, expected := range map[string]string{
+		"":                         rootSiteURL,
+		"/":                        rootSiteURL + "/",
+		"/oauth/authorize?foo=bar": rootSiteURL + "/oauth/authorize?foo=bar",
+		"/oauth/authorize?response_type=code&client_id=abc&state=x": rootSiteURL + "/oauth/authorize?response_type=code&client_id=abc&state=x",
+		"//evil.com":                rootSiteURL,
+		"https://yyy.zzz/some-path": rootSiteURL,
+		"https://xxx.yyy/some-path": rootSiteURL + "/some-path",
+	} {
+		t.Run("root/"+target, func(t *testing.T) {
+			require.Equal(t, expected, fullyQualifiedRedirectURL(rootSiteURL, target, []string{"mmauth://"}))
+		})
+	}
 }
 
 func TestAuthorizeOAuthPage(t *testing.T) {
