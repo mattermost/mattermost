@@ -40,8 +40,10 @@ export type WysiwygEditorProps = {
     // Registered at mount, later changes are ignored.
     extensions?: any[];
 
-    // Fires when Tiptap can't parse `value` (unknown node, schema mismatch).
-    // In 'json' mode, use it to hold back autosave.
+    // Fires in 'json' mode when `value` can't be parsed — malformed JSON, or a
+    // schema mismatch caught by Tiptap's content check (unknown node type,
+    // etc.). The editor falls back to an empty doc; use this to hold back
+    // autosave. No-op in 'markdown' mode.
     onContentError?: (error: Error) => void;
 };
 
@@ -132,8 +134,10 @@ export type PublishedWysiwygEditorHandle = {
     blur: () => void;
     getInputBox: () => HTMLElement | null;
 
-    // Null before create / after destroy. In 'json' mode use `getJSON()`;
-    // `getMarkdown()` is unavailable.
+    // Returns the Tiptap Editor, or `null` before create / after destroy. The
+    // ref is populated in a passive effect, so a consumer's useLayoutEffect
+    // can still observe null on the initial render. In 'json' mode use
+    // `getJSON()`; `getMarkdown()` isn't attached.
     getEditor: () => any;
 };
 

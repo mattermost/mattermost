@@ -17,7 +17,12 @@ jest.mock('@tiptap/react', () => {
             return {
                 isDestroyed: false,
                 isEmpty: true,
-                commands: {clearContent: () => undefined, focus: () => undefined, blur: () => undefined},
+                commands: {
+                    clearContent: () => undefined,
+                    focus: () => undefined,
+                    blur: () => undefined,
+                    insertContent: () => undefined,
+                },
                 setEditable: () => undefined,
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 getMarkdown: () => 'hi',
@@ -161,7 +166,13 @@ describe('WysiwygEditor', () => {
         expect(mockCapturedConfig.current?.content).toEqual({type: 'doc', content: [{type: 'paragraph'}]});
     });
 
-    test('json mode enables emitContentError and forwards the callback', () => {
+    test('markdown mode leaves enableContentCheck off', () => {
+        renderWithContext(<WysiwygEditor {...baseProps}/>);
+
+        expect(mockCapturedConfig.current?.enableContentCheck).toBe(false);
+    });
+
+    test('json mode enables enableContentCheck and forwards the callback', () => {
         const onContentError = jest.fn();
 
         renderWithContext(
@@ -172,25 +183,50 @@ describe('WysiwygEditor', () => {
             />,
         );
 
-        expect(mockCapturedConfig.current?.emitContentError).toBe(true);
+        expect(mockCapturedConfig.current?.enableContentCheck).toBe(true);
 
         const err = new Error('bad node');
         mockCapturedConfig.current?.onContentError?.({error: err});
         expect(onContentError).toHaveBeenCalledWith(err);
     });
 
-    test('handlePaste short-circuits in json mode so markdown paste conversion is skipped', () => {
+    test('json mode reports a parse error via onContentError when value is unparseable', async () => {
+        const onContentError = jest.fn();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                value='not json'
+                contentType='json'
+                onContentError={onContentError}
+            />,
+        );
+
+        expect(onContentError).toHaveBeenCalledTimes(1);
+        expect(onContentError.mock.calls[0][0]).toBeInstanceOf(Error);
+    });
+
+    test('handlePaste short-circuits in json mode; markdown mode still handles pastes', () => {
+        const mkEvent = () => ({
+            preventDefault: jest.fn(),
+            clipboardData: {
+                getData: (type: string) => (type === 'text/plain' ? '# heading' : ''),
+            },
+        }) as any;
+
         renderWithContext(
             <WysiwygEditor
                 {...baseProps}
                 contentType='json'
             />,
         );
+        expect(mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent())).toBe(false);
 
-        const handlePaste = mockCapturedConfig.current?.editorProps?.handlePaste;
-        const event = {clipboardData: {getData: () => '# heading'}} as any;
+        mockCapturedConfig.current = null;
+        renderWithContext(<WysiwygEditor {...baseProps}/>);
 
-        expect(handlePaste?.({} as any, event)).toBe(false);
+        const result = mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent());
+        expect(result).not.toBe(false);
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {

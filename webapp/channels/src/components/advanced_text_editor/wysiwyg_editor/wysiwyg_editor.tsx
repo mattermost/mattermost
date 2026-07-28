@@ -202,6 +202,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         baseExtensions.push(...extraExtensions);
     }
 
+    const onContentErrorRef = useLatest(onContentError);
+    const parseErrorRef = useRef<Error | null>(null);
+
     const initialContent = useMemo<string | Record<string, unknown>>(() => {
         if (!jsonMode) {
             return value;
@@ -211,20 +214,31 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         }
         try {
             const parsed = JSON.parse(value);
-            return isPlainObject(parsed) ? parsed : EMPTY_JSON_DOC;
-        } catch {
+            if (isPlainObject(parsed)) {
+                return parsed;
+            }
+            parseErrorRef.current = new Error('Invalid JSON content: expected an object doc');
+            return EMPTY_JSON_DOC;
+        } catch (err) {
+            parseErrorRef.current = err instanceof Error ? err : new Error('Invalid JSON content');
             return EMPTY_JSON_DOC;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const onContentErrorRef = useLatest(onContentError);
+    useEffect(() => {
+        if (parseErrorRef.current) {
+            onContentErrorRef.current?.(parseErrorRef.current);
+            parseErrorRef.current = null;
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const editor = useEditor({
         extensions: baseExtensions,
         content: initialContent,
         contentType: jsonMode ? undefined : 'markdown',
-        emitContentError: jsonMode,
+        enableContentCheck: jsonMode,
         onContentError: ({error}) => onContentErrorRef.current?.(error),
         editable: !disabled,
         editorProps: {
