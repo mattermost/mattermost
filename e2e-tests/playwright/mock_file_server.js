@@ -100,7 +100,9 @@ const server = createServer((req, res) => {
     });
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+// Bind to all interfaces, not just loopback, so the Mattermost server container can reach this
+// over the Docker network in `testcontainers` mode.
+server.listen(PORT, () => {
     const address = server.address();
     const actualPort = typeof address === 'object' && address ? address.port : PORT;
     console.log(`File server serving ${ASSET_DIR} on port ${actualPort}!`);

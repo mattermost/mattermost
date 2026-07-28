@@ -2,10 +2,9 @@
  *
  * Tighter visual match to the brand infographic:
  * - Application zone visibly contained in a denim wash + border
- * - Intro panels are NOT clickable cards; they're text columns with a
- *   denim left-edge accent (brand-aligned, signals "category label" —
- *   marigold is a sparse CTA/interactive accent per the token contract,
- *   not decoration for static, non-interactive panels)
+ * - Intro panels are NOT clickable cards; they're plain text columns
+ *   (no left-edge accent bar — the surrounding denim wash/borders already
+ *   signal the section boundary)
  * - Use Case cells use a soft denim-tinted background, not white-on-white
  * - All clickable cells share the same white-with-marigold-on-hover treatment
  * - Section titles get a thin marigold underline for visual rhythm
@@ -93,19 +92,12 @@
 }
 
 /* === Intro panels (Application / Integration / Deployment left column) ===
-   Not clickable. Denim left-edge accent for visual rhythm. */
+   Not clickable — plain text columns, no left-edge accent bar. */
 
 .appIntro,
 .intIntro,
 .depIntro {
-  padding: 0.25rem 0.6rem 0.25rem 0.7rem;
-  border-left: 3px solid var(--mm-color-denim, #1E325C);
-}
-
-[data-theme='dark'] .appIntro,
-[data-theme='dark'] .intIntro,
-[data-theme='dark'] .depIntro {
-  border-left-color: var(--mm-denim-300, #8499C5);
+  padding: 0.25rem 0.6rem 0.25rem 0;
 }
 
 .appIntro h3,
