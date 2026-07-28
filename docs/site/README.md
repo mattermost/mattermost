@@ -57,7 +57,8 @@ top of the auto-generated tree for those sections only: Overview
 (`DEPLOYMENT_GROUPS`/`DEPLOYMENT_ROOT_ORDER`), Administration Guide →
 Configure (`ADMIN_CONFIGURE_GROUPS`/`ADMIN_CONFIGURE_ORDER`),
 Administration Guide → Manage (`ADMIN_MANAGE_GROUPS`/`ADMIN_MANAGE_ORDER`),
-and Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
+End User Guide → Collaborate (`COLLABORATE_GROUPS`/`COLLABORATE_ORDER`), and
+Integrations Guide (`INTEGRATIONS_GROUPS`/`INTEGRATIONS_ROOT_ORDER`).
 
 The override only changes how the sidebar renders — files stay flat on
 disk at their existing paths, so URLs don't move. Each override is a pair
@@ -65,10 +66,22 @@ of constants near the top of the script:
 
 - A `*_GROUPS` map of group key → `{label, landing?, items}`, where `items`
   are doc basenames (relative to that section's directory) or nested
-  inline group objects.
+  inline group objects. A group's `items` can itself contain a nested
+  `{label, items}` sub-group, which adds a third category level — a
+  four-level path of Guide → Group → Sub-group → page — for a section
+  large enough to need it — see `OVERVIEW_GROUPS.subscription`'s "Cloud"
+  sub-group, or `ADMIN_MANAGE_GROUPS.userAccess`'s "Attribute-Based Access
+  Control" sub-group, for existing examples.
 - A `*_ROOT_ORDER`/`*_ORDER` array listing the top-level order: plain
   strings for standalone docs, `{group: 'key'}` for a group from the map
   above.
+
+There's no single shared "grouping engine" — each overridden section gets
+its own small `buildXItem`/`regroupX` (or `buildXSidebar`) pair that mirrors
+the shape of the others (see `buildCollaborateItem`/`regroupCollaborate` for
+the End User Guide → Collaborate one). Adding an override for a new section
+means copying that shape for the new section, not extending a shared
+function.
 
 **Adding a new file to one of these sections:** the script fails loudly if
 you forget it — it logs a `WARN: N file(s) missing from *_ORDER` and falls
