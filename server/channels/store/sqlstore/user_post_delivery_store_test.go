@@ -115,11 +115,6 @@ func TestUserPostDeliveryStore(t *testing.T) {
 	})
 }
 
-// TestUserPostDeliveryStoreDisabled verifies the "always create on primary"
-// behavior: even with the feature disabled, the UserPostDelivery table is
-// provisioned on the primary DB by the always-run migration, while
-// Store().UserPostDelivery() stays the no-op store because no delivery pool is
-// opened.
 func TestUserPostDeliveryStoreDisabled(t *testing.T) {
 	if testing.Short() {
 		t.Skip("requires live database")
@@ -140,11 +135,49 @@ func TestUserPostDeliveryStoreDisabled(t *testing.T) {
 		storetest.CleanupSqlSettings(settings)
 	}()
 
-	// The table is created on the primary DB regardless of the feature state.
+	// Neither the table nor its migration-version table is provisioned.
 	exists, err := ss.tableExists(userPostDeliveryTableName)
 	require.NoError(t, err)
-	require.True(t, exists, "UserPostDelivery table should exist on the primary DB even when the feature is disabled")
+	require.False(t, exists, "UserPostDelivery table should not be created when the feature is disabled")
+
+	exists, err = ss.tableExists(userPostDeliveryMigrationsTableName)
+	require.NoError(t, err)
+	require.False(t, exists, "post-delivery-tracking migrations should not run when the feature is disabled")
 
 	// With no delivery pool opened, the store is the no-op implementation.
 	require.IsType(t, noopUserPostDeliveryStore{}, ss.UserPostDelivery(), "disabled feature should yield the no-op store")
+}
+
+func TestUserPostDeliveryStoreFlagOffConfigOn(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires live database")
+	}
+
+	logger := mlog.CreateTestLogger(t)
+
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
+	dt := model.DeliveryTrackingSettings{
+		Enable:     model.NewPointer(true),
+		DataSource: model.NewPointer(""), // primary-DB fallback
+	}
+	dt.SetDefaults()
+
+	// Config on, feature flag off (WithFeatureFlags omitted => defaults, which
+	// have PostDeliveryTracking false).
+	ss, err := New(*settings, logger, nil, WithDeliveryTrackingSettings(dt))
+	require.NoError(t, err)
+	defer func() {
+		ss.Close()
+		storetest.CleanupSqlSettings(settings)
+	}()
+
+	exists, err := ss.tableExists(userPostDeliveryTableName)
+	require.NoError(t, err)
+	require.False(t, exists, "the feature flag alone gates provisioning; config Enable is not sufficient")
+
+	require.IsType(t, noopUserPostDeliveryStore{}, ss.UserPostDelivery())
 }
