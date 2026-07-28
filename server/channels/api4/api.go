@@ -98,6 +98,8 @@ type Routes struct {
 
 	DataRetention *mux.Router // 'api/v4/data_retention'
 
+	EphemeralMode *mux.Router // 'api/v4/ephemeral_mode'
+
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -281,6 +283,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ScheduledRecap = api.BaseRoutes.ScheduledRecaps.PathPrefix("/{scheduled_recap_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
+	api.BaseRoutes.EphemeralMode = api.BaseRoutes.APIRoot.PathPrefix("/ephemeral_mode").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.APIRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.APIRoot.PathPrefix("/emoji/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -368,6 +371,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLdap()
 	api.InitElasticsearch()
 	api.InitDataRetention()
+	api.InitEphemeralMode()
 	api.InitBrand()
 	api.InitJob()
 	api.InitRecap()
