@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import type {ReactWrapper, ShallowWrapper} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import LoadingImagePreview from 'components/loading_image_preview';
@@ -40,8 +40,8 @@ describe('components/SizeAwareImage', () => {
         },
     });
 
-    const findActualImage = (wrapper: ReactWrapper | ShallowWrapper) => wrapper.find('img').filterWhere((node) => node.prop('role') !== 'presentation');
-    const findPlaceholderImage = (wrapper: ReactWrapper | ShallowWrapper) => wrapper.find('img').filterWhere((node) => node.prop('role') === 'presentation');
+    const findActualImage = <P, S>(wrapper: ReactWrapper<P, S> | ShallowWrapper<P, S>) => wrapper.find('img').filterWhere((node) => node.prop('role') !== 'presentation');
+    const findPlaceholderImage = <P, S>(wrapper: ReactWrapper<P, S> | ShallowWrapper<P, S>) => wrapper.find('img').filterWhere((node) => node.prop('role') === 'presentation');
 
     test('should render a placeholder when first mounted with dimensions and img display set to none', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
