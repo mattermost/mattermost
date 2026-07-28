@@ -8,7 +8,6 @@ import type {AccessControlTestResult, AccessControlVisualAST} from '@mattermost/
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
-import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
@@ -19,8 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -139,8 +137,9 @@ export interface TableEditorProps {
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
 
-        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
-        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal.
+         *  Receives the test modal's chosen channel id as the trailing arg. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
@@ -821,52 +820,45 @@ function TableEditor({
                         defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                     })}
                 />
-                <TestButton
-                    onClick={onTestClick ?? (() => setShowTestResults(true))}
-                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
-                    disabledTooltip={
+                <div className='access-control-test-controls'>
+                    <TestButton
+                        onClick={onTestClick ?? (() => setShowTestResults(true))}
+                        disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
+                        disabledTooltip={
 
-                        // Precedence: an explicit parent-supplied
-                        // tooltip paired with `testButtonDisabled`
-                        // wins (the parent already chose what the
-                        // user should see and why), then the
-                        // user-excluded message, then any other
-                        // testButtonTooltip the parent passed
-                        // alongside other disable reasons. The
-                        // earlier `userWouldBeExcluded ? … : tooltip`
-                        // ternary silenced parent hints whenever the
-                        // self-exclusion check happened to also
-                        // be true.
-                        (testButtonDisabled && testButtonTooltip) ||
-                        (userWouldBeExcluded ? formatMessage({
-                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                        }) : testButtonTooltip)
-                    }
-                    label={testButtonLabel}
-                />
+                            // Precedence: an explicit parent-supplied tooltip
+                            // paired with `testButtonDisabled` (the parent
+                            // already chose what the user should see and why),
+                            // then the user-excluded message, then any other
+                            // testButtonTooltip the parent passed alongside
+                            // other disable reasons. The earlier
+                            // `userWouldBeExcluded ? … : tooltip` ternary
+                            // silenced parent hints whenever the self-exclusion
+                            // check happened to also be true.
+                            (testButtonDisabled && testButtonTooltip) ||
+                            (userWouldBeExcluded ? formatMessage({
+                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                            }) : testButtonTooltip)
+                        }
+                        label={testButtonLabel}
+                    />
+                </div>
             </div>
 
             {/* Built-in expression-only modal. Suppressed when the parent
               * provided an `onTestClick` override (used by the permission-rule
-              * editor, which renders its own dual-lane simulation modal). */}
+              * editor, which renders its own dual-lane simulation modal). With
+              * no channelId, a resource.attributes.* rule gets a channel-picker
+              * step inside the modal before the members list. */}
             {!onTestClick && showTestResults && (
-                <TestResultsModal
-                    onExited={() => setShowTestResults(false)}
+                <TestResults
+                    expression={value}
+                    channelId={channelId}
+                    teamId={teamId}
                     isStacked={true}
-                    actions={{
-                        openModal: () => {},
-                        searchUsers: (term: string, after: string, limit: number) => {
-                            if (actions.searchUsers) {
-                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
-                                const search = actions.searchUsers;
-                                return () => search(value, term, after, limit);
-                            }
-
-                            // Return the action for the modal to dispatch
-                            return searchUsersForExpression(value, term, after, limit, channelId, teamId);
-                        },
-                    }}
+                    onExited={() => setShowTestResults(false)}
+                    searchUsers={actions.searchUsers}
                 />
             )}
             {showHelpModal && (

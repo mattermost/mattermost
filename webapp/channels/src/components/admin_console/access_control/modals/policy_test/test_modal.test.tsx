@@ -10,6 +10,21 @@ import {TestHelper} from 'utils/test_helper';
 
 import TestResultsModal from './test_modal';
 
+// Mock the channel-picker step so the modal's step logic can be tested in
+// isolation (the picker's own search/rendering is covered by its own test).
+jest.mock('./test_channel_picker', () => {
+    return function MockTestChannelPicker({onSelect}: {onSelect: (channelId: string) => void}) {
+        return (
+            <button
+                data-testid='mock-pick-channel'
+                onClick={() => onSelect('picked-channel')}
+            >
+                {'Pick channel'}
+            </button>
+        );
+    };
+});
+
 // Mock the SearchableUserList component
 jest.mock('components/searchable_user_list/searchable_user_list_container', () => {
     return function MockSearchableUserList({
@@ -113,7 +128,7 @@ describe('TestResultsModal', () => {
         renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
-            expect(mockSearchUsers).toHaveBeenCalledWith('', '', 50);
+            expect(mockSearchUsers).toHaveBeenCalledWith('', '', 50, undefined);
         });
     });
 
@@ -144,7 +159,7 @@ describe('TestResultsModal', () => {
         await userEvent.type(searchInput, 'test search');
 
         await waitFor(() => {
-            expect(mockSearchUsers).toHaveBeenCalledWith('test search', '', 50);
+            expect(mockSearchUsers).toHaveBeenCalledWith('test search', '', 50, undefined);
         });
     });
 
@@ -171,7 +186,7 @@ describe('TestResultsModal', () => {
         // The nextPage function gets called with page 1 (second page), but since it's above USERS_PER_PAGE (10)
         // but less than USERS_TO_FETCH (50), it should use the cursor logic and call with the last user's ID
         await waitFor(() => {
-            expect(mockSearchUsers).toHaveBeenLastCalledWith('', 'user2', 50);
+            expect(mockSearchUsers).toHaveBeenLastCalledWith('', 'user2', 50, undefined);
         });
     });
 
@@ -300,7 +315,7 @@ describe('TestResultsModal', () => {
         await userEvent.type(searchInput, 'search1');
 
         await waitFor(() => {
-            expect(mockSearchUsers).toHaveBeenCalledWith('search1', '', 50);
+            expect(mockSearchUsers).toHaveBeenCalledWith('search1', '', 50, undefined);
         });
 
         // Perform second search
@@ -308,7 +323,7 @@ describe('TestResultsModal', () => {
         await userEvent.type(searchInput, 'search2');
 
         await waitFor(() => {
-            expect(mockSearchUsers).toHaveBeenCalledWith('search2', '', 50);
+            expect(mockSearchUsers).toHaveBeenCalledWith('search2', '', 50, undefined);
         });
     });
 
@@ -326,6 +341,82 @@ describe('TestResultsModal', () => {
         await waitFor(() => {
             const dialog = screen.getByRole('dialog');
             expect(dialog).toHaveAttribute('aria-label', 'Access Rule Test Results');
+        });
+    });
+
+    describe('channel-picker step', () => {
+        it('opens the members list directly (no picker) when requireChannel is false', async () => {
+            renderWithContext(<TestResultsModal {...defaultProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('searchable-user-list')).toBeInTheDocument();
+            });
+            expect(screen.queryByTestId('mock-pick-channel')).not.toBeInTheDocument();
+            expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
+        });
+
+        it('shows the picker step first (no user fetch) when requireChannel is true', async () => {
+            renderWithContext(
+                <TestResultsModal
+                    {...defaultProps}
+                    requireChannel={true}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('mock-pick-channel')).toBeInTheDocument();
+            });
+
+            // Picker step defers the members fetch until a channel is chosen.
+            expect(mockSearchUsers).not.toHaveBeenCalled();
+            expect(screen.queryByTestId('searchable-user-list')).not.toBeInTheDocument();
+            expect(screen.getByText('Select a channel to test against')).toBeInTheDocument();
+        });
+
+        it('threads the picked channel id into the members search', async () => {
+            renderWithContext(
+                <TestResultsModal
+                    {...defaultProps}
+                    requireChannel={true}
+                />,
+            );
+
+            const pick = await screen.findByTestId('mock-pick-channel');
+            await userEvent.click(pick);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('searchable-user-list')).toBeInTheDocument();
+            });
+            expect(mockSearchUsers).toHaveBeenCalledWith('', '', 50, 'picked-channel');
+        });
+
+        it('shows a back arrow in the members view that returns to the picker', async () => {
+            renderWithContext(
+                <TestResultsModal
+                    {...defaultProps}
+                    requireChannel={true}
+                />,
+            );
+
+            const pick = await screen.findByTestId('mock-pick-channel');
+            await userEvent.click(pick);
+
+            const back = await screen.findByLabelText('Back to channel selection');
+            await userEvent.click(back);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('mock-pick-channel')).toBeInTheDocument();
+            });
+            expect(screen.queryByTestId('searchable-user-list')).not.toBeInTheDocument();
+        });
+
+        it('does not show a back arrow in a members-only modal', async () => {
+            renderWithContext(<TestResultsModal {...defaultProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('searchable-user-list')).toBeInTheDocument();
+            });
+            expect(screen.queryByLabelText('Back to channel selection')).not.toBeInTheDocument();
         });
     });
 });
