@@ -5,11 +5,17 @@
 
 import type {
     MmBlock,
+    MmBoolInputBlock,
     MmButtonStyle,
     MmColumnBlock,
     MmContainerBlock,
+    MmDateInputBlock,
     MmImageBlock,
     MmImageSize,
+    MmSelectInputBlock,
+    MmStaticSelectOption,
+    MmTextInputBlock,
+    MmTextInputSubtype,
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
 
@@ -135,8 +141,241 @@ function translateAdaptiveCardItem(
         }
         return translateAdaptiveCardActions(i.actions);
     }
+    case 'Input.Text': {
+        return translateAdaptiveCardTextInput(i);
+    }
+    case 'Input.Toggle': {
+        return translateAdaptiveCardToggleInput(i);
+    }
+    case 'Input.ChoiceSet': {
+        return translateAdaptiveCardChoiceSet(i);
+    }
+    case 'Input.Date': {
+        return translateAdaptiveCardDateInput(i);
+    }
     default:
         return null;
+    }
+}
+
+function translateAdaptiveCardDateInput(i: Record<string, unknown>): MmDateInputBlock | null {
+    const name = ensureString(i.id);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const label = ensureString(i.label) || ensureString(i.placeholder) || name;
+
+    const out: MmDateInputBlock = {
+        type: 'date_input',
+        name,
+        label,
+    };
+
+    if (i.isRequired !== true) {
+        out.optional = true;
+    }
+
+    const placeholder = ensureString(i.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    const value = ensureString(i.value);
+    if (value) {
+        out.initial_value = value;
+    }
+
+    const min = ensureString(i.min);
+    const max = ensureString(i.max);
+    if (min || max) {
+        out.datetime_config = {
+            ...(min ? {min_date: min} : {}),
+            ...(max ? {max_date: max} : {}),
+        };
+    }
+
+    if (i.isEnabled === false) {
+        out.disabled = true;
+    }
+
+    return out;
+}
+
+function translateAdaptiveCardTextInput(i: Record<string, unknown>): MmTextInputBlock | null {
+    const name = ensureString(i.id);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const label = ensureString(i.label) || ensureString(i.placeholder) || name;
+
+    const out: MmTextInputBlock = {
+        type: 'text_input',
+        name,
+        label,
+    };
+
+    // Adaptive Cards inputs are optional unless `isRequired` is true.
+    if (i.isRequired !== true) {
+        out.optional = true;
+    }
+
+    const placeholder = ensureString(i.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    if (i.isMultiline === true) {
+        out.multiline = true;
+    }
+
+    const initialValue = ensureString(i.value);
+    if (initialValue) {
+        out.initial_value = initialValue;
+    }
+
+    if (typeof i.maxLength === 'number' && Number.isFinite(i.maxLength)) {
+        out.max_length = i.maxLength;
+    }
+
+    const subtype = mapAdaptiveCardTextInputStyle(i.style);
+    if (subtype && subtype !== 'text') {
+        out.subtype = subtype;
+    }
+
+    if (i.isEnabled === false) {
+        out.disabled = true;
+    }
+
+    return out;
+}
+
+function translateAdaptiveCardToggleInput(i: Record<string, unknown>): MmBoolInputBlock | null {
+    const name = ensureString(i.id);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const title = ensureString(i.title);
+    const label = ensureString(i.label) || title || name;
+
+    const out: MmBoolInputBlock = {
+        type: 'bool_input',
+        name,
+        label,
+    };
+
+    // Adaptive Cards inputs are optional unless `isRequired` is true.
+    if (i.isRequired !== true) {
+        out.optional = true;
+    }
+
+    if (title) {
+        out.placeholder = title;
+    }
+
+    const valueOn = ensureString(i.valueOn) || 'true';
+    const rawValue = ensureString(i.value);
+    if (rawValue) {
+        out.initial_value = rawValue === valueOn;
+    }
+
+    if (i.isEnabled === false) {
+        out.disabled = true;
+    }
+
+    return out;
+}
+
+function translateAdaptiveCardChoiceSet(i: Record<string, unknown>): MmSelectInputBlock | null {
+    const name = ensureString(i.id);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const label = ensureString(i.label) || ensureString(i.placeholder) || name;
+    const options = translateAdaptiveCardChoices(i.choices);
+    if (options.length === 0) {
+        return null;
+    }
+
+    const out: MmSelectInputBlock = {
+        type: 'select',
+        name,
+        label,
+        options,
+    };
+
+    if (i.isRequired !== true) {
+        out.optional = true;
+    }
+
+    const placeholder = ensureString(i.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    if (i.style === 'expanded') {
+        out.style = 'expanded';
+    }
+
+    if (i.isMultiSelect === true) {
+        out.multiselect = true;
+    }
+
+    const rawValue = ensureString(i.value);
+    if (rawValue) {
+        if (out.multiselect) {
+            out.initial_options = rawValue.split(',').map((v) => v.trim()).filter(Boolean);
+        } else {
+            out.initial_option = rawValue;
+        }
+    }
+
+    if (i.isEnabled === false) {
+        out.disabled = true;
+    }
+
+    return out;
+}
+
+function translateAdaptiveCardChoices(raw: unknown): MmStaticSelectOption[] {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    const out: MmStaticSelectOption[] = [];
+    for (const el of raw) {
+        if (typeof el !== 'object' || !el) {
+            continue;
+        }
+        const choice = el as Record<string, unknown>;
+        const text = ensureString(choice.title);
+        const value = ensureString(choice.value);
+        if (text && value) {
+            out.push({text, value});
+        }
+    }
+    return out;
+}
+
+function mapAdaptiveCardTextInputStyle(v: unknown): MmTextInputSubtype | undefined {
+    if (typeof v !== 'string') {
+        return undefined;
+    }
+    switch (v.toLowerCase()) {
+    case 'text':
+        return 'text';
+    case 'tel':
+        return 'tel';
+    case 'url':
+        return 'url';
+    case 'email':
+        return 'email';
+    case 'password':
+        return 'password';
+    default:
+        return undefined;
     }
 }
 

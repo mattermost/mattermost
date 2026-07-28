@@ -232,6 +232,7 @@ type Props = {
     manualTimeEntry?: boolean;
     minDateTime?: Moment;
     maxDateTime?: Moment;
+    id?: string;
 };
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -245,6 +246,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     manualTimeEntry = false,
     minDateTime,
     maxDateTime,
+    id,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
@@ -455,6 +457,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <div className='dateTime'>
             <div className='dateTime__date'>
                 <DatePicker
+                    id={id}
                     isPopperOpen={isPopperOpen}
                     handlePopperOpenState={handlePopperOpenState}
                     locale={locale}

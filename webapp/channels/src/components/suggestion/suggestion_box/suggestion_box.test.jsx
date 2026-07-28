@@ -364,11 +364,55 @@ describe('components/SuggestionBox', () => {
         expect(onFocus).toHaveBeenCalled();
     });
 
-    test('should call for handlePretextChanged on componentDidMount', () => {
+    test('should load suggestions on focus when deferLoad even if pretext is unchanged', () => {
+        jest.useFakeTimers();
         const ref = React.createRef();
         render(
             <SuggestionBox
                 {...baseProps}
+                openOnFocus={true}
+                openWhenEmpty={true}
+                deferLoad={true}
+                value=''
+                ref={ref}
+            />,
+        );
+        const instance = ref.current;
+        instance.pretext = '';
+        instance.handlePretextChanged = jest.fn();
+        instance.getTextbox = jest.fn().mockReturnValue({value: '', selectionEnd: 0});
+        instance.container = createMockContainer(jest.fn().mockReturnValue(false));
+
+        act(() => {
+            instance.handleFocusIn({relatedTarget: null});
+            jest.runOnlyPendingTimers();
+        });
+
+        expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
+    });
+
+    test('should not call handlePretextChanged on mount when deferLoad', () => {
+        const ref = React.createRef();
+        render(
+            <SuggestionBox
+                {...baseProps}
+                deferLoad={true}
+                ref={ref}
+            />,
+        );
+        const instance = ref.current;
+        instance.handlePretextChanged = jest.fn();
+        instance.componentDidMount();
+        expect(instance.handlePretextChanged).not.toHaveBeenCalled();
+    });
+
+    test('should call handlePretextChanged on mount when deferLoad is false', () => {
+        const ref = React.createRef();
+        render(
+            <SuggestionBox
+                {...baseProps}
+                openOnFocus={false}
+                deferLoad={false}
                 ref={ref}
             />,
         );

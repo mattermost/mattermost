@@ -19,6 +19,10 @@ const webhookUtils = require('../../../../utils/webhook_utils');
 let createdCommand;
 let userAndChannelDialog;
 
+// Legacy dialogs render via BlocksDialogShell/mm_blocks. User/channel selects use
+// AutocompleteSelector (#suggestionList), not Apps Form MultiInput_/react-select.
+const FIELD_SELECTOR = '.mm-blocks-select-input';
+
 describe('Interactive Dialog - Apps Form', () => {
     before(() => {
         cy.requireWebhookServer();
@@ -77,71 +81,53 @@ describe('Interactive Dialog - Apps Form', () => {
             });
 
             // * Verify that the body contains the both elements
-            cy.get('.modal-body').should('be.visible').children('.form-group').should('have.length', 2).each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).should('have.length', 2).each(($elForm, index) => {
                 const element = userAndChannelDialog.dialog.elements[index];
 
                 cy.wrap($elForm).find('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
-                // ReactSelect structure - check for MultiInput element
-                cy.wrap($elForm).find('[id^=\'MultiInput_\']').should('be.visible');
+                // AutocompleteSelector for users/channels
+                cy.wrap($elForm).find('input').first().should('be.visible').click();
 
-                // * Verify that the dropdown opens on click
-                cy.wrap($elForm).find('[id^=\'MultiInput_\']').click();
-
-                // Break out of .within() scope to find options in document and wait for them to be visible
-                cy.document().then((doc) => {
-                    cy.wrap(doc).find('.react-select__menu').should('be.visible');
-                    cy.wrap(doc).find('.react-select__option').should('have.length.greaterThan', 0);
-                });
+                // * Verify suggestion list opens with options
+                cy.get('#suggestionList').should('be.visible').children().should('have.length.greaterThan', 0);
 
                 if (index === 0) {
                     expect(element.name).to.equal('someuserselector');
 
-                    // Test scrollability by navigating through ReactSelect options
-                    cy.document().then((doc) => {
-                        // Wait for options to be loaded and ensure first option exists
-                        cy.wrap(doc).find('.react-select__option').first().should('exist');
+                    // Test scrollability by navigating through suggestion list options
+                    cy.get('#suggestionList').children().first().should('exist');
 
-                        // Navigate using keyboard on the input element
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{uparrow}', {force: true});
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{downarrow}'.repeat(10), {force: true});
+                    cy.wrap($elForm).find('input').first().type('{uparrow}', {force: true});
+                    cy.wrap($elForm).find('input').first().type('{downarrow}'.repeat(10), {force: true});
 
-                        // Verify scrolling happened by checking if first option is still in view
-                        cy.wrap(doc).find('.react-select__option').first().then(($firstOption) => {
-                            // Just verify the option exists - visibility may change due to scrolling
-                            expect($firstOption.length).to.be.greaterThan(0);
-                        });
-
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{uparrow}'.repeat(10), {force: true});
-                        cy.wrap(doc).find('.react-select__option').first().should('exist');
+                    // Verify options remain after keyboard navigation (list may scroll)
+                    cy.get('#suggestionList').children().first().then(($firstOption) => {
+                        expect($firstOption.length).to.be.greaterThan(0);
                     });
+
+                    cy.wrap($elForm).find('input').first().type('{uparrow}'.repeat(10), {force: true});
+                    cy.get('#suggestionList').children().first().should('exist');
                 } else if (index === 1) {
                     expect(element.name).to.equal('somechannelselector');
 
-                    // Test scrollability by navigating through ReactSelect options
-                    cy.document().then((doc) => {
-                        // Wait for options to be loaded and ensure first option exists
-                        cy.wrap(doc).find('.react-select__option').first().should('exist');
+                    // Test scrollability by navigating through suggestion list options
+                    cy.get('#suggestionList').children().first().should('exist');
 
-                        // Navigate using keyboard on the input element
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{uparrow}', {force: true});
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{downarrow}'.repeat(10), {force: true});
+                    cy.wrap($elForm).find('input').first().type('{uparrow}', {force: true});
+                    cy.wrap($elForm).find('input').first().type('{downarrow}'.repeat(10), {force: true});
 
-                        // Verify scrolling happened by checking if first option is still in view
-                        cy.wrap(doc).find('.react-select__option').first().then(($firstOption) => {
-                            // Just verify the option exists - visibility may change due to scrolling
-                            expect($firstOption.length).to.be.greaterThan(0);
-                        });
-
-                        cy.wrap($elForm).find('[id^=\'MultiInput_\']').find('input').type('{uparrow}'.repeat(10), {force: true});
-                        cy.wrap(doc).find('.react-select__option').first().should('exist');
+                    // Verify options remain after keyboard navigation (list may scroll)
+                    cy.get('#suggestionList').children().first().then(($firstOption) => {
+                        expect($firstOption.length).to.be.greaterThan(0);
                     });
+
+                    cy.wrap($elForm).find('input').first().type('{uparrow}'.repeat(10), {force: true});
+                    cy.get('#suggestionList').children().first().should('exist');
                 }
 
                 // # Select one element to close the dropdown
-                cy.document().then((doc) => {
-                    cy.wrap(doc).find('.react-select__option').first().click({force: true});
-                });
+                cy.get('#suggestionList').should('be.visible').children().first().click({force: true});
 
                 if (element.help_text) {
                     cy.wrap($elForm).find('.help-text').should('exist').and('contain', element.help_text);

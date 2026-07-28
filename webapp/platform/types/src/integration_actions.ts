@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {BlockDialog} from './integrations';
 import {isArrayOf} from './utilities';
 
 export type PostAction = {
@@ -97,4 +98,50 @@ export type PostActionResponse = {
     status: string;
     trigger_id: string;
     goto_location?: string;
+};
+
+/** Subtype for POST /api/v4/actions/blocks/do — empty defaults to execute on the server. */
+export type BlockActionSubtype = 'execute' | 'lookup';
+
+/** Where the block action was triggered — required on doBlockAction requests. */
+export type BlockActionContext = 'post' | 'dialog';
+
+export type DoBlockActionRequest = {
+    subtype?: BlockActionSubtype;
+
+    /** Where the action was triggered: post interactive message or interactive dialog. */
+    context: BlockActionContext;
+
+    /** Optional for dialog-scoped cookies (empty post_id). Required when resolving from a stored post. */
+    post_id?: string;
+    action_id: string;
+    cookie?: string;
+    selected_option?: string;
+    query?: Record<string, string>;
+    form_values?: Record<string, string | string[] | boolean | number | null>;
+    integration_format?: PostActionIntegrationFormat;
+};
+
+export type DialogSelectOption = {
+    text: string;
+    value: string;
+};
+
+export type DoBlockActionResponse = {
+    trigger_id?: string;
+    goto_location?: string;
+    error?: string;
+    errors?: Record<string, string>;
+    type?: '' | 'ok' | 'refresh' | 'dialog';
+    mm_blocks?: unknown[];
+
+    /** Opaque encrypted cookie string for subsequent do-block-action calls. */
+    mm_blocks_actions?: string;
+
+    /** New stacked dialog (type "dialog") or in-place refresh when context is dialog (type "refresh"). */
+    block_dialog?: BlockDialog;
+
+    /** When true in dialog context, leave the current dialog open (e.g. after stacking a child). */
+    keep_dialog_open?: boolean;
+    items?: DialogSelectOption[];
 };

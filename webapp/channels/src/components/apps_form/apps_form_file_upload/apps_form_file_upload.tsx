@@ -37,7 +37,7 @@ interface FileState {
 
 export type Props = {
     id: string;
-    label: React.ReactNode;
+    label?: React.ReactNode;
     helpText?: React.ReactNode;
     placeholder?: string;
     onFileSelected: (fileIds: string[]) => void;
@@ -400,12 +400,14 @@ const AppsFormFileUpload: React.FC<Props> = ({
 
     return (
         <div className='form-group apps-form-file-upload'>
-            <label
-                htmlFor={id}
-                className='control-label'
-            >
-                {label}
-            </label>
+            {Boolean(label) && (
+                <label
+                    htmlFor={id}
+                    className='control-label'
+                >
+                    {label}
+                </label>
+            )}
             <div>
                 {/* Uploading files — progress bars */}
                 {uploadingFiles.length > 0 && (

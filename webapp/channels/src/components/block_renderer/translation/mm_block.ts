@@ -6,6 +6,7 @@
 
 import type {
     MmBlock,
+    MmBoolInputBlock,
     MmButtonBlock,
     MmCollapsibleBlock,
     MmColumnBlock,
@@ -14,12 +15,21 @@ import type {
     MmContainerBlock,
     MmContainerGap,
     MmContainerMaxHeight,
+    MmDateInputBlock,
+    MmDateTimeConfig,
+    MmDateTimeInputBlock,
     MmDividerBlock,
+    MmFileInputBlock,
     MmImageBlock,
     MmImageSize,
+    MmSelectInputBlock,
+    MmSelectInputStyle,
+    MmSelectOptionGroup,
     MmStaticSelectBlock,
     MmStaticSelectOption,
     MmTextBlock,
+    MmTextInputBlock,
+    MmTextInputSubtype,
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
 
@@ -29,17 +39,25 @@ const TEXT_REQUIRED_KEYS = ['type', 'text'];
 const DIVIDER_REQUIRED_KEYS = ['type'];
 const BUTTON_REQUIRED_KEYS = ['type', 'text', 'action_id'];
 const STATIC_SELECT_REQUIRED_KEYS = ['type', 'action_id', 'placeholder'];
+const TEXT_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
+const BOOL_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
+const SELECT_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
+const DATE_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
+const DATETIME_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
+const FILE_INPUT_REQUIRED_KEYS = ['type', 'name', 'label'];
 const IMAGE_REQUIRED_KEYS = ['type', 'url'];
 const COLUMN_REQUIRED_KEYS = ['type', 'items'];
 const COLUMN_SET_REQUIRED_KEYS = ['type', 'columns'];
 const CONTAINER_REQUIRED_KEYS = ['type', 'content'];
 const COLLAPSIBLE_REQUIRED_KEYS = ['type', 'header', 'content'];
 const STATIC_SELECT_OPTION_REQUIRED_KEYS = ['text', 'value'];
+const SELECT_OPTION_GROUP_REQUIRED_KEYS = ['label', 'options'];
 
 const MM_IMAGE_SIZES = new Set<MmImageSize>(['auto', 'xsmall', 'small', 'medium', 'large', 'stretch']);
 const MM_CONTAINER_GAPS = new Set<MmContainerGap>(['none', 'small', 'medium', 'large', 'xlarge']);
 const MM_CONTAINER_BACKGROUNDS = new Set<MmContainerBackground>(['none', 'gray']);
 const MM_CONTAINER_MAX_HEIGHTS = new Set<MmContainerMaxHeight>(['none', 'small', 'medium', 'large']);
+const MM_TEXT_INPUT_SUBTYPES = new Set<MmTextInputSubtype>(['text', 'email', 'number', 'password', 'tel', 'url']);
 
 function isRecord(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -118,6 +136,50 @@ function translateStaticSelectOptions(raw: unknown): MmStaticSelectOption[] | un
             return null;
         }
         out.push({text: el.text, value: el.value});
+    }
+    return out;
+}
+
+function translateSelectOptionGroups(raw: unknown): MmSelectOptionGroup[] | undefined | null {
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (!Array.isArray(raw)) {
+        return null;
+    }
+    const out: MmSelectOptionGroup[] = [];
+    for (const el of raw) {
+        if (!isRecord(el)) {
+            return null;
+        }
+        if (!hasRequiredKeys(el, SELECT_OPTION_GROUP_REQUIRED_KEYS)) {
+            return null;
+        }
+        if (typeof el.label !== 'string' || !el.label.trim()) {
+            return null;
+        }
+        const options = translateStaticSelectOptions(el.options);
+        if (!options || options.length === 0) {
+            return null;
+        }
+        out.push({label: el.label, options});
+    }
+    return out;
+}
+
+function translateStringArray(raw: unknown): string[] | undefined | null {
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (!Array.isArray(raw)) {
+        return null;
+    }
+    const out: string[] = [];
+    for (const el of raw) {
+        if (typeof el !== 'string') {
+            return null;
+        }
+        out.push(el);
     }
     return out;
 }
@@ -202,11 +264,22 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     } else {
         return null;
     }
+    let subtype: MmButtonBlock['subtype'];
+    if (raw.subtype === undefined) {
+        subtype = undefined;
+    } else if (raw.subtype === 'execute' || raw.subtype === 'submit') {
+        subtype = raw.subtype;
+    } else {
+        return null;
+    }
     const out: MmButtonBlock = {
         type: 'button',
         text,
         action_id: actionId,
     };
+    if (subtype === 'submit') {
+        out.subtype = subtype;
+    }
     if (style && style !== 'default') {
         out.style = style;
     }
@@ -221,6 +294,611 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     }
     if (cookie !== undefined) {
         out.cookie = cookie;
+    }
+    return out;
+}
+
+function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock | null {
+    if (!hasRequiredKeys(raw, TEXT_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    let subtype: MmTextInputSubtype | undefined;
+    if (raw.subtype === undefined) {
+        subtype = undefined;
+    } else if (typeof raw.subtype === 'string' && MM_TEXT_INPUT_SUBTYPES.has(raw.subtype as MmTextInputSubtype)) {
+        subtype = raw.subtype as MmTextInputSubtype;
+    } else {
+        return null;
+    }
+
+    const multiline = asBoolean(raw.multiline);
+    if (raw.multiline !== undefined && multiline === undefined) {
+        return null;
+    }
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+
+    const minLength = asFiniteNumber(raw.min_length);
+    if (raw.min_length !== undefined && minLength === undefined) {
+        return null;
+    }
+    const maxLength = asFiniteNumber(raw.max_length);
+    if (raw.max_length !== undefined && maxLength === undefined) {
+        return null;
+    }
+
+    let placeholder: string | undefined;
+    if (raw.placeholder === undefined) {
+        placeholder = undefined;
+    } else if (typeof raw.placeholder === 'string') {
+        placeholder = raw.placeholder;
+    } else {
+        return null;
+    }
+
+    let helpText: string | undefined;
+    if (raw.help_text === undefined) {
+        helpText = undefined;
+    } else if (typeof raw.help_text === 'string') {
+        helpText = raw.help_text;
+    } else {
+        return null;
+    }
+
+    let initialValue: string | undefined;
+    if (raw.initial_value === undefined) {
+        initialValue = undefined;
+    } else if (typeof raw.initial_value === 'string') {
+        initialValue = raw.initial_value;
+    } else {
+        return null;
+    }
+
+    let onChange: string | undefined;
+    if (raw.onChange === undefined) {
+        onChange = undefined;
+    } else if (typeof raw.onChange === 'string') {
+        onChange = raw.onChange;
+    } else {
+        return null;
+    }
+
+    const out: MmTextInputBlock = {
+        type: 'text_input',
+        name,
+        label,
+    };
+    if (subtype !== undefined && subtype !== 'text') {
+        out.subtype = subtype;
+    }
+    if (multiline === true) {
+        out.multiline = true;
+    }
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (minLength !== undefined) {
+        out.min_length = minLength;
+    }
+    if (maxLength !== undefined) {
+        out.max_length = maxLength;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (initialValue !== undefined) {
+        out.initial_value = initialValue;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    return out;
+}
+
+function parseOptionalStringField(raw: Record<string, unknown>, key: string): string | undefined | null {
+    if (raw[key] === undefined) {
+        return undefined;
+    }
+    if (typeof raw[key] === 'string') {
+        return raw[key] as string;
+    }
+    return null;
+}
+
+function parseDateTimeConfig(raw: unknown): MmDateTimeConfig | undefined | null {
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (!isRecord(raw)) {
+        return null;
+    }
+    const out: MmDateTimeConfig = {};
+    if (raw.min_date !== undefined) {
+        if (typeof raw.min_date !== 'string') {
+            return null;
+        }
+        out.min_date = raw.min_date;
+    }
+    if (raw.max_date !== undefined) {
+        if (typeof raw.max_date !== 'string') {
+            return null;
+        }
+        out.max_date = raw.max_date;
+    }
+    if (raw.time_interval !== undefined) {
+        const n = asFiniteNumber(raw.time_interval);
+        if (n === undefined) {
+            return null;
+        }
+        out.time_interval = n;
+    }
+    if (raw.location_timezone !== undefined) {
+        if (typeof raw.location_timezone !== 'string') {
+            return null;
+        }
+        out.location_timezone = raw.location_timezone;
+    }
+    if (raw.manual_time_entry !== undefined) {
+        if (typeof raw.manual_time_entry !== 'boolean') {
+            return null;
+        }
+        out.manual_time_entry = raw.manual_time_entry;
+    }
+    return out;
+}
+
+function translateDateInputBlock(raw: Record<string, unknown>): MmDateInputBlock | null {
+    if (!hasRequiredKeys(raw, DATE_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+
+    const placeholder = parseOptionalStringField(raw, 'placeholder');
+    if (placeholder === null) {
+        return null;
+    }
+    const helpText = parseOptionalStringField(raw, 'help_text');
+    if (helpText === null) {
+        return null;
+    }
+    const initialValue = parseOptionalStringField(raw, 'initial_value');
+    if (initialValue === null) {
+        return null;
+    }
+    const onChange = parseOptionalStringField(raw, 'onChange');
+    if (onChange === null) {
+        return null;
+    }
+    const datetimeConfig = parseDateTimeConfig(raw.datetime_config);
+    if (datetimeConfig === null) {
+        return null;
+    }
+
+    const out: MmDateInputBlock = {
+        type: 'date_input',
+        name,
+        label,
+    };
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (initialValue !== undefined) {
+        out.initial_value = initialValue;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    if (datetimeConfig !== undefined && Object.keys(datetimeConfig).length > 0) {
+        out.datetime_config = datetimeConfig;
+    }
+    return out;
+}
+
+function translateDateTimeInputBlock(raw: Record<string, unknown>): MmDateTimeInputBlock | null {
+    if (!hasRequiredKeys(raw, DATETIME_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+
+    const placeholder = parseOptionalStringField(raw, 'placeholder');
+    if (placeholder === null) {
+        return null;
+    }
+    const helpText = parseOptionalStringField(raw, 'help_text');
+    if (helpText === null) {
+        return null;
+    }
+    const initialValue = parseOptionalStringField(raw, 'initial_value');
+    if (initialValue === null) {
+        return null;
+    }
+    const onChange = parseOptionalStringField(raw, 'onChange');
+    if (onChange === null) {
+        return null;
+    }
+    const datetimeConfig = parseDateTimeConfig(raw.datetime_config);
+    if (datetimeConfig === null) {
+        return null;
+    }
+
+    const out: MmDateTimeInputBlock = {
+        type: 'datetime_input',
+        name,
+        label,
+    };
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (initialValue !== undefined) {
+        out.initial_value = initialValue;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    if (datetimeConfig !== undefined && Object.keys(datetimeConfig).length > 0) {
+        out.datetime_config = datetimeConfig;
+    }
+    return out;
+}
+
+function translateFileInputBlock(raw: Record<string, unknown>): MmFileInputBlock | null {
+    if (!hasRequiredKeys(raw, FILE_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+    const allowMultiple = asBoolean(raw.allow_multiple);
+    if (raw.allow_multiple !== undefined && allowMultiple === undefined) {
+        return null;
+    }
+
+    const placeholder = parseOptionalStringField(raw, 'placeholder');
+    if (placeholder === null) {
+        return null;
+    }
+    const helpText = parseOptionalStringField(raw, 'help_text');
+    if (helpText === null) {
+        return null;
+    }
+    const onChange = parseOptionalStringField(raw, 'onChange');
+    if (onChange === null) {
+        return null;
+    }
+    const initialValue = parseOptionalStringField(raw, 'initial_value');
+    if (initialValue === null) {
+        return null;
+    }
+
+    const out: MmFileInputBlock = {
+        type: 'file_input',
+        name,
+        label,
+    };
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (allowMultiple === true) {
+        out.allow_multiple = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    if (initialValue !== undefined) {
+        out.initial_value = initialValue;
+    }
+    return out;
+}
+
+function translateBoolInputBlock(raw: Record<string, unknown>): MmBoolInputBlock | null {
+    if (!hasRequiredKeys(raw, BOOL_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+
+    let placeholder: string | undefined;
+    if (raw.placeholder === undefined) {
+        placeholder = undefined;
+    } else if (typeof raw.placeholder === 'string') {
+        placeholder = raw.placeholder;
+    } else {
+        return null;
+    }
+
+    let helpText: string | undefined;
+    if (raw.help_text === undefined) {
+        helpText = undefined;
+    } else if (typeof raw.help_text === 'string') {
+        helpText = raw.help_text;
+    } else {
+        return null;
+    }
+
+    let initialValue: boolean | undefined;
+    if (raw.initial_value === undefined) {
+        initialValue = undefined;
+    } else if (typeof raw.initial_value === 'boolean') {
+        initialValue = raw.initial_value;
+    } else {
+        return null;
+    }
+
+    let onChange: string | undefined;
+    if (raw.onChange === undefined) {
+        onChange = undefined;
+    } else if (typeof raw.onChange === 'string') {
+        onChange = raw.onChange;
+    } else {
+        return null;
+    }
+
+    const out: MmBoolInputBlock = {
+        type: 'bool_input',
+        name,
+        label,
+    };
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (initialValue !== undefined) {
+        out.initial_value = initialValue;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    return out;
+}
+
+function translateSelectInputBlock(raw: Record<string, unknown>): MmSelectInputBlock | null {
+    if (!hasRequiredKeys(raw, SELECT_INPUT_REQUIRED_KEYS)) {
+        return null;
+    }
+    const name = ensureString(raw.name);
+    const label = ensureString(raw.label);
+    if (!name.trim()) {
+        return null;
+    }
+
+    let style: MmSelectInputStyle | undefined;
+    if (raw.style === undefined) {
+        style = undefined;
+    } else if (raw.style === 'compact' || raw.style === 'expanded') {
+        style = raw.style;
+    } else {
+        return null;
+    }
+
+    const optional = asBoolean(raw.optional);
+    if (raw.optional !== undefined && optional === undefined) {
+        return null;
+    }
+    const disabled = asBoolean(raw.disabled);
+    if (raw.disabled !== undefined && disabled === undefined) {
+        return null;
+    }
+    const multiselect = asBoolean(raw.multiselect);
+    if (raw.multiselect !== undefined && multiselect === undefined) {
+        return null;
+    }
+
+    let placeholder: string | undefined;
+    if (raw.placeholder === undefined) {
+        placeholder = undefined;
+    } else if (typeof raw.placeholder === 'string') {
+        placeholder = raw.placeholder;
+    } else {
+        return null;
+    }
+
+    let helpText: string | undefined;
+    if (raw.help_text === undefined) {
+        helpText = undefined;
+    } else if (typeof raw.help_text === 'string') {
+        helpText = raw.help_text;
+    } else {
+        return null;
+    }
+
+    const options = translateStaticSelectOptions(raw.options);
+    if (raw.options !== undefined && options === null) {
+        return null;
+    }
+    const optionGroups = translateSelectOptionGroups(raw.option_groups);
+    if (raw.option_groups !== undefined && optionGroups === null) {
+        return null;
+    }
+    if (options && optionGroups) {
+        return null;
+    }
+
+    let dataSource: string | undefined;
+    if (raw.data_source === undefined) {
+        dataSource = undefined;
+    } else if (typeof raw.data_source === 'string') {
+        dataSource = raw.data_source;
+    } else {
+        return null;
+    }
+
+    let dataSourceAction: string | undefined;
+    if (raw.data_source_action === undefined) {
+        dataSourceAction = undefined;
+    } else if (typeof raw.data_source_action === 'string') {
+        dataSourceAction = raw.data_source_action;
+    } else {
+        return null;
+    }
+
+    let initialOption: string | undefined;
+    if (raw.initial_option === undefined) {
+        initialOption = undefined;
+    } else if (typeof raw.initial_option === 'string') {
+        initialOption = raw.initial_option;
+    } else {
+        return null;
+    }
+
+    const initialOptions = translateStringArray(raw.initial_options);
+    if (raw.initial_options !== undefined && initialOptions === null) {
+        return null;
+    }
+
+    let onChange: string | undefined;
+    if (raw.onChange === undefined) {
+        onChange = undefined;
+    } else if (typeof raw.onChange === 'string') {
+        onChange = raw.onChange;
+    } else {
+        return null;
+    }
+
+    const out: MmSelectInputBlock = {
+        type: 'select',
+        name,
+        label,
+    };
+    if (style === 'expanded') {
+        out.style = style;
+    }
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (multiselect === true) {
+        out.multiselect = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (options) {
+        out.options = options;
+    }
+    if (optionGroups) {
+        out.option_groups = optionGroups;
+    }
+    if (dataSource !== undefined) {
+        out.data_source = dataSource;
+    }
+    if (dataSourceAction !== undefined) {
+        out.data_source_action = dataSourceAction;
+    }
+    if (initialOption !== undefined) {
+        out.initial_option = initialOption;
+    }
+    if (initialOptions) {
+        out.initial_options = initialOptions;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
     }
     return out;
 }
@@ -623,6 +1301,18 @@ export function translateMMBlock(raw: unknown): MmBlock | null {
         return translateDividerBlock(raw);
     case 'button':
         return translateButtonBlock(raw);
+    case 'text_input':
+        return translateTextInputBlock(raw);
+    case 'bool_input':
+        return translateBoolInputBlock(raw);
+    case 'date_input':
+        return translateDateInputBlock(raw);
+    case 'datetime_input':
+        return translateDateTimeInputBlock(raw);
+    case 'file_input':
+        return translateFileInputBlock(raw);
+    case 'select':
+        return translateSelectInputBlock(raw);
     case 'static_select':
         return translateStaticSelectBlock(raw);
     case 'image':

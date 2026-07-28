@@ -19,6 +19,16 @@ describe('integration utils', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', optional: false}), undefined)!.id).toBe('interactive_dialog.error.required');
         });
 
+        test('should allow explicit false for required bool fields', () => {
+            expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'bool', optional: false}), false)).toBe(null);
+        });
+
+        test('should return too_long when above max_length', () => {
+            const error = checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', max_length: 3}), 'abcd');
+            expect(error!.id).toBe('interactive_dialog.error.too_long');
+            expect(error!.values).toEqual({maxLength: 3});
+        });
+
         it('should return error on too short text element', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', min_length: 5}), '123')!.id).toBe('interactive_dialog.error.too_short');
         });

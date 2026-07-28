@@ -17,21 +17,25 @@ import type {
 
 import {makeIsEligibleForClick} from 'utils/utils';
 
+import {BoolInputElement} from './bool_input_element';
 import {ButtonElement} from './button_element';
 import {MmBlocksChildLayoutContext} from './context';
+import {DateInputElement} from './date_input_element';
+import {DateTimeInputElement} from './datetime_input_element';
 import {DividerBlock} from './divider_block';
+import {FileInputElement} from './file_input_element';
 import {ImageBlock} from './image_block';
+import {SelectInputElement} from './select_input_element';
 import {StaticSelectElement} from './static_select_element';
 import {TextBlock} from './text_block';
-import type {ActionHandler} from './types';
+import {TextInputElement} from './text_input_element';
 
 type BlockSwitchProps = {
     block: MmBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
-export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
+export const BlockSwitch = ({block, postId}: BlockSwitchProps) => {
     switch (block.type) {
     case 'text':
         return (
@@ -54,7 +58,6 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <ColumnSetBlock
                 block={block}
                 postId={postId}
-                onAction={onAction}
             />
         );
     case 'container':
@@ -62,7 +65,6 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <ContainerBlock
                 block={block}
                 postId={postId}
-                onAction={onAction}
             />
         );
     case 'collapsible':
@@ -70,14 +72,12 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <CollapsibleBlock
                 block={block}
                 postId={postId}
-                onAction={onAction}
             />
         );
     case 'button':
         return (
             <ButtonElement
                 element={block}
-                onAction={onAction}
             />
         );
     case 'static_select':
@@ -85,7 +85,48 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <StaticSelectElement
                 element={block}
                 postId={postId}
-                onAction={onAction}
+            />
+        );
+    case 'text_input':
+        return (
+            <TextInputElement
+                element={block}
+                postId={postId}
+            />
+        );
+    case 'bool_input':
+        return (
+            <BoolInputElement
+                element={block}
+                postId={postId}
+            />
+        );
+    case 'date_input':
+        return (
+            <DateInputElement
+                element={block}
+                postId={postId}
+            />
+        );
+    case 'datetime_input':
+        return (
+            <DateTimeInputElement
+                element={block}
+                postId={postId}
+            />
+        );
+    case 'file_input':
+        return (
+            <FileInputElement
+                element={block}
+                postId={postId}
+            />
+        );
+    case 'select':
+        return (
+            <SelectInputElement
+                element={block}
+                postId={postId}
             />
         );
     default:
@@ -96,7 +137,6 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
 type ColumnSetBlockProps = {
     block: MmColumnSetBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
 function mmColumnSetClassName(block: MmColumnSetBlock): string {
@@ -110,7 +150,7 @@ function mmColumnSetClassName(block: MmColumnSetBlock): string {
     });
 }
 
-const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
+const ColumnSetBlock = ({block, postId}: ColumnSetBlockProps) => {
     if (!block.columns || block.columns.length === 0) {
         return null;
     }
@@ -127,7 +167,6 @@ const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
                     key={i}
                     block={column}
                     postId={postId}
-                    onAction={onAction}
                 />
             ))}
         </div>
@@ -137,10 +176,9 @@ const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
 type ColumnBlockProps = {
     block: MmColumnBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
-const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
+const ColumnBlock = ({block, postId}: ColumnBlockProps) => {
     const innerBlock = useMemo(() => ({
         type: 'container' as const,
         content: block.items,
@@ -161,7 +199,6 @@ const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
             <ContainerBlock
                 block={innerBlock}
                 postId={postId}
-                onAction={onAction}
             />
         </div>
     );
@@ -170,7 +207,6 @@ const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
 type ContainerBlockProps = {
     block: MmContainerBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
 const MM_CONTAINER_ACCENT_SEMANTIC = new Set<MmContainerAccentSemantic>([
@@ -233,7 +269,7 @@ function mmContainerStyle(block: MmContainerBlock): CSSProperties | undefined {
     return {'--mm-blocks-accent-color': accent} as CSSProperties;
 }
 
-export const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
+export const ContainerBlock = ({block, postId}: ContainerBlockProps) => {
     if (!block.content || block.content.length === 0) {
         return null;
     }
@@ -255,7 +291,6 @@ export const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) =
                         key={i}
                         block={item}
                         postId={postId}
-                        onAction={onAction}
                     />
                 ))}
             </MmBlocksChildLayoutContext.Provider>
@@ -266,12 +301,17 @@ export const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) =
 type CollapsibleBlockProps = {
     block: MmCollapsibleBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
 const MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR = [
     '.select-suggestion-container',
     '.mm-blocks-select',
+    '.mm-blocks-select-input',
+    '.mm-blocks-text-input',
+    '.mm-blocks-bool-input',
+    '.mm-blocks-date-input',
+    '.mm-blocks-datetime-input',
+    '.mm-blocks-file-input',
     '.suggestion-list',
     '.mm-blocks-image',
     '.InlineActionButton',
@@ -279,7 +319,7 @@ const MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR = [
 
 const isCollapsibleHeaderToggleClick = makeIsEligibleForClick(MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR);
 
-const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
+const CollapsibleBlock = ({block, postId}: CollapsibleBlockProps) => {
     const initiallyCollapsed = block.collapsed !== false;
     const [collapsed, setCollapsed] = useState<boolean>(initiallyCollapsed);
 
@@ -366,7 +406,6 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                     <ContainerBlock
                         block={innerHeaderBlock}
                         postId={postId}
-                        onAction={onAction}
                     />
                 </div>
             </div>
@@ -384,7 +423,6 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                     <ContainerBlock
                         block={innerContentBlock}
                         postId={postId}
-                        onAction={onAction}
                     />
                 </div>
             </div>

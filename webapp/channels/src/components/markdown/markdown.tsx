@@ -79,12 +79,12 @@ export type OwnProps = {
     allowInlineActions?: boolean;
 
     /**
-     * Encrypted mm_blocks_actions cookie from post.props (ephemeral and client wire format).
-     * When set, mmaction:// clicks use doPostActionWithCookie.
+     * Encrypted action cookie from post.props (ephemeral and client wire format).
+     * When set, mmaction:// clicks send it with doBlockAction.
      */
     mmBlocksActionCookie?: string;
 
-    /** integration_format for doPostActionWithCookie when mmBlocksActionCookie is set. */
+    /** integration_format for doBlockAction (attachment vs mm_block / block / card). */
     integrationFormat?: PostActionIntegrationFormat;
 };
 

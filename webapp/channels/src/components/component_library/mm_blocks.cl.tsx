@@ -12,6 +12,7 @@ import {useIntl} from 'react-intl';
 import {type MmBlock} from '@mattermost/types/mm_blocks';
 
 import {BlockRenderer} from 'components/block_renderer';
+import type {MmBlocksFormErrors, MmBlocksFormValues} from 'components/block_renderer/form';
 import {translateAdaptiveCards} from 'components/block_renderer/translation/adaptive_cards';
 import {translateAttachments} from 'components/block_renderer/translation/attachments';
 import {translateBlockKit} from 'components/block_renderer/translation/block_kit';
@@ -173,6 +174,7 @@ const MmBlocksComponentLibrary = ({
     const [drafts, setDrafts] = useState<Record<InputMode, string>>(() => ({...INITIAL_DRAFTS}));
     const [selectedBlockPath, setSelectedBlockPath] = useState<BlockPath | null>(null);
     const [simulateSlowAction, setSimulateSlowAction] = useState(false);
+    const [formErrors, setFormErrors] = useState<MmBlocksFormErrors>({});
 
     const jsonText = drafts[inputMode];
 
@@ -201,7 +203,7 @@ const MmBlocksComponentLibrary = ({
         setSimulateSlowAction(e.target.checked);
     }, []);
 
-    const onAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+    const onAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string, formValues?: MmBlocksFormValues) => {
         if (simulateSlowAction) {
             await new Promise<void>((resolve) => {
                 window.setTimeout(resolve, SLOW_ACTION_DELAY_MS);
@@ -212,6 +214,7 @@ const MmBlocksComponentLibrary = ({
             selectedOption !== undefined && selectedOption !== '' ? `value: ${selectedOption}` : null,
             attachmentCookie !== undefined && attachmentCookie !== '' ? `cookie: ${attachmentCookie.slice(0, 48)}…` : null,
             query && Object.keys(query).length > 0 ? `query: ${JSON.stringify(query)}` : null,
+            formValues && Object.keys(formValues).length > 0 ? `form_values: ${JSON.stringify(formValues)}` : null,
         ].filter(Boolean);
         window.alert(parts.join('\n'));
     }, [simulateSlowAction]);
@@ -299,6 +302,8 @@ const MmBlocksComponentLibrary = ({
                             blocks={parsed.blocks}
                             postId={COMPONENT_LIBRARY_POST_ID}
                             onAction={onAction}
+                            formErrors={formErrors}
+                            onFormErrorsChange={setFormErrors}
                         />
                     </PostContext.Provider>
                 )}

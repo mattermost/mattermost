@@ -223,11 +223,10 @@ describe('Interactive Dialog - File Upload', () => {
         // * Verify that the apps form modal is still visible (validation blocked submission)
         cy.get('#appsModal').should('be.visible');
 
-        // * Verify the inline required error renders on the file field itself,
-        // consistent with every other apps-form field type (rendered via .error-text)
+        // * Verify the inline required error renders on the file field itself
         cy.get('#appsModal').within(() => {
-            cy.get('.apps-form-file-upload').eq(0).within(() => {
-                cy.get('.error-text').should('be.visible').and('contain', 'This field is required');
+            cy.get('.mm-blocks-file-input').eq(0).within(() => {
+                cy.get('[data-testid="single_document-error"]').should('be.visible').and('contain', 'This field is required');
             });
         });
 

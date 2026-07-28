@@ -73,6 +73,7 @@ const CLICKABLE_ELEMENTS = [
     'video',
     'select',
     'input',
+    'textarea',
 ];
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60 * MS_PER_SECOND;

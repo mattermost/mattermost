@@ -1448,6 +1448,302 @@
                     }
                 ]
             }
+        },
+        "form_text_inputs_submit": {
+            "message": "Fixture: mm_blocks form — several text_input fields and a submit button.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Fill out the form below, then click **Submit**."
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "title",
+                        "label": "Title",
+                        "placeholder": "Short summary",
+                        "max_length": 80
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "email",
+                        "label": "Email",
+                        "subtype": "email",
+                        "placeholder": "you@example.com",
+                        "help_text": "We'll use this for follow-up."
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "description",
+                        "label": "Description",
+                        "multiline": true,
+                        "placeholder": "Describe the request in a few sentences.",
+                        "max_length": 500
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "notes",
+                        "label": "Notes",
+                        "optional": true,
+                        "placeholder": "Anything else?",
+                        "help_text": "Optional free-form notes."
+                    },
+                    {
+                        "type": "container",
+                        "flow": "horizontal",
+                        "gap": "medium",
+                        "content": [
+                            {
+                                "type": "button",
+                                "text": "Submit",
+                                "style": "primary",
+                                "subtype": "submit",
+                                "action_id": "e2e_mm_blocks_form_submit"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Cancel",
+                                "style": "default",
+                                "action_id": "e2e_mm_blocks_form_cancel"
+                            }
+                        ]
+                    }
+                ],
+                "mm_blocks_actions": {
+                    "e2e_mm_blocks_form_submit": {
+                        "type": "external",
+                        "url": "https://example.com/actions/mm_blocks_form_submit",
+                        "context": {
+                            "form": "ticket"
+                        }
+                    },
+                    "e2e_mm_blocks_form_cancel": {
+                        "type": "external",
+                        "url": "https://example.com/actions/mm_blocks_form_cancel",
+                        "context": {
+                            "form": "ticket"
+                        }
+                    }
+                }
+            }
+        },
+        "form_all_inputs_submit": {
+            "message": "Fixture: mm_blocks form — text_input, bool_input, and select variants with a submit button.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Fill out the form below (text, bool, and select variants), then click **Submit**."
+                    },
+                    {
+                        "type": "text",
+                        "text": "### Text inputs",
+                        "size": "small"
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "title",
+                        "label": "Title",
+                        "placeholder": "Short summary",
+                        "max_length": 80,
+                        "initial_value": "Sample ticket"
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "email",
+                        "label": "Email",
+                        "subtype": "email",
+                        "placeholder": "you@example.com",
+                        "help_text": "We'll use this for follow-up."
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "description",
+                        "label": "Description",
+                        "multiline": true,
+                        "placeholder": "Describe the request in a few sentences.",
+                        "max_length": 500
+                    },
+                    {
+                        "type": "text_input",
+                        "name": "notes",
+                        "label": "Notes",
+                        "optional": true,
+                        "placeholder": "Anything else?",
+                        "help_text": "Optional free-form notes."
+                    },
+                    {
+                        "type": "text",
+                        "text": "### Boolean inputs",
+                        "size": "small"
+                    },
+                    {
+                        "type": "bool_input",
+                        "name": "notify_email",
+                        "label": "Email notifications",
+                        "placeholder": "Send me status updates by email",
+                        "initial_value": true
+                    },
+                    {
+                        "type": "bool_input",
+                        "name": "subscribe_digest",
+                        "label": "Weekly digest",
+                        "placeholder": "Include this ticket in the weekly digest",
+                        "optional": true,
+                        "help_text": "You can change this later."
+                    },
+                    {
+                        "type": "text",
+                        "text": "### Select inputs (compact)",
+                        "size": "small"
+                    },
+                    {
+                        "type": "select",
+                        "name": "priority",
+                        "label": "Priority",
+                        "placeholder": "Choose priority",
+                        "style": "compact",
+                        "initial_option": "medium",
+                        "options": [
+                            {"text": "Low", "value": "low"},
+                            {"text": "Medium", "value": "medium"},
+                            {"text": "High", "value": "high"},
+                            {"text": "Critical", "value": "critical"}
+                        ]
+                    },
+                    {
+                        "type": "select",
+                        "name": "labels",
+                        "label": "Labels",
+                        "placeholder": "Select one or more labels",
+                        "style": "compact",
+                        "multiselect": true,
+                        "optional": true,
+                        "initial_options": ["bug"],
+                        "options": [
+                            {"text": "Bug", "value": "bug"},
+                            {"text": "Feature", "value": "feature"},
+                            {"text": "Docs", "value": "docs"},
+                            {"text": "Infra", "value": "infra"}
+                        ]
+                    },
+                    {
+                        "type": "select",
+                        "name": "component",
+                        "label": "Component",
+                        "placeholder": "Pick a component",
+                        "style": "compact",
+                        "option_groups": [
+                            {
+                                "label": "Product",
+                                "options": [
+                                    {"text": "Webapp", "value": "webapp"},
+                                    {"text": "Server", "value": "server"},
+                                    {"text": "Mobile", "value": "mobile"}
+                                ]
+                            },
+                            {
+                                "label": "Platform",
+                                "options": [
+                                    {"text": "CI", "value": "ci"},
+                                    {"text": "Observability", "value": "observability"}
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "text": "### Select inputs (expanded)",
+                        "size": "small"
+                    },
+                    {
+                        "type": "select",
+                        "name": "severity",
+                        "label": "Severity",
+                        "style": "expanded",
+                        "initial_option": "sev2",
+                        "options": [
+                            {"text": "SEV-1 — Immediate", "value": "sev1"},
+                            {"text": "SEV-2 — High", "value": "sev2"},
+                            {"text": "SEV-3 — Medium", "value": "sev3"},
+                            {"text": "SEV-4 — Low", "value": "sev4"}
+                        ]
+                    },
+                    {
+                        "type": "select",
+                        "name": "channels",
+                        "label": "Notify channels",
+                        "style": "expanded",
+                        "multiselect": true,
+                        "optional": true,
+                        "help_text": "Who should get pinged when this is submitted?",
+                        "initial_options": ["eng"],
+                        "options": [
+                            {"text": "Engineering", "value": "eng"},
+                            {"text": "Support", "value": "support"},
+                            {"text": "Security", "value": "security"}
+                        ]
+                    },
+                    {
+                        "type": "select",
+                        "name": "owner_team",
+                        "label": "Owner team",
+                        "style": "expanded",
+                        "option_groups": [
+                            {
+                                "label": "Core",
+                                "options": [
+                                    {"text": "Channels", "value": "channels"},
+                                    {"text": "Playbooks", "value": "playbooks"}
+                                ]
+                            },
+                            {
+                                "label": "Growth",
+                                "options": [
+                                    {"text": "Acquisition", "value": "acquisition"},
+                                    {"text": "Activation", "value": "activation"}
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "container",
+                        "flow": "horizontal",
+                        "gap": "medium",
+                        "content": [
+                            {
+                                "type": "button",
+                                "text": "Submit",
+                                "style": "primary",
+                                "subtype": "submit",
+                                "action_id": "e2e_mm_blocks_form_all_submit"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Cancel",
+                                "style": "default",
+                                "action_id": "e2e_mm_blocks_form_all_cancel"
+                            }
+                        ]
+                    }
+                ],
+                "mm_blocks_actions": {
+                    "e2e_mm_blocks_form_all_submit": {
+                        "type": "external",
+                        "url": "https://example.com/actions/mm_blocks_form_all_submit",
+                        "context": {
+                            "form": "all_inputs"
+                        }
+                    },
+                    "e2e_mm_blocks_form_all_cancel": {
+                        "type": "external",
+                        "url": "https://example.com/actions/mm_blocks_form_all_cancel",
+                        "context": {
+                            "form": "all_inputs"
+                        }
+                    }
+                }
+            }
         }
     },
     "block_kit": {

@@ -162,6 +162,7 @@ export const GenericModal: React.FC<Props> = ({
     const {
         shouldRenderBackdrop,
         modalStyle,
+        backdropStyle,
     } = useStackedModal(Boolean(isStacked), showState);
 
     useEffect(() => {
@@ -300,7 +301,7 @@ export const GenericModal: React.FC<Props> = ({
             onHide={onHideCallback}
             onExited={onExited}
             backdrop={shouldRenderBackdrop ? backdrop : false}
-            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
+            backdropStyle={backdropStyle}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}

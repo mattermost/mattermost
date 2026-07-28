@@ -831,6 +831,120 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "dynamic select element should not have static options")
 	})
+
+	t.Run("should pass blocks mode with block_dialog", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "go"},
+				},
+				Actions: map[string]any{
+					"go": map[string]any{
+						"type": "external",
+						"url":  "https://example.com/action",
+					},
+				},
+			},
+		}
+		err := request.IsValid()
+		assert.NoError(t, err)
+		assert.True(t, request.IsBlocksMode())
+	})
+
+
+	t.Run("should fail blocks mode without title", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Blocks: []any{map[string]any{"type": "text", "text": "Hello"}},
+			},
+		}
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid block_dialog title")
+	})
+
+	t.Run("should fail when both dialog and block_dialog are set", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.BlockDialog = &BlockDialog{
+			Title:  "Blocks",
+			Blocks: []any{map[string]any{"type": "text", "text": "Hello"}},
+		}
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "mutually exclusive")
+	})
+
+	t.Run("should pass blocks mode with empty blocks", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Title:  "Blocks",
+				Blocks: nil,
+			},
+		}
+		err := request.IsValid()
+		assert.NoError(t, err)
+		assert.True(t, request.IsBlocksMode())
+	})
+
+	t.Run("should pass submit and cancel chrome actions not in blocks", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "text", "text": "Hello"},
+				},
+				Submit: &BlockDialogButton{Action: "dialog_submit"},
+				Cancel: &BlockDialogButton{Action: "dialog_cancel"},
+				Actions: map[string]any{
+					"dialog_submit": map[string]any{
+						"type": "external",
+						"url":  "https://example.com/submit",
+					},
+					"dialog_cancel": map[string]any{
+						"type": "external",
+						"url":  "https://example.com/cancel",
+					},
+				},
+			},
+		}
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail when submit action is missing from actions map", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "text", "text": "Hello"},
+				},
+				Submit: &BlockDialogButton{Action: "dialog_submit"},
+				Actions: map[string]any{},
+			},
+		}
+		err := request.IsValid()
+		assert.Error(t, err)
+	})
+
+	t.Run("should allow submit and cancel without actions", func(t *testing.T) {
+		request := OpenDialogRequest{
+			TriggerId: "triggerId",
+			BlockDialog: &BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "text", "text": "Hello"},
+				},
+				Submit: &BlockDialogButton{Label: "Save"},
+				Cancel: &BlockDialogButton{Label: "Discard"},
+			},
+		}
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
 }
 
 func TestIsValidLookupURL(t *testing.T) {
@@ -1794,6 +1908,47 @@ func TestValidateActionQuery(t *testing.T) {
 	})
 }
 
+func TestValidateActionFormValues(t *testing.T) {
+	t.Run("nil and empty are valid", func(t *testing.T) {
+		assert.NoError(t, ValidateActionFormValues(nil))
+		assert.NoError(t, ValidateActionFormValues(map[string]any{}))
+	})
+
+	t.Run("typed scalars and string arrays are valid", func(t *testing.T) {
+		assert.NoError(t, ValidateActionFormValues(map[string]any{
+			"notify":      true,
+			"count":       float64(3),
+			"title":       "Bug",
+			"empty":       nil,
+			"attachments": []any{"file-a", "file-b"},
+		}))
+	})
+
+	t.Run("objects are rejected", func(t *testing.T) {
+		err := ValidateActionFormValues(map[string]any{
+			"meta": map[string]any{"nested": "x"},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must not be an object")
+	})
+
+	t.Run("nested arrays are rejected", func(t *testing.T) {
+		err := ValidateActionFormValues(map[string]any{
+			"matrix": []any{[]any{"a"}},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must not be nested")
+	})
+
+	t.Run("oversized string value is rejected", func(t *testing.T) {
+		err := ValidateActionFormValues(map[string]any{
+			"title": strings.Repeat("v", MaxActionQueryValueLength+1),
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds")
+	})
+}
+
 func mmBlocksExternalEntry(url string, context map[string]any) map[string]any {
 	entry := map[string]any{
 		"type": MmBlocksActionTypeExternal,
@@ -1896,6 +2051,57 @@ func TestGetMmBlocksActionSpec(t *testing.T) {
 			"btn1": "not-an-object",
 		})
 		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+}
+
+func TestValidateBlockDialogMmBlocksActions(t *testing.T) {
+	t.Run("nil dialog", func(t *testing.T) {
+		assert.Error(t, ValidateBlockDialogMmBlocksActions(nil))
+	})
+
+	t.Run("chrome submit/cancel actions pair without being in blocks", func(t *testing.T) {
+		d := &BlockDialog{
+			Title: "Blocks Dialog",
+			Blocks: []any{
+				map[string]any{"type": "text", "text": "Hello"},
+			},
+			Submit: &BlockDialogButton{Action: "dialog_submit"},
+			Cancel: &BlockDialogButton{Action: "dialog_cancel"},
+			Actions: map[string]any{
+				"dialog_submit": mmBlocksExternalEntry("https://example.com/submit", nil),
+				"dialog_cancel": mmBlocksExternalEntry("https://example.com/cancel", nil),
+			},
+		}
+		assert.NoError(t, ValidateBlockDialogMmBlocksActions(d))
+	})
+
+	t.Run("missing chrome action entry fails", func(t *testing.T) {
+		d := &BlockDialog{
+			Title: "Blocks Dialog",
+			Blocks: []any{
+				map[string]any{"type": "text", "text": "Hello"},
+			},
+			Submit:  &BlockDialogButton{Action: "dialog_submit"},
+			Actions: map[string]any{},
+		}
+		err := ValidateBlockDialogMmBlocksActions(d)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "dialog_submit")
+	})
+
+	t.Run("invalid action entry shape fails via shared core", func(t *testing.T) {
+		d := &BlockDialog{
+			Title: "Blocks Dialog",
+			Blocks: []any{
+				map[string]any{"type": "button", "text": "Go", "action_id": "btn1"},
+			},
+			Actions: map[string]any{
+				"btn1": "not-an-object",
+			},
+		}
+		err := ValidateBlockDialogMmBlocksActions(d)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be an object")
 	})
 }
 
@@ -2203,6 +2409,25 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not referenced")
+	})
+
+	t.Run("select data_source_action pairs with mm_blocks_actions", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{
+				"type":               "select",
+				"name":               "pick",
+				"label":              "Pick",
+				"data_source":        "dynamic",
+				"data_source_action": "lookup_act",
+			},
+			map[string]any{"type": "button", "text": "OK", "action_id": "ok_act"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"lookup_act": mmBlocksExternalEntry("http://example.com/lookup", nil),
+			"ok_act":     mmBlocksExternalEntry("http://example.com/ok", nil),
+		})
+		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
 	t.Run("missing mm_blocks_actions entry is rejected", func(t *testing.T) {

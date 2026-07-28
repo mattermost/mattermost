@@ -74,7 +74,7 @@ describe('Interactive Dialog - Apps Form without element', () => {
 
             // * Verify that the body exists but has no form fields (AppsForm always renders modal-body)
             cy.get('.modal-body').should('be.visible');
-            cy.get('.modal-body').find('.form-group').should('not.exist');
+            cy.get('.modal-body').find('.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input').should('not.exist');
 
             // * Verify that the footer contains cancel and submit buttons
             cy.get('.modal-footer').should('be.visible').within(($elForm) => {

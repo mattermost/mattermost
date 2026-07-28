@@ -91,6 +91,22 @@ func (a *App) resolvePostActionSetup(
 	}
 
 	userChan := a.startUpstreamUserFetch(userID)
+
+	// Dialog-scoped mm_blocks cookies have no post; skip store lookups and
+	// resolve from the cookie directly.
+	if postID == "" {
+		setup, gotoURL, appErr := a.resolvePostActionSetupFromCookies(
+			postID,
+			actionID,
+			legacyCookie,
+			mmBlocksCookie,
+			clientQuery,
+			upstreamRequest,
+			store.StoreResult[*model.Post]{NErr: store.NewErrNotFound("Post", postID)},
+		)
+		return a.finishPostActionSetup(setup, gotoURL, appErr, userChan)
+	}
+
 	postChan := a.startUpstreamPostFetch(rctx, postID)
 	channelChan := a.startUpstreamChannelFetch(postID)
 
@@ -288,13 +304,19 @@ func (a *App) setupFromMmBlocksCookie(
 	if cookie.Kind != model.MmBlocksActionCookieKind {
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "invalid mm_blocks action cookie", http.StatusBadRequest)
 	}
+	if !a.Config().FeatureFlags.MmBlocksEnabled {
+		return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "mm_blocks are not enabled", http.StatusBadRequest)
+	}
 	if postID != cookie.PostId {
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 	}
 
-	channel, appErr := a.channelForPostAction(cookie.ChannelId)
-	if appErr != nil {
-		return nil, "", appErr
+	if cookie.ChannelId != "" {
+		channel, appErr := a.channelForPostAction(cookie.ChannelId)
+		if appErr != nil {
+			return nil, "", appErr
+		}
+		fillUpstreamChannel(upstreamRequest, channel, cookie.ChannelId)
 	}
 
 	mmSpec := cookie.ActionSpec(actionID)
@@ -306,7 +328,6 @@ func (a *App) setupFromMmBlocksCookie(
 		return nil, resolved.OpenURLGoto, nil
 	}
 
-	fillUpstreamChannel(upstreamRequest, channel, cookie.ChannelId)
 	upstreamRequest.Type = model.PostActionTypeButton
 	upstreamRequest.Context = resolved.Context
 

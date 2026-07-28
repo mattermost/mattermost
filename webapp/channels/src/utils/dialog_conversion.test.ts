@@ -1264,6 +1264,36 @@ describe('dialog_conversion', () => {
             });
         });
 
+        it('should coerce stringified boolean values correctly', () => {
+            const values = {
+                bool_true: 'true',
+                bool_false: 'false',
+                bool_yes: 'yes',
+                bool_real: false,
+            };
+
+            const elements: DialogElement[] = [
+                {name: 'bool_true', type: 'bool', display_name: 'T', optional: false} as DialogElement,
+                {name: 'bool_false', type: 'bool', display_name: 'F', optional: false} as DialogElement,
+                {name: 'bool_yes', type: 'bool', display_name: 'Y', optional: false} as DialogElement,
+                {name: 'bool_real', type: 'bool', display_name: 'R', optional: false} as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values as unknown as AppFormValues,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                bool_true: true,
+                bool_false: false,
+                bool_yes: true,
+                bool_real: false,
+            });
+        });
+
         it('should handle select field values', () => {
             const values = {
                 select_field: 'opt1', // Primitive value (already processed by extractPrimitiveValues)

@@ -4169,6 +4169,18 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 	return BuildResponse(r), nil
 }
 
+// DoBlockAction performs a synchronous mm_blocks execute or lookup action
+// resolved from post_id + action_id (+ optional cookie). The integration body
+// is proxied to the client (unlike DoPostAction).
+func (c *Client4) DoBlockAction(ctx context.Context, request DoBlockActionRequest) (*DoBlockActionResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.actionsRoute().Join("blocks", "do"), request)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DoBlockActionResponse](r)
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and

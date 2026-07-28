@@ -83,7 +83,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
-import type {PostActionResponse} from '@mattermost/types/integration_actions';
+import type {DoBlockActionRequest, DoBlockActionResponse, PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
     CommandArgs,
@@ -2799,6 +2799,13 @@ export default class Client4 {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
+        );
+    };
+
+    doBlockAction = (data: DoBlockActionRequest) => {
+        return this.doFetch<DoBlockActionResponse>(
+            `${this.getBaseRoute()}/actions/blocks/do`,
+            {method: 'post', body: JSON.stringify(data)},
         );
     };
 

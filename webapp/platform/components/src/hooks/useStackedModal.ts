@@ -22,6 +22,13 @@ type StackedModalResult = {
     modalStyle: React.CSSProperties;
 
     /**
+     * Style object for the modal's backdrop element. Positions a
+     * stacked modal's backdrop just above the modal directly beneath
+     * it so that modal is dimmed while this one is open.
+     */
+    backdropStyle?: React.CSSProperties;
+
+    /**
      * Reference to the parent modal element (if this is a stacked modal)
      */
     parentModalRef: React.RefObject<HTMLElement | null>;
@@ -82,32 +89,39 @@ export function useStackedModal(
             // For stacked modals, we want to render our own backdrop
             setShouldRenderBackdrop(true);
 
-            // Calculate the z-index for the stacked modal
-            const stackedModalZIndex = BASE_MODAL_Z_INDEX + Z_INDEX_INCREMENT;
+            // The stacking depth is the number of backdrops already in
+            // the DOM from the modals beneath this one. Each level must
+            // sit a full increment above the previous stacked modal:
+            // using a fixed offset broke stacks 3+ deep (e.g. Channel
+            // Settings → Simulate access → Decision details), where the
+            // deepest modal shared the middle modal's z-index and its
+            // backdrop landed *below* that modal, leaving it undimmed.
+            const backdrops = typeof document === 'undefined' ?
+                [] :
+                Array.from(document.querySelectorAll<HTMLElement>('.modal-backdrop'));
+            const depth = Math.max(backdrops.length, 1);
 
-            // Update the z-index for this modal and its backdrop
-            // The backdrop should be above the parent modal (1050) but below the stacked modal
+            // The backdrop sits one below the modal so it dims the modal
+            // directly beneath this one but stays behind this modal.
+            const stackedModalZIndex = BASE_MODAL_Z_INDEX + (depth * Z_INDEX_INCREMENT);
             setZIndexes({
                 modal: stackedModalZIndex,
-                backdrop: stackedModalZIndex - 1, // This is 1050 + 10 - 1 = 1059
+                backdrop: stackedModalZIndex - 1,
             });
 
-            // Adjust the parent backdrop's opacity and z-index
-            if (typeof document !== 'undefined') {
-                // Find all existing backdrops in the DOM
-                const backdrops = document.querySelectorAll('.modal-backdrop');
-                if (backdrops.length > 0) {
-                    // Get the most recent backdrop (the one with the highest z-index)
-                    // This should be the backdrop of the parent modal
-                    const parentBackdrop = backdrops[backdrops.length - 1] as HTMLElement;
-                    backdropRef.current = parentBackdrop;
-                    originalBackdropZIndexRef.current = parentBackdrop.style.zIndex || String(BASE_BACKDROP_Z_INDEX);
-                    originalBackdropOpacityRef.current = parentBackdrop.style.opacity || '0.5'; // Default Bootstrap backdrop opacity
+            // Adjust the parent backdrop so we don't stack two dim
+            // layers over the same content.
+            if (backdrops.length > 0) {
+                // Get the most recent backdrop (the one with the highest z-index)
+                // This should be the backdrop of the parent modal
+                const parentBackdrop = backdrops[backdrops.length - 1];
+                backdropRef.current = parentBackdrop;
+                originalBackdropZIndexRef.current = parentBackdrop.style.zIndex || String(BASE_BACKDROP_Z_INDEX);
+                originalBackdropOpacityRef.current = parentBackdrop.style.opacity || '0.5'; // Default Bootstrap backdrop opacity
 
-                    // Add a transition for smooth opacity change
-                    parentBackdrop.style.transition = 'opacity 150ms ease-in-out';
-                    parentBackdrop.style.opacity = '0';
-                }
+                // Add a transition for smooth opacity change
+                parentBackdrop.style.transition = 'opacity 150ms ease-in-out';
+                parentBackdrop.style.opacity = '0';
             }
         };
 
@@ -125,10 +139,27 @@ export function useStackedModal(
                 }
 
                 if (originalBackdropOpacityRef.current) {
-                    // Restore original opacity if it was stored
-                    // Keep the transition for a smooth fade-in
-                    backdropRef.current.style.transition = 'opacity 150ms ease-in-out';
-                    backdropRef.current.style.opacity = originalBackdropOpacityRef.current;
+                    const backdrop = backdropRef.current;
+
+                    // Snap the parent backdrop back to its original opacity
+                    // WITHOUT a fade-in. The stacked modal's own backdrop is
+                    // removed instantly when it closes, so animating the
+                    // parent backdrop up from 0 over 150ms leaves a window
+                    // with no opaque overlay — the whole screen flashes
+                    // bright for that fraction of a second. Restoring the
+                    // opacity synchronously keeps the visible dimming
+                    // continuous as the stacked backdrop disappears.
+                    backdrop.style.transition = 'none';
+                    backdrop.style.opacity = originalBackdropOpacityRef.current;
+
+                    // Reading a layout property forces the snap above to
+                    // commit before transitions are re-enabled; otherwise the
+                    // browser batches both writes and animates the opacity
+                    // change, bringing the flash back. offsetHeight is always
+                    // non-negative, so this also consumes the forced read.
+                    if (backdrop.offsetHeight >= 0) {
+                        backdrop.style.transition = 'opacity 150ms ease-in-out';
+                    }
                 }
 
                 // Clear refs
@@ -145,9 +176,16 @@ export function useStackedModal(
         } : {};
     }, [isStacked, zIndexes.modal]);
 
+    const backdropStyle = useMemo(() => {
+        return isStacked ? {
+            zIndex: zIndexes.backdrop,
+        } : undefined;
+    }, [isStacked, zIndexes.backdrop]);
+
     return {
         shouldRenderBackdrop,
         modalStyle,
+        backdropStyle,
         parentModalRef,
     };
 }

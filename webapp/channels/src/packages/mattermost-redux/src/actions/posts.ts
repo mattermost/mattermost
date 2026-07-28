@@ -7,7 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
-import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
+import type {DoBlockActionRequest, DoBlockActionResponse, PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -1249,21 +1249,51 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
         }
 
         if (data && data.trigger_id) {
-            dispatch({
-                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
-                data: data.trigger_id,
-            });
-            const state = getState();
-            const post = PostSelectors.getPost(state, postId);
-            dispatch({
-                type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
-                data: {
-                    channel_id: post.channel_id,
-                }});
+            dispatchReceivedDialogTrigger(dispatch, getState, postId, data.trigger_id);
         }
 
         return {data};
     };
+}
+
+export function doBlockAction(request: DoBlockActionRequest): ActionFuncAsync<DoBlockActionResponse> {
+    return async (dispatch, getState) => {
+        let data: DoBlockActionResponse;
+        try {
+            data = await Client4.doBlockAction(request);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (data?.trigger_id) {
+            dispatchReceivedDialogTrigger(dispatch, getState, request.post_id || '', data.trigger_id);
+        }
+
+        return {data};
+    };
+}
+
+function dispatchReceivedDialogTrigger(dispatch: DispatchFunc, getState: GetStateFunc, postId: string, triggerId: string) {
+    dispatch({
+        type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+        data: triggerId,
+    });
+    if (!postId) {
+        return;
+    }
+    const state = getState();
+    const post = PostSelectors.getPost(state, postId);
+    if (!post?.channel_id) {
+        return;
+    }
+    dispatch({
+        type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+        data: {
+            channel_id: post.channel_id,
+        },
+    });
 }
 
 export function addMessageIntoHistory(message: string) {

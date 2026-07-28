@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment-timezone';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {useStackedModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
@@ -34,6 +35,40 @@ import './apps_form_component.scss';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
+
+type AppsFormModalProps = {
+    show: boolean;
+    onHide: () => void;
+    onExited: () => void;
+    enforceFocus: boolean;
+    children: React.ReactNode;
+};
+
+// Wrapper so the class-based AppsForm can use the stacked-modal hook.
+function AppsFormModal({show, onHide, onExited, enforceFocus, children}: AppsFormModalProps) {
+    const isStacked = useRef(
+        typeof document !== 'undefined' && document.querySelectorAll('.modal-backdrop').length > 0,
+    ).current;
+    const {shouldRenderBackdrop, modalStyle, backdropStyle} = useStackedModal(isStacked, show);
+
+    return (
+        <Modal
+            id='appsModal'
+            dialogClassName='a11y__modal about-modal'
+            enforceFocus={enforceFocus}
+            show={show}
+            onHide={onHide}
+            onExited={onExited}
+            backdrop={shouldRenderBackdrop ? 'static' : false}
+            backdropStyle={backdropStyle}
+            style={modalStyle}
+            role='none'
+            aria-labelledby='appsModalLabel'
+        >
+            {children}
+        </Modal>
+    );
+}
 
 export type AppsFormProps = {
     form: AppForm;
@@ -618,20 +653,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        const dialogClassName = 'a11y__modal about-modal';
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (
-            <Modal
-                id='appsModal'
-                dialogClassName={dialogClassName}
-                enforceFocus={!hasDateTimeFields}
+            <AppsFormModal
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                backdrop='static'
-                role='none'
-                aria-labelledby='appsModalLabel'
+                enforceFocus={!hasDateTimeFields}
             >
                 <form
                     onSubmit={this.handleSubmit}
@@ -666,7 +695,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         {this.renderFooter()}
                     </Modal.Footer>
                 </form>
-            </Modal>
+            </AppsFormModal>
         );
     }
 

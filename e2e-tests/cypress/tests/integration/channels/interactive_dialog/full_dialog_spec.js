@@ -34,6 +34,9 @@ describe('Interactive Dialog - Apps Form', () => {
     let createdCommand;
     let fullDialog;
 
+    // Legacy dialogs render via BlocksDialogShell/mm_blocks.
+    const FIELD_SELECTOR = '.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input';
+
     before(() => {
         cy.requireWebhookServer();
 
@@ -87,7 +90,7 @@ describe('Interactive Dialog - Apps Form', () => {
             });
 
             // * Verify that the body contains all the elements
-            cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).each(($elForm, index) => {
                 const element = fullDialog.dialog.elements[index];
 
                 // Skip if element is undefined (more DOM elements than expected)
@@ -99,16 +102,10 @@ describe('Interactive Dialog - Apps Form', () => {
                     cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
                     if (['someuserselector', 'somechannelselector', 'someoptionselector'].includes(element.name)) {
-                        // ReactSelect structure - check for MultiInput element
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                        // AutocompleteSelector for users/channels/static single-select
+                        cy.get('input').first().should('be.visible').click();
 
-                        // * Verify that the dropdown opens on click
-                        cy.get('[id^=\'MultiInput_\']').click();
-
-                        // Break out of .within() scope to find options in document
-                        cy.document().then((doc) => {
-                            cy.wrap(doc).find('.react-select__menu').should('be.visible');
-                        });
+                        cy.get('#suggestionList').should('be.visible');
 
                         // # Click label to close any opened drop-downs
                         cy.get('label').first().click({force: true});
@@ -197,13 +194,13 @@ describe('Interactive Dialog - Apps Form', () => {
         cy.get('#appsModal').should('be.visible');
 
         // * Verify that not optional element without text value shows an error and vice versa
-        cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).each(($elForm, index) => {
             const element = fullDialog.dialog.elements[index];
 
             if (!element.optional && !element.default) {
-                cy.wrap($elForm).find('div.error-text').should('exist').and('contain', 'This field is required.');
+                cy.wrap($elForm).find('.has-error').should('exist').and('contain', 'This field is required.');
             } else {
-                cy.wrap($elForm).find('div.error-text').should('not.exist');
+                cy.wrap($elForm).find('.has-error').should('not.exist');
             }
         });
 
@@ -263,8 +260,8 @@ describe('Interactive Dialog - Apps Form', () => {
 
         cy.get('#appsModalSubmit').click();
 
-        cy.get('.modal-body').should('be.visible').children('.form-group').eq(2).within(($elForm) => {
-            cy.wrap($elForm).find('div.error-text').should('exist').and('contain', 'This field is required.');
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).eq(2).within(($elForm) => {
+            cy.wrap($elForm).find('.has-error').should('exist').and('contain', 'This field is required.');
         });
 
         closeAppsFormModal();
@@ -282,8 +279,8 @@ describe('Interactive Dialog - Apps Form', () => {
 
         cy.get('#appsModalSubmit').click();
 
-        cy.get('.modal-body').should('be.visible').children('.form-group').eq(2).within(($elForm) => {
-            cy.wrap($elForm).find('div.error-text').should('not.exist');
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).eq(2).within(($elForm) => {
+            cy.wrap($elForm).find('.has-error').should('not.exist');
         });
 
         closeAppsFormModal();

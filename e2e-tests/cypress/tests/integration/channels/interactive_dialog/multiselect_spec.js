@@ -23,6 +23,11 @@ let createdCommandClean;
 let multiSelectDialogWithDefaults;
 let multiSelectDialogClean;
 
+// Legacy dialogs render via BlocksDialogShell/mm_blocks.
+// Multiselect/static-multi use ReactSelect with inputId = element name (not MultiInput_*).
+// Single static selects use AutocompleteSelector (#suggestionList).
+const FIELD_SELECTOR = '.mm-blocks-select-input';
+
 describe('Interactive Dialog - Multiselect', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -92,7 +97,7 @@ describe('Interactive Dialog - Multiselect', () => {
             });
 
             // * Verify default values are preselected correctly
-            cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).each(($elForm, index) => {
                 const element = multiSelectDialogWithDefaults.dialog.elements[index];
 
                 if (!element) {
@@ -109,8 +114,8 @@ describe('Interactive Dialog - Multiselect', () => {
                         // * Verify multiselect users field has no default values
                         cy.get('.react-select__multi-value').should('not.exist');
                     } else if (element.name === 'single_select_options') {
-                        // * Verify single select has default value (single2 = Single Option 2)
-                        cy.get('.react-select__single-value').should('contain', 'Single Option 2');
+                        // * Verify single select has default value (AutocompleteSelector input)
+                        cy.get('input').should('have.value', 'Single Option 2');
                     }
                 });
             });
@@ -133,7 +138,7 @@ describe('Interactive Dialog - Multiselect', () => {
             });
 
             // * Verify that the body contains all multiselect elements
-            cy.get('.modal-body').should('be.visible').children('.form-group').should('have.length', 3).each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).should('have.length', 3).each(($elForm, index) => {
                 const element = multiSelectDialogClean.dialog.elements[index];
 
                 // Skip if element is undefined (more DOM elements than expected)
@@ -147,16 +152,16 @@ describe('Interactive Dialog - Multiselect', () => {
 
                     if (element.name === 'multiselect_options') {
                         // * Verify multiselect options field starts empty
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                        cy.get(`#${element.name}`).should('be.visible');
                         cy.get('.react-select__multi-value').should('not.exist');
 
                         // * Test adding multiple options
-                        cy.get('[id^=\'MultiInput_\']').click();
+                        cy.get(`#${element.name}`).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
                         });
 
-                        cy.get('[id^=\'MultiInput_\']').click();
+                        cy.get(`#${element.name}`).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').contains('Sales').click();
                         });
@@ -174,17 +179,17 @@ describe('Interactive Dialog - Multiselect', () => {
                         cy.get('.react-select__multi-value').eq(0).should('contain', 'Sales');
                     } else if (element.name === 'multiselect_users') {
                         // * Verify multiselect users field starts empty
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                        cy.get(`#${element.name}`).should('be.visible');
                         cy.get('.react-select__multi-value').should('not.exist');
 
                         // * Test selecting multiple users
-                        cy.get('[id^=\'MultiInput_\']').click();
+                        cy.get(`#${element.name}`).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').should('have.length.at.least', 1);
                             cy.wrap(doc).find('.react-select__option').first().click();
                         });
 
-                        cy.get('[id^=\'MultiInput_\']').click();
+                        cy.get(`#${element.name}`).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').eq(1).click();
                         });
@@ -192,17 +197,15 @@ describe('Interactive Dialog - Multiselect', () => {
                         // * Verify two users are selected
                         cy.get('.react-select__multi-value').should('have.length', 2);
                     } else if (element.name === 'single_select_options') {
-                        // * Verify single select field starts empty
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                        // * Verify single select field starts empty (AutocompleteSelector)
+                        cy.get('input').first().should('be.visible').and('have.value', '');
 
                         // * Test selecting a single option
-                        cy.get('[id^=\'MultiInput_\']').click();
-                        cy.document().then((doc) => {
-                            cy.wrap(doc).find('.react-select__option').contains('Single Option 3').click();
-                        });
+                        cy.get('input').first().click();
+                        cy.get('#suggestionList').should('be.visible').contains('Single Option 3').click({force: true});
 
                         // * Verify single value was selected
-                        cy.get('.react-select__single-value').should('contain', 'Single Option 3');
+                        cy.get('input').first().should('have.value', 'Single Option 3');
                     }
 
                     // * Verify help text if present
@@ -229,23 +232,23 @@ describe('Interactive Dialog - Multiselect', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Select additional option in the multiselect field (defaults already present)
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
                 // Keep default selections and add one more
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get('#multiselect_options').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Support').click();
             });
 
             // # Select multiple users
-            cy.get('.form-group').eq(1).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(1).within(() => {
+                cy.get('#multiselect_users').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').first().click();
             });
-            cy.get('.form-group').eq(1).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(1).within(() => {
+                cy.get('#multiselect_users').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').eq(1).click();
@@ -287,40 +290,38 @@ describe('Interactive Dialog - Multiselect', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Select multiple options in the multiselect field (starting from empty)
-            cy.get('.form-group').eq(0).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
+                cy.get('#multiselect_options').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
             });
-            cy.get('.form-group').eq(0).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
+                cy.get('#multiselect_options').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Sales').click();
             });
 
             // # Select multiple users
-            cy.get('.form-group').eq(1).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(1).within(() => {
+                cy.get('#multiselect_users').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').first().click();
             });
-            cy.get('.form-group').eq(1).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get(FIELD_SELECTOR).eq(1).within(() => {
+                cy.get('#multiselect_users').click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').eq(1).click();
             });
 
-            // # Select single option
-            cy.get('.form-group').eq(2).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            // # Select single option (AutocompleteSelector)
+            cy.get(FIELD_SELECTOR).eq(2).within(() => {
+                cy.get('input').first().click();
             });
-            cy.document().then((doc) => {
-                cy.wrap(doc).find('.react-select__option').contains('Single Option 1').click();
-            });
+            cy.get('#suggestionList').should('be.visible').contains('Single Option 1').click({force: true});
 
             // # Submit the form
             cy.intercept('/api/v4/actions/dialogs/submit').as('submitAction');
@@ -358,7 +359,7 @@ describe('Interactive Dialog - Multiselect', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Required multiselect field (multiselect_options) starts empty in clean dialog
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
                 // Verify the field shows required indicator (*) or field name
                 cy.get('label').should('contain', 'Multi Option Selector');
 
@@ -376,8 +377,8 @@ describe('Interactive Dialog - Multiselect', () => {
 
         // * Verify error message appears for required field
         cy.get('#appsModal').within(() => {
-            cy.get('.form-group').eq(0).within(() => {
-                cy.get('.error-text').should('be.visible').and('contain', 'This field is required');
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
+                cy.get('[data-testid="multiselect_options-error"]').should('be.visible').and('contain', 'This field is required');
             });
         });
 
@@ -391,16 +392,17 @@ describe('Interactive Dialog - Multiselect', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test keyboard navigation in multiselect (starts clean, no defaults)
-            cy.get('.form-group').eq(0).within(() => {
-                // First selection: Use keyboard to select Sales option
-                cy.get('[id^=\'MultiInput_\']').click().type('{downarrow}{downarrow}{enter}'); // Select Sales option
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
+                // React-select focuses the first option on open (Engineering).
+                // One downarrow moves to Sales (2nd), then Enter selects it.
+                cy.get('#multiselect_options').click().type('{downarrow}{enter}');
 
                 // * Verify Sales was added
                 cy.get('.react-select__multi-value').should('have.length', 1);
                 cy.get('.react-select__multi-value').should('contain', 'Sales');
 
                 // # Test typing to filter options (dropdown closes after selection, so click again)
-                cy.get('[id^=\'MultiInput_\']').click().type('Prod{enter}'); // Type "Prod" to filter and select Product
+                cy.get('#multiselect_options').click().type('Prod{enter}'); // Type "Prod" to filter and select Product
 
                 // * Verify Product was added
                 cy.get('.react-select__multi-value').should('have.length', 2);
@@ -435,18 +437,18 @@ describe('Interactive Dialog - Multiselect', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // * Verify multiselect has basic accessibility elements (uses clean dialog)
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get(FIELD_SELECTOR).eq(0).within(() => {
                 // * Verify label exists and is visible
                 cy.get('label').should('be.visible').and('contain', 'Multi Option Selector');
 
                 // * Verify multiselect input is present and accessible
-                cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                cy.get('#multiselect_options').should('be.visible');
 
                 // * Verify help text exists and is visible
                 cy.get('.help-text').should('be.visible').and('contain', 'You can select multiple options');
 
                 // * Test basic interaction accessibility - click to open/close
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get('#multiselect_options').click();
 
                 // * Verify dropdown opens (options become available)
                 cy.document().then((doc) => {

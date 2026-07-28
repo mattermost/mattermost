@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {BlockRenderer} from './block_renderer';
-export type {ActionHandler} from './types';
+export type {ActionHandler, LookupHandler} from './types';
