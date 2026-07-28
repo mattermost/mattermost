@@ -687,6 +687,28 @@ func isThisRuleScope(scope string) bool {
 // indexed by field name.
 const userAttributesPathPrefix = "user.attributes."
 
+// resourceAttributesPathPrefix is the analogous prefix for the accessed
+// resource's custom attributes (e.g. `resource.attributes.Sensitivity`).
+// A simulator leaf carrying this prefix records the target channel's own
+// attribute value, which must be hidden when the channel field is
+// protected — separately from the user side, since a channel field's
+// visibility can differ from a same-named user field.
+const resourceAttributesPathPrefix = "resource.attributes."
+
+// protectedCPAAttributes bundles the sets of protected CPA field names
+// per attribute root. User and resource (channel) fields are tracked
+// separately because a channel field's visibility/access mode can differ
+// from a user field that happens to share its name, so a leaf must be
+// matched against the set for its own root.
+type protectedCPAAttributes struct {
+	user     map[string]struct{}
+	resource map[string]struct{}
+}
+
+func (p protectedCPAAttributes) isEmpty() bool {
+	return len(p.user) == 0 && len(p.resource) == 0
+}
+
 // RedactSimulationAttributesForCaller strips attribute values from a
 // PolicySimulationResponse on every surface the picker exposes
 // (top-level user/session Attributes maps AND the per-leaf
@@ -747,11 +769,16 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 		clearAllEvaluationTreeActualValues(resp)
 		return
 	}
-	if len(protected) == 0 {
+	if protected.isEmpty() {
 		return
 	}
 
-	stripProtectedAttributes(resp, protected)
+	// Top-level Attributes maps hold only the simulated user's own
+	// snapshot (resource attributes never appear there), so they are
+	// pruned against the user set alone. The evaluation trees can carry
+	// both user.attributes.* and resource.attributes.* leaves, so the
+	// tree walker matches each against the set for its root.
+	stripProtectedAttributes(resp, protected.user)
 	redactProtectedEvaluationTreeActualValues(resp, protected)
 }
 
@@ -763,23 +790,44 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // `pf.Name` (see db/migrations/postgres/000212_split_attribute_view_by_object_type.up.sql),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for both.
-func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]struct{}, error) {
+func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAttributes, error) {
+	protected := protectedCPAAttributes{
+		user:     map[string]struct{}{},
+		resource: map[string]struct{}{},
+	}
+
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
-		return nil, appErr
+		return protected, appErr
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
-		PerPage:     model.AccessControlGroupFieldLimit + 5,
+		ObjectTypes: []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
+		PerPage:     2*model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
-		return nil, appErr
+		return protected, appErr
 	}
 
-	protected := map[string]struct{}{}
+	// setFor returns the protected-name set for a field's object type, or
+	// nil for object types that never surface in a simulation trace.
+	setFor := func(objectType string) map[string]struct{} {
+		switch objectType {
+		case model.PropertyFieldObjectTypeUser:
+			return protected.user
+		case model.PropertyFieldObjectTypeChannel:
+			return protected.resource
+		default:
+			return nil
+		}
+	}
+
 	for _, pf := range propertyFields {
 		if pf == nil {
+			continue
+		}
+		set := setFor(pf.ObjectType)
+		if set == nil {
 			continue
 		}
 		f, err := model.NewCPAFieldFromPropertyField(pf)
@@ -789,13 +837,14 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 			rctx.Logger().Warn("Failed to parse property field for CPA protection check; treating as protected",
 				mlog.String("field_name", pf.Name),
 				mlog.String("field_id", pf.ID),
+				mlog.String("object_type", pf.ObjectType),
 				mlog.Err(err),
 			)
-			protected[pf.Name] = struct{}{}
+			set[pf.Name] = struct{}{}
 			continue
 		}
 		if cpaFieldIsProtectedForChannelAdmin(f) {
-			protected[f.Name] = struct{}{}
+			set[f.Name] = struct{}{}
 		}
 	}
 	return protected, nil
@@ -910,8 +959,8 @@ func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected ma
 //     not the user's data — also already in `Expression`.
 //   - `ActualValue` is the only field that records the target user's
 //     concrete attribute value. That's the one we must redact.
-func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected map[string]struct{}) {
-	if resp == nil || len(protected) == 0 {
+func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected protectedCPAAttributes) {
+	if resp == nil || protected.isEmpty() {
 		return
 	}
 	for i := range resp.Results {
@@ -929,7 +978,7 @@ func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationRespo
 	}
 }
 
-func redactProtectedActualValuesInDecision(dec *model.PolicySimulationActionDecision, protected map[string]struct{}) {
+func redactProtectedActualValuesInDecision(dec *model.PolicySimulationActionDecision, protected protectedCPAAttributes) {
 	for i := range dec.Blame {
 		b := &dec.Blame[i]
 		if b.EvaluationTree != nil {
@@ -945,9 +994,9 @@ func redactProtectedActualValuesInDecision(dec *model.PolicySimulationActionDeci
 
 // redactProtectedActualValuesInTree recursively walks `node` and
 // blanks the `ActualValue` on every leaf whose `Attribute` resolves
-// to a CPA field in `protected`. Operates in place on the tree
-// pointer the response shares with its parent blame entry.
-func redactProtectedActualValuesInTree(node *model.PolicySimulationEvaluationNode, protected map[string]struct{}) {
+// to a protected CPA field. Operates in place on the tree pointer the
+// response shares with its parent blame entry.
+func redactProtectedActualValuesInTree(node *model.PolicySimulationEvaluationNode, protected protectedCPAAttributes) {
 	if node == nil {
 		return
 	}
@@ -959,21 +1008,32 @@ func redactProtectedActualValuesInTree(node *model.PolicySimulationEvaluationNod
 	}
 }
 
-// isProtectedAttributePath returns true when `path` is the canonical
-// CEL form `user.attributes.<name>` and `<name>` is in `protected`.
-// Returns false for empty paths and for any path that doesn't carry
-// the user-attribute prefix (other shapes — function-call leaves,
-// constant comparisons — are not user data).
-func isProtectedAttributePath(path string, protected map[string]struct{}) bool {
-	if path == "" || len(protected) == 0 {
+// isProtectedAttributePath returns true when `path` is a canonical CPA
+// leaf reference — `user.attributes.<name>` or `resource.attributes.<name>`
+// — whose `<name>` is in the protected set for that root. Each root is
+// matched against its own set so a channel field's visibility can't be
+// inferred from a same-named user field. Returns false for empty paths
+// and for any path that doesn't carry a CPA prefix (function-call
+// leaves, constant comparisons, native selectors — not custom data).
+func isProtectedAttributePath(path string, protected protectedCPAAttributes) bool {
+	if path == "" || protected.isEmpty() {
 		return false
 	}
-	name, ok := strings.CutPrefix(path, userAttributesPathPrefix)
-	if !ok || name == "" {
-		return false
+	if name, ok := strings.CutPrefix(path, userAttributesPathPrefix); ok {
+		if name == "" {
+			return false
+		}
+		_, found := protected.user[name]
+		return found
 	}
-	_, found := protected[name]
-	return found
+	if name, ok := strings.CutPrefix(path, resourceAttributesPathPrefix); ok {
+		if name == "" {
+			return false
+		}
+		_, found := protected.resource[name]
+		return found
+	}
+	return false
 }
 
 // clearAllSimulationAttributes wipes every top-level user-level and
@@ -2315,8 +2375,17 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 
 	currentUserID := session.UserId
 
-	// SECURITY: First check if the channel admin themselves matches this expression
-	// If they don't match, they shouldn't be able to see users who do
+	// Only return results if the requesting admin matches the expression
+	// themselves. This blocks the obvious probe: an admin who is not, say,
+	// "TopSecret" cannot run clearance == "TopSecret" just to discover who is.
+	//
+	// It is a speed bump, not a hard boundary. An admin can OR in a term they
+	// always satisfy (user.id == "<self>" || <probe>) to pass this check, then
+	// read the returned match count to answer yes/no questions about values they
+	// cannot see directly. That kind of enumeration is unavoidable in any feature
+	// that reveals who a rule matches, so we accept it. The thing we actually
+	// protect -- raw attribute values and options -- is masked when a policy is
+	// read, not here.
 	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
 	if appErr != nil {
 		return nil, 0, appErr
@@ -2336,9 +2405,9 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 	return a.TestExpression(rctx, expression, opts)
 }
 
-// TestExpressionWithTeamContext tests expressions for team admins with the same
-// info-leak guard as the channel variant: a team admin may only see users who
-// match an expression that they themselves match.
+// TestExpressionWithTeamContext is the team-admin counterpart of
+// TestExpressionWithChannelContext and applies the same self-match check; see
+// that function's comment for what the check does and does not protect.
 func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	session := rctx.Session()
 	if session == nil {
@@ -2347,7 +2416,8 @@ func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string,
 
 	currentUserID := session.UserId
 
-	// SECURITY: a team admin who doesn't match the expression must not learn who does.
+	// Same self-match check as the channel variant (see its comment): a partial
+	// guard against casual probing, not a confidentiality boundary.
 	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
 	if appErr != nil {
 		return nil, 0, appErr

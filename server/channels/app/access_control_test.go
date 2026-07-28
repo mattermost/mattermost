@@ -3424,9 +3424,14 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 func TestRedactProtectedActualValuesInTree(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	protected := map[string]struct{}{
-		"Clearance":   {},
-		"NetworkZone": {},
+	protected := protectedCPAAttributes{
+		user: map[string]struct{}{
+			"Clearance":   {},
+			"NetworkZone": {},
+		},
+		resource: map[string]struct{}{
+			"Sensitivity": {},
+		},
 	}
 
 	t.Run("redacts ActualValue on protected leaves at every depth", func(t *testing.T) {
@@ -3452,6 +3457,19 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 							Kind:        model.PolicySimulationEvaluationKindCompare,
 							Attribute:   "user.attributes.Region",
 							ActualValue: "us",
+						},
+						// Protected channel attribute: blanked against the
+						// resource set, not the user set.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Sensitivity",
+							ActualValue: "secret",
+						},
+						// Public channel attribute: preserved.
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "resource.attributes.Region",
+							ActualValue: "us-east",
 						},
 					},
 				},
@@ -3479,6 +3497,10 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 		assert.Empty(t, tree.Children[1].Children[0].ActualValue, "NetworkZone leaf must be blanked")
 		assert.Equal(t, "us", tree.Children[1].Children[1].ActualValue, "Region leaf must be preserved")
 
+		// Protected channel attribute blanked; public channel attribute preserved.
+		assert.Empty(t, tree.Children[1].Children[2].ActualValue, "resource Sensitivity leaf must be blanked")
+		assert.Equal(t, "us-east", tree.Children[1].Children[3].ActualValue, "resource Region leaf must be preserved")
+
 		// Function leaf with no attribute path is left alone.
 		assert.Equal(t, "some-internal-value", tree.Children[2].ActualValue, "non-user-attribute leaf must be preserved")
 	})
@@ -3495,7 +3517,7 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 			Attribute:   "user.attributes.Clearance",
 			ActualValue: "il5",
 		}
-		redactProtectedActualValuesInTree(tree, nil)
+		redactProtectedActualValuesInTree(tree, protectedCPAAttributes{})
 
 		// Helper itself is unconditional but the public entry point
 		// short-circuits before calling it with an empty set —
@@ -3509,16 +3531,32 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 // paths, empty paths, and empty protected sets.
 func TestIsProtectedAttributePath(t *testing.T) {
 	mainHelper.Parallel(t)
-	protected := map[string]struct{}{"Clearance": {}}
+	// Clearance is protected only on the user side, Sensitivity only on the
+	// resource side — so a leaf must match the set for its own root.
+	protected := protectedCPAAttributes{
+		user:     map[string]struct{}{"Clearance": {}},
+		resource: map[string]struct{}{"Sensitivity": {}},
+	}
 
 	t.Run("returns true for the canonical user.attributes.<name> form", func(t *testing.T) {
 		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
 	})
 
-	t.Run("returns false for non-user-attribute paths", func(t *testing.T) {
-		// Resource / session / channel paths must not collide with
-		// the user-attributes namespace — only `user.attributes.*`
-		// is in scope for the CPA visibility filter.
+	t.Run("returns true for the canonical resource.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("resource.attributes.Sensitivity", protected))
+	})
+
+	t.Run("matches each root against its own set, not the other's", func(t *testing.T) {
+		// Clearance is protected user-side but not resource-side, and
+		// vice versa for Sensitivity — the sets must not cross.
+		assert.False(t, isProtectedAttributePath("resource.attributes.Clearance", protected))
+		assert.False(t, isProtectedAttributePath("user.attributes.Sensitivity", protected))
+	})
+
+	t.Run("returns false for non-CPA paths", func(t *testing.T) {
+		// Session / native / bare resource selectors carry no
+		// `.attributes.` segment — only `user.attributes.*` and
+		// `resource.attributes.*` are in scope for the CPA filter.
 		assert.False(t, isProtectedAttributePath("session.network_status", protected))
 		assert.False(t, isProtectedAttributePath("resource.id", protected))
 		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
@@ -3526,12 +3564,15 @@ func TestIsProtectedAttributePath(t *testing.T) {
 
 	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
+		assert.False(t, isProtectedAttributePath("resource.attributes.Region", protected))
 	})
 
 	t.Run("returns false for empty inputs", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("", protected))
-		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", nil))
+		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", protectedCPAAttributes{}))
 		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
+			"empty suffix must not match — that's a malformed path, not a protected reference")
+		assert.False(t, isProtectedAttributePath("resource.attributes.", protected),
 			"empty suffix must not match — that's a malformed path, not a protected reference")
 	})
 }
