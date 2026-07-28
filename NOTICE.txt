@@ -7892,14 +7892,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---
 
-## ledongthuc/pdf
+## mattermost/pdf
 
-This product contains 'ledongthuc/pdf' by Thuc Le.
+This product contains 'mattermost/pdf' by Mattermost, a fork of 'ledongthuc/pdf' by Thuc Le.
 
 PDF reader
 
 * HOMEPAGE:
-  * https://github.com/ledongthuc/pdf
+  * https://github.com/mattermost/pdf
 
 * LICENSE: BSD 3-Clause "New" or "Revised" License
 
