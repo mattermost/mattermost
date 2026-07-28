@@ -67,11 +67,11 @@ of constants near the top of the script:
 - A `*_GROUPS` map of group key → `{label, landing?, items}`, where `items`
   are doc basenames (relative to that section's directory) or nested
   inline group objects. A group's `items` can itself contain a nested
-  `{label, items}` sub-group, which is how you get a 3rd level of TOC
-  nesting (Guide → Group → Sub-group → page) for a section large enough to
-  need it — see `OVERVIEW_GROUPS.subscription`'s "Cloud" sub-group, or
-  `ADMIN_MANAGE_GROUPS.userAccess`'s "Attribute-Based Access Control"
-  sub-group, for existing examples.
+  `{label, items}` sub-group, which adds a third category level — a
+  four-level path of Guide → Group → Sub-group → page — for a section
+  large enough to need it — see `OVERVIEW_GROUPS.subscription`'s "Cloud"
+  sub-group, or `ADMIN_MANAGE_GROUPS.userAccess`'s "Attribute-Based Access
+  Control" sub-group, for existing examples.
 - A `*_ROOT_ORDER`/`*_ORDER` array listing the top-level order: plain
   strings for standalone docs, `{group: 'key'}` for a group from the map
   above.

@@ -642,11 +642,10 @@ const COLLABORATE_GROUPS = {
   teamsAndRoles: {
     label: 'Teams, Groups & Roles',
     items: [
+      'learn-about-roles',
       'organize-using-teams',
       'team-settings',
       'organize-using-custom-user-groups',
-      'learn-about-roles',
-      'invite-people',
     ],
   },
   integrations: {
@@ -671,6 +670,7 @@ const COLLABORATE_GROUPS = {
 // Top-level Collaborate order. Strings are doc basenames relative to
 // end-user-guide/collaborate/; objects reference COLLABORATE_GROUPS keys.
 const COLLABORATE_ORDER = [
+  'invite-people',
   {group: 'channels'},
   {group: 'messaging'},
   {group: 'calls'},
