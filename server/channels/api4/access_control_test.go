@@ -3120,6 +3120,88 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 	})
 }
 
+// TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
+// GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
+// fields: a channel scope or the include_resource_fields flag surfaces them
+// (tagged with their ObjectType), neither excludes them, and the permission
+// gating holds. This endpoint resolves fields from the property store directly
+// and does not go through the mocked AccessControl engine.
+func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	mkField := func(objectType string) *model.PropertyField {
+		f, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "region" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		return f
+	}
+	userField := mkField(model.PropertyFieldObjectTypeUser)
+	channelField := mkField(model.PropertyFieldObjectTypeChannel)
+
+	const base = "/access_control_policies/cel/autocomplete/fields"
+
+	get := func(t *testing.T, client *model.Client4, query string) []*model.PropertyField {
+		t.Helper()
+		resp, err := client.DoAPIGet(context.Background(), base+query, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var fields []*model.PropertyField
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&fields))
+		return fields
+	}
+
+	find := func(fields []*model.PropertyField, id string) *model.PropertyField {
+		for _, f := range fields {
+			if f.ID == id {
+				return f
+			}
+		}
+		return nil
+	}
+
+	t.Run("channel scope surfaces channel fields tagged by object type", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.NotNil(t, find(fields, userField.ID), "user field must be present when channel-scoped")
+		ch := find(fields, channelField.ID)
+		require.NotNil(t, ch, "channel field must be present when channel-scoped")
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, ch.ObjectType, "channel field must carry its ObjectType")
+	})
+
+	t.Run("include_resource_fields surfaces channel fields with no channel scope", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.NotNil(t, find(fields, channelField.ID), "channel field must be present when include_resource_fields=true")
+	})
+
+	t.Run("channel fields excluded without a channel scope or the flag", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100")
+		require.NotNil(t, find(fields, userField.ID), "user field must still be present")
+		require.Nil(t, find(fields, channelField.ID), "channel field must be excluded when neither channelId nor the flag is set")
+	})
+
+	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("regular user without channel-manage-access-rules is denied for a channel", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100&channelId="+th.BasicChannel.Id, "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func mustMarshal(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)

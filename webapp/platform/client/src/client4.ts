@@ -5205,13 +5205,19 @@ export default class Client4 {
         return this.createJob(job);
     };
 
-    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
+    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string, includeResourceFields?: boolean) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
             params.append('channelId', channelId);
         }
         if (teamId) {
             params.append('team_id', teamId);
+        }
+
+        // Parent policies reference resource.attributes.* (channel-object-type
+        // fields) without a single channel to scope by; ask for them explicitly.
+        if (includeResourceFields) {
+            params.append('include_resource_fields', 'true');
         }
 
         return this.doFetch<UserPropertyField[]>(

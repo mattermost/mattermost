@@ -187,9 +187,10 @@ type SubjectSearchOptions struct {
 	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
 	// ResourceID is the channel whose custom attributes an ad-hoc expression test
 	// resolves resource.attributes.* against, so a resource-referencing expression
-	// can be previewed against one specific channel's values. Unused when the
-	// expression references no resource attributes. Stored-policy search paths
-	// derive the resource from the policy itself and ignore this.
+	// can be previewed against one specific channel's values. Set from the
+	// channelId on a cel/test request. Unused when the expression references no
+	// resource attributes. Stored-policy search paths derive the resource from
+	// the policy itself and ignore this.
 	ResourceID string `json:"resource_id,omitempty"`
 }
 

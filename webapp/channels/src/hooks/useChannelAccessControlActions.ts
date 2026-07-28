@@ -26,7 +26,7 @@ import {createJob} from 'mattermost-redux/actions/jobs';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult<UserPropertyField[]>>;
+    getAccessControlFields: (after: string, limit: number, includeResourceFields?: boolean) => Promise<ActionResult<UserPropertyField[]>>;
     getVisualAST: (expression: string) => Promise<ActionResult<AccessControlVisualAST>>;
     searchUsers: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
@@ -57,8 +57,8 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
     const dispatch = useDispatch();
 
     return useMemo(() => ({
-        getAccessControlFields: (after: string, limit: number) => {
-            return dispatch(getAccessControlFields(after, limit, channelId, teamId));
+        getAccessControlFields: (after: string, limit: number, includeResourceFields?: boolean) => {
+            return dispatch(getAccessControlFields(after, limit, channelId, teamId, includeResourceFields));
         },
 
         getVisualAST: (expression: string) => {

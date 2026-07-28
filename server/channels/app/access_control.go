@@ -1749,16 +1749,28 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	return attributes, nil
 }
 
-func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
+func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID string, includeResourceFields bool, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
+	// A policy references the requesting user (user.attributes.*) and the
+	// accessed resource (resource.attributes.*). Resource attributes are
+	// channel-object-type CPA fields, so include them when a channel is in
+	// scope, or when the caller explicitly asks for them — a policy that many
+	// channels import has no single channel to scope by, and still needs the
+	// fields to author against. Each returned field carries its ObjectType, so
+	// a caller can tell the two namespaces apart.
+	objectTypes := []string{model.PropertyFieldObjectTypeUser}
+	if channelID != "" || includeResourceFields {
+		objectTypes = append(objectTypes, model.PropertyFieldObjectTypeChannel)
+	}
+
 	// Use property app layer to enforce access control
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fields, appErr := a.SearchPropertyFields(rctxWithCaller, group.ID, model.PropertyFieldSearchOpts{
-		ObjectType: model.PropertyFieldObjectTypeUser,
+		ObjectTypes: objectTypes,
 		Cursor: model.PropertyFieldSearchCursor{
 			PropertyFieldID: after,
 			CreateAt:        1,
