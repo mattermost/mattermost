@@ -19,6 +19,10 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+
+	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
+	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
+	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
 )
 
 // Audit & Certificates
@@ -152,6 +156,11 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+	// AuditEventCPAValueChange is emitted from the common app-layer value write
+	// path for every effective CPA value change, regardless of caller (session,
+	// local admin, plugin owner, or LDAP/SAML sync). It is the single place all
+	// owners converge, capturing the caller ID and acting-as scope.
+	AuditEventCPAValueChange = "cpaValueChange"
 )
 
 // Property Fields
@@ -328,6 +337,17 @@ const (
 	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
+// Scheduled Recaps
+const (
+	AuditEventCreateScheduledRecap = "createScheduledRecap" // create scheduled recap configuration
+	AuditEventGetScheduledRecap    = "getScheduledRecap"    // view a single scheduled recap
+	AuditEventGetScheduledRecaps   = "getScheduledRecaps"   // list user's scheduled recaps
+	AuditEventUpdateScheduledRecap = "updateScheduledRecap" // update scheduled recap configuration
+	AuditEventDeleteScheduledRecap = "deleteScheduledRecap" // delete scheduled recap
+	AuditEventPauseScheduledRecap  = "pauseScheduledRecap"  // pause scheduled recap execution
+	AuditEventResumeScheduledRecap = "resumeScheduledRecap" // resume paused scheduled recap
+)
+
 // Preferences
 const (
 	AuditEventDeletePreferences = "deletePreferences" // delete user preferences
@@ -480,6 +500,7 @@ const (
 	AuditEventRejectExpiredUserAccessToken       = "rejectExpiredUserAccessToken"       // rejected an API request because the personal access token has expired
 	AuditEventRevokeUserAccessToken              = "revokeUserAccessToken"              // revoke user personal access token
 	AuditEventRevokeNonCompliantUserAccessTokens = "revokeNonCompliantUserAccessTokens" // revoke all personal access tokens that violate the maximum lifetime policy
+	AuditEventRotateUserAccessToken              = "rotateUserAccessToken"              // rotate (regenerate secret for) user personal access token
 	AuditEventSendPasswordReset                  = "sendPasswordReset"                  // send password reset email to user
 	AuditEventSendVerificationEmail              = "sendVerificationEmail"              // send email verification link to user
 	AuditEventSetDefaultProfileImage             = "setDefaultProfileImage"             // set user profile image to default avatar

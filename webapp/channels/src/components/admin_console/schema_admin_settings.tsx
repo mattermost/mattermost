@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
+import type {PluginRedux} from '@mattermost/types/plugins';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -40,6 +41,7 @@ import * as I18n from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
+import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
@@ -81,6 +83,8 @@ export type SchemaAdminSettingsProps = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
+    plugin?: PluginRedux;
+    pluginVersion?: string;
 } & WrappedComponentProps;
 
 type State = {
@@ -308,6 +312,22 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             name = this.props.schema.name;
         }
 
+        if (this.props.plugin) {
+            const title = typeof name === 'string' ? (
+                name
+            ) : (
+                <FormattedMessage
+                    {...name}
+                />
+            );
+
+            return (
+                <h1 className='sr-only'>
+                    {title}
+                </h1>
+            );
+        }
+
         const betaBadge = this.props.schema.isBeta && (
             <BetaTag
                 variant='default'
@@ -332,6 +352,24 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 />
                 {betaBadge}
             </AdminHeader>
+        );
+    };
+
+    renderPluginMetadata = () => {
+        if (!this.props.plugin) {
+            return null;
+        }
+
+        return (
+            <div className='PluginMetadataPanel__settingsWrapper'>
+                <PluginMetadataPanel
+                    name={this.props.plugin.name}
+                    id={this.props.plugin.id}
+                    version={this.props.pluginVersion || this.props.plugin.version}
+                    homepageUrl={this.props.plugin.homepage_url}
+                    releaseNotesUrl={this.props.plugin.release_notes_url}
+                />
+            </div>
         );
     };
 
@@ -1370,6 +1408,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 {this.renderTitle()}
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
+                        {this.renderPluginMetadata()}
                         <form
                             className='form-horizontal'
                             role='form'

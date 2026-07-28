@@ -15,9 +15,16 @@ func TestNativeUserAttributeFields(t *testing.T) {
 	require.Len(t, fields, 4)
 
 	byName := map[string]*PropertyField{}
+	seenIDs := map[string]bool{}
 	for _, f := range fields {
 		assert.Equal(t, "group-1", f.GroupID)
 		assert.Equal(t, PropertyFieldObjectTypeUser, f.ObjectType)
+
+		// The ABAC editors resolve the selected attribute by ID, so each
+		// synthetic native field must carry a unique, non-empty ID.
+		assert.NotEmpty(t, f.ID, "field %q must have a non-empty ID", f.Name)
+		assert.False(t, seenIDs[f.ID], "field %q has a duplicate ID %q", f.Name, f.ID)
+		seenIDs[f.ID] = true
 		assert.Equal(t, true, f.Attrs[NativeAttributeAttrMarker], "field %q must be marked native", f.Name)
 		assert.NotEmpty(t, f.Attrs[NativeAttributeAttrDisplayName], "field %q must carry a display name", f.Name)
 		assert.NotEmpty(t, f.Attrs[NativeAttributeAttrOperators], "field %q must advertise operators", f.Name)

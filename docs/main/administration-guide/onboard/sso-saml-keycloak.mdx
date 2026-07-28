@@ -192,7 +192,7 @@ Once done your Mappers should look like this:
 
 5.  Set attributes for the SAML Assertions, which will update user information in Mattermost.
 
-    The attributes below are from steps 7 and 8 above. These values must be the **SAML Attribute Name** within Keycloak. See [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-2-0) for more details.
+    The attributes below are from steps 7 and 8 above. These values must be the **SAML Attribute Name** within Keycloak. See [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20) for more details.
 
     - **Email Attribute**: `email`
     - **Username Attribute**: `username`
@@ -206,7 +206,7 @@ To confirm SAML is working correctly, log out of Mattermost or open Mattermost i
 
 If you have existing users in Mattermost that are going to be migrated to SAML login, make sure to plan for user migration and update your users accordingly.
 
-You may also configure SAML for Keycloak by editing `config.json`. Before starting the Mattermost server, edit `config.json` to enable SAML based on [SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-2-0). You must restart the Mattermost server for the changes to take effect.
+You may also configure SAML for Keycloak by editing `config.json`. Before starting the Mattermost server, edit `config.json` to enable SAML based on [SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20). You must restart the Mattermost server for the changes to take effect.
 
 ## Configuing a SAML user as a Guest in Keycloak
 

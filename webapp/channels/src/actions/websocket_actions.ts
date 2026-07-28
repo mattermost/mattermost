@@ -10,12 +10,13 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
@@ -31,6 +32,7 @@ import {
     EmojiTypes,
     FileTypes,
     GroupTypes,
+    JobTypes,
     PostTypes,
     TeamTypes,
     UserTypes,
@@ -61,6 +63,7 @@ import {
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
@@ -170,9 +173,10 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
@@ -564,6 +568,14 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleTeamAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.ChannelJoinRequestCreated:
+        dispatch(handleChannelJoinRequestCreated(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        dispatch(handleChannelJoinRequestUpdated(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -764,6 +776,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.PostTranslationUpdated:
         dispatch(handlePostTranslationUpdated(msg));
         break;
+    case WebSocketEvents.JobUpdated:
+        dispatch(handleJobUpdated(msg as WebSocketMessages.JobUpdated));
+        break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
         break;
@@ -898,6 +913,67 @@ export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamA
         // Refresh the team record so consumers see the latest policy_enforced
         // flag (and any other access-control-derived fields).
         doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
+    };
+}
+
+// channel_join_request_created arrives on the admin set only (server-side
+// hook narrows the channel-id broadcast). When the current user is the
+// requester we never see this event — the create path's thunk dispatches the
+// row directly.
+function handleChannelJoinRequestCreated(msg: WebSocketMessages.ChannelJoinRequestCreated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED,
+            data: req,
+        });
+
+        // If the current user happens to be the requester (e.g. tab open in
+        // two windows) keep myPendingByChannel in sync.
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
+    };
+}
+
+// channel_join_request_updated covers approve / deny / withdraw transitions
+// AND the dedicated requester-scoped copy so a non-member requester sees
+// their own row flip in real time.
+function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinRequestUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: req,
+        });
+
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
     };
 }
 
@@ -1752,6 +1828,10 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
+    // Store the dialog before the trigger-id guard. The WS open_dialog event can
+    // arrive before the command/action response has set dialogTriggerId; storing
+    // the dialog now lets the store.subscribe fallback in interactive_dialog.ts
+    // open it once the trigger id lands. Skipping this dispatch loses the dialog.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;
@@ -1760,7 +1840,22 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id});
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: dialog.trigger_id,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),
+        },
+    }));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
@@ -2311,6 +2406,35 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
                 ...t,
             },
         });
+    };
+}
+
+const terminalJobStatuses = new Set([
+    JobStatuses.SUCCESS,
+    JobStatuses.ERROR,
+    JobStatuses.WARNING,
+    JobStatuses.CANCELED,
+]);
+
+export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
+    return (dispatch) => {
+        let job;
+        try {
+            job = JSON.parse(msg.data.job) as Job;
+        } catch {
+            return;
+        }
+        dispatch({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+
+        // Re-fetch the full job list on terminal status to populate details
+        // (run time, error message) that are intentionally omitted from the
+        // WebSocket payload for security.
+        if (terminalJobStatuses.has(job.status)) {
+            dispatch(getJobsByType(job.type));
+        }
     };
 }
 

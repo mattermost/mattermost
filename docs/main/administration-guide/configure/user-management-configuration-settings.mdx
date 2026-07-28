@@ -1,10 +1,11 @@
 ---
 title: "User management configuration settings"
-draft: true
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **User Management**:
+Review and manage the following in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **User Management**:
 
 - [Users](#users)
 - [Groups](#groups)
@@ -199,7 +200,7 @@ Add or remove users from teams using the System Console.
 
 ![Add a user to a Mattermost team using the System Console.](/images/add-user-to-team.png)
 
-4.  To remove the user from a specific team, select **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> next to the team name, and select **Remove from team**.
+4.  To remove the user from a specific team, select **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> next to the team name, and select **Remove from team**.
 
 ![Remove a user from a Mattermost team using the System Console.](/images/remove-user-from-team.png)
 
@@ -324,7 +325,7 @@ View user profile details using the System Console. Gather information including
 <td></td>
 </tr>
 <tr>
-<td colspan="3">See the <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fad-ldap-groups-synchronization">AD/LDAP groups</a> documentation for details. |</td>
+<td colspan="3">See the <a href="/administration-guide/onboard/ad-ldap-groups-synchronization">AD/LDAP groups</a> documentation for details. |</td>
 </tr>
 </tbody>
 </table>
@@ -426,7 +427,7 @@ Users can only join the team if their email matches one of the specified domains
 
 ### Synchronize team members
 
-Admins can choose between inviting members to a team manually or synchronizing members automatically from AD/LDAP groups. See the [using AD/LDAP synchronized groups](/administration-guide/onboard/ad-ldap-groups-synchronization#synchronize-ad-ldap-groups-to-mattermost) documentation for details on managing team or private channel membership.
+Admins can choose between inviting members to a team manually or synchronizing members automatically from AD/LDAP groups. See the [using AD/LDAP synchronized groups](/administration-guide/onboard/ad-ldap-groups-synchronization#synchronize-adldap-groups-to-mattermost) documentation for details on managing team or private channel membership.
 
 ### Archive the team
 
@@ -632,7 +633,7 @@ Channels can be deleted with all content, including posts in the database, using
 <td></td>
 </tr>
 <tr>
-<td colspan="3">See <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fadvanced-permissions">advanced permissions</a> documentation for details</td>
+<td colspan="3">See <a href="/administration-guide/onboard/advanced-permissions">advanced permissions</a> documentation for details</td>
 </tr>
 </tbody>
 </table>
@@ -660,7 +661,7 @@ Channels can be deleted with all content, including posts in the database, using
 <td></td>
 </tr>
 <tr>
-<td colspan="3">See the <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fdelegated-granular-administration">delegated granular administration</a> documentation for details |</td>
+<td colspan="3">See the <a href="/administration-guide/onboard/delegated-granular-administration">delegated granular administration</a> documentation for details |</td>
 </tr>
 </tbody>
 </table>

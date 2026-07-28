@@ -19,11 +19,20 @@ import ChannelNotificationPreferencesModal from './channels/channel_notification
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
+import AddPeopleToChannelModal from './channels/add_people_to_channel_modal';
+import ChannelBookmarksBar from './channels/channel_bookmarks_bar';
+import ChannelBookmarksCreateModal from './channels/channel_bookmarks_create_modal';
+import LeaveTeamModal from './channels/leave_team_modal';
+import MarketplaceModal from './channels/marketplace_modal';
+import UserGroupsModal from './channels/user_groups_modal';
+import ViewUserGroupModal from './channels/view_user_group_modal';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DirectChannelsModal from './channels/direct_channels_modal';
+import ChannelMenu from './channels/channel_menu';
 import DraftPost from './channels/draft_post';
+import EditChannelHeaderModal from './channels/edit_channel_header_modal';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
 import NewChannelModal from './channels/new_channel_modal';
@@ -32,6 +41,7 @@ import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
+import ChannelsMobileNavbar from './channels/mobile_navbar';
 import PostDotMenu from './channels/post_dot_menu';
 import PostMenu from './channels/post_menu';
 import PostReminderMenu from './channels/post_reminder_menu';
@@ -43,12 +53,14 @@ import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduleMessageMenu from './channels/schedule_message_menu';
 import ScheduleMessageModal from './channels/schedule_message_modal';
 import SearchBox from './channels/search_box';
+import SearchResultsPanel from './channels/search_results_panel';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+import WysiwygEditor from './channels/wysiwyg_editor';
 // Burn-on-Read Components
 import BurnOnReadBadge from './channels/burn_on_read_badge';
 import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
@@ -95,11 +107,20 @@ const components = {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    ChannelBookmarksBar,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
+    MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    ChannelMenu,
     DirectChannelsModal,
     DraftPost,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
@@ -109,6 +130,7 @@ const components = {
     InvitePeopleModal,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,
@@ -120,12 +142,14 @@ const components = {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    WysiwygEditor,
 
     // Burn-on-Read
     BurnOnReadBadge,
@@ -175,10 +199,19 @@ export {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    ChannelBookmarksBar,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
+    MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     DraftPost,
+    ChannelMenu,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
@@ -189,6 +222,7 @@ export {
     InvitePeopleModal,
     MembersInvitedModal,
     MessagePriority,
+    ChannelsMobileNavbar,
     PostDotMenu,
     PostMenu,
     PostReminderMenu,
@@ -200,12 +234,14 @@ export {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    WysiwygEditor,
 
     // Burn-on-Read
     BurnOnReadBadge,
