@@ -612,6 +612,16 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 						return model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 					}
 				}
+
+				// Auth data was just updated directly via the Store layer,
+				// bypassing the app-layer helper that normally accompanies
+				// this mutation. Invalidate cached user data and revoke any
+				// sessions issued before this change, mirroring UpdateUserAuth.
+				a.InvalidateCacheForUser(user.Id)
+
+				if appErr := a.RevokeAllSessions(rctx, user.Id); appErr != nil {
+					return appErr
+				}
 			}
 		}
 		if emailVerified {
@@ -938,6 +948,16 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 				}
 			}
+
+			// The existing user account was just linked to a bot record
+			// directly via the Store layer, bypassing the app-layer helpers
+			// that normally accompany this mutation. Revoke any sessions
+			// issued before this change and invalidate cached user data,
+			// mirroring ConvertUserToBot.
+			if err := a.RevokeAllSessions(rctx, existingUser.Id); err != nil {
+				return err
+			}
+			a.InvalidateCacheForUser(existingUser.Id)
 		}
 	} else if hasBotChanged {
 		var err error
