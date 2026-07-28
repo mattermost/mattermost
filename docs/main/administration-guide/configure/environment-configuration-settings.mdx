@@ -333,7 +333,7 @@ When using the Mattermost Desktop App, additional configuration is required to o
 
 <Note>
 
-Purging the caches may adversely impact performance. [high availability cluster-based deployments](/administration-guide/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
+Purging the caches may adversely impact performance. [high availability cluster-based deployments](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
 
 </Note>
 
@@ -697,7 +697,7 @@ Your database admin must configure the functionality according to supported valu
 
 #### AWS High Availablity RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Maximum open connections
 
@@ -842,7 +842,7 @@ MySQL databases must be configured to support searching strings shorter than thr
 
 Search behavior in Mattermost depends on which search engines are enabled:
 
-- When [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [AWS OpenSearch](/administration-guide/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
+- When [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) or [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
 - If Elasticsearch fails or is disabled, Mattermost will attempt to use Bleve search, if enabled. Bleve search has been deprecated in Mattermost v11.0. We recommend using Elasticsearch or OpenSearch for enterprise search capabilities.
 - If these fail or are disabled, Mattermost tries to search the database directly, if this is enabled.
 - If all of the above methods fail or are disabled, the search results will be empty.
@@ -893,7 +893,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Search replicas
 
@@ -918,7 +918,7 @@ Each database connection string in the array must be in the same form used for t
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Replica lag settings
 
@@ -1096,7 +1096,7 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 ### Backend type
 
-Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch](/administration-guide/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/administration-guide/scale/enterprise-search) in our product documentation.
+Both [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) in our product documentation.
 
 <table>
 <colgroup>
@@ -1111,7 +1111,7 @@ Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS O
 </tbody>
 </table>
 
-Learn more about [enterprise search version support](/administration-guide/scale/enterprise-search#supported-paths).
+Learn more about [enterprise search version support](/deployment-guide/reference-architecture/scale/enterprise-search#supported-paths).
 
 ### Server connection address
 
@@ -1507,7 +1507,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 
 <Note>
 
-If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/administration-guide/scale/enterprise-search), configure this with a value greater than your data retention policy.
+If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search), configure this with a value greater than your data retention policy.
 
 </Note>
 
@@ -1698,9 +1698,9 @@ During busy periods, this delay will be faster as more traffic is occurring, cau
 
 <Note>
 
-Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch setup](/administration-guide/scale/opensearch-setup) documentation for plugin installation instructions.
+Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch setup](/deployment-guide/reference-architecture/scale/opensearch-setup) documentation for plugin installation instructions.
 
-If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
+If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
 
 </Note>
 
@@ -2514,7 +2514,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 <PlanAvailability slug="ent-plus" />
 
-With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
+With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
 In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
 
@@ -2563,7 +2563,7 @@ In a Mattermost high availability cluster-based deployment, the System Console i
 </tbody>
 </table>
 
-See the [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) documentation for details.
+See the [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) documentation for details.
 
 ### Use IP address
 
@@ -3337,7 +3337,7 @@ After changing this setting, the new session length takes effect after the next 
 
 - This setting has no effect when [extend session length with activity](#extend-session-length-with-activity) is set to **true**.
 - This setting applies to the webapp and the desktop app. For mobile apps, use an [EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) to lock the app when not in use. |
-- In [high availability mode](/administration-guide/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
+- In [high availability mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
 
 </Note>
 
