@@ -68,7 +68,7 @@ func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, 
 	return true
 }
 
-func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
+func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }
 
