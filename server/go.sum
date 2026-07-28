@@ -395,8 +395,8 @@ github.com/mattermost/morph v1.1.0 h1:Q9vrJbeM3s2jfweGheq12EFIzdNp9a/6IovcbvOQ6C
 github.com/mattermost/morph v1.1.0/go.mod h1:gD+EaqX2UMyyuzmF4PFh4r33XneQ8Nzi+0E8nXjMa3A=
 github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815 h1:uOi89NvrFmDngqMKjlLDxi+MNzJQLA3TqcU2p8czv34=
 github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815/go.mod h1:GaZTsDaehaPpQVyxrf5mtQlH+pc21PIudVV/E3rRQok=
-github.com/mattermost/pdf v0.0.0-20260720144416-91734907557e h1:vTgyLagTQK1GT0VXV2XUnmEiDB1Bqg9flLheWiHxeiw=
-github.com/mattermost/pdf v0.0.0-20260720144416-91734907557e/go.mod h1:pNks5J7leEpCnswIJaGfqiz/MQ0lExHgKl+A53aEXrg=
+github.com/mattermost/pdf v0.0.0-20260728101013-cd8a834041c4 h1:iFMZLV6k/gOXuQmETk+Ym7FGn5nrBAKlQ0kY/FgK+ro=
+github.com/mattermost/pdf v0.0.0-20260728101013-cd8a834041c4/go.mod h1:pNks5J7leEpCnswIJaGfqiz/MQ0lExHgKl+A53aEXrg=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/squirrel v0.5.0 h1:81QPS0aA+inQbpA7Pzmv6O9sWwB6VaBh/VYw3oJf8ZY=
