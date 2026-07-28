@@ -4540,7 +4540,7 @@ func captureDeliveryRecordsAPI(t *testing.T, th *TestHelper, fn func()) int {
 	require.NoError(t, err)
 
 	count := 0
-	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
 		if strings.TrimSpace(line) != "" {
 			count++
 		}

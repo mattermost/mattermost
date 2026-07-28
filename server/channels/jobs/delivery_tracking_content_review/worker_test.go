@@ -97,7 +97,7 @@ type fakeApp struct {
 	err   *model.AppError
 }
 
-func (f *fakeApp) NotifyDeliveryTrackingContentReviewRequesters(_ request.CTX, _ *model.Job, succeeded bool) *model.AppError {
+func (f *fakeApp) NotifyDeliveryTrackingContentReviewRequesters(_ request.CTX, _ string, succeeded bool) *model.AppError {
 	f.calls = append(f.calls, succeeded)
 	return f.err
 }

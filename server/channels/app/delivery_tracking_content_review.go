@@ -74,15 +74,22 @@ func (a *App) CreateDeliveryTrackingContentReviewJob(rctx request.CTX, postID, t
 
 	merged, err := a.Srv().Store().Job().PatchJobData(job.Id, model.StringMap{jobDataKeyRequestedBy: requestedBy}, mergeRequestedBy)
 	if err != nil {
-		rctx.Logger().Warn("Failed to record content-review requester on job",
-			mlog.String("job_id", job.Id), mlog.String("user_id", requestedBy), mlog.Err(err))
-	} else if merged != nil {
+		return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if merged != nil {
 		job.Data = merged
 	}
 
-	if appErr := a.setDeliveryTrackingStatus(rctx, postID, teamID, model.DeliveryTrackingStatusInProgress); appErr != nil {
-		rctx.Logger().Warn("Failed to set delivery tracking status to in_progress",
-			mlog.String("post_id", postID), mlog.Err(appErr))
+	current, err := a.Srv().Store().Job().Get(rctx, job.Id)
+	if err != nil {
+		return nil, model.NewAppError("CreateDeliveryTrackingContentReviewJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if current.Status == model.JobStatusPending || current.Status == model.JobStatusInProgress {
+		if appErr := a.setDeliveryTrackingStatus(rctx, postID, teamID, model.DeliveryTrackingStatusInProgress); appErr != nil {
+			rctx.Logger().Warn("Failed to set delivery tracking status to in_progress",
+				mlog.String("post_id", postID), mlog.Err(appErr))
+		}
 	}
 
 	return job, nil
@@ -166,7 +173,12 @@ func (a *App) purgeDeliveryTrackingContentReview(rctx request.CTX, postID string
 	}
 }
 
-func (a *App) NotifyDeliveryTrackingContentReviewRequesters(rctx request.CTX, job *model.Job, succeeded bool) *model.AppError {
+func (a *App) NotifyDeliveryTrackingContentReviewRequesters(rctx request.CTX, jobID string, succeeded bool) *model.AppError {
+	job, err := a.Srv().Store().Job().Get(rctx, jobID)
+	if err != nil {
+		return model.NewAppError("NotifyDeliveryTrackingContentReviewRequesters", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	postID := job.Data[jobDataKeyPostId]
 	if postID == "" {
 		return nil
