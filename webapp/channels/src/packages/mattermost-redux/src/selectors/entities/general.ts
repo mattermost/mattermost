@@ -22,6 +22,13 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+// Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
+// server flag. When the flag is off the toggle UI, request endpoints, and
+// admin queue routes are all hidden — old clients see today's behavior.
+export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagDiscoverableChannels === 'true';
+}
+
 export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPermissionPolicies === 'true';
 }

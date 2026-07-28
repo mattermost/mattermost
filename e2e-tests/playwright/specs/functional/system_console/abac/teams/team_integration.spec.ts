@@ -193,9 +193,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
-        // Once the last policy is removed the toggle unlocks; disable it before saving.
-        await setToggle(page, false);
+        // Removing the last policy auto-disables enforcement: Save goes straight through
+        // with no "Apply membership policy" modal and no manual toggle-off.
         await page.getByRole('button', {name: 'Save'}).click();
+        await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
         await page.waitForLoadState('networkidle');
 
         await expect
@@ -205,6 +206,102 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
                 message: 'team should no longer be policy-enforced after removing the policy',
             })
             .toBe(false);
+    });
+
+    /**
+     * @objective Removing a linked policy from a team that also has a custom rule saves
+     * cleanly: enforcement stays on (the rule still governs) and no affected-count "Apply
+     * membership policy" modal appears. Removal is not new criteria — regression for the
+     * modal firing on an unedited, pre-existing custom rule.
+     *
+     * The webapp unit test mocks the rules editor, so it can't exercise the real
+     * hasChanges signal that caused the bug; this drives the real editor end to end.
+     */
+    test('MM-68846-T20 - removing a policy while a custom rule remains saves without the apply modal', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+
+        const policyName = `Eng Policy ${suffix}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+
+        // # Link the policy and add a custom rule, then persist both in one save
+        const policyFetchDone = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDone;
+        await setToggle(page, true);
+
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const linkModal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await linkModal.waitFor({state: 'visible', timeout: 5000});
+        const policyRow = await findPolicyRow(linkModal, policyName);
+        await policyRow.click();
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+        await addAttributeRule(rulesPanel, page, 'Engineering');
+
+        await page.getByRole('button', {name: 'Save'}).click();
+        const applyModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(applyModal).toBeVisible({timeout: 15000});
+        await applyModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(applyModal).not.toBeVisible({timeout: 10000});
+        await page.waitForLoadState('networkidle');
+
+        // # Re-open and remove the policy; the custom rule stays
+        const policyFetchDoneRemove = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneRemove;
+
+        await expect(
+            page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: policyName}),
+        ).toBeVisible({timeout: 15000});
+
+        await page.getByLabel('Remove policy').click();
+        const disconnectModal = page.locator('.ConfirmModal').filter({hasText: 'Remove this team from policy'});
+        await expect(disconnectModal).toBeVisible({timeout: 5000});
+        await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
+        await expect(disconnectModal).not.toBeVisible({timeout: 5000});
+
+        // * Custom rule still governs, so enforcement stays on
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
+            'aria-pressed',
+            'true',
+        );
+
+        // * Save goes straight through: removal is not new criteria, so no apply modal
+        await page.getByRole('button', {name: 'Save'}).click();
+        await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
+        await page.waitForLoadState('networkidle');
+
+        // * Team stays policy-enforced: the custom rule survives the policy removal
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 2000],
+                message: 'team should remain policy-enforced: a custom rule still governs after policy removal',
+            })
+            .toBe(true);
     });
 
     /**
@@ -243,10 +340,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     });
 
     /**
-     * @objective Enabling attribute-based access without linking a policy shows the empty
-     * state and blocks save with a clear error — the team is never left enforced-but-empty.
+     * @objective Enabling attribute-based access shows the empty state and the link
+     * affordance. Saving with nothing defined (no linked policy, no custom rule) turns
+     * ABAC back off cleanly rather than erroring — the team is never left enforced-but-empty.
      */
-    test('MM-68846-T5 - shows the empty state and blocks save when no policy is linked', async ({pw}) => {
+    test('MM-68846-T5 - enabling the toggle with nothing defined saves cleanly and leaves ABAC off', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -268,14 +366,18 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(page.getByText(/No membership policy assigned/i)).toBeVisible({timeout: 5000});
         await expect(page.locator('[data-testid="link-to-a-policy"]')).toBeVisible();
 
-        // Saving with the toggle on but neither a linked policy nor a custom rule is rejected.
+        // Saving with nothing defined disables ABAC instead of blocking with an error.
         await page.getByRole('button', {name: 'Save'}).click();
-        await expect(page.getByText(/must select a membership policy or define custom access rules/i)).toBeVisible({
-            timeout: 5000,
-        });
+        await expect(page.getByText(/must select a membership policy or define custom access rules/i)).toHaveCount(0);
 
-        // The server state is untouched — no policy was assigned.
-        expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
+        // Enforcement stays off on the server.
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 2000],
+                message: 'team should remain not policy-enforced after saving an empty ABAC config',
+            })
+            .toBeFalsy();
     });
 
     /**
@@ -627,6 +729,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(confirmModal.getByText(/1 member does not currently meet the criteria/i)).toBeVisible();
         await expect(confirmModal.getByText(/2 members do not currently meet the criteria/i)).toHaveCount(0);
 
+        // * The qualifying member is counted, so the empty-team warning must NOT appear.
+        await expect(confirmModal.getByText(/No current members meet the criteria/i)).toHaveCount(0);
+
         await confirmModal.getByRole('button', {name: 'Cancel'}).click();
         await expect(confirmModal).not.toBeVisible();
     });
@@ -933,5 +1038,95 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
                 },
             )
             .toBe(true);
+    });
+
+    /**
+     * @objective The System Console Teams list distinguishes a policy-governed team from a
+     * plain invite-only team: its Management column reads "Attribute Based", not "Invite Only".
+     */
+    test('MM-68846-T18 - Teams list shows an Attribute Based indicator for a policy-governed team', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        // # A private team governed by a membership policy
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const policyName = `Indicator Policy ${suffix}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+
+        await page.goto('/admin_console/user_management/teams');
+        await page.waitForLoadState('networkidle');
+
+        // Wait on the debounced server-side search rather than a fixed sleep.
+        const searchDone = page
+            .waitForResponse((resp) => resp.url().includes('/teams/search'), {timeout: 15000})
+            .catch(() => {});
+        const search = page.locator('input[placeholder*="Search" i]').first();
+        await search.fill(team.display_name);
+        await searchDone;
+
+        // * The governed team's Management cell reads "Attribute Based", not "Invite Only"
+        const management = page.locator(`[data-testid="${team.name}Management"]`);
+        await expect(management).toBeVisible({timeout: 10000});
+        await expect(management).toHaveText('Attribute Based');
+    });
+
+    /**
+     * @objective Opening a linked policy in the editor from the team page and navigating
+     * back does not raise a spurious "Discard Changes?" prompt for the team page's leftover
+     * unsaved state — the editor clears the stale navigation-block flag on entry.
+     */
+    test('MM-68846-T19 - opening a policy in the editor does not carry over a false discard prompt', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const policyName = `Editor Nav Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT19 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT19;
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+
+        // # Stage a team-page edit so the navigation-block flag is set, then open the
+        // # linked policy in the editor (a plain link that never resets that flag).
+        await policyPanel.locator('.team-policy-list__auto-add-checkbox').first().check();
+        await policyPanel.getByLabel('Go to the policy').click();
+
+        // * The policy editor loads
+        await expect(page).toHaveURL(/membership_policies\/edit_policy\//, {timeout: 15000});
+        await expect(page.getByText('Edit Membership Policy')).toBeVisible({timeout: 10000});
+
+        // # Navigate back via the editor's back arrow
+        await page.locator('.fa.fa-angle-left.back').click();
+
+        // * No spurious discard prompt, and we land on the Membership Policies list
+        await expect(page.getByText('Discard Changes?')).toHaveCount(0);
+        await expect(page).toHaveURL(/membership_policies$/, {timeout: 10000});
     });
 });
