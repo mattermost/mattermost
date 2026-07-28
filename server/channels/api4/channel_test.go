@@ -6898,7 +6898,7 @@ func TestPatchChannelDisableJoinLeaveMessages(t *testing.T) {
 		require.True(t, channel.DisableJoinLeaveMessages)
 	})
 
-	t.Run("two-way door restores visibility", func(t *testing.T) {
+	t.Run("patch can re-enable join/leave messages", func(t *testing.T) {
 		disableJoinLeave := false
 		patch := &model.ChannelPatch{
 			DisableJoinLeaveMessages: &disableJoinLeave,

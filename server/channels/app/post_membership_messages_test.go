@@ -154,7 +154,7 @@ func TestFlaggedPostsSuppression(t *testing.T) {
 	})
 }
 
-func TestWebSocketSuppression(t *testing.T) {
+func TestMembershipSystemPostNotificationSuppression(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -162,14 +162,14 @@ func TestWebSocketSuppression(t *testing.T) {
 	normalPost := th.CreatePost(t, channel)
 	membershipPost := createMembershipSystemPost(t, th, channel)
 
-	t.Run("suppresses membership post websocket when disabled", func(t *testing.T) {
+	t.Run("suppresses membership post notifications when disabled", func(t *testing.T) {
 		setChannelDisableJoinLeaveMessages(t, th, channel, true)
 
 		ch, appErr := th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 
-		require.True(t, th.App.shouldSuppressMembershipSystemPostWebSocket(th.Context, ch, membershipPost))
-		require.False(t, th.App.shouldSuppressMembershipSystemPostWebSocket(th.Context, ch, normalPost))
+		require.True(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, membershipPost))
+		require.False(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, normalPost))
 	})
 
 	t.Run("does not suppress when enabled", func(t *testing.T) {
@@ -178,7 +178,7 @@ func TestWebSocketSuppression(t *testing.T) {
 		ch, appErr := th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 
-		require.False(t, th.App.shouldSuppressMembershipSystemPostWebSocket(th.Context, ch, membershipPost))
+		require.False(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, membershipPost))
 	})
 }
 

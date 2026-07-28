@@ -1400,30 +1400,23 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
+func (a *App) GetPostsEtag(channel *model.Channel, collapsedThreads bool) string {
 	var postsEtag string
 	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
-		postsEtag = a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+		postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, false)
 	} else {
-		channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
+		channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id)
 		if err != nil || !channelEnabled {
-			postsEtag = a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+			postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, false)
 		} else {
 			// Channel has auto-translation enabled - include translation etag
-			postsEtag = a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
+			postsEtag = a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, true)
 		}
 	}
 
-	// Include channel.UpdateAt so that channel setting changes (e.g. DisableJoinLeaveMessages)
-	// invalidate the ETag and force clients to re-fetch filtered posts. This is an additional
-	// DB read per ETag check; the allowFromCache param is accepted by the store interface but
-	// SqlChannelStore.Get always hits the replica. Combining this into GetEtag's own query
-	// would break the localcachelayer's parsing of the last ETag component as post time.
-	channel, err := a.Srv().Store().Channel().Get(channelID, true)
-	if err != nil {
-		return postsEtag
-	}
-	return fmt.Sprintf("%v.%v", postsEtag, channel.UpdateAt)
+	// Include DisableJoinLeaveMessages so that toggling it invalidates the ETag and forces
+	// clients to re-fetch filtered posts, without thrashing the ETag on unrelated channel changes.
+	return fmt.Sprintf("%v.%t", postsEtag, channel.DisableJoinLeaveMessages)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

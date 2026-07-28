@@ -47,13 +47,13 @@ func (a *App) populateGetPostsSinceOptionsMembershipFilter(rctx request.CTX, opt
 	return nil
 }
 
-// shouldSuppressMembershipSystemPostWebSocket reports whether the WebSocket
-// posted event for a membership system post should be dropped. It uses the
-// caller-supplied channel object, which may be milliseconds stale if an admin
-// toggled DisableJoinLeaveMessages concurrently. This is acceptable: the
-// feature is best-effort for WebSocket delivery; the DB read-path always
+// shouldSuppressMembershipSystemPost reports whether all notifications (push,
+// email, WebSocket) for a membership system post should be dropped. It uses
+// the caller-supplied channel object, which may be milliseconds stale if an
+// admin toggled DisableJoinLeaveMessages concurrently. This is acceptable: the
+// feature is best-effort for notification delivery; the DB read-path always
 // reflects the current setting.
-func (a *App) shouldSuppressMembershipSystemPostWebSocket(rctx request.CTX, channel *model.Channel, post *model.Post) bool {
+func (a *App) shouldSuppressMembershipSystemPost(rctx request.CTX, channel *model.Channel, post *model.Post) bool {
 	if !model.IsMembershipSystemPost(post) {
 		return false
 	}

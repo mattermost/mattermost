@@ -57,6 +57,12 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return []string{}, nil
 	}
 
+	// Do not send any notification (push, email, websocket) for a membership
+	// system post in a channel where join/leave messages are suppressed.
+	if a.shouldSuppressMembershipSystemPost(rctx, channel, post) {
+		return []string{}, nil
+	}
+
 	suppressNotifications := post.IsNotificationSuppressed()
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
@@ -697,73 +703,65 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	if a.shouldSuppressMembershipSystemPostWebSocket(rctx, channel, post) {
-		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Skipped websocket notification for suppressed membership system post",
+	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+	message.Add("channel_type", channel.Type)
+	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
+	message.Add("channel_name", channel.Name)
+	message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
+	message.Add("team_id", team.Id)
+	message.Add("set_online", setOnline)
+
+	if len(post.FileIds) != 0 && fchan != nil {
+		message.Add("otherFile", "true")
+
+		var infos []*model.FileInfo
+		if fResult := <-fchan; fResult.NErr != nil {
+			rctx.Logger().Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(fResult.NErr))
+		} else {
+			infos = fResult.Data
+		}
+
+		for _, info := range infos {
+			if info.IsImage() {
+				message.Add("image", "true")
+				break
+			}
+		}
+	}
+
+	if len(mentionedUsersList) > 0 {
+		useAddMentionsHook(message, mentionedUsersList)
+	}
+
+	if len(notificationsForCRT.Desktop) > 0 {
+		useAddFollowersHook(message, notificationsForCRT.Desktop)
+	}
+
+	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
+	usersToAck := []string{}
+	for id, profile := range profileMap {
+		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
+		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
+
+		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+			usersToAck = append(usersToAck, id)
+		}
+	}
+	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
+
+	appErr := a.publishWebsocketEventForPost(rctx, post, message)
+	if appErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", channel.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonFetchError),
+			mlog.String("sender_id", sender.Id),
+			mlog.Err(appErr),
 		)
-	} else {
-		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
-
-		message.Add("channel_type", channel.Type)
-		message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
-		message.Add("channel_name", channel.Name)
-		message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
-		message.Add("team_id", team.Id)
-		message.Add("set_online", setOnline)
-
-		if len(post.FileIds) != 0 && fchan != nil {
-			message.Add("otherFile", "true")
-
-			var infos []*model.FileInfo
-			if fResult := <-fchan; fResult.NErr != nil {
-				rctx.Logger().Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(fResult.NErr))
-			} else {
-				infos = fResult.Data
-			}
-
-			for _, info := range infos {
-				if info.IsImage() {
-					message.Add("image", "true")
-					break
-				}
-			}
-		}
-
-		if len(mentionedUsersList) > 0 {
-			useAddMentionsHook(message, mentionedUsersList)
-		}
-
-		if len(notificationsForCRT.Desktop) > 0 {
-			useAddFollowersHook(message, notificationsForCRT.Desktop)
-		}
-
-		// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
-		usersToAck := []string{}
-		for id, profile := range profileMap {
-			userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
-			channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
-
-			if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
-				usersToAck = append(usersToAck, id)
-			}
-		}
-		usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
-
-		appErr := a.publishWebsocketEventForPost(rctx, post, message)
-		if appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
-				mlog.String("type", model.NotificationTypeWebsocket),
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("sender_id", sender.Id),
-				mlog.Err(appErr),
-			)
-			return nil, appErr
-		}
+		return nil, appErr
 	}
 
 	// If this is a reply in a thread, notify participants
