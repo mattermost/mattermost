@@ -50,10 +50,15 @@ function structuralEnv(): Record<string, string> {
     };
 }
 
-// Readiness is just the ping health check — weaker than also waiting for the permissions-
-// migration job's "All migrations are complete." log line, so a spec's very first API call can
-// occasionally trip an IsPhase2MigrationCompleted() gate on a fresh (non-reused) boot. Accepted
-// to avoid the ~2min ping+migration wait every time.
+// Readiness requires both the /api/v4/system/ping health check AND the permissions-migration job
+// scheduler's "All migrations are complete." log line (scheduler.go, jobs/migrations package).
+// Ping alone isn't enough: MigrationKeyAdvancedPermissionsPhase2 runs as an async job whose
+// scheduler deliberately delays its first tick 60s after startup — a real window a spec's very
+// first API call can otherwise land inside, tripping IsPhase2MigrationCompleted() gates with
+// "required migrations have not yet completed" (confirmed in practice: a permissions-page spec
+// hit exactly this, with the "Edit Scheme" link stuck disabled, when this wait was dropped).
+// Requires MM_LOGSETTINGS_CONSOLELEVEL=DEBUG (env_baseline.ts) since the scheduler logs that line
+// at Debug. Only paid on a genuinely fresh boot — a reused/adopted stack skips this entirely.
 //
 // Joins the network by name (withNetworkMode) rather than a StartedNetwork object: also called
 // from restartMattermostContainer(), which runs in a worker process that never holds the actual
@@ -79,7 +84,12 @@ export async function startMattermostContainer(
             .withExposedPorts(MATTERMOST_PORT)
             .withEnvironment(env)
             .withStartupTimeout(5 * 60_000)
-            .withWaitStrategy(Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200));
+            .withWaitStrategy(
+                Wait.forAll([
+                    Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200),
+                    Wait.forLogMessage(/All migrations are complete\./, 1),
+                ]),
+            );
 
         if (testConfig.testcontainersReuse) {
             builder = builder.withReuse();
