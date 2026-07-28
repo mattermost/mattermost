@@ -4110,6 +4110,7 @@ type AccessControlSettings struct {
 	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4133,6 +4134,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnforceDeviceIDConsistency == nil {
 		s.EnforceDeviceIDConsistency = new(false)
+	}
+
+	if s.EnableAccessControlAuditLogging == nil {
+		s.EnableAccessControlAuditLogging = new(false)
 	}
 }
 
@@ -4231,6 +4236,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	AIRecapSettings             AIRecapSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4351,6 +4357,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.AIRecapSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4508,6 +4515,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AIRecapSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
