@@ -4,6 +4,7 @@
 import * as dotenv from 'dotenv';
 
 import {MATTERMOST_ALIAS, MATTERMOST_PORT, WEBHOOK_ALIAS, WEBHOOK_PORT} from './containers/constants';
+import {MATTERMOST_SERVER_IMAGE} from './containers/default_images';
 import {SERVER_ENV_BASELINE} from './containers/env_baseline';
 
 dotenv.config({quiet: true});
@@ -20,6 +21,10 @@ export const TESTCONTAINERS_SERVICE_NAMES = [
     'azurite',
 ] as const;
 export type TestContainersServiceName = (typeof TESTCONTAINERS_SERVICE_NAMES)[number];
+
+// Started whenever PW_TESTCONTAINERS_SERVICES is unset
+// opensearch and azurite are opt-in only
+const DEFAULT_TESTCONTAINERS_SERVICES: TestContainersServiceName[] = ['minio', 'openldap', 'keycloak', 'elasticsearch'];
 
 // All process.env should be defined here
 export class TestConfig {
@@ -75,7 +80,11 @@ export class TestConfig {
     serverImage: string;
     /** Arbitrary MM_* config overrides merged over the test-oriented baseline, comma-separated KEY=VALUE pairs. */
     serverEnv: Record<string, string>;
-    /** Which additional services `testcontainers` mode starts, validated against `TESTCONTAINERS_SERVICE_NAMES`. */
+    /**
+     * Which additional services `testcontainers` mode starts, validated against
+     * `TESTCONTAINERS_SERVICE_NAMES`. Defaults to `DEFAULT_TESTCONTAINERS_SERVICES` when
+     * PW_TESTCONTAINERS_SERVICES is unset; set it to an empty string to start none.
+     */
     testcontainersServices: TestContainersServiceName[];
     /** Reuse containers across repeated local `testcontainers`-mode runs instead of recreating them every time. */
     testcontainersReuse: boolean;
@@ -156,10 +165,12 @@ export class TestConfig {
             ? `http://${WEBHOOK_ALIAS}:${WEBHOOK_PORT}`
             : this.webhookBaseUrl;
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
-        this.serverImage = process.env.SERVER_IMAGE || 'mattermostdevelopment/mattermost-enterprise-edition:master';
+        this.serverImage = process.env.SERVER_IMAGE || MATTERMOST_SERVER_IMAGE;
         this.serverEnv = parseKeyValueList(process.env.MM_ENV);
         this.testcontainersServices = parseTestContainersServices(process.env.PW_TESTCONTAINERS_SERVICES);
-        this.testcontainersReuse = parseBool(process.env.PW_TESTCONTAINERS_REUSE, false);
+        // Defaults to true so a local Ctrl+C (or just finishing a run) doesn't throw away the
+        // stack you were likely about to inspect — tear down explicitly with `npm run testcontainers:down`.
+        this.testcontainersReuse = parseBool(process.env.PW_TESTCONTAINERS_REUSE, true);
         this.containerRunner = parseBool(process.env.PW_TESTCONTAINERS_CONTAINER_RUNNER, false);
         this.testcontainersNetworkName = process.env.PW_TESTCONTAINERS_NETWORK_NAME || '';
         this.mattermostContainerId = process.env.PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID || '';
@@ -241,6 +252,12 @@ function parsePersistedBootEnv(actualValue: string | undefined): Record<string, 
 }
 
 function parseTestContainersServices(actualValue: string | undefined): TestContainersServiceName[] {
+    if (actualValue === undefined) {
+        return DEFAULT_TESTCONTAINERS_SERVICES;
+    }
+
+    // An explicit empty string is a deliberate opt-out (e.g. a spec that wants only the core
+    // stack), distinct from not setting the var at all.
     if (!actualValue) {
         return [];
     }

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import chalk from 'chalk';
+
 import {baseGlobalSetup, startStack, stopStack, testConfig} from '@mattermost/playwright-lib';
 
 async function globalSetup() {
@@ -11,12 +13,15 @@ async function globalSetup() {
         await baseGlobalSetup();
     } catch (error: unknown) {
         // eslint-disable-next-line no-console
-        console.error(error);
+        console.error(chalk.cyan('[testcontainers]'), error);
+        // Whatever startStack() managed to bring up (e.g. baseGlobalSetup() failed after the
+        // stack itself came up fine) shouldn't linger just because we're about to throw.
+        await stopStack();
         const message = error instanceof Error ? error.message : String(error);
         const hint = testConfig.useTestContainers
             ? 'Check the container named above and its logs under logs/.'
             : `Ensure the server at ${testConfig.baseURL} is running and accessible.`;
-        throw new Error(`Global setup failed: ${message}\n\t${hint}`, {cause: error});
+        throw new Error(chalk.red(`[testcontainers] Global setup failed: ${message}\n${hint}`));
     }
 
     return async function () {

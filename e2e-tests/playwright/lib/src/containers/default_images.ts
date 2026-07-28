@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Single place to check and bump every image (besides the Mattermost server itself, which is
-// configurable via testConfig.serverImage).
+// Single place to check and bump every image.
+// The Mattermost server's default is overridable via the SERVER_IMAGE env var (testConfig.serverImage).
+export const MATTERMOST_SERVER_IMAGE = 'mattermostdevelopment/mattermost-enterprise-edition:master';
 export const POSTGRES_IMAGE = 'postgres:14';
 export const INBUCKET_IMAGE = 'inbucket/inbucket:3.1.1';
 export const OPENLDAP_IMAGE = 'osixia/openldap:1.4.0';

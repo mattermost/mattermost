@@ -22,10 +22,10 @@ cd server && make run-server
 No separate terminal or setup step needed — Playwright brings up Postgres, Inbucket, and the Mattermost server itself via [Testcontainers](https://node.testcontainers.org/), then tears them down after the run.
 
 ```bash
-# Run with defaults (base stack only: Postgres, Inbucket, Mattermost server)
+# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch)
 PW_USE_TESTCONTAINERS=true npm run test -- login
 
-# Start additional services a test needs, comma-separated
+# Change which additional services start, comma-separated (or "" to start none)
 PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
 
 # Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)
@@ -35,7 +35,7 @@ PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterpr
 PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE=<your-license-key> npm run test
 ```
 
-For repeated local runs during development, add `PW_TESTCONTAINERS_REUSE=true` — Testcontainers reuses the same containers across invocations instead of recreating them (requires `testcontainers.reuse.enable=true` in `~/.testcontainers.properties`, a one-time machine-level setting). When reuse is enabled, tear the stack down explicitly when you're done with `npm run testcontainers:down`.
+Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=true`) instead of being recreated every run — tear the stack down explicitly when you're done with `npm run testcontainers:down`. Set `PW_TESTCONTAINERS_REUSE=false` for a one-off run that tears itself down when it finishes. Use `npm run testcontainers:up` to just bring the stack up (or confirm an existing one's still reachable) without running any tests.
 
 See `lib/README.md` for every available environment variable.
 

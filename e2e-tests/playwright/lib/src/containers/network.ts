@@ -7,6 +7,8 @@ import {promisify} from 'node:util';
 import {Network} from 'testcontainers';
 import type {StartedNetwork} from 'testcontainers';
 
+import {logTestcontainers, warnTestcontainers} from './log';
+
 const execFileAsync = promisify(execFile);
 
 // One bridge network per Playwright invocation, shared by every container it starts. When
@@ -16,7 +18,9 @@ let startedNetwork: StartedNetwork | undefined;
 
 export async function getNetwork(): Promise<StartedNetwork> {
     if (!startedNetwork) {
+        logTestcontainers('creating network...');
         startedNetwork = await new Network().start();
+        logTestcontainers('network created.');
     }
     return startedNetwork;
 }
@@ -26,7 +30,7 @@ export async function getNetwork(): Promise<StartedNetwork> {
  * Docker host itself, so a process listening on 0.0.0.0 on the host is reachable both from the
  * host directly and from any container on this network, without a network alias or mapped port.
  * Takes a network id/name rather than a StartedNetwork object so it also works from
- * adoptExistingStack(), which only has testConfig's network name.
+ * reuseExistingStack(), which only has testConfig's network name.
  */
 export async function getNetworkGatewayIp(network: string): Promise<string> {
     const {stdout} = await execFileAsync('docker', [
@@ -58,9 +62,8 @@ export async function stopNetwork(): Promise<void> {
             return;
         } catch (error) {
             if (attempt === attempts) {
-                // eslint-disable-next-line no-console
-                console.warn(
-                    `Testcontainers: could not remove network ${network.getId()} (Ryuk will remove it shortly): ${String(error)}`,
+                warnTestcontainers(
+                    `could not remove network ${network.getId()} (Ryuk will remove it shortly): ${String(error)}`,
                 );
                 return;
             }

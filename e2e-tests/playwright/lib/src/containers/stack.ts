@@ -47,6 +47,7 @@ import {
     POSTGRES_IMAGE,
 } from './default_images';
 import {startInbucketContainer} from './inbucket_container';
+import {logTestcontainers} from './log';
 import {startMattermostContainer} from './mattermost_container';
 import {getNetwork, getNetworkGatewayIp, stopNetwork} from './network';
 import {startPostgresContainer} from './postgres_container';
@@ -74,30 +75,30 @@ type StartedStack = {
 
 let started: StartedStack | undefined;
 // True if this process is running against a stack an EARLIER process created (via
-// adoptExistingStack()) rather than one it started itself — there are no real Testcontainers
+// reuseExistingStack()) rather than one it started itself — there are no real Testcontainers
 // handles to hold in this case, only values .env.testcontainers resolved into testConfig via
-// dotenv. An adopting process never owns the stack's lifecycle, so stopStack() must leave both
+// dotenv. A reusing process never owns the stack's lifecycle, so stopStack() must leave both
 // the containers and the env file untouched for whatever other process still needs them.
-let adopted = false;
+let reused = false;
 
 /**
  * Brings up a bridge network, Postgres, Inbucket, the Mattermost server, and whichever
  * additional services testConfig.testcontainersServices names. No-op if `testcontainers` mode isn't
  * selected (PW_USE_TESTCONTAINERS unset), already started (repeated calls within the same
- * process, e.g. a stray double-invocation, are harmless), or already adopted. Otherwise first
- * checks whether an earlier process's stack is still alive and adopts it instead — see
- * adoptExistingStack().
+ * process, e.g. a stray double-invocation, are harmless), or already reused. Otherwise first
+ * checks whether an earlier process's stack is still alive and reuses it instead — see
+ * reuseExistingStack().
  */
 export async function startStack(): Promise<void> {
-    if (!testConfig.useTestContainers || started || adopted) {
+    if (!testConfig.useTestContainers || started || reused) {
         return;
     }
 
-    if (await adoptExistingStack()) {
+    if (await reuseExistingStack()) {
         return;
     }
 
-    // adoptExistingStack() found nothing live to adopt — any bootEnvOverrides read from a stale
+    // reuseExistingStack() found nothing live to reuse — any bootEnvOverrides read from a stale
     // .env.testcontainers (e.g. left behind by a manual `docker rm` or a crashed prior process)
     // no longer describes anything real. Reset to the genuine defaults the container about to be
     // created will actually boot with, or a later restart could wrongly believe some stale
@@ -115,21 +116,61 @@ export async function startStack(): Promise<void> {
     testConfig.testcontainersNetworkGatewayIp = await getNetworkGatewayIp(network.getId());
 
     const additionalNames = testConfig.testcontainersServices;
-    const [postgres, inbucket, webhook, ...additionalContainers] = await Promise.all([
-        startPostgresContainer(network),
-        startInbucketContainer(network),
-        startWebhookContainer(network),
-        ...additionalNames.map((name) => ADDITIONAL_SERVICE_STARTERS[name](network)),
-    ]);
 
-    const additional: Partial<Record<TestContainersServiceName, StartedTestContainer>> = {};
-    additionalNames.forEach((name, index) => {
-        additional[name] = additionalContainers[index];
-    });
+    logTestcontainers(
+        `pulling/starting images: server, postgres, inbucket, webhook${additionalNames.length ? `, ${additionalNames.join(', ')}` : ''}`,
+    );
+    await logServerImageAge(testConfig.serverImage);
 
-    const mattermost = await startMattermostContainer(network.getName());
+    // Tracks every container that actually comes up, independent of whether the group as a whole
+    // (or the mattermost start after it) ultimately succeeds — so a failure partway through still
+    // knows exactly what to tear down instead of leaking whatever already started.
+    const startedContainers: StartedTestContainer[] = [];
+    const trackAndLog = <T extends StartedTestContainer>(name: string, promise: Promise<T>): Promise<T> => {
+        const startedAt = Date.now();
 
-    started = {network, postgres, inbucket, webhook, mattermost, additional};
+        // The biggest blind spot is the server: its own wait strategy alone can take minutes
+        // (see mattermost_container.ts), during which nothing else prints — so ping every 30s to
+        // make clear the run hasn't stalled.
+        const heartbeat = setInterval(() => {
+            logTestcontainers(`still waiting on ${name} (${elapsedSeconds(startedAt)}s elapsed)...`);
+        }, duration.half_min);
+
+        return promise.then(
+            (container) => {
+                clearInterval(heartbeat);
+                startedContainers.push(container);
+                logTestcontainers(`${name} ready in ${elapsedSeconds(startedAt)}s.`);
+                return container;
+            },
+            (error) => {
+                clearInterval(heartbeat);
+                throw error;
+            },
+        );
+    };
+
+    try {
+        const [postgres, inbucket, webhook, ...additionalContainers] = await Promise.all([
+            trackAndLog('postgres', startPostgresContainer(network)),
+            trackAndLog('inbucket', startInbucketContainer(network)),
+            trackAndLog('webhook', startWebhookContainer(network)),
+            ...additionalNames.map((name) => trackAndLog(name, ADDITIONAL_SERVICE_STARTERS[name](network))),
+        ]);
+
+        const additional: Partial<Record<TestContainersServiceName, StartedTestContainer>> = {};
+        additionalNames.forEach((name, index) => {
+            additional[name] = additionalContainers[index];
+        });
+
+        const mattermost = await trackAndLog('server', startMattermostContainer(network.getName()));
+
+        started = {network, postgres, inbucket, webhook, mattermost, additional};
+    } catch (error) {
+        await Promise.allSettled(startedContainers.map((container) => container.stop()));
+        await stopNetwork();
+        throw error;
+    }
 
     applyResolvedConfig(started);
     resetEnvFile('initial boot');
@@ -146,27 +187,55 @@ export async function startStack(): Promise<void> {
  *
  * Deliberately does not gate on testConfig.testcontainersReuse: that flag governs whether the
  * OWNING process leaves the stack running on its own exit — a different decision from whether
- * THIS process should adopt a stack it finds already alive. Adoption always applies once liveness
+ * THIS process should reuse a stack it finds already alive. Reuse always applies once liveness
  * is confirmed.
  */
-async function adoptExistingStack(): Promise<boolean> {
+async function reuseExistingStack(): Promise<boolean> {
     if (!testConfig.mattermostContainerId || !(await isContainerRunning(testConfig.mattermostContainerId))) {
         return false;
     }
 
-    adopted = true;
+    reused = true;
 
     if (testConfig.containerRunner) {
         await joinSelfToNetwork(testConfig.testcontainersNetworkName);
     }
 
+    logTestcontainers(
+        'reusing already-running server (with PW_TESTCONTAINERS_REUSE=true), see .env.testcontainers for stack information',
+    );
+    logStackReused();
+    return true;
+}
+
+// Same shape of summary as logStackStarted(), but built from testConfig's resolved fields
+// instead of live StartedTestContainer handles — reusing never gets those (see `reused`'s
+// declaration above), only whatever an EARLIER process's startStack() persisted to
+// .env.testcontainers and this process's dotenv.config() read back into testConfig.
+function logStackReused(): void {
+    const lines: string[] = [
+        `  - ${'server'.padEnd(13)} = ${testConfig.baseURL}`,
+        `  - ${'postgres'.padEnd(13)} = ${testConfig.postgresUrl}`,
+        `  - ${'inbucket'.padEnd(13)} = ${testConfig.smtpURL}`,
+        `  - ${'webhook'.padEnd(13)} = ${testConfig.webhookBaseUrl}`,
+    ];
+
+    const additionalUrls: Record<TestContainersServiceName, string> = {
+        openldap: `${testConfig.ldapHost}:${testConfig.ldapPort}`,
+        keycloak: testConfig.keycloakUrl,
+        elasticsearch: testConfig.elasticsearchUrl,
+        opensearch: testConfig.opensearchUrl,
+        minio: testConfig.minioUrl,
+        azurite: testConfig.azuriteUrl,
+    };
+    testConfig.testcontainersServices.forEach((name) => {
+        lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
+    });
+
     // eslint-disable-next-line no-console
     console.log(
-        'Testcontainers Stack: adopting already-running server (container ' +
-            `${testConfig.mattermostContainerId}) instead of starting a new stack — see ` +
-            '.env.testcontainers for the history of how it got to its current state.',
+        `Testcontainers (reused, network ${testConfig.testcontainersNetworkName}, tear down with: "npm run testcontainers:down"):\n${lines.join('\n')}\n`,
     );
-    return true;
 }
 
 async function isContainerRunning(containerId: string): Promise<boolean> {
@@ -181,9 +250,9 @@ async function isContainerRunning(containerId: string): Promise<boolean> {
 /**
  * Tears down the stack: always collects logs and removes the generated env file; only actually
  * stops containers when reuse isn't enabled (PW_TESTCONTAINERS_REUSE=true leaves them running
- * for the next invocation — local or a CI dispatcher's next spec — to adopt).
+ * for the next invocation — local or a CI dispatcher's next spec — to reuse).
  *
- * A no-op beyond clearing the local flag when this process adopted rather than created the stack:
+ * A no-op beyond clearing the local flag when this process reused rather than created the stack:
  * it never owned the containers or the env file, so it must leave both exactly as it found them
  * for whichever process (or later dispatch) still depends on them.
  */
@@ -192,10 +261,9 @@ export async function stopStack(options: {force?: boolean} = {}): Promise<void> 
         return;
     }
 
-    if (adopted) {
-        adopted = false;
-        // eslint-disable-next-line no-console
-        console.log('Testcontainers Stack: this process adopted an existing server — leaving it untouched.');
+    if (reused) {
+        reused = false;
+        logTestcontainers('this process reused an existing server — leaving it untouched.');
         return;
     }
 
@@ -281,8 +349,7 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(env)}`);
 
-    // eslint-disable-next-line no-console
-    console.log(`Testcontainers Stack: restarted server with ${JSON.stringify(env)}.`);
+    logTestcontainers(`restarted server with ${JSON.stringify(env)}.`);
 }
 
 // Identifies whichever spec/test is currently driving a restart, so .env.testcontainers's history
@@ -318,7 +385,7 @@ function extendTimeoutForRestart(): void {
 // container's hostname to its own container ID by default, and on the `docker` CLI being
 // present alongside the mounted socket.
 //
-// Takes a network name/ID string rather than a StartedNetwork object: adoptExistingStack() only
+// Takes a network name/ID string rather than a StartedNetwork object: reuseExistingStack() only
 // has testConfig.testcontainersNetworkName (read from .env.testcontainers) to work with, not a
 // live handle — and the docker CLI resolves either form the same way, so the freshly-created path
 // below just passes network.getId() instead.
@@ -327,7 +394,7 @@ async function joinSelfToNetwork(networkId: string): Promise<void> {
     try {
         await execFileAsync('docker', ['network', 'connect', networkId, selfContainerId]);
     } catch (error) {
-        // A CI dispatcher running one spec per process re-adopts the same stack (and this same
+        // A CI dispatcher running one spec per process reuses the same stack (and this same
         // runner container) on every invocation, so this join is attempted again every time —
         // already-connected isn't a failure, it's the expected steady state after the first.
         if (String(error).includes('already exists in network')) {
@@ -382,10 +449,10 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
     const base: Array<[string, StartedTestContainer, ContainerMetadata]> = [
+        ['server', stack.mattermost, {alias: MATTERMOST_ALIAS, port: MATTERMOST_PORT, image: testConfig.serverImage}],
         ['postgres', stack.postgres, {alias: POSTGRES_ALIAS, port: POSTGRES_PORT, image: POSTGRES_IMAGE}],
         ['inbucket', stack.inbucket, {alias: INBUCKET_ALIAS, port: INBUCKET_WEB_PORT, image: INBUCKET_IMAGE}],
         ['webhook', stack.webhook, {alias: WEBHOOK_ALIAS, port: WEBHOOK_PORT, image: 'built, webhook sidecar'}],
-        ['server', stack.mattermost, {alias: MATTERMOST_ALIAS, port: MATTERMOST_PORT, image: testConfig.serverImage}],
     ];
 
     const additional = Object.entries(stack.additional)
@@ -404,27 +471,55 @@ function formatContainerLine(name: string, container: StartedTestContainer, meta
     return `  - ${name.padEnd(13)} = ${metadata.image} (network: ${metadata.alias}:${metadata.port}, host: ${host})`;
 }
 
+function elapsedSeconds(startedAt: number): string {
+    return ((Date.now() - startedAt) / 1000).toFixed(1);
+}
+
+// `master`/`release-*` tags get rebuilt continuously, so a cached copy can silently go stale;
+// pinned version tags (e.g. `:11.10.0`) never change, so they're excluded.
+const MUTABLE_IMAGE_TAG_PATTERN = /:(master|release-.+)$/;
+
+async function logServerImageAge(image: string): Promise<void> {
+    let created: Date;
+    try {
+        const {stdout} = await execFileAsync('docker', ['image', 'inspect', image, '--format', '{{.Created}}']);
+        created = new Date(stdout.trim());
+    } catch {
+        // Not cached locally — Testcontainers will pull it fresh as part of starting the
+        // container, so whatever comes up is already the latest build. Nothing to warn about.
+        logTestcontainers(`server image "${image}" isn't cached locally yet — will pull the latest build.`);
+        return;
+    }
+
+    const ageHours = (Date.now() - created.getTime()) / (60 * 60 * 1000);
+    const age = ageHours >= 48 ? `${(ageHours / 24).toFixed()}d` : `${ageHours.toFixed()}h`;
+    const looksStale = MUTABLE_IMAGE_TAG_PATTERN.test(image) && ageHours > 24;
+
+    logTestcontainers(
+        `server image "${image}" (built ${created.toISOString()}, ${age} ago).` +
+            (looksStale
+                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull ${image}" for the latest build.`
+                : ''),
+    );
+}
+
 function logStackStarted(stack: StartedStack): void {
     const lines = containerEntries(stack).map(([name, container, metadata]) =>
         formatContainerLine(name, container, metadata),
     );
     // eslint-disable-next-line no-console
-    console.log(`Testcontainers Stack (network ${stack.network.getId()}):\n${lines.join('\n')}`);
+    console.log(`Testcontainers (network ${stack.network.getId()}):\n${lines.join('\n')}`);
 }
 
 function logStackStopped(stack: StartedStack): void {
     const names = containerEntries(stack).map(([name]) => name);
-    // eslint-disable-next-line no-console
-    console.log(`Testcontainers Stack: stopped ${names.join(', ')}.`);
+    logTestcontainers(`stopped ${names.join(', ')}.`);
 }
 
 function logStackLeftRunning(stack: StartedStack): void {
-    const lines = containerEntries(stack).map(([name, container, metadata]) =>
-        formatContainerLine(name, container, metadata),
-    );
-    // eslint-disable-next-line no-console
-    console.log(
-        `Testcontainers Stack: left running (PW_TESTCONTAINERS_REUSE=true), still reachable at:\n${lines.join('\n')}`,
+    const serverUrl = resolveUrl(stack.mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
+    logTestcontainers(
+        `left running (PW_TESTCONTAINERS_REUSE=true) — server reachable at ${serverUrl}; may tear down with: "npm run testcontainers:down"`,
     );
 }
 

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {errorTestcontainers} from './log';
+
 import {duration, wait} from '@/util';
 
 const DEFAULT_ATTEMPTS = 3;
@@ -23,8 +25,7 @@ export async function startWithRetry<T>(
         } catch (error) {
             lastError = error;
             const message = error instanceof Error ? error.message : String(error);
-            // eslint-disable-next-line no-console
-            console.error(`Testcontainers: "${label}" failed on attempt ${attempt}/${attempts}: ${message}`);
+            errorTestcontainers(`"${label}" failed on attempt ${attempt}/${attempts}: ${message}`);
             if (attempt < attempts) {
                 await wait(duration.two_sec * attempt);
             }
