@@ -200,7 +200,7 @@ test.describe('Post list scroll to permalink', () => {
                 await testCase.setupPostsAfter();
             });
 
-            test('should stay at the linked post during initial load', async ({}) => {
+            test(`${testCase.name} - should stay at the linked post during initial load`, async ({}) => {
                 const watcher = await watchPostListScroll(page, channel.id);
 
                 // # Open the web app directly to that post
@@ -215,7 +215,7 @@ test.describe('Post list scroll to permalink', () => {
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
 
-            test('should stay at the linked post when switching to the channel', async ({}) => {
+            test(`${testCase.name} - should stay at the linked post when switching to the channel`, async ({}) => {
                 const watcher = await watchPostListScroll(page, channel.id);
 
                 // # Start in Town Square and wait for its contents to load
@@ -237,7 +237,7 @@ test.describe('Post list scroll to permalink', () => {
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
 
-            test('should move to the linked post when clicking on an in-channel permalink', async ({}) => {
+            test(`${testCase.name} - should move to the linked post when clicking on an in-channel permalink`, async ({}) => {
                 const watcher = await watchPostListScroll(page, channel.id);
 
                 // # Open the web app directly to that channel
