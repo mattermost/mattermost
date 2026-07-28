@@ -185,6 +185,12 @@ type SubjectSearchOptions struct {
 	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
 	// before building SQL, so self-inclusion validation checks only the CPA parts.
 	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
+	// ResourceID is the channel whose custom attributes an ad-hoc expression test
+	// resolves resource.attributes.* against, so a resource-referencing expression
+	// can be previewed against one specific channel's values. Unused when the
+	// expression references no resource attributes. Stored-policy search paths
+	// derive the resource from the policy itself and ignore this.
+	ResourceID string `json:"resource_id,omitempty"`
 }
 
 type SubjectCursor struct {
