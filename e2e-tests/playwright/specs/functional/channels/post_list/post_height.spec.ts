@@ -280,8 +280,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // TODO Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
+            // Markdown/remote SVGs intentionally receive no server-provided dimensions
+            // (SVG images are filtered from link metadata to mitigate the MM-67372 DoS),
+            // so the client cannot reserve height before the SVG loads. That makes a
+            // layout-shift-free render impossible for this case regardless of browser.
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
             }),
