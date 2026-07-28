@@ -525,7 +525,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         ).toBeVisible();
 
         // * Stale checkbox-era copy is gone
-        await expect(teamSettings.container.getByText(/Changing from 'Yes' to 'No'/i)).not.toBeVisible();
+        await expect(teamSettings.container.getByText(/Changing from 'Yes' to 'No'/i)).toHaveCount(0);
 
         await teamSettings.close();
     });
