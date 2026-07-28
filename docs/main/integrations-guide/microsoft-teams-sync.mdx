@@ -1,6 +1,8 @@
 ---
 title: "Connect Microsoft Teams to Mattermost"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-ent" />
 
 Break through siloes in a mixed Mattermost and Microsoft Teams environment by forwarding real-time chat notifications from Microsoft Teams to Mattermost.
@@ -81,7 +83,7 @@ These installation instructions assume you already have a Mattermost instance ru
 </Important>
 
 1.  Log in to your Mattermost [workspace](/end-user-guide/end-user-guide-index) as a system admin.
-2.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+2.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 3.  Search for or scroll to MS Teams, and select **Install**.
 4.  Once installed, select **Configure**. You're taken to the System Console.
 5.  Configure the **Tenant ID**, **Client ID**, and **Client Secret** with the values obtained from setting up the OAuth App in Azure above.

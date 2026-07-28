@@ -469,7 +469,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
-                onClick={this.handleImageClick}
                 style={{display}}
             >
                 <figure
