@@ -239,3 +239,7 @@ replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5
 
 // See MM-63434 for more details.
 replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe
+
+replace (
+	code.sajari.com/docconv/v2 v2.0.0-pre.4 => github.com/sajari/docconv/v2 v2.0.0-pre.4
+)
