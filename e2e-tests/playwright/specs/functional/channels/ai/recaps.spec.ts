@@ -4,8 +4,9 @@
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 
-import {expect, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+
+import {expect, test} from './ai_bridge_fixture';
 
 /**
  * @objective Verify a user can create a selected-channels AI recap and receive the mocked summary without reloading the page
