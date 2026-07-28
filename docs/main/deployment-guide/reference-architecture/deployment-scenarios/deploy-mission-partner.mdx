@@ -58,11 +58,11 @@ The deployment architecture includes the following components:
     - [Workflow Automation](/end-user-guide/workflow-automation): Playbooks provide structure, monitoring and automation for repeatable processes built-in to your sovereign Mattermost deployment.
     - [Project Tracking](/end-user-guide/project-task-management): Boards enables project management capabilities built-in to your local Mattermost deployment. Boards enables project management capabilities built-in to your sovereign Mattermost deployment.
     - [AI Agents](/administration-guide/configure/agents-admin-guide): AI Agents run against Azure OpenAI endpoints or a self-hosted LLM that is OpenAI-compatible.
-    - [Audio & Screenshare](/administration-guide/configure/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your own network.
+    - [Audio & Screenshare](/deployment-guide/calls/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your own network.
   - **Proxy Server:** The [proxy server](/deployment-guide/server/setup-nginx-proxy) handles HTTP(S) routing within the cluster, directing traffic between the server and clients accessing Mattermost services, including requests from users in [connected organizations](/administration-guide/onboard/connected-workspaces). NGINX is recommended for load balancing with support for WebSocket connections, health check endpoints, and sticky sessions. The proxy layer provides SSL termination and distributes client traffic across application servers.
   - **PostgreSQL Database:** Stores persistent application data on a [PostgreSQL v13+ database](/deployment-guide/server/preparations), such as [Azure Database for PostgreSQL](https://azure.microsoft.com/en-us/products/postgresql).
   - **Object Storage:** File uploads, images, and attachments are stored outside the application node on an [S3-compatible store](/deployment-guide/server/preparations) or an NFS (Network File System) server. [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs) can be used, but needs an S3-compatible proxy for Mattermost to interface with.
-  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls, such as recordings, transcriptions, and live captioning, to local infrastructure or private cloud. *(Optional)*
+  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls, such as recordings, transcriptions, and live captioning, to local infrastructure or private cloud. *(Optional)*
 - **Integration framework:** [Custom apps, plugins, and webhooks](/integrations-guide/integrations-guide-index) can be deployed for real-time data integrations and alerting. *(Optional - not shown)*
 - **Self-hosted LLM:** Locally hosted [OpenAI compatible LLM](/agents/docs/providers) for agentic powered collaboration. *(Optional)*
 - **Microsoft Global Network:** [World-wide network](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network) of Microsoft data centers, delivering public cloud services including M365 and Azure OpenAI. *(Optional)*
@@ -128,10 +128,10 @@ Deploy Mattermost in a [cluster-based architecture](/deployment-guide/reference-
 
 ### Sovereign audio & screensharing
 
-Deploy [Mattermost Calls](/administration-guide/configure/calls-deployment-guide) in a self-hosted configuration to ensure voice and screen sharing capabilities remain operational without reliance on the internet, and that media traffic does not traverse non-compliant third-party services.
+Deploy [Mattermost Calls](/deployment-guide/calls/calls-deployment-guide) in a self-hosted configuration to ensure voice and screen sharing capabilities remain operational without reliance on the internet, and that media traffic does not traverse non-compliant third-party services.
 
-- The `rtcd` service, configured using the [RTCD Setup and Configuration](/administration-guide/configure/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
-- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a compliance-approved job server.
+- The `rtcd` service, configured using the [RTCD Setup and Configuration](/deployment-guide/calls/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
+- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a compliance-approved job server.
 
 ### Compliance and retention
 

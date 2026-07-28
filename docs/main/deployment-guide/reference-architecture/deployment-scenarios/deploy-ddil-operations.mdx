@@ -42,11 +42,11 @@ This hybrid deployment architecture provides optimal collaboration in both conne
     - [Workflow Automation](/end-user-guide/workflow-automation): Playbooks provide structure, monitoring and automation for repeatable processes built-in to your local Mattermost deployment.
     - [Project Tracking](/end-user-guide/project-task-management): Boards enables project management capabilities built-in to your local Mattermost deployment.
     - [AI Agents](/administration-guide/configure/agents-admin-guide): AI Agents run against a local LLM hosted within your tactical network.
-    - [Audio & Screenshare](/administration-guide/configure/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your tactical network.
+    - [Audio & Screenshare](/deployment-guide/calls/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your tactical network.
   - **Proxy Server:** The [proxy server](/deployment-guide/server/setup-nginx-proxy) handles HTTP(S) routing within the cluster, directing traffic between the server and clients accessing Mattermost services. NGINX is recommended for load balancing with support for WebSocket connections, health check endpoints, and sticky sessions. The proxy layer provides SSL termination and distributes client traffic across application servers.
   - **PostgreSQL Database:** Stores persistent application data on a [PostgreSQL v13+ database](/deployment-guide/server/preparations) hosted locally within your tactical network.
   - **Object Storage:** File uploads, images, and attachments are stored outside the application node on an [S3-compatible store](/deployment-guide/server/preparations) or network/local storage, hosted locally within your tactical network.
-  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls to self-hosted infrastructure within your tactical network, such as recordings, transcriptions, and live captioning. *(Optional)*
+  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls to self-hosted infrastructure within your tactical network, such as recordings, transcriptions, and live captioning. *(Optional)*
 - **Self-hosted integrations:** [Custom apps, plugins, and webhooks](/integrations-guide/integrations-guide-index) can be deployed within your tactical network. *(Optional - not shown)*
 - **Self-hosted LLM:** Locally hosted [OpenAI compatible LLM](/agents/docs/providers) for agentic powered collaboration within your tactical network. *(Optional)*
 - **Microsoft Global Network:** [World-wide network](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network) of Microsoft data centers, delivering public cloud services when internet connectivity permits.
@@ -70,10 +70,10 @@ Deploy an [OpenAI compatible LLM](/administration-guide/configure/agents-admin-g
 
 ### Self-hosted audio & screensharing
 
-Effective collaboration at the tactical edge requires all voice and screen sharing capabilities remain operational without reliance on the internet or third-party services. Deploy [Mattermost Calls](/administration-guide/configure/calls-deployment-guide) in a self-hosted configuration, including:
+Effective collaboration at the tactical edge requires all voice and screen sharing capabilities remain operational without reliance on the internet or third-party services. Deploy [Mattermost Calls](/deployment-guide/calls/calls-deployment-guide) in a self-hosted configuration, including:
 
-- The `rtcd` service, configured using the [RTCD Setup and Configuration](/administration-guide/configure/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
-- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a locally hosted compliance-approved job server.
+- The `rtcd` service, configured using the [RTCD Setup and Configuration](/deployment-guide/calls/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
+- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a locally hosted compliance-approved job server.
 
 ### High availability and fault tolerance
 

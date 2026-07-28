@@ -268,6 +268,21 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
+  // Calls Deployment & Configuration — moved here from Administration
+  // Guide → Configure. RTCD, Offloader, Kubernetes, logging, and metrics
+  // are deployment/operations concerns, not settings-reference material.
+  calls: {
+    label: 'Calls Deployment & Configuration',
+    landing: 'calls/calls-deployment-guide',
+    items: [
+      'calls/calls-rtcd-setup',
+      'calls/calls-offloader-setup',
+      'calls/calls-kubernetes',
+      'calls/calls-logging',
+      'calls/calls-metrics-monitoring',
+    ],
+  },
+
   // Backup & Disaster Recovery — group the two related pages.
   backupDr: {
     label: 'Backup & Disaster Recovery',
@@ -320,6 +335,7 @@ const DEPLOYMENT_ROOT_ORDER = [
   'deployment-architecture',
   {group: 'server'},
   {group: 'scaling'},
+  {group: 'calls'},
   // Desktop, Mobile, Air-Gapped Operations keep their auto-generated trees
   // (each has its own index file + sub-pages). Referenced by the `__auto__`
   // sentinel so we slot them in here, in the order we want.
@@ -358,8 +374,8 @@ const DEPLOYMENT_HIDDEN = new Set([
 //
 // Configure is a flat 34-file settings-reference dump. This override groups
 // it by task/subsystem so the ~12 "*-configuration-settings" reference pages
-// don't drown the handful of task-oriented pages (Search, Calls, Storage,
-// Email, Billing, Branding) sitting alongside them at the same level.
+// don't drown the handful of task-oriented pages (Search, Email, Billing,
+// Branding) sitting alongside them at the same level.
 //
 // AI Agents Configuration is deliberately kept as its own standalone,
 // un-grouped top-level entry (not folded into a "misc/optional" bucket) —
@@ -389,25 +405,6 @@ const ADMIN_CONFIGURE_GROUPS = {
     items: [
       'bleve-search',
       'enabling-chinese-japanese-korean-search',
-    ],
-  },
-  calls: {
-    label: 'Calls Deployment & Configuration',
-    landing: 'calls-deployment-guide',
-    items: [
-      'calls-rtcd-setup',
-      'calls-offloader-setup',
-      'calls-kubernetes',
-      'calls-logging',
-      'calls-metrics-monitoring',
-    ],
-  },
-  storage: {
-    label: 'Storage & Database',
-    items: [
-      'configuration-in-your-database',
-      'azure-blob-storage',
-      'environment-variables',
     ],
   },
   email: {
@@ -459,8 +456,9 @@ const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
   {group: 'search'},
   {group: 'agents'},
-  {group: 'calls'},
-  {group: 'storage'},
+  'configuration-in-your-database',
+  'environment-variables',
+  'azure-blob-storage',
   {group: 'email'},
   {group: 'billing'},
   {group: 'branding'},
@@ -479,9 +477,6 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
   'rate-limiting-configuration-settings', 'push-notification-server-configuration-settings',
   'experimental-configuration-settings', 'deprecated-configuration-settings',
   'bleve-search', 'enabling-chinese-japanese-korean-search',
-  'calls-rtcd-setup', 'calls-offloader-setup', 'calls-kubernetes',
-  'calls-logging', 'calls-metrics-monitoring',
-  'configuration-in-your-database', 'azure-blob-storage', 'environment-variables',
   'smtp-email', 'email-templates',
   'self-hosted-account-settings', 'cloud-billing-account-settings',
   'custom-branding-tools', 'customize-mattermost', 'optimize-your-workspace',

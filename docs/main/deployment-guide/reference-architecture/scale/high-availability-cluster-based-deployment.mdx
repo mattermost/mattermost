@@ -35,7 +35,7 @@ Moreover, search replicas are also supported to handle search queries.
 - For Kubernetes deployments, review [Deploy Mattermost on Kubernetes](/deployment-guide/server/deploy-kubernetes).
 - For non-Kubernetes deployments, install or upgrade Mattermost to the desired version on one server provisioned for Mattermost. Refer to [Deploy Mattermost on Linux](/deployment-guide/server/deploy-linux) for installation details. [Install a license key](/administration-guide/manage/admin/installing-license-key) to apply an Enterprise or Enterprise Advanced license key to the installed node.
 - **Recommended:** If using `config.json` for Mattermost configuration, refer to [Store configuration in your database](/administration-guide/configure/configuration-in-your-database) to migrate the Mattermost instance to using the database for configuration. It is also possible to continue using `config.json` files. However, when high availability is enabled, the System Console is set to read-only mode to ensure all the `config.json` files on the Mattermost servers are always identical.
-- Review [Calls self-hosted deployment](/administration-guide/configure/calls-deployment) to develop an appropriately-scaled Calls deployment plan.
+- Review [Calls self-hosted deployment](/deployment-guide/calls/calls-deployment-guide) to develop an appropriately-scaled Calls deployment plan.
 - If you anticipate your Mattermost server reaching more than 2.5 million posts, review [Enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) for options to ensure optimum search performance.
 - For Mattermost deployments for more than 100,000 users, review the [Redis](/deployment-guide/reference-architecture/scale/redis) deployment guide.
 
@@ -1042,7 +1042,7 @@ Once your high availability cluster is deployed and operational, consider these 
 
 **Calls deployment**
 
-If you're using Mattermost Calls for voice and screen sharing communication, review [Calls self-hosted deployment](/administration-guide/configure/calls-deployment) to plan an appropriately-scaled Calls infrastructure that matches your HA deployment.
+If you're using Mattermost Calls for voice and screen sharing communication, review [Calls self-hosted deployment](/deployment-guide/calls/calls-deployment-guide) to plan an appropriately-scaled Calls infrastructure that matches your HA deployment.
 
 **Enterprise search**
 
