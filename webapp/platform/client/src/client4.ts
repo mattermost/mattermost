@@ -4787,14 +4787,25 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+            const isDownload = contentType === 'application/zip' || contentType?.startsWith('text/csv');
+
+            const isError = !response.ok && !options.ignoreStatus;
+
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (isDownload && !isError) {
                 data = await response.blob();
+            } else if (isDownload) {
+                const text = await response.text();
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = {message: text};
+                }
             } else {
                 data = await response.text();
             }
