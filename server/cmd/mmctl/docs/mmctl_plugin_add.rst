@@ -27,8 +27,9 @@ Options
 
 ::
 
-  -f, --force   overwrite a previously installed plugin with the same ID, if any
-  -h, --help    help for add
+  -f, --force              overwrite a previously installed plugin with the same ID, if any
+  -h, --help               help for add
+  -w, --wait-for-cluster   wait up to 30 seconds for the plugin to be deployed to all nodes in the cluster
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

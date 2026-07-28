@@ -576,4 +576,92 @@ describe('components/PluginManagement', () => {
         });
         expect(container).toMatchSnapshot();
     });
+
+    describe('helpSubmitUpload', () => {
+        const file = new File(['test'], 'plugin.tar.gz');
+        let scrollIntoView: jest.Mock;
+
+        beforeEach(() => {
+            jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+                cb(0);
+                return 0;
+            });
+
+            scrollIntoView = jest.fn();
+            Element.prototype.scrollIntoView = scrollIntoView;
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const renderComponent = (uploadPlugin: jest.Mock) => {
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    uploadPlugin,
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+            return ref;
+        };
+
+        test('waits for cluster deployment and scrolls to the plugin on success', async () => {
+            const uploadPlugin = jest.fn().mockResolvedValue({
+                data: {manifest: {id: 'plugin_0'}, deployedToAllNodes: true},
+            });
+            const ref = renderComponent(uploadPlugin);
+
+            await act(async () => {
+                await ref.current!.helpSubmitUpload(file, false);
+            });
+
+            expect(uploadPlugin).toHaveBeenCalledWith(file, false, true);
+            expect(ref.current!.state.lastMessage).toBe('Successfully uploaded plugin from plugin.tar.gz');
+            expect(ref.current!.state.serverError).toBeNull();
+            expect(scrollIntoView).toHaveBeenCalledTimes(1);
+            expect((scrollIntoView.mock.instances[0] as HTMLElement).getAttribute('data-testid')).toBe('plugin_0');
+        });
+
+        test('shows an error but still scrolls to the plugin when cluster deployment times out', async () => {
+            const uploadPlugin = jest.fn().mockResolvedValue({
+                data: {manifest: {id: 'plugin_0'}, deployedToAllNodes: false},
+            });
+            const ref = renderComponent(uploadPlugin);
+
+            await act(async () => {
+                await ref.current!.helpSubmitUpload(file, false);
+            });
+
+            expect(uploadPlugin).toHaveBeenCalledWith(file, false, true);
+            expect(ref.current!.state.lastMessage).toBeNull();
+            expect(ref.current!.state.serverError).toContain('wasn\'t confirmed within 30 seconds');
+            expect(scrollIntoView).toHaveBeenCalledTimes(1);
+            expect((scrollIntoView.mock.instances[0] as HTMLElement).getAttribute('data-testid')).toBe('plugin_0');
+        });
+
+        test('does not scroll when the upload fails', async () => {
+            const uploadPlugin = jest.fn().mockResolvedValue({
+                error: {server_error_id: 'some.error', message: 'upload failed'},
+            });
+            const ref = renderComponent(uploadPlugin);
+
+            await act(async () => {
+                await ref.current!.helpSubmitUpload(file, false);
+            });
+
+            expect(ref.current!.state.serverError).toBe('upload failed');
+            expect(scrollIntoView).not.toHaveBeenCalled();
+        });
+    });
 });

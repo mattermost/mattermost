@@ -80,11 +80,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -176,6 +179,75 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	}
 
 	return a.ch.installPlugin(pluginFile, nil, installationStrategy)
+}
+
+// pluginDeploymentPollInterval is how often to check cluster peers when waiting for a plugin to
+// be deployed to all nodes in the cluster.
+const pluginDeploymentPollInterval = 500 * time.Millisecond
+
+// WaitForPluginDeployment blocks until the given plugin version is installed on every node in
+// the cluster, the given timeout elapses, or the request is cancelled, returning true only if
+// full deployment was observed.
+//
+// Servers without clustering are considered fully deployed as soon as the plugin is installed
+// locally, so this returns true immediately.
+func (a *App) WaitForPluginDeployment(rctx request.CTX, manifest *model.Manifest, timeout time.Duration) bool {
+	return a.ch.waitForPluginDeployment(rctx, manifest, timeout)
+}
+
+func (ch *Channels) waitForPluginDeployment(rctx request.CTX, manifest *model.Manifest, timeout time.Duration) bool {
+	if ch.srv.platform.Cluster() == nil || !*ch.cfgSvc.Config().ClusterSettings.Enable {
+		return true
+	}
+
+	logger := rctx.Logger().With(mlog.String("plugin_id", manifest.Id), mlog.String("version", manifest.Version))
+
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(pluginDeploymentPollInterval)
+	defer ticker.Stop()
+
+	for {
+		deployed, err := ch.pluginDeployedOnAllNodes(manifest)
+		if err != nil {
+			logger.Warn("Failed to check plugin deployment status across the cluster", mlog.Err(err))
+		} else if deployed {
+			return true
+		}
+
+		select {
+		case <-rctx.Context().Done():
+			return false
+		case <-deadline:
+			logger.Warn("Timed out waiting for the plugin to be deployed to all nodes in the cluster")
+			return false
+		case <-ticker.C:
+		}
+	}
+}
+
+// pluginDeployedOnAllNodes reports whether every node in the cluster reports the given plugin at
+// the given version. Plugin statuses identify nodes by cluster id, which isn't guaranteed to
+// match the id reported by GetClusterInfos, so compare the number of nodes reporting the
+// expected version against the total number of nodes in the cluster.
+func (ch *Channels) pluginDeployedOnAllNodes(manifest *model.Manifest) (bool, error) {
+	clusterInfos, err := ch.srv.platform.Cluster().GetClusterInfos()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get cluster infos")
+	}
+
+	statuses, appErr := ch.getClusterPluginStatuses()
+	if appErr != nil {
+		return false, appErr
+	}
+
+	nodesWithPlugin := make(map[string]bool)
+	for _, status := range statuses {
+		if status.PluginId == manifest.Id && status.Version == manifest.Version {
+			nodesWithPlugin[status.ClusterId] = true
+		}
+	}
+
+	return len(nodesWithPlugin) >= len(clusterInfos), nil
 }
 
 // installPlugin extracts and installs the given plugin bundle (optionally signed) for the

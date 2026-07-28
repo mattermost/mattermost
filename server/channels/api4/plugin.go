@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -23,6 +24,11 @@ const (
 	// MaxPluginMemory is the maximum number of bytes to hold in memory when reading a plugin bundle.
 	MaxPluginMemory = 50 * 1024 * 1024
 )
+
+// pluginClusterDeploymentTimeout is the maximum time an upload request blocks waiting for the
+// plugin to be deployed to all nodes in the cluster. It's a variable to allow tests to shorten
+// the wait.
+var pluginClusterDeploymentTimeout = 30 * time.Second
 
 func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -93,7 +99,12 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 
-	installPlugin(c, w, file, force)
+	waitForCluster := false
+	if len(m.Value["wait_for_cluster"]) > 0 && m.Value["wait_for_cluster"][0] == "true" {
+		waitForCluster = true
+	}
+
+	installPlugin(c, w, file, force, waitForCluster)
 	auditRec.Success()
 }
 
@@ -123,7 +134,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force, false)
 	auditRec.Success()
 }
 
@@ -409,7 +420,7 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force, waitForCluster bool) {
 	conflict, err := fileutils.CheckDirectoryConflict(*c.App.Config().PluginSettings.Directory, *c.App.Config().ImportSettings.Directory)
 	if err != nil {
 		c.Err = model.NewAppError("installPlugin", "api.plugin.install.check_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -425,7 +436,15 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 		c.Err = appErr
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	// 201 Created signals a fully deployed plugin, while 202 Accepted signals a successful
+	// install that couldn't be confirmed as deployed to all cluster nodes before the timeout.
+	statusCode := http.StatusCreated
+	if waitForCluster && !c.App.WaitForPluginDeployment(c.AppContext, manifest, pluginClusterDeploymentTimeout) {
+		statusCode = http.StatusAccepted
+	}
+
+	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(manifest); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

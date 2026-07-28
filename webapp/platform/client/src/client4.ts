@@ -113,6 +113,7 @@ import type {
     PluginManifest,
     PluginsResponse,
     PluginStatus,
+    PluginUploadResponse,
 } from '@mattermost/types/plugins';
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -4265,10 +4266,13 @@ export default class Client4 {
 
     // Plugin Routes
 
-    uploadPlugin = async (fileData: File, force = false) => {
+    uploadPlugin = async (fileData: File, force = false, waitForCluster = false): Promise<PluginUploadResponse> => {
         const formData = new FormData();
         if (force) {
             formData.append('force', 'true');
+        }
+        if (waitForCluster) {
+            formData.append('wait_for_cluster', 'true');
         }
         formData.append('plugin', fileData);
 
@@ -4277,10 +4281,18 @@ export default class Client4 {
             body: formData,
         };
 
-        return this.doFetch<PluginManifest>(
+        const {response, data} = await this.doFetchWithResponse<PluginManifest>(
             this.getPluginsRoute(),
             request,
         );
+
+        return {
+            manifest: data,
+
+            // A 202 Accepted response indicates a successful upload that couldn't be confirmed
+            // as deployed to all nodes in the cluster before the timeout.
+            deployedToAllNodes: response.status !== 202,
+        };
     };
 
     installPluginFromUrl = (pluginDownloadUrl: string, force = false) => {

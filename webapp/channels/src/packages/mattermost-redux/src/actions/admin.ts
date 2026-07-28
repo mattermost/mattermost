@@ -18,6 +18,7 @@ import type {
 } from '@mattermost/types/data_retention';
 import type {ServerError} from '@mattermost/types/errors';
 import type {GroupSearchOpts} from '@mattermost/types/groups';
+import type {PluginUploadResponse} from '@mattermost/types/plugins';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {
     Team,
@@ -522,11 +523,11 @@ export function getUsersPerDayAnalytics(teamId = '') {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
-export function uploadPlugin(fileData: File, force = false): ActionFuncAsync {
+export function uploadPlugin(fileData: File, force = false, waitForCluster = false): ActionFuncAsync<PluginUploadResponse> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.uploadPlugin(fileData, force);
+            data = await Client4.uploadPlugin(fileData, force, waitForCluster);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             dispatch(logError(error as ServerError));

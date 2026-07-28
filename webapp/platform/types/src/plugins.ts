@@ -82,6 +82,16 @@ export type PluginsResponse = {
     inactive: PluginManifest[];
 };
 
+export type PluginUploadResponse = {
+    manifest: PluginManifest;
+
+    /**
+     * false when the upload succeeded but the server couldn't confirm the plugin was deployed
+     * to all nodes in the cluster before the timeout.
+     */
+    deployedToAllNodes: boolean;
+};
+
 export type PluginStatus = {
     plugin_id: string;
     cluster_id: string;

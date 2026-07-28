@@ -711,10 +711,26 @@ describe('Actions.Admin', () => {
 
         nock(Client4.getBaseRoute()).
             post('/plugins').
-            reply(200, testPlugin);
-        await store.dispatch(Actions.uploadPlugin(testFileData as any, false));
+            reply(201, testPlugin);
+        const {data} = await store.dispatch(Actions.uploadPlugin(testFileData as any, false));
 
         expect(nock.isDone()).toBe(true);
+        expect(data!.manifest.id).toBe(testPlugin.id);
+        expect(data!.deployedToAllNodes).toBe(true);
+    });
+
+    it('uploadPlugin, timing out waiting for cluster deployment', async () => {
+        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testPlugin = {id: 'testplugin', webapp: {bundle_path: '/static/somebundle.js'}};
+
+        nock(Client4.getBaseRoute()).
+            post('/plugins').
+            reply(202, testPlugin);
+        const {data} = await store.dispatch(Actions.uploadPlugin(testFileData as any, false, true));
+
+        expect(nock.isDone()).toBe(true);
+        expect(data!.manifest.id).toBe(testPlugin.id);
+        expect(data!.deployedToAllNodes).toBe(false);
     });
 
     it('overwriteInstallPlugin', async () => {

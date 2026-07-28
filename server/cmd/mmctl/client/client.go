@@ -62,6 +62,7 @@ type Client interface {
 	PatchRole(ctx context.Context, roleID string, patch *model.RolePatch) (*model.Role, *model.Response, error)
 	UploadPlugin(ctx context.Context, file io.Reader) (*model.Manifest, *model.Response, error)
 	UploadPluginForced(ctx context.Context, file io.Reader) (*model.Manifest, *model.Response, error)
+	UploadPluginWithOptions(ctx context.Context, file io.Reader, options model.PluginUploadOptions) (*model.Manifest, *model.Response, error)
 	RemovePlugin(ctx context.Context, id string) (*model.Response, error)
 	EnablePlugin(ctx context.Context, id string) (*model.Response, error)
 	DisablePlugin(ctx context.Context, id string) (*model.Response, error)
