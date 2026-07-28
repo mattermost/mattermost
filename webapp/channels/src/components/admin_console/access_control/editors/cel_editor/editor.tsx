@@ -132,6 +132,17 @@ export interface CELEditorProps {
     userAttributes: CELUserAttribute[];
 
     /**
+     * Channel-object-type attributes exposed as the resource.attributes.*
+     * autocomplete root, letting a policy compare the requesting user against
+     * the accessed channel (e.g. user.attributes.clearance >=
+     * resource.attributes.minClearance). Empty for editors with no channel
+     * fields in scope (e.g. team policies), which then get no resource root.
+     */
+    resourceAttributes?: Array<{
+        attribute: string;
+    }>;
+
+    /**
      * When provided, the built-in expression-only TestResultsModal is
      * suppressed and the test button forwards its click to the parent.
      * The parent is responsible for rendering its own results modal —
@@ -161,6 +172,7 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    resourceAttributes = [],
     onTestClick,
     testButtonLabel,
     hasMaskedRows = false,
@@ -180,6 +192,15 @@ function CELEditor({
     });
 
     const schemas = buildCELSchemas(userAttributes);
+
+    // Only declare the resource.attributes.* root when channel fields are in
+    // scope, so editors that can't reference a resource (e.g. team policies)
+    // don't offer an empty root.
+    if (resourceAttributes.length > 0) {
+        const validName = (attr: string) => !attr.includes(' ') && attr.trim() !== '';
+        schemas.resource = ['attributes'];
+        schemas['resource.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
+    }
 
     const injectedCheckExpression = actions?.checkExpression;
 

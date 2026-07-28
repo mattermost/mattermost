@@ -43,7 +43,7 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
             <div className='cel-help-modal__content-container'>
                 <div className='cel-help-modal__content'>
                     <Markdown
-                        message={'### Basic Syntax\nCEL expressions evaluate to boolean values (`true`/`false`) to determine if access should be granted.\n### Common Examples\n- To match a specific program:\n&ensp;`user.attributes.Program == "Delta"`\n- To match any of multiple teams:\n&ensp;`user.attributes.Team in ["Sales", "Engineering"]`\n- To match an email domain:\n&ensp;`user.attributes.Email.endsWith("example.com")`\n- To combine conditions (for this example with `OR` operator, altertanitvely use `&&` for `AND` operation):\n&ensp;`user.attrs.Program == "Alpha" || user.attrs.Team == "Operations"`\n### Supported Operators and functions\n- `==`, `!=`, `&&`, `||`, `in`, `contains()`, `startsWith()`, `endsWith()`'}
+                        message={'### Basic Syntax\nCEL expressions evaluate to boolean values (`true`/`false`) to determine if access should be granted.\n### Common Examples\n- To match a specific program:\n&ensp;`user.attributes.Program == "Delta"`\n- To match any of multiple teams:\n&ensp;`user.attributes.Team in ["Sales", "Engineering"]`\n- To match an email domain:\n&ensp;`user.attributes.Email.endsWith("example.com")`\n- To require the user to meet the accessed channel\'s requirement:\n&ensp;`user.attributes.Clearance >= resource.attributes.MinClearance`\n- To combine conditions (for this example with `OR` operator, alternatively use `&&` for `AND` operation):\n&ensp;`user.attrs.Program == "Alpha" || user.attrs.Team == "Operations"`\n### Supported Operators and functions\n- `==`, `!=`, `&&`, `||`, `in`, `contains()`, `startsWith()`, `endsWith()`'}
                     />
                 </div>
                 <div className='cel-help-additional-info-modal__content'>
@@ -58,7 +58,7 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
                     </div>
                     <div className='cel-help-additional-info-modal__text'>
                         <Markdown
-                            message={'- Operators like `<` or `>` are forbidden due to incorrect string comparison.\n- Only `user.attributes` are supported; any other variables are not supported yet.'}
+                            message={'- Operators like `<` or `>` are forbidden due to incorrect string comparison.\n- `user.attributes.*` refers to the requesting user; `resource.attributes.*` refers to the channel being accessed.\n- If a channel is missing an attribute the policy references, that channel denies access. There is nothing to add — access is denied automatically until the attribute is set.'}
                         />
                         <FormattedMessage
                             id='admin.access_control.cel_help_modal.external_link'

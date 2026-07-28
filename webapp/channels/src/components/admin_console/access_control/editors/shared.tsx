@@ -16,6 +16,15 @@ import './shared.scss';
 // Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
 export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
+// The accessed channel's attributes, the comparison target for a rule about the
+// requesting user (whose own attributes are USER_ATTRIBUTE_CEL_PREFIX, below).
+export const RESOURCE_ATTRIBUTES_PREFIX = 'resource.attributes.';
+
+// value_type on a visual-AST condition. Matches model.ValueType: 0 = literal,
+// 1 = attribute reference (the RHS is another attribute path, e.g. a
+// resource.attributes.* selector rather than a quoted constant).
+export const VISUAL_AST_ATTRIBUTE_VALUE_TYPE = 1;
+
 // CEL operator constants
 export enum CELOperator {
     EQUALS = '==',
@@ -208,15 +217,23 @@ export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();
 
     // The first pattern accepts ==, != and the ranked ordinal operators
-    // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
-    // alternation so the two-char forms match before the one-char ones.
+    // (>=, <=, >, <) against either a quoted value or a resource.attributes.*
+    // selector (comparing the user attribute to the accessed channel's). >= /
+    // <= precede > / < in the alternation so the two-char forms match before
+    // the one-char ones.
     return Boolean(
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:['"][^'"]*['"]|resource\.attributes\.\w+)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\s+in\s+\[.*?\]$/) ||
         trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.(?:attributes|session)\.\w+$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
+
+        // Multiselect list-vs-list against the accessed channel's attribute,
+        // stored verbatim as a member call: the receiver is the user's
+        // multiselect attribute and the single argument is a resource.attributes.*
+        // selector (never a literal — that form is the in-chain above).
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(resource\.attributes\.\w+\)$/) ||
 
         // Native user attributes (single segment after `user.`). Restricted to
         // the field/operator pairings the table editor can round-trip: boolean

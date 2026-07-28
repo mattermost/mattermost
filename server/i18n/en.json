@@ -7961,6 +7961,10 @@
     "translation": "Failed to refresh attributes for the simulation."
   },
   {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "A channel is required to simulate a policy that references channel attributes."
+  },
+  {
     "id": "app.pap.simulate.compile_failed",
     "translation": "Failed to compile the policy for simulation."
   },
