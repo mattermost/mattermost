@@ -1,0 +1,26 @@
+name: "Restore Playwright browsers cache"
+description: >
+  Restore the pinned chromium build (~/.cache/ms-playwright), keyed on the
+  playwright lockfile. Read-only — it does not save.
+
+outputs:
+  cache-hit:
+    description: "true on an exact-key hit"
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: "The computed cache key"
+    value: ${{ steps.key.outputs.key }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/compute-playwright-browsers-key
+      id: key
+      shell: bash
+      run: echo "key=playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}" >> "${GITHUB_OUTPUT}"
+    - name: ci/restore-playwright-browsers
+      id: restore
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ steps.key.outputs.key }}

@@ -181,39 +181,29 @@ jobs:
           fetch-depth: 1
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
-      - name: ci/cache-playwright-deps
-        # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
-        # so workers don't re-run rollup on every job.
-        id: cache-playwright
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
-          path: |
-            e2e-tests/playwright/node_modules
-            e2e-tests/playwright/lib/dist
-            e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
+          read-only: "true"
+      # Read-only restore of the registry and chromium caches.
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
+      - name: ci/restore-playwright-browsers
+        uses: ./.github/actions/restore-playwright-browsers
+      # Install once here; workers unpack the artifact below instead of each
+      # running npm ci. npm ci symlinks @mattermost/{client,types} to the webapp
+      # packages built above, and the postinstall builds lib/dist via rollup.
+      # Skip the browser download; the next step installs chromium.
       - name: ci/install-playwright-deps
-        # `npm ci` creates symlinks at node_modules/@mattermost/{client,types}
-        # → webapp/platform/{client,types}; targets must already be built.
-        # The postinstall then builds lib/dist via rollup. Skip browser
-        # download here — chromium is cached separately below.
-        if: steps.cache-playwright.outputs.cache-hit != 'true'
         working-directory: e2e-tests/playwright
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
         run: npm ci
-      - name: ci/cache-playwright-browsers
-        # Cache chromium binary (~150MB) keyed on the playwright lockfile so a
-        # version bump invalidates. Restored by workers; no docker image needed.
-        id: cache-pw-browsers
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/install-playwright-chromium
-        if: steps.cache-pw-browsers.outputs.cache-hit != 'true'
         working-directory: e2e-tests/playwright
         run: npx playwright install chromium
+      - name: ci/pack-playwright-deps
+        uses: ./.github/actions/pack-playwright-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -289,30 +279,19 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
-      - name: ci/restore-playwright-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      # Unpack the deps artifact instead of running npm ci.
+      - name: ci/reuse-playwright-deps
+        uses: ./.github/actions/unpack-playwright-deps
         with:
-          path: |
-            e2e-tests/playwright/node_modules
-            e2e-tests/playwright/lib/dist
-            e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
-          fail-on-cache-miss: true
-      - name: ci/restore-playwright-browsers
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-          fail-on-cache-miss: true
+          fips: ${{ inputs.server_edition == 'fips' }}
       - name: ci/cloud-init
         working-directory: e2e-tests
         run: make cloud-init
       - name: ci/start-server
         working-directory: e2e-tests
         run: make start-server
-      # Run the `setup` project so per-spec dispatches can pass --no-deps
-      # and skip plugin-load + server-deployment checks. node_modules,
-      # lib/dist, and chromium are all restored from cache.
+      # Run the `setup` project so per-spec dispatches can pass --no-deps and
+      # skip plugin-load + server-deployment checks.
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup

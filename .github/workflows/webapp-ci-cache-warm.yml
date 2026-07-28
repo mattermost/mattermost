@@ -1,13 +1,4 @@
-# Warms the webapp node_modules cache used by webapp CI and the E2E v2 templates
-# (via .github/actions/webapp-setup). Runs once per day on master so the cache is
-# fresh before CI runs; webapp CI restores it read-only, though the E2E v2
-# templates also populate it within their own runs.
-#
-# The cache is keyed on the OS and a hash of webapp/package-lock.json. PRs that
-# change the lockfile miss the exact key and fall back to the most recent warm
-# entry via restore-keys, then reconcile the delta with `make node_modules`.
-#
-# The E2E ~/.npm registry cache is warmed separately by e2e-ci-cache-warm.yml.
+# Warms the webapp node_modules cache from master, once per day.
 name: Webapp CI Cache Warm
 
 on:
@@ -15,8 +6,7 @@ on:
     - cron: "0 1 * * *" # Daily 1am UTC — 1 h before webapp CI typically runs
   workflow_dispatch:
 
-# Prevent an overlapping manual dispatch and scheduled run from both missing the
-# lookup and then racing to reserve the same cache key.
+# Keep a manual and scheduled run from racing to save the same key.
 concurrency:
   group: webapp-ci-cache-warm
   cancel-in-progress: false
@@ -29,8 +19,6 @@ jobs:
   warm:
     name: Warm Webapp node_modules Cache
     runs-on: ubuntu-24.04
-    # Bound a hung run so it can't hold the concurrency group for the default
-    # 6-hour timeout and block subsequent warm runs.
     timeout-minutes: 60
     steps:
       - name: Checkout mattermost project
