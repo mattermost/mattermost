@@ -367,6 +367,83 @@ describe('Client4', () => {
             expect(result.type).toEqual('application/zip');
             expect(await result.text()).toEqual('zip contents');
         });
+
+        test('should parse CSV responses as blobs', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const postId = 'dummy-post-id';
+            const csvData = 'username,email\nalice,alice@example.com';
+
+            nock(client.getBaseRoute()).
+                get(`/content_flagging/post/${postId}/delivery_tracking/report`).
+                reply(200, csvData, {'Content-Type': 'text/csv; charset=utf-8'});
+
+            const result = await client.getDeliveryTrackingReceipt(postId);
+
+            expect(typeof result.text).toBe('function');
+            expect(await result.text()).toEqual(csvData);
+        });
+
+        test('should surface the server error when a CSV download fails', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const postId = 'dummy-post-id';
+
+            // The error body is JSON even though the route advertises text/csv on success.
+            nock(client.getBaseRoute()).
+                get(`/content_flagging/post/${postId}/delivery_tracking/report`).
+                reply(403, JSON.stringify({
+                    id: 'api.context.permissions.app_error',
+                    message: 'You do not have the appropriate permissions.',
+                    status_code: 403,
+                }), {'Content-Type': 'text/csv'});
+
+            await expect(client.getDeliveryTrackingReceipt(postId)).rejects.toMatchObject({
+                message: 'You do not have the appropriate permissions.',
+                server_error_id: 'api.context.permissions.app_error',
+                status_code: 403,
+            });
+        });
+
+        test('should surface the server error when a ZIP download fails', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const postId = 'dummy-post-id';
+
+            nock(client.getBaseRoute()).
+                post(`/content_flagging/post/${postId}/report`, {comment: 'investigation note'}).
+                reply(400, JSON.stringify({
+                    id: 'app.data_spillage.report.app_error',
+                    message: 'Unable to generate the report.',
+                    status_code: 400,
+                }), {'Content-Type': 'application/zip'});
+
+            await expect(client.generateFlaggedPostReport(postId, 'investigation note')).rejects.toMatchObject({
+                message: 'Unable to generate the report.',
+                server_error_id: 'app.data_spillage.report.app_error',
+                status_code: 400,
+            });
+        });
+
+        test('should surface a non-JSON error body from a failed download', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const postId = 'dummy-post-id';
+            const errorPage = '<html><body>502 Bad Gateway</body></html>';
+
+            // A proxy or CDN error page echoing the download content-type.
+            nock(client.getBaseRoute()).
+                get(`/content_flagging/post/${postId}/delivery_tracking/report`).
+                reply(502, errorPage, {'Content-Type': 'text/csv'});
+
+            await expect(client.getDeliveryTrackingReceipt(postId)).rejects.toMatchObject({
+                message: errorPage,
+            });
+        });
     });
 });
 

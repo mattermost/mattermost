@@ -201,10 +201,6 @@ func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
 	}
 }
 
-// WithDeliveryTrackingSettings configures the independent post-delivery-tracking
-// pool. If omitted (or Enable=false), Store().UserPostDelivery() is a no-op
-// store. When Enable=true with an empty DataSource, the sub-store falls back to
-// the primary DB.
 func WithDeliveryTrackingSettings(dt model.DeliveryTrackingSettings) Option {
 	return func(s *SqlStore) error {
 		s.dtSettings = &dt
@@ -220,6 +216,15 @@ func (ss *SqlStore) getFeatureFlags() *model.FeatureFlags {
 	ff := &model.FeatureFlags{}
 	ff.SetDefaults()
 	return ff
+}
+
+func (ss *SqlStore) postDeliveryTrackingEnabled() bool {
+	return ss.dtSettings != nil && model.SafeDereference(ss.dtSettings.Enable) &&
+		ss.getFeatureFlags().PostDeliveryTracking
+}
+
+func (ss *SqlStore) PostDeliveryTrackingReady() bool {
+	return ss.userPostDeliveryX != nil
 }
 
 func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
@@ -268,20 +273,10 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
-		// The post-delivery-tracking schema always lives on the primary DB. Its
-		// own version table keeps it independent of the main migration set, so
-		// running it unconditionally is safe; the table simply stays empty and
-		// unused until the feature is enabled.
-		err = store.migrateUserPostDelivery(store.GetInternalMasterDB(), migrationsDirectionUp, !store.disableMorphLogging)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
-		}
-
-		// When a dedicated second DB is configured, apply the same schema there too.
-		if store.userPostDeliveryDedicated {
+		if store.postDeliveryTrackingEnabled() {
 			err = store.migrateUserPostDelivery(store.userPostDeliveryX.DB().DB, migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations on the dedicated DB")
+				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
 			}
 		}
 	}
@@ -428,7 +423,7 @@ func (ss *SqlStore) initConnection() error {
 		}
 	}
 
-	if ss.dtSettings != nil && ss.dtSettings.Enable != nil && *ss.dtSettings.Enable && ss.getFeatureFlags().PostDeliveryTracking {
+	if ss.postDeliveryTrackingEnabled() {
 		if err := ss.initUserPostDeliveryConnection(); err != nil {
 			return errors.Wrap(err, "failed to setup post-delivery-tracking connection")
 		}

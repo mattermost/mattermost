@@ -27,11 +27,6 @@ const userPostDeliveryMigrationsDir = "postgres_user_post_delivery"
 // "db_config_migrations").
 const userPostDeliveryMigrationsTableName = "db_user_post_delivery_migrations"
 
-// initUserPostDeliveryMorph builds a morph engine for the post-delivery-tracking
-// schema on a dedicated second DB. (On the primary-DB fallback the table is
-// provided by the main migration set instead, and this engine is not invoked.)
-// A distinct migration-version table and advisory lock keep this independent
-// schema from contending with the main migration set on a shared cluster.
 func (ss *SqlStore) initUserPostDeliveryMorph(conn *sql.DB, enableLogging bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
