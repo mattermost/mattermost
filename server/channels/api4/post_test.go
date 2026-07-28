@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -28,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -4500,6 +4503,82 @@ func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
 			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
 			assert.NotEqual(t, id, posts.PrevPostId, "PrevPostId must never point at an expired BoR post")
 		}
+	})
+}
+
+// captureDeliveryRecordsAPI swaps in a file-backed delivery audit engine, runs fn, and
+// returns the number of post-delivery records emitted. It mirrors the app package's
+// captureDeliveryRecords for api4 handler tests. Emission is synchronous, so no flush
+// barrier is needed before Shutdown.
+func captureDeliveryRecordsAPI(t *testing.T, th *TestHelper, fn func()) int {
+	t.Helper()
+
+	filePath := filepath.Join(t.TempDir(), "delivery_audit.log")
+	adt := &audit.Audit{}
+	adt.Init(audit.DefMaxQueueSize)
+	options, err := json.Marshal(map[string]string{"filename": filePath})
+	require.NoError(t, err)
+	require.NoError(t, adt.Configure(mlog.LoggerConfiguration{
+		"delivery_capture": {
+			Type:    "file",
+			Format:  "json",
+			Options: json.RawMessage(options),
+			Levels:  []mlog.Level{mlog.LvlAuditPostDelivery},
+		},
+	}))
+
+	old := th.Server.DeliveryAudit
+	th.Server.DeliveryAudit = adt
+	defer func() { th.Server.DeliveryAudit = old }()
+	fn()
+	require.NoError(t, adt.Shutdown())
+
+	data, err := os.ReadFile(filePath)
+	if os.IsNotExist(err) {
+		return 0
+	}
+	require.NoError(t, err)
+
+	count := 0
+	for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
+		if strings.TrimSpace(line) != "" {
+			count++
+		}
+	}
+	return count
+}
+
+// TestGetPostDeliveryRecordingRespectsEtag pins F-004: getPost records a delivery only
+// when it returns a body (200), never on a 304 Not Modified.
+func TestGetPostDeliveryRecordingRespectsEtag(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Feature flags are read-only by default in tests; unlock before flipping.
+	th.Server.Platform().SetConfigReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PostDeliveryTracking = true
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(true)
+	})
+
+	postID := th.BasicPost.Id
+
+	t.Run("200 with a body records a delivery", func(t *testing.T) {
+		n := captureDeliveryRecordsAPI(t, th, func() {
+			post, resp, err := th.Client.GetPost(context.Background(), postID, "")
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			require.Equal(t, postID, post.Id)
+		})
+		require.Equal(t, 1, n)
+	})
+
+	t.Run("304 Not Modified records nothing", func(t *testing.T) {
+		n := captureDeliveryRecordsAPI(t, th, func() {
+			post, resp, _ := th.Client.GetPost(context.Background(), postID, th.BasicPost.Etag())
+			CheckEtag(t, post, resp)
+		})
+		require.Equal(t, 0, n)
 	})
 }
 

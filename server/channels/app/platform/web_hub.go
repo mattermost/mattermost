@@ -750,10 +750,8 @@ func (h *Hub) Start() {
 				}
 				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
 				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
-
+				msg, postID := msg.WithoutRecordPostDeliveryID()
 				msg = msg.PrecomputeJSON()
-
-				postID := msg.GetBroadcast().RecordPostDeliveryID
 
 				broadcast := func(webConn *WebConn) {
 					h.broadcastToConn(connIndex, webConn, msg, postID, broadcastHooks, broadcastHookArgs)

@@ -108,6 +108,22 @@ func TestCreateDeliveryTrackingContentReviewJob(t *testing.T) {
 
 		require.Equal(t, model.DeliveryTrackingStatusInProgress, deliveryTrackingStatusValue(t, th, post.Id))
 	})
+
+	t.Run("still marks in_progress when the job it attached to is running", func(t *testing.T) {
+		post := setupFlaggedPost(t, th)
+
+		job, appErr := th.App.CreateDeliveryTrackingContentReviewJob(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, err := th.App.Srv().Store().Job().UpdateStatus(job.Id, model.JobStatusInProgress)
+		require.NoError(t, err)
+
+		// A second reviewer attaching to a job that is still running gets the
+		// in_progress announcement: the terminal-status guard must not suppress it.
+		_, appErr = th.App.CreateDeliveryTrackingContentReviewJob(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.DeliveryTrackingStatusInProgress, deliveryTrackingStatusValue(t, th, post.Id))
+	})
 }
 
 // deliveryTrackingStatusValue returns the current delivery_tracking_status property
@@ -256,17 +272,27 @@ func TestNotifyDeliveryTrackingContentReviewRequesters(t *testing.T) {
 		return post
 	}
 
+	// The notifier reads the job from the store, so every case needs a real row.
+	saveJob := func(data model.StringMap) string {
+		job := &model.Job{
+			Id:       model.NewId(),
+			Type:     model.JobTypeDeliveryTrackingContentReview,
+			Status:   model.JobStatusInProgress,
+			CreateAt: model.GetMillis(),
+			Data:     data,
+		}
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		return job.Id
+	}
+
 	t.Run("notifies only the reviewers who requested the job", func(t *testing.T) {
 		post := flagPost()
 		threads := reviewerThreads(post.Id)
 		require.Len(t, threads, 2)
 
-		job := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyRequestedBy: th.BasicUser.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, job, true))
+		jobID := saveJob(model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyRequestedBy: th.BasicUser.Id})
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, jobID, true))
 
 		requesterReplies := botReplies(threads[th.BasicUser.Id])
 		require.Len(t, requesterReplies, 1, "the requester is notified in their review thread")
@@ -279,12 +305,10 @@ func TestNotifyDeliveryTrackingContentReviewRequesters(t *testing.T) {
 		threads := reviewerThreads(post.Id)
 		require.Len(t, threads, 2)
 
-		job := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyRequestedBy: th.BasicUser.Id + "," + th.BasicUser2.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, job, false))
+		// Both reviewers are read from the stored row, including any who attached
+		// after the worker took its own snapshot of the job.
+		jobID := saveJob(model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyRequestedBy: th.BasicUser.Id + "," + th.BasicUser2.Id})
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, jobID, false))
 
 		user1Replies := botReplies(threads[th.BasicUser.Id])
 		require.Len(t, user1Replies, 1)
@@ -296,12 +320,8 @@ func TestNotifyDeliveryTrackingContentReviewRequesters(t *testing.T) {
 		post := flagPost()
 		threads := reviewerThreads(post.Id)
 
-		job := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyPostId: post.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, job, true))
+		jobID := saveJob(model.StringMap{jobDataKeyPostId: post.Id})
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, jobID, true))
 
 		for _, reviewerPostID := range threads {
 			require.Empty(t, botReplies(reviewerPostID))
@@ -309,32 +329,26 @@ func TestNotifyDeliveryTrackingContentReviewRequesters(t *testing.T) {
 	})
 
 	t.Run("is a no-op when post_id is missing", func(t *testing.T) {
-		job := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyRequestedBy: th.BasicUser.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, job, true))
+		jobID := saveJob(model.StringMap{jobDataKeyRequestedBy: th.BasicUser.Id})
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, jobID, true))
+	})
+
+	t.Run("errors when the job does not exist", func(t *testing.T) {
+		appErr := th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, model.NewId(), true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 
 	t.Run("sets the delivery tracking status to completed then failed", func(t *testing.T) {
 		post := flagPost()
 		require.Equal(t, model.DeliveryTrackingStatusNotStarted, deliveryTrackingStatusValue(t, th, post.Id))
 
-		successJob := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyTeamId: th.BasicTeam.Id, jobDataKeyRequestedBy: th.BasicUser.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, successJob, true))
+		data := model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyTeamId: th.BasicTeam.Id, jobDataKeyRequestedBy: th.BasicUser.Id}
+
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, saveJob(data), true))
 		require.Equal(t, model.DeliveryTrackingStatusCompleted, deliveryTrackingStatusValue(t, th, post.Id))
 
-		failJob := &model.Job{
-			Id:   model.NewId(),
-			Type: model.JobTypeDeliveryTrackingContentReview,
-			Data: model.StringMap{jobDataKeyPostId: post.Id, jobDataKeyTeamId: th.BasicTeam.Id, jobDataKeyRequestedBy: th.BasicUser.Id},
-		}
-		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, failJob, false))
+		require.Nil(t, th.App.NotifyDeliveryTrackingContentReviewRequesters(th.Context, saveJob(data), false))
 		require.Equal(t, model.DeliveryTrackingStatusFailed, deliveryTrackingStatusValue(t, th, post.Id))
 	})
 }

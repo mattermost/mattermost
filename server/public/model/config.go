@@ -1613,20 +1613,20 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 // Disabled by default. DataSource defaults to empty: when Enable is true but
 // DataSource is left unset, the sub-store falls back to the primary DB.
 type DeliveryTrackingSettings struct {
-	Enable                      *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableForAllChannels        *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	// Page size for the content-review delivery-receipt copy job.
-	ContentReviewDeliveryReceiptCopyBatchSize *int `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Enable                                    *bool
+	EnableForAllChannels                      *bool
+	DriverName                                *string
+	DataSource                                *string
+	DataSourceReplicas                        []string
+	DataSourceSearchReplicas                  []string
+	MaxIdleConns                              *int
+	ConnMaxLifetimeMilliseconds               *int
+	ConnMaxIdleTimeMilliseconds               *int
+	MaxOpenConns                              *int
+	Trace                                     *bool
+	QueryTimeout                              *int
+	AuditQueueSize                            *int
+	ContentReviewDeliveryReceiptCopyBatchSize *int
 }
 
 func (s *DeliveryTrackingSettings) SetDefaults() {
@@ -1687,6 +1687,12 @@ func (s *DeliveryTrackingSettings) SetDefaults() {
 	if s.ContentReviewDeliveryReceiptCopyBatchSize == nil {
 		s.ContentReviewDeliveryReceiptCopyBatchSize = new(2000)
 	}
+
+	if s.AuditQueueSize == nil {
+		// Depth of the dedicated delivery audit engine's queue; matches the default
+		// audit queue size (audit.DefMaxQueueSize).
+		s.AuditQueueSize = new(10000)
+	}
 }
 
 func (s *DeliveryTrackingSettings) isValid() *AppError {
@@ -1724,6 +1730,10 @@ func (s *DeliveryTrackingSettings) isValid() *AppError {
 	// as "use the built-in batch size", so only negative values are rejected.
 	if *s.ContentReviewDeliveryReceiptCopyBatchSize < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_copy_batch_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.AuditQueueSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_audit_queue_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4256,6 +4266,7 @@ type AccessControlSettings struct {
 	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4279,6 +4290,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnforceDeviceIDConsistency == nil {
 		s.EnforceDeviceIDConsistency = new(false)
+	}
+
+	if s.EnableAccessControlAuditLogging == nil {
+		s.EnableAccessControlAuditLogging = new(false)
 	}
 }
 

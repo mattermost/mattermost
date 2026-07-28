@@ -29,7 +29,7 @@ type reviewWriter interface {
 }
 
 type AppIface interface {
-	NotifyDeliveryTrackingContentReviewRequesters(rctx request.CTX, job *model.Job, succeeded bool) *model.AppError
+	NotifyDeliveryTrackingContentReviewRequesters(rctx request.CTX, jobID string, succeeded bool) *model.AppError
 }
 
 // Worker copies a flagged post's delivery-tracking rows from the source
@@ -281,14 +281,14 @@ func (worker *Worker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
 		worker.setJobError(logger, job, err)
 		return
 	}
-	worker.notifyRequesters(logger, job, true)
+	worker.notifyRequesters(logger, job.Id, true)
 }
 
 func (worker *Worker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
 		logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
-	worker.notifyRequesters(logger, job, false)
+	worker.notifyRequesters(logger, job.Id, false)
 }
 
 // Canceled jobs are transient (shutdown/redeploy) and will rerun, so requesters are not notified.
@@ -298,13 +298,13 @@ func (worker *Worker) setJobCanceled(logger mlog.LoggerIFace, job *model.Job) {
 	}
 }
 
-func (worker *Worker) notifyRequesters(logger mlog.LoggerIFace, job *model.Job, succeeded bool) {
+func (worker *Worker) notifyRequesters(logger mlog.LoggerIFace, jobID string, succeeded bool) {
 	if worker.app == nil {
 		return
 	}
 
 	rctx := request.EmptyContext(worker.logger)
-	if appErr := worker.app.NotifyDeliveryTrackingContentReviewRequesters(rctx, job, succeeded); appErr != nil {
+	if appErr := worker.app.NotifyDeliveryTrackingContentReviewRequesters(rctx, jobID, succeeded); appErr != nil {
 		logger.Error("Worker: Failed to notify delivery-tracking requesters of job completion", mlog.Err(appErr), mlog.Bool("succeeded", succeeded))
 	}
 }

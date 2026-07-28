@@ -157,13 +157,6 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 }
 
 func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
-	job, appErr := a.CreateDeliveryTrackingContentReviewJob(rctx, "qcx7983zrtrnik9zmgjgnha7hr", "noxbkhujwb86xnoe5ey8toqrxw", "kie1ria6bin98nsnimnnqaejsy")
-	if appErr != nil {
-		fmt.Println(appErr.Error())
-	} else {
-		fmt.Println("job ID: " + job.Id)
-	}
-
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}

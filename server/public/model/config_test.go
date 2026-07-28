@@ -70,6 +70,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
 	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
+	})
 }
 
 func TestConfigIsValid(t *testing.T) {
@@ -3565,6 +3571,37 @@ func TestConfigPostDeliveryTrackingEnabled(t *testing.T) {
 		c := cfg(true, true)
 		c.FeatureFlags = nil
 		require.False(t, c.PostDeliveryTrackingEnabled())
+	})
+}
+
+func TestDeliveryTrackingSettingsAuditQueueSize(t *testing.T) {
+	t.Run("defaults to 10000", func(t *testing.T) {
+		s := DeliveryTrackingSettings{}
+		s.SetDefaults()
+		require.Equal(t, 10000, *s.AuditQueueSize)
+	})
+
+	t.Run("valid when positive and enabled", func(t *testing.T) {
+		s := DeliveryTrackingSettings{}
+		s.SetDefaults()
+		s.Enable = NewPointer(true)
+		require.Nil(t, s.isValid())
+	})
+
+	t.Run("invalid when zero and enabled", func(t *testing.T) {
+		s := DeliveryTrackingSettings{}
+		s.SetDefaults()
+		s.Enable = NewPointer(true)
+		s.AuditQueueSize = NewPointer(0)
+		require.NotNil(t, s.isValid())
+	})
+
+	t.Run("not validated when disabled", func(t *testing.T) {
+		s := DeliveryTrackingSettings{}
+		s.SetDefaults()
+		s.Enable = NewPointer(false)
+		s.AuditQueueSize = NewPointer(0)
+		require.Nil(t, s.isValid())
 	})
 }
 

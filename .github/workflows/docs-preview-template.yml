@@ -107,25 +107,30 @@ jobs:
       # Details (⋯) on this check links to the preview URL via target_url.
       - name: Set success commit status
         if: ${{ inputs.STATUS_CONTEXT != '' }}
-        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.COMMIT_SHA }}
-          context: ${{ inputs.STATUS_CONTEXT }}
-          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} succeeded"
-          status: success
-          target_url: ${{ steps.preview.outputs.url }}
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=success \
+            -f context="${CONTEXT_NAME}" \
+            -f description="Docs preview build for ${COMMIT_SHA} succeeded" \
+            -f target_url="$PREVIEW_URL"
 
       - name: Set failure commit status
         if: ${{ always() && inputs.STATUS_CONTEXT != '' && (failure() || cancelled()) }}
-        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.COMMIT_SHA }}
-          context: ${{ inputs.STATUS_CONTEXT }}
-          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} failed"
-          status: failure
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=failure \
+            -f context="${CONTEXT_NAME}" \
+            -f description="Docs preview build for ${COMMIT_SHA} failed" \
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"

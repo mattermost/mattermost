@@ -157,6 +157,10 @@ type WebsocketBroadcast struct {
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
 
+	// RecordPostDeliveryID carries the ID of a post whose websocket delivery should be
+	// recorded. It is server-internal but intentionally NOT json:"-": it must cross the
+	// cluster so a peer node's hub can record deliveries for its own connections. It is
+	// stripped before client serialization by WithoutRecordPostDeliveryID.
 	RecordPostDeliveryID string `json:"record_post_delivery_id,omitempty"`
 
 	// BroadcastHooks is a slice of hooks IDs used to process events before sending them on individual connections. The
@@ -286,6 +290,38 @@ func (ev *WebSocketEvent) WithoutBroadcastHooks() (*WebSocketEvent, []string, []
 	evCopy.broadcast.BroadcastHookArgs = nil
 
 	return evCopy, hooks, hookArgs
+}
+
+// WithoutRecordPostDeliveryID returns the event's post-delivery tracking marker (a
+// post ID) and an event whose broadcast no longer carries it. Callers invoke it right
+// before precomputing the client-bound JSON and use the returned postID out-of-band to
+// record the delivery.
+//
+// Why not simply tag the field json:"-"? The marker is server-internal, but it must
+// still cross the cluster. Delivery is recorded per node, for that node's own
+// connections: a post created on node A reaches node B via PlatformService.Publish ->
+// message.ToJSON() -> (on B) WebSocketEventFromJSON -> B's hub, which records its
+// recipients using this field. With json:"-" the field would be dropped by ToJSON on
+// the wire, so any recipient not on the origin node would be silently unrecorded — a
+// correctness bug in clustered/HA deployments. And the client frame is built from the
+// SAME broadcast JSON (PrecomputeJSON), so a struct tag cannot keep it for the cluster
+// yet hide it from clients; the strip has to happen in code, here.
+//
+// This is copy-on-write (a copy is made only when the marker is set, mirroring
+// WithoutBroadcastHooks) and must stay so: Publish serializes the ORIGINAL event for
+// the cluster immediately after the local broadcast, so clearing the marker in place
+// would race that send and could drop the field before it leaves the node.
+func (ev *WebSocketEvent) WithoutRecordPostDeliveryID() (*WebSocketEvent, string) {
+	postID := ev.broadcast.RecordPostDeliveryID
+	if postID == "" {
+		return ev, ""
+	}
+
+	evCopy := ev.Copy()
+	evCopy.broadcast = ev.broadcast.copy()
+	evCopy.broadcast.RecordPostDeliveryID = ""
+
+	return evCopy, postID
 }
 
 func (ev *WebSocketEvent) Add(key string, value any) {

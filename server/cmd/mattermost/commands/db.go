@@ -186,9 +186,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 
 	if len(plan.Migrations) == 0 {
 		CommandPrettyPrintln("No migrations to apply.")
-		// The post-delivery-tracking schema tracks its own version table, so it
-		// may have pending migrations even when the main set does not.
-		return applyUserPostDeliveryMigrations(migrator, dryRun)
+		return nil
 	}
 
 	if savePlan || recoverFlag {
@@ -231,21 +229,6 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Database successfully migrated")
 
-	return applyUserPostDeliveryMigrations(migrator, dryRun)
-}
-
-// applyUserPostDeliveryMigrations provisions the post-delivery-tracking schema
-// on the primary DB during `mattermost db migrate`, mirroring what server
-// startup does. It runs regardless of whether the main set had pending
-// migrations (the schema has its own version table) and is skipped under
-// dry-run, matching PreMigrate.
-func applyUserPostDeliveryMigrations(migrator *sqlstore.Migrator, dryRun bool) error {
-	if dryRun {
-		return nil
-	}
-	if err := migrator.MigrateUserPostDelivery(); err != nil {
-		return errors.Wrap(err, "failed to apply post-delivery-tracking migrations")
-	}
 	return nil
 }
 
