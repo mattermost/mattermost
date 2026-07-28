@@ -125,6 +125,10 @@ func (s *SqlUserPostDeliveryStore) GetByPost(ctx context.Context, postID string,
 }
 
 func (s *SqlUserPostDeliveryStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
+	if limit <= 0 {
+		return 0, nil
+	}
+
 	subQuery := s.getQueryBuilder().
 		Select("ctid").
 		From(userPostDeliveryTableName).

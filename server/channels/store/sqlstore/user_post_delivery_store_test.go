@@ -150,6 +150,29 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		require.Equal(t, int64(3), total, "should delete exactly the rows older than the cutoff")
 		require.Len(t, rowsByPost(t, postID), 2, "rows at/after the cutoff must remain")
 	})
+
+	t.Run("PermanentDeleteBatch is a no-op for a non-positive limit", func(t *testing.T) {
+		postID := model.NewId()
+		rctx := request.EmptyContext(logger)
+
+		_, execErr := sqlStore.userPostDeliveryX.ExecContext(ctx,
+			`INSERT INTO `+userPostDeliveryTableName+` (post_id, target_id, target_type, mechanism, created_at)
+			 VALUES ($1, $2, $3, $4, $5)`,
+			postID, model.NewId(), model.DeliveryTargetUser, model.DeliveryMechanismProduct, int64(1000))
+		require.NoError(t, execErr)
+
+		// The cutoff is far in the future, so the row is eligible for deletion and
+		// only the limit guard keeps it. Without the guard a negative limit would
+		// wrap to an out-of-range LIMIT.
+		cutoff := model.GetMillis() + 1000000
+		for _, limit := range []int64{0, -1, -100} {
+			n, delErr := s.PermanentDeleteBatch(rctx, cutoff, limit)
+			require.NoError(t, delErr, "limit=%d should not error", limit)
+			require.Zero(t, n, "limit=%d should delete nothing", limit)
+		}
+
+		require.Len(t, rowsByPost(t, postID), 1, "the row must survive a non-positive limit")
+	})
 }
 
 // TestUserPostDeliveryStoreDisabled verifies the "always create on primary"

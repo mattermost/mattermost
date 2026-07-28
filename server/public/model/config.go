@@ -5342,6 +5342,10 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.delivery_tracking_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if s.EnableDeliveryTrackingDeletion != nil && *s.EnableDeliveryTrackingDeletion && *s.DeliveryTrackingRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.delivery_tracking_retention_hours_zero.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 

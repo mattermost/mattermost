@@ -2710,6 +2710,62 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 	}
 }
 
+func TestDataRetentionSettingsIsValidDeliveryTrackingRetentionHours(t *testing.T) {
+	tests := []struct {
+		name        string
+		enable      bool
+		hours       int
+		expectedErr string
+	}{
+		{
+			name:   "should allow 0 hours when deletion is disabled",
+			enable: false,
+			hours:  0,
+		},
+		{
+			name:   "should allow positive hours when deletion is enabled",
+			enable: true,
+			hours:  48,
+		},
+		{
+			name:        "should reject 0 hours when deletion is enabled",
+			enable:      true,
+			hours:       0,
+			expectedErr: "model.config.is_valid.data_retention.delivery_tracking_retention_hours_zero.app_error",
+		},
+		{
+			name:        "should reject negative hours when deletion is enabled",
+			enable:      true,
+			hours:       -1,
+			expectedErr: "model.config.is_valid.data_retention.delivery_tracking_retention_hours_too_low.app_error",
+		},
+		{
+			name:        "should reject negative hours when deletion is disabled",
+			enable:      false,
+			hours:       -1,
+			expectedErr: "model.config.is_valid.data_retention.delivery_tracking_retention_hours_too_low.app_error",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cfg := Config{}
+			cfg.SetDefaults()
+			cfg.DataRetentionSettings.EnableDeliveryTrackingDeletion = new(test.enable)
+			cfg.DataRetentionSettings.DeliveryTrackingRetentionHours = new(test.hours)
+
+			err := cfg.DataRetentionSettings.isValid()
+			if test.expectedErr == "" {
+				require.Nil(t, err)
+				return
+			}
+
+			require.NotNil(t, err)
+			require.Equal(t, test.expectedErr, err.Id)
+		})
+	}
+}
+
 func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	t.Run("if the config is new, default values should be established", func(t *testing.T) {
 		c := Config{}

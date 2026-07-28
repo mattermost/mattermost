@@ -12039,6 +12039,10 @@
     "translation": "Post delivery tracking retention hours cannot be less than 0."
   },
   {
+    "id": "model.config.is_valid.data_retention.delivery_tracking_retention_hours_zero.app_error",
+    "translation": "Post delivery tracking retention hours cannot be 0 when post delivery tracking deletion is enabled."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
     "translation": "File retention days and file retention hours cannot both be 0."
   },
