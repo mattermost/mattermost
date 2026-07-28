@@ -3,7 +3,9 @@
  * Tighter visual match to the brand infographic:
  * - Application zone visibly contained in a denim wash + border
  * - Intro panels are NOT clickable cards; they're text columns with a
- *   marigold left-edge accent (brand-aligned, signals "category label")
+ *   denim left-edge accent (brand-aligned, signals "category label" —
+ *   marigold is a sparse CTA/interactive accent per the token contract,
+ *   not decoration for static, non-interactive panels)
  * - Use Case cells use a soft denim-tinted background, not white-on-white
  * - All clickable cells share the same white-with-marigold-on-hover treatment
  * - Section titles get a thin marigold underline for visual rhythm
@@ -91,13 +93,19 @@
 }
 
 /* === Intro panels (Application / Integration / Deployment left column) ===
-   Not clickable. Marigold left-edge accent for visual rhythm. */
+   Not clickable. Denim left-edge accent for visual rhythm. */
 
 .appIntro,
 .intIntro,
 .depIntro {
   padding: 0.25rem 0.6rem 0.25rem 0.7rem;
-  border-left: 3px solid var(--mm-color-marigold, #FFBC1F);
+  border-left: 3px solid var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .appIntro,
+[data-theme='dark'] .intIntro,
+[data-theme='dark'] .depIntro {
+  border-left-color: var(--mm-denim-300, #8499C5);
 }
 
 .appIntro h3,
@@ -122,12 +130,18 @@
   flex: 0 0 auto;
   width: 1.2rem;
   height: 1.2rem;
-  color: var(--mm-color-marigold, #FFBC1F);
+  color: var(--mm-color-denim, #1E325C);
 }
 
 .introIcon svg {
   width: 100%;
   height: 100%;
+}
+
+[data-theme='dark'] .appIntro .introIcon,
+[data-theme='dark'] .intIntro .introIcon,
+[data-theme='dark'] .depIntro .introIcon {
+  color: var(--mm-denim-300, #8499C5);
 }
 
 [data-theme='dark'] .appIntro h3,
