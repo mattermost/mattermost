@@ -45,8 +45,9 @@ desktop:
 `bg`, `de`, `en`, `en-AU`, `es`, `fa`, `fr`, `hu`, `it`, `ja`, `ko`, `nl`,
 `pl`, `pt-BR`, `ro`, `ru`, `sv`, `tr`, `uk`, `vi`, `zh-CN`, `zh-TW`
 
-Calls and Playbooks currently use **different** locale lists and must be
-reconciled (or the "force onto 22" decision revised — see Challenges).
+Calls and Playbooks currently use **different** locale lists and will be
+reconciled onto the core 22 (coordination with product/community owners
+already complete).
 
 ## Current state (compressed)
 
@@ -79,9 +80,9 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 
 | # | Decision | Status |
 |---|----------|--------|
-| 1 | Keep exactly the current 22 locales; force Calls/Playbooks onto that set; drop experimental/non-matching files | **Reopen** — product/comms signoff required before dropping plugin-only locales (`ar`/`cs`/`hr`/…, `kk`/`ml`/…) |
+| 1 | Keep exactly the current 22 locales; force Calls/Playbooks onto that set; drop experimental/non-matching files | **Keep** — product/comms coordination confirmed complete, including plugin-only locale drops (`ar`/`cs`/`hr`/…, `kk`/`ml`/…); proceed with deletions |
 | 2 | Authors submit AI translations in the same PR; no CI auto-translator near-term | **Revise** — keep "no CI bot", but require a real local/scripted generator; DX of 22 locales/PR is high |
-| 3 | Unify all surveyed surfaces on the same 22-locale list and coverage bar | **Keep** (modulo #1 signoff) |
+| 3 | Unify all surveyed surfaces on the same 22-locale list and coverage bar | **Keep** |
 | 4 | Trim locales before bulk AI spend | **Keep** |
 | 5 | Review methodology: back-translation only | **Reject as sole review** — must add native sampling / identical-copy gates; back-translation misses copy-English and register |
 | 6 | Handbook rewrite only after Weblate fully off | **Revise** — need a transition banner *before* cutover so guidance isn't contradictory |
@@ -135,7 +136,9 @@ step-1 (trim + normalize + minimum validators)
 ## How to use this plan
 
 - Prefer the step files for execution checklists and acceptance criteria.
-- Treat **Reopen / Revise** rows above as blocking product decisions
-  before spending bulk-translation credits on contested locale drops.
+- Locale scope (decision #1) is settled — product/comms coordination is
+  already done, so locale drops are unblocked. Remaining **Reopen /
+  Revise** rows are engineering-level (tooling flags, review methodology,
+  sequencing), resolvable within the workstreams.
 - Keep investigation evidence in the step files' "Challenges" sections;
   do not silently re-lock rejected assumptions.

@@ -11,8 +11,8 @@ translation pass.
 
 ## Prerequisites
 
-- Product/comms signoff on decision #1 (especially Calls/Playbooks locale
-  drops) — see Challenges.
+- Product/comms coordination on decision #1 (including Calls/Playbooks
+  locale drops): **done** — no further signoff needed.
 - Agreement on fallback behavior for users/servers pointing at dropped
   locales (`en` — decision #12).
 
@@ -43,8 +43,8 @@ Applies uniformly to `standalone/i18n/`, `webapp/i18n/`, `server/i18n/`:
 
 - **Drop** (not in core 22): `ar`, `cs`, `hr`, `lt`, `nb-NO`/`nb_NO`, `uz`
 - **Add** (missing from core 22): `bg`, `en-AU`, `hu`, `ro`
-- [ ] Get explicit owner signoff before deleting translated plugin locales
-  (user-visible support removal).
+- Owner coordination for these drops is already complete — proceed with
+  deletion; mention the change in the step-4 deprecation notice.
 
 ### 1.3 Playbooks reconciliation (diffs verified; locations disagree)
 
@@ -119,7 +119,7 @@ authoring-tier metadata pipeline.
 
 | Assumption | Verdict | Evidence / rationale |
 |------------|---------|----------------------|
-| Force Calls/Playbooks onto core 22 | **Reopen** | Diffs are correct, but dropping translated plugin locales is support removal, not cleanup. Needs usage data + comms owners. |
+| Force Calls/Playbooks onto core 22 | **Resolved — keep** | Was flagged as support removal needing coordination; product/comms coordination is confirmed complete, so proceed with the drops. |
 | Delete experimental locales immediately | **Revise** | Prefer archive/hide until Weblate freeze; server already ignores unsupported files; webapp gates experimental exposure. |
 | Hyphen filenames + zh region mapping | **Keep (qualified)** | Fine as product convention; `zh-Hans`/`zh-Hant` are valid BCP-47 — document as aliasing. |
 | Mobile/desktop are purely underscore | **False** | Mixed conventions today (`en_AU` alongside `pt-BR`/`zh-CN`). Normalization must inventory real names. |
@@ -129,7 +129,8 @@ authoring-tier metadata pipeline.
 
 ## Risks
 
-- Plugin-only locale users lose language without notice.
+- Plugin-only locale users lose language support — accepted and already
+  coordinated; ensure the step-4 notice mentions it so it isn't silent.
 - Removing `EnableExperimentalLocales` changes admin console behavior and
   help text (coordinate with step 6).
 - Filename renames without loader updates → runtime missing catalogs.
@@ -151,7 +152,8 @@ authoring-tier metadata pipeline.
 
 ## Open questions
 
-1. Who signs off removing Calls/Playbooks-only locales?
+1. ~~Who signs off removing Calls/Playbooks-only locales?~~ **Resolved:
+   no signoff needed — already coordinated.**
 2. Archive unsupported locale JSON until Weblate sunset, or delete now?
 3. Which repo is the canonical released `mmgotool`?
 4. Should Chinese keep script tags internally with aliases to `zh-CN` /

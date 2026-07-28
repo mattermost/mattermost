@@ -127,7 +127,8 @@ Suggested order (adjust with owners):
 ## Risks
 
 - Overwriting good human/Weblate translations with worse AI output.
-- Spending credits on locales later dropped if step 1 signoff slips.
+- Spending credits on locales later dropped if step 1's trim hasn't
+  landed yet (the locale scope itself is settled).
 - Reviewer fatigue on mega-diffs; wave PRs mitigate.
 - Treating Playbooks `zh_Hant` as done after fill without deleting extras /
   fixing missing keys.

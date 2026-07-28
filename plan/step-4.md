@@ -11,7 +11,8 @@ guidance or silently dropping WIP / plugin locales.
 
 ## Prerequisites
 
-- Step 1 locale decisions signed off (especially plugin drops).
+- Step 1 locale scope: **settled** — plugin drops already coordinated
+  with product/comms; no further signoff gate.
 - Step 2 bulk pass far enough that in-repo files are the quality baseline
   (or explicit interim policy).
 - Named **role + DRI** for community communications (decision #11 revise).
@@ -37,7 +38,8 @@ no additional org projects before final archive.
 
 - [ ] Publish deprecation / transition notice on translate.mattermost.com
   and community channels **before** disabling writes.
-- [ ] Explicitly call out:
+- [ ] Explicitly call out (these are announcements, not approval
+  requests — the decisions are already coordinated):
   - End of Weblate as submission path
   - Retirement of WIP-language promotion pipeline (Beta × 3 releases +
     6 months language-expert commitment)
