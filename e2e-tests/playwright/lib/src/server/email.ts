@@ -47,6 +47,12 @@ export async function getRecentEmail(
     throw new Error(`Timed out waiting for email to ${recipient}`);
 }
 
+/**
+ * Extracts a link matching `pathname` from the email body and rewrites its origin to
+ * testConfig.baseURL. Links come back carrying ServiceSettings.SiteURL's origin, which in
+ * `testcontainers` mode is the Docker network alias the server uses to reach itself — not reachable from this
+ * test process or its browser.
+ */
 export function extractEmailLink(email: InbucketEmail, pathname: string): string {
     const escapedPathname = pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const link = email.body.text.match(new RegExp(`https?://[^\\s<>"')]+${escapedPathname}[^\\s<>"')]+`))?.[0];
@@ -55,7 +61,13 @@ export function extractEmailLink(email: InbucketEmail, pathname: string): string
         throw new Error(`Email to ${email.to.join(', ')} does not contain a link for ${pathname}`);
     }
 
-    return link.replaceAll('&amp;', '&');
+    const unescaped = link.replaceAll('&amp;', '&');
+    const rewritten = new URL(unescaped);
+    const reachable = new URL(testConfig.baseURL);
+    rewritten.protocol = reachable.protocol;
+    rewritten.host = reachable.host;
+
+    return rewritten.toString();
 }
 
 /**
