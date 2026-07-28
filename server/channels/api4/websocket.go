@@ -56,9 +56,10 @@ func (api *API) InitWebSocket() {
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  model.SocketMaxMessageSizeKb,
-		WriteBufferSize: model.SocketMaxMessageSizeKb,
-		CheckOrigin:     c.App.OriginChecker(),
+		ReadBufferSize:    model.SocketMaxMessageSizeKb,
+		WriteBufferSize:   model.SocketMaxMessageSizeKb,
+		CheckOrigin:       c.App.OriginChecker(),
+		EnableCompression: *c.App.Config().ServiceSettings.EnableWebSocketCompression,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)

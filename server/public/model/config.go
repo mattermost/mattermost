@@ -492,6 +492,7 @@ type ServiceSettings struct {
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableWebSocketCompression                        *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	DeleteAccountLink                                 *string `access:"site_users_and_teams,write_restrictable,cloud_restrictable"`
 }
@@ -1060,6 +1061,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableWebHubChannelIteration == nil {
 		s.EnableWebHubChannelIteration = new(false)
+	}
+
+	if s.EnableWebSocketCompression == nil {
+		s.EnableWebSocketCompression = new(false)
 	}
 
 	if s.FrameAncestors == nil {
