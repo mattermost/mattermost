@@ -61,7 +61,6 @@ exports[`components/SingleImageView permalink preview should render with permali
                     </div>
                   </div>
                   <img
-                    aria-label="file thumbnail name"
                     class="image-loading__placeholder image-permalink"
                     height="200"
                     role="presentation"
@@ -182,7 +181,6 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                     </div>
                   </div>
                   <img
-                    aria-label="file thumbnail name"
                     class="image-loading__placeholder"
                     height="200"
                     role="presentation"
@@ -384,7 +382,6 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                     </div>
                   </div>
                   <img
-                    aria-label="file thumbnail name_svg"
                     class="image-loading__placeholder"
                     height="200"
                     role="presentation"

@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/logr/v2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -95,6 +97,47 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	cfg.Append(cfgAdv)
 
 	return cfg, nil
+}
+
+// auditLevelIDs is the set of mlog level IDs that represent audit output
+// (audit-api, audit-content, audit-permissions, audit-cli).
+var auditLevelIDs = func() map[logr.LevelID]struct{} {
+	m := make(map[logr.LevelID]struct{}, len(mlog.MLvlAuditAll))
+	for _, l := range mlog.MLvlAuditAll {
+		m[l.ID] = struct{}{}
+	}
+	return m
+}()
+
+// IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
+// least one sink, given the audit settings and whether advanced logging is licensed.
+//
+// It returns true when basic file auditing is enabled, or when the advanced audit logging
+// config defines at least one target bound to an audit level. A valid advanced-logging
+// config that routes nothing to an audit level returns false.
+func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
+	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
+		return true
+	}
+
+	if !allowAdvancedLogging {
+		return false
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
+		return false
+	}
+
+	for _, target := range cfg {
+		for _, level := range target.Levels {
+			if _, ok := auditLevelIDs[level.ID]; ok {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func GetLogFileLocation(fileLocation string) string {
