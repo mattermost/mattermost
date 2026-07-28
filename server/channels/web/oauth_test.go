@@ -1000,6 +1000,8 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 		"//evil.com":                rootSiteURL,
 		"https://yyy.zzz/some-path": rootSiteURL,
 		"https://xxx.yyy/some-path": rootSiteURL + "/some-path",
+		"https://xxx.yyy?foo=bar":   rootSiteURL + "?foo=bar",
+		"https://xxx.yyy#section":   rootSiteURL + "#section",
 	} {
 		t.Run("root/"+target, func(t *testing.T) {
 			require.Equal(t, expected, fullyQualifiedRedirectURL(rootSiteURL, target, []string{"mmauth://"}))

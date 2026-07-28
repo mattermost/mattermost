@@ -571,6 +571,18 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
+// pathWithinPrefix reports whether target is at or under prefix, comparing on
+// path segments so /mmfoo is not treated as under /mm. An empty or "/" prefix
+// (root SiteURL) matches the root and any absolute path.
+func pathWithinPrefix(target, prefix string) bool {
+	target = path.Clean(target)
+	prefix = path.Clean(prefix)
+	if prefix == "." || prefix == "/" {
+		return target == "." || strings.HasPrefix(target, "/")
+	}
+	return target == prefix || strings.HasPrefix(target, prefix+"/")
+}
+
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
@@ -579,12 +591,6 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	prefixParsed, err := url.Parse(siteURLPrefix)
 	if err != nil {
 		return siteURLPrefix
-	}
-	// path.Clean("") is ".", which no real path has as a prefix, so a root
-	// SiteURL (empty path) would reject every same-origin relative redirect.
-	prefixPath := path.Clean(prefixParsed.Path)
-	if prefixPath == "." {
-		prefixPath = "/"
 	}
 	// mobile access
 	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) &&
@@ -597,7 +603,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
-	safePath := strings.HasPrefix(path.Clean(parsed.Path), prefixPath)
+	safePath := pathWithinPrefix(parsed.Path, prefixParsed.Path)
 
 	if sameScheme && sameHost && safePath {
 		return targetURL
@@ -624,7 +630,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		return siteURLPrefix
 	}
 
-	if !strings.HasPrefix(path.Clean(parsed.Path), prefixPath) {
+	if !pathWithinPrefix(parsed.Path, prefixParsed.Path) {
 		return siteURLPrefix
 	}
 
