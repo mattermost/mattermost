@@ -485,7 +485,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * a specific inline error, disables Save, and does not navigate away — without the admin
          * ever clicking "Edit" to reach the manual Name input.
          */
-        test('shows an inline error and does not navigate away when the auto-derived Name is a reserved word', async ({pw}) => {
+        test('shows an inline error and does not navigate away when the auto-derived Name is a reserved word', async ({
+            pw,
+        }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             // # Log in and open the Manage Attributes page
