@@ -83,9 +83,18 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics":  ps.getSupportPacketDiagnostics,
 		"config":       ps.getSanitizedConfigFile,
-		"cpu profile":  ps.getCPUProfile,
 		"heap profile": ps.getHeapProfile,
 		"goroutines":   ps.getGoroutineProfile,
+	}
+
+	cpuProfileDur := cpuProfileDuration
+	if options != nil && options.CPUProfileDuration != nil {
+		cpuProfileDur = *options.CPUProfileDuration
+	}
+	if cpuProfileDur > 0 {
+		functions["cpu profile"] = func(rctx request.CTX) (*model.FileData, error) {
+			return ps.getCPUProfile(rctx, cpuProfileDur)
+		}
 	}
 
 	if options != nil && options.IncludeLogs {
@@ -541,7 +550,7 @@ func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.File
 	return fileData, nil
 }
 
-func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error) {
+func (ps *PlatformService) getCPUProfile(_ request.CTX, duration time.Duration) (*model.FileData, error) {
 	var b bytes.Buffer
 
 	err := rpprof.StartCPUProfile(&b)
@@ -549,7 +558,7 @@ func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error)
 		return nil, errors.Wrap(err, "failed to start CPU profile")
 	}
 
-	time.Sleep(cpuProfileDuration)
+	time.Sleep(duration)
 
 	rpprof.StopCPUProfile()
 

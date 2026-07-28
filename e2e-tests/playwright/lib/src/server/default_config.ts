@@ -79,7 +79,12 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             },
         },
         ServiceSettings: {
-            SiteURL: testConfig.baseURL,
+            // SiteURL is the server's own view of itself (e.g. for building plugin callback
+            // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
+            // testConfig.baseURL is a host-mapped port the server's own container can't reach;
+            // internalBaseURL is the Docker network alias there, and the same as baseURL in
+            // `external` mode — correct in both cases.
+            SiteURL: testConfig.internalBaseURL,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
@@ -247,6 +252,7 @@ const defaultServerConfig: AdminConfig = {
         TeammateNameDisplay: 'username',
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
+        LockProfileFieldsForEmailUsers: 'none',
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
     },
@@ -796,7 +802,6 @@ const defaultServerConfig: AdminConfig = {
         AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
-        OnboardingTourTips: true,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         CloudDedicatedExportUI: false,
@@ -855,6 +860,7 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableUserManagedAttributes: false,
+        EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     },
@@ -904,5 +910,24 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    AIRecapSettings: {
+        Enable: true,
+        DefaultLimits: {
+            MaxRecapsPerDay: 10,
+            MaxScheduledRecaps: 5,
+            MaxChannelsPerRecap: -1,
+            MaxPostsPerRecap: 500,
+            MaxTokensPerRecap: 100000,
+            MaxPostsPerDay: 5000,
+            CooldownMinutes: 60,
+        },
+        EnforceRecapsPerDay: true,
+        EnforceScheduledRecaps: true,
+        EnforceChannelsPerRecap: true,
+        EnforcePostsPerRecap: true,
+        EnforceTokensPerRecap: true,
+        EnforcePostsPerDay: true,
+        EnforceCooldown: true,
     },
 };

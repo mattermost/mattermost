@@ -1,6 +1,7 @@
 ---
 title: "Connect GitHub to Mattermost"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -16,7 +17,7 @@ A Mattermost system admin must perform the following steps to deploy the GitHub 
 
 ### Install the integration
 
-1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 2.  Search for or scroll to GitHub, and select **Install**.
 
 ### Set up the integration
@@ -70,9 +71,24 @@ We recommend making a copy of your webhook secret and encryption key, as it will
 
 **Create a webhook in GitHub**
 
-Create a webhook in GitHub for each GitHub organization you want to set up.
+Create a webhook in GitHub to send events to Mattermost. You can create the webhook at either level:
 
-1.  In GitHub, go to the **Settings** page where you want to send notifications from, then select **Webhooks** in the sidebar.
+- **Organization level**: Delivers events for every repository in the organization.
+- **Repository level**: One webhook per repository you want to send events from to Mattermost.
+
+<Important>
+
+Make sure only **one** webhook delivers events for any given repository. If a repository is covered by both an organization-level webhook and a repository-level webhook (or by duplicate webhooks), GitHub delivers each event more than once, and Mattermost posts a duplicate notification for every delivery. If notifications appear two or more times, review the webhooks in your GitHub organization and repository settings, and remove the extras so that exactly one webhook delivers each repository's events.
+
+</Important>
+
+<Note>
+
+When you subscribe a channel to a specific repository using `/github subscriptions add owner/repository` while relying on an **organization-level** webhook, the plugin might report `No webhook was found for this repository or organization` even though the organization-level webhook is delivering events correctly. This check currently only looks for repository-level webhooks; the message is informational and doesn't mean events are missing, so it's safe to ignore. If you prefer to avoid it, deliver that repository's events through a repository-level webhook *instead of* the organization-level webhook.
+
+</Note>
+
+1.  In GitHub, go to the **Settings** page (for your organization or a specific repository) where you want to send notifications from, then select **Webhooks** in the sidebar.
 2.  Select **Add Webhook**.
 3.  Set the following values:
 

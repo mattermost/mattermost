@@ -26,7 +26,11 @@ function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
 }
 
 type Props = {
-    onPolicySelected?: (policy: AccessControlPolicy) => void;
+
+    // The second argument reports the policy's own active flag so the team
+    // assignment flow can seed the team child's auto-add from the parent policy.
+    // Callers that don't need it can ignore the argument.
+    onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
     onPoliciesLoaded?: (count: number) => void;
     simpleMode?: boolean;
     hideHeader?: boolean;
@@ -270,7 +274,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
-                                                props.onPolicySelected(policy);
+                                                props.onPolicySelected(policy, Boolean(policy.active));
                                             } else {
                                                 history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
@@ -310,7 +314,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 },
                 onClick: () => {
                     if (props.onPolicySelected) {
-                        props.onPolicySelected(policy);
+                        props.onPolicySelected(policy, Boolean(policy.active));
                     } else {
                         history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                     }
@@ -320,7 +324,7 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getColumns = (): Column[] => {
-        return [
+        const columns: Column[] = [
             {
                 name: (
                     <FormattedMessage
@@ -342,15 +346,18 @@ export default function PolicyList(props: Props): JSX.Element {
                 textAlign: 'center',
                 width: 4,
             },
-            {
-                name: (
-                    <span/>
-                ),
-                field: 'actions',
-                className: 'actions-column',
-                width: 1,
-            },
         ];
+
+        columns.push({
+            name: (
+                <span/>
+            ),
+            field: 'actions',
+            className: 'actions-column',
+            width: 1,
+        });
+
+        return columns;
     };
 
     const getPaginationProps = () => {

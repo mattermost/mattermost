@@ -1,6 +1,7 @@
 ---
 title: "Manage channel members"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -10,7 +11,10 @@ import TabItem from '@theme/TabItem';
 
 Any member of a channel can add other members to public or private channels, unless your system admin has restricted access to do so.
 
-When a channel has [attribute-based access controls](/administration-guide/manage/admin/attribute-based-access-control) enabled, you'll see details about which user attributes are permitted access to the channel. Only users who meet the requirements appear in search results when adding members to that channel.
+When a channel has [attribute-based access controls](/administration-guide/manage/admin/attribute-based-access-control) enabled, you'll see details about which user attributes are permitted access to the channel. Behavior differs by channel type:
+
+- **Private channels**: Only users who meet the requirements appear in search results when adding members, and only those users can be added.
+- **Public channels**: All eligible team members appear in search results, and users who meet the recommended attributes are labeled **Recommended**. Anyone can still be added because public-channel access controls are advisory and never remove existing members.
 
 <Tabs>
 <TabItem value="web-desktop" label="Web/Desktop">
@@ -32,7 +36,7 @@ To add members to a channel:
     </div>
 
     - From Mattermost v7.8, people you've messaged directly are listed first, followed by all users in alphabetical order.
-    - Alternatively, to add members to a channel, select the channel name, select the **View Info** <img src="/img/ui/information-outline_F02FD.svg" alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, select **Members** in the right pane, and then select **Add**. If the channel has access control restrictions, you'll see details about required attributes at the top of the right pane.
+    - Alternatively, to add members to a channel, select the channel name, select the **View Info** <img src={useBaseUrl('/img/ui/information-outline_F02FD.svg')} alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, select **Members** in the right pane, and then select **Add**. If the channel has access control restrictions, you'll see details about required attributes at the top of the right pane.
 
     </div>
 
@@ -73,7 +77,7 @@ Using a web browser or the desktop app, you can also add users to channels withi
 
 1.  Select a user's profile image.
 
-2.  Tap on <img src="/img/ui/account-plus-outline_F0801.svg" alt="Account plus outline icon used to add user to a channel." className="theme-icon" /> icon.
+2.  Tap on <img src={useBaseUrl('/img/ui/account-plus-outline_F0801.svg')} alt="Account plus outline icon used to add user to a channel." className="theme-icon" /> icon.
 
     ![Use options on a user's profile pop-over to add a member to a channel.](/images/add-member-pop.jpg)
 
@@ -93,7 +97,7 @@ Select the channel name at the top of the center pane to access the drop-down me
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-1.  In a channel, tap <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
+1.  In a channel, tap <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
 
     ![Tap on More options to access available options for the channel you want to leave.](/images/mobile-select-more-options-for-a-channel.jpg)
 
@@ -119,14 +123,14 @@ Any member of a channel can remove other members from a channel.
 You have two ways to remove members from a channel:
 
 - Select the channel name at the top of the center pane to access the drop-down menu, then select **Manage Members**. Select the member's [user role](/end-user-guide/collaborate/learn-about-roles), then select **Remove from Channel**.
-- Select the channel's **View Info** <img src="/img/ui/information-outline_F02FD.svg" alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, and select **Members** in the right pane. From there, select **Manage**, select a user's role, then select **Remove from Channel**.
+- Select the channel's **View Info** <img src={useBaseUrl('/img/ui/information-outline_F02FD.svg')} alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, and select **Members** in the right pane. From there, select **Manage**, select a user's role, then select **Remove from Channel**.
 
 ![Use options available through the channel name to remove a member from a channel.](/images/remove-member-from-channel.png)
 
 </TabItem>
 <TabItem value="mobile" label="Mobile">
 
-1.  In a channel, tap <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
+1.  In a channel, tap <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
 
     ![Tap on More options to access available options for the channel you want to leave.](/images/mobile-select-more-options-for-a-channel.jpg)
 

@@ -988,6 +988,47 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  "/api/v4/teams/{team_id}/access_control/attributes":
+    get:
+      tags:
+        - teams
+      summary: Get the access control attributes governing a team
+      description: |
+        Get the attributes used by the team's membership access control policy,
+        as a map of attribute name to the values that satisfy the rule. This lets
+        membership surfaces explain the requirement to join the team. Values that
+        are source-only or shared-only are stripped, so no sensitive value is
+        disclosed. The map is empty when no membership policy governs the team.
+        ##### Permissions
+        Must have the `view_team` permission for the team.
+      operationId: GetTeamAccessControlAttributes
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team access control attributes retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+                description: Map of attribute name to the values that satisfy the membership rule.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   "/api/v4/teams/{team_id}/regenerate_invite_id":
     post:
       tags:
@@ -1364,14 +1405,58 @@
           required: true
           schema:
             type: string
+        - name: graceful
+          in: query
+          description: When provided with a non-empty value, returns an array with both successful invites and errors instead of aborting on the first error. Required when using `profiles`.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-        description: List of user's email
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: object
+                  required:
+                    - emails
+                  properties:
+                    emails:
+                      type: array
+                      items:
+                        type: string
+                      description: List of user's email
+                    channelIds:
+                      type: array
+                      items:
+                        type: string
+                      description: List of channel IDs to invite the users to
+                    message:
+                      type: string
+                      description: Custom message included in the invitation email
+                    profiles:
+                      type: array
+                      description: |
+                        Profile fields to pre-set on the accounts created from these invitations. Each entry must reference an email present in `emails`. Requires a non-empty `graceful` query parameter, an Enterprise license, and locked profile fields to be enabled.
+
+                        __Minimum server version__: 11.11
+                      items:
+                        type: object
+                        required:
+                          - email
+                          - username
+                        properties:
+                          email:
+                            type: string
+                          username:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+        description: List of user's email, or an object with emails and invitation options
         required: true
       responses:
         "200":
