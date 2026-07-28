@@ -99,6 +99,21 @@
   --ifm-color-content-secondary: var(--mm-text-secondary);
 }
 
+/* The mobile nav slide-out (.navbar-sidebar) always has a dark denim
+ * background, but its menu inherits the light-mode --ifm-menu-color*
+ * vars tuned for the light desktop sidebar — force the dark-mode values
+ * unconditionally so mobile text stays readable in light mode too. */
+.navbar-sidebar {
+  --ifm-menu-color:                   rgba(255,255,255,0.78);
+  --ifm-menu-color-active:            var(--mm-color-white);
+  --ifm-menu-color-background-active: var(--mm-denim-700);
+  --ifm-menu-color-background-hover:  var(--mm-denim-700);
+}
+/* "Back to main menu" text color isn't covered by the vars above. */
+.navbar-sidebar__back {
+  color: var(--ifm-menu-color-active);
+}
+
 /* === Type rhythm === */
 
 html {
@@ -337,6 +352,13 @@ h2, h3, h4 {
   color: var(--mm-text-secondary);
   padding-top: 0.55rem;
   padding-bottom: 0.4rem;
+}
+
+/* Category headers hardcode --mm-text-secondary above, so they don't
+ * pick up the .navbar-sidebar menu-color override — fix separately. */
+.navbar-sidebar .menu .menu__list-item-collapsible > .menu__link,
+.navbar-sidebar .menu > .menu__list > .menu__list-item > .menu__link {
+  color: var(--ifm-menu-color);
 }
 
 /* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server"). */
@@ -597,6 +619,19 @@ blockquote {
   max-width: 1600px;
   padding-left: clamp(1rem, 2vw, 2rem);
   padding-right: clamp(1rem, 2vw, 2rem);
+}
+
+/* theme-classic's DocItem/Layout only caps the article column at 75% via
+ * its own `docItemCol` class when a TOC renders alongside it — pages with
+ * `hide_table_of_contents: true` (e.g. the homepage) get a lone full-width
+ * `.col` instead, so prose reads much wider than on every other doc page.
+ * Recreate the same 75% cap here, keyed off the `<article>` that's always
+ * a descendant of the doc content column, regardless of TOC presence. */
+@media (min-width: 997px) {
+  .docMainContainer_TBSr .col:has(> div > article),
+  [class*='docMainContainer'] .col:has(> div > article) {
+    max-width: 75%;
+  }
 }
 
 /* Without max-width, the doc content flex column no longer has an upper
