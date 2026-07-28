@@ -94,7 +94,7 @@ The following network connectivity is required:
 <td>UDP (outgoing)</td>
 <td>Mattermost Instance(s) (Calls plugin) or <code>rtcd</code> service</td>
 <td>Configured STUN servers</td>
-<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href="https://docs.mattermost.com/configure/plugins-configuration-settings.html#ice-host-override">ICE Host Override</a> config option.</td>
+<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href="/administration-guide/configure/plugins-configuration-settings#ice-host-override">ICE Host Override</a> config option.</td>
 </tr>
 </tbody>
 </table>
@@ -106,6 +106,12 @@ There are multiple ways to deploy RTCD, depending on your environment. We recomm
 ### Bare Metal or VM Deployment (Recommended)
 
 This is the recommended deployment method for non-Kubernetes production environments, as it provides the best performance and operational control. For Kubernetes deployments, see the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide.
+
+<Warning>
+
+These community-maintained scripts aren't published or reviewed by Mattermost. Review the script contents yourself before running them, and confirm they're suitable for your environment.
+
+</Warning>
 
 <Tip>
 
@@ -130,9 +136,11 @@ Looking for an automated setup? Check out these community-maintained [Calls Inst
    sudo mv rtcd-linux-amd64 /opt/rtcd/rtcd
    ```
 
-   ```{note}
+   <Note>
+
    Replace `rtcd-linux-amd64` with the appropriate binary for your system architecture (e.g., `rtcd-linux-arm64` for ARM64 systems). The binary should be placed at `/opt/rtcd/rtcd` as this is the expected location referenced in systemd service files and other documentation.
-   ```
+
+   </Note>
 
 2. **Create a configuration file** (`/opt/rtcd/rtcd.toml`):
 
@@ -200,9 +208,11 @@ Docker deployment is suitable for development, testing, or containerized product
      mattermost/rtcd:latest
    ```
 
-   ```{note}
+   <Note>
+
    If you optionally use the `RTCD_API_SECURITY_ALLOWSELFREGISTRATION` setting, please note that it defaults to `false`. If enabled, it allows anyone who can connect to the service on the API port (8045) to successfully initiate calls. Understand the security implications of this setting before enabling it.
-   ```
+
+   </Note>
 
 2. For debugging purposes, you can enable more detailed logging:
 

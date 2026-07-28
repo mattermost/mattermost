@@ -1,5 +1,5 @@
 ---
-title: "Scale Mattermost up to 80000 users"
+title: "Scale Mattermost up to 50000 users"
 ---
 import Inc0_lifetime_storage from './lifetime-storage.mdx';
 import Inc1_estimated_storage_per_user_per_month from './estimated-storage-per-user-per-month.mdx';
@@ -7,7 +7,7 @@ import Inc2_additional_ha_considerations from './additional-ha-considerations.md
 
 <PlanAvailability slug="ent-plus" />
 
-This page describes the Mattermost reference architecture designed for the load of up to 80000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/administration-guide/scale/scaling-for-enterprise) documentation for details.
+This page describes the Mattermost reference architecture designed for the load of up to 50000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) documentation for details.
 
 - **High Availability**: Required
 - **Database Configuration**: writer, multiple readers
@@ -69,24 +69,24 @@ This page describes the Mattermost reference architecture designed for the load 
 <tbody>
 <tr>
 <td>Mattermost Application</td>
-<td>4</td>
-<td>16/32</td>
-<td>c7i.4xlarge</td>
-<td>F16s v2</td>
+<td>5</td>
+<td>8/16</td>
+<td>c7i.2xlarge</td>
+<td>F8s v2</td>
 </tr>
 <tr>
 <td>RDS Writer</td>
 <td>1</td>
-<td>16/128</td>
-<td>db.r7g.4xlarge</td>
-<td>E16ds v5</td>
+<td>8/64</td>
+<td>db.r7g.2xlarge</td>
+<td>E8ds v5</td>
 </tr>
 <tr>
 <td>RDS Reader</td>
-<td>3</td>
-<td>16/128</td>
-<td>db.r7g.4xlarge</td>
-<td>E16ds v5</td>
+<td>4</td>
+<td>8/64</td>
+<td>db.r7g.2xlarge</td>
+<td>E8ds v5</td>
 </tr>
 <tr>
 <td>Elasticsearch cluster</td>
@@ -115,11 +115,11 @@ This page describes the Mattermost reference architecture designed for the load 
 
 ### Example
 
-A 80000-person team with medium usage (with a safety factor of 2x) would require between 10.56TB <sup>1</sup> and 52.8TB <sup>2</sup> of free space per annum.
+A 50000-person team with medium usage (with a safety factor of 2x) would require between 6TB <sup>1</sup> and 30TB <sup>2</sup> of free space per annum.
 
-<sup>1</sup> 80000 users \* 5 MB \* 12 months \* 2x safety factor
+<sup>1</sup> 50000 users \* 5 MB \* 12 months \* 2x safety factor
 
-<sup>2</sup> 80000 users \* 25 MB \* 12 months \* 2x safety factor
+<sup>2</sup> 50000 users \* 25 MB \* 12 months \* 2x safety factor
 
 We strongly recommend that you review storage utilization at least quarterly to ensure adequate free space is available.
 

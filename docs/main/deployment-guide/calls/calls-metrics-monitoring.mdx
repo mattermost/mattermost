@@ -28,12 +28,12 @@ The metrics are exposed through HTTP endpoints:
 
 Resource utilization metrics (CPU, memory, network) are mainly provided by an external service ([`node-exporter`](https://prometheus.io/docs/guides/node-exporter/)).
 
-> Metrics for the calls plugin are exposed through the `/plugins/com.mattermost.calls/metrics` subpath under the existing Mattermost server metrics endpoint. This is controlled by the [Listen address for performance](https://docs.mattermost.com/configure/environment-configuration-settings.html#listen-address-for-performance) configuration setting. It defaults to port 8067. For example: `http://localhost:8067/plugins/com.mattermost.calls/metrics`
+> Metrics for the calls plugin are exposed through the `/plugins/com.mattermost.calls/metrics` subpath under the existing Mattermost server metrics endpoint. This is controlled by the [Listen address for performance](/administration-guide/configure/environment-configuration-settings#listen-address-for-performance) configuration setting. It defaults to port 8067. For example: `http://localhost:8067/plugins/com.mattermost.calls/metrics`
 > The RTCD Service `/metrics` endpoint is exposed on the HTTP API (e.g. `http://localhost:8045/metrics`).
 
 ## Setting Up Monitoring
 
-For instructions on deploying Prometheus and Grafana for Mattermost, please refer to the [Deploy Prometheus and Grafana for Performance Monitoring](https://docs.mattermost.com/scale/deploy-prometheus-grafana-for-performance-monitoring.html) guide.
+For instructions on deploying Prometheus and Grafana for Mattermost, please refer to the [Deploy Prometheus and Grafana for Performance Monitoring](/deployment-guide/reference-architecture/scale/deploy-prometheus-grafana-for-performance-monitoring) guide.
 
 Once Prometheus and Grafana are set up, you will need to configure Prometheus to scrape metrics from the Calls-related services.
 
@@ -116,9 +116,9 @@ These metrics help monitor the health and resource usage of the RTCD process:
 
 These metrics track the WebRTC connections and media flow:
 
-- `rtcd_rtc_conn_states_total&#123;state="X"&#125;`: Count of connections in different states
-- `rtcd_rtc_errors_total&#123;type="X"&#125;`: Count of RTC errors by type
-- `rtcd_rtc_rtp_tracks_total&#123;direction="X"&#125;`: Count of RTP tracks (incoming/outgoing)
+- `rtcd_rtc_conn_states_total{state="X"}`: Count of connections in different states
+- `rtcd_rtc_errors_total{type="X"}`: Count of RTC errors by type
+- `rtcd_rtc_rtp_tracks_total{direction="X"}`: Count of RTP tracks (incoming/outgoing)
 - `rtcd_rtc_sessions_total`: Total number of active RTC sessions
 
 #### WebSocket Metrics
@@ -126,7 +126,7 @@ These metrics track the WebRTC connections and media flow:
 These metrics track the signaling channel:
 
 - `rtcd_ws_connections_total`: Total number of active WebSocket connections. This is about RTCD &lt;-> MM, so the connection count should match the number of MM nodes.
-- `rtcd_ws_messages_total&#123;direction="X"&#125;`: Count of WebSocket messages (sent/received)
+- `rtcd_ws_messages_total{direction="X"}`: Count of WebSocket messages (sent/received)
 
 ### Calls Plugin Metrics
 

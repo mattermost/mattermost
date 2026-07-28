@@ -1,5 +1,5 @@
 ---
-title: "Scale Mattermost up to 100000 users"
+title: "Scale Mattermost up to 90000 users"
 ---
 import Inc0_lifetime_storage from './lifetime-storage.mdx';
 import Inc1_estimated_storage_per_user_per_month from './estimated-storage-per-user-per-month.mdx';
@@ -7,14 +7,15 @@ import Inc2_additional_ha_considerations from './additional-ha-considerations.md
 
 <PlanAvailability slug="ent-plus" />
 
-This page describes the Mattermost reference architecture designed for the load of up to 100000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/administration-guide/scale/scaling-for-enterprise) documentation for details.
+This page describes the Mattermost reference architecture designed for the load of up to 90000 concurrent users. Unsure which reference architecture to use? See the [scaling for enterprise](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) documentation for details.
 
 - **High Availability**: Required
 - **Database Configuration**: writer, multiple readers
 
 <Note>
 
-\- Usage of CPU, RAM, and storage space can vary significantly based on user behavior. These hardware recommendations are based on traditional deployments and may grow or shrink depending on how active your users are. - From Mattermost v10.4, Mattermost Enterprise customers can configure [Redis](https://redis.io/) (Remote Dictionary Server) as an alternative cache backend. Using Redis can help ensure that Mattermost remains performant and efficient, even under heavy usage. See the [Redis cache backend](/administration-guide/configure/environment-configuration-settings#redis-cache-backend) configuration settings documentation for details. - While the following Elasticsearch specifications may be more than sufficient for some use cases, we have not extensively tested configurations with lower resource allocations for this user scale. If cost optimization is a priority, admins may choose to experiment with smaller configurations, but we recommend starting with the tested specifications to ensure system stability and performance. Keep in mind that under-provisioning can lead to degraded user experience and additional troubleshooting effort.
+- Usage of CPU, RAM, and storage space can vary significantly based on user behavior. These hardware recommendations are based on traditional deployments and may grow or shrink depending on how active your users are.
+- While the following Elasticsearch specifications may be more than sufficient for some use cases, we have not extensively tested configurations with lower resource allocations for this user scale. If cost optimization is a priority, admins may choose to experiment with smaller configurations, but we recommend starting with the tested specifications to ensure system stability and performance. Keep in mind that under-provisioning can lead to degraded user experience and additional troubleshooting effort.
 
 </Note>
 
@@ -68,7 +69,7 @@ This page describes the Mattermost reference architecture designed for the load 
 <tbody>
 <tr>
 <td>Mattermost Application</td>
-<td>6</td>
+<td>5</td>
 <td>16/32</td>
 <td>c7i.4xlarge</td>
 <td>F16s v2</td>
@@ -82,7 +83,7 @@ This page describes the Mattermost reference architecture designed for the load 
 </tr>
 <tr>
 <td>RDS Reader</td>
-<td>5</td>
+<td>4</td>
 <td>16/128</td>
 <td>db.r7g.4xlarge</td>
 <td>E16ds v5</td>
@@ -114,11 +115,11 @@ This page describes the Mattermost reference architecture designed for the load 
 
 ### Example
 
-A 100000-person team with medium usage (with a safety factor of 2x) would require between 10.56TB <sup>1</sup> and 52.8TB <sup>2</sup> of free space per annum.
+A 90000-person team with medium usage (with a safety factor of 2x) would require between 10.56TB <sup>1</sup> and 52.8TB <sup>2</sup> of free space per annum.
 
-<sup>1</sup> 100000 users \* 5 MB \* 12 months \* 2x safety factor
+<sup>1</sup> 90000 users \* 5 MB \* 12 months \* 2x safety factor
 
-<sup>2</sup> 100000 users \* 25 MB \* 12 months \* 2x safety factor
+<sup>2</sup> 90000 users \* 25 MB \* 12 months \* 2x safety factor
 
 We strongly recommend that you review storage utilization at least quarterly to ensure adequate free space is available.
 
