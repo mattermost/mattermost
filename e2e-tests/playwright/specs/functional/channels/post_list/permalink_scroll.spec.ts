@@ -257,8 +257,13 @@ test.describe('Post list scroll to permalink', () => {
                 await linkedPostComponent.toBeVisible();
                 await expect(linkedPostComponent.container).toHaveClass(/\bpost--highlight\b/);
 
-                // * Verify that the post list scrolled up without jumping around
-                expect(await waitForScrollToSettle(watcher)).toHaveLength(2);
+                if (testCase.name.includes('less than a screen of posts')) {
+                    // * Verify that the post list didn't move because there's not enough posts to scroll
+                    expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+                } else {
+                    // * Verify that the post list scrolled up without jumping around
+                    expect(await waitForScrollToSettle(watcher)).toHaveLength(2);
+                }
             });
         });
     }
