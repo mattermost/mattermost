@@ -7,7 +7,14 @@ import eslintPlugin from '@mattermost/eslint-plugin';
 
 export default [
     {
-        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: [
+            '**/node_modules',
+            '**/dist',
+            '**/playwright-report',
+            '**/test-results',
+            '**/results',
+            'lib/src/containers/assets/webhook/tests/**',
+        ],
     },
     ...eslintPlugin.configs.base,
     {
