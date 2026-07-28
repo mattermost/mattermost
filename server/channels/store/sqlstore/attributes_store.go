@@ -24,6 +24,22 @@ type SqlAttributesStore struct {
 	selectQueryBuilder sq.SelectBuilder
 }
 
+// attributeViewFor maps a property-field object type to its materialized view.
+// The view is per-object-type (migration 000212) so a refresh of one type's
+// attributes doesn't recompute the others. An unrecognized type is an error
+// rather than a fallback to the user view: a silent coercion would surface a
+// future miswire as a wrong-but-successful user lookup.
+func attributeViewFor(objectType string) (string, error) {
+	switch objectType {
+	case model.PropertyFieldObjectTypeChannel:
+		return "ChannelAttributeView", nil
+	case model.PropertyFieldObjectTypeUser:
+		return "UserAttributeView", nil
+	default:
+		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+	}
+}
+
 func attributesSliceColumns(prefix ...string) []string {
 	var p string
 	if len(prefix) == 1 {
@@ -56,21 +72,33 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 		metrics:  metrics,
 	}
 
-	s.selectQueryBuilder = s.getQueryBuilder().Select(attributesSliceColumns()...).From("AttributeView")
+	// The From clause is chosen per call by object type (GetSubject), so the
+	// shared builder carries only the Select.
+	s.selectQueryBuilder = s.getQueryBuilder().Select(attributesSliceColumns()...)
 
 	return s
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
-		return errors.Wrap(err, "error refreshing materialized view AttributeView")
+	// Both per-object-type views (migration 000212) refresh together on one
+	// cadence, so every caller sees a consistent snapshot without needing to know
+	// which object types it is about to read. Refreshing only the view whose
+	// attributes actually changed is a scale follow-up.
+	for _, view := range []string{"UserAttributeView", "ChannelAttributeView"} {
+		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
+			return errors.Wrapf(err, "error refreshing materialized view %s", view)
+		}
 	}
 
 	return nil
 }
 
-func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error) {
-	query := s.selectQueryBuilder.Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
+func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
+	view, err := attributeViewFor(objectType)
+	if err != nil {
+		return nil, err
+	}
+	query := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -98,10 +126,10 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level
@@ -147,7 +175,7 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		// Paginate on Users.Id (the ORDER BY column), not AttributeView.TargetID.
+		// Paginate on Users.Id (the ORDER BY column), not UserAttributeView.TargetID.
 		// The cursor value is a user id, and TargetID comes from a LEFT JOIN so it
 		// is NULL for users with no custom-attribute row — comparing against it
 		// silently drops those users (e.g. matches of a native-only policy).
@@ -196,14 +224,14 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
-		LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		LeftJoin("UserAttributeView ON ChannelMembers.UserId = UserAttributeView.TargetID").
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
 		// A member is removed when they do NOT satisfy the policy; a NULL result
 		// (e.g. a missing custom attribute) counts as "does not satisfy" via
 		// COALESCE. We must not additionally remove members just because they
-		// lack an AttributeView row — a native-only policy matches against the
+		// lack a UserAttributeView row — a native-only policy matches against the
 		// Users table, so a user with zero custom attributes can still satisfy it.
 		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
@@ -243,7 +271,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
-		LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		LeftJoin("UserAttributeView ON TeamMembers.UserId = UserAttributeView.TargetID").
 		Where("TeamMembers.DeleteAt = 0").
 		OrderBy("TeamMembers.UserId ASC")
 
@@ -251,7 +279,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 		// A member is removed when they do NOT satisfy the policy; a NULL result
 		// (e.g. a missing custom attribute) counts as "does not satisfy" via
 		// COALESCE. We must not additionally remove members just because they
-		// lack an AttributeView row — a native-only policy matches against the
+		// lack a UserAttributeView row — a native-only policy matches against the
 		// Users table, so a user with zero custom attributes can still satisfy it.
 		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}

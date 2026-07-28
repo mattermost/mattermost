@@ -708,7 +708,7 @@ const userAttributesPathPrefix = "user.attributes."
 //   - `access_mode == "shared_only"`: the underlying property
 //     service computes an intersection of the caller's and target's
 //     values on read. The simulator does NOT call the property
-//     service (it reads from AttributeView directly), so we
+//     service (it reads from UserAttributeView directly), so we
 //     conservatively redact these values rather than ship them
 //     unfiltered.
 //
@@ -759,8 +759,8 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // whose contents must be hidden from a non-system-admin caller. The
 // set includes both `visibility: hidden` fields and any field whose
 // `access_mode` is not public (source_only / shared_only). The
-// simulator's AttributeView populates its per-user map keyed by
-// `pf.Name` (see db/migrations/postgres/000137_update_attribute_view.up.sql),
+// simulator's UserAttributeView populates its per-user map keyed by
+// `pf.Name` (see db/migrations/postgres/000212_split_attribute_view_by_object_type.up.sql),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for both.
 func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]struct{}, error) {
@@ -2411,7 +2411,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, group.ID)
+	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, group.ID, model.PropertyFieldObjectTypeUser)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
@@ -2607,9 +2607,10 @@ func ResolveSystemRole(roles string) string {
 	return model.SystemUserRoleId
 }
 
-// refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
-// refresh was more than attributeViewRefreshInterval ago. The refresh is non-blocking:
-// if another goroutine is already refreshing, this call returns immediately.
+// refreshAttributeViewIfStale refreshes the attribute materialized views if the
+// last refresh was more than attributeViewRefreshInterval ago. The refresh is
+// non-blocking: if another goroutine is already refreshing, this call returns
+// immediately.
 func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	ch := a.Srv().Channels()
 

@@ -149,15 +149,17 @@ func TestMigration000185(t *testing.T) {
 	assert.Equal(t, targetUserID, val.TargetID, "value TargetID should be unchanged")
 	assert.Equal(t, "user", val.TargetType, "value TargetType should be unchanged")
 
-	// Verify: AttributeView exists and includes the ObjectType filter (user-type fields only).
+	// Verify: the user attribute matview exists and includes the ObjectType
+	// filter (user-type fields only). Since migration 000212 the single
+	// AttributeView is split per object type; the user row lives in UserAttributeView.
 	var viewDef string
-	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'attributeview'")
-	require.NoError(t, err, "AttributeView should exist")
+	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'userattributeview'")
+	require.NoError(t, err, "UserAttributeView should exist")
 	assert.Contains(t, viewDef, "pf.objecttype", "view definition should filter by pf.ObjectType")
 
 	// Verify: materialized view contains expected data after refresh.
-	_, err = master.ExecNoTimeout("REFRESH MATERIALIZED VIEW AttributeView")
-	require.NoError(t, err, "refreshing AttributeView should succeed")
+	_, err = master.ExecNoTimeout("REFRESH MATERIALIZED VIEW UserAttributeView")
+	require.NoError(t, err, "refreshing UserAttributeView should succeed")
 
 	var viewRow struct {
 		GroupID    string `db:"groupid"`
@@ -165,8 +167,8 @@ func TestMigration000185(t *testing.T) {
 		TargetType string `db:"targettype"`
 		Attributes []byte `db:"attributes"`
 	}
-	err = master.Get(&viewRow, "SELECT GroupID, TargetID, TargetType, Attributes FROM AttributeView WHERE TargetID = ?", targetUserID)
-	require.NoError(t, err, "AttributeView should contain a row for the target user")
+	err = master.Get(&viewRow, "SELECT GroupID, TargetID, TargetType, Attributes FROM UserAttributeView WHERE TargetID = ?", targetUserID)
+	require.NoError(t, err, "UserAttributeView should contain a row for the target user")
 	assert.Equal(t, groupID, viewRow.GroupID)
 	assert.Equal(t, targetUserID, viewRow.TargetID)
 	assert.Equal(t, "user", viewRow.TargetType)
@@ -321,10 +323,13 @@ func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 	_, err = master.ExecNoTimeout(upSQL)
 	assert.NoError(t, err, "up migration should be a safe no-op on fresh DB")
 
-	// Even with no CPA data, the view should be (re)created.
-	var viewExists bool
-	require.NoError(t, master.Get(&viewExists, "SELECT EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = 'attributeview')"))
-	assert.True(t, viewExists, "AttributeView should exist after up migration on fresh DB")
+	// The attribute matviews exist in the final schema. Since migration 000212
+	// the single AttributeView is split into per-object-type views.
+	for _, view := range []string{"userattributeview", "channelattributeview"} {
+		var viewExists bool
+		require.NoError(t, master.Get(&viewExists, "SELECT EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = $1)", view))
+		assert.True(t, viewExists, "%s should exist after up migration on fresh DB", view)
+	}
 
 	_, err = master.ExecNoTimeout(downSQL)
 	assert.NoError(t, err, "down migration should be a safe no-op on fresh DB")
