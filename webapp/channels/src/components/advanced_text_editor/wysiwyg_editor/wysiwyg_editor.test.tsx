@@ -14,7 +14,7 @@ jest.mock('@tiptap/react', () => {
         __esModule: true,
         useEditor: (config: any) => {
             mockCapturedConfig.current = config;
-            return {
+            const base: any = {
                 isDestroyed: false,
                 isEmpty: true,
                 commands: {
@@ -25,9 +25,12 @@ jest.mock('@tiptap/react', () => {
                 },
                 setEditable: () => undefined,
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
-                getMarkdown: () => 'hi',
                 view: {dom: globalThis.document.createElement('div')},
             };
+            if (config?.contentType === 'markdown') {
+                base.getMarkdown = () => 'hi';
+            }
+            return base;
         },
         EditorContent: () => ReactMock.createElement('div', {'data-testid': 'editor-content'}),
     };
@@ -226,7 +229,7 @@ describe('WysiwygEditor', () => {
         renderWithContext(<WysiwygEditor {...baseProps}/>);
 
         const result = mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent());
-        expect(result).not.toBe(false);
+        expect(result).toBe(true);
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {
@@ -242,5 +245,67 @@ describe('WysiwygEditor', () => {
         const editor = ref.current!.getEditor();
         expect(editor).not.toBeNull();
         expect(typeof (editor as any).getJSON).toBe('function');
+    });
+
+    test.each([
+        ['null', 'null'],
+        ['array', '[1,2,3]'],
+        ['number', '42'],
+    ])('json mode falls back to empty doc when value parses to %s', (_label, raw) => {
+        const onContentError = jest.fn();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                value={raw}
+                contentType='json'
+                onContentError={onContentError}
+            />,
+        );
+
+        expect(mockCapturedConfig.current?.content).toEqual({type: 'doc', content: [{type: 'paragraph'}]});
+        expect(onContentError).toHaveBeenCalledTimes(1);
+    });
+
+    test('json mode does not throw when consumer omits onContentError for a bad value', () => {
+        expect(() => {
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    value='not json'
+                    contentType='json'
+                />,
+            );
+        }).not.toThrow();
+    });
+
+    test('handle.hasContentError() reflects load failure', async () => {
+        const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                value='not json'
+                contentType='json'
+                ref={ref}
+            />,
+        );
+
+        expect(ref.current!.hasContentError()).toBe(true);
+    });
+
+    test('handle.hasContentError() is false after a clean json load', () => {
+        const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                value={JSON.stringify({type: 'doc', content: [{type: 'paragraph'}]})}
+                contentType='json'
+                ref={ref}
+            />,
+        );
+
+        expect(ref.current!.hasContentError()).toBe(false);
     });
 });

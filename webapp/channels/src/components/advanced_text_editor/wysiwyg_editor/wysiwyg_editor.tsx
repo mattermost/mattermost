@@ -19,8 +19,9 @@ import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import emojiRegex from 'emoji-regex';
+import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {editLatestPost} from 'actions/views/create_comment';
@@ -92,6 +93,12 @@ export type WysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+
+    // True when the initial `value` failed to load (unparseable JSON in json
+    // mode, or a Tiptap schema mismatch). Consumers autosaving in json mode
+    // MUST gate the first onChange on this to avoid overwriting the source
+    // with the fallback empty doc.
+    hasContentError: () => boolean;
 };
 
 type Props = {
@@ -115,8 +122,20 @@ type Props = {
 
 const EMPTY_JSON_DOC = {type: 'doc', content: [{type: 'paragraph'}]} as const;
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null && !Array.isArray(value);
+const parseJsonModeContent = (value: string): {content: string | Record<string, unknown>; error: Error | null} => {
+    if (!value) {
+        return {content: EMPTY_JSON_DOC, error: null};
+    }
+    try {
+        const parsed = JSON.parse(value);
+        if (isPlainObject(parsed)) {
+            return {content: parsed as Record<string, unknown>, error: null};
+        }
+        return {content: EMPTY_JSON_DOC, error: new Error('Invalid JSON content: expected an object doc')};
+    } catch (err) {
+        return {content: EMPTY_JSON_DOC, error: err instanceof Error ? err : new Error('Invalid JSON content')};
+    }
+};
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     value,
@@ -136,7 +155,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     extensions: extraExtensions,
     onContentError,
 }, ref) => {
-    const jsonMode = contentType === 'json';
+    // contentType, extensions, and initial value are read at mount only; the
+    // underlying Tiptap schema is fixed at construction. Freeze here so paste
+    // and update handlers can't drift out of sync with a mid-flight prop swap.
+    const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
@@ -203,35 +225,39 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     }
 
     const onContentErrorRef = useLatest(onContentError);
-    const parseErrorRef = useRef<Error | null>(null);
+    const mountedRef = useRef(false);
+    const pendingErrorRef = useRef<Error | null>(null);
+    const [hasContentError, setHasContentError] = useState(false);
 
-    const initialContent = useMemo<string | Record<string, unknown>>(() => {
+    const [initialContent] = useState<string | Record<string, unknown>>(() => {
         if (!jsonMode) {
             return value;
         }
-        if (!value) {
-            return EMPTY_JSON_DOC;
+        const {content, error} = parseJsonModeContent(value);
+        if (error) {
+            pendingErrorRef.current = error;
         }
-        try {
-            const parsed = JSON.parse(value);
-            if (isPlainObject(parsed)) {
-                return parsed;
-            }
-            parseErrorRef.current = new Error('Invalid JSON content: expected an object doc');
-            return EMPTY_JSON_DOC;
-        } catch (err) {
-            parseErrorRef.current = err instanceof Error ? err : new Error('Invalid JSON content');
-            return EMPTY_JSON_DOC;
+        return content;
+    });
+
+    // Errors emitted during initial construction (useEditor's lazy init runs
+    // during render) are buffered; post-mount emits are surfaced directly.
+    const captureContentError = (error: Error) => {
+        if (mountedRef.current) {
+            setHasContentError(true);
+            onContentErrorRef.current?.(error);
+            return;
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        pendingErrorRef.current = error;
+    };
 
     useEffect(() => {
-        if (parseErrorRef.current) {
-            onContentErrorRef.current?.(parseErrorRef.current);
-            parseErrorRef.current = null;
+        mountedRef.current = true;
+        if (pendingErrorRef.current) {
+            setHasContentError(true);
+            onContentErrorRef.current?.(pendingErrorRef.current);
+            pendingErrorRef.current = null;
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const editor = useEditor({
@@ -239,7 +265,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         content: initialContent,
         contentType: jsonMode ? undefined : 'markdown',
         enableContentCheck: jsonMode,
-        onContentError: ({error}) => onContentErrorRef.current?.(error),
+
+        // Tiptap emits this synchronously inside the Editor constructor, which
+        // runs during useEditor's lazy state init (render). Defer via a ref +
+        // mount effect so consumer setState never happens during render.
+        onContentError: ({error}) => captureContentError(error),
         editable: !disabled,
         editorProps: {
             attributes: {
@@ -472,7 +502,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             }
             return null;
         },
-    }), []);
+        hasContentError: () => hasContentError,
+    }), [hasContentError]);
 
     const lastValueRef = useRef(value);
     useEffect(() => {

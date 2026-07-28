@@ -37,13 +37,17 @@ export type WysiwygEditorProps = {
     // 'json' expects `value` as stringified ProseMirror JSON. Mount-only.
     contentType?: 'markdown' | 'json';
 
-    // Registered at mount, later changes are ignored.
+    // Registered at mount; later changes are ignored. Typed as `any[]` so
+    // consumers don't need `@tiptap/core` transitively — cast at the call site.
     extensions?: any[];
 
-    // Fires in 'json' mode when `value` can't be parsed — malformed JSON, or a
-    // schema mismatch caught by Tiptap's content check (unknown node type,
-    // etc.). The editor falls back to an empty doc; use this to hold back
-    // autosave. No-op in 'markdown' mode.
+    // Fires in 'json' mode when `value` can't be loaded — malformed JSON, or a
+    // schema mismatch caught by Tiptap's content check (unknown node types,
+    // etc.). Malformed JSON falls back to an empty doc; a Tiptap content-check
+    // failure may either fall back to empty or preserve the original doc on
+    // Tiptap's non-fatal retry. The handle's `hasContentError()` reflects the
+    // same state — consumers autosaving in 'json' mode MUST gate the first
+    // onChange on it to avoid overwriting the source. No-op in 'markdown' mode.
     onContentError?: (error: Error) => void;
 };
 
@@ -139,6 +143,11 @@ export type PublishedWysiwygEditorHandle = {
     // can still observe null on the initial render. In 'json' mode use
     // `getJSON()`; `getMarkdown()` isn't attached.
     getEditor: () => any;
+
+    // Returns true when the initial `value` failed to load. Consumers autosaving
+    // in 'json' mode MUST gate the first onChange on this — otherwise the empty
+    // fallback overwrites the source. Also exposed as the `onContentError` prop.
+    hasContentError: () => boolean;
 };
 
 export type PublishedFormattingBarHandle = {
