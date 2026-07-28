@@ -310,6 +310,16 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				searchStore.UpdateConfig(cfg)
 			})
 
+			// The post-delivery-tracking pool and schema are only set up while the
+			// store is being built, so enabling the feature on a running server has
+			// no effect until it restarts. Say so rather than doing nothing silently.
+			ps.AddConfigListener(func(prevCfg, cfg *model.Config) {
+				if !prevCfg.PostDeliveryTrackingEnabled() && cfg.PostDeliveryTrackingEnabled() &&
+					!ps.sqlStore.PostDeliveryTrackingReady() {
+					ps.Log().Warn("Post delivery tracking was enabled, but its database schema is not provisioned. Restart the server to apply it.")
+				}
+			})
+
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				timerlayer.New(searchStore, ps.metricsIFace),
 				ps.metricsIFace,
