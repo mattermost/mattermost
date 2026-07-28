@@ -138,6 +138,27 @@ All environment variables are optional with sensible defaults.
 | -------- | ------------------------------------ | ------- |
 | `CI`     | Set automatically in CI environments | N/A     |
 
+#### Testcontainers
+
+Selects `testcontainers` mode — Playwright brings up the server + dependencies itself via [Testcontainers](https://node.testcontainers.org/) — instead of the `external` mode default, which expects a server already running at `PW_BASE_URL`.
+
+| Variable                             | Description                                                                                                                                                                                          | Default                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `PW_USE_TESTCONTAINERS`              | Selects `testcontainers` mode                                                                                                                                                                        | `false`                                                      |
+| `PW_TESTCONTAINERS_SERVICES`         | Comma-separated additional services to start (`openldap`, `keycloak`, `elasticsearch`, `opensearch`, `minio`, `azurite`); set to an empty string to start none                                       | `minio,openldap,keycloak,elasticsearch`                      |
+| `PW_TESTCONTAINERS_REUSE`            | Reuse containers across repeated local runs instead of recreating them; tear down with `npm run testcontainers:down` (requires `testcontainers.reuse.enable=true` in `~/.testcontainers.properties`) | `true`                                                       |
+| `PW_TESTCONTAINERS_CONTAINER_RUNNER` | Set when the Playwright process itself runs inside a Docker container (e.g. CI), to join it to the Testcontainers network                                                                            | `false`                                                      |
+| `SERVER_IMAGE`                       | Prebuilt Mattermost server image `testcontainers` mode starts                                                                                                                                        | `mattermostdevelopment/mattermost-enterprise-edition:master` |
+| `MM_ENV`                             | Comma-separated `KEY=VALUE` server config overrides, merged over the test baseline                                                                                                                   | none                                                         |
+| `PW_LDAP_HOST` / `PW_LDAP_PORT`      | OpenLDAP host/port (only used when `openldap` is started)                                                                                                                                            | `localhost` / `389`                                          |
+| `PW_KEYCLOAK_URL`                    | Keycloak URL (only used when `keycloak` is started)                                                                                                                                                  | `http://localhost:8484`                                      |
+| `PW_ELASTICSEARCH_URL`               | Elasticsearch URL (only used when `elasticsearch` is started)                                                                                                                                        | `http://localhost:9200`                                      |
+| `PW_OPENSEARCH_URL`                  | OpenSearch URL (only used when `opensearch` is started)                                                                                                                                              | `http://localhost:9201`                                      |
+| `PW_MINIO_URL`                       | Minio URL (only used when `minio` is started)                                                                                                                                                        | `http://localhost:9000`                                      |
+| `PW_AZURITE_URL`                     | Azurite URL (only used when `azurite` is started)                                                                                                                                                    | `http://localhost:10000`                                     |
+
+In `testcontainers` mode, these host/port defaults are never actually used — Testcontainers always assigns its own dynamic port or network alias per run, so a `testcontainers`-mode run can never collide with a same-machine `external`-mode session using the fixed defaults above. Tear a reused stack down explicitly with `npm run testcontainers:down` (from the `playwright/` package).
+
 ## Accessibility Testing
 
 The library includes built-in accessibility testing using [axe-core](https://github.com/dequelabs/axe-core):

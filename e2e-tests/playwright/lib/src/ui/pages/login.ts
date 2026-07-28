@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
-import {UserProfile} from '@mattermost/types/users';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {components} from '@/ui/components';
 
@@ -15,6 +16,7 @@ export default class LoginPage {
     readonly loginInput;
     readonly loginPlaceholder;
     readonly loginWithAdLdapPlaceholder;
+    readonly samlLoginButton;
     readonly passwordInput;
     readonly passwordToggleButton;
     readonly signInButton;
@@ -34,8 +36,9 @@ export default class LoginPage {
         this.subtitle = page.locator('text=Collaborate with your team in real-time');
         this.bodyCard = page.locator('.login-body-card-content');
         this.loginInput = page.locator('#input_loginId');
-        this.loginPlaceholder = page.locator(`[placeholder="Email or Username"]`);
-        this.loginWithAdLdapPlaceholder = page.locator(`[placeholder="Email, Username or AD/LDAP Username"]`);
+        this.loginPlaceholder = page.getByPlaceholder('Email or Username');
+        this.loginWithAdLdapPlaceholder = page.getByRole('textbox', {name: 'Email, Username or AD/LDAP Username'});
+        this.samlLoginButton = page.locator('#saml');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
         this.signInButton = page.locator('button:has-text("Log in")');
