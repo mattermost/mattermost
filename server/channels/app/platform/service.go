@@ -603,6 +603,14 @@ func (ps *PlatformService) Shutdown() error {
 		}
 	}
 
+	// Must be last: every other step above (notably HubStop) is a candidate
+	// to still attempt a cluster send after StopInterNodeCommunication has
+	// already run, so the cluster interface's own shutdown accounting needs
+	// everything above it to have already happened.
+	if ps.clusterIFace != nil {
+		ps.clusterIFace.Shutdown()
+	}
+
 	return nil
 }
 
