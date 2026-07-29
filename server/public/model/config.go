@@ -1135,11 +1135,9 @@ type ClusterSettings struct {
 	AdvertiseAddress        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	UseIPAddress            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	EnableGossipCompression *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	// Deprecated: use EnableGossipEncryption
-	EnableExperimentalGossipEncryption *bool `json:",omitempty"`
-	EnableGossipEncryption             *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                     *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int  `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableGossipEncryption  *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig          *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort              *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -1172,11 +1170,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.EnableGossipEncryption == nil {
-		if s.EnableExperimentalGossipEncryption != nil {
-			s.EnableGossipEncryption = new(*s.EnableExperimentalGossipEncryption)
-		} else {
-			s.EnableGossipEncryption = new(true)
-		}
+		s.EnableGossipEncryption = new(true)
 	}
 
 	if s.EnableGossipCompression == nil {

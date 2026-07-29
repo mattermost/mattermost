@@ -33,12 +33,6 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring this setting.
-				// TODO: remove it completely in v8.0.
-				if name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-					return
-				}
-
 				// Set every pointer we find in the tree to nil
 				v.Set(reflect.Zero(v.Type()))
 				require.True(t, v.IsNil())
