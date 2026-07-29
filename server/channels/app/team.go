@@ -1926,7 +1926,7 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	if err := a.checkForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
+	if err = a.checkForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
 		return err
 	}
 
@@ -1976,7 +1976,7 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	if err := a.checkForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
+	if err = a.checkForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
 		return err
 	}
 
