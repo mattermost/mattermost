@@ -31,8 +31,8 @@ type Props = {
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
-    // This button only syncs channel membership; when team ABAC is on, name the
-    // scope so a green success isn't mistaken for a team re-evaluation.
+    // This button syncs channel membership only; when team ABAC is on, name the
+    // scope so a green success isn't mistaken for a team re-sync.
     const teamAbacEnabled = useSelector(isTeamMembershipAccessControlEnabled);
 
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);

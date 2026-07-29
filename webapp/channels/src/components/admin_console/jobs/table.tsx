@@ -166,12 +166,11 @@ class JobTable extends React.PureComponent<Props, State> {
                     {!hideDetailsColumn && (
                         <td>{this.getExtraInfoText(job)}</td>
                     )}
-                    {/* onRowClick is only wired for ACCESS_CONTROL_SYNC, where the details
-                        column is hidden — keep it that way so this cell and its header stay aligned. */}
+                    {/* Only wired for ACCESS_CONTROL_SYNC, where the details column is
+                        hidden — keep it so, or this cell and its header misalign. */}
                     {this.props.onRowClick && (
                         <td className='view-details-field whitespace--nowrap'>
-                            {/* A real button so the action is keyboard-focusable; stopPropagation
-                                keeps the row's own onClick from firing a second time. */}
+                            {/* A button, not the row, so it's keyboard-focusable; stopPropagation avoids a double row click. */}
                             <Button
                                 type='button'
                                 emphasis='quaternary'
