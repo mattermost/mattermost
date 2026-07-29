@@ -80,10 +80,13 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Both per-object-type views (migration 000212) refresh together on one
-	// cadence, so every caller sees a consistent snapshot without needing to know
-	// which object types it is about to read. Refreshing only the view whose
-	// attributes actually changed is a scale follow-up.
+	// Both per-object-type views (migration 000212) refresh on one cadence, so a
+	// caller does not have to know which object types it is about to read. They
+	// refresh in separate statements, though, so this is not an atomic snapshot:
+	// a read straddling a refresh can see the two views a generation apart. Every
+	// consumer tolerates that — values are eventually consistent and the
+	// membership sync re-runs on cadence and converges. Refreshing only the view
+	// whose attributes actually changed is a scale follow-up.
 	for _, view := range []string{"UserAttributeView", "ChannelAttributeView"} {
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
 			return errors.Wrapf(err, "error refreshing materialized view %s", view)
