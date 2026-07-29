@@ -88,6 +88,7 @@ type AxeBuilderOptions = {
 };
 
 export const test = base.extend<ExtendedFixtures>({
+    // eslint-disable-next-line no-empty-pattern
     axe: async ({}, use) => {
         const ab = new AxeBuilderExtended();
         await use(ab);
