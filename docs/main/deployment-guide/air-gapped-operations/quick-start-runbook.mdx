@@ -1,53 +1,32 @@
 ---
-title: Quick-Start Runbook
+title: Deployment Overview
 sidebar_position: 1
-description: 12-step procedure to stand up a working Mattermost cluster in an air-gapped enclave from scratch.
+description: The high-level steps to prepare for and complete a self-hosted air-gapped Mattermost deployment.
 ---
 
-<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
 <DeploymentAvailability modes="self-hosted,air-gapped" />
 
-# Air-Gapped Quick-Start Runbook
+# Air-Gapped Deployment Overview
 
-This runbook brings a Mattermost cluster online inside a network-isolated enclave. It assumes you are the **deploying operator** with administrative access to the enclave's package mirror, container registry, certificate authority, and DNS.
+This is a summary of the steps involved in deploying Mattermost in an air-gapped environment.
 
-:::important[Prerequisites]
-- An enclave with internal-only DNS, an internal package mirror (Linux distro repos), and an internal container registry (Harbor / Artifactory / equivalent).
-- An offline-activatable Enterprise or Enterprise Advanced license — see [Offline License Activation](./offline-license-activation).
-- A staged Mattermost Server release tarball + checksums verified out-of-band, and a Mattermost Operator Helm chart (Kubernetes) or Linux package (`.deb` / `.rpm`).
-- A PostgreSQL database reachable from the Mattermost host(s) inside the enclave.
-- An NTP source reachable from inside the enclave.
-:::
+1.  **Select your preferred Mattermost deployment option.** This step is often dictated by the infrastructure already running in your air-gapped environment. If you're deploying from scratch, review our [server deployment documentation](/deployment-guide/server/server-deployment-planning#deployment-options) to select the optimal option given your organization's needs.
 
-## The 12 steps
+2.  **Set up a private container registry or package mirror.** Ideally the air-gapped environment already has a private container registry or package mirror available. If not, see [Bill of Materials and Registry Mirroring](./mirror-package-repositories) for setup guidance.
 
-1. **Stage the release artifacts on the operator workstation.** Download the Mattermost Server tarball, container images, Helm chart, and Vale + plugin assets from `releases.mattermost.com` on an internet-connected workstation. Verify SHA-256 checksums and PGP signatures against the published list. *Never* let a non-verified artifact cross the air gap.
-2. **Transfer artifacts across the air gap.** Use the enclave's approved transfer mechanism (one-way diode, manual media, or cross-domain solution). Re-verify checksums on the enclave side before staging in the internal mirror.
-3. **Publish artifacts to the internal package mirror and container registry.** Mirror the Linux package repos (Ubuntu, RHEL, SLES — whichever your hosts use) and push container images (e.g., `mattermost/mattermost-enterprise-edition`, `mattermost/mattermost-mobile-push-proxy`) to the internal registry. Tag images with the same version strings published upstream.
-4. **Provision PostgreSQL.** Provision the database inside the enclave per [Reference Architecture](/deployment-guide/reference-architecture/reference-architecture-index). Set `max_connections`, `shared_buffers`, and `effective_cache_size` per the [scale tier](/deployment-guide/reference-architecture/reference-architecture-index) you're targeting.
-5. **Configure DNS and TLS inside the enclave.** Create an internal DNS A record for the Mattermost host (e.g., `mattermost.enclave.example`). Issue a TLS certificate from your internal CA. Configure NGINX or your reverse proxy with [TLS](../server/setup-tls.mdx).
-6. **Install the Mattermost binary.** Install on Linux ([deploy-linux](../server/deploy-linux.mdx)), Kubernetes via the Mattermost Operator ([deploy-kubernetes](../server/deploy-kubernetes.mdx)), or containers ([deploy-containers](../server/deploy-containers.mdx)). Point image references at your internal registry, not Docker Hub.
-7. **Apply the air-gapped configuration profile.** See [Disable Phone-Home Features](./disable-phone-home-features) for the complete list. At minimum, disable: `EnableDiagnostics`, `EnableSecurityFixAlert`, `EnableMarketplace`, automated license utilization reporting, image proxy, and the in-product version check.
-8. **Activate the license.** Apply the offline license file produced by the Customer Account team — see [Offline License Activation](./offline-license-activation).
-9. **Mediate push notifications.** Apple APNs and Google FCM are reachable only from internet-connected networks. Deploy a mediated push proxy at your enclave boundary; see *Push Notifications without Direct APNs / FCM Egress* (Phase 2).
-10. **Configure NTP.** Mattermost relies on accurate clocks for token validation, audit-log timestamps, and rate-limiting. Point hosts at the enclave's internal NTP source.
-12. **Verify and run smoke tests.** Confirm the cluster passes the [post-install verification checklist](../server/server-deployment-planning.mdx). Run a manual smoke: log in as system admin, create a team, send a message, install one bundled plugin, trigger an audit-log export.
+3.  **Prepare your Bill of Materials.** Depending on your deployment method, you'll need to download, tag, and push required materials into your private registry or mirror.
 
-## Validation
+4.  **Transfer materials into the air-gapped environment.** If the private registry cannot access the public internet, you can prepare an archive of the registry data on your internet-connected machine and securely transfer it using approved data transfer methods — for example, burning to a disk.
 
-After completing all 12 steps, your air-gapped cluster should:
+5.  **Install Mattermost Server.** Once you have all the necessary resources in your air-gapped environment, you can move forward with deployment following the instructions for [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or [Docker](/deployment-guide/server/deploy-containers).
 
-- Reach the in-product login page over TLS from inside the enclave.
-- Authenticate users against your internal directory (AD/LDAP, SAML, OIDC) — no public IdP.
-- Make **no outbound DNS queries to public resolvers** during steady-state operation. Verify with packet capture at the enclave boundary.
-- Show no "Mattermost installation telemetry" or "Marketplace pings" in egress logs.
+6.  **Install Mattermost Desktop Apps.** Since air-gapped devices cannot access the publicly available app stores, you'll need to install the apps directly from the latest [packages available on our GitHub release page](https://github.com/mattermost/desktop/releases). You'll find [installation instructions](/deployment-guide/desktop/desktop-app-deployment) in our documentation based on your desired deployment method.
 
-## What this runbook does *not* cover
+7.  **Configure Mattermost for air-gapped operation.** See [Configure for Air-Gapped Operation](./disable-phone-home-features) for the settings that accommodate the lack of internet access.
 
-- **Hardening beyond the install procedure** — see [Security & Compliance → Hardening Guides](../../security-guide/security-guide-index.mdx).
-- **Upgrade procedure for an already-installed air-gapped cluster** — see *Air-Gapped Upgrade Procedure* (Phase 2).
-- **Tactical edge / DDIL operation** — for forward-deployed nodes that sync intermittently to a parent enclave, see *Tactical Edge / DDIL Operations* (Phase 2).
+<Tip>
 
-## Reference
+Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support deploying Mattermost and supporting services in an air-gapped environment.
 
-This runbook is modelled on GitLab's [Offline GitLab Quick Start Guide](https://docs.gitlab.com/topics/offline/quick_start_guide/) and Red Hat OpenShift's [Disconnected installation chapter](https://docs.okd.io/4.18/installing/disconnected_install/index.html). Both treat air-gapped deployment as a first-class, runbook-shaped operation rather than a "contact sales" stub.
+</Tip>
