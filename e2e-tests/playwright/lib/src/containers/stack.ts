@@ -68,7 +68,8 @@ type StartedStack = {
     network: StartedNetwork;
     postgres: StartedPostgreSqlContainer;
     inbucket: StartedTestContainer;
-    webhook: StartedTestContainer;
+    // Opt-in on older release branches (PW_TESTCONTAINERS_WEBHOOK=true); unused specs are omitted.
+    webhook?: StartedTestContainer;
     mattermost: StartedTestContainer;
     additional: Partial<Record<TestContainersServiceName, StartedTestContainer>>;
 };
@@ -116,9 +117,11 @@ export async function startStack(): Promise<void> {
     testConfig.testcontainersNetworkGatewayIp = await getNetworkGatewayIp(network.getId());
 
     const additionalNames = testConfig.testcontainersServices;
+    // Older release CI omits webhook-dependent specs; opt in with PW_TESTCONTAINERS_WEBHOOK=true.
+    const startWebhook = process.env.PW_TESTCONTAINERS_WEBHOOK === 'true';
 
     logTestcontainers(
-        `pulling/starting images: server, postgres, inbucket, webhook${additionalNames.length ? `, ${additionalNames.join(', ')}` : ''}`,
+        `pulling/starting images: server, postgres, inbucket${startWebhook ? ', webhook' : ''}${additionalNames.length ? `, ${additionalNames.join(', ')}` : ''}`,
     );
     await logServerImageAge(testConfig.serverImage);
 
@@ -154,7 +157,7 @@ export async function startStack(): Promise<void> {
         const [postgres, inbucket, webhook, ...additionalContainers] = await Promise.all([
             trackAndLog('postgres', startPostgresContainer(network)),
             trackAndLog('inbucket', startInbucketContainer(network)),
-            trackAndLog('webhook', startWebhookContainer(network)),
+            startWebhook ? trackAndLog('webhook', startWebhookContainer(network)) : Promise.resolve(undefined),
             ...additionalNames.map((name) => trackAndLog(name, ADDITIONAL_SERVICE_STARTERS[name](network))),
         ]);
 
@@ -217,8 +220,10 @@ function logStackReused(): void {
         `  - ${'server'.padEnd(13)} = ${testConfig.baseURL}`,
         `  - ${'postgres'.padEnd(13)} = ${testConfig.postgresUrl}`,
         `  - ${'inbucket'.padEnd(13)} = ${testConfig.smtpURL}`,
-        `  - ${'webhook'.padEnd(13)} = ${testConfig.webhookBaseUrl}`,
     ];
+    if (testConfig.webhookBaseUrl) {
+        lines.push(`  - ${'webhook'.padEnd(13)} = ${testConfig.webhookBaseUrl}`);
+    }
 
     const additionalUrls: Record<TestContainersServiceName, string> = {
         openldap: `${testConfig.ldapHost}:${testConfig.ldapPort}`,
@@ -279,7 +284,7 @@ export async function stopStack(options: {force?: boolean} = {}): Promise<void> 
         await Promise.allSettled([
             stack.mattermost.stop(),
             stack.inbucket.stop(),
-            stack.webhook.stop(),
+            stack.webhook?.stop(),
             stack.postgres.stop(),
             ...Object.values(stack.additional).map((container) => container?.stop()),
         ]);
@@ -452,8 +457,10 @@ function containerEntries(stack: StartedStack): Array<[string, StartedTestContai
         ['server', stack.mattermost, {alias: MATTERMOST_ALIAS, port: MATTERMOST_PORT, image: testConfig.serverImage}],
         ['postgres', stack.postgres, {alias: POSTGRES_ALIAS, port: POSTGRES_PORT, image: POSTGRES_IMAGE}],
         ['inbucket', stack.inbucket, {alias: INBUCKET_ALIAS, port: INBUCKET_WEB_PORT, image: INBUCKET_IMAGE}],
-        ['webhook', stack.webhook, {alias: WEBHOOK_ALIAS, port: WEBHOOK_PORT, image: 'built, webhook sidecar'}],
     ];
+    if (stack.webhook) {
+        base.push(['webhook', stack.webhook, {alias: WEBHOOK_ALIAS, port: WEBHOOK_PORT, image: 'built, webhook sidecar'}]);
+    }
 
     const additional = Object.entries(stack.additional)
         .filter((entry): entry is [TestContainersServiceName, StartedTestContainer] => entry[1] !== undefined)
@@ -530,7 +537,9 @@ function applyResolvedConfig(stack: StartedStack): void {
     testConfig.baseURL = resolveUrl(stack.mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
     testConfig.smtpURL = resolveUrl(stack.inbucket, INBUCKET_WEB_PORT, INBUCKET_ALIAS);
     testConfig.postgresUrl = resolvePostgresUrl(stack.postgres);
-    testConfig.webhookBaseUrl = resolveUrl(stack.webhook, WEBHOOK_PORT, WEBHOOK_ALIAS);
+    if (stack.webhook) {
+        testConfig.webhookBaseUrl = resolveUrl(stack.webhook, WEBHOOK_PORT, WEBHOOK_ALIAS);
+    }
     testConfig.testcontainersNetworkName = stack.network.getName();
     testConfig.mattermostContainerId = stack.mattermost.getId();
 
@@ -626,7 +635,7 @@ async function collectLogs(stack: StartedStack): Promise<void> {
         ['mattermost', stack.mattermost],
         ['postgres', stack.postgres],
         ['inbucket', stack.inbucket],
-        ['webhook', stack.webhook],
+        ...(stack.webhook ? [['webhook', stack.webhook] as [string, StartedTestContainer]] : []),
         ...Object.entries(stack.additional).filter(
             (entry): entry is [string, StartedTestContainer] => entry[1] !== undefined,
         ),
