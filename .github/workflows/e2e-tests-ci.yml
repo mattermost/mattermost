@@ -183,6 +183,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
       id-token: write
       pull-requests: write
@@ -210,6 +211,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
       id-token: write
       pull-requests: write
