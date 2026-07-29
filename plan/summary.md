@@ -84,7 +84,7 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 | 2 | Authors submit AI translations in the same PR; no CI auto-translator near-term | **Keep — resolved**: strict same-PR, backed by a documented generator; locale diffs get **no human review** (CI gates are the sole check) |
 | 3 | Unify all surveyed surfaces on the same 22-locale list and coverage bar | **Keep** |
 | 4 | Trim locales before bulk AI spend | **Keep** |
-| 5 | Review methodology: back-translation only | **Reject as sole review** — must add native sampling / identical-copy gates; back-translation misses copy-English and register |
+| 5 | Review methodology: back-translation only | **Reject as sole review** — add native sampling; back-translation misses copy-English and register. A one-time identical-to-`en` scan during the bulk pass finds existing bad files; **no ongoing CI gate** (decided) |
 | 6 | Handbook rewrite only after Weblate fully off | **Revise** — need a transition banner *before* cutover so guidance isn't contradictory |
 | 7 | Standardize filenames on hyphens (`en-AU.json`) | **Keep as product convention**; treat `zh_Hans`→`zh-CN` as compatibility mapping, not BCP-47 purity |
 | 8 | Fold WIP/Calls/Playbooks retirement into one Weblate notice | **Revise** — locale drops need explicit callouts, not fine print |
@@ -112,10 +112,11 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 1. **Locale set ≠ shipped files ≠ imports** — three different concepts
    already drift today (`imports.ts` vs JSON on disk vs supported list).
 2. **CI gap is misdiagnosed if called "no i18n CI"** — checks exist; they
-   don't enforce cross-locale parity, ICU/template integrity, or
-   identical-to-English spikes.
-3. **`en-AU` breaks naive identical-to-English gates** (~84–92% identical
-   is normal for that locale).
+   don't enforce cross-locale parity or ICU/template integrity.
+3. **Accepted risk (decided)**: with no identical-to-English gate and no
+   human review of locale diffs, an English string copy-pasted into all
+   22 locales passes CI silently; the correction workflow (step 5) is the
+   recourse.
 4. **mmgotool is not one binary**: platform vendors a copy; Calls installs
    `mattermost/tools/mmgotool@latest`; Playbooks pins
    `mattermost-utilities/mmgotool`.

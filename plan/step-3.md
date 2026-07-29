@@ -29,9 +29,9 @@ translation bot in v12.
 
 Decided policy: **strict same-PR** — translations for all 22 locales land
 in the same PR as the `en.json` change; no follow-up-PR pattern. **No
-human review of locale diffs** — CI gates (parity, syntax,
-identical-copy) are the sole check on translated hunks; reviewers focus
-on the English source string only.
+human review of locale diffs** — CI gates (parity, syntax) are the sole
+check on translated hunks; reviewers focus on the English source string
+only.
 
 - [ ] Document the exact generator path (script/prompt/Cursor skill)
       scoped to changed keys in the PR's `en.json` diff.
@@ -67,22 +67,19 @@ Today `mmgotool` exposes `extract` / `check` / `check-empty-src` /
 - [ ] Until plugins can adopt it, run equivalent checks in-repo or accept
   temporary platform-only coverage with an explicit gap list.
 
-### 3.5 Identical-to-source heuristic (thresholded)
+### 3.5 Identical-to-source: no gate (decided)
 
-Do **not** hard-fail every byte-identical value:
+**Deleted from scope.** An identical-to-English heuristic was proposed
+(thresholds + allowlists, `en-AU` exemption) because key-parity and
+structural-equality gates cannot see copy-pasted English. Owner decided
+to drop it entirely to trim scope: the existing backlog (Playbooks
+`zh_Hant`) is fixed once by the step-2 bulk pass, and no ongoing gate
+guards against recurrence.
 
-| Locale example | Approx. identical-to-`en` rate (surveyed) |
-|----------------|-------------------------------------------:|
-| `en-AU` (webapp/server/mobile/desktop) | ~84–92% (normal) |
-| `fr` (webapp / Playbooks) | ~3–6% (baseline) |
-| Playbooks `zh_Hant` (bad) | pathological spike |
-
-- [ ] Allowlist brands, product names, `{vars}`, URLs, commands.
-- [ ] Special-case English variants (`en-AU`).
-- [ ] Start as **warn** or fail only on file-level spikes / full-sentence
-  copies; tighten later.
-- [ ] This gate is orthogonal to structural-equality (copy-English is
-  syntactically perfect).
+**Accepted risk**: an author (or a misbehaving generator) filling locale
+files with the English source passes all CI gates silently; the step-5
+correction workflow is the recourse. Revisit only if this recurs in
+practice.
 
 ### 3.6 CI rollout
 
@@ -101,7 +98,7 @@ Do **not** hard-fail every byte-identical value:
 | No CI translator | **Accept + guardrails** | Still need a local/scripted generator — "just use AI" is not a workflow. |
 | `formatjs verify --extra-keys` (#13) | **Reject as stated** | Flag does not exist on pinned CLIs; implement custom extra-key check. |
 | Plugin FormatJS parity | **Reopen** | Older `@formatjs/cli` pins may not expose `verify`. |
-| Identical-to-`en` hard fail | **Reopen** | `en-AU` makes absolute fail unusable; use thresholds. |
+| Identical-to-`en` hard fail | **Resolved — gate deleted** | Threshold design was debated (`en-AU` ~84–92% identical is normal); owner removed the gate from scope entirely. |
 | mmgotool one release path | **Reopen** | Platform vendored vs Calls `@latest` vs Playbooks utilities pin. |
 | Weblate overlap OK (#14) | **Resolved — freeze first** | Owner confirmed: freeze Weblate writes first; AI translations supersede Weblate content from then on. |
 
@@ -109,8 +106,9 @@ Do **not** hard-fail every byte-identical value:
 
 - Locale hunks are unreviewed by design — quality rests entirely on the
   generator and CI gates; a gap in the gates ships silently.
-- Authors skip generator and paste English into 22 files — passes key
-  parity without identical-copy gate.
+- **Accepted (decided)**: English copy-paste into locale files passes all
+  gates — no identical-copy check exists; corrections (step 5) are the
+  recourse.
 - Plugins lag on tool upgrades → uneven enforcement.
 
 ## Acceptance criteria
@@ -119,14 +117,13 @@ Do **not** hard-fail every byte-identical value:
 - [ ] Mobile `CLAUDE.md` (and equivalents) no longer forbid locale edits.
 - [ ] CI fails on missing keys for gated repos.
 - [ ] CI runs structural/template checks appropriate to JS/Go.
-- [ ] Identical-to-source policy documented with `en-AU` exemption /
-  threshold.
 - [ ] Weblate writes frozen for gated locale paths before gates enable.
 
 ## Open questions
 
 1. Is `en-AU` required to diverge, or mostly inherit `en` with a small
-   overlay?
+   overlay? (With the identical-copy gate deleted, this is now purely a
+   content policy question — no CI implications.)
 2. ~~Who reviews 22-locale AI diffs in product PRs?~~ **Resolved: no
    human reviewers — CI gates are the sole check on locale diffs.**
 3. ~~Hard gate start date vs Weblate freeze date?~~ **Resolved: freeze

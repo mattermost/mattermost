@@ -42,7 +42,7 @@ Offer more than "open a PR against JSON":
 - [ ] Document how triage turns an issue into a locale JSON PR.
 - [ ] Reuse step 2/3 context bundle for the single key when regenerating
   or manually editing.
-- [ ] Run syntax + identical-copy checks before merge.
+- [ ] Run syntax checks before merge.
 - [ ] Publish a triage SLA (e.g. first response / patch target).
 
 ### 5.4 Review checklist for correction PRs

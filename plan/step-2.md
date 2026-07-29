@@ -72,7 +72,9 @@ Bundle contents:
 - Glossary/rule hits as **high-priority constraints** (not blind hard
   overrides that break inflection)
 - 3–5 sibling few-shot examples from the same namespace/locale
-- Anti-identical-copy instruction with allowlist policy
+- Prompt instruction not to return the English source verbatim unless
+  genuinely identical (brands, proper nouns) — generation-time only; no
+  allowlist machinery or CI gate (decided)
 
 Authoring-tier artifacts (decision #17): consume Calls `temp.json` /
 `formatjs --extract-source-location` when present; do not block the wave
@@ -92,8 +94,9 @@ on full `mmjstool`/`mmgotool` metadata work.
 - [ ] Key parity (no missing / unexpected extras)
 - [ ] Syntax: `formatjs verify --structural-equality` (JS);
   template/token checks (Go — whatever minimum exists)
-- [ ] Identical-to-source heuristic with **thresholds + allowlists**
-  (see Challenges — `en-AU` is normally ~84–92% identical)
+- [ ] One-time identical-to-`en` scan of bulk output to catch
+  copy-English generator failures **in this pass only** — no ongoing CI
+  gate ships (decided); `en-AU` excluded (~84–92% identical is normal)
 - [ ] Back-translation as a **semantic drift** signal, not the sole gate
 - [ ] Native-speaker / language-expert sampling for: glossary locales,
   RTL/Persian, high-visibility UI, and any locale that fails automated
@@ -124,7 +127,7 @@ Suggested order (adjust with owners):
 | Review *all* existing translations | **Narrow first** | Gaps + flagged + high-risk ICU first; expand if needed. |
 | Single sweep all six codebases | **Reject** | Nine surfaces, two syntaxes, multiple tools — wave landings. |
 | Wait for all step-1 tooling | **Do not** | Wait for trim, names, parity inventory, minimum validators only. |
-| Anti-identical allowlist | **Needs design** | Scope by key+locale+reason; exempt brands/vars/URLs; fail file-level spikes and full-sentence copies. |
+| Anti-identical allowlist | **Resolved — dropped** | Owner deleted the identical-copy gate from scope; only a one-time scan of this pass's output remains, with no allowlist machinery. |
 
 ## Risks
 
@@ -150,6 +153,7 @@ Suggested order (adjust with owners):
 1. Who signs off that back-translation **plus sampling** is enough?
 2. Are German/French/Dutch handbook rules current and authoritative?
 3. Should AI overwrite unflagged human translations at all in v12?
-4. What identical-copy threshold fails a locale file (per locale family)?
+4. ~~What identical-copy threshold fails a locale file?~~ **Resolved: no
+   ongoing gate — one-time scan of bulk output only.**
 5. ~~Soft spend budget and stop/go owner?~~ **Resolved: unlimited spend,
    no budget requirements.**
