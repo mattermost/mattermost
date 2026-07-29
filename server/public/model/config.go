@@ -1235,8 +1235,6 @@ func (s *MetricsSettings) isValid() *AppError {
 }
 
 type ExperimentalSettings struct {
-	// Deprecated: This field is no longer in use, server will fail to start if enabled.
-	ClientSideCertEnable                                  *bool  `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64 `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool  `access:"*_read,write_restrictable"`
 	EnableSharedChannels                                  *bool  `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
@@ -1251,10 +1249,6 @@ type ExperimentalSettings struct {
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
-	if s.ClientSideCertEnable == nil {
-		s.ClientSideCertEnable = new(false)
-	}
-
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = new(int64(ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds))
 	}
@@ -4567,9 +4561,6 @@ func (s *TeamSettings) isValid() *AppError {
 }
 
 func (s *ExperimentalSettings) isValid() *AppError {
-	if *s.ClientSideCertEnable {
-		return NewAppError("Config.IsValid", "model.config.is_valid.client_side_cert_enable.app_error", nil, "", http.StatusBadRequest)
-	}
 
 	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
