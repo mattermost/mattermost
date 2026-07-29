@@ -39,6 +39,10 @@ export function getRandomId(length = 7): string {
         .substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 }
 
+export function newTestPassword(): string {
+    return 'Passwd4Testing!';
+}
+
 // Default team is meant for sysadmin's primary team,
 // selected for compatibility with existing local development.
 // It should not be used for testing.
