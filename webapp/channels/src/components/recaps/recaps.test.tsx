@@ -4,15 +4,18 @@
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import Recaps from './recaps';
 
-const mockDispatch = jest.fn();
+const mockDispatch = jest.fn(() => Promise.resolve({data: []}));
 const mockGetAgents = jest.fn(() => ({type: 'GET_AGENTS'}));
 const mockGetRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_RECAPS', meta: {page, perPage}}));
+const mockGetScheduledRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_SCHEDULED_RECAPS', meta: {page, perPage}}));
+const mockFetchRecapLimitStatus = jest.fn(() => ({type: 'GET_RECAP_LIMIT_STATUS'}));
+const mockMarkRecapsAsViewed = jest.fn(() => ({type: 'MARK_RECAPS_VIEWED'}));
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};
 });
@@ -29,12 +32,17 @@ jest.mock('mattermost-redux/actions/agents', () => ({
 
 jest.mock('mattermost-redux/actions/recaps', () => ({
     getRecaps: (page: number, perPage: number) => mockGetRecaps(page, perPage),
+    getScheduledRecaps: (page: number, perPage: number) => mockGetScheduledRecaps(page, perPage),
+    getRecapLimitStatus: () => mockFetchRecapLimitStatus(),
+    markRecapsAsViewed: () => mockMarkRecapsAsViewed(),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/recaps', () => ({
     getAllRecaps: jest.fn(() => []),
     getUnreadRecaps: jest.fn(() => []),
     getReadRecaps: jest.fn(() => []),
+    getAllScheduledRecaps: jest.fn(() => []),
+    getRecapLimitStatus: jest.fn(() => null),
 }));
 
 jest.mock('actions/views/lhs', () => ({
@@ -55,10 +63,13 @@ describe('components/recaps/Recaps', () => {
         mockDispatch.mockClear();
         mockGetAgents.mockClear();
         mockGetRecaps.mockClear();
+        mockGetScheduledRecaps.mockClear();
+        mockFetchRecapLimitStatus.mockClear();
+        mockMarkRecapsAsViewed.mockClear();
         mockSelectLhsItem.mockClear();
     });
 
-    test('selects Recaps in the LHS on mount', () => {
+    test('selects Recaps in the LHS on mount', async () => {
         renderWithContext(
             <MemoryRouter>
                 <Recaps/>
@@ -67,9 +78,17 @@ describe('components/recaps/Recaps', () => {
 
         expect(mockSelectLhsItem).toHaveBeenCalledWith(LhsItemType.Page, LhsPage.Recaps);
         expect(mockGetRecaps).toHaveBeenCalledWith(0, 60);
+        expect(mockGetScheduledRecaps).toHaveBeenCalledWith(0, 60);
         expect(mockGetAgents).toHaveBeenCalled();
+        expect(mockFetchRecapLimitStatus).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'SELECT_LHS_ITEM'}));
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'GET_RECAPS'}));
+        expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'GET_SCHEDULED_RECAPS'}));
         expect(mockDispatch).toHaveBeenCalledWith({type: 'GET_AGENTS'});
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'GET_RECAP_LIMIT_STATUS'});
+
+        // markRecapsAsViewed runs asynchronously after getRecaps resolves.
+        await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'MARK_RECAPS_VIEWED'});
     });
 });

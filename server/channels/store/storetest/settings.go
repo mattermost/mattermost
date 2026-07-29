@@ -87,8 +87,8 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxLifetimeMilliseconds:       new(int),
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
-		Trace:                             model.NewPointer(false),
-		AtRestEncryptKey:                  model.NewPointer(model.NewRandomString(32)),
+		Trace:                             new(false),
+		AtRestEncryptKey:                  new(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
 		AnalyticsQueryTimeout:             new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
@@ -154,7 +154,7 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 		panic("unsupported driver " + driver)
 	}
 
-	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
+	settings.ReplicaMonitorIntervalSeconds = new(5)
 
 	return settings
 }

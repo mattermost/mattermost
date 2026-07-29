@@ -106,6 +106,9 @@ type Routes struct {
 
 	Recaps *mux.Router // 'api/v4/recaps'
 
+	ScheduledRecaps *mux.Router // 'api/v4/scheduled_recaps'
+	ScheduledRecap  *mux.Router // 'api/v4/scheduled_recaps/{scheduled_recap_id:[A-Za-z0-9]+}'
+
 	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
@@ -171,10 +174,14 @@ type Routes struct {
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
-	Properties     *mux.Router // 'api/v4/properties'
-	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
-	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
-	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	Boards *mux.Router // 'api/v4/boards'
+
+	Properties           *mux.Router // 'api/v4/properties'
+	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyFieldsSearch *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
+	PropertyValues       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	PropertySystemValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
 }
 
 type API struct {
@@ -270,6 +277,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
 	api.BaseRoutes.Recaps = api.BaseRoutes.APIRoot.PathPrefix("/recaps").Subrouter()
+	api.BaseRoutes.ScheduledRecaps = api.BaseRoutes.APIRoot.PathPrefix("/scheduled_recaps").Subrouter()
+	api.BaseRoutes.ScheduledRecap = api.BaseRoutes.ScheduledRecaps.PathPrefix("/{scheduled_recap_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
@@ -331,10 +340,14 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
+	api.BaseRoutes.Boards = api.BaseRoutes.APIRoot.PathPrefix("/boards").Subrouter()
+
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
 	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -358,6 +371,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitBrand()
 	api.InitJob()
 	api.InitRecap()
+	api.InitScheduledRecap()
 	api.InitCommand()
 	api.InitStatus()
 	api.InitWebSocket()
@@ -383,6 +397,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
 	api.InitView()
+	api.InitBoard()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()
@@ -507,6 +522,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
 	api.InitAccessControlPolicyLocal()
+	api.InitStatusLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import AnnouncementBannerFeatureDiscovery from './announcement_banner';
+import ClassificationMarkingsFeatureDiscovery from './classification_markings';
 import ComplianceExportFeatureDiscovery from './compliance_export';
 import CustomTermsOfServiceFeatureDiscovery from './custom_terms_of_service';
 import DataRetentionFeatureDiscovery from './data_retention';
+import DataSpillageFeatureDiscovery from './data_spillage';
 import GitLabFeatureDiscovery from './gitlab';
 import GroupsFeatureDiscovery from './groups';
 import GuestAccessFeatureDiscovery from './guest_access';
@@ -22,8 +24,10 @@ export {
     OpenIDCustomFeatureDiscovery,
     GitLabFeatureDiscovery,
     AnnouncementBannerFeatureDiscovery,
+    ClassificationMarkingsFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
+    DataSpillageFeatureDiscovery,
     DataRetentionFeatureDiscovery,
     GuestAccessFeatureDiscovery,
     SystemRolesFeatureDiscovery,

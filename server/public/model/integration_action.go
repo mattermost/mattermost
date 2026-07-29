@@ -14,9 +14,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"math/big"
 	"net/http"
+	"net/url"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -37,7 +40,13 @@ const (
 	DialogElementTextareaMaxLength    = 3000
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
+	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	MaxDialogFileIds                  = 10
+	// MaxDialogSubmissionIDShapedTokenScan bounds defense-in-depth scanning of
+	// request.Submission for ID-shaped tokens (file IDs, user/channel select values,
+	// etc.). This is not the per-dialog file upload limit — see MaxDialogFileIds.
+	MaxDialogSubmissionIDShapedTokenScan = 256
 
 	// Go date/time format constants
 	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD
@@ -55,16 +64,99 @@ var commonDateTimeFormats = []string{
 	ISODateTimeNoSecondsFormat,    // ISO datetime without seconds
 }
 
-var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
+var PostActionRetainPropKeys = []string{
+	PostPropsFromWebhook,
+	PostPropsFromBot,
+	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+}
+
+// PostActionPreserve captures post fields preserved across an interactive action update.
+type PostActionPreserve struct {
+	Retain               map[string]any
+	Remove               []string
+	OriginalProps        map[string]any
+	OriginalIsPinned     bool
+	OriginalHasReactions bool
+	RootPostId           string
+}
+
+// PostActionPreserveState returns retain/remove props and metadata used when applying integration responses.
+func (o *Post) PostActionPreserveState() PostActionPreserve {
+	retain := map[string]any{}
+	remove := []string{}
+	for _, key := range PostActionRetainPropKeys {
+		value, ok := o.GetProps()[key]
+		if ok {
+			retain[key] = value
+		} else {
+			remove = append(remove, key)
+		}
+	}
+	rootPostId := o.Id
+	if o.RootId != "" {
+		rootPostId = o.RootId
+	}
+	var originalProps map[string]any
+	if props := o.GetProps(); props != nil {
+		originalProps = make(map[string]any, len(props))
+		maps.Copy(originalProps, props)
+	}
+	return PostActionPreserve{
+		Retain:               retain,
+		Remove:               remove,
+		OriginalProps:        originalProps,
+		OriginalIsPinned:     o.IsPinned,
+		OriginalHasReactions: o.HasReactions,
+		RootPostId:           rootPostId,
+	}
+}
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option,omitempty"`
-	Cookie         string `json:"cookie,omitempty"`
+	SelectedOption string            `json:"selected_option,omitempty"`
+	Cookie         string            `json:"cookie,omitempty"`
+	Query          map[string]string `json:"query,omitempty"`
+	// IntegrationFormat identifies which format originally had the action (attachment, mm_block, ...).
+	// Empty means a legacy client and is treated as attachment.
+	IntegrationFormat string `json:"integration_format,omitempty"`
+}
+
+// Integration format values for DoPostActionRequest.IntegrationFormat (client → server).
+const (
+	PostActionIntegrationFormatAttachment  = "attachment"
+	PostActionIntegrationFormatAppsBinding = "apps_binding"
+	PostActionIntegrationFormatBlock       = "block"
+	PostActionIntegrationFormatCard        = "card"
+	PostActionIntegrationFormatMmBlock     = "mm_block"
+)
+
+// NormalizePostActionIntegrationFormat returns a canonical integration format, defaulting to attachment when empty or unknown.
+func NormalizePostActionIntegrationFormat(s string) string {
+	c := strings.TrimSpace(strings.ToLower(s))
+	switch c {
+	case PostActionIntegrationFormatMmBlock,
+		PostActionIntegrationFormatAppsBinding,
+		PostActionIntegrationFormatBlock,
+		PostActionIntegrationFormatCard:
+		return c
+	case PostActionIntegrationFormatAttachment, "":
+		return PostActionIntegrationFormatAttachment
+	default:
+		return PostActionIntegrationFormatAttachment
+	}
 }
 
 const (
 	PostActionDataSourceUsers    = "users"
 	PostActionDataSourceChannels = "channels"
+
+	MaxMmBlocksActionsPerPost  = 50
+	MaxMmBlocksActionKeyLength = 64
+
+	MaxActionQueryEntries     = 50
+	MaxActionQueryKeyLength   = 128
+	MaxActionQueryValueLength = 2048
 )
 
 type PostAction struct {
@@ -262,9 +354,11 @@ func (p *PostAction) Equals(input *PostAction) bool {
 
 // PostActionCookie is set by the server, serialized and encrypted into
 // PostAction.Cookie. The clients should hold on to it, and include it with
-// subsequent DoPostAction requests.  This allows the server to access the
+// subsequent DoPostAction requests. This allows the server to access the
 // action metadata even when it's not available in the database, for ephemeral
-// posts.
+// posts. Used for attachment-based interactive messages (legacy PostAction shape).
+//
+// mm_blocks uses [MmBlocksActionCookie] instead; see mm_blocks_actions.go.
 type PostActionCookie struct {
 	Type        string                 `json:"type,omitempty"`
 	PostId      string                 `json:"post_id,omitempty"`
@@ -274,6 +368,23 @@ type PostActionCookie struct {
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	RetainProps map[string]any         `json:"retain_props,omitempty"`
 	RemoveProps []string               `json:"remove_props,omitempty"`
+}
+
+// MmBlocksActionCookieKind is the JSON "kind" discriminator for [MmBlocksActionCookie] payloads.
+const MmBlocksActionCookieKind = "mm_blocks_actions"
+
+// MmBlocksActionCookie is the decrypted cookie payload for mm_blocks interactive messages
+// (encrypted into props.mm_blocks_actions for clients). It mirrors the shared post/channel
+// metadata of [PostActionCookie] but carries props.mm_blocks_actions as an actions map instead
+// of a single PostAction integration.
+type MmBlocksActionCookie struct {
+	Kind        string                    `json:"kind,omitempty"`
+	PostId      string                    `json:"post_id,omitempty"`
+	RootPostId  string                    `json:"root_post_id,omitempty"`
+	ChannelId   string                    `json:"channel_id,omitempty"`
+	RetainProps map[string]any            `json:"retain_props,omitempty"`
+	RemoveProps []string                  `json:"remove_props,omitempty"`
+	Actions     map[string]map[string]any `json:"actions"`
 }
 
 type PostActionOptions struct {
@@ -319,10 +430,16 @@ type PostActionIntegrationResponse struct {
 	Update           *Post  `json:"update"`
 	EphemeralText    string `json:"ephemeral_text"`
 	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	GotoLocation     string `json:"goto_location,omitempty"`
 }
 
 type PostActionAPIResponse struct {
-	Status    string `json:"status"` // needed to maintain backwards compatibility
+	Status       string `json:"status"` // needed to maintain backwards compatibility
+	TriggerId    string `json:"trigger_id"`
+	GotoLocation string `json:"goto_location,omitempty"`
+}
+
+type ExecuteDialogActionResponse struct {
 	TriggerId string `json:"trigger_id"`
 }
 
@@ -340,11 +457,18 @@ type Dialog struct {
 
 // DialogDateTimeConfig groups date/datetime specific configuration
 type DialogDateTimeConfig struct {
+	// MinDate: Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+	MinDate string `json:"min_date,omitempty"`
+	// MaxDate: Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
+	MaxDate string `json:"max_date,omitempty"`
 	// TimeInterval: Minutes between time options in dropdown (default: 60)
 	TimeInterval int `json:"time_interval,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
-	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	// ManualTimeEntry: Allow manual text entry for time instead of dropdown
+	ManualTimeEntry bool `json:"manual_time_entry,omitempty"`
+	// Deprecated: Use ManualTimeEntry instead. Kept for backward compatibility;
+	// when both are provided, either field being true enables manual time entry.
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
@@ -363,15 +487,56 @@ type DialogElement struct {
 	DataSourceURL string               `json:"data_source_url,omitempty"`
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
+	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+	// Deprecated: Use DateTimeConfig.MinDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MinDate takes precedence.
+	MinDate string `json:"min_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.MaxDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MaxDate takes precedence.
+	MaxDate string `json:"max_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its TimeInterval takes precedence.
+	TimeInterval int `json:"time_interval,omitempty"`
 
-	// Simple date/datetime configuration (fallback when datetime_config not provided)
-	MinDate      string `json:"min_date,omitempty"`
-	MaxDate      string `json:"max_date,omitempty"`
-	TimeInterval int    `json:"time_interval,omitempty"`
+	// Action button configuration (type "action_button")
+	ActionButton *DialogActionButton `json:"action_button,omitempty"`
+}
+
+// EffectiveDateTimeConfig returns the resolved date/datetime configuration by
+// merging DateTimeConfig over the deprecated top-level fields (MinDate, MaxDate,
+// TimeInterval). DateTimeConfig values take precedence when set.
+func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
+	cfg := DialogDateTimeConfig{
+		MinDate:      e.MinDate,
+		MaxDate:      e.MaxDate,
+		TimeInterval: e.TimeInterval,
+	}
+	if e.DateTimeConfig != nil {
+		if e.DateTimeConfig.MinDate != "" {
+			cfg.MinDate = e.DateTimeConfig.MinDate
+		}
+		if e.DateTimeConfig.MaxDate != "" {
+			cfg.MaxDate = e.DateTimeConfig.MaxDate
+		}
+		if e.DateTimeConfig.TimeInterval != 0 {
+			cfg.TimeInterval = e.DateTimeConfig.TimeInterval
+		}
+		cfg.LocationTimezone = e.DateTimeConfig.LocationTimezone
+		// ManualTimeEntry is OR'd with the deprecated AllowManualTimeEntry. Booleans can't
+		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
+		// so either field being true must enable the feature during the deprecation window.
+		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
+	}
+	return cfg
+}
+
+type DialogActionButton struct {
+	URL     string            `json:"url"`
+	Context map[string]string `json:"context,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -390,6 +555,7 @@ type SubmitDialogRequest struct {
 	TeamId     string         `json:"team_id"`
 	Submission map[string]any `json:"submission"`
 	Cancelled  bool           `json:"cancelled"`
+	FileIds    []string       `json:"file_ids,omitempty"`
 }
 
 type SubmitDialogResponseType string
@@ -406,6 +572,13 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 	Type   string            `json:"type,omitempty"`
 	Form   *Dialog           `json:"form,omitempty"`
+}
+
+type ExecuteDialogActionRequest struct {
+	URL       string            `json:"url"`
+	Context   map[string]string `json:"context,omitempty"`
+	ChannelId string            `json:"channel_id"`
+	TeamId    string            `json:"team_id"`
 }
 
 func (r *SubmitDialogResponse) IsValid() error {
@@ -612,6 +785,10 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
 	}
 
+	if e.AllowMultiple && e.Type != "file" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -667,26 +844,68 @@ func (e *DialogElement) IsValid() error {
 		}
 
 	case "date":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MaxDate))
 
 	case "datetime":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MaxDate))
 		// Validate time_interval for datetime fields (0 means omitted — treated as default)
-		timeInterval := e.TimeInterval
+		timeInterval := cfg.TimeInterval
 		if timeInterval != 0 {
 			if timeInterval < 1 || timeInterval > 1440 {
 				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
 			} else if 1440%timeInterval != 0 {
 				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
 			}
+		}
+
+	case "file":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
+		if e.Default != "" {
+			ids := strings.Split(e.Default, ",")
+			parsedIds := make([]string, 0, len(ids))
+			for _, id := range ids {
+				id = strings.TrimSpace(id)
+				if id == "" {
+					continue
+				}
+				if !IsValidId(id) {
+					multiErr = multierror.Append(multiErr, errors.Errorf("default file ID %q is not a valid ID", id))
+					continue
+				}
+				parsedIds = append(parsedIds, id)
+			}
+			if !e.AllowMultiple && len(parsedIds) > 1 {
+				multiErr = multierror.Append(multiErr, errors.New("default may not contain more than one file ID when allow_multiple is false"))
+			}
+			if len(parsedIds) > MaxDialogFileIds {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(parsedIds)))
+			}
+		}
+		if len(e.Options) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have options"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have a data source"))
+		}
+
+	case "action_button":
+		if e.ActionButton == nil {
+			multiErr = multierror.Append(multiErr, errors.New("action_button element requires action_button configuration"))
+		} else if e.ActionButton.URL == "" {
+			multiErr = multierror.Append(multiErr, errors.New("action_button requires a non-empty URL"))
+		} else if !IsValidLookupURL(e.ActionButton.URL) {
+			multiErr = multierror.Append(multiErr, errors.Wrap(errors.New("invalid URL"), "invalid action_button URL"))
 		}
 
 	default:
@@ -832,6 +1051,7 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
+	o.StripMmBlocksActionSecrets()
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -842,7 +1062,185 @@ func (o *Post) GetAction(id string) *PostAction {
 			}
 		}
 	}
+	if spec := o.GetMmBlocksActionSpec(id); spec != nil && spec.Type == MmBlocksActionTypeExternal && spec.URL != "" {
+		// Synthesize a PostAction so the existing click pipeline can
+		// dispatch without branching on action source. Pre-merge the
+		// spec's static per-action query into the URL here; per-click
+		// query (from DoPostActionRequest.Query) is merged on top by the
+		// caller via MergeQueryIntoURL, with per-click overriding static
+		// values on overlapping keys.
+		url := spec.URL
+		if len(spec.Query) > 0 {
+			merged, err := MergeQueryIntoURL(spec.URL, spec.Query)
+			if err != nil {
+				// Spec URL is malformed. ValidateMmBlocksActions
+				// should have rejected it at save time, so this is a
+				// belt-and-suspenders guard. Returning nil routes the
+				// caller through the standard "action not found"
+				// 404 path rather than firing a request to a URL
+				// that's missing the static query params.
+				return nil
+			}
+			url = merged
+		}
+		return &PostAction{
+			Id:   id,
+			Type: PostActionTypeButton,
+			Integration: &PostActionIntegration{
+				URL:     url,
+				Context: spec.Context,
+			},
+		}
+	}
 	return nil
+}
+
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+
+// ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
+// expected shape and bounds. Each entry must coerce to a valid spec via
+// mmBlocksEntryMapToSpec.
+func ValidateMmBlocksActions(o *Post) error {
+	referenced := CollectInteractiveActionIDsFromPost(o)
+	raw := o.GetProp(PostPropsMmBlocksActions)
+	if raw == nil {
+		if len(referenced) > 0 {
+			return fmt.Errorf("interactive content requires mm_blocks_actions")
+		}
+		return nil
+	}
+	actions, ok := coerceToStringAnyMap(raw)
+	if !ok {
+		return fmt.Errorf("mm_blocks_actions must be a map")
+	}
+	if len(actions) > MaxMmBlocksActionsPerPost {
+		return fmt.Errorf("mm_blocks_actions exceeds maximum of %d entries", MaxMmBlocksActionsPerPost)
+	}
+	for key, entry := range actions {
+		if len(key) > MaxMmBlocksActionKeyLength {
+			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
+		}
+		if !mmBlocksActionIDRegex.MatchString(key) {
+			return fmt.Errorf("mm_blocks_actions key %q must contain only letters, numbers, underscores, or hyphens", key)
+		}
+		entryMap, ok := coerceToStringAnyMap(entry)
+		if !ok {
+			return fmt.Errorf("mm_blocks_actions entry %q must be an object", key)
+		}
+		spec := mmBlocksEntryMapToSpec(entryMap)
+		if spec == nil {
+			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
+		}
+		switch spec.Type {
+		case MmBlocksActionTypeExternal:
+			if err := validateIntegrationURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			// Bound the per-spec static query so a bot cannot stash
+			// unbounded data in the post that gets merged into the
+			// outgoing URL on every click.
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
+			// Bound entry count and key length on the static context.
+			// Values are arbitrary JSON, so size is constrained by the
+			// outer post-size limit; we cap entries to prevent crafted
+			// posts from inflating GetAction's clone cost.
+			if len(spec.Context) > MaxActionQueryEntries {
+				return fmt.Errorf("mm_blocks_actions entry %q context exceeds maximum of %d entries", key, MaxActionQueryEntries)
+			}
+			for k := range spec.Context {
+				if len(k) > MaxActionQueryKeyLength {
+					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
+				}
+			}
+		case MmBlocksActionTypeOpenURL:
+			if err := validateOpenURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
+		}
+	}
+	return validateMmBlocksActionsPairing(o, actions)
+}
+
+// ValidateActionQuery bounds the size of user-supplied per-click query
+// parameters so a crafted post cannot trigger unbounded memory use in the
+// plugin-request path.
+func ValidateActionQuery(q map[string]string) error {
+	if len(q) > MaxActionQueryEntries {
+		return fmt.Errorf("query exceeds maximum of %d entries", MaxActionQueryEntries)
+	}
+	for key, value := range q {
+		if len(key) > MaxActionQueryKeyLength {
+			return fmt.Errorf("query key exceeds %d chars", MaxActionQueryKeyLength)
+		}
+		if len(value) > MaxActionQueryValueLength {
+			return fmt.Errorf("query value for %q exceeds %d chars", key, MaxActionQueryValueLength)
+		}
+	}
+	return nil
+}
+
+func validateIntegrationURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if !(strings.HasPrefix(rawURL, "/plugins/") || strings.HasPrefix(rawURL, "plugins/") || IsValidHTTPURL(rawURL)) {
+		return fmt.Errorf("must have a valid integration URL")
+	}
+	// Reject path-traversal segments. /plugins/ URLs are routed by the
+	// local server, so a `..` segment can escape the plugin namespace and
+	// hit unrelated server routes. url.Parse decodes percent-encoded path
+	// bytes into u.Path, which is the same single decode pass that
+	// doPluginRequest performs at dispatch — so encoded forms like
+	// %2e%2e%2f are caught here symmetrically with how the router would
+	// resolve them.
+	u, parseErr := url.Parse(rawURL)
+	if parseErr != nil {
+		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
+	}
+	if pathHasTraversalSegment(u.Path) {
+		return fmt.Errorf("integration URL must not contain path traversal segments")
+	}
+	return nil
+}
+
+// validateOpenURL bounds openURL goto targets. Relative paths (/) are used
+// for in-app navigation via applyIntegrationGotoLocation; http(s) URLs open in
+// a new tab. Plugin integration paths are not allowed here — those belong on
+// external actions.
+func validateOpenURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if strings.HasPrefix(rawURL, "/") {
+		if strings.HasPrefix(rawURL, "//") {
+			return fmt.Errorf("must not be a protocol-relative URL")
+		}
+		if strings.HasPrefix(rawURL, "/plugins/") {
+			return fmt.Errorf("plugin paths are not allowed for openURL actions")
+		}
+		u, parseErr := url.Parse(rawURL)
+		if parseErr != nil {
+			return fmt.Errorf("must have a valid path: %w", parseErr)
+		}
+		if pathHasTraversalSegment(u.Path) {
+			return fmt.Errorf("must not contain path traversal segments")
+		}
+		return nil
+	}
+	if !IsValidHTTPURL(rawURL) {
+		return fmt.Errorf("must have a valid http or https URL, or a path starting with /")
+	}
+	return nil
+}
+
+func pathHasTraversalSegment(path string) bool {
+	return strings.Contains(path, "/../") || strings.HasSuffix(path, "/..") ||
+		path == "/.." || strings.HasPrefix(path, "/..")
 }
 
 func (o *Post) GenerateActionIds() {
@@ -895,14 +1293,18 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 			}
 
 			b, _ := json.Marshal(c)
-			action.Cookie, _ = encryptPostActionCookie(string(b), secret)
+			action.Cookie, _ = EncryptPostActionCookie(string(b), secret)
 		}
 	}
+
+	AddMmBlocksActionCookies(p, secret)
 
 	return p
 }
 
-func encryptPostActionCookie(plain string, secret []byte) (string, error) {
+// EncryptPostActionCookie encrypts a plaintext post action cookie payload.
+// Exposed for testing.
+func EncryptPostActionCookie(plain string, secret []byte) (string, error) {
 	if len(secret) == 0 {
 		return plain, nil
 	}

@@ -391,3 +391,53 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/report:
+    post:
+      summary: Generate and download a flagged post report
+      description: |
+        Generates a ZIP archive containing the flagged post, its edit history, content review details, post metadata, and any associated file attachments, then streams the archive back to the caller as a download. All other content reviewers of the post's team are notified that a report has been generated.
+        The user must be a content reviewer of the team to which the post belongs to, and the post must be flagged.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the flagged post to generate the report for
+      operationId: GenerateCFPostReport
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Optional comment from the reviewer to be included in the generated report.
+      responses:
+        '200':
+          description: Report generated successfully. The response body is a ZIP archive containing the flagged post report.
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Specifies the suggested filename for the downloaded archive (e.g. `attachment; filename="flagged-post-{post_id}-{timestamp}.zip"`).
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad request - Invalid post ID.
+        '403':
+          description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
+        '404':
+          description: Post not found or post is not flagged.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.

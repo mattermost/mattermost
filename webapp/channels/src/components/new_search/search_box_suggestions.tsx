@@ -40,7 +40,7 @@ type Props = {
     results: SuggestionResults;
     onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
-}
+};
 
 const SearchSuggestions = ({
     id,
@@ -97,7 +97,7 @@ const SearchSuggestions = ({
     const Component = pluginComponentInfo.component;
 
     return (
-        <ErrorBoundary>
+        <ErrorBoundary pluginId={pluginComponentInfo.pluginId}>
             <Component
                 key={pluginComponentInfo.pluginId}
                 searchTerms={searchTerms}

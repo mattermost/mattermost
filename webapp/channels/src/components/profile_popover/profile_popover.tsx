@@ -17,8 +17,6 @@ import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
-
 import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
@@ -76,7 +74,6 @@ const ProfilePopover = ({
     const user = useSelector((state: GlobalState) => getUser(state, userId));
     const currentTeamId = useSelector((state: GlobalState) => getCurrentTeamId(state));
     const channelId = useSelector((state: GlobalState) => (channelIdProp || getDefaultChannelId(state)));
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
     const isMobileView = useSelector(getIsMobileView);
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
     const modals = useSelector((state: GlobalState) => state.views.modals);
@@ -188,17 +185,15 @@ const ProfilePopover = ({
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
                 />
-                {pluginItemsVisible && (
-                    <div className='user-profile-popover-pluggables'>
-                        <Pluggable
-                            pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
-                            user={user}
-                            hide={hide}
-                            status={hideStatus ? null : status}
-                            fromWebhook={fromWebhook}
-                        />
-                    </div>
-                )}
+                <div className='user-profile-popover-pluggables'>
+                    <Pluggable
+                        pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
+                        user={user}
+                        hide={hide}
+                        status={hideStatus ? null : status}
+                        fromWebhook={fromWebhook}
+                    />
+                </div>
 
                 {enableCustomProfileAttributes && !user.is_bot && (
                     <ProfilePopoverCustomAttributes
@@ -221,7 +216,10 @@ const ProfilePopover = ({
                     hide={hide}
                 />
             </div>
-            <div className='user-profile-popover-bottom-row'>
+            <div
+                className='user-profile-popover-bottom-row'
+                data-testid='user-profile-popover-bottom-row'
+            >
                 <hr className='user-popover__bottom-row-hr'/>
                 <ProfilePopoverOverrideDisclaimer
                     haveOverrideProp={haveOverrideProp}
@@ -246,14 +244,12 @@ const ProfilePopover = ({
                     user={user}
                     hide={hide}
                 />
-                {pluginItemsVisible && (
-                    <Pluggable
-                        pluggableName='PopoverUserActions'
-                        user={user}
-                        hide={hide}
-                        status={hideStatus ? null : status}
-                    />
-                )}
+                <Pluggable
+                    pluggableName='PopoverUserActions'
+                    user={user}
+                    hide={hide}
+                    status={hideStatus ? null : status}
+                />
             </div>
         </div>
     );

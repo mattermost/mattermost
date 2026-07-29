@@ -5,7 +5,6 @@ import {clickCategoryMenuItem} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)

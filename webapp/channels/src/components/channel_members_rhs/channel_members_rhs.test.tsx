@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import useAccessControlAttributes from 'components/common/hooks/useAccessControlAttributes';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
@@ -148,6 +150,27 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('member-list')).toBeInTheDocument();
     });
 
+    test('reloads the first page authoritatively on mount so removed members are pruned', () => {
+        const loadProfilesAndReloadChannelMembers = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadProfilesAndReloadChannelMembers,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        // The trailing `true` enables reconciliation so the first-page reload prunes
+        // members the server no longer returns (e.g. ABAC access-rule removals).
+        expect(loadProfilesAndReloadChannelMembers).toHaveBeenCalledWith(0, 100, 'channel_id', 'admin', {}, true);
+    });
+
     test('should show search bar when there are more than 20 members', () => {
         const props = {
             ...baseProps,
@@ -209,11 +232,12 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByText(/channel admins/)).toBeInTheDocument();
     });
 
-    test('should show alert banner for policy-enforced channels', () => {
+    test('should show alert banner for policy-enforced private channels with "restricted" wording', () => {
         const props = {
             ...baseProps,
             channel: {
                 ...baseProps.channel,
+                type: 'P' as ChannelType,
                 policy_enforced: true,
             },
         };
@@ -229,5 +253,82 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         // Each tag is rendered as "Attribute: value" for readability.
         expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
         expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+    });
+
+    test('should show advisory banner for policy-enforced public channels', () => {
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        expect(screen.getByText('This channel has recommended members based on user attributes')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" — same shape as the
+        // private-channel test above; only the banner copy differs.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+    });
+
+    test('requests access control attributes for membership-policy channels when indicators are enabled', () => {
+        (useAccessControlAttributes as jest.Mock).mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        expect(useAccessControlAttributes).toHaveBeenCalledWith('channel', 'channel_id', true);
+    });
+
+    test('does not request or render access control indicators when the setting is disabled', () => {
+        (useAccessControlAttributes as jest.Mock).mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnableChannelPolicyIndicators: 'false',
+                        },
+                    },
+                },
+            },
+        );
+
+        // The hook is invoked with hasAccessControl=false so no attribute
+        // fetch happens and no policy tags are surfaced.
+        expect(useAccessControlAttributes).toHaveBeenCalledWith('channel', 'channel_id', false);
     });
 });

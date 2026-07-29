@@ -7,6 +7,7 @@ import type {DialogElement} from '@mattermost/types/integrations';
 import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
+    convertElement,
     DialogElementTypes,
     extractPrimitiveValues,
     getDefaultValue,
@@ -164,6 +165,18 @@ describe('dialog_conversion', () => {
 
         it('should return null for unknown types', () => {
             expect(getFieldType({type: 'unknown'} as DialogElement)).toBeNull();
+        });
+
+        it('should map file fields to FILE type', () => {
+            expect(getFieldType({type: DialogElementTypes.FILE} as DialogElement)).toBe('file');
+        });
+
+        it('should map date fields correctly', () => {
+            expect(getFieldType({type: DialogElementTypes.DATE} as DialogElement)).toBe('date');
+        });
+
+        it('should map datetime fields correctly', () => {
+            expect(getFieldType({type: DialogElementTypes.DATETIME} as DialogElement)).toBe('datetime');
         });
     });
 
@@ -1073,6 +1086,151 @@ describe('dialog_conversion', () => {
             expect(form.submit?.state).toBeUndefined();
             expect(form.source?.state).toBeUndefined();
         });
+
+        it('should convert file element to FILE field type', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('file');
+            expect(form.fields?.[0].name).toBe('file_field');
+            expect(form.fields?.[0].label).toBe('Upload File');
+        });
+
+        it('should preserve allow_multiple property on file fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload Files',
+                    optional: false,
+                    allow_multiple: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].allow_multiple).toBe(true);
+        });
+
+        it('should not set allow_multiple if not present on file fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].allow_multiple).toBeUndefined();
+        });
+
+        it('should handle file elements with placeholder and help text', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    placeholder: 'Choose a file to upload',
+                    help_text: 'Supported formats: PDF, PNG, JPG',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].hint).toBe('Choose a file to upload');
+            expect(form.fields?.[0].description).toBe('Supported formats: PDF, PNG, JPG');
+        });
+
+        it('should handle multiple file upload fields with different settings', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'single_file',
+                    type: 'file',
+                    display_name: 'Single File',
+                    optional: false,
+                } as DialogElement,
+                {
+                    name: 'multi_files',
+                    type: 'file',
+                    display_name: 'Multiple Files',
+                    optional: true,
+                    allow_multiple: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(2);
+            expect(form.fields?.[0].name).toBe('single_file');
+            expect(form.fields?.[0].allow_multiple).toBeUndefined();
+            expect(form.fields?.[0].is_required).toBe(true);
+            expect(form.fields?.[1].name).toBe('multi_files');
+            expect(form.fields?.[1].allow_multiple).toBe(true);
+            expect(form.fields?.[1].is_required).toBe(false);
+        });
     });
 
     describe('convertAppFormValuesToDialogSubmission', () => {
@@ -1699,6 +1857,198 @@ describe('dialog_conversion', () => {
                 });
             });
 
+            it('should convert date field with datetime_config.min_date and max_date', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        datetime_config: {
+                            min_date: '2025-01-01',
+                            max_date: '2025-12-31',
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'event_date',
+                    type: 'date',
+                    label: 'Event Date',
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                    is_required: true,
+                });
+                expect(form.fields?.[0]?.datetime_config).toMatchObject({
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                });
+            });
+
+            it('should convert datetime field with datetime_config.time_interval', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            time_interval: 30,
+                        },
+                        optional: true,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'meeting_time',
+                    type: 'datetime',
+                    label: 'Meeting Time',
+                    time_interval: 30,
+                    is_required: false,
+                });
+                expect(form.fields?.[0]?.datetime_config?.time_interval).toBe(30);
+            });
+
+            it('normalizes deprecated allow_manual_time_entry into manual_time_entry', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            allow_manual_time_entry: true,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
+            it('preserves manual_time_entry when set directly', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            manual_time_entry: true,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
+            it('omits manual_time_entry when neither source is true', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            time_interval: 30,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBeUndefined();
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
+            it('datetime_config should take precedence over legacy fields', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        min_date: '2024-01-01',
+                        max_date: '2024-12-31',
+                        datetime_config: {
+                            min_date: '2025-06-01',
+                            max_date: '2025-12-31',
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.min_date).toBe('2025-06-01');
+                expect(form.fields?.[0]?.max_date).toBe('2025-12-31');
+                expect(form.fields?.[0]?.datetime_config?.min_date).toBe('2025-06-01');
+                expect(form.fields?.[0]?.datetime_config?.max_date).toBe('2025-12-31');
+            });
+
             it('should not add datetime-specific properties to date fields', () => {
                 const elements: DialogElement[] = [
                     {
@@ -1778,6 +2128,185 @@ describe('dialog_conversion', () => {
                 expect(submission).toEqual({
                     meeting_time: '2025-01-15T14:30:00Z',
                 });
+            });
+        });
+    });
+
+    describe('action_button element handling', () => {
+        const legacyOptions: ConversionOptions = {enhanced: false};
+
+        describe('getFieldType', () => {
+            it('should map action_button to AppFieldTypes.ACTION_BUTTON', () => {
+                expect(
+                    getFieldType({type: DialogElementTypes.ACTION_BUTTON} as DialogElement),
+                ).toBe('action_button');
+            });
+        });
+
+        describe('getDefaultValue', () => {
+            it('should return null for action_button elements', () => {
+                const element = {
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    default: 'ignored',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBeNull();
+            });
+        });
+
+        describe('convertElement', () => {
+            it('should convert action_button element with url and context to AppField', () => {
+                const element = {
+                    name: 'my_button',
+                    display_name: 'My Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                    action_button: {
+                        url: 'https://example.com/action',
+                        context: {key1: 'value1', key2: 'value2'},
+                    },
+                } as unknown as DialogElement;
+
+                const {field, errors} = convertElement(element, legacyOptions);
+
+                expect(errors).toHaveLength(0);
+                expect(field).not.toBeNull();
+                expect(field?.type).toBe('action_button');
+                expect(field?.action_button_url).toBe('https://example.com/action');
+                expect(field?.action_button_context).toEqual({key1: 'value1', key2: 'value2'});
+            });
+
+            it('should set is_required to false for action_button regardless of optional flag', () => {
+                const requiredButton = {
+                    name: 'required_button',
+                    display_name: 'Required Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                    action_button: {url: 'https://example.com/action'},
+                } as DialogElement;
+
+                const optionalButton = {
+                    name: 'optional_button',
+                    display_name: 'Optional Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: true,
+                    action_button: {url: 'https://example.com/action'},
+                } as DialogElement;
+
+                const {field: requiredField} = convertElement(requiredButton, legacyOptions);
+                const {field: optionalField} = convertElement(optionalButton, legacyOptions);
+
+                expect(requiredField?.is_required).toBe(false);
+                expect(optionalField?.is_required).toBe(false);
+            });
+
+            it('should not crash and leave action_button_url/context undefined when action_button object is absent', () => {
+                const element = {
+                    name: 'bare_button',
+                    display_name: 'Bare Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                } as DialogElement;
+
+                const {field, errors} = convertElement(element, legacyOptions);
+
+                expect(errors).toHaveLength(0);
+                expect(field).not.toBeNull();
+                expect(field?.type).toBe('action_button');
+                expect(field?.action_button_url).toBeUndefined();
+                expect(field?.action_button_context).toBeUndefined();
+            });
+        });
+
+        describe('convertDialogToAppForm', () => {
+            it('should include action_button field in the form', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'submit_button',
+                        display_name: 'Submit',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: false,
+                        action_button: {
+                            url: 'https://example.com/submit',
+                            context: {token: 'abc123'},
+                        },
+                    } as unknown as DialogElement,
+                ];
+
+                const {form, errors} = convertDialogToAppForm(
+                    elements,
+                    'Test Dialog',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0].type).toBe('action_button');
+                expect(form.fields?.[0].is_required).toBe(false);
+                expect(form.fields?.[0].action_button_url).toBe('https://example.com/submit');
+                expect(form.fields?.[0].action_button_context).toEqual({token: 'abc123'});
+            });
+        });
+
+        describe('convertAppFormValuesToDialogSubmission', () => {
+            it('should exclude action_button from submission values when value is present', () => {
+                const values = {
+                    my_button: 'clicked',
+                    text_field: 'hello',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'my_button',
+                        display_name: 'My Button',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: false,
+                        action_button: {url: 'https://example.com/action'},
+                    } as DialogElement,
+                    {
+                        name: 'text_field',
+                        display_name: 'Text Field',
+                        type: 'text',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).not.toHaveProperty('my_button');
+                expect(submission).toEqual({text_field: 'hello'});
+            });
+
+            it('should not include action_button in submission even when value is null/undefined', () => {
+                const values = {} as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'my_button',
+                        display_name: 'My Button',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: true,
+                        action_button: {url: 'https://example.com/action'},
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({});
             });
         });
     });

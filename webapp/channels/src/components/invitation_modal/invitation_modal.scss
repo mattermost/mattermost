@@ -16,7 +16,8 @@
     }
 
     .modal-content {
-        overflow: hidden;
+        width: 100%;
+        min-width: 0;
         max-width: 100%;
     }
 
@@ -26,6 +27,7 @@
 
     &__footer {
         padding-right: 0 !important;
+        padding-left: 0 !important;
     }
 
     @media screen and (max-width: 768px) {

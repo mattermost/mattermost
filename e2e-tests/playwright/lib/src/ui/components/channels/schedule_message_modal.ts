@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
@@ -20,8 +21,8 @@ export default class ScheduleMessageModal {
         this.timeOptionDropdown = container.getByLabel('Choose a time');
         this.repeatWeeklyCheckbox = container.getByRole('checkbox', {name: 'Repeat weekly'});
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.scheduleButton = container.getByRole('button', {name: 'Schedule'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }
 
     async toBeVisible() {
@@ -29,7 +30,9 @@ export default class ScheduleMessageModal {
     }
 
     getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) return 'th';
+        if (day > 3 && day < 21) {
+            return 'th';
+        }
 
         switch (day % 10) {
             case 1:
@@ -72,6 +75,10 @@ export default class ScheduleMessageModal {
 
         await dateLocator.click();
 
+        // Wait for the date-picker calendar to fully close before returning.
+        const calendarPopper = this.container.getByTestId('date-picker-popper');
+        await calendarPopper.waitFor({state: 'hidden'});
+
         // if day is single digit then prefix with a 0
         if (day < 10) {
             return `${month} 0${day}`;
@@ -82,11 +89,15 @@ export default class ScheduleMessageModal {
 
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
-        const timeButton = this.container.page().getByTestId(`time_option_${optionIndex}`);
-        await expect(timeButton).toBeVisible();
-        await timeButton.click();
+        const timeOption = this.container.page().getByTestId(`time_option_${optionIndex}`);
+        // Use a generous timeout: the time-picker dropdown can be slow to render in CI.
+        await expect(timeOption).toBeVisible({timeout: 30000});
+        // Capture text BEFORE clicking — clicking closes the dropdown and detaches the
+        // option element from the DOM, so textContent() would time out if called after.
+        const text = await timeOption.textContent();
+        await timeOption.click();
 
-        return await timeButton.textContent();
+        return text;
     }
 
     async setRepeatWeekly(enabled: boolean) {
@@ -105,14 +116,18 @@ export default class ScheduleMessageModal {
         }
 
         const selectedDate = await this.selectDate(dayFromToday);
-        const fromDateButton = await this.dateButton.textContent();
+
+        const fromDateButtonText = (await this.dateButton.textContent()) ?? '';
 
         const selectedTime = await this.selectTime(timeOptionIndex);
         await this.scheduleButton.click();
 
         // if selectedDate is Today or Tomorrow then return Today or Tomorrow
-        if (fromDateButton === 'Today' || fromDateButton === 'Tomorrow') {
-            return {selectedDate: fromDateButton, selectedTime};
+        if (fromDateButtonText.includes('Today')) {
+            return {selectedDate: 'Today', selectedTime};
+        }
+        if (fromDateButtonText.includes('Tomorrow')) {
+            return {selectedDate: 'Tomorrow', selectedTime};
         }
 
         // if selectedDate is a date in the future then return the date

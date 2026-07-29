@@ -49,6 +49,8 @@ var PermissionManagePublicChannelProperties *Permission
 var PermissionManagePrivateChannelProperties *Permission
 var PermissionManagePublicChannelAutoTranslation *Permission
 var PermissionManagePrivateChannelAutoTranslation *Permission
+var PermissionManagePrivateChannelDiscoverability *Permission
+var PermissionManageChannelJoinRequests *Permission
 var PermissionListPublicTeams *Permission
 var PermissionJoinPublicTeams *Permission
 var PermissionListPrivateTeams *Permission
@@ -178,6 +180,7 @@ var PermissionManageLicenseInformation *Permission
 var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
 var PermissionManageChannelAccessRules *Permission
+var PermissionEditFileAttachment *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -373,6 +376,8 @@ var PermissionSysconsoleWriteExperimentalFeatureFlags *Permission
 
 var PermissionSysconsoleReadExperimentalBleve *Permission
 var PermissionSysconsoleWriteExperimentalBleve *Permission
+var PermissionSysconsoleReadAiRecaps *Permission
+var PermissionSysconsoleWriteAiRecaps *Permission
 
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
@@ -565,6 +570,18 @@ func initializePermissions() {
 		"manage_private_channel_auto_translation",
 		"authentication.permissions.manage_private_channel_auto_translation.name",
 		"authentication.permissions.manage_private_channel_auto_translation.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePrivateChannelDiscoverability = &Permission{
+		"manage_private_channel_discoverability",
+		"authentication.permissions.manage_private_channel_discoverability.name",
+		"authentication.permissions.manage_private_channel_discoverability.description",
+		PermissionScopeChannel,
+	}
+	PermissionManageChannelJoinRequests = &Permission{
+		"manage_channel_join_requests",
+		"authentication.permissions.manage_channel_join_requests.name",
+		"authentication.permissions.manage_channel_join_requests.description",
 		PermissionScopeChannel,
 	}
 	PermissionListPublicTeams = &Permission{
@@ -1360,6 +1377,13 @@ func initializePermissions() {
 
 	PermissionManageChannelAccessRules = &Permission{
 		"manage_channel_access_rules",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionEditFileAttachment = &Permission{
+		"edit_file_attachment",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2169,6 +2193,19 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadAiRecaps = &Permission{
+		"sysconsole_read_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteAiRecaps = &Permission{
+		"sysconsole_write_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PermissionCreateCustomGroup = &Permission{
 		"create_custom_group",
 		"authentication.permissions.create_custom_group.name",
@@ -2407,6 +2444,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadProductsBoards,
 		PermissionSysconsoleReadIPFilters,
+		PermissionSysconsoleReadAiRecaps,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2466,6 +2504,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteProductsBoards,
 		PermissionSysconsoleWriteIPFilters,
+		PermissionSysconsoleWriteAiRecaps,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -2622,6 +2661,9 @@ func initializePermissions() {
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
+		PermissionEditFileAttachment,
+		PermissionManagePrivateChannelDiscoverability,
+		PermissionManageChannelJoinRequests,
 	}
 
 	GroupScopedPermissions := []*Permission{

@@ -3,21 +3,18 @@
 
 import React from 'react';
 
-import InteractiveDialog from 'components/interactive_dialog/interactive_dialog';
-
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
 import type {PropsFromRedux} from './index';
 
-// Make props optional like the original InteractiveDialog, but keep required props
-type OptionalPropsFromRedux = Partial<PropsFromRedux> & Pick<PropsFromRedux, 'emojiMap' | 'isAppsFormEnabled' | 'hasUrl' | 'actions'>;
+type OptionalPropsFromRedux = Partial<PropsFromRedux> & Pick<PropsFromRedux, 'emojiMap' | 'hasUrl' | 'actions'>;
 
 type Props = OptionalPropsFromRedux & {
     onExited?: () => void;
 };
 
 const DialogRouter: React.FC<Props> = (props) => {
-    const {isAppsFormEnabled, hasUrl} = props;
+    const {hasUrl} = props;
 
     // URL-less dialog = configuration error
     if (!hasUrl) {
@@ -26,11 +23,7 @@ const DialogRouter: React.FC<Props> = (props) => {
         return null; // Let calling code show ephemeral error
     }
 
-    if (isAppsFormEnabled) {
-        return <InteractiveDialogAdapter {...props}/>;
-    }
-
-    return <InteractiveDialog {...props}/>;
+    return <InteractiveDialogAdapter {...props}/>;
 };
 
 export default DialogRouter;

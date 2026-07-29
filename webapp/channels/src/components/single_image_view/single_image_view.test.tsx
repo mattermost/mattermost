@@ -5,7 +5,8 @@ import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor, act} from 'tests/react_testing_utils';
+import {HttpHeaders} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
@@ -39,6 +40,79 @@ describe('components/SingleImageView', () => {
         isFileRejected: false,
     };
 
+    test('should reserve image space without loading preview while thumbnail check is pending', async () => {
+        let resolveFetch: (response: Response) => void;
+        mockFetch.mockImplementationOnce(() => new Promise<Response>((resolve) => {
+            resolveFetch = resolve;
+        }));
+
+        const {container} = renderWithContext(
+            <SingleImageView {...baseProps}/>,
+        );
+
+        const placeholder = container.querySelector('.image-loading__container > img.image-loading__placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 350 200"'));
+
+        // The actual preview image is not rendered/loaded while the thumbnail check is pending
+        expect(container.querySelector('img:not(.image-loading__placeholder)')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveFetch!({
+                status: 200,
+                headers: new Headers(),
+            } as Response);
+        });
+
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
+    });
+
+    test('should collapse placeholder to filename when thumbnail check is rejected by plugin', async () => {
+        let resolveFetch: (response: Response) => void;
+        mockFetch.mockImplementationOnce(() => new Promise<Response>((resolve) => {
+            resolveFetch = resolve;
+        }));
+
+        const {container} = renderWithContext(
+            <SingleImageView {...baseProps}/>,
+        );
+
+        expect(container.querySelector('.image-loading__container > img.image-loading__placeholder')).toBeInTheDocument();
+        expect(container.querySelector('img:not(.image-loading__placeholder)')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveFetch!({
+                status: 403,
+                headers: new Headers({
+                    [HttpHeaders.REJECT_REASON]: 'plugin_rejected',
+                }),
+            } as Response);
+        });
+
+        await waitFor(() => {
+            expect(container.querySelector('.image-name')?.textContent).toEqual(baseProps.fileInfo.name);
+        });
+        expect(container.querySelector('.image-loading__container')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should keep rejected files collapsed without reserving image space', () => {
+        mockFetch.mockImplementationOnce(() => new Promise<Response>(() => {}));
+
+        const {container} = renderWithContext(
+            <SingleImageView
+                {...baseProps}
+                isFileRejected={true}
+            />,
+        );
+
+        expect(container.querySelector('.image-name')?.textContent).toEqual(baseProps.fileInfo.name);
+        expect(container.querySelector('.image-loading__container')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
     test('should match snapshot', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
@@ -52,7 +126,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
@@ -81,7 +155,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
@@ -100,7 +174,7 @@ describe('components/SingleImageView', () => {
             expect(container.querySelector('img')).toBeInTheDocument();
         });
 
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
 
         // Simulate loaded state
@@ -152,7 +226,7 @@ describe('components/SingleImageView', () => {
         expect(imageLoadedDiv).not.toHaveClass('image-fade-in');
 
         // Simulate image loaded
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});

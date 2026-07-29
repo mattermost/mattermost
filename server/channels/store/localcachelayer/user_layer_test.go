@@ -30,7 +30,7 @@ func TestUserStoreCache(t *testing.T) {
 	fakeUserIds := []string{"123"}
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}}
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -260,7 +260,7 @@ func TestUserStoreGetCache(t *testing.T) {
 	fakeUserId := "123"
 	fakeUser := &model.User{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -348,12 +348,12 @@ func TestUserStoreGetManyCache(t *testing.T) {
 
 	fakeUser := &model.User{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}
 	otherFakeUser := &model.User{
 		Id:          "456",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}
 	logger := mlog.CreateConsoleTestLogger(t)

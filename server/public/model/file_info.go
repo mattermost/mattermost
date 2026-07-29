@@ -51,6 +51,8 @@ type GetFileInfosOptions struct {
 	SortBy string `json:"sort_by"`
 	// SortDescending changes the sort direction to descending order when true.
 	SortDescending bool `json:"sort_descending"`
+	// OnlyEmptyContent limits results to files that have no extracted content stored.
+	OnlyEmptyContent bool `json:"only_empty_content"`
 }
 
 type FileInfo struct {
@@ -110,7 +112,7 @@ func (fi *FileInfo) PreSave() {
 	}
 
 	if fi.RemoteId == nil {
-		fi.RemoteId = NewPointer("")
+		fi.RemoteId = new("")
 	}
 }
 

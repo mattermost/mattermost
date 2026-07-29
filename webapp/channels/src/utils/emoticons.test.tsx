@@ -53,9 +53,9 @@ describe('Emoticons', () => {
                 toEqual('/$MM_EMOTICON0$..$MM_EMOTICON1$)');
         });
 
-        test('should replace emoticons separated by text', () => {
+        test('should not replace emoticons surrounded by word chars (matches server semantics)', () => {
             expect(Emoticons.handleEmoticons('asdf:goat:asdf:dash:asdf', new Map())).
-                toEqual('asdf$MM_EMOTICON0$asdf$MM_EMOTICON1$asdf');
+                toEqual('asdf:goat:asdf:dash:asdf');
         });
 
         test('shouldn\'t replace invalid emoticons', () => {
@@ -96,6 +96,31 @@ describe('Emoticons', () => {
         test('shouldn\'t render text-based emoticons as emoji when renderEmoticonsAsEmoji is false', () => {
             expect(Emoticons.handleEmoticons('":P"', new Map(), false)).
                 toEqual('":P"');
+        });
+
+        test('should not treat IPv6 hex segments as emoji', () => {
+            expect(Emoticons.handleEmoticons('2001:18:1:beef::/64', new Map())).
+                toEqual('2001:18:1:beef::/64');
+        });
+
+        test('should still match :emoji::emoji: back-to-back', () => {
+            expect(Emoticons.handleEmoticons(':beef::dash:', new Map())).
+                toEqual('$MM_EMOTICON0$$MM_EMOTICON1$');
+        });
+
+        test('should still match emoji wrapped in parens', () => {
+            expect(Emoticons.handleEmoticons('(:beef:)', new Map())).
+                toEqual('($MM_EMOTICON0$)');
+        });
+
+        test('should still match emoji followed by punctuation', () => {
+            expect(Emoticons.handleEmoticons(':beef:.', new Map())).
+                toEqual('$MM_EMOTICON0$.');
+        });
+
+        test('should not treat broader IPv6 forms as emoji', () => {
+            expect(Emoticons.handleEmoticons('2001:cafe:1:dead::/64', new Map())).
+                toEqual('2001:cafe:1:dead::/64');
         });
     });
 
@@ -162,6 +187,16 @@ describe('Emoticons', () => {
         test('shouldn\'t render emoticons in multiline links', () => {
             expect(Emoticons.matchEmoticons('[link](www.google.com/:goat:) \n [link](www.google.com/:smile:)')).
                 toEqual(null);
+        });
+
+        test('should return null for IPv6-shaped strings', () => {
+            expect(Emoticons.matchEmoticons('2001:18:1:beef::/64')).
+                toEqual(null);
+        });
+
+        test('should still match :emoji::emoji: back-to-back', () => {
+            expect(Emoticons.matchEmoticons(':beef::dash:')).
+                toEqual([':beef:', ':dash:']);
         });
     });
 });

@@ -338,6 +338,42 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 	})
 
+	t.Run("static, with EnableConcurrentReact enabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = true
+
+		web := New(th.Server)
+
+		// NewStaticHandler computes the CSP SHA directive from the current config, so the
+		// concurrent React inline script's hash must be present in the script-src directive.
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"}, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, with EnableConcurrentReact disabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = false
+
+		web := New(th.Server)
+
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
+	})
+
 	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
@@ -1011,7 +1047,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(10)
+			config.ServiceSettings.MaximumURLLength = new(10)
 		})
 
 		web := New(th.Server)
@@ -1042,7 +1078,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(20)
+			config.ServiceSettings.MaximumURLLength = new(20)
 		})
 
 		web := New(th.Server)
@@ -1104,7 +1140,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewPointer(int64(1))
+			config.ServiceSettings.MaximumPayloadSizeBytes = new(int64(1))
 		})
 
 		web := New(th.Server)
@@ -1119,6 +1155,50 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
+	})
+}
+
+func TestHandlerConnectionIdHeader(t *testing.T) {
+	t.Run("should set connection id from header on request context", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		connectionId := "test-connection-id-12345"
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.Header.Set(model.ConnectionId, connectionId)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, connectionId, capturedConnectionId)
+	})
+
+	t.Run("should have empty connection id when header not present", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Empty(t, capturedConnectionId)
 	})
 }
 

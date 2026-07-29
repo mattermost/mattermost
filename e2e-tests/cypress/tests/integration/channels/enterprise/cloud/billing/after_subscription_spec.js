@@ -26,7 +26,7 @@ describe('System Console - after subscription scenarios', () => {
         // # Click Subscribe Now button
         cy.contains('span', 'Upgrade Now').parent().click();
 
-        cy.intercept('POST', '/api/v4/cloud/payment/confirm').as('confirm');
+        cy.intercept('PUT', '/api/v4/cloud/customer').as('customerUpdate');
 
         cy.intercept('GET', '/api/v4/cloud/subscription').as('subscribe');
 
@@ -47,7 +47,7 @@ describe('System Console - after subscription scenarios', () => {
         // # Click Subscribe button
         cy.get('.RHS').find('button').last().should('be.enabled').click();
 
-        cy.wait(['@confirm', '@subscribe']);
+        cy.wait(['@customerUpdate', '@subscribe']);
 
         // * Check for success message
         cy.findByText('You are now subscribed to Cloud Professional', {timeout: TIMEOUTS.TEN_SEC}).should('be.visible');
@@ -136,9 +136,7 @@ describe('System Console - after subscription scenarios', () => {
 
             cy.wait('@customer');
 
-            cy.intercept('POST', '/api/v4/cloud/payment').as('payment');
-
-            cy.intercept('POST', '/api/v4/cloud/payment/confirm').as('confirm');
+            cy.intercept('PUT', '/api/v4/cloud/customer').as('customerUpdate');
 
             cy.intercept('GET', '/api/v4/cloud/subscription').as('subscribe');
 
@@ -159,7 +157,7 @@ describe('System Console - after subscription scenarios', () => {
             // # Click Save Credit Card button
             cy.get('#saveSetting').should('be.enabled').click();
 
-            cy.wait(['@payment', '@confirm']);
+            cy.wait('@customerUpdate');
 
             cy.wait('@subscribe');
 

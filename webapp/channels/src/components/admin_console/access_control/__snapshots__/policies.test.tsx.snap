@@ -12,10 +12,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
@@ -31,6 +31,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     </div>
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -61,6 +62,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -83,6 +85,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 0px;"
       >
         <div
@@ -117,10 +120,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
@@ -136,6 +139,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     </div>
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -166,6 +170,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -188,13 +193,16 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 80px;"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -206,6 +214,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4; text-align: center;"
           >
             <div
@@ -217,6 +226,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           </div>
           <div
             class="DataGrid_cell actions-column"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1;"
           >
             <div
@@ -238,9 +248,11 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 5;"
           >
             <div
@@ -252,6 +264,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 4; text-align: center;"
           >
             <div
@@ -263,6 +276,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           </div>
           <div
             class="DataGrid_cell actions-column"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1;"
           >
             <div
@@ -285,11 +299,16 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -331,10 +350,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
@@ -350,6 +369,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     </div>
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -380,6 +400,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -402,6 +423,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
         style="min-height: 0px;"
       >
         <div

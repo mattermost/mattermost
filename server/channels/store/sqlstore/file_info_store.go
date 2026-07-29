@@ -132,7 +132,13 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	db := fs.GetReplica()
+
+	if readFromMaster {
+		db = fs.GetMaster()
+	}
+
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
@@ -149,7 +155,7 @@ func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache
 	}
 
 	items := []fileInfoWithChannelID{}
-	if err := fs.GetReplica().Select(&items, queryString, args...); err != nil {
+	if err := db.Select(&items, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
 	if len(items) == 0 {
@@ -279,6 +285,10 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 
 	if !opt.IncludeDeleted {
 		query = query.Where("FileInfo.DeleteAt = 0")
+	}
+
+	if opt.OnlyEmptyContent {
+		query = query.Where("(FileInfo.Content IS NULL OR FileInfo.Content = '')")
 	}
 
 	if opt.SortBy == "" {
@@ -623,6 +633,15 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			terms = strings.Replace(terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
+
+		// Unlike post message search, filenames commonly have a hyphenated
+		// name glued directly to an extension (e.g. "photo-2024.jpg"), which
+		// PostgreSQL's parser classifies as an opaque "host"-type token that
+		// to_tsquery can never match against a hyphen-preserving compound
+		// query. So, unlike post_store.go, hyphens are still replaced with
+		// spaces here rather than preserved.
+		terms = strings.Replace(terms, "-", " ", -1)
+		excludedTerms = strings.Replace(excludedTerms, "-", " ", -1)
 
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for

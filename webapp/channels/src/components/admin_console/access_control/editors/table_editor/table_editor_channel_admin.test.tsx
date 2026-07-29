@@ -3,11 +3,17 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import TableEditor from './table_editor';
+
+jest.mock('mattermost-redux/actions/access_control', () => ({
+    searchUsersForExpression: jest.fn(),
+}));
 
 describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
     const mockMultiselectAttributes: UserPropertyField[] = [
@@ -86,8 +92,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
             expect(screen.getByRole('button', {name: /add attribute/i})).toBeInTheDocument();
         });
 
-        const addButton = screen.getByRole('button', {name: /add attribute/i});
-        addButton.click();
+        await userEvent.click(screen.getByRole('button', {name: /add attribute/i}));
 
         await waitFor(() => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
@@ -389,5 +394,194 @@ describe('TableEditor - User Self-Exclusion', () => {
         // Now button should be disabled since second validation returns false
         testButton = screen.getByRole('button', {name: /test access rule/i});
         expect(testButton).toBeDisabled();
+    });
+});
+
+describe('TableEditor - injected searchUsers', () => {
+    const userAttributes: UserPropertyField[] = [
+        {
+            id: 'attr1',
+            name: 'department',
+            type: 'select',
+            group_id: 'custom_profile_attributes',
+            create_at: 1736541716295,
+            update_at: 1736541716295,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                options: [
+                    {id: 'eng', name: 'Engineering'},
+                ],
+            },
+        },
+    ];
+
+    const expression = 'user.attributes.department == "Engineering"';
+
+    const getVisualAST = jest.fn();
+
+    const baseProps = {
+        value: expression,
+        onChange: jest.fn(),
+        userAttributes,
+        enableUserManagedAttributes: true,
+        onParseError: jest.fn(),
+    };
+
+    beforeEach(() => {
+        getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.department',
+                        operator: '==',
+                        value: 'Engineering',
+                        value_type: 0,
+                        attribute_type: 'text',
+                    },
+                ],
+            },
+        });
+
+        (searchUsersForExpression as jest.Mock).mockImplementation(() => () => Promise.resolve({data: {users: [], total: 0}}));
+    });
+
+    test('should use injected searchUsers and skip the redux thunk', async () => {
+        const mockSearch = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
+
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                actions={{getVisualAST, searchUsers: mockSearch}}
+            />,
+            {},
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /test access rule/i})).not.toBeDisabled();
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
+
+        await waitFor(() => {
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50);
+        });
+        expect(searchUsersForExpression).not.toHaveBeenCalled();
+    });
+
+    test('should fall back to the redux thunk when searchUsers is not injected', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                channelId='channel1'
+                teamId='team1'
+                actions={{getVisualAST}}
+            />,
+            {},
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /test access rule/i})).not.toBeDisabled();
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
+
+        await waitFor(() => {
+            expect(searchUsersForExpression).toHaveBeenCalledWith(expression, '', '', 50, 'channel1', 'team1');
+        });
+        expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
+    });
+});
+
+describe('TableEditor - attribute name collision across namespaces', () => {
+    const makeField = (id: string, objectType: string): UserPropertyField => ({
+        id,
+        name: 'region',
+        type: 'text',
+        group_id: objectType === 'session' ? 'session_attributes' : 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: objectType === 'session' ? 'system' : '',
+        object_type: objectType,
+        attrs: {
+            sort_order: objectType === 'session' ? 1 : 0,
+            visibility: 'always',
+            value_type: '',
+            managed: 'admin',
+            display_name: objectType === 'session' ? 'Region (session)' : 'Region',
+        },
+    });
+
+    const userRegion = makeField('u-region', 'user');
+    const sessionRegion = makeField('s-region', 'session');
+
+    const mockActions = {getVisualAST: jest.fn()};
+
+    const baseProps = {
+        value: 'user.attributes.region == "x"',
+        onChange: jest.fn(),
+        userAttributes: [userRegion, sessionRegion],
+        enableUserManagedAttributes: true,
+        onParseError: jest.fn(),
+        actions: mockActions,
+    };
+
+    beforeEach(() => {
+        baseProps.onChange.mockClear();
+        mockActions.getVisualAST.mockReset();
+        mockActions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.region',
+                        operator: '==',
+                        value: 'x',
+                        value_type: 0,
+                        attribute_type: 'text',
+                    },
+                ],
+            },
+        });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('picking the session attribute that shares a name resolves to the user.session namespace', async () => {
+        const {container} = renderWithContext(<TableEditor {...baseProps}/>, {});
+
+        await waitFor(() => {
+            expect(screen.getByTestId('attributeSelectorMenuButton')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+
+        const sessionOption = document.getElementById('attribute-s-region');
+        expect(sessionOption).toBeInTheDocument();
+        fireEvent.click(sessionOption as HTMLElement);
+
+        // Selecting a new attribute clears the value; commit a fresh one so the
+        // expression is regenerated through the session namespace.
+        const valueInput = container.querySelector('.values-editor__simple-input') as HTMLInputElement;
+        expect(valueInput).toBeInTheDocument();
+        fireEvent.focus(valueInput);
+        fireEvent.change(valueInput, {target: {value: '10.0.0.1'}});
+        fireEvent.blur(valueInput);
+
+        await waitFor(() => {
+            expect(baseProps.onChange).toHaveBeenCalledWith('user.session.region == "10.0.0.1"');
+        });
     });
 });

@@ -139,9 +139,9 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 		}
 
 		post.Metadata.Priority = &PostPriority{
-			Priority:                NewPointer(priority),
-			RequestedAck:            NewPointer(requestedAck),
-			PersistentNotifications: NewPointer(persistentNotifications),
+			Priority:                new(priority),
+			RequestedAck:            new(requestedAck),
+			PersistentNotifications: new(persistentNotifications),
 		}
 	}
 

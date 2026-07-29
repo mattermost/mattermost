@@ -64,7 +64,7 @@ const MOBILE_SCREEN_WIDTH = 1200;
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
-}
+};
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
@@ -968,6 +968,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
+                            data-testid='login-body-card'
                             className='login-body-card-content'
                         >
                             {magicLinkSuccessful ? (

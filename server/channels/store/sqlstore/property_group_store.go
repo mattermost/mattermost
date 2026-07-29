@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-var propertyGroupColumns = []string{"ID", "Name", "Version"}
+var propertyGroupColumns = []string{"ID", "Name", "Version", "SchemaVersion"}
 
 type SqlPropertyGroupStore struct {
 	*SqlStore
@@ -34,8 +34,8 @@ func (s *SqlPropertyGroupStore) Register(group *model.PropertyGroup) (*model.Pro
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyGroups").
-		Columns("ID", "Name", "Version").
-		Values(group.ID, group.Name, group.Version)
+		Columns("ID", "Name", "Version", "SchemaVersion").
+		Values(group.ID, group.Name, group.Version, group.SchemaVersion)
 
 	builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (Name) DO NOTHING"))
 
@@ -56,6 +56,20 @@ func (s *SqlPropertyGroupStore) Register(group *model.PropertyGroup) (*model.Pro
 	}
 
 	return group, nil
+}
+
+func (s *SqlPropertyGroupStore) IncrementVersion(name string) error {
+	builder := s.getQueryBuilder().
+		Update("PropertyGroups").
+		Set("Version", sq.Expr("Version + 1")).
+		Where(sq.Eq{"Name": name})
+
+	_, err := s.GetMaster().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrap(err, "property_group_increment_version_exec")
+	}
+
+	return nil
 }
 
 func (s *SqlPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {

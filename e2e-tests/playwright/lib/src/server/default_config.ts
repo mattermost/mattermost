@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
+    AccessControlSettings,
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +14,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -26,6 +27,7 @@ export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): Ad
 }
 
 type TestAdminConfig = {
+    AccessControlSettings: Partial<AccessControlSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
@@ -39,11 +41,16 @@ type TestAdminConfig = {
 // On-prem setting that is different from the default
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,
             ClusterName: testConfig.haClusterName,
         },
         EmailSettings: {
+            FeedbackName: 'Mattermost',
             PushNotificationServer: testConfig.pushNotificationServer,
         },
         LogSettings: {
@@ -72,11 +79,17 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             },
         },
         ServiceSettings: {
-            SiteURL: testConfig.baseURL,
+            // SiteURL is the server's own view of itself (e.g. for building plugin callback
+            // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
+            // testConfig.baseURL is a host-mapped port the server's own container can't reach;
+            // internalBaseURL is the Docker network alias there, and the same as baseURL in
+            // `external` mode — correct in both cases.
+            SiteURL: testConfig.internalBaseURL,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
             EnableTesting: true,
+            AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
         },
         TeamSettings: {
             EnableOpenServer: true,
@@ -86,7 +99,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.7 server
+// Based on v11.9 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -133,6 +146,7 @@ const defaultServerConfig: AdminConfig = {
         EnableMultifactorAuthentication: false,
         EnforceMultifactorAuthentication: false,
         EnableUserAccessTokens: false,
+        MaximumPersonalAccessTokenLifetimeDays: 0,
         AllowCorsFrom: '',
         CorsExposedHeaders: '',
         CorsAllowCredentials: false,
@@ -232,11 +246,13 @@ const defaultServerConfig: AdminConfig = {
         EnableLastActiveTime: true,
         UserStatusAwayTimeout: 300,
         MaxChannelsPerTeam: 2000,
+        EnableChannelCategorySorting: true,
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
+        LockProfileFieldsForEmailUsers: 'none',
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
     },
@@ -287,7 +303,7 @@ const defaultServerConfig: AdminConfig = {
         Certificate: '',
     },
     PasswordSettings: {
-        MinimumLength: 14,
+        MinimumLength: 8,
         Lowercase: false,
         Number: false,
         Uppercase: false,
@@ -305,6 +321,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -321,6 +338,15 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
         AmazonS3StorageClass: '',
+        AzureStorageAccount: '',
+        AzureAuthMode: 'shared_key',
+        AzureAccessKey: '',
+        AzureContainer: '',
+        AzurePathPrefix: '',
+        AzureCloud: 'commercial',
+        AzureEndpoint: '',
+        AzureSSL: true,
+        AzureRequestTimeoutMilliseconds: 30000,
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -338,6 +364,16 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
         ExportAmazonS3StorageClass: '',
+        ExportAzureStorageAccount: '',
+        ExportAzureAuthMode: 'shared_key',
+        ExportAzureAccessKey: '',
+        ExportAzureContainer: '',
+        ExportAzurePathPrefix: '',
+        ExportAzureCloud: 'commercial',
+        ExportAzureEndpoint: '',
+        ExportAzureSSL: true,
+        ExportAzureRequestTimeoutMilliseconds: 30000,
+        ExportAzurePresignExpiresSeconds: 21600,
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -618,7 +654,6 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
-        ExperimentalChannelCategorySorting: false,
         EnableWatermark: false,
     },
     AnalyticsSettings: {
@@ -653,7 +688,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
-        EnableSearchPublicChannelsWithoutMembership: false,
+        EnableSearchPublicChannelsWithoutMembership: true,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
@@ -669,6 +704,12 @@ const defaultServerConfig: AdminConfig = {
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
         PreservePinnedPosts: false,
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -759,36 +800,36 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
-        PermalinkPreviews: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
-        OnboardingTourTips: true,
-        DeprecateCloudFree: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
-        StreamlinedMarketplace: true,
-        CloudIPFiltering: false,
-        ConsumePostHook: false,
-        CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
-        ChannelBookmarks: true,
-        WebSocketEventScope: true,
         NotificationMonitoring: true,
-        ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
-        AttributeBasedAccessControl: true,
-        PermissionPolicies: true,
+        AttributeValueMasking: false,
+        PermissionPolicies: false,
+        ChannelPermissionPolicies: false,
+        PolicySimulation: false,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
+        EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
+        ClassificationMarkings: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: true,
-        IntegratedBoards: false,
-        CJKSearch: false,
+        IntegratedBoards: true,
+        CJKSearch: true,
+        AggregatePluginMetrics: false,
+        ManagedChannelCategories: false,
+        SessionAttributes: false,
+        DiscoverableChannels: false,
+        MobileEphemeralMode: false,
+        PropertyFieldRank: false,
+        TeamMembershipAccessControl: false,
+        MmBlocksEnabled: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -819,6 +860,10 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableUserManagedAttributes: false,
+        EnableChannelPolicyIndicators: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
+        EnableAccessControlAuditLogging: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
@@ -866,5 +911,24 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    AIRecapSettings: {
+        Enable: true,
+        DefaultLimits: {
+            MaxRecapsPerDay: 10,
+            MaxScheduledRecaps: 5,
+            MaxChannelsPerRecap: -1,
+            MaxPostsPerRecap: 500,
+            MaxTokensPerRecap: 100000,
+            MaxPostsPerDay: 5000,
+            CooldownMinutes: 60,
+        },
+        EnforceRecapsPerDay: true,
+        EnforceScheduledRecaps: true,
+        EnforceChannelsPerRecap: true,
+        EnforcePostsPerRecap: true,
+        EnforceTokensPerRecap: true,
+        EnforcePostsPerDay: true,
+        EnforceCooldown: true,
     },
 };

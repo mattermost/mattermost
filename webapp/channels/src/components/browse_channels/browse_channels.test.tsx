@@ -140,15 +140,19 @@ describe('components/BrowseChannels', () => {
         teamName: 'team_name',
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
+        accessControlEnabled: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
                 channel_id: 'channel-id-3',
                 user_id: 'user-1',
             }),
         },
+        discoverableFeatureEnabled: false,
+        myPendingJoinRequests: {},
         actions: {
             getChannels: jest.fn(channelActions.getChannels),
             getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
+            getRecommendedChannelsForUser: jest.fn().mockResolvedValue({data: []}),
             joinChannel: jest.fn(channelActions.joinChannelAction),
             searchAllChannels: jest.fn(channelActions.searchAllChannels),
             openModal: jest.fn(),
@@ -156,6 +160,8 @@ describe('components/BrowseChannels', () => {
             closeRightHandSide: jest.fn(),
             setGlobalItem: jest.fn(),
             getChannelsMemberCount: jest.fn(),
+            getMyChannelJoinRequests: jest.fn().mockResolvedValue({data: {requests: [], total_count: 0}}),
+            withdrawMyChannelJoinRequest: jest.fn().mockResolvedValue({data: {}}),
         },
     };
 
@@ -643,6 +649,250 @@ describe('components/BrowseChannels', () => {
             expect(screen.getByText('Channel 1')).toBeInTheDocument();
             expect(screen.getByText('Private')).toBeInTheDocument();
             expect(screen.queryByText('Private Not Member')).not.toBeInTheDocument();
+        });
+    });
+
+    test('Recommended filter fetches recommended channels, boosts them on All, and lists only recommended when filtered', async () => {
+        const recommendedChannel = TestHelper.getChannelMock({
+            id: 'recommended-channel-id',
+            team_id: 'team_1',
+            display_name: 'Recommended Channel',
+            name: 'recommended-channel',
+            type: 'O',
+        });
+
+        const getChannels = jest.fn().mockResolvedValue({
+            data: [defaultChannel, recommendedChannel],
+        });
+        const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedChannel]});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            channels: [defaultChannel, recommendedChannel],
+            actions: {...baseProps.actions, getChannels, getRecommendedChannelsForUser},
+        };
+
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await waitFor(() => {
+            expect(getRecommendedChannelsForUser).toHaveBeenCalledWith('team_1');
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.getByTestId('ChannelRow-default-channel')).toBeInTheDocument();
+        });
+
+        const recommendedRow = screen.getByTestId('ChannelRow-recommended-channel');
+        const defaultRow = screen.getByTestId('ChannelRow-default-channel');
+        expect(
+            recommendedRow.compareDocumentPosition(defaultRow) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).not.toBe(0);
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Recommended channels'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.queryByTestId('ChannelRow-default-channel')).not.toBeInTheDocument();
+        });
+    });
+
+    test('Recommended filter entry is hidden when ABAC is disabled', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        expect(screen.queryByText('Recommended channels')).not.toBeInTheDocument();
+
+        // The recommendation fetch is also gated server-side on
+        // `accessControlEnabled`. Lock that in so a future refactor doesn't
+        // start fetching unconditionally and silently waste a round-trip.
+        expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
+    });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — row state machine + filter chips
+    // ---------------------------------------------------------------
+
+    describe('Discoverable Private Channels', () => {
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable-channel-id',
+            team_id: 'team_1',
+            display_name: 'Discoverable Ops',
+            name: 'discoverable-ops',
+            type: 'P',
+            discoverable: true,
+        });
+
+        const otherPrivateChannel = TestHelper.getChannelMock({
+            id: 'opaque-private-channel-id',
+            team_id: 'team_1',
+            display_name: 'Opaque Ops',
+            name: 'opaque-ops',
+            type: 'P',
+            discoverable: false,
+        });
+
+        const discoverablePropsBase: Props = {
+            ...baseProps,
+            channels: [],
+            privateChannels: [discoverableChannel, otherPrivateChannel],
+            discoverableFeatureEnabled: true,
+            myChannelMemberships: {},
+        };
+
+        test('fetches my pending join requests on mount when the FF is on', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+            await act(async () => {
+                await Promise.resolve();
+            });
+            expect(discoverablePropsBase.actions.getMyChannelJoinRequests).toHaveBeenCalledWith({status: 'pending'});
+        });
+
+        test('fetches discoverable channels on mount and surfaces them without a search', async () => {
+            const fetchedDiscoverable = TestHelper.getChannelMock({
+                id: 'fetched-discoverable-id',
+                team_id: 'team_1',
+                display_name: 'Fetched Discoverable',
+                name: 'fetched-discoverable',
+                type: 'P',
+                discoverable: true,
+                delete_at: 0,
+            });
+            const searchAllChannels = jest.fn().mockResolvedValue({data: [fetchedDiscoverable]});
+            const props = {...discoverablePropsBase, privateChannels: [], actions: {...discoverablePropsBase.actions, searchAllChannels}};
+
+            renderWithContext(<BrowseChannels {...props}/>);
+
+            expect(searchAllChannels).toHaveBeenCalledWith('', {team_ids: ['team_1'], nonAdminSearch: true});
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toBeInTheDocument();
+            });
+            expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toHaveTextContent(/Request to join/);
+        });
+
+        test('does NOT fetch pending requests when the FF is off', async () => {
+            const offProps = {...discoverablePropsBase, discoverableFeatureEnabled: false};
+            renderWithContext(<BrowseChannels {...offProps}/>);
+            await act(async () => {
+                await Promise.resolve();
+            });
+            expect(offProps.actions.getMyChannelJoinRequests).not.toHaveBeenCalled();
+        });
+
+        test('renders the Discoverable badge + "Request to join" button on a non-member discoverable row', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            expect(row).toHaveTextContent(/Discoverable/);
+            expect(row).toHaveTextContent(/Request to join/);
+            expect(row.querySelector('.more-modal__name .more-modal__discoverable-badge')).not.toBeInTheDocument();
+            expect(row.querySelector('.discoverableIndicatorContainer')).toBeInTheDocument();
+
+            // The non-discoverable private channel still renders on initial
+            // mount (filtering only kicks in on search), but it shows the
+            // default Join CTA and no Discoverable badge.
+            const opaqueRow = screen.getByTestId('ChannelRow-opaque-ops');
+            expect(opaqueRow).not.toHaveTextContent(/Discoverable/);
+            expect(opaqueRow).not.toHaveTextContent(/Request to join/);
+        });
+
+        test('shows a Withdraw button on hover when a pending request exists', async () => {
+            const propsWithPending: Props = {
+                ...discoverablePropsBase,
+                myPendingJoinRequests: {
+                    'discoverable-channel-id': {
+                        id: 'req1',
+                        channel_id: 'discoverable-channel-id',
+                        user_id: 'user-1',
+                        message: '',
+                        status: 'pending',
+                        denial_reason: '',
+                        create_at: 1,
+                        update_at: 1,
+                        reviewed_by: '',
+                        reviewed_at: 0,
+                    },
+                },
+            };
+            renderWithContext(<BrowseChannels {...propsWithPending}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            expect(row.querySelector('.more-modal__requested-pill')).not.toBeInTheDocument();
+            const withdrawButton = row.querySelector('#withdrawRequestButton');
+            expect(withdrawButton).toBeInTheDocument();
+
+            // Pending rows do nothing on Enter, so the Withdraw button must stay
+            // keyboard-focusable (no tabindex=-1) to remain operable.
+            expect(withdrawButton).not.toHaveAttribute('tabindex', '-1');
+            expect(row).toHaveTextContent(/Withdraw/);
+            expect(row).not.toHaveTextContent(/Requested/);
+            expect(row.querySelector('#requestToJoinChannelButton')).not.toBeInTheDocument();
+        });
+
+        test('clicking Request to join opens the RequestJoinChannelModal with the right channel + team', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            const requestButton = row.querySelector('#requestToJoinChannelButton') as HTMLButtonElement;
+            expect(requestButton).toBeInTheDocument();
+
+            await user.click(requestButton);
+
+            // The row no longer fires the request action directly. It opens
+            // the confirmation modal; the modal is what dispatches the request
+            // once the user confirms.
+            expect(discoverablePropsBase.actions.openModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    modalId: expect.any(String),
+                    dialogProps: expect.objectContaining({
+                        channel: expect.objectContaining({id: 'discoverable-channel-id'}),
+                        teamName: 'team_name',
+                    }),
+                }),
+            );
+        });
+
+        test('Discoverable + MyPendingRequests filter menu items appear when the FF is on', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Channel type filter')).toBeInTheDocument();
+            });
+
+            await user.click(screen.getByLabelText('Channel type filter'));
+            expect(screen.getByText('Discoverable private channels')).toBeInTheDocument();
+            expect(screen.getByText('My pending requests')).toBeInTheDocument();
+        });
+
+        test('Discoverable + MyPendingRequests filter menu items are hidden when the FF is off', async () => {
+            const offProps = {...discoverablePropsBase, discoverableFeatureEnabled: false};
+            renderWithContext(<BrowseChannels {...offProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Channel type filter')).toBeInTheDocument();
+            });
+
+            await user.click(screen.getByLabelText('Channel type filter'));
+            expect(screen.queryByText('Discoverable private channels')).not.toBeInTheDocument();
+            expect(screen.queryByText('My pending requests')).not.toBeInTheDocument();
         });
     });
 });

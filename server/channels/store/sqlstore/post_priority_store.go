@@ -68,7 +68,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 }
 
 func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPriority, error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -143,7 +143,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 }
 
 func (s *SqlPostPriorityStore) Delete(postId string) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

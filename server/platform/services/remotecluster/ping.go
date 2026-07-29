@@ -17,18 +17,33 @@ import (
 func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	online := rc.IsOnline()
 
-	if err := rcs.pingRemote(rc); err != nil {
+	pingErr := rcs.pingRemote(rc)
+	if pingErr != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.String("pluginId", rc.PluginID),
-			mlog.Err(err),
+			mlog.Err(pingErr),
 		)
 	}
 
-	if online != rc.IsOnline() {
-		if metrics := rcs.server.GetMetrics(); metrics != nil {
-			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+	pingSucceeded := pingErr == nil
+	hasPendingSync := false
+	if pingSucceeded {
+		// Consume the pending-sync-failure marker (if any). LoadAndDelete clears it so the
+		// map does not accumulate entries for remotes that have recovered.
+		_, hasPendingSync = rcs.syncFailedSinceLastPing.LoadAndDelete(rc.RemoteId)
+	}
+
+	// The connection-state-change counter tracks genuine online/offline transitions, so
+	// only bump it when IsOnline() actually flipped. The event itself must still fire on
+	// the pending-sync recovery path (online→online) to drive ForceSyncForRemote.
+	stateChanged := online != rc.IsOnline()
+	if stateChanged || (pingSucceeded && hasPendingSync) {
+		if stateChanged {
+			if metrics := rcs.server.GetMetrics(); metrics != nil {
+				metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+			}
 		}
 		rcs.fireConnectionStateChgEvent(rc)
 	}

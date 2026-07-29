@@ -63,19 +63,17 @@ func (s *stubRemoteClusterService) ReceiveIncomingMsg(rc *model.RemoteCluster, m
 func (s *stubRemoteClusterService) ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error) {
 	return nil, nil
 }
-func (s *stubRemoteClusterService) PingNow(rc *model.RemoteCluster) {}
+func (s *stubRemoteClusterService) PingNow(rc *model.RemoteCluster)  {}
+func (s *stubRemoteClusterService) NotifySyncFailed(remoteId string) {}
 
 var _ remotecluster.RemoteClusterServiceIFace = (*stubRemoteClusterService)(nil)
 
 // setupMockServerWithConfig sets up the standard mocks that all tests need
 func setupMockServerWithConfig(mockServer *MockServerIface) {
-	// Mock Config for feature flag check - disable membership sync to avoid complex mocking
 	mockConfig := model.Config{}
 	mockConfig.SetDefaults()
-	mockConfig.FeatureFlags.EnableSharedChannelsMemberSync = false
 	mockServer.On("Config").Return(&mockConfig)
 
-	// Mock GetRemoteClusterService for feature flag check
 	mockServer.On("GetRemoteClusterService").Return(nil)
 }
 
@@ -129,9 +127,10 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockChannelStore := mocks.ChannelStore{}
 		mockSharedChannelStore := mocks.SharedChannelStore{}
 		channel := &model.Channel{
-			Id:     invitation.ChannelId,
-			TeamId: invitation.TeamId,
-			Type:   invitation.Type,
+			Id:        invitation.ChannelId,
+			TeamId:    invitation.TeamId,
+			Type:      invitation.Type,
+			CreatorId: model.NewId(),
 		}
 
 		mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, remoteCluster.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
@@ -147,8 +146,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
-			Guests:  model.NewPointer(false),
-			Members: model.NewPointer(false),
+			Guests:  new(false),
+			Members: new(false),
 		}
 
 		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
@@ -164,6 +163,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			},
 		}
 		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil).Maybe()
+		mockApp.On("GetSystemBot", mockTypeReqContext).Return(&model.Bot{UserId: model.NewId()}, nil).Once()
+		mockApp.On("CreatePost", mockTypeReqContext, mock.AnythingOfType("*model.Post"), mockTypeChannel, mock.AnythingOfType("model.CreatePostFlags")).Return(&model.Post{Id: model.NewId()}, false, nil).Once()
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
@@ -250,9 +251,10 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockChannelStore := mocks.ChannelStore{}
 		mockSharedChannelStore := mocks.SharedChannelStore{}
 		channel := &model.Channel{
-			Id:     invitation.ChannelId,
-			TeamId: invitation.TeamId,
-			Type:   invitation.Type,
+			Id:        invitation.ChannelId,
+			TeamId:    invitation.TeamId,
+			Type:      invitation.Type,
+			CreatorId: model.NewId(),
 		}
 		sharedChannelRemote := &model.SharedChannelRemote{
 			ChannelId: invitation.ChannelId,
@@ -270,6 +272,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockServer.On("GetStore").Return(mockStore)
 		setupMockServerWithConfig(mockServer)
 
+		mockApp.On("GetSystemBot", mockTypeReqContext).Return(&model.Bot{UserId: model.NewId()}, nil).Once()
+		mockApp.On("CreatePost", mockTypeReqContext, mock.AnythingOfType("*model.Post"), mockTypeChannel, mock.AnythingOfType("model.CreatePostFlags")).Return(&model.Post{Id: model.NewId()}, false, nil).Once()
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
@@ -332,7 +336,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false, true, false},
 			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false, true, false},
 			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false, true, false},
-			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false, true, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: new("bogus")}, &model.User{Id: model.NewId()}, true, false, true, false},
 			{"user2 not in DB but in participants", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, true, false, true},
 			{"user2 not in DB and not in participants", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, false, false, false},
 		}
@@ -372,7 +376,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				mockChannelStore := mocks.ChannelStore{}
 				mockSharedChannelStore := mocks.SharedChannelStore{}
 				channel := &model.Channel{
-					Id: invitation.ChannelId,
+					Id:        invitation.ChannelId,
+					CreatorId: model.NewId(),
 				}
 
 				mockUserStore := mocks.UserStore{}
@@ -411,6 +416,10 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 					Return(channel, nil).Maybe()
 				mockApp.On("UserCanSeeOtherUser", mockTypeReqContext, mockTypeString, mockTypeString).Return(tc.canSee, nil).Maybe()
 				mockApp.On("NotifySharedChannelUserUpdate", mockTypeUser).Return().Maybe()
+				if tc.expectSuccess {
+					mockApp.On("GetSystemBot", mockTypeReqContext).Return(&model.Bot{UserId: model.NewId()}, nil).Once()
+					mockApp.On("CreatePost", mockTypeReqContext, mock.AnythingOfType("*model.Post"), mockTypeChannel, mock.AnythingOfType("model.CreatePostFlags")).Return(&model.Post{Id: model.NewId()}, false, nil).Once()
+				}
 
 				defer mockApp.AssertExpectations(t)
 

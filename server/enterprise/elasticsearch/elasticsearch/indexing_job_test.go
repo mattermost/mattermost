@@ -29,7 +29,7 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 
 		config := &model.Config{
 			ElasticsearchSettings: model.ElasticsearchSettings{
-				EnableIndexing: model.NewPointer(true),
+				EnableIndexing: new(true),
 			},
 		}
 
@@ -50,7 +50,7 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 
 		config := &model.Config{
 			ElasticsearchSettings: model.ElasticsearchSettings{
-				EnableIndexing: model.NewPointer(true),
+				EnableIndexing: new(true),
 			},
 		}
 

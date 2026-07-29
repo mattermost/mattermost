@@ -9,11 +9,11 @@
 export type ClientLicense = Record<string, string>;
 
 /**
- * Returns true if the server has a license that includes autotranslation (Entry or Advanced).
+ * Returns true if the server has a license that includes autotranslation
  * Use with test.skip(!hasAutotranslationLicense(license.SkuShortName), '...') in autotranslation specs.
  */
 export function hasAutotranslationLicense(skuShortName: string): boolean {
-    return skuShortName === 'entry' || skuShortName === 'advanced';
+    return skuShortName === 'enterprise' || skuShortName === 'entry' || skuShortName === 'advanced';
 }
 
 /**

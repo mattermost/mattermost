@@ -45,19 +45,6 @@ jest.mock('components/async_load', () => ({
     },
 }));
 
-// Mock WithTooltip to avoid complex tooltip testing
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children, title}: {children: React.ReactNode; title: string}) => (
-        <div
-            data-testid='with-tooltip'
-            title={title}
-        >
-            {children}
-        </div>
-    ),
-}));
-
 describe('CloudPreviewModal', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
 
@@ -301,7 +288,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should have proper tooltip on FAB button', () => {
+    it('should have proper tooltip on FAB button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -310,8 +297,13 @@ describe('CloudPreviewModal', () => {
             stateWithModalShown,
         );
 
-        const tooltip = screen.getByTestId('with-tooltip');
-        expect(tooltip).toHaveAttribute('title', 'Open overview');
+        const button = screen.getByLabelText('Open cloud preview overview');
+
+        await userEvent.hover(button);
+
+        await waitFor(() => {
+            expect(button).toHaveAttribute('aria-describedby');
+        });
     });
 
     it('should have proper accessibility attributes on FAB button', () => {

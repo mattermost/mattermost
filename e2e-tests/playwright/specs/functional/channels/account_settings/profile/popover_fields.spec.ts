@@ -12,6 +12,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * 2. Two user accounts, with one user able to see their own information
  */
 test('Profile popover should show correct fields after at-mention autocomplete @user_profile', async ({pw}) => {
+    test.setTimeout(120000);
     // Initialize with user's privacy settings set to hide email and full name
     const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
@@ -19,6 +20,10 @@ test('Profile popover should show correct fields after at-mention autocomplete @
             ShowEmailAddress: false,
             ShowFullName: false,
         },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false && cfg.PrivacySettings?.ShowFullName === false;
     });
 
     // Create and add another user using admin client
@@ -35,6 +40,8 @@ test('Profile popover should show correct fields after at-mention autocomplete @
 
     // 3. Open profile popover for the current user on first
     const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.container).toContainText(`@${user.username}`);
+    await expect(lastPost.container).toContainText(`@${testUser2.username}`);
     const firstMention = await lastPost.container.getByText(`@${user.username}`, {exact: true});
     await firstMention.click();
     const currentUserProfilePopover = channelsPage.userProfilePopover;
@@ -47,14 +54,38 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     // 4. Close the current user's profile popover
     await currentUserProfilePopover.close();
 
-    // 5. Open profile popover for the other user on second mention
-    const secondMention = await lastPost.container.getByText(`@${testUser2.username}`, {exact: true});
+    // 5. Open profile popover for the other user on second mention.
+    // Re-apply privacy settings in case a concurrent initSetup() reset them,
+    // then wait until the server confirms the value before proceeding.
+    await adminClient.patchConfig({
+        PrivacySettings: {
+            ShowEmailAddress: false,
+            ShowFullName: false,
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false && cfg.PrivacySettings?.ShowFullName === false;
+    });
+
+    // Reload the page so the browser fetches the new config synchronously.
+    // waitUntil above only confirms the server-side state; the browser updates its
+    // Redux store via WebSocket (CONFIG_CHANGED event) which can lag significantly.
+    // A full page reload forces a fresh /api/v4/config/client fetch, so the privacy
+    // settings are guaranteed to be in effect before we render any popover.
+    await channelsPage.page.reload();
+    await channelsPage.toBeVisible();
+
+    // Re-locate the post after reload (DOM was replaced)
+    const lastPostAfterReload = await channelsPage.getLastPost();
+    await expect(lastPostAfterReload.container).toContainText(`@${testUser2.username}`);
+    const secondMention = lastPostAfterReload.container.getByText(`@${testUser2.username}`, {exact: true});
     await secondMention.click();
     const otherUserProfilePopover = channelsPage.userProfilePopover;
 
     // * Verify only username is visible for other user in the profile popover
     await expect(otherUserProfilePopover.container.getByText(`@${testUser2.username}`)).toBeVisible();
-    await expect(otherUserProfilePopover.container.getByText(testUser2.email)).not.toBeVisible(); // TODO: Fix this
+    await expect(otherUserProfilePopover.container.getByText(testUser2.email)).not.toBeVisible();
 
     // 6. Close the other user's profile popover
     await otherUserProfilePopover.close();
@@ -66,11 +97,18 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     const suggestionList = channelsPage.centerView.postCreate.suggestionList;
     await expect(suggestionList.getByText(`@${user.username}`)).toBeVisible();
 
-    // 8. Clear the message box
+    // 8. Clear the message box and wait for the autocomplete overlay to fully
+    // disappear before interacting with the post — the overlay can otherwise
+    // block hover/click events on the message area and cause a flaky failure.
     await channelsPage.centerView.postCreate.writeMessage('');
+    await expect(suggestionList).toBeHidden({timeout: 5000});
 
-    // 9. Open profile popover for the current user again
-    const profilePopoverAgain = await channelsPage.openProfilePopover(lastPost);
+    // 9. Open profile popover by clicking the @mention text directly (same
+    // approach as steps 3-4) — more reliable than openProfilePopover() which
+    // uses a hover-then-click sequence that the overlay can intercept.
+    const currentUserMention = lastPostAfterReload.container.getByText(`@${user.username}`, {exact: true});
+    await currentUserMention.click();
+    const profilePopoverAgain = channelsPage.userProfilePopover;
 
     // * Verify all fields are still visible
     await expect(profilePopoverAgain.container.getByText(`@${user.username}`)).toBeVisible();

@@ -24,7 +24,7 @@ import FileAttachment from './file_attachment';
 export type OwnProps = {
     preventDownload?: boolean;
     fileInfo: FileInfo;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);

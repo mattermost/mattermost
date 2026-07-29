@@ -17,6 +17,7 @@ exports[`ManageTeamsModal should match snapshot init 1`] = `
     <div
       aria-labelledby="manageTeamsModalLabel"
       class="fade in modal"
+      id="manageTeamsModal"
       role="dialog"
       style="display: block; padding-right: 0px;"
       tabindex="-1"

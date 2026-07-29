@@ -7,10 +7,12 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+import type {
+    SimpleUser,
+} from './helpers';
 import {
     getPostTextboxInput,
     getQuickChannelSwitcherInput,
-    SimpleUser,
     startAtMention,
     verifySuggestionAtChannelSwitcher,
     verifySuggestionAtPostTextbox,

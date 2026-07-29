@@ -127,7 +127,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rp, isMemberForPreviews, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
+	silentBool := false
+	if silent := r.URL.Query().Get("silent"); silent != "" {
+		silentBool, err2 = strconv.ParseBool(silent)
+		if err2 != nil {
+			c.SetInvalidParam("silent")
+			return
+		}
+	}
+	createFlags := model.CreatePostFlags{
+		SetOnline:          setOnlineBool,
+		SilentNotification: silentBool,
+	}
+
+	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err
 		return
@@ -332,7 +345,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
-	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+	c.App.AddCursorIdsForPostList(clientPostList, c.AppContext.Session().UserId, afterPost, beforePost, since, page, perPage, collapsedThreads)
 
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
@@ -413,8 +426,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
 	// to ensure they only reference posts that are actually in the response
-	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
-	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, c.AppContext.Session().UserId, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, c.AppContext.Session().UserId, collapsedThreads)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1104,6 +1117,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check edit_file_attachment permission if file IDs are being changed (files added or removed)
+	checkEditFileAttachmentPermission(c, post.FileIds, originalPost)
+	if c.Err != nil {
+		return
+	}
+
 	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — skip ownership check
 		// PermissionEditPost already checked above
@@ -1178,6 +1197,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post.FileIds != nil {
 		checkUploadFilePermissionForNewFiles(c, *post.FileIds, originalPost)
+		if c.Err != nil {
+			return
+		}
+
+		checkEditFileAttachmentPermission(c, *post.FileIds, originalPost)
 		if c.Err != nil {
 			return
 		}
@@ -1341,7 +1365,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	patch := &model.PostPatch{}
-	patch.IsPinned = model.NewPointer(isPinned)
+	patch.IsPinned = new(isPinned)
 
 	patchedPost, isMemberForPreviews, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch, nil)
 	if err != nil {

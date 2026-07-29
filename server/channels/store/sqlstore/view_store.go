@@ -42,9 +42,20 @@ func viewColumns() []string {
 }
 
 func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
+	if err := s.saveViewT(s.GetMaster(), view); err != nil {
+		return nil, err
+	}
+	return view, nil
+}
+
+// saveViewT inserts a view row using the provided executor (either a
+// transaction or a regular master DB handle). The caller is responsible for
+// setting view.ChannelId before calling. PreSave + IsValid are run here so
+// callers can't forget to validate.
+func (s *SqlViewStore) saveViewT(ex sqlxExecutor, view *model.View) error {
 	view.PreSave()
 	if err := view.IsValid(); err != nil {
-		return nil, err
+		return err
 	}
 
 	builder := s.getQueryBuilder().
@@ -56,11 +67,11 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 			view.CreateAt, view.UpdateAt, view.DeleteAt,
 		)
 
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "failed to save view")
+	if _, err := ex.ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "failed to save view")
 	}
 
-	return view, nil
+	return nil
 }
 
 func (s *SqlViewStore) Get(id string) (*model.View, error) {
@@ -195,7 +206,7 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 	}
 
 	now := model.GetMillis()
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction for UpdateSortOrder")
 	}

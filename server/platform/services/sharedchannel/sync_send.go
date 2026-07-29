@@ -5,7 +5,10 @@ package sharedchannel
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -340,6 +343,7 @@ func (scs *Service) doSync() time.Duration {
 		if err := scs.processTask(task); err != nil {
 			// put task back into map so it will update again
 			if task.incRetry() {
+				task.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(task)
 			} else {
 				scs.server.Log().Error("Failed to synchronize shared channel",
@@ -429,6 +433,13 @@ func (scs *Service) processTask(task syncTask) error {
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
+			// The remote cluster has been deleted or no longer exists; there is
+			// nothing to sync, so drop the task rather than retrying and logging
+			// an error on every change for the orphaned reference.
+			if errors.Is(err, sql.ErrNoRows) {
+				scs.selfHealOrphanedSharedChannelRemote(task.channelID, task.remoteID)
+				return nil
+			}
 			return err
 		}
 		if !rc.IsOnline() {
@@ -441,8 +452,18 @@ func (scs *Service) processTask(task syncTask) error {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
 		if err := scs.syncForRemote(rtask, rc); err != nil {
-			// retry...
+			// retry, spaced by SyncRetryDelay to avoid hammering the remote...
 			if rtask.incRetry() {
+				// A task with no specific remote fans out to every remote in this loop, and
+				// each rtask is a copy that still carries the original (remote-less) task id.
+				// Give the per-remote retry a distinct, remote-specific id so addTask (which
+				// merges on id) keeps a separate retry task per failed remote instead of
+				// collapsing them into one. Single-remote tasks already have a remote-specific
+				// id, so leave those untouched (recomputing would grow the id on every retry).
+				if task.remoteID == "" {
+					rtask.id = task.id + rc.RemoteId
+				}
+				rtask.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(rtask)
 			} else {
 				scs.server.Log().Error("Failed to synchronize shared channel for remote cluster",
@@ -454,6 +475,51 @@ func (scs *Service) processTask(task syncTask) error {
 		}
 	}
 	return nil
+}
+
+// selfHealOrphanedSharedChannelRemote handles a SharedChannelRemote row that still
+// references a RemoteCluster which has been soft-deleted or removed. Left alone, the
+// live SCR row (DeleteAt = 0) keeps getting picked up by the sync loop, spamming a log
+// entry on every tick. Soft-deleting the orphaned SCR row stops the recurrence without
+// requiring manual DB intervention.
+func (scs *Service) selfHealOrphanedSharedChannelRemote(channelID, remoteID string) {
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		// The SCR row is already gone (or unreadable); nothing left to self-heal.
+		scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	if scr.DeleteAt != 0 {
+		// The SCR row is already soft-deleted, so there is nothing to heal. A deleted
+		// remote no longer syncing is the expected steady state, so this is logged at
+		// debug rather than warn to avoid noise.
+		scs.server.Log().Debug("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+		)
+		return
+	}
+
+	if _, err := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); err != nil {
+		scs.server.Log().Warn("Failed to self-heal orphaned shared channel remote for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.String("sharedChannelRemoteId", scr.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	scs.server.Log().Warn("Self-healed orphaned shared channel remote for deleted remote cluster",
+		mlog.String("channelId", channelID),
+		mlog.String("remoteId", remoteID),
+		mlog.String("sharedChannelRemoteId", scr.Id),
+	)
 }
 
 func (scs *Service) handlePostError(postId string, task syncTask, rc *model.RemoteCluster) {
@@ -529,8 +595,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
 	// get added where it is mostly likely to be seen.
-	for i := len(posts) - 1; i >= 0; i-- {
-		post := posts[i]
+	for _, post := range slices.Backward(posts) {
 		if didNotify := notified[post.UserId]; didNotify {
 			continue
 		}

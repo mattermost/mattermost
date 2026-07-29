@@ -18,7 +18,9 @@ import SchemaAdminSettings from 'components/admin_console/schema_admin_settings'
 import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
+import useAdminConfigSync from 'components/common/hooks/useAdminConfigSync';
 import DiscardChangesModal from 'components/discard_changes_modal';
+import GlobalClassificationBanner from 'components/global_classification_banner';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
@@ -43,7 +45,7 @@ type ExtraProps = {
     patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
-}
+};
 
 /**
  * Focus or scroll to a provided hash for the given {@link Location}.
@@ -85,6 +87,10 @@ const useFocusScroller = (location: Location): RefCallback<HTMLElement> => {
 const AdminConsole = (props: Props) => {
     const [search, setSearch] = useState('');
     const handleFocusScroller = useFocusScroller(props.location);
+
+    // Keep the config fresh while the System Console is open so that concurrent
+    // saves by different admins do not clobber each other.
+    useAdminConfigSync();
 
     useEffect(() => {
         props.actions.getConfig();
@@ -238,6 +244,7 @@ const AdminConsole = (props: Props) => {
 
     return (
         <>
+            <GlobalClassificationBanner position='top'/>
             <AnnouncementBarController/>
             <SystemNotice/>
             <BackstageNavbar team={props.team}/>
@@ -254,6 +261,7 @@ const AdminConsole = (props: Props) => {
                     {renderRoutes(extraProps)}
                 </SearchKeywordMarking>
             </div>
+            <GlobalClassificationBanner position='bottom'/>
             <DiscardChangesModal
                 show={showNavigationPrompt}
                 onConfirm={confirmNavigation}

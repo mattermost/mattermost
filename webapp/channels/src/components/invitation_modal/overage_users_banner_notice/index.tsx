@@ -29,7 +29,7 @@ import './overage_users_banner_notice.scss';
 type AdminHasDismissedArgs = {
     preferenceName: string;
     overagePreferences: PreferenceType[];
-}
+};
 
 const adminHasDismissed = ({preferenceName, overagePreferences}: AdminHasDismissedArgs): boolean => {
     return overagePreferences.find((value) => value.name === preferenceName) !== undefined;

@@ -1453,7 +1453,7 @@ describe('isChannelInManagedCategory', () => {
     const state = {
         entities: {
             general: {
-                config: {EnableManagedChannelCategories: 'true'},
+                config: {FeatureFlagManagedChannelCategories: 'true'},
             },
             channels: {
                 channels: {
@@ -1491,7 +1491,7 @@ describe('getChannelManagedCategoryName', () => {
     const state = {
         entities: {
             general: {
-                config: {EnableManagedChannelCategories: 'true'},
+                config: {FeatureFlagManagedChannelCategories: 'true'},
             },
             channels: {
                 channels: {
@@ -1527,7 +1527,7 @@ describe('makeGetManagedCategoriesForTeam', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     managedCategoryMappings: {},
@@ -1547,7 +1547,7 @@ describe('makeGetManagedCategoriesForTeam', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     managedCategoryMappings: {
@@ -1610,7 +1610,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
@@ -1633,7 +1633,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
@@ -1672,7 +1672,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
@@ -1695,5 +1695,237 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         expect(result[0].display_name).toBe('Isolated');
         expect(result[1].channel_ids).toEqual(nonManagedCategory1.channel_ids);
         expect(result[2].channel_ids).toEqual(nonManagedCategory2.channel_ids);
+    });
+});
+
+describe('isChannelCategorySortingEnabled', () => {
+    test('should return true when EnableChannelCategorySorting config is "true"', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableChannelCategorySorting: 'true'},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.isChannelCategorySortingEnabled(state)).toBe(true);
+    });
+
+    test('should return false when EnableChannelCategorySorting config is "false"', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableChannelCategorySorting: 'false'},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.isChannelCategorySortingEnabled(state)).toBe(false);
+    });
+
+    test('should return false when EnableChannelCategorySorting config is missing', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.isChannelCategorySortingEnabled(state)).toBe(false);
+    });
+});
+
+describe('makeGetSidebarCategoryNamesForTeam', () => {
+    const customB = {
+        id: 'customB',
+        team_id: 'team1',
+        type: CategoryTypes.CUSTOM,
+        display_name: 'Bravo',
+        channel_ids: ['channel1'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+    const customA = {
+        id: 'customA',
+        team_id: 'team1',
+        type: CategoryTypes.CUSTOM,
+        display_name: 'Alpha',
+        channel_ids: ['channel2'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+    const favoritesCategory = {
+        id: 'favorites1',
+        team_id: 'team1',
+        type: CategoryTypes.FAVORITES,
+        display_name: 'Favorites',
+        channel_ids: ['channel3'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+    const channelsCategory = {
+        id: 'channels1',
+        team_id: 'team1',
+        type: CategoryTypes.CHANNELS,
+        display_name: 'Channels',
+        channel_ids: ['channel4'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+    const dmCategory = {
+        id: 'dm1',
+        team_id: 'team1',
+        type: CategoryTypes.DIRECT_MESSAGES,
+        display_name: 'Direct Messages',
+        channel_ids: [],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+
+    test('should return only CUSTOM category names sorted alphabetically by locale', () => {
+        const getSidebarCategoryNamesForTeam = Selectors.makeGetSidebarCategoryNamesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    byId: {
+                        favorites1: favoritesCategory,
+                        channels1: channelsCategory,
+                        dm1: dmCategory,
+                        customB,
+                        customA,
+                    },
+                    orderByTeam: {team1: ['favorites1', 'customB', 'channels1', 'customA', 'dm1']},
+                    managedCategoryMappings: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getSidebarCategoryNamesForTeam(state, 'team1')).toEqual(['Alpha', 'Bravo']);
+    });
+
+    test('should include MANAGED categories and exclude FAVORITES/CHANNELS/DIRECT_MESSAGES', () => {
+        const getSidebarCategoryNamesForTeam = Selectors.makeGetSidebarCategoryNamesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
+                },
+                channels: {
+                    channels: {
+                        channel4: {id: 'channel4', team_id: 'team1'},
+                    },
+                },
+                channelCategories: {
+                    byId: {
+                        favorites1: favoritesCategory,
+                        channels1: channelsCategory,
+                        dm1: dmCategory,
+                        customA,
+                    },
+                    orderByTeam: {team1: ['favorites1', 'customA', 'channels1', 'dm1']},
+                    managedCategoryMappings: {
+                        team1: {
+                            channel4: 'Operations',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getSidebarCategoryNamesForTeam(state, 'team1')).toEqual(['Alpha', 'Operations']);
+    });
+
+    test('should deduplicate names that appear in both CUSTOM and MANAGED categories', () => {
+        const getSidebarCategoryNamesForTeam = Selectors.makeGetSidebarCategoryNamesForTeam();
+
+        const customAlpha = {
+            ...customA,
+            display_name: 'Operations',
+        };
+
+        const state = {
+            entities: {
+                general: {
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
+                },
+                channels: {
+                    channels: {
+                        channel4: {id: 'channel4', team_id: 'team1'},
+                    },
+                },
+                channelCategories: {
+                    byId: {
+                        favorites1: favoritesCategory,
+                        channels1: channelsCategory,
+                        dm1: dmCategory,
+                        customA: customAlpha,
+                    },
+                    orderByTeam: {team1: ['favorites1', 'customA', 'channels1', 'dm1']},
+                    managedCategoryMappings: {
+                        team1: {
+                            channel4: 'Operations',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getSidebarCategoryNamesForTeam(state, 'team1')).toEqual(['Operations']);
+    });
+
+    test('should sort numerically when locale is set on user', () => {
+        const getSidebarCategoryNamesForTeam = Selectors.makeGetSidebarCategoryNamesForTeam();
+
+        const cat10 = {...customA, id: 'cat10', display_name: 'Item 10'};
+        const cat2 = {...customA, id: 'cat2', display_name: 'Item 2'};
+
+        const state = {
+            entities: {
+                general: {
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    byId: {cat10, cat2},
+                    orderByTeam: {team1: ['cat10', 'cat2']},
+                    managedCategoryMappings: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {id: 'user1', locale: 'en'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getSidebarCategoryNamesForTeam(state, 'team1')).toEqual(['Item 2', 'Item 10']);
     });
 });

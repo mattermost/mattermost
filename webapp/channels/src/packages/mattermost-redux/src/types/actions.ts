@@ -34,7 +34,7 @@ export type ActionResult<Data = any, Error = any> = {
 export type ActionFunc<
     Data = unknown,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<ActionResult<Data>, State, unknown, TAction>;
 
 /**
@@ -44,7 +44,7 @@ export type ActionFunc<
 export type ActionFuncAsync<
     Data = unknown,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<Promise<ActionResult<Data>>, State, unknown, TAction>;
 
 /**
@@ -56,5 +56,5 @@ export type ActionFuncAsync<
 export type ThunkActionFunc<
     ReturnType,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<ReturnType, State, unknown, TAction>;

@@ -696,7 +696,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Ensure config option is disabled (default)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen == nil {
-				cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = model.NewPointer(false)
+				cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = new(false)
 			} else {
 				*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = false
 			}

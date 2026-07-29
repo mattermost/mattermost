@@ -56,7 +56,7 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 	}
 
 	config := &model.Config{}
-	config.ElasticsearchSettings.IndexPrefix = model.NewPointer("test_")
+	config.ElasticsearchSettings.IndexPrefix = new("test_")
 
 	// Call the function
 	lastChannel, appErr := BulkIndexChannels(config, mockStore, mlog.CreateConsoleTestLogger(t), addItemToBulkProcessorFn, channels, IndexingProgress{})

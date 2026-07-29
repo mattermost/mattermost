@@ -47,7 +47,7 @@ export type Props = {
          */
         revokeSession: (userId: string, sessionId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ActivityLogModal = ({
     currentUserId,

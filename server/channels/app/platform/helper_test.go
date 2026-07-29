@@ -60,6 +60,10 @@ func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string,
 	return true, true
 }
 
+func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	return true
+}
+
 func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	return true
 }
@@ -156,8 +160,8 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	// connectionCleaner goroutine writes to internal fields while testify's
 	// mock.Called() → Arguments.Diff() → fmt.Sprintf reads them via reflect.
 	// Setting lifetime/idle to 0 prevents the cleaner from starting.
-	memoryConfig.SqlSettings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
-	memoryConfig.SqlSettings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
+	memoryConfig.SqlSettings.ConnMaxLifetimeMilliseconds = new(0)
+	memoryConfig.SqlSettings.ConnMaxIdleTimeMilliseconds = new(0)
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -296,7 +300,7 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewPointer(v)
+		channel.Shared = new(v)
 	}
 }
 

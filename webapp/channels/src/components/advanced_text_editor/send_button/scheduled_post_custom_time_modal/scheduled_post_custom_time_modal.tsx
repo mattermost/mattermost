@@ -32,7 +32,7 @@ type Props = {
     initialTime?: Moment;
     initialRepeatWeekly?: boolean;
     initialRepeatTimezone?: string;
-}
+};
 
 export default function ScheduledPostCustomTimeModal({
     channelId,

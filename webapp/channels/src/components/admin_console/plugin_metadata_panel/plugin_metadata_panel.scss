@@ -1,0 +1,26 @@
+.PluginMetadataPanel {
+    font-size: inherit;
+    line-height: inherit;
+
+    &__settingsWrapper {
+        margin-bottom: 16px;
+    }
+
+    &__metadata {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 0.9em;
+
+        a {
+            color: var(--link-color);
+        }
+    }
+
+    &__id {
+        cursor: pointer;
+        font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+        &:hover {
+            color: var(--link-color);
+        }
+    }
+}

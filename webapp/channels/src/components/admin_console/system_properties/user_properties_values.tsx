@@ -11,7 +11,8 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
-import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {type UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
@@ -24,12 +25,13 @@ import {DangerText} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
+import UserPropertyRankValues from './user_properties_rank_values';
 
 type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
     autoFocus?: boolean;
-}
+};
 
 type Option = {label: string; id: string; value: string};
 type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;
@@ -41,6 +43,7 @@ const UserPropertyValues = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, field.attrs?.source_plugin_id));
+    const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const isOrphaned = useIsFieldOrphaned(field);
 
     const [query, setQuery] = React.useState('');
@@ -88,9 +91,41 @@ const UserPropertyValues = ({
         event.preventDefault();
     };
 
-    if (field.attrs.ldap || field.attrs.saml) {
-        const syncedProperties = [
+    // Externally managed fields are read-only here. Render every source in the
+    // same "Synced with" row: LDAP/SAML links (editable from this screen when
+    // allowed) and owner pills (assigned by integrations such as SCIM).
+    const owners = field.attrs?.owners ?? [];
+    const hasSyncedSources = Boolean(field.attrs.ldap || field.attrs.saml || owners.length > 0);
+    if (hasSyncedSources) {
+        const ownerPills = owners.map((owner, idx) => {
+            const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
+            const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
 
+            let content: React.ReactNode;
+            if (owner.scopes?.length) {
+                content = (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.owner.scoped'
+                        defaultMessage='{provenance}: {scopes}'
+                        values={{provenance, scopes: owner.scopes.join(', ')}}
+                    />
+                );
+            } else {
+                content = provenance;
+            }
+
+            return (
+                <span
+                    className='user-property-field-values__chip'
+                    key={key}
+                    data-testid={`user-property-field-values__owner-${field.name}-${owner.id}`}
+                >
+                    {content}
+                </span>
+            );
+        });
+
+        const syncedProperties = [
             field.attrs.ldap && (
                 <a
                     className='user-property-field-values__chip-link'
@@ -133,20 +168,18 @@ const UserPropertyValues = ({
                     />
                 </a>
             ),
-
+            ...ownerPills,
         ].filter(Boolean);
 
         return (
-            <>
-                <span className='user-property-field-values'>
-                    <SyncIcon size={18}/>
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.synced_with'
-                        defaultMessage='Synced with: {syncedProperties}'
-                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
-                    />
-                </span>
-            </>
+            <span className='user-property-field-values'>
+                <SyncIcon size={18}/>
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.table.values.synced_with'
+                    defaultMessage='Synced with: {syncedProperties}'
+                    values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                />
+            </span>
         );
     }
 
@@ -178,6 +211,18 @@ const UserPropertyValues = ({
             <span className='user-property-field-values'>
                 {'-'}
             </span>
+        );
+    }
+
+    // Ranked fields render numbered chips with a per-chip rank/label/remove
+    // popover instead of the plain creatable value list.
+    if (field.type === 'rank') {
+        return (
+            <UserPropertyRankValues
+                field={field}
+                updateField={updateField}
+                autoFocus={autoFocus}
+            />
         );
     }
 

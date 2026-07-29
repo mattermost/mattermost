@@ -40,7 +40,7 @@ func TestCreateBot(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		assert.Nil(t, appErr)
-		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewPointer(false)
+		th.App.Config().ServiceSettings.EnableBotAccountCreation = new(false)
 
 		_, _, err := th.Client.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -129,7 +129,7 @@ func TestCreateBot(t *testing.T) {
 		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		assert.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token")
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
 		require.NoError(t, err)
 		th.Client.AuthToken = rtoken.Token
 
@@ -202,9 +202,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			botPatch := &model.BotPatch{
-				Username:    model.NewPointer(GenerateTestUsername()),
-				DisplayName: model.NewPointer("an updated bot"),
-				Description: model.NewPointer("updated bot"),
+				Username:    new(GenerateTestUsername()),
+				DisplayName: new("an updated bot"),
+				Description: new("updated bot"),
 			}
 			patchedBot, patchResp, err2 := client.PatchBot(context.Background(), createdBot.UserId, botPatch)
 			require.NoError(t, err2)
@@ -229,9 +229,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			botPatch := &model.BotPatch{
-				Username:    model.NewPointer(GenerateTestUsername()),
-				DisplayName: model.NewPointer("an updated bot"),
-				Description: model.NewPointer("updated bot"),
+				Username:    new(GenerateTestUsername()),
+				DisplayName: new("an updated bot"),
+				Description: new("updated bot"),
 			}
 			patchedBot, patchResp, err := client.PatchBot(context.Background(), createdBotSystemAdmin.UserId, botPatch)
 			require.NoError(t, err)
@@ -321,9 +321,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer(GenerateTestUsername()),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new(GenerateTestUsername()),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		patchedBot, resp, err := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
@@ -377,9 +377,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer(GenerateTestUsername()),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new(GenerateTestUsername()),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		_, _, err = th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
@@ -412,9 +412,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer(GenerateTestUsername()),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new(GenerateTestUsername()),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		_, _, err = th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
@@ -447,9 +447,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer(GenerateTestUsername()),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new(GenerateTestUsername()),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		patchedBot, resp, err := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
@@ -489,7 +489,7 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username: model.NewPointer(GenerateTestUsername()),
+			Username: new(GenerateTestUsername()),
 		}
 
 		patchedBot, resp, err := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
@@ -1519,7 +1519,7 @@ func TestConvertBotToUser(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	user, resp, err := th.Client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer(model.NewTestPassword())}, false)
+	user, resp, err := th.Client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: new(model.NewTestPassword())}, false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, user)
@@ -1538,7 +1538,7 @@ func TestConvertBotToUser(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, user)
 
-		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer(model.NewTestPassword())}, false)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: new(model.NewTestPassword())}, false)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
@@ -1555,7 +1555,7 @@ func TestConvertBotToUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewPointer(model.NewTestPassword())}, true)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: new(model.NewTestPassword())}, true)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)

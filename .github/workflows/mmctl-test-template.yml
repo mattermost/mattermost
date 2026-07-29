@@ -21,6 +21,19 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      # Only if fips-enabled is true
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+      # Only master / release and there is report
+      MM_E2E_ZEPHYR_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   test:
@@ -28,6 +41,13 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
+      INPUT_DATASOURCE: ${{ inputs.datasource }}
+      INPUT_FIPS_ENABLED: ${{ inputs.fips-enabled }}
+      INPUT_GO_VERSION: ${{ inputs.go-version }}
+      INPUT_LOGSARTIFACT: ${{ inputs.logsartifact }}
+      INPUT_NAME: ${{ inputs.name }}
+      INPUT_PR_NUMBER: ${{ github.event.pull_request.number }}
+      REF_NAME: ${{ github.ref_name }}
     steps:
       - name: buildenv/docker-login
         # Only FIPS requires login for private build container. (Forks won't have credentials.)
@@ -36,24 +56,29 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Setup BUILD_IMAGE
-        id: build
+        with:
+          persist-credentials: false
+      - name: buildenv/load
+        id: buildenv
+        uses: ./.github/actions/load-buildenv
+        with:
+          go-version: ${{ inputs.go-version }}
+          fips-enabled: ${{ inputs.fips-enabled }}
+      - name: Setup log artifact name
+        id: log-artifact
         run: |
-          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
-            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
+          if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
-            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Store required variables for publishing results
         run: |
-          echo "${{ inputs.name }}" > server/test-name
-          echo "${{ github.event.pull_request.number }}" > server/pr-number
+          echo "$INPUT_NAME" > server/test-name
+          echo "$INPUT_PR_NUMBER" > server/pr-number
       - name: Run docker compose
         env:
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
@@ -68,9 +93,9 @@ jobs:
 
       - name: Run mmctl Tests
         env:
-          BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
+          BUILD_IMAGE: ${{ steps.buildenv.outputs.image }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' ]]; then
+          if [[ "$REF_NAME" == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
           else
             export TESTFLAGS="-timeout 30m"
@@ -78,10 +103,10 @@ jobs:
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
-            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="$INPUT_DATASOURCE" \
+            --env MM_SQLSETTINGS_DATASOURCE="$INPUT_DATASOURCE" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
-            --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env FIPS_ENABLED="$INPUT_FIPS_ENABLED" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
@@ -98,13 +123,13 @@ jobs:
         with:
           report-path: server/report.xml
           zephyr-api-key: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
-          build-image: ${{ steps.build.outputs.BUILD_IMAGE }}
+          build-image: ${{ steps.buildenv.outputs.image }}
 
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
+          name: ${{ steps.log-artifact.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml

@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import type {FallbackProps} from 'components/with_error_boundary';
 import withErrorBoundary from 'components/with_error_boundary';
 
@@ -29,8 +31,8 @@ function RetryButton({clearError}: FallbackProps) {
     const intl = useIntl();
 
     return (
-        <button
-            className='btn btn-tertiary'
+        <Button
+            emphasis='tertiary'
             aria-label={intl.formatMessage({id: 'post.renderError.retryLabel', defaultMessage: 'Retry rendering this post'})}
             onClick={clearError}
         >
@@ -38,6 +40,6 @@ function RetryButton({clearError}: FallbackProps) {
                 id='post.renderError.retry'
                 defaultMessage='Retry'
             />
-        </button>
+        </Button>
     );
 }

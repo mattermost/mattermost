@@ -15,7 +15,8 @@
 // Group: @channels @enterprise @ldap @saml @keycloak
 
 import {getAdminAccount} from '@/support/env';
-import {generateLDAPUser, LdapUser} from '@/support/ldap_server_commands';
+import type {LdapUser} from '@/support/ldap_server_commands';
+import {generateLDAPUser} from '@/support/ldap_server_commands';
 import {getKeycloakServerSettings} from '@/utils/config';
 
 describe('AD / LDAP', () => {

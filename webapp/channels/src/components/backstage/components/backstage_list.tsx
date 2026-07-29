@@ -6,6 +6,8 @@ import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import LoadingScreen from 'components/loading_screen';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
@@ -22,6 +24,7 @@ type Props = {
     emptyText?: ReactNode;
     emptyTextSearch?: JSX.Element;
     helpText?: ReactNode;
+    error?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
     nextPage?: () => void;
@@ -117,15 +120,15 @@ const BackstageList = (remainingProps: Props) => {
                 className='add-link'
                 to={remainingProps.addLink}
             >
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     id={remainingProps.addButtonId}
                 >
                     <span>
                         {remainingProps.addText}
                     </span>
-                </button>
+                </Button>
             </Link>
         );
     }
@@ -151,6 +154,7 @@ const BackstageList = (remainingProps: Props) => {
                 </h1>
                 {addLink}
             </div>
+            {remainingProps.error}
             <div className='backstage-filters'>
                 <div className='backstage-filter__search'>
                     <SearchIcon/>

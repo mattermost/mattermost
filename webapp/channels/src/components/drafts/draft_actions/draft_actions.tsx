@@ -34,7 +34,7 @@ type Props = {
     canSend: boolean;
     onSchedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     channelId: string;
-}
+};
 
 function DraftActions({
     displayName,

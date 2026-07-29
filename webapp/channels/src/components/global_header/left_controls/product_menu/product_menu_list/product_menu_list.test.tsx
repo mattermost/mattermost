@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -14,6 +15,11 @@ import type {GlobalState} from 'types/store';
 import ProductMenuList from './product_menu_list';
 import type {Props as ProductMenuListProps} from './product_menu_list';
 
+const isDesktopAppMock = jest.mocked(UserAgent.isDesktopApp);
+
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+}));
 jest.mock('components/widgets/menu/menu_items/menu_cloud_trial', () => () => null);
 jest.mock('components/widgets/menu/menu_items/menu_item_cloud_limit', () => () => null);
 jest.mock('components/permissions_gates/system_permission_gate', () => ({children}: {children: React.ReactNode}) => <>{children}</>);
@@ -237,5 +243,18 @@ describe('components/global/product_switcher_menu', () => {
             await userEvent.click(screen.getByText('Integrations'));
             expect(container).toMatchSnapshot();
         });
+    });
+
+    test('shows Download Apps link when appDownloadLink configured and not in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(false);
+        const {container} = renderWithContext(<ProductMenuList {...defaultProps}/>, adminState);
+        expect(container.querySelector('#nativeAppLink')).not.toBeNull();
+    });
+
+    test('hides Download Apps link when in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(true);
+        const {container} = renderWithContext(<ProductMenuList {...defaultProps}/>, adminState);
+        expect(container.querySelector('#nativeAppLink')).toBeNull();
+        isDesktopAppMock.mockReturnValue(false);
     });
 });

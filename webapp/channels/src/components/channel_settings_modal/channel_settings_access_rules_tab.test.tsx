@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
@@ -41,6 +41,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         createAccessControlSyncJob: jest.fn(),
         updateAccessControlPoliciesActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -170,6 +171,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         mockActions.getChannelPolicy.mockClear();
         mockActions.saveChannelPolicy.mockClear();
         mockActions.searchUsers.mockClear();
+        mockActions.simulatePolicyForUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],
@@ -294,8 +296,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
+        // Public channels use membership-oriented copy because ABAC on public
+        // channels is advisory, not a hard gate.
+        expect(screen.getByRole('heading', {name: 'Membership Rules'})).toBeInTheDocument();
+        expect(screen.getByText('Define who this channel is recommended for. The channel stays open to everyone.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {
@@ -497,7 +501,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
@@ -522,7 +526,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -1753,6 +1757,68 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
     });
 
+    test('public channel: saves without membership impact confirmation even when sync would add users', async () => {
+        const user = userEvent.setup();
+
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}],
+                total_count: 2,
+            },
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        const publicChannelProps = {
+            ...baseProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                name: 'public-channel',
+                display_name: 'Public Channel',
+                type: 'O',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...publicChannelProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+        });
+
+        expect(screen.queryByText('Review membership impact')).not.toBeInTheDocument();
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
+
     describe('Activity warning logic - comprehensive scenarios', () => {
         const stateWithMessages = {
             ...initialState,
@@ -2117,6 +2183,86 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
 
             expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('session attributes', () => {
+        const sessionField = {
+            id: 'session1',
+            name: 'network_name',
+            type: 'text',
+            group_id: 'nkpkzni6yjrjt8uktpbwkagoth',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'session',
+            attrs: {
+                sort_order: 2,
+                visibility: 'when_set',
+                value_type: '',
+                display_name: 'Network name',
+            },
+        } as unknown as UserPropertyField;
+
+        test('excludes session attributes from the attributes passed to the editor', async () => {
+            mockActions.getAccessControlFields.mockResolvedValue({
+                data: [...mockUserAttributes, sessionField],
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+            const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+            expect(passedNames).toContain('department');
+            expect(passedNames).not.toContain('network_name');
+        });
+
+        test('surfaces the server error message when saving fails', async () => {
+            const serverMessage = 'Membership rules cannot reference session attributes';
+            mockActions.saveChannelPolicy.mockResolvedValue({error: {message: serverMessage}});
+
+            const openChannelProps = {
+                ...baseProps,
+                channel: TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    name: 'test-channel',
+                    display_name: 'Test Channel',
+                    type: 'O',
+                }),
+            };
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...openChannelProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(screen.getByText(serverMessage)).toBeInTheDocument();
+            });
         });
     });
 });

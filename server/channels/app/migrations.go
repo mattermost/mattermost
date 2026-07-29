@@ -5,8 +5,10 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 
@@ -32,6 +34,10 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	managedCategoryMigrationVersion                = "v2"
+	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
+	boardsPropertyMigrationVersion                 = "v2"
+	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -380,7 +386,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.FileSettings.ExtractContent = model.NewPointer(true)
+		config.FileSettings.ExtractContent = new(true)
 	})
 
 	system := model.System{
@@ -604,7 +610,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.ServiceSettings.PostPriority = model.NewPointer(true)
+		config.ServiceSettings.PostPriority = new(true)
 	})
 
 	system := model.System{
@@ -741,20 +747,257 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
-			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update content flagging property fields: %w", err)
+			}
 		}
 	}
 
 	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
 		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doSetupBoardsProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query boards migration: %w", err)
+	}
+
+	if data != nil && data.Value == boardsPropertyMigrationVersion {
+		return nil
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
+	if err != nil {
+		return fmt.Errorf("failed to register boards property group: %w", err)
+	}
+
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing boards properties: %w", err)
+	}
+
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	// Default colours seeded by name. Used both when creating the Status field
+	// from scratch and when upgrading an existing v1 install (where we layer
+	// these colours onto the already-persisted options without rewriting their
+	// IDs — see mergeBoardsStatusColors below).
+	statusColorByName := map[string]string{
+		model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+		model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+		model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+	}
+
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		model.BoardsPropertyFieldAssignee: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldAssignee,
+			Type:            model.PropertyFieldTypeUser,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+		},
+		model.BoardsPropertyFieldStatus: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldStatus,
+			Type:            model.PropertyFieldTypeSelect,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+			Attrs: map[string]any{
+				"options": []map[string]string{
+					{"name": model.BoardsStatusOptionTodo, "color": model.BoardsStatusColorTodo},
+					{"name": model.BoardsStatusOptionInProgress, "color": model.BoardsStatusColorInProgress},
+					{"name": model.BoardsStatusOptionComplete, "color": model.BoardsStatusColorComplete},
+				},
+			},
+		},
+	}
+
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			property.Protected = expectedProperty.Protected
+			property.PermissionField = expectedProperty.PermissionField
+
+			if name == model.BoardsPropertyFieldStatus {
+				// Status options already exist (with server-generated IDs from the v1
+				// seed). NewPropertyOptionsFromFieldAttrs regenerates IDs for any
+				// options missing one, so a wholesale attrs replacement would orphan
+				// every reference. Layer colours onto the existing options by name
+				// and preserve their IDs.
+				property.Attrs = mergeBoardsStatusColors(property.Attrs, statusColorByName)
+			} else {
+				property.Attrs = expectedProperty.Attrs
+			}
+
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+			// Another server may have won the race and created this field
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Tolerate that but propagate any other error.
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+			}
+		}
+	}
+
+	if len(propertiesToUpdate) > 0 {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update boards property fields: %w", err)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: boardsPropertyMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save boards setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
+// mergeBoardsStatusColors layers a name→color map onto the existing options
+// stored in `attrs`, preserving every existing option's ID. Used during the
+// v1 → v2 boards migration so previously-seeded Status options gain colours
+// without having their server-generated IDs regenerated (which would orphan
+// any card references). Options whose name isn't in `colorByName` are left
+// untouched; admins who renamed seeded options stay in control.
+func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string]string) model.StringInterface {
+	if attrs == nil {
+		return attrs
+	}
+	rawOptions, ok := attrs["options"]
+	if !ok {
+		return attrs
+	}
+
+	// attrs is model.StringInterface (map[string]any), so after JSON
+	// deserialisation rawOptions is []any of map[string]any. Round-trip
+	// to []map[string]any so the loop below can index each option by
+	// key without an outer .(map[string]any) assertion per element.
+	encoded, err := json.Marshal(rawOptions)
+	if err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to marshal existing options", mlog.Err(err))
+		return attrs
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to unmarshal existing options", mlog.Err(err))
+		return attrs
+	}
+
+	for i, opt := range options {
+		name, _ := opt["name"].(string)
+		if color, found := colorByName[name]; found {
+			options[i]["color"] = color
+		}
+	}
+
+	out := make(model.StringInterface, len(attrs))
+	maps.Copy(out, attrs)
+	out["options"] = options
+	return out
+}
+
+// seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
+func (s *Server) seedSessionAttributeFields(groupID string) error {
+	existing, err := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing session attribute fields: %w", err)
+	}
+
+	existingByName := make(map[string]*model.PropertyField, len(existing))
+	for _, field := range existing {
+		existingByName[field.Name] = field
+	}
+
+	var fieldsToUpdate []*model.PropertyField
+	var fieldsToCreate []*model.PropertyField
+
+	for _, expected := range model.SessionAttributeSystemFields(groupID) {
+		if current, ok := existingByName[expected.Name]; ok {
+			current.Type = expected.Type
+			current.Attrs["platforms"] = expected.Attrs["platforms"]
+			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
+			current.ObjectType = expected.ObjectType
+			current.TargetType = expected.TargetType
+			current.Protected = expected.Protected
+			current.PermissionField = expected.PermissionField
+			current.PermissionValues = expected.PermissionValues
+			current.PermissionOptions = expected.PermissionOptions
+			fieldsToUpdate = append(fieldsToUpdate, current)
+		} else {
+			fieldsToCreate = append(fieldsToCreate, expected)
+		}
+	}
+
+	for _, field := range fieldsToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, groupID, "", field.ObjectType, field.Name); retryErr != nil {
+				return fmt.Errorf("failed to create session attribute field: %q, error: %w", field.Name, err)
+			}
+		}
+	}
+
+	if len(fieldsToUpdate) > 0 {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); err != nil {
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update session attribute fields: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) doSetupSessionAttributesProperties() error {
+	group, err := s.propertyService.Group(model.SessionAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to look up session attributes property group: %w", err)
+	}
+
+	if err := s.seedSessionAttributeFields(group.ID); err != nil {
+		return fmt.Errorf("failed to seed session attribute fields: %w", err)
 	}
 
 	return nil
@@ -768,6 +1011,18 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
+		if data.Value == managedCategoryMigrationVersion {
+			return s.cacheManagedCategoryIDs()
+		}
+
+		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
+		}
+
+		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+		}
+
 		return s.cacheManagedCategoryIDs()
 	}
 
@@ -776,7 +1031,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		field := &model.PropertyField{
 			GroupID:           group.ID,
@@ -792,7 +1047,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		}
 
 		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
 				return fmt.Errorf("failed to create managed category field: %w", err)
 			}
 		}
@@ -805,13 +1060,50 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
+func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query CPA display_name backfill migration: %w", err)
+	}
+
+	if data != nil {
+		return nil
+	}
+
+	// The properties package owns the actual field iteration and update logic.
+	// It deliberately bypasses the access-control layer for this single,
+	// well-defined backfill so it can update protected (e.g. UAS-managed) CPA
+	// fields whose source plugin is not the system. Keeping the bypass behind
+	// an explicitly named method on PropertyService avoids exposing a general
+	// "skip access control" surface from this package.
+	backfilled, skipped, err := s.propertyService.MigrateBackfillCPADisplayName(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to backfill CPA display_name: %w", err)
+	}
+
+	mlog.Info("CPA display_name backfill migration completed",
+		mlog.Int("backfilled", backfilled),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  cpaDisplayNameBackfillKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark CPA display_name backfill as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category group: %w", err)
 	}
 
-	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category field: %w", err)
 	}
@@ -1008,7 +1300,9 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 	}
 
 	for i := range m1 {
@@ -1031,6 +1325,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
+		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	rctx := request.EmptyContext(s.Log())

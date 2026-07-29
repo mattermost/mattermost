@@ -4,6 +4,7 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -71,5 +72,17 @@ describe('comoponents/rhs_card/RhsCard', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        const cardPost = {...post, type: 'custom_plugin_type' as any};
+
+        renderWithContext(
+            <RhsCard
+                {...baseProps}
+                selected={cardPost}
+                pluginPostCardTypes={{custom_plugin_type: pluginComponent as unknown as PostPluginComponent}}
+            />,
+        );
     });
 });

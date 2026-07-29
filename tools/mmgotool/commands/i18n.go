@@ -383,6 +383,16 @@ func extractByFuncName(name string, args []ast.Expr) *string {
 			return nil
 		}
 		return &key.Value
+	} else if name == "TranslationId" {
+		if len(args) == 0 {
+			return nil
+		}
+
+		key, ok := args[0].(*ast.BasicLit)
+		if !ok {
+			return nil
+		}
+		return &key.Value
 	} else if name == "NewAppError" {
 		if len(args) < 2 {
 			return nil
@@ -457,26 +467,28 @@ func extractByFuncName(name string, args []ast.Expr) *string {
 
 func extractForConstants(name string, valueNode ast.Expr) *string {
 	validConstants := map[string]bool{
-		"MISSING_CHANNEL_ERROR":        true,
-		"MISSING_CHANNEL_MEMBER_ERROR": true,
-		"CHANNEL_EXISTS_ERROR":         true,
-		"MISSING_STATUS_ERROR":         true,
-		"TEAM_MEMBER_EXISTS_ERROR":     true,
-		"MISSING_AUTH_ACCOUNT_ERROR":   true,
-		"MISSING_ACCOUNT_ERROR":        true,
-		"EXPIRED_LICENSE_ERROR":        true,
-		"INVALID_LICENSE_ERROR":        true,
-		"MissingChannelError":          true,
-		"MissingChannelMemberError":    true,
-		"ChannelExistsError":           true,
-		"MissingStatusError":           true,
-		"TeamMemberExistsError":        true,
-		"MissingAuthAccountError":      true,
-		"MissingAccountError":          true,
-		"ExpiredLicenseError":          true,
-		"InvalidLicenseError":          true,
-		"NoTranslation":                true,
-		"PayloadParseError":            true,
+		"MISSING_CHANNEL_ERROR":                  true,
+		"MISSING_CHANNEL_MEMBER_ERROR":           true,
+		"CHANNEL_EXISTS_ERROR":                   true,
+		"MISSING_STATUS_ERROR":                   true,
+		"TEAM_MEMBER_EXISTS_ERROR":               true,
+		"MISSING_AUTH_ACCOUNT_ERROR":             true,
+		"MISSING_ACCOUNT_ERROR":                  true,
+		"EXPIRED_LICENSE_ERROR":                  true,
+		"INVALID_LICENSE_ERROR":                  true,
+		"MissingChannelError":                    true,
+		"MissingChannelMemberError":              true,
+		"ChannelExistsError":                     true,
+		"MissingStatusError":                     true,
+		"TeamMemberExistsError":                  true,
+		"MissingAuthAccountError":                true,
+		"MissingAccountError":                    true,
+		"ExpiredLicenseError":                    true,
+		"InvalidLicenseError":                    true,
+		"WrongEnvironmentProductionLicenseError": true,
+		"WrongEnvironmentTestLicenseError":       true,
+		"NoTranslation":                          true,
+		"PayloadParseError":                      true,
 	}
 
 	if _, ok := validConstants[name]; !ok {

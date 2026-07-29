@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     AiSummarizeIcon,
@@ -16,7 +17,10 @@ import {
     AutoFixIcon,
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Agent} from '@mattermost/types/agents';
+
+import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
@@ -107,6 +111,7 @@ export default function RewriteMenu({
     customPromptRef,
 }: RewriteMenuProps) {
     const {formatMessage} = useIntl();
+    const defaultAgent = useSelector(getDefaultAgent);
 
     const showMenuItem = !isProcessing && draftMessage.trim();
 
@@ -145,6 +150,7 @@ export default function RewriteMenu({
                             selectedBotId={selectedAgentId}
                             onBotSelect={setSelectedAgentId}
                             bots={agents}
+                            defaultBotId={defaultAgent?.id}
                             disabled={isProcessing}
                             showLabel={true}
                         />
@@ -156,8 +162,9 @@ export default function RewriteMenu({
                                 id='texteditor.rewrite.rewriting'
                                 defaultMessage='Rewriting'
                             />
-                            <button
-                                className='btn btn-xs'
+                            <Button
+                                emphasis='tertiary'
+                                size='xs'
                                 type='button'
                                 onClick={onCancelProcessing}
                             >
@@ -166,7 +173,7 @@ export default function RewriteMenu({
                                     id='texteditor.rewrite.stopGenerating'
                                     defaultMessage='Stop generating'
                                 />
-                            </button>
+                            </Button>
                         </div>
                     }
                     {!isProcessing &&
@@ -221,8 +228,9 @@ export default function RewriteMenu({
             }}
             menuFooter={!isProcessing && originalMessage && lastAction &&
                 <div className='rewrite-menu-footer'>
-                    <button
-                        className='btn btn-tertiary btn-xs'
+                    <Button
+                        emphasis='tertiary'
+                        size='xs'
                         type='button'
                         onClick={onUndoMessage}
                     >
@@ -231,9 +239,10 @@ export default function RewriteMenu({
                             id='texteditor.rewrite.discard'
                             defaultMessage='Discard'
                         />
-                    </button>
-                    <button
-                        className='btn btn-quaternary btn-xs'
+                    </Button>
+                    <Button
+                        emphasis='quaternary'
+                        size='xs'
                         type='button'
                         onClick={onRegenerateMessage}
                     >
@@ -242,7 +251,7 @@ export default function RewriteMenu({
                             id='texteditor.rewrite.regenerate'
                             defaultMessage='Regenerate'
                         />
-                    </button>
+                    </Button>
                 </div>
             }
             anchorOrigin={{
@@ -326,6 +335,7 @@ export function RewriteSubMenuHeader({
     customPromptRef,
 }: RewriteSubMenuHeaderProps) {
     const {formatMessage} = useIntl();
+    const defaultAgent = useSelector(getDefaultAgent);
 
     let placeholderText = formatMessage({
         id: 'texteditor.rewrite.prompt',
@@ -360,6 +370,7 @@ export function RewriteSubMenuHeader({
                     selectedBotId={selectedAgentId}
                     onBotSelect={setSelectedAgentId}
                     bots={agents}
+                    defaultBotId={defaultAgent?.id}
                     disabled={isProcessing}
                     showLabel={true}
                 />
@@ -371,8 +382,9 @@ export function RewriteSubMenuHeader({
                         id='texteditor.rewrite.rewriting'
                         defaultMessage='Rewriting'
                     />
-                    <button
-                        className='btn btn-xs'
+                    <Button
+                        emphasis='tertiary'
+                        size='xs'
                         type='button'
                         onClick={onCancelProcessing}
                     >
@@ -381,7 +393,7 @@ export function RewriteSubMenuHeader({
                             id='texteditor.rewrite.stopGenerating'
                             defaultMessage='Stop generating'
                         />
-                    </button>
+                    </Button>
                 </div>
             }
             {!isProcessing &&
@@ -421,8 +433,9 @@ export function RewriteSubMenuFooter({
 
     return (
         <div className='rewrite-menu-footer'>
-            <button
-                className='btn btn-tertiary btn-xs'
+            <Button
+                emphasis='tertiary'
+                size='xs'
                 type='button'
                 onClick={onUndoMessage}
             >
@@ -431,9 +444,10 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
                 />
-            </button>
-            <button
-                className='btn btn-quaternary btn-xs'
+            </Button>
+            <Button
+                emphasis='quaternary'
+                size='xs'
                 type='button'
                 onClick={onRegenerateMessage}
             >
@@ -442,7 +456,7 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'
                 />
-            </button>
+            </Button>
         </div>
     );
 }

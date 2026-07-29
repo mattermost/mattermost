@@ -16,4 +16,4 @@ export type ServerLimits = {
 
     singleChannelGuestCount?: number;
     singleChannelGuestLimit?: number;
-}
+};

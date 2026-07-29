@@ -426,6 +426,45 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return nil
 }
 
+// TryIncrementFailedPasswordAttempts atomically increments FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly less than maxAttempts.
+// Returns true if the row was updated (a slot was claimed), false if the cap had
+// already been reached (or the user does not exist). The row lock taken by the
+// UPDATE serializes concurrent attempts on the same user, so the cap predicate
+// is enforced without any application-level locking.
+func (us SqlUserStore) TryIncrementFailedPasswordAttempts(userId string, maxAttempts int) (bool, error) {
+	res, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts + 1 WHERE Id = ? AND FailedAttempts < ?",
+		userId, maxAttempts,
+	)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to read rows affected for userId=%s", userId)
+	}
+
+	return rows == 1, nil
+}
+
+// DecrementFailedPasswordAttempts atomically decrements FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly greater than zero. It
+// is used to refund a slot previously claimed by TryIncrementFailedPasswordAttempts
+// when the in-flight authentication turns out not to be a credential-failure
+// event (e.g. a backend error or an MFA pre-flight probe).
+func (us SqlUserStore) DecrementFailedPasswordAttempts(userId string) error {
+	_, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts - 1 WHERE Id = ? AND FailedAttempts > 0",
+		userId,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+	return nil
+}
+
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
 	updateAt := model.GetMillis()
 
@@ -1281,6 +1320,27 @@ func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
+	if authData == nil || *authData == "" {
+		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
+	}
+
+	query := us.usersQuery.Where("Users.AuthData = ?", authData)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_auth_data_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s", *authData))
+	} else if err != nil {
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s", *authData)
+	}
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
@@ -1527,6 +1587,8 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 		mentionCountColumn = "cm.MentionCountRoot"
 	}
 
+	// Space backing channels are internal and carry no chat read-state.
+	typeClause, typeArgs := nonMessageBackingChannelTypesNotIn()
 	query := `
 		SELECT SUM(` + mentionCountColumn + `)
 		FROM Channels c
@@ -1534,10 +1596,11 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 			ON cm.ChannelId = c.Id
 			AND cm.UserId = ?
 			AND c.DeleteAt = 0
+		WHERE c.Type ` + typeClause + `
 	`
 
 	var count int64
-	err := us.GetReplica().Get(&count, query, userId)
+	err := us.GetReplica().Get(&count, query, append([]any{userId}, typeArgs...)...)
 	if err != nil {
 		return count, errors.Wrapf(err, "failed to count unread Channels for userId=%s", userId)
 	}
@@ -1884,7 +1947,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = us.GetMaster().Beginx(); err != nil {
+		if transaction, err = us.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransactionX(transaction, &err)
@@ -2131,7 +2194,7 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 }
 
 func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -2200,7 +2263,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 }
 
 func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -2445,6 +2508,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		"COUNT(ps.Day) AS DaysActive",
 		"SUM(ps.NumPosts) AS TotalPosts",
 		"(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) AS ChannelCount",
+		"COALESCE((SELECT string_agg(t.DisplayName, ', ' ORDER BY t.DisplayName) FROM TeamMembers tm INNER JOIN Teams t ON t.Id = tm.TeamId AND t.DeleteAt = 0 WHERE tm.UserId = Users.Id AND tm.DeleteAt = 0), '') AS Teams",
 	)
 
 	sortDirection := "ASC"
@@ -2521,7 +2585,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount")...).
+			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount", "Teams")...).
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

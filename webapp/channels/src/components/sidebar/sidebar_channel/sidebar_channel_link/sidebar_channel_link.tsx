@@ -6,6 +6,7 @@ import React from 'react';
 import {type WrappedComponentProps, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
 import {mark} from 'actions/telemetry_actions';
@@ -13,7 +14,6 @@ import {mark} from 'actions/telemetry_actions';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
@@ -71,6 +71,7 @@ type Props = WrappedComponentProps & {
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
     remoteNames: string[];
+    hasPendingJoinRequests: boolean;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -254,9 +255,8 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         const content = (
             <>
                 <SidebarChannelIcon
-                    isDeleted={channel.delete_at !== 0}
+                    channel={channel}
                     icon={icon}
-                    channelType={channel.type}
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
@@ -275,6 +275,15 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                     hasUrgent={hasUrgent}
                     tooltip={hasUrgent ? messages.urgentMentionTooltip : undefined}
                 />
+                {this.props.hasPendingJoinRequests && (
+                    <span
+                        className='SidebarChannelLink__join-request-dot'
+                        aria-label={this.props.intl.formatMessage({
+                            id: 'sidebar_channel.join_requests_pending',
+                            defaultMessage: 'Pending join requests',
+                        })}
+                    />
+                )}
                 <div
                     className={classNames(
                         'SidebarMenu',
@@ -312,6 +321,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}
+                data-testid={this.props.isUnread ? 'sidebar-unread-channel' : undefined}
             >
                 {content}
                 {channelsTutorialTip}

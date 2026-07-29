@@ -16,7 +16,7 @@ type BoolSettingProps = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPBooleanSetting = (props: BoolSettingProps) => {
     const intl = useIntl();

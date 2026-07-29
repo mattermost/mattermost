@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * System Console Sidebar Header component
@@ -15,7 +16,7 @@ export default class SystemConsoleSidebarHeader {
 
     constructor(container: Locator) {
         this.container = container;
-        this.headerInfo = container.locator('.header__info');
+        this.headerInfo = container.getByTestId('admin-sidebar-header-info');
         this.title = container.getByText('System Console');
         this.userName = container.getByText(/^@/);
         this.menuButton = container.getByRole('button', {name: 'Menu Icon'});

@@ -102,8 +102,8 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 func getStructFields(s any) []string {
 	structType := reflect.TypeOf(s)
 	fieldNames := make([]string, 0, structType.NumField())
-	for i := 0; i < structType.NumField(); i++ {
-		fieldNames = append(fieldNames, structType.Field(i).Name)
+	for field := range structType.Fields() {
+		fieldNames = append(fieldNames, field.Name)
 	}
 
 	return fieldNames

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class BurnOnReadTimerChip {
     readonly container: Locator;
@@ -10,8 +11,8 @@ export default class BurnOnReadTimerChip {
 
     constructor(container: Locator) {
         this.container = container;
-        this.flameIcon = container.locator('.BurnOnReadTimerChip__icon');
-        this.timerText = container.locator('.BurnOnReadTimerChip__time');
+        this.flameIcon = container.locator('svg');
+        this.timerText = container.locator('span');
     }
 
     async toBeVisible() {

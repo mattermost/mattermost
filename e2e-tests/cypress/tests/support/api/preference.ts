@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import theme from '../../fixtures/theme.json';
 
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Preferences

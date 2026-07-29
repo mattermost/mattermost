@@ -12,7 +12,7 @@ type Props = {
     className?: string;
     onClick?: (e: React.MouseEvent) => void;
     coords?: Coords;
-}
+};
 
 export class PulsatingDot extends React.PureComponent<Props> {
     public render() {

@@ -35,10 +35,10 @@ type FeatureRestrictedModalProps = {
     messageAdminPostTrial?: string;
     titleEndUser?: string;
     messageEndUser?: string;
-    customSecondaryButton?: { msg: string; action: () => void };
+    customSecondaryButton?: {msg: string; action: () => void};
     feature?: string;
     minimumPlanRequiredForFeature?: string;
-}
+};
 
 const FeatureRestrictedModal = ({
     titleAdminPreTrial,
@@ -131,7 +131,6 @@ const FeatureRestrictedModal = ({
     const trialBtn = (
         <StartTrialBtn
             onClick={dismissAction}
-            btnClass='btn btn-primary'
             renderAsButton={true}
         />
     );

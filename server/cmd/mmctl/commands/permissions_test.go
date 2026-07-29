@@ -251,6 +251,8 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			"manage_channel_access_rules",
 			"manage_public_channel_auto_translation",
 			"manage_private_channel_auto_translation",
+			"manage_private_channel_discoverability",
+			"manage_channel_join_requests",
 		}
 		expectedPatch := &model.RolePatch{
 			Permissions: &expectedPermissions,

@@ -15,11 +15,22 @@ import (
 )
 
 func makeTestView(channelID, userID string) *model.View {
+	kanban := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: model.NewId(),
+			Columns: []model.KanbanColumn{
+				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+			},
+		},
+	}
+	props, _ := kanban.ToProps()
 	return &model.View{
 		ChannelId: channelID,
 		Type:      model.ViewTypeKanban,
 		CreatorId: userID,
 		Title:     "Test View",
+		Props:     props,
 	}
 }
 
@@ -133,15 +144,11 @@ func TestAppUpdateView(t *testing.T) {
 	})
 
 	t.Run("not found returns 404", func(t *testing.T) {
-		ghost := &model.View{
-			Id:        model.NewId(),
-			ChannelId: th.BasicChannel.Id,
-			Type:      model.ViewTypeKanban,
-			CreatorId: th.BasicUser.Id,
-			Title:     "Ghost",
-			CreateAt:  model.GetMillis(),
-			UpdateAt:  model.GetMillis(),
-		}
+		ghost := makeTestView(th.BasicChannel.Id, th.BasicUser.Id)
+		ghost.Id = model.NewId()
+		ghost.Title = "Ghost"
+		ghost.CreateAt = model.GetMillis()
+		ghost.UpdateAt = model.GetMillis()
 		newTitle := "Title"
 		_, appErr := th.App.UpdateView(th.Context, ghost, &model.ViewPatch{Title: &newTitle}, "")
 		require.NotNil(t, appErr)

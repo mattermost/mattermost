@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {TeamType} from '@mattermost/types/teams';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
 import {getOnPremServerConfig} from './default_config';
@@ -35,8 +35,10 @@ export async function initSetup({
             );
         }
 
-        // Reset server config
-        const adminConfig = await adminClient.updateConfig(getOnPremServerConfig() as any);
+        // patchConfig gives us both: the baseline keys are idempotently applied,
+        // and anything NOT in the baseline (ABAC, anonymous URLs, autotranslation,
+        // etc.) is preserved across concurrent initSetup calls.
+        const adminConfig = await adminClient.patchConfig(getOnPremServerConfig() as any);
 
         // Create new team
         const team = await createNewTeam(adminClient, teamsOptions);

@@ -13,7 +13,7 @@ type Props = {
     step: WizardStep;
     stepOrder: WizardStep[];
     transitionSpeed: number;
-}
+};
 
 export const Progress = (props: Props) => {
     // exclude transitioning out as a progress step

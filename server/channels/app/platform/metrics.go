@@ -314,8 +314,8 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	}
 
 	pluginIDLabel := &dto.LabelPair{
-		Name:  model.NewPointer("plugin_id"),
-		Value: model.NewPointer(pluginID),
+		Name:  new("plugin_id"),
+		Value: new(pluginID),
 	}
 
 	var result strings.Builder
@@ -325,7 +325,7 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 			replaced := false
 			for _, l := range metric.Label {
 				if l.GetName() == "plugin_id" {
-					l.Value = model.NewPointer(pluginID)
+					l.Value = new(pluginID)
 					replaced = true
 					break
 				}

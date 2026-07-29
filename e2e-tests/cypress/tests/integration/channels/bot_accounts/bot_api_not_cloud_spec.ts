@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @not_cloud @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 

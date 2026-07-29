@@ -45,7 +45,7 @@ func (cfs *ContentFlaggingSettingsRequest) SetDefaults() {
 	cfs.ContentFlaggingSettingsBase.SetDefaults()
 
 	if cfs.EnableContentFlagging == nil {
-		cfs.EnableContentFlagging = NewPointer(false)
+		cfs.EnableContentFlagging = new(false)
 	}
 
 	if cfs.NotificationSettings == nil {

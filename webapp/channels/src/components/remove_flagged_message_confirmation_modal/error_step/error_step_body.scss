@@ -1,0 +1,14 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.KeepRemoveFlaggedMessageConfirmationModal .body {
+    .ErrorStepBody {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .errorRetryBtn {
+            width: min-content;
+        }
+    }
+}

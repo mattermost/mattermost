@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -24,6 +24,7 @@ import * as Utils from 'utils/utils';
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
+import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -174,10 +175,14 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
+    plugin?: {
+        homepage_url?: string;
+        release_notes_url?: string;
+    };
     removing: boolean;
     handleEnable: (e: any) => any;
     handleDisable: (e: any) => any;
@@ -228,6 +233,7 @@ export const searchableStrings = [
 
 const PluginItem = ({
     pluginStatus,
+    plugin,
     removing,
     handleEnable,
     handleDisable,
@@ -430,14 +436,13 @@ const PluginItem = ({
 
     return (
         <div data-testid={pluginStatus.id}>
-            <div>
-                <strong>{pluginStatus.name}</strong>
-                {' ('}
-                {pluginStatus.id}
-                {' - '}
-                {pluginStatus.version}
-                {')'}
-            </div>
+            <PluginMetadataPanel
+                name={pluginStatus.name}
+                id={pluginStatus.id}
+                version={pluginStatus.version}
+                homepageUrl={plugin?.homepage_url}
+                releaseNotesUrl={plugin?.release_notes_url}
+            />
             {description}
             <div className='pt-2'>
                 {activateButton}
@@ -476,7 +481,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
@@ -485,7 +490,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -495,7 +500,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
+};
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
@@ -826,7 +831,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     renderOverwritePluginModal = (
         {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void}) => {
         const title = (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_modal.title'
@@ -853,7 +858,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={overwriteButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -889,7 +894,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -945,11 +950,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
         }
 
-        let btnClass = 'btn btn-primary';
-        if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
-        }
-
         let fileName;
         if (this.state.file) {
             fileName = this.state.file.name;
@@ -1002,6 +1002,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                     <PluginItem
                         key={pluginStatus.id}
                         pluginStatus={pluginStatus}
+                        plugin={p}
                         removing={this.state.removing === pluginStatus.id}
                         handleEnable={this.handleEnable}
                         handleDisable={this.handleDisable}
@@ -1155,9 +1156,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
                                 >
                                     <div className='file__upload'>
-                                        <button
+                                        <Button
                                             type='button'
-                                            className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                            emphasis='tertiary'
                                             onClick={this.handleChooseFileClick}
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         >
@@ -1165,7 +1166,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 id='admin.plugin.choose'
                                                 defaultMessage='Choose File'
                                             />
-                                        </button>
+                                        </Button>
                                         <input
                                             ref={this.fileInput}
                                             type='file'
@@ -1174,14 +1175,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         />
                                     </div>
-                                    <button
-                                        className={btnClass}
+                                    <Button
+                                        emphasis='primary'
                                         id='uploadPlugin'
                                         disabled={!this.state.fileSelected}
                                         onClick={this.handleSubmitUpload}
                                     >
                                         {uploadButtonText}
-                                    </button>
+                                    </Button>
                                     <div className='help-text m-0'>
                                         {fileName}
                                     </div>

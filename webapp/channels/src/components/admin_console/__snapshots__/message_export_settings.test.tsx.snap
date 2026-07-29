@@ -11,6 +11,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Compliance Export
       </div>
@@ -250,6 +251,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Compliance Export
       </div>
@@ -663,6 +665,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Compliance Export
       </div>
@@ -899,6 +902,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Compliance Export
       </div>

@@ -14,7 +14,7 @@ type Props = {
     isExpanded: boolean;
     onButtonClick: () => void;
     onHeaderClick?: <T>(ref: RefObject<HTMLLIElement>) => T | void;
-}
+};
 
 const AccordionCard = ({
     data,

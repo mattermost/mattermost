@@ -63,6 +63,17 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isFromBot(post: Post): boolean {
     return post.props && post.props.from_bot === 'true';
 }
@@ -470,9 +481,9 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
 export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
-    const getDisplayName = useMemo(makeGetDisplayName, []);
-    const getReactionsForPost = useMemo(makeGetReactionsForPost, []);
-    const getMentionsFromMessage = useMemo(makeGetMentionsFromMessage, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
+    const getReactionsForPost = useMemo(() => makeGetReactionsForPost(), []);
+    const getMentionsFromMessage = useMemo(() => makeGetMentionsFromMessage(), []);
 
     const createAriaLabelMemoized = memoizeResult(createAriaLabelForPost);
 
@@ -671,6 +682,10 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
 
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
+        return false;
+    }
+
+    if (hasAiGeneratedMetadata(post)) {
         return false;
     }
 

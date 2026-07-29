@@ -10,11 +10,11 @@ import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
-
 import './channel_selector_modal.scss';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
@@ -34,12 +34,14 @@ type Props = {
     excludePolicyConstrained?: boolean;
     excludeAccessControlPolicyEnforced?: boolean;
     excludeGroupConstrained?: boolean;
+    excludeDefaultChannels?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
     teamId?: string;
+    excludeRemote?: boolean;
     customNoOptionsMessage?: React.ReactNode;
     isStacked?: boolean;
-}
+};
 
 type State = {
     values: ChannelWithTeamDataValue[];
@@ -47,7 +49,7 @@ type State = {
     search: boolean;
     loadingChannels: boolean;
     channels: ChannelWithTeamData[];
-}
+};
 
 const CHANNELS_PER_PAGE = 50;
 
@@ -82,6 +84,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             opts.public = true;
         } else if (wantsPrivate && !wantsPublic) {
             opts.private = true;
+        }
+        if (this.props.excludeDefaultChannels) {
+            opts.exclude_default_channels = true;
+        }
+        if (this.props.excludeRemote) {
+            opts.exclude_remote = true;
         }
         return opts;
     }
@@ -158,7 +166,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setChannelsLoadingState(true);
-            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
+            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, this.props.excludeDefaultChannels ?? false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
                 (response.data || []).forEach((serverChannel) => {
@@ -205,10 +213,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                     className='more-modal__details'
                 >
                     <div className='channel-info-block'>
-                        {option.type === Constants.PRIVATE_CHANNEL &&
-                            <i className='icon icon-lock-outline'/>}
-                        {option.type === Constants.OPEN_CHANNEL &&
-                            <i className='icon icon-globe'/>}
+                        {(option.type === Constants.OPEN_CHANNEL || option.type === Constants.PRIVATE_CHANNEL) && (
+                            <ChannelTypeIcon channel={option}/>
+                        )}
                         <span className='channel-name'>{option.display_name}</span>
                         {!this.props.teamId && option.team_display_name && (
                             <span className='team-name'>{'(' + option.team_display_name + ')'}</span>
@@ -259,6 +266,13 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
         if (this.props.excludeTypes) {
             options = options.filter((channel) => this.props.excludeTypes?.indexOf(channel.type) === -1);
+        }
+        if (this.props.excludeDefaultChannels) {
+            // Belt-and-suspenders: the server honors exclude_default_channels on
+            // the sysadmin search path, but the non-admin (team-scoped) path
+            // uses AutocompleteChannelsForTeam which ignores it. Filter by the
+            // canonical default-channel names client-side so both paths agree.
+            options = options.filter((channel) => channel.name !== Constants.DEFAULT_CHANNEL && channel.name !== Constants.OFFTOPIC_CHANNEL);
         }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
 

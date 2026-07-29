@@ -3,6 +3,8 @@
 
 import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
 
+export type LockProfileFieldsSetting = 'none' | 'name_and_username' | 'all';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -64,7 +66,7 @@ export type ClientConfig = {
     EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
-    EnableManagedChannelCategories: string;
+    EnableChannelCategorySorting: string;
     EnableTimedDND: string;
     EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
@@ -113,11 +115,11 @@ export type ClientConfig = {
     EnableTutorial: string;
     EnableOnboardingFlow: string;
     EnableUserAccessTokens: string;
+    MaximumPersonalAccessTokenLifetimeDays: string;
     EnableUserCreation: string;
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
-    ExperimentalChannelCategorySorting: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -128,11 +130,16 @@ export type ClientConfig = {
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
-    FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
-    FeatureFlagWebSocketEventScope: string;
-    FeatureFlagInteractiveDialogAppsForm: string;
+    FeatureFlagChannelPermissionPolicies: string;
+    FeatureFlagPolicySimulation: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagClassificationMarkings: string;
+    FeatureFlagPropertyFieldRank: string;
+    FeatureFlagManagedChannelCategories: string;
+    FeatureFlagSessionAttributes: string;
+    FeatureFlagDiscoverableChannels: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -156,6 +163,7 @@ export type ClientConfig = {
     LdapPositionAttributeSet: string;
     LdapPictureAttributeSet: string;
     LockTeammateNameDisplay: string;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ManagedResourcePaths: string;
     MaxFileSize: string;
     MaxPostSize: string;
@@ -241,6 +249,9 @@ export type ClientConfig = {
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
     EnableUserManagedAttributes: string;
+    EnableAccessControlAuditLogging: string;
+    AuditLoggingActive: string;
+    EnableChannelPolicyIndicators: string;
 
     // Auto Translation Settings
     AutoTranslationLanguages: string;
@@ -252,11 +263,12 @@ export type License = {
     id: string;
     issued_at: number;
     starts_at: number;
-    expires_at: string;
-    customer: LicenseCustomer;
+    expires_at: number;
+    customer?: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {
@@ -305,7 +317,7 @@ export type RequestLicenseBody = {
     company_name: string;
     company_size: string;
     company_country: string;
-}
+};
 
 export type DataRetentionPolicy = {
     message_deletion_enabled: boolean;
@@ -361,6 +373,7 @@ export type ServiceSettings = {
     EnableMultifactorAuthentication: boolean;
     EnforceMultifactorAuthentication: boolean;
     EnableUserAccessTokens: boolean;
+    MaximumPersonalAccessTokenLifetimeDays: number;
     AllowCorsFrom: string;
     CorsExposedHeaders: string;
     CorsAllowCredentials: boolean;
@@ -464,10 +477,12 @@ export type TeamSettings = {
     TeammateNameDisplay: string;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ExperimentalPrimaryTeam: string;
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
     EnableJoinLeaveMessageByDefault: boolean;
+    EnableChannelCategorySorting: boolean;
 };
 
 export type ClientRequirements = {
@@ -546,7 +561,7 @@ export type ConnectedWorkspacesSettings = {
     GlobalUserSyncBatchSize: number;
     MaxPostsPerSync: number;
     MemberSyncBatchSize: number;
-}
+};
 
 export type FileSettings = {
     EnableFileAttachments: boolean;
@@ -559,6 +574,7 @@ export type FileSettings = {
     Directory: string;
     EnablePublicLink: boolean;
     ExtractContent: boolean;
+    ExtractContentTimeout: number;
     ArchiveRecursion: boolean;
     PublicLinkSalt: string;
     InitialFont: string;
@@ -575,6 +591,15 @@ export type FileSettings = {
     AmazonS3RequestTimeoutMilliseconds: number;
     AmazonS3UploadPartSizeBytes: number;
     AmazonS3StorageClass: string;
+    AzureStorageAccount: string;
+    AzureAuthMode: string;
+    AzureAccessKey: string;
+    AzureContainer: string;
+    AzurePathPrefix: string;
+    AzureCloud: string;
+    AzureEndpoint: string;
+    AzureSSL: boolean;
+    AzureRequestTimeoutMilliseconds: number;
     DedicatedExportStore: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
@@ -592,6 +617,16 @@ export type FileSettings = {
     ExportAmazonS3PresignExpiresSeconds: number;
     ExportAmazonS3UploadPartSizeBytes: number;
     ExportAmazonS3StorageClass: string;
+    ExportAzureStorageAccount: string;
+    ExportAzureAuthMode: string;
+    ExportAzureAccessKey: string;
+    ExportAzureContainer: string;
+    ExportAzurePathPrefix: string;
+    ExportAzureCloud: string;
+    ExportAzureEndpoint: string;
+    ExportAzureSSL: boolean;
+    ExportAzureRequestTimeoutMilliseconds: number;
+    ExportAzurePresignExpiresSeconds: number;
 };
 
 export type EmailSettings = {
@@ -835,6 +870,13 @@ export type IntuneSettings = {
     AuthService?: string;
 };
 
+export type MobileEphemeralModeSettings = {
+    Enable: boolean;
+    DisconnectionTimeoutSeconds: number;
+    OfflinePersistenceTimerHours: number;
+    AutoCacheCleanupDays: number;
+};
+
 export type ClusterSettings = {
     Enable: boolean;
     ClusterName: string;
@@ -870,7 +912,6 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
-    ExperimentalChannelCategorySorting: boolean;
     EnableWatermark: boolean;
 };
 
@@ -970,7 +1011,7 @@ export type PluginSettings = {
     Directory: string;
     ClientDirectory: string;
     Plugins: Record<string, any>;
-    PluginStates: Record<string, { Enable: boolean }>;
+    PluginStates: Record<string, {Enable: boolean}>;
     EnableMarketplace: boolean;
     EnableRemoteMarketplace: boolean;
     AutomaticPrepackagedPlugins: boolean;
@@ -1024,16 +1065,20 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
+    EnableChannelPolicyIndicators: boolean;
+    TrustProxyDeviceIdentityHeader: boolean;
+    EnforceDeviceIDConsistency: boolean;
+    EnableAccessControlAuditLogging: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
-}
+};
 
 export type TeamReviewerSetting = {
     Enabled: boolean;
     ReviewerIds: string[];
-}
+};
 
 export type ContentFlaggingReviewerSetting = {
     CommonReviewers: boolean;
@@ -1041,21 +1086,43 @@ export type ContentFlaggingReviewerSetting = {
     TeamReviewersSetting: Record<string, TeamReviewerSetting>;
     SystemAdminsAsReviewers: boolean;
     TeamAdminsAsReviewers: boolean;
-}
+};
 
 export type ContentFlaggingAdditionalSettings = {
     Reasons: string[];
     ReporterCommentRequired: boolean;
     ReviewerCommentRequired: boolean;
     HideFlaggedContent: boolean;
-}
+};
 
 export type ContentFlaggingSettings = {
     EnableContentFlagging: boolean;
     NotificationSettings: ContentFlaggingNotificationSettings;
     ReviewerSettings: ContentFlaggingReviewerSetting;
     AdditionalSettings: ContentFlaggingAdditionalSettings;
-}
+};
+
+export type RecapLimitSettings = {
+    MaxRecapsPerDay: number;
+    MaxScheduledRecaps: number;
+    MaxChannelsPerRecap: number;
+    MaxPostsPerRecap: number;
+    MaxTokensPerRecap: number;
+    MaxPostsPerDay: number;
+    CooldownMinutes: number;
+};
+
+export type AIRecapSettings = {
+    Enable: boolean;
+    DefaultLimits: RecapLimitSettings;
+    EnforceRecapsPerDay: boolean;
+    EnforceScheduledRecaps: boolean;
+    EnforceChannelsPerRecap: boolean;
+    EnforcePostsPerRecap: boolean;
+    EnforceTokensPerRecap: boolean;
+    EnforcePostsPerDay: boolean;
+    EnforceCooldown: boolean;
+};
 
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
@@ -1104,21 +1171,23 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
+    AIRecapSettings: AIRecapSettings;
+    MobileEphemeralModeSettings: MobileEphemeralModeSettings;
 };
 
 export type ReplicaLagSetting = {
     DataSource: string;
     QueryAbsoluteLag: string;
     QueryTimeLag: string;
-}
+};
 
 export type EnvironmentConfigSettings<T> = {
     [P in keyof T]: boolean;
-}
+};
 
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
-}
+};
 
 export enum CollapsedThreads {
     DISABLED = 'disabled',
@@ -1138,10 +1207,10 @@ export type AllowedIPRange = {
     description: string;
     enabled: boolean;
     owner_id: string;
-}
+};
 
 export type AllowedIPRanges = AllowedIPRange[];
 
 export type FetchIPResponse = {
     ip: string;
-}
+};

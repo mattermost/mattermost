@@ -5,6 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {areEqual} from 'react-window';
 
+import {ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {SearchSVG} from 'components/common/svg_images_components/search_svg';
@@ -12,7 +13,6 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
 import {SearchShortcut} from 'components/search_shortcut/search_shortcut';
-import {ShortcutKeyVariant} from 'components/shortcut_key';
 
 import {Constants} from 'utils/constants';
 

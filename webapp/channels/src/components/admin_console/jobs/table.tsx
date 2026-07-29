@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -22,6 +23,8 @@ import JobStatus from './job_status';
 
 import './table.scss';
 
+const NON_ADMIN_POLL_INTERVAL = 15000;
+
 export type Props = {
     jobs: Job[];
     getExtraInfoText?: (job: Job) => React.ReactNode;
@@ -36,19 +39,25 @@ export type Props = {
     jobData?: any;
     onRowClick?: (job: Job) => void;
     perPage?: number;
+
+    // job_updated WebSocket events are currently only broadcast to system admins
+    // (see MM-69403). Non-admin roles that can view this table (e.g. LDAP-only
+    // admins) fall back to polling until the WebSocket event supports role-based
+    // broadcast scoping.
+    isSystemAdmin: boolean;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
         createJob: (job: {type: JobType}) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     currentPage: number;
-}
+};
 
 class JobTable extends React.PureComponent<Props, State> {
-    interval: ReturnType<typeof setInterval>|null = null;
+    interval: ReturnType<typeof setInterval> | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -59,7 +68,12 @@ class JobTable extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
-        this.interval = setInterval(this.reload, 15000);
+
+        // job_updated WebSocket events are scoped to system admins only, so
+        // non-admin roles need to keep polling to see job status changes.
+        if (!this.props.isSystemAdmin) {
+            this.interval = setInterval(this.reload, NON_ADMIN_POLL_INTERVAL);
+        }
     }
 
     componentWillUnmount() {
@@ -214,14 +228,14 @@ class JobTable extends React.PureComponent<Props, State> {
                     {
                         !this.props.hideJobCreateButton &&
                         <div>
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >
                                 {this.props.createJobButtonText}
-                            </button>
+                            </Button>
                         </div>
                     }
                     <div className='help-text'>

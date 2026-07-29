@@ -14,6 +14,8 @@ const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
 
 const PUSH_SERVER_PATTERN = /^https?:\/\/(([a-z0-9-]+\.)?push|hpns-[a-z]+)\.mattermost\.com(\/|$)/;
 const ROOT_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/?$/;
+/** Marketing forms; often slow or block bot User-Agents — not reliable to verify in CI. */
+const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
@@ -213,7 +215,7 @@ function processResponse(originalUrl, response) {
 }
 
 function shouldSkipUrlCheck(url) {
-    return PUSH_SERVER_PATTERN.test(url);
+    return PUSH_SERVER_PATTERN.test(url) || FORMS_MATTERMOST_PATTERN.test(url);
 }
 
 async function checkUrls(urls, concurrency = 5, silentProgress = false) {

@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -278,9 +279,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -300,7 +300,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -386,7 +386,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-tertiary disabled"
                 disabled=""
                 type="button"
               >
@@ -396,7 +396,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-tertiary disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
@@ -437,6 +437,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -450,6 +451,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -720,9 +722,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -742,7 +743,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -828,7 +829,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-tertiary disabled"
                 disabled=""
                 type="button"
               >
@@ -838,7 +839,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-tertiary disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
@@ -879,6 +880,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -892,6 +894,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1107,9 +1110,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -1129,7 +1131,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -1165,6 +1167,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1178,6 +1181,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1392,9 +1396,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -1414,7 +1417,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -1450,6 +1453,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1463,6 +1467,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1694,6 +1699,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1707,6 +1713,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1937,6 +1944,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>

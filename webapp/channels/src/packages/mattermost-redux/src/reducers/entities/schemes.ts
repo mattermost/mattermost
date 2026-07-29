@@ -11,8 +11,8 @@ import {SchemeTypes, UserTypes} from 'mattermost-redux/action_types';
 function schemes(state: {
     [x: string]: Scheme;
 } = {}, action: MMReduxAction): {
-        [x: string]: Scheme;
-    } {
+    [x: string]: Scheme;
+} {
     switch (action.type) {
     case SchemeTypes.CREATED_SCHEME:
     case SchemeTypes.PATCHED_SCHEME:

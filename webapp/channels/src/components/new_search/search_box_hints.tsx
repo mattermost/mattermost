@@ -21,7 +21,7 @@ type Props = {
     selectedTerm: string;
     results: SuggestionResults;
     focus: (pos: number) => void;
-}
+};
 
 const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, results, selectedTerm, focus}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
@@ -69,7 +69,7 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, re
     const Component = pluginComponentInfo.component;
 
     return (
-        <ErrorBoundary>
+        <ErrorBoundary pluginId={pluginComponentInfo.pluginId}>
             <Component
                 key={pluginComponentInfo.pluginId}
                 onChangeSearch={searchChangeCallback}

@@ -12,7 +12,7 @@ type Props = {
     parentLink?: string;
     children?: JSX.Element[];
     id?: string;
-}
+};
 
 const BackstageSection = ({name, title, subsection = false, parentLink = '', children = [], id}: Props) => {
     const link = parentLink + '/' + name;

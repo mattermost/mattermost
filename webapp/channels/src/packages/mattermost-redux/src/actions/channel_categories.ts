@@ -199,6 +199,10 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
             dispatch(fetchChannelManagedCategoryMapping(channel));
         }
 
+        if (channel.default_category_name) {
+            return {data: false};
+        }
+
         // Add the new channel to the Channels category on the channel's team
         if (categories.some((category) => category.channel_ids.some((channelId) => channelId === channel.id))) {
             return {data: false};

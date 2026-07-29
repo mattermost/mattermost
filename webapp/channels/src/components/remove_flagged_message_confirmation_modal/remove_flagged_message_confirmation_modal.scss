@@ -2,40 +2,21 @@
 // See LICENSE.txt for license information.
 
 .KeepRemoveFlaggedMessageConfirmationModal {
+    width: 704px;
+
     .modal-content {
         width: 704px;
+    }
+
+    .modal-footer {
+        // Allow the custom footer row to span the full width and use space-between layout.
+        justify-content: stretch;
     }
 
     .body {
         display: flex;
         flex-direction: column;
         gap: 24px;
-
-        .section{
-            &.comment_section {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .section_title {
-                color: var(--center-channel-color);
-                font-size: 14px;
-                font-weight: 600;
-            }
-        }
-
-        button#PreviewInputTextButton {
-            position: absolute;
-            z-index: 2;
-            top: 8px;
-            right: 8px;
-        }
-
-        textarea#RemoveFlaggedMessageConfirmationModal__comment {
-            min-height: 90px !important;
-            max-height: 400px;
-        }
 
         .request_error {
             display: flex;
@@ -45,11 +26,24 @@
             font-size: 12px;
         }
     }
+
+    .ModalFooterRow {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+
+        &__left,
+        &__right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skipReportBtn,
+        .skipReportBtn:hover {
+            color: var(--error-text);
+        }
+    }
 }
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@ func newContentFlaggingStore(sqlStore *SqlStore) *SqlContentFlaggingStore {
 }
 
 func (s *SqlContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "SqlContentFlaggingStore.SaveReviewerSettings failed to begin transaction")
 	}

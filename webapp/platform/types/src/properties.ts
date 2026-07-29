@@ -9,8 +9,16 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'rank'
 );
+
+export type FieldVisibility = 'always' | 'hidden' | 'when_set';
+export type FieldValueType =
+    'email' |
+    'url' |
+    'phone' |
+    '';
 
 export type PropertyField = {
     id: string;
@@ -25,6 +33,7 @@ export type PropertyField = {
     target_type: string;
     object_type: string;
     linked_field_id?: string;
+    protected?: boolean;
     create_at: number;
     update_at: number;
     delete_at: number;
@@ -51,40 +60,20 @@ export type PropertyValue<T> = {
     delete_at: number;
     created_by: string;
     updated_by: string;
-}
+};
 
-export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
-export type UserPropertyFieldGroupID = 'custom_profile_attributes';
-export type UserPropertyValueType = 'phone' | 'url' | '';
-
-export type FieldVisibility = 'always' | 'hidden' | 'when_set';
-export type FieldValueType =
-    'email' |
-    'url' |
-    'phone' |
-    '';
-
+/**
+ * Base shape for a select/multiselect option. Features that constrain or
+ * extend an option define their own type by aliasing this one.
+ */
 export type PropertyFieldOption = {
     id: string;
     name: string;
     color?: string;
-    rank?: number;
-}
 
-export type UserPropertyField = PropertyField & {
-    group_id: UserPropertyFieldGroupID;
-    attrs: {
-        sort_order: number;
-        visibility: FieldVisibility;
-        value_type: FieldValueType;
-        options?: PropertyFieldOption[];
-        ldap?: string;
-        saml?: string;
-        managed?: string;
-        protected?: boolean;
-        source_plugin_id?: string;
-        access_mode?: '' | 'source_only' | 'shared_only';
-    };
+    // Optional explicit ordering. When unset, consumers fall back to the
+    // position of the option within `attrs.options`.
+    rank?: number;
 };
 
 export type SelectPropertyField = PropertyField & {
@@ -92,13 +81,11 @@ export type SelectPropertyField = PropertyField & {
         editable?: boolean;
         options?: PropertyFieldOption[];
     };
-}
-
-export const supportsOptions = (field: UserPropertyField) => {
-    return field.type === 'select' || field.type === 'multiselect';
 };
 
-export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+export const supportsOptions = (field: PropertyField) => {
+    return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
+};
 
 // PSA v2 state types
 
@@ -132,7 +119,7 @@ export type PropertyValuesState = {
 
 export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
-    byName: { [name: string]: PropertyGroup };
+    byName: {[name: string]: PropertyGroup};
 };
 
 export type PropertyValuesUpdated<T> = {

@@ -966,6 +966,109 @@ describe('Selectors.Posts', () => {
         });
     });
 
+    describe('getMostRecentNonSystemPostIdInChannel', () => {
+        const buildState = (testPosts: Record<string, {id: string; type: string}>, order: string[], showJoinLeave: boolean) => ({
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
+                posts: {
+                    posts: testPosts,
+                    postsInChannel: {
+                        channelId: [
+                            {order, recent: true},
+                        ],
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [`${Preferences.CATEGORY_ADVANCED_SETTINGS}--${Preferences.ADVANCED_FILTER_JOIN_LEAVE}`]: {value: showJoinLeave ? 'true' : 'false'},
+                    },
+                },
+            },
+        } as unknown as GlobalState);
+
+        it('skips the most recent system message even when join/leave messages are shown', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: ''},
+                1002: {id: '1002', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], true), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
+        it('skips the most recent system message even when join/leave messages are hidden', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: ''},
+                1002: {id: '1002', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], false), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
+        it('returns the most recent post when it is a regular message', () => {
+            const testPosts = {
+                1000: {id: '1000', type: ''},
+                1001: {id: '1001', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001'], true), 'channelId');
+            expect(postId).toBe('1000');
+        });
+
+        it('skips multiple trailing system messages', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: 'system_join_channel'},
+                1002: {id: '1002', type: ''},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], true), 'channelId');
+            expect(postId).toBe('1002');
+        });
+
+        it('returns undefined when every loaded post is a system message', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001'], true), 'channelId');
+            expect(postId).toBeUndefined();
+        });
+
+        it('skips stale post IDs missing from the posts map', () => {
+            const testPosts = {
+                1001: {id: '1001', type: ''},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['999', '1001'], true), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
+        it('returns undefined when no posts are loaded for the channel', () => {
+            const state = {
+                entities: {
+                    general: {config: {}},
+                    posts: {
+                        posts: {},
+                        postsInChannel: {},
+                    },
+                    preferences: {myPreferences: {}},
+                },
+            } as unknown as GlobalState;
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(state, 'channelId');
+            expect(postId).toBeUndefined();
+        });
+    });
+
     describe('getLatestReplyablePostId', () => {
         it('no posts', () => {
             const state = {
@@ -1114,6 +1217,34 @@ describe('Selectors.Posts', () => {
             };
 
             expect(isPostCommentMention(modifiedThreadState, 'e')).toEqual(true);
+        });
+
+        it('Should return false as thread reply is from webhook with current user id', () => {
+            const modifiedWebhookThreadState = {
+                ...modifiedState,
+                entities: {
+                    ...modifiedState.entities,
+                    posts: {
+                        ...modifiedState.entities.posts,
+                        posts: {
+                            ...modifiedState.entities.posts.posts,
+                            a: {
+                                ...modifiedState.entities.posts.posts.a,
+                                user_id: 'b',
+                            },
+                            c: {
+                                ...modifiedState.entities.posts.posts.c,
+                                user_id: user1.id,
+                                props: {
+                                    from_webhook: 'true',
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+
+            expect(isPostCommentMention(modifiedWebhookThreadState, 'e')).toEqual(false);
         });
 
         it('Should return false as user commented in the thread but notify_props is for root only', () => {

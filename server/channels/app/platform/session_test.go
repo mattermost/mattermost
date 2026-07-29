@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -202,4 +203,130 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		require.Equal(t, model.SystemUserRoleId, session.Roles)
 		require.Equal(t, "false", session.Props[model.SessionPropIsGuest])
 	})
+}
+
+func TestRevokeSessionsForDeviceTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Both revoke variants are structurally identical (one matches DeviceId,
+	// the other VoIPDeviceId), and the invariants they must hold are the
+	// same. Drive them through a single table.
+	type variant struct {
+		name          string
+		setToken      func(s *model.Session, token string)
+		revoke        func(userID, token, currentSessionID string) error
+		emptyTokenErr error
+	}
+
+	variants := []variant{
+		{
+			name:     "RevokeOtherSessionsForDeviceId",
+			setToken: func(s *model.Session, token string) { s.DeviceId = token },
+			revoke: func(userID, token, currentSessionID string) error {
+				return th.Service.RevokeOtherSessionsForDeviceId(th.Context, userID, token, currentSessionID)
+			},
+			emptyTokenErr: ErrEmptyDeviceId,
+		},
+		{
+			name:     "RevokeOtherSessionsForVoIPDeviceId",
+			setToken: func(s *model.Session, token string) { s.VoIPDeviceId = token },
+			revoke: func(userID, token, currentSessionID string) error {
+				return th.Service.RevokeOtherSessionsForVoIPDeviceId(th.Context, userID, token, currentSessionID)
+			},
+			emptyTokenErr: ErrEmptyVoIPDeviceId,
+		},
+	}
+
+	createSession := func(t *testing.T, v variant, userID, token string) *model.Session {
+		t.Helper()
+		s := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		v.setToken(s, token)
+		saved, err := th.Service.CreateSession(th.Context, s)
+		require.NoError(t, err)
+		return saved
+	}
+
+	sessionExists := func(t *testing.T, id string) bool {
+		t.Helper()
+		_, err := th.Service.GetSessionByID(th.Context, id)
+		return err == nil
+	}
+
+	for _, v := range variants {
+		t.Run(v.name, func(t *testing.T) {
+			t.Run("revokes the matching session", func(t *testing.T) {
+				token := "apple_rn:revokes-matching-" + v.name
+				target := createSession(t, v, th.BasicUser.Id, token)
+
+				require.NoError(t, v.revoke(th.BasicUser.Id, token, ""))
+				assert.False(t, sessionExists(t, target.Id), "matching session must be revoked")
+			})
+
+			t.Run("does not revoke the session passed as currentSessionId", func(t *testing.T) {
+				// Self-skip: a session re-attaching its own token must not
+				// revoke itself.
+				token := "apple_rn:self-skip-" + v.name
+				self := createSession(t, v, th.BasicUser.Id, token)
+
+				require.NoError(t, v.revoke(th.BasicUser.Id, token, self.Id))
+				assert.True(t, sessionExists(t, self.Id), "currentSessionId must be exempt from revocation")
+			})
+
+			t.Run("does not revoke sessions belonging to other users", func(t *testing.T) {
+				// The function scopes by userID — a session with a matching
+				// token on a different user must stay alive.
+				token := "apple_rn:cross-user-" + v.name
+				otherUserSession := createSession(t, v, th.BasicUser2.Id, token)
+
+				require.NoError(t, v.revoke(th.BasicUser.Id, token, ""))
+				assert.True(t, sessionExists(t, otherUserSession.Id),
+					"session on a different user must not be revoked")
+			})
+
+			t.Run("empty token returns an error and revokes nothing", func(t *testing.T) {
+				webSession := createSession(t, v, th.BasicUser.Id, "")
+
+				err := v.revoke(th.BasicUser.Id, "", "")
+				require.ErrorIs(t, err, v.emptyTokenErr)
+				assert.True(t, sessionExists(t, webSession.Id),
+					"empty-token revoke must not match sessions with no token in this slot")
+			})
+
+			t.Run("leaves siblings of the same user with different tokens alone", func(t *testing.T) {
+				targetToken := "apple_rn:target-" + v.name
+				siblingToken := "apple_rn:sibling-" + v.name
+
+				target := createSession(t, v, th.BasicUser.Id, targetToken)
+				sibling := createSession(t, v, th.BasicUser.Id, siblingToken)
+
+				require.NoError(t, v.revoke(th.BasicUser.Id, targetToken, ""))
+				assert.False(t, sessionExists(t, target.Id))
+				assert.True(t, sessionExists(t, sibling.Id),
+					"session with a different token must stay alive")
+			})
+		})
+	}
+}
+
+func TestRevokeAllSessionsReturnsRevokedSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	userId := model.NewId()
+
+	s1 := &model.Session{UserId: userId, ExpiresAt: model.GetMillis() + dayInMillis, DeviceId: model.NewId()}
+	s1, _ = th.Service.CreateSession(th.Context, s1)
+
+	s2 := &model.Session{UserId: userId, ExpiresAt: model.GetMillis() + dayInMillis}
+	s2, _ = th.Service.CreateSession(th.Context, s2)
+
+	sessions, err := th.Service.RevokeAllSessions(th.Context, userId)
+	require.NoError(t, err)
+	require.Len(t, sessions, 2)
+	require.ElementsMatch(t, []string{s1.Id, s2.Id}, []string{sessions[0].Id, sessions[1].Id})
+
+	remaining, err := th.Service.Store.Session().GetSessions(th.Context, userId)
+	require.NoError(t, err)
+	require.Empty(t, remaining)
 }

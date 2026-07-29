@@ -15,6 +15,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         id: '9w96t4nhbfdiij64wfqors4i1r',
         channel_id: '1jiw9kphbjrntfyrm7xpdcya4o',
         create_at: 1502455422406,
+        last_used: 0,
         delete_at: 0,
         description: 'build status',
         display_name: 'build',
@@ -162,5 +163,25 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
             initialState,
         );
         expect(container.querySelector('.item-details')).not.toBeNull();
+    });
+
+    test('should show Last used on when last_used is non-zero', () => {
+        const lastUsedMs = 1704067200000;
+        const hookWithLastUsed: IncomingWebhook = {
+            ...incomingWebhook,
+            last_used: lastUsedMs,
+        };
+
+        renderWithContext(
+            <InstalledIncomingWebhook
+                {...baseProps}
+                incomingWebhook={hookWithLastUsed}
+                canChange={false}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText(/Last used on/i)).toBeInTheDocument();
+        expect(screen.queryByText('Never used')).not.toBeInTheDocument();
     });
 });

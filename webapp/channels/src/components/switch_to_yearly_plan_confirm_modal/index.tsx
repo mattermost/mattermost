@@ -21,7 +21,7 @@ import './switch_to_yearly_plan_confirm_modal.scss';
 type Props = {
     contactSalesFunc: () => void;
     confirmSwitchToYearlyFunc: () => void;
-}
+};
 
 const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();
