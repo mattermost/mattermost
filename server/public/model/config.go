@@ -1512,7 +1512,6 @@ type SqlSettings struct {
 	ConnMaxIdleTimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	AnalyticsQueryTimeout             *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -1536,16 +1535,6 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DataSourceSearchReplicas == nil {
 		s.DataSourceSearchReplicas = []string{}
-	}
-
-	if isUpdate {
-		// When updating an existing configuration, ensure an encryption key has been specified.
-		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
-			s.AtRestEncryptKey = new(NewRandomString(32))
-		}
-	} else {
-		// When generating a blank configuration, leave this key empty to be generated on server start.
-		s.AtRestEncryptKey = new("")
 	}
 
 	if s.MaxIdleConns == nil {
@@ -4538,10 +4527,6 @@ func (s *ExperimentalSettings) isValid() *AppError {
 }
 
 func (s *SqlSettings) isValid() *AppError {
-	if *s.AtRestEncryptKey != "" && len(*s.AtRestEncryptKey) < 32 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if *s.DriverName != DatabaseDriverPostgres {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -5362,10 +5347,6 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.SqlSettings.DataSource != nil {
 		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
-	}
-
-	if o.SqlSettings.AtRestEncryptKey != nil {
-		*o.SqlSettings.AtRestEncryptKey = FakeSetting
 	}
 
 	if o.ElasticsearchSettings.Password != nil {

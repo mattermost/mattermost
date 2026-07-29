@@ -95,7 +95,6 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "Trace": false,
-        "AtRestEncryptKey": "jdh9iergmse3w9mt53snasugmmi9r6it",
         "QueryTimeout": 30
     },
     "LogSettings": {

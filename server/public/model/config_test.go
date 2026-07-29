@@ -1969,7 +1969,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
-	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)

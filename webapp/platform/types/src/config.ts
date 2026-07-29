@@ -502,7 +502,6 @@ export type SqlSettings = {
     ConnMaxIdleTimeMilliseconds: number;
     MaxOpenConns: number;
     Trace: boolean;
-    AtRestEncryptKey: string;
     QueryTimeout: number;
     AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;

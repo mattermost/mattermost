@@ -11983,10 +11983,6 @@
     "translation": "RedisAddress must be specified for redis cache type."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "When audit file logging is enabled, a file name must be specified."
   },
