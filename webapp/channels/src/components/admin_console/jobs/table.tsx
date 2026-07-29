@@ -166,6 +166,17 @@ class JobTable extends React.PureComponent<Props, State> {
                     {!hideDetailsColumn && (
                         <td>{this.getExtraInfoText(job)}</td>
                     )}
+                    {this.props.onRowClick && (
+                        <td className='view-details-field whitespace--nowrap'>
+                            <span className='view-details-link'>
+                                <FormattedMessage
+                                    id='admin.jobTable.viewDetails'
+                                    defaultMessage='View details'
+                                />
+                                <i className='icon icon-chevron-right'/>
+                            </span>
+                        </td>
+                    )}
                     <td className='cancel-button-field whitespace--nowrap text-center'>
                         <JobCancelButton
                             job={job}
@@ -285,6 +296,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                             />
                                         </th>
                                     )}
+                                    {this.props.onRowClick && <th className='view-details-field'/>}
                                     <th className='cancel-button-field'/>
                                 </tr>
                             </thead>

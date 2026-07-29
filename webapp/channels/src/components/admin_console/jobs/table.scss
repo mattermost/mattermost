@@ -32,6 +32,27 @@
         cursor: pointer;
         &:hover {
             background-color: rgba(0, 0, 0, 0.05);
+
+            .view-details-link {
+                color: var(--button-bg);
+            }
+        }
+    }
+
+    .view-details-field {
+        text-align: right;
+    }
+
+    .view-details-link {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+
+        .icon {
+            font-size: 16px;
         }
     }
 

@@ -10,9 +10,9 @@ import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import JobsTable from 'components/admin_console/jobs';
-
 import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
+
+import JobsTable from 'components/admin_console/jobs';
 
 import {JobTypes} from 'utils/constants';
 

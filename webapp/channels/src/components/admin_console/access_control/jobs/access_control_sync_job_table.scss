@@ -35,14 +35,14 @@
     .team-sync-note {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 16px;
         padding: 10px 12px;
         border-radius: 4px;
+        margin-bottom: 16px;
         background: rgba(var(--sys-center-channel-color-rgb), 0.04);
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         font-size: 12px;
-        line-height: 16px;
         gap: 8px;
+        line-height: 16px;
 
         .icon {
             flex-shrink: 0;

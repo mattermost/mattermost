@@ -108,6 +108,10 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         // # Open the most recent job's details (the channel sync chained from the team sync)
         const jobRow = page.locator('.job-table__access-control tr.clickable').first();
         await expect(jobRow).toBeVisible({timeout: 10000});
+
+        // * Row exposes a visible "View details" affordance (MM-69827 finding 12)
+        await expect(jobRow.getByText('View details')).toBeVisible();
+
         await jobRow.click();
 
         const detailsModal = page.locator('#job-details-modal');

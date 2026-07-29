@@ -1723,6 +1723,7 @@
   "admin.jobTable.syncResults.teamsTab": "Teams",
   "admin.jobTable.syncResults.teamUserListTitle": "Team Membership Changes",
   "admin.jobTable.syncResults.userListTitle": "Channel Membership Changes",
+  "admin.jobTable.viewDetails": "View details",
   "admin.ldap_feature_discovery_cloud.call_to_action.primary_sales": "Contact sales",
   "admin.ldap_feature_discovery.call_to_action.primary": "Start trial",
   "admin.ldap_feature_discovery.call_to_action.secondary": "Learn more",
