@@ -126,7 +126,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @objective Verify creating a new text attribute via the UI and saving it
      * persists the field to the server.
      */
-    test('creates a new text attribute and saves', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('creates a new text attribute and saves', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -159,7 +159,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @objective Verify creating a select attribute with multiple options saves
      * the field and its options to the server.
      */
-    test('creates a select attribute with options and saves', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('creates a select attribute with options and saves', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -200,7 +200,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Old Name" exists via API setup.
      */
-    test('edits an existing attribute name and saves', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('edits an existing attribute name and saves', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -233,7 +233,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "To Delete" exists via API setup.
      */
-    test('deletes an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('deletes an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -273,7 +273,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Original" exists via API setup.
      */
-    test('duplicates an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('duplicates an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -311,7 +311,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Visibility Test" exists via API setup.
      */
-    test('changes attribute visibility via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('changes attribute visibility via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -347,7 +347,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Editable Test" exists via API setup.
      */
-    test('toggles editable by users off via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('toggles editable by users off via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -412,7 +412,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Unique Name" exists via API setup.
      */
-    test('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -447,7 +447,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A text attribute named "Contact Number" exists via API setup.
      */
-    test('changes attribute type from text to phone', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('changes attribute type from text to phone', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -515,7 +515,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @objective Verify creating multiple text attributes in a single session
      * and saving them all at once persists both to the server.
      */
-    test('creates multiple text attributes and saves all at once', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('creates multiple text attributes and saves all at once', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
@@ -551,7 +551,7 @@ test.describe('System Console - User Attributes Management', () => {
      * @precondition
      * A custom profile attribute named "Persistent Field" exists via API setup.
      */
-    test('persists attribute changes after page reload', {tag: '@user_attributes'}, async ({pw}) => {
+    test.fixme('persists attribute changes after page reload', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 

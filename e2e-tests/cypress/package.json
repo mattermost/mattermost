@@ -1,8 +1,6 @@
 {
   "name": "cypress",
   "devDependencies": {
-    "@aws-sdk/client-s3": "3.1001.0",
-    "@aws-sdk/lib-storage": "3.1001.0",
     "@babel/eslint-parser": "7.28.6",
     "@babel/eslint-plugin": "7.27.1",
     "@cypress/request": "3.0.10",
@@ -20,11 +18,9 @@
     "@types/lodash.without": "4.4.9",
     "@types/mime-types": "3.0.1",
     "@types/mochawesome": "6.2.5",
-    "@types/recursive-readdir": "2.2.4",
     "@types/shelljs": "0.10.0",
     "@typescript-eslint/eslint-plugin": "8.56.1",
     "@typescript-eslint/parser": "8.56.1",
-    "async": "3.2.6",
     "authenticator": "1.1.5",
     "axios": "1.13.6",
     "chai": "6.2.2",
@@ -70,7 +66,6 @@
     "path": "0.12.7",
     "pdf-parse": "2.4.5",
     "pg": "8.19.0",
-    "recursive-readdir": "2.2.3",
     "shelljs": "0.10.0",
     "timezones.json": "1.7.2",
     "typescript": "5.9.3",
