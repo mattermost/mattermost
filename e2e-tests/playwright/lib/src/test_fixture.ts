@@ -5,7 +5,7 @@ import {Browser, Page, test as base} from '@playwright/test';
 import {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -93,6 +93,9 @@ export const test = base.extend<ExtendedFixtures>({
         await use(ab);
     },
     pw: async ({browser, page, isMobile}, use) => {
+        // Playwright's project baseURL is fixed at worker start; rebind so navigations follow
+        // testConfig.baseURL after testcontainers restarts remap the host port.
+        bindPageToLiveBaseURL(page);
         const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
