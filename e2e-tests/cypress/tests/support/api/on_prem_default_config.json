@@ -573,7 +573,6 @@
     "GuestAccountsSettings": {
         "Enable": true,
         "HideTags": false,
-        "AllowEmailAccounts": true,
         "EnforceMultifactorAuthentication": false,
         "RestrictCreationToDomains": ""
     },

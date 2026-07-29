@@ -869,7 +869,6 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guests"))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
 		guestPassword := model.NewTestPassword()

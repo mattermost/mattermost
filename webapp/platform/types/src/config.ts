@@ -1027,7 +1027,6 @@ export type DisplaySettings = {
 export type GuestAccountsSettings = {
     Enable: boolean;
     HideTags: boolean;
-    AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
     EnableGuestMagicLink: boolean;

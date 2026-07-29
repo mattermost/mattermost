@@ -771,7 +771,6 @@ const defaultServerConfig: AdminConfig = {
     GuestAccountsSettings: {
         Enable: false,
         HideTags: false,
-        AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
         EnableGuestMagicLink: false,

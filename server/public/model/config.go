@@ -3918,7 +3918,6 @@ func (s *DisplaySettings) SetDefaults() {
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
 	HideTags                         *bool   `access:"authentication_guest_access"`
-	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
 	EnableGuestMagicLink             *bool   `access:"authentication_guest_access"`
@@ -3931,10 +3930,6 @@ func (s *GuestAccountsSettings) SetDefaults() {
 
 	if s.HideTags == nil {
 		s.HideTags = new(false)
-	}
-
-	if s.AllowEmailAccounts == nil {
-		s.AllowEmailAccounts = new(true)
 	}
 
 	if s.EnforceMultifactorAuthentication == nil {
