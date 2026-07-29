@@ -604,19 +604,17 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		} else {
 			if hasUserAuthDataChanged {
 				// Revoke sessions issued under the user's current auth
-				// binding, and invalidate cached user data, before applying
-				// the auth data mutation below via the Store layer directly
-				// (bypassing the app-layer helper, UpdateUserAuth, that
-				// normally accompanies this mutation). Doing this first
-				// keeps the operation retryable: if revocation fails, the
-				// mutation never runs, so a retried import still sees
-				// hasUserAuthDataChanged and re-attempts revocation instead
-				// of silently skipping it because the auth data already
-				// matches the target.
+				// binding before applying the auth data mutation below via
+				// the Store layer directly (bypassing the app-layer helper,
+				// UpdateUserAuth, that normally accompanies this mutation).
+				// Doing this first keeps the operation retryable: if
+				// revocation fails, the mutation never runs, so a retried
+				// import still sees hasUserAuthDataChanged and re-attempts
+				// revocation instead of silently skipping it because the
+				// auth data already matches the target.
 				if appErr := a.RevokeAllSessions(rctx, user.Id); appErr != nil {
 					return appErr
 				}
-				a.InvalidateCacheForUser(user.Id)
 
 				if _, nErr := a.Srv().Store().User().UpdateAuthData(user.Id, authService, authData, user.Email, false); nErr != nil {
 					var invErr *store.ErrInvalidInput
@@ -627,6 +625,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 						return model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 					}
 				}
+				a.InvalidateCacheForUser(user.Id)
 			}
 		}
 		if emailVerified {
@@ -940,8 +939,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 			// The existing user account is about to be linked to a bot
 			// record directly via the Store layer, bypassing the app-layer
 			// helpers that normally accompany this mutation. Revoke any
-			// sessions issued before this change and invalidate cached user
-			// data BEFORE that link is created (mirroring ConvertUserToBot,
+			// sessions issued before this change (mirroring ConvertUserToBot,
 			// but reordered): if revocation fails, the bot record below is
 			// never created, so a retried import still hits this recovery
 			// branch and re-attempts revocation instead of silently
@@ -949,7 +947,6 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 			if err := a.RevokeAllSessions(rctx, existingUser.Id); err != nil {
 				return err
 			}
-			a.InvalidateCacheForUser(existingUser.Id)
 
 			var saveErr error
 			savedBot, saveErr = a.Srv().Store().Bot().Save(bot)
@@ -967,6 +964,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 				}
 			}
+			a.InvalidateCacheForUser(existingUser.Id)
 		}
 	} else if hasBotChanged {
 		var err error

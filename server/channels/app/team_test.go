@@ -439,7 +439,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 		token := model.NewToken(
 			model.TokenTypeTeamInvitation,
-			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": matchingUser.Email}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": strings.ToUpper(matchingUser.Email)}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
