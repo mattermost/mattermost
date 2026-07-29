@@ -17,7 +17,9 @@ From step 1 (minimum bar — do **not** wait for every optional tool):
 - [ ] Filename normalization landed for surfaces in the current wave
 - [ ] Key-parity inventory available (missing/extra keys per locale)
 - [ ] Minimum syntax validators available on the wave's surfaces
-- [ ] Soft spend checkpoint + stop/go owner agreed (decision #10 revise)
+
+Spend policy (**decided**): unlimited — no budget requirements, no soft
+checkpoint. Decision #10 stands as originally locked.
 
 ## Scale (verified)
 
@@ -48,11 +50,11 @@ coverage would still look "complete" for the overlapping keys.
 - [ ] Record glossary/rule sources (handbook links German, French, Dutch
   translation rules — prose, not clean term maps).
 
-### 2.2 Pilot before full spend
+### 2.2 Pilot (quality tuning only)
 
 - [ ] Pilot 200–500 strings spanning JS + Go, short UI, plurals/`select`,
   RTL (`fa`), and glossary locales.
-- [ ] Measure cost/quality; set soft budget and stop/go criteria.
+- [ ] Measure quality; no cost tracking required (unlimited spend).
 - [ ] Tune prompt, batch size, and allowlists from pilot failures.
 
 ### 2.3 Context bundle (cached, batched)
@@ -116,7 +118,7 @@ Suggested order (adjust with owners):
 | Assumption | Verdict | Evidence / rationale |
 |------------|---------|----------------------|
 | Back-translation only (#5) | **Reject as sole review** | `"Owner"` → `"Owner"` looks perfect; misses copy-English, formality (e.g. German Sie/Ihre), gender, RTL punctuation, UI length. |
-| No credit cap (#10) | **Revise** | Soft pilot + stop/go required at this scale. |
+| No credit cap (#10) | **Resolved — keep original** | Owner confirmed unlimited spend; no budget checkpoint required. |
 | Full grep context per key × locale (#15) | **Revise** | Cache per source key; batch by component; reuse across locales. |
 | Glossary as hard constraint (#16) | **Revise** | Sources are prose rules; hard maps break inflection/case. Prefer constrained + conflict report + sampling. |
 | Review *all* existing translations | **Narrow first** | Gaps + flagged + high-risk ICU first; expand if needed. |
@@ -140,7 +142,6 @@ Suggested order (adjust with owners):
 - [ ] Known-bad files (at least Playbooks `zh_Hant`) remediated and
   re-measured for identical-to-`en` rate within agreed baseline.
 - [ ] Syntax validators clean on landed waves.
-- [ ] Pilot cost report and final spend recorded.
 - [ ] Prompt/bundle/allowlist artifacts versioned for reuse in step 3.
 - [ ] Native sampling notes attached for glossary + RTL locales.
 
@@ -150,4 +151,5 @@ Suggested order (adjust with owners):
 2. Are German/French/Dutch handbook rules current and authoritative?
 3. Should AI overwrite unflagged human translations at all in v12?
 4. What identical-copy threshold fails a locale file (per locale family)?
-5. Soft spend budget and stop/go owner?
+5. ~~Soft spend budget and stop/go owner?~~ **Resolved: unlimited spend,
+   no budget requirements.**

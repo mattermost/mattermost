@@ -70,8 +70,9 @@ Applies uniformly to `standalone/i18n/`, `webapp/i18n/`, `server/i18n/`:
 
 ### 1.5 Experimental locales and config
 
-- [ ] Decide **delete vs archive/hide** until Weblate sunset (see
-  Challenges — prefer quarantine until step 4 freeze).
+- **Decided: delete immediately** — no archive/quarantine period; git
+  history is the archive.
+- [ ] Delete non-supported locale JSON from all surfaces in this step.
 - [ ] Plan removal of `EnableExperimentalLocales` /
   `getAllLanguages(includeExperimental)` only after fallback tests exist.
 - [ ] Keep `AvailableLocales` (restricts the supported set further).
@@ -120,7 +121,7 @@ authoring-tier metadata pipeline.
 | Assumption | Verdict | Evidence / rationale |
 |------------|---------|----------------------|
 | Force Calls/Playbooks onto core 22 | **Resolved — keep** | Was flagged as support removal needing coordination; product/comms coordination is confirmed complete, so proceed with the drops. |
-| Delete experimental locales immediately | **Revise** | Prefer archive/hide until Weblate freeze; server already ignores unsupported files; webapp gates experimental exposure. |
+| Delete experimental locales immediately | **Resolved — delete now** | Archive/hide was considered; owner decided immediate deletion (git history suffices). |
 | Hyphen filenames + zh region mapping | **Keep (qualified)** | Fine as product convention; `zh-Hans`/`zh-Hant` are valid BCP-47 — document as aliasing. |
 | Mobile/desktop are purely underscore | **False** | Mixed conventions today (`en_AU` alongside `pt-BR`/`zh-CN`). Normalization must inventory real names. |
 | Full source-location tooling before bulk pass | **Revise** | Overbuilt for one-time pass; grep + formatjs source-location enough to start. |
@@ -154,7 +155,8 @@ authoring-tier metadata pipeline.
 
 1. ~~Who signs off removing Calls/Playbooks-only locales?~~ **Resolved:
    no signoff needed — already coordinated.**
-2. Archive unsupported locale JSON until Weblate sunset, or delete now?
+2. ~~Archive unsupported locale JSON until Weblate sunset, or delete
+   now?~~ **Resolved: delete immediately.**
 3. Which repo is the canonical released `mmgotool`?
-4. Should Chinese keep script tags internally with aliases to `zh-CN` /
-   `zh-TW`, or rename on disk only?
+4. ~~Should Chinese keep script tags internally with aliases?~~
+   **Resolved: rename on disk to `zh-CN`/`zh-TW` only; no alias layer.**

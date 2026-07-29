@@ -66,7 +66,8 @@ Weblate even when developer docs do — search broadly (`Weblate`,
 
 - [ ] `rg -i 'weblate|translate\\.mattermost\\.com'` across surveyed
   repos (and handbook) is clean except historical changelog entries.
-- [ ] Alpha/Beta labels reconciled or removed per product decision.
+- [ ] Alpha/Beta labels **removed** from all language lists (decided —
+  all 22 locales meet the same bar after the bulk pass).
 - [ ] WIP promotion pipeline docs removed from handbook.
 
 ## Challenges (verification pass)
@@ -97,5 +98,5 @@ Weblate even when developer docs do — search broadly (`Weblate`,
 ## Open questions
 
 1. Who owns handbook PR timing vs engineering cutover?
-2. Keep Alpha/Beta labels after AI bulk pass, or drop them?
+2. ~~Keep Alpha/Beta labels after AI bulk pass?~~ **Resolved: drop them.**
 3. Any public status page besides handbook for the sunset?

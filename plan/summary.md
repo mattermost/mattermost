@@ -81,7 +81,7 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 | # | Decision | Status |
 |---|----------|--------|
 | 1 | Keep exactly the current 22 locales; force Calls/Playbooks onto that set; drop experimental/non-matching files | **Keep** — product/comms coordination confirmed complete, including plugin-only locale drops (`ar`/`cs`/`hr`/…, `kk`/`ml`/…); proceed with deletions |
-| 2 | Authors submit AI translations in the same PR; no CI auto-translator near-term | **Revise** — keep "no CI bot", but require a real local/scripted generator; DX of 22 locales/PR is high |
+| 2 | Authors submit AI translations in the same PR; no CI auto-translator near-term | **Keep — resolved**: strict same-PR, backed by a documented generator; locale diffs get **no human review** (CI gates are the sole check) |
 | 3 | Unify all surveyed surfaces on the same 22-locale list and coverage bar | **Keep** |
 | 4 | Trim locales before bulk AI spend | **Keep** |
 | 5 | Review methodology: back-translation only | **Reject as sole review** — must add native sampling / identical-copy gates; back-translation misses copy-English and register |
@@ -89,11 +89,11 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 | 7 | Standardize filenames on hyphens (`en-AU.json`) | **Keep as product convention**; treat `zh_Hans`→`zh-CN` as compatibility mapping, not BCP-47 purity |
 | 8 | Fold WIP/Calls/Playbooks retirement into one Weblate notice | **Revise** — locale drops need explicit callouts, not fine print |
 | 9 | iOS `.lproj` gap out of scope | **Keep** — file separately |
-| 10 | No hard Cursor/Fable credit cap | **Revise** — add soft pilot checkpoint / stop-go owner |
-| 11 | Katie Wiersgalla & Amy Blais own Weblate sunset comms | **Revise** — name **roles + DRI**, not only individuals |
+| 10 | No hard Cursor/Fable credit cap | **Keep — resolved**: unlimited spend, no budget requirements or checkpoint |
+| 11 | Katie Wiersgalla & Amy Blais own Weblate sunset comms | **Resolved** — no DRI required; coordination already complete, comms are announcements executed in step 4 |
 | 12 | Dropped-locale fallback → `en` | **Keep**, with explicit migration tests |
 | 13 | Syntax linters: `formatjs verify` (JS) + new `mmgotool i18n verify` (Go) | **Revise** — `--extra-keys` is **not** a formatjs flag on current CLIs; plugin `@formatjs/cli` versions may lack `verify`; mmgotool release path is split |
-| 14 | Weblate overlap with author PRs is fine (regen is cheap) | **Reopen** — freeze Weblate before enforcing author-submitted locales |
+| 14 | Weblate overlap with author PRs is fine (regen is cheap) | **Resolved** — freeze Weblate writes first; AI translations supersede Weblate content thereafter |
 | 15 | Full per-key context (source grep) for bulk pass | **Revise** — cache once per source key, batch by component; don't block on full metadata tooling |
 | 16 | Build glossaries now as hard constraints | **Revise** — treat as high-priority constraints with conflict reporting; sources are prose rules, not clean term maps |
 | 17 | Two-tier authoring vs runtime format; never change shipped JSON shape | **Keep** architecture; **defer** full tooling hardening past the minimum needed for step 2 |
@@ -127,8 +127,9 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 ```
 step-1 (trim + normalize + minimum validators)
    → step-2 (bulk translate in waves)
-   → step-4 freeze Weblate writes  ┐
-   → step-3 author workflow + CI  ┘ (overlap window; prefer freeze first)
+   → step-4 freeze Weblate writes (decided: freeze before gates)
+   → step-3 author workflow + CI
+
    → step-5 correction intake
    → step-6 docs/UI/agent cleanup (phased; transition notices earlier)
 ```

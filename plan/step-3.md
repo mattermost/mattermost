@@ -13,7 +13,8 @@ translation bot in v12.
 
 - Step 1 locale/filename normalization for the repo being gated.
 - Step 2 prompts/bundle tooling reusable for **diff-sized** author runs.
-- **Prefer Weblate write-freeze before hard gates** (decision #14 reopen).
+- **Weblate write-freeze before hard gates** (decided): freeze first;
+  AI-generated translations supersede any Weblate content thereafter.
 
 ## Concrete tasks
 
@@ -25,6 +26,12 @@ translation bot in v12.
   glossary-constrained strings.
 
 ### 3.2 Author workflow (human-facing)
+
+Decided policy: **strict same-PR** — translations for all 22 locales land
+in the same PR as the `en.json` change; no follow-up-PR pattern. **No
+human review of locale diffs** — CI gates (parity, syntax,
+identical-copy) are the sole check on translated hunks; reviewers focus
+on the English source string only.
 
 - [ ] Document the exact generator path (script/prompt/Cursor skill)
       scoped to changed keys in the PR's `en.json` diff.
@@ -90,20 +97,20 @@ Do **not** hard-fail every byte-identical value:
 
 | Assumption | Verdict | Evidence / rationale |
 |------------|---------|----------------------|
-| Authors own 22 locales per string PR (#2) | **Reopen** | High DX and review load; low-signal diffs especially for `en-AU`. Consider helpers, batched i18n follow-up PRs, or reviewer guidance. |
+| Authors own 22 locales per string PR (#2) | **Resolved — strict same-PR** | DX concern raised; owner confirmed strict same-PR with no locale-diff human review (CI is the gate), which removes the review-load objection. |
 | No CI translator | **Accept + guardrails** | Still need a local/scripted generator — "just use AI" is not a workflow. |
 | `formatjs verify --extra-keys` (#13) | **Reject as stated** | Flag does not exist on pinned CLIs; implement custom extra-key check. |
 | Plugin FormatJS parity | **Reopen** | Older `@formatjs/cli` pins may not expose `verify`. |
 | Identical-to-`en` hard fail | **Reopen** | `en-AU` makes absolute fail unusable; use thresholds. |
 | mmgotool one release path | **Reopen** | Platform vendored vs Calls `@latest` vs Playbooks utilities pin. |
-| Weblate overlap OK (#14) | **Reopen** | Freeze writes before enforcing author locale commits. |
+| Weblate overlap OK (#14) | **Resolved — freeze first** | Owner confirmed: freeze Weblate writes first; AI translations supersede Weblate content from then on. |
 
 ## Risks
 
-- Giant localization hunks bury product review.
+- Locale hunks are unreviewed by design — quality rests entirely on the
+  generator and CI gates; a gap in the gates ships silently.
 - Authors skip generator and paste English into 22 files — passes key
   parity without identical-copy gate.
-- Weblate bot fights author PRs during overlap.
 - Plugins lag on tool upgrades → uneven enforcement.
 
 ## Acceptance criteria
@@ -114,15 +121,16 @@ Do **not** hard-fail every byte-identical value:
 - [ ] CI runs structural/template checks appropriate to JS/Go.
 - [ ] Identical-to-source policy documented with `en-AU` exemption /
   threshold.
-- [ ] Weblate no longer overwrites gated locale paths (or overlap risk
-  accepted in writing by owners).
+- [ ] Weblate writes frozen for gated locale paths before gates enable.
 
 ## Open questions
 
 1. Is `en-AU` required to diverge, or mostly inherit `en` with a small
    overlay?
-2. Who reviews 22-locale AI diffs in product PRs?
-3. Hard gate start date vs Weblate freeze date?
+2. ~~Who reviews 22-locale AI diffs in product PRs?~~ **Resolved: no
+   human reviewers — CI gates are the sole check on locale diffs.**
+3. ~~Hard gate start date vs Weblate freeze date?~~ **Resolved: freeze
+   first; AI translations supersede Weblate content.**
 4. Canonical `mmgotool` module path going forward?
-5. Allowed pattern: product PR lands `en` only + follow-up translation PR
-   within N hours/days?
+5. ~~Product PR lands `en` only + follow-up translation PR?~~ **Resolved:
+   strict same-PR.**

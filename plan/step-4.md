@@ -15,7 +15,9 @@ guidance or silently dropping WIP / plugin locales.
   with product/comms; no further signoff gate.
 - Step 2 bulk pass far enough that in-repo files are the quality baseline
   (or explicit interim policy).
-- Named **role + DRI** for community communications (decision #11 revise).
+- Community communications ownership: **resolved — no DRI required**;
+  coordination is already done. Remaining comms tasks are announcements
+  executed as part of this workstream.
 
 ## Surveyed Weblate projects (handbook)
 
@@ -31,8 +33,6 @@ no additional org projects before final archive.
 - [ ] Confirm webhook/docs artifacts (plan cited
   `docs/site/static/images/weblate-incoming-webhook.png` — **not found
   locally**; relocate or drop the reference).
-- [ ] Assign DRI by **role** (Community / Product Docs / DevEx /
-  Localization); individuals as contacts, not the only identifiers.
 
 ### 4.2 Transition communications (before cutover)
 
@@ -81,8 +81,8 @@ contradictory guidance.
 |------------|---------|----------------------|
 | Handbook only after fully off (#6) | **Revise** | Leaves "don't use GitHub" live while step 5 moves corrections to PRs. Use transition banner first. |
 | One notice for WIP + plugin locale drops (#8) | **Revise** | Locale support removal needs explicit callouts and grace period. |
-| Named individuals as owners (#11) | **Revise** | Use roles + DRI; people change. |
-| Regen makes Weblate clobber harmless (#14) | **Reopen** | Still causes PR churn and loss of reviewed strings — freeze first. |
+| Named individuals as owners (#11) | **Resolved — no DRI needed** | Coordination already complete; comms tasks execute within this workstream. |
+| Regen makes Weblate clobber harmless (#14) | **Resolved — freeze first** | Owner confirmed: freeze writes first; AI translations supersede Weblate content. |
 | Five Weblate projects are the full set | **Confirm** | Local workspace only has Calls/Playbooks plugins; org-wide inventory still required before archive. |
 
 ## Risks
@@ -104,7 +104,8 @@ contradictory guidance.
 
 ## Open questions
 
-1. Role-owning DRI for sunset: Community, Docs, DevEx, or Localization?
+1. ~~Role-owning DRI for sunset?~~ **Resolved: no DRI required —
+   coordination already done.**
 2. Separate WIP-pipeline notice and grace period?
 3. Final list of Weblate projects org-wide?
 4. Retention policy for Weblate history/glossary after archive?
