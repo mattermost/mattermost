@@ -403,9 +403,23 @@ export async function fillSingleConditionValue(page: Page, value: string): Promi
     }
 
     // Dropdown variant: open the menu, then fill the "Add value..." field inside it.
+    // Match on the accessible name, not the placeholder: the menu autofocuses this
+    // input, and Input only sets a placeholder attribute while unfocused (the text
+    // moves into the floating legend), so a placeholder locator resolves to nothing.
     await menuButton.click({force: true});
-    const menuInput = page.locator('input[placeholder*="Add value" i]').first();
-    await menuInput.waitFor({state: 'visible', timeout: 10000});
+    const menuInput = page.locator('input[aria-label*="Add value" i], input[placeholder*="Add value" i]').first();
+
+    // A click that lands while a sibling menu (e.g. the operator selector the caller
+    // just used) is still closing is spent dismissing that menu instead, leaving this
+    // one shut. Re-click once rather than requiring every caller to pause first. The
+    // gate has to be a waitFor, not isVisible(), which returns immediately and would
+    // toggle the menu straight back shut.
+    try {
+        await menuInput.waitFor({state: 'visible', timeout: 3000});
+    } catch {
+        await menuButton.click({force: true});
+        await menuInput.waitFor({state: 'visible', timeout: 10000});
+    }
     await menuInput.fill(value);
 
     // Tab commits (input onBlur) and closes the menu (menu closeMenuOnTab), so
