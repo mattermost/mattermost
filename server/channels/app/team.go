@@ -1526,9 +1526,8 @@ func (a *App) IsDeactivatedUserEmail(email string) (bool, *model.AppError) {
 	return existingUser.DeleteAt != 0, nil
 }
 
-// checkForDeactivatedInvites returns an error if any of the given emails belong
-// to a deactivated user account. The where argument identifies the calling
-// function for the returned AppError.
+// checkForDeactivatedInvites returns an error if any email belongs to a
+// deactivated account. where identifies the caller in the returned AppError.
 func (a *App) checkForDeactivatedInvites(where string, emailList []string) *model.AppError {
 	var deactivatedEmailList []string
 	for _, email := range emailList {
