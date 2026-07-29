@@ -47,7 +47,7 @@ describe('components/admin_console/brand_image_setting', () => {
 
         await waitFor(() => expect(scope.isDone()).toBe(true));
 
-        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+        expect(await screen.findByTestId(deleteButtonTestId)).toBeVisible();
     });
 
     test('should hide delete button if the setting is disabled', async () => {
