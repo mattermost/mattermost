@@ -1,6 +1,8 @@
 ---
 title: "Mobile deployment troubleshooting"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 ## I keep getting a message "Cannot connect to the server. Please check your server URL and internet connection."
@@ -103,19 +105,19 @@ Then use the following instructions to confirm push notifications are working pr
 1.  Log in to your mobile app with an account on your Mattermost Server, which we’ll refer to as “Account A”.
 2.  (iOS) When the app asks whether you wish to receive notifications, **confirm you want to receive notifications**.
 
-> <img src="../../images/mobile_push_prompt.png" width="300" alt="Mattermost prompts you to confirm whether you want to allow mobile push notifications. To test mobile push notifications, you must select Allow." />
+    <img src={useBaseUrl('/images/mobile_push_prompt.png')} width="300" alt="Mattermost prompts you to confirm whether you want to allow mobile push notifications. To test mobile push notifications, you must select Allow." />
 
 3.  Confirm push notifications are enabled for “Account A”.
 
-> 1.  Go to the notification settings menu in the mobile app.
->
-> <img src="../../images/mobile_notification_settings.gif" width="300" alt="Access notification settings by selecting your profile picture to access Settings &gt; Notifications." />
->
-> 2.  Check that the mobile push notifications are set to send.
->
-> <img src="../../images/mobile_push_send_for.png" width="300" alt="Select Push Notifications to confirm when mobile push notifications will be sent." />
->
-> <img src="../../images/mobile_push_send_when.png" width="300" alt="Specify whether all new messages or only mentions and direct messages send push notifications." />
+    1.  Go to the notification settings menu in the mobile app.
+
+        <img src={useBaseUrl('/images/mobile_notification_settings.gif')} width="300" alt="Access notification settings by selecting your profile picture to access Settings &gt; Notifications." />
+
+    2.  Check that the mobile push notifications are set to send.
+
+        <img src={useBaseUrl('/images/mobile_push_send_for.png')} width="300" alt="Select Push Notifications to confirm when mobile push notifications will be sent." />
+
+        <img src={useBaseUrl('/images/mobile_push_send_when.png')} width="300" alt="Specify whether all new messages or only mentions and direct messages send push notifications." />
 
 4.  Have “Account A” put the app to background or close the app.
 5.  Using a browser, log in to “Account B” on the same Mattermost Server.

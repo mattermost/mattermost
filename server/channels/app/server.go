@@ -67,6 +67,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_materialized_views"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/scheduled_recap"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -521,6 +522,12 @@ func NewServer(options ...Option) (*Server, error) {
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
+	}
+
+	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
+		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
+		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
+		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
 	}
 
 	s.platform.RemoveUnlicensedLogTargets(license)
@@ -1789,6 +1796,12 @@ func (s *Server) initJobs() {
 		model.JobTypeRecap,
 		recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeScheduledRecap,
+		scheduled_recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		scheduled_recap.MakeScheduler(s.Jobs, s.Store()),
 	)
 
 	s.Jobs.RegisterJobType(
