@@ -134,6 +134,25 @@ func TestScheduledPostBaseIsValid(t *testing.T) {
 		assert.Equal(t, "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", err.Id)
 	})
 
+	t.Run("weekly repeat rejects the host-dependent Local timezone", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+			},
+			Id:             NewId(),
+			ScheduledAt:    GetMillis() + 100000,
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "Local",
+		}
+		err := s.BaseIsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", err.Id)
+	})
+
 	t.Run("valid weekly repeat", func(t *testing.T) {
 		s := ScheduledPost{
 			Draft: Draft{

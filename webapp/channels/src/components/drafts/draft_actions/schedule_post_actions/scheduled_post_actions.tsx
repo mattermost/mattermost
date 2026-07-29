@@ -140,7 +140,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
     const canSendNow = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
-    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
+    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived && !isDeactivatedDM;
 
     // Recurring scheduled posts can't be sent now: sending would either end the series or fork it.
     const showSendNowOption = !isWeeklyRecurringScheduledPost && (isAdmin || canSendNow);

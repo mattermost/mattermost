@@ -78,6 +78,11 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		if s.RepeatTimezone == "" {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 		}
+		// "Local" loads successfully but depends on each server's host timezone; a persisted
+		// recurring schedule needs a fixed zone (UTC or an IANA name).
+		if s.RepeatTimezone == "Local" {
+			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", nil, "id="+s.Id+", repeat_timezone="+s.RepeatTimezone, http.StatusBadRequest)
+		}
 		if _, err := time.LoadLocation(s.RepeatTimezone); err != nil {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", nil, "id="+s.Id+", repeat_timezone="+s.RepeatTimezone+", "+err.Error(), http.StatusBadRequest)
 		}
