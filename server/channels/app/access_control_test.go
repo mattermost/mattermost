@@ -5079,6 +5079,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		require.Nil(t, appErr)
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
@@ -5114,6 +5115,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		// GetPolicy must never be called when masking is off.
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 }
 
@@ -5187,6 +5189,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 
 		require.Nil(t, appErr)
 		mockChannelStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("parent policy fans out to both channel and team children", func(t *testing.T) {
@@ -5225,6 +5228,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		require.Nil(t, appErr)
 		// The team import search proves the team fan-out is wired (previously absent).
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertExpectations(t)
 	})
 }
 

@@ -1845,6 +1845,7 @@ func TestSetActiveStatus(t *testing.T) {
 		})
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		policies, resp, err := client.SetAccessControlPolicyActive(context.Background(), updateReq)
@@ -1854,6 +1855,7 @@ func TestSetActiveStatus(t *testing.T) {
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, samplePolicy.ID, policies[0].ID, "expected policy ID to match")
 		require.True(t, policies[0].Active, "expected policy to be active")
+		mockAccessControlService.AssertExpectations(t)
 	}, "SetActiveStatus with system admin")
 
 	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
@@ -1902,6 +1904,7 @@ func TestSetActiveStatus(t *testing.T) {
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(channelPolicy, nil)
+		mockAccessControlService.On("InvalidatePolicyCache", mock.Anything, mock.Anything).Return().Once()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		// Channel admin should be able to set active status for their channel
@@ -1912,6 +1915,7 @@ func TestSetActiveStatus(t *testing.T) {
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, channelPolicy.ID, policies[0].ID, "expected policy ID to match")
 		require.True(t, policies[0].Active, "expected policy to be active")
+		mockAccessControlService.AssertExpectations(t)
 	})
 
 	t.Run("SetActiveStatus with channel admin for another channel should fail", func(t *testing.T) {
