@@ -91,6 +91,7 @@ npm run show-report
     - Component abstractions for UI elements
     - Test utilities and fixtures
     - Server setup and management functions
+    - Testcontainers orchestration (`lib/src/containers/`) for `testcontainers` mode (see Server Setup below)
     - Visual testing support
 
 2. **`specs/` Directory**: Contains the actual test files organized by type:
@@ -135,6 +136,11 @@ Tests can be configured through environment variables:
 - `PW_SLOWMO` - Add delay between actions in ms (default: 0)
 - `PW_WORKERS` - Number of parallel workers (default: 1)
 - `PERCY_TOKEN` - Authentication token for Percy visual testing service (required for Percy tests)
+- `PW_USE_TESTCONTAINERS` - Selects `testcontainers` mode, see Server Setup below (default: false)
+- `PW_TESTCONTAINERS_SERVICES` - Comma-separated additional services to start, e.g. `minio,openldap` (default: `minio,openldap,keycloak,elasticsearch`; set to an empty string to start none)
+- `PW_TESTCONTAINERS_REUSE` - Reuse containers across repeated local runs instead of recreating them; tear down explicitly with `npm run testcontainers:down` (default: true)
+- `SERVER_IMAGE` - Mattermost server image `testcontainers` mode starts (default: `mattermostdevelopment/mattermost-enterprise-edition:master`)
+- `MM_ENV` - Comma-separated `KEY=VALUE` server config overrides for `testcontainers` mode (default: none)
 
 ## Server Setup
 
@@ -146,10 +152,12 @@ Before running tests, a Mattermost server must be available. Two options:
     cd server && make run
     ```
 
-2. **Run using Docker** (recommended for testing):
+2. **Testcontainers** (recommended for testing, and what CI uses) — no separate step needed, Playwright starts and tears down the server + dependencies itself:
     ```bash
-    # Configure environment in e2e-tests/.ci/env
-    cd e2e-tests && TEST=playwright make
+    PW_USE_TESTCONTAINERS=true npm run test
+    # Starts minio,openldap,keycloak,elasticsearch by default; add PW_TESTCONTAINERS_SERVICES=... to change (e.g. add opensearch,azurite, or set to "" to start none)
+    # Containers are reused across runs by default; tear down with `npm run testcontainers:down` (or set PW_TESTCONTAINERS_REUSE=false for a self-cleaning one-off run)
+    # `npm run testcontainers:up` brings the stack up (or confirms an existing one) without running any tests
     ```
 
 ## Best Practices

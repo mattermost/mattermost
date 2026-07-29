@@ -5,7 +5,7 @@ import {Browser, Page, test as base} from '@playwright/test';
 import {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -18,14 +18,37 @@ import {
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
+    createKeycloakUser,
+    createLdapUser,
     createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
     createRandomUser,
+    deleteKeycloakUser,
+    deleteLdapUser,
+    listMinioObjectKeys,
+    ensureMinio,
+    ensureAzurite,
+    listAzuriteBlobNames,
+    ensureLocalFile,
+    ensurePostgresSearch,
+    ensureFeatureFlag,
+    generateLdapUser,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    ldapServerConfig,
+    ensureOpenldap,
+    samlServerConfig,
+    ensureKeycloak,
+    elasticsearchServerConfig,
+    opensearchServerConfig,
+    ensureElasticsearch,
+    ensureOpensearch,
+    runMmctl,
+    ensureMmctl,
+    updateLdapUser,
 } from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
@@ -52,6 +75,9 @@ export const test = base.extend<ExtendedFixtures>({
         await use(ab);
     },
     pw: async ({browser, page, isMobile}, use) => {
+        // Playwright's project baseURL is fixed at worker start; rebind so navigations follow
+        // testConfig.baseURL after testcontainers restarts remap the host port.
+        bindPageToLiveBaseURL(page);
         const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
@@ -79,6 +105,31 @@ export class PlaywrightExtended {
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
     readonly initSetup;
+
+    // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+    readonly generateLdapUser;
+    readonly createLdapUser;
+    readonly updateLdapUser;
+    readonly deleteLdapUser;
+    readonly ldapServerConfig;
+    readonly ensureOpenldap;
+    readonly createKeycloakUser;
+    readonly deleteKeycloakUser;
+    readonly samlServerConfig;
+    readonly ensureKeycloak;
+    readonly elasticsearchServerConfig;
+    readonly opensearchServerConfig;
+    readonly ensureElasticsearch;
+    readonly ensureOpensearch;
+    readonly listMinioObjectKeys;
+    readonly ensureMinio;
+    readonly ensureAzurite;
+    readonly ensureLocalFile;
+    readonly ensurePostgresSearch;
+    readonly ensureFeatureFlag;
+    readonly listAzuriteBlobNames;
+    readonly runMmctl;
+    readonly ensureMmctl;
 
     // ./test_action
     readonly hideDynamicChannelsContent;
@@ -134,6 +185,32 @@ export class PlaywrightExtended {
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+
+        // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+        this.generateLdapUser = generateLdapUser;
+        this.createLdapUser = createLdapUser;
+        this.updateLdapUser = updateLdapUser;
+        this.deleteLdapUser = deleteLdapUser;
+        this.ldapServerConfig = ldapServerConfig;
+        this.ensureOpenldap = ensureOpenldap;
+        this.createKeycloakUser = createKeycloakUser;
+        this.deleteKeycloakUser = deleteKeycloakUser;
+        this.samlServerConfig = samlServerConfig;
+        this.ensureKeycloak = ensureKeycloak;
+        this.elasticsearchServerConfig = elasticsearchServerConfig;
+        this.opensearchServerConfig = opensearchServerConfig;
+        this.ensureElasticsearch = ensureElasticsearch;
+        this.ensureOpensearch = ensureOpensearch;
+        this.listMinioObjectKeys = listMinioObjectKeys;
+        this.ensureMinio = ensureMinio;
+        this.ensureAzurite = ensureAzurite;
+        this.ensureLocalFile = ensureLocalFile;
+        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureFeatureFlag = ensureFeatureFlag;
+        this.listAzuriteBlobNames = listAzuriteBlobNames;
+        this.runMmctl = runMmctl;
+        this.ensureMmctl = ensureMmctl;
+
         // ./test_action
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;

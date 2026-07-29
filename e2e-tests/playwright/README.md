@@ -17,28 +17,28 @@ cd webapp && make run
 cd server && make run-server
 ```
 
-**Option 2: Run using Docker (recommended for testing)**
+**Option 2: Testcontainers (recommended for testing, and what CI uses)**
+
+No separate terminal or setup step needed — Playwright brings up Postgres, Inbucket, and the Mattermost server itself via [Testcontainers](https://node.testcontainers.org/), then tears them down after the run.
 
 ```bash
-# 1. Configure environment variables in e2e-tests/.ci/env
-#    Create this file if it doesn't exist
+# Run with defaults (Postgres, Inbucket, Mattermost server — no optional sidecars)
+PW_USE_TESTCONTAINERS=true npm run test -- login
 
-# 2. Set the server image (optional)
-#    To use the latest master image:
-SERVER_IMAGE="mattermostdevelopment/mattermost-enterprise-edition:master"
-#    If not set, it will use the current commit: mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)
-#    Note: The image must exist in Docker Hub at https://hub.docker.com/r/mattermostdevelopment/mattermost-enterprise-edition/tags
+# Opt in to additional services (comma-separated); webhook is separate
+PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
+PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_WEBHOOK=true npm run test
 
-# 3. Add your license if needed
-MM_LICENSE=<your-license-key>
+# Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)
+PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:<tag> npm run test
 
-# 4. For additional configuration options, see e2e-tests/README.md
-
-# 5. Run the server and Playwright's smoke tests from the e2e-tests directory
-cd e2e-tests && TEST=playwright make
+# Pass arbitrary MM_* config overrides as comma-separated KEY=VALUE pairs
+PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE=<your-license-key> npm run test
 ```
 
-This approach uses the server's Docker image to create a consistent testing environment. It automatically configures the server with the necessary settings for Playwright tests and handles dependencies.
+Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=true`) instead of being recreated every run — tear the stack down explicitly when you're done with `npm run testcontainers:down`. Set `PW_TESTCONTAINERS_REUSE=false` for a one-off run that tears itself down when it finishes. Use `npm run testcontainers:up` to just bring the stack up (or confirm an existing one's still reachable) without running any tests.
+
+See `lib/README.md` for every available environment variable.
 
 #### 2. Install dependencies and run the test.
 

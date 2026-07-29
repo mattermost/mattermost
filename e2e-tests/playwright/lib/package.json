@@ -43,15 +43,21 @@
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.2",
+    "@azure/storage-blob": "12.33.0",
     "@mattermost/client": "file:../../../webapp/platform/client",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.0",
     "@percy/playwright": "1.0.8",
+    "@testcontainers/postgresql": "12.0.4",
     "async-wait-until": "2.0.27",
     "axe-core": "4.10.3",
+    "chalk": "4.1.2",
     "deepmerge": "4.3.1",
     "dotenv": "17.0.1",
+    "ldapts": "9.0.0",
     "mime-types": "3.0.1",
+    "minio": "8.0.7",
+    "testcontainers": "12.0.4",
     "uuid": "11.1.0"
   },
   "devDependencies": {

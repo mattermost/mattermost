@@ -2,12 +2,45 @@
 // See LICENSE.txt for license information.
 
 export {test, expect, PlaywrightExtended} from './test_fixture';
-export {testConfig} from './test_config';
+export type {ExtendedFixtures} from './test_fixture';
+export {testConfig, resolveAppUrl, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
+export type {TestContainersServiceName} from './test_config';
 export {baseGlobalSetup} from './global_setup';
-export {TestBrowser} from './browser_context';
+export {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {koreanTestPhrase, typeKoreanWithIme} from './ime';
-export {duration, wait} from './util';
+export {duration, getRandomId, newTestPassword, wait} from './util';
+
+export {
+    getAdminClient,
+    getOnPremServerConfig,
+    generateLdapUser,
+    createLdapUser,
+    updateLdapUser,
+    deleteLdapUser,
+    ldapServerConfig,
+    ensureOpenldap,
+    createKeycloakUser,
+    deleteKeycloakUser,
+    listMinioObjectKeys,
+    ensureMinio,
+    samlServerConfig,
+    ensureKeycloak,
+    elasticsearchServerConfig,
+    opensearchServerConfig,
+    ensureElasticsearch,
+    ensureOpensearch,
+    ensureAzurite,
+    listAzuriteBlobNames,
+    ensureLocalFile,
+    ensurePostgresSearch,
+    ensureFeatureFlag,
+    runMmctl,
+    ensureMmctl,
+} from './server';
+export type {LdapUser, KeycloakUser, MmctlResult} from './server';
+
+export {startStack, stopStack} from './containers';
 
 export {
     ChannelsPage,
