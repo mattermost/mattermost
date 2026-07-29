@@ -159,7 +159,7 @@
 
     &:focus-visible {
         outline: 2px solid var(--button-bg);
-        outline-offset: 2px;
+        outline-offset: -2px;
     }
 
     img,
