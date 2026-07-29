@@ -977,6 +977,7 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 		"https://xxx.yyy/mm/some-path?foo=bar": siteURL + "/some-path?foo=bar",
 		"https://xxx.yyy/mm/some-path#section": siteURL + "/some-path#section",
 		"https://xxx.yyy/mm/../malicious-path": siteURL,
+		"https://xxx.yyy/mmfoo":                siteURL, // segment boundary: /mmfoo is not under /mm
 		":foo":                                 siteURL,
 		"mmauth://callback":                    "mmauth://callback",
 		"mmauth://xxx.yyy/mm":                  siteURL, // invalid mobile URL (wrong host)
