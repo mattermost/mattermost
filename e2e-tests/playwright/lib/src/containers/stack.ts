@@ -459,7 +459,11 @@ function containerEntries(stack: StartedStack): Array<[string, StartedTestContai
         ['inbucket', stack.inbucket, {alias: INBUCKET_ALIAS, port: INBUCKET_WEB_PORT, image: INBUCKET_IMAGE}],
     ];
     if (stack.webhook) {
-        base.push(['webhook', stack.webhook, {alias: WEBHOOK_ALIAS, port: WEBHOOK_PORT, image: 'built, webhook sidecar'}]);
+        base.push([
+            'webhook',
+            stack.webhook,
+            {alias: WEBHOOK_ALIAS, port: WEBHOOK_PORT, image: 'built, webhook sidecar'},
+        ]);
     }
 
     const additional = Object.entries(stack.additional)
