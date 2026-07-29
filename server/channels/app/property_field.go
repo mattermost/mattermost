@@ -19,6 +19,12 @@ import (
 // patch on a linked field — see UpdatePropertyFields' linked-field invariants.
 // Both nil/zero forms compare equal; otherwise reflect.DeepEqual handles the
 // nested map/slice shape produced by JSON unmarshalling.
+//
+// A field read above model.PropertyFieldMaxHydratedOptions has no options key,
+// so both sides of a read-modify-write are nil and compare equal (the update is
+// allowed and touches no option), while any supplied list — including an empty
+// one — compares unequal against that nil and is refused. Both are the answers
+// the guard wants, so the withheld case needs no branch of its own here.
 func propertyFieldOptionsEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true

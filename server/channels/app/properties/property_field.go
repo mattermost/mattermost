@@ -623,10 +623,29 @@ func asOptionSlice(attrs model.StringInterface) []map[string]any {
 	return result
 }
 
+// hasOptionList reports whether these attrs carry an options key at all,
+// including an empty list. Distinct from asOptionSlice returning nothing, which
+// cannot tell "no key" from "key holding an empty list" — and against a field
+// whose options were withheld, an explicit empty list is a request to delete
+// every one of them.
+func hasOptionList(attrs model.StringInterface) bool {
+	raw, ok := attrs[model.PropertyFieldAttributeOptions]
+	return ok && raw != nil
+}
+
 // optionsChanged compares the options in two attrs maps and returns true if they differ.
 // Compares by building a map keyed on option ID and using reflect.DeepEqual for
 // value comparison, which correctly handles nested structures (maps, slices).
 func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
+	// A field read above model.PropertyFieldMaxHydratedOptions carries no option
+	// list, so there is nothing to compare it against. The only caller refuses
+	// option edits on a linked field, so report a change — refusing an edit that
+	// cannot be verified is the safe direction. Neither side carrying a list is
+	// the read-modify-write of an oversized field, which changes nothing.
+	if model.PropertyFieldOptionsOmitted(oldAttrs) || model.PropertyFieldOptionsOmitted(newAttrs) {
+		return hasOptionList(oldAttrs) || hasOptionList(newAttrs)
+	}
+
 	oldOpts := asOptionSlice(oldAttrs)
 	newOpts := asOptionSlice(newAttrs)
 

@@ -209,6 +209,18 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 	return nil
 }
 
+// ToPropertyField rebuilds a PropertyField whose Attrs hold exactly the keys
+// CPAAttrs models, so any other key the source field carried is dropped. That
+// includes PropertyFieldAttributeOptionsOmitted, which means a field read above
+// PropertyFieldMaxHydratedOptions comes out of the conversion looking like a
+// field with no options.
+//
+// For the read direction that is safe — a caller learns nothing it should not,
+// it just sees no options. For the write direction it is not: a stored field
+// converted to a CPAField and written back takes "no options" literally and
+// deletes every one of them. So do not use this to round-trip a field that came
+// from the store. Building one from a request payload, which is what the CPA
+// REST handlers do, is fine: there is no withheld marker on a payload.
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 

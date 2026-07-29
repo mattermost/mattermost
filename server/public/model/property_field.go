@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"unicode/utf8"
 )
@@ -408,6 +409,20 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 		} else {
 			pf.Attrs = *patch.Attrs
 		}
+
+		// A field read above PropertyFieldMaxHydratedOptions carries the withheld
+		// markers instead of its option list, and the store reads those markers as
+		// "leave this field's options alone" so a read-modify-write cannot wipe
+		// them. A caller that patches a non-empty list in has supplied the list
+		// itself, so the markers no longer describe the field and must go or the
+		// new list would be silently ignored. An *empty* list keeps them: that is
+		// the read-modify-write case wearing a different hat — a caller echoing
+		// back the absent list it was given — and honouring it would delete every
+		// option the field has.
+		if opts, ok := (*patch.Attrs)[PropertyFieldAttributeOptions]; ok && !isEmptyOptionList(opts) {
+			delete(pf.Attrs, PropertyFieldAttributeOptionsCount)
+			delete(pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+		}
 	}
 
 	if patch.TargetID != nil {
@@ -605,6 +620,48 @@ const (
 
 	PropertyFieldMaxHydratedOptions = 1000
 )
+
+// PropertyFieldOptionsOmitted reports whether these attrs came from a read that
+// left the option list out because the field has more than
+// PropertyFieldMaxHydratedOptions of them. The options key is absent in that
+// case exactly as it is for a field with no options at all, so anything that
+// treats an absent list as "this field has none" has to ask this first.
+func PropertyFieldOptionsOmitted(attrs StringInterface) bool {
+	omitted, _ := attrs[PropertyFieldAttributeOptionsOmitted].(bool)
+	return omitted
+}
+
+// HideOptions empties the field's option list and removes the keys that report a
+// withheld one, so a masked field discloses neither option names nor how many
+// options exist. Mutates in place — call it on a copy, never on a field another
+// caller (or a cache) still holds.
+func (pf *PropertyField) HideOptions() {
+	if pf.Attrs == nil {
+		pf.Attrs = make(StringInterface, 1)
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = []any{}
+	delete(pf.Attrs, PropertyFieldAttributeOptionsCount)
+	delete(pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+}
+
+// isEmptyOptionList reports whether an Attrs["options"] value carries no
+// options. Written against reflection rather than a type switch because the key
+// legitimately holds any slice shape: []any from JSON, []map[string]any from Go
+// callers, or a typed PropertyOptions.
+func isEmptyOptionList(options any) bool {
+	if options == nil {
+		return true
+	}
+	v := reflect.ValueOf(options)
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		return v.Len() == 0
+	default:
+		// Not a list at all. Whatever it is, it is not a set of options the
+		// caller is asking us to store.
+		return true
+	}
+}
 
 type PropertyOption interface {
 	GetID() string

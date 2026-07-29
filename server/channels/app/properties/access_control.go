@@ -1048,10 +1048,21 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 		return h.filterSharedOnlyRankFieldOptions(field, callerID)
 	}
 
+	// Options withheld: the read left the list out because the field has more
+	// than model.PropertyFieldMaxHydratedOptions of them, so there is nothing to
+	// intersect the caller's holdings against. Hide the lot — returning the field
+	// as-is would hand an unentitled caller the option count, which on a
+	// shared_only field is itself controlled information.
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		filteredField := h.copyPropertyField(field)
+		filteredField.HideOptions()
+		return filteredField
+	}
+
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
 		filteredField := h.copyPropertyField(field)
-		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		filteredField.HideOptions()
 		return filteredField
 	}
 
@@ -1093,6 +1104,16 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // used for select/multiselect. A caller who holds no value for the field (and
 // therefore has no rank) sees no options.
 func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+	// Options withheld: same reasoning as filterSharedOnlyFieldOptions. The rank
+	// map below would come back empty, which reads as "the caller has no
+	// clearance" and hides every option anyway — but it would leave the option
+	// count on the field, so hide explicitly instead.
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		filteredField := h.copyPropertyField(field)
+		filteredField.HideOptions()
+		return filteredField
+	}
+
 	// Bail out before building the rank map or the caller-rank store lookup when
 	// there are no options to filter: an absent or malformed options array has
 	// nothing to hide, so the field is returned untouched.
@@ -1163,9 +1184,20 @@ func (h *AccessControlHook) callerRankForField(field *model.PropertyField, calle
 
 // buildOptionRankMap returns a map of option ID to rank for a rank field.
 // Options without a rank are skipped.
+//
+// An empty map means "no option has a rank", which every caller reads as "the
+// caller holds no clearance" and answers by hiding. That is the right answer for
+// a field whose options were withheld from the read because it has more than
+// model.PropertyFieldMaxHydratedOptions of them: the ranks needed to decide what
+// the caller may see are simply not here, and on a masking path missing data
+// hides rather than shows. Stated as its own branch so a future reader does not
+// "fix" the empty map into something permissive.
 func buildOptionRankMap(field *model.PropertyField) map[string]int {
 	out := map[string]int{}
 	if field.Attrs == nil {
+		return out
+	}
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
 		return out
 	}
 	rawOpts, ok := field.Attrs[model.PropertyFieldAttributeOptions]
@@ -1358,7 +1390,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 	// Source-only or unknown: return with empty options (secure default)
 	filteredField := h.copyPropertyField(field)
 	if field.Type.SupportsOptions() {
-		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		filteredField.HideOptions()
 	}
 	return filteredField
 }

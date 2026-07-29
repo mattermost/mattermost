@@ -240,11 +240,7 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 // option list out because the field has too many. Writing such a field back must
 // not be read as "this field now has no options".
 func optionsWithheld(field *model.PropertyField) bool {
-	if field.Attrs == nil {
-		return false
-	}
-	withheld, _ := field.Attrs[model.PropertyFieldAttributeOptionsOmitted].(bool)
-	return withheld
+	return model.PropertyFieldOptionsOmitted(field.Attrs)
 }
 
 // hydratePropertyFieldOptions inlines each field's effective option set into

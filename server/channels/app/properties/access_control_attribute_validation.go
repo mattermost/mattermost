@@ -105,6 +105,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		// The two keys a read substitutes for an oversized option list go with it.
+		// Only a select-shaped field's attrs are stripped of them before storage,
+		// so converting an oversized field to text would otherwise persist them
+		// and every later read of that text field would claim its (non-existent)
+		// options were withheld.
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsCount)
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
 	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
@@ -547,6 +554,16 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
 	if field.Attrs == nil {
 		return nil, nil
+	}
+
+	// The read left this field's option list out because it has more than
+	// model.PropertyFieldMaxHydratedOptions of them, so no value can be checked
+	// against it. Every value assignment to the field is refused until it is
+	// checkable, which is the safe direction on a validation path but is a real
+	// dead end for the field: making it work needs an existence check against the
+	// option rows instead of against the inlined list.
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		return nil, fmt.Errorf("field %s has more than %d options, so its option list was not loaded and no value can be validated against it", field.ID, model.PropertyFieldMaxHydratedOptions)
 	}
 
 	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]

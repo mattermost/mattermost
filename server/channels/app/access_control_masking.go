@@ -202,14 +202,15 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 	return &maskingHoldings{field: field, accessMode: accessMode}, nil
 }
 
-// fieldWithEmptyOptions returns a shallow copy of f with an empty options list,
-// so extractVisibleOptionNames yields nothing. Used to fail closed without
-// mutating the (possibly cached) source field.
+// fieldWithEmptyOptions returns a shallow copy of f with its options hidden, so
+// extractVisibleOptionNames yields nothing and the field does not report how many
+// options it has. Used to fail closed without mutating the (possibly cached)
+// source field.
 func fieldWithEmptyOptions(f *model.PropertyField) *model.PropertyField {
 	cp := *f
 	cp.Attrs = make(model.StringInterface, len(f.Attrs)+1)
 	maps.Copy(cp.Attrs, f.Attrs)
-	cp.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+	cp.HideOptions()
 	return &cp
 }
 
@@ -344,6 +345,11 @@ func splitCPAAttribute(attribute string) (objectType, fieldName string, ok bool)
 // Attrs["options"]. The field is expected to have already been filtered by
 // PropertyAccessService.applyFieldReadAccessControl to the caller's holdings,
 // so the names returned here are exactly what the caller can see.
+//
+// A field with no options key yields no names, which masks every condition value
+// against it. That is also what a field whose option list was withheld for being
+// oversized yields, and it is the answer that path wants: names that were never
+// loaded are not names the caller has been shown to hold.
 func extractVisibleOptionNames(field *model.PropertyField) map[string]struct{} {
 	names := make(map[string]struct{})
 	if field.Attrs == nil {
