@@ -25,6 +25,13 @@ func celSafeName() string {
 	return "f_" + model.NewId()
 }
 
+// expectNoStoredPolicy stubs the stored-policy read that every save performs to
+// resolve the server-owned fields, standing in for a policy that does not exist
+// yet.
+func expectNoStoredPolicy(mockACPStore *storemocks.AccessControlPolicyStore, rctx request.CTX, id string) {
+	mockACPStore.On("Get", rctx, id).Return(nil, store.NewErrNotFound("AccessControlPolicy", id)).Maybe()
+}
+
 func TestPopulateAccessControlPolicyChildCounts(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -175,6 +182,10 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		//      build the WS payload.
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Twice()
 
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		expectNoStoredPolicy(&mockACPStore, thMock.Context, channelID)
+
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("SavePolicy", thMock.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
@@ -212,6 +223,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		expectNoStoredPolicy(&mockACPStore, thMock.Context, parentID)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
@@ -229,6 +241,149 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 
 		mockChannelStore.AssertNotCalled(t, "InvalidateChannel", mock.Anything)
 		mockChannelStore.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
+	})
+}
+
+// TestCreateOrUpdateAccessControlPolicyServerOwnedFields pins the wire contract for
+// the two fields a client does not own: the reserved Active column and the
+// membership rule's auto_add flag. The cases mirror what a client built before
+// auto_add moved onto the rule would send.
+func TestCreateOrUpdateAccessControlPolicyServerOwnedFields(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
+
+	// SavePolicy writes through to the real store so a second PUT observes what the
+	// first one persisted, which is what the tri-state merge reads.
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	mockAccessControl.On("SavePolicy", th.Context, mock.Anything).
+		Return(func(rctx request.CTX, p *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			saved, err := th.App.Srv().Store().AccessControlPolicy().Save(rctx, p)
+			if err != nil {
+				return nil, model.NewAppError("SavePolicy", "err", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return saved, nil
+		})
+
+	// put submits a parent policy for id with the given membership rule, mirroring
+	// PUT /access_control_policies.
+	put := func(t *testing.T, id string, rule model.AccessControlPolicyRule, active bool) *model.AccessControlPolicy {
+		t.Helper()
+		saved, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, &model.AccessControlPolicy{
+			ID:     id,
+			Type:   model.AccessControlPolicyTypeParent,
+			Name:   "policy-" + id,
+			Active: active,
+			Rules:  []model.AccessControlPolicyRule{rule},
+		})
+		require.Nil(t, appErr)
+		return saved
+	}
+
+	membershipRule := func(autoAdd *string) model.AccessControlPolicyRule {
+		rule := model.AccessControlPolicyRule{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "user.attributes.team == \"eng\"",
+		}
+		if autoAdd != nil {
+			rule.Metadata = map[string]any{model.AccessControlRuleMetadataAutoAdd: *autoAdd}
+		}
+		return rule
+	}
+
+	always := model.NewPointer(model.AccessControlAutoAddAlways)
+	off := model.NewPointer("")
+
+	t.Run("a PUT with no metadata preserves the stored auto-add", func(t *testing.T) {
+		id := model.NewId()
+		put(t, id, membershipRule(always), false)
+
+		// An older client round-trips the policy without the metadata bag. Reading
+		// that as "off" would silently stop membership sync.
+		saved := put(t, id, membershipRule(nil), false)
+		require.Equal(t, model.AccessControlAutoAddAlways, saved.AutoAddMode())
+	})
+
+	t.Run("an explicit empty mode turns auto-add off and leaves no residue", func(t *testing.T) {
+		id := model.NewId()
+		put(t, id, membershipRule(always), false)
+
+		saved := put(t, id, membershipRule(off), false)
+		require.False(t, saved.AutoAddMembers())
+		require.Nil(t, saved.MembershipRule().Metadata, "an off value is stored as the absence of the key")
+	})
+
+	t.Run("an explicit empty mode on create is canonicalized away", func(t *testing.T) {
+		saved := put(t, model.NewId(), membershipRule(off), false)
+		require.False(t, saved.AutoAddMembers())
+		require.Nil(t, saved.MembershipRule().Metadata)
+	})
+
+	t.Run("an unrecognized mode is rejected rather than read as off", func(t *testing.T) {
+		id := model.NewId()
+		put(t, id, membershipRule(always), false)
+
+		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, &model.AccessControlPolicy{
+			ID:    id,
+			Type:  model.AccessControlPolicyTypeParent,
+			Name:  "policy-" + id,
+			Rules: []model.AccessControlPolicyRule{membershipRule(model.NewPointer("only_once"))},
+		})
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		stored, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, id)
+		require.NoError(t, err)
+		require.Equal(t, model.AccessControlAutoAddAlways, stored.AutoAddMode(), "the rejected save must not have changed the mode")
+	})
+
+	t.Run("active on the wire changes neither auto-add nor the stored column", func(t *testing.T) {
+		id := model.NewId()
+
+		// A client that still believes active drives auto-add gets nothing from it.
+		saved := put(t, id, membershipRule(nil), true)
+		require.False(t, saved.AutoAddMembers())
+		require.False(t, saved.Active, "the reserved column is not client-writable")
+
+		// Nor can a later PUT flip it back off once auto-add is on.
+		put(t, id, membershipRule(always), false)
+		saved = put(t, id, membershipRule(nil), false)
+		require.True(t, saved.AutoAddMembers())
+		require.False(t, saved.Active)
+	})
+
+	t.Run("the legacy PUT-then-activate sequence lands on auto-add enabled", func(t *testing.T) {
+		id := model.NewId()
+		put(t, id, membershipRule(nil), false)
+
+		updated, appErr := th.App.UpdateAccessControlPoliciesAutoAdd(th.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: id, AutoAdd: model.AccessControlAutoAddAlways},
+		})
+		require.Nil(t, appErr)
+		require.Len(t, updated, 1)
+		require.True(t, updated[0].AutoAddMembers())
+
+		// A subsequent expression-only save from the same old client keeps it on.
+		saved := put(t, id, membershipRule(nil), false)
+		require.True(t, saved.AutoAddMembers())
+	})
+
+	t.Run("dropping the membership rule entirely preserves auto-add on a carrier", func(t *testing.T) {
+		// Import-only children have no rule of their own to hang the mode on, and an
+		// old client sends them with an empty rules array.
+		id := model.NewId()
+		put(t, id, membershipRule(always), false)
+
+		saved, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, &model.AccessControlPolicy{
+			ID:    id,
+			Type:  model.AccessControlPolicyTypeParent,
+			Name:  "policy-" + id,
+			Rules: []model.AccessControlPolicyRule{},
+		})
+		require.Nil(t, appErr)
+		require.True(t, saved.AutoAddMembers())
+		require.Empty(t, saved.MembershipRule().Expression, "the carrier contributes nothing to evaluation")
 	})
 }
 
@@ -901,6 +1056,55 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		assert.ElementsMatch(t, []string{ch1.Id, ch2.Id}, []string{policies[0].ID, policies[1].ID})
 		mockAccessControl.AssertCalled(t, "SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy"))
 	})
+
+	// Auto-add lives on the channel-child's membership rule and is seeded from
+	// the parent at assignment time. Assigning must never turn it on by itself.
+	for _, tc := range []struct {
+		name          string
+		parentAutoAdd bool
+	}{
+		{"parent without auto-add leaves it off", false},
+		{"parent with auto-add carries through", true},
+	} {
+		t.Run("channel-child auto-add is seeded from the parent: "+tc.name, func(t *testing.T) {
+			ch := th.CreatePrivateChannel(t, th.BasicTeam)
+			t.Cleanup(func() {
+				appErr := th.App.PermanentDeleteChannel(th.Context, ch)
+				require.Nil(t, appErr)
+			})
+
+			parent := &model.AccessControlPolicy{
+				Type:     model.AccessControlPolicyTypeParent,
+				ID:       parentID,
+				Name:     "parentPolicy",
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+				},
+			}
+			if tc.parentAutoAdd {
+				parent.SetAutoAddMode(model.AccessControlAutoAddAlways)
+			}
+
+			mockAccessControl := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().ch.AccessControl = mockAccessControl
+			t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+			mockAccessControl.On("GetPolicy", th.Context, parentID).Return(parent, nil)
+			mockAccessControl.On("GetPolicy", th.Context, ch.Id).Return(nil, nil)
+
+			var saved *model.AccessControlPolicy
+			mockAccessControl.On("SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy")).
+				Run(func(args mock.Arguments) { saved = args.Get(1).(*model.AccessControlPolicy) }).
+				Return(&model.AccessControlPolicy{ID: ch.Id, Type: model.AccessControlPolicyTypeChannel}, nil)
+
+			_, appErr := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{ch.Id})
+			require.Nil(t, appErr)
+			require.Equal(t, tc.parentAutoAdd, saved.AutoAddMembers(), "channel-child auto-add must equal the parent's, never be force-enabled")
+			require.False(t, saved.Active, "the reserved flag stays off")
+		})
+	}
 }
 
 func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
@@ -4596,6 +4800,7 @@ func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T
 	// must carry to the client.
 	expectedActions := map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}
 	mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).Return(expectedActions, nil)
+	expectNoStoredPolicy(&mockACPStore, thMock.Context, channelID)
 
 	mockAccessControl := &mocks.AccessControlServiceInterface{}
 	thMock.App.Srv().ch.AccessControl = mockAccessControl
@@ -5006,10 +5211,10 @@ func TestRejectMaskedTokens_NewPolicy(t *testing.T) {
 	}
 }
 
-// TestUpdateAccessControlPoliciesActive_MaskingGuard verifies deactivation follows the
-// same masking rules as delete, while activation is always allowed.
-func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
-	t.Run("deactivation blocked when caller has masked values", func(t *testing.T) {
+// TestUpdateAccessControlPoliciesAutoAdd_MaskingGuard verifies that turning auto-add
+// off follows the same masking rules as delete, while turning it on is always allowed.
+func TestUpdateAccessControlPoliciesAutoAdd_MaskingGuard(t *testing.T) {
+	t.Run("turning auto-add off is blocked when caller has masked values", func(t *testing.T) {
 		// policyHasMaskedValuesForCaller resolves the property group from the store,
 		// so this subtest uses SetupConfig + InitBasic rather than a mock store.
 		th := Setup(t).InitBasic(t)
@@ -5032,8 +5237,8 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		// Unknown field → resolver fails closed → HasMaskedValuesForCaller returns true.
 		mockACS.On("HasMaskedValuesForCaller", mock.Anything, sensitivePolicy.Rules[0].Expression, mock.Anything).Return(true, nil).Once()
 
-		_, appErr := th.App.UpdateAccessControlPoliciesActive(th.Context, []model.AccessControlPolicyActiveUpdate{
-			{ID: policyID, Active: false},
+		_, appErr := th.App.UpdateAccessControlPoliciesAutoAdd(th.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: policyID, AutoAdd: ""},
 		})
 
 		require.NotNil(t, appErr)
@@ -5042,8 +5247,8 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("activation always allowed even when caller has masked values", func(t *testing.T) {
-		// The guard skips Active=true updates, so no property store access is needed.
+	t.Run("turning auto-add on is always allowed even when caller has masked values", func(t *testing.T) {
+		// The guard skips updates that set a mode, so no property store access is needed.
 		thMock := SetupWithStoreMock(t)
 
 		callerID := model.NewId()
@@ -5061,7 +5266,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
-		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
 		// Channel cache & WS broadcast
 		mockChannelStore := storemocks.ChannelStore{}
@@ -5072,8 +5277,8 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
-			{ID: channelID, Active: true},
+		_, appErr := thMock.App.UpdateAccessControlPoliciesAutoAdd(thMock.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: channelID, AutoAdd: model.AccessControlAutoAddAlways},
 		})
 
 		require.Nil(t, appErr)
@@ -5081,7 +5286,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("deactivation allowed when masking flag is off", func(t *testing.T) {
+	t.Run("turning auto-add off is allowed when masking flag is off", func(t *testing.T) {
 		thMock := storeMockWithMaskingOff(t)
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
 
@@ -5094,7 +5299,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
-		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
@@ -5104,8 +5309,8 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
-			{ID: channelID, Active: false},
+		_, appErr := thMock.App.UpdateAccessControlPoliciesAutoAdd(thMock.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: channelID, AutoAdd: ""},
 		})
 
 		require.Nil(t, appErr)
@@ -5115,9 +5320,9 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	})
 }
 
-// TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents verifies that
-// activate/deactivate fires cache invalidation and WS events for channel and parent policies.
-func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.T) {
+// TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents verifies that toggling
+// auto-add fires cache invalidation and WS events for channel and parent policies.
+func TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents(t *testing.T) {
 	t.Run("channel policy triggers publishChannelPolicyEnforcedUpdate", func(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
@@ -5131,7 +5336,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
-		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore)
@@ -5141,8 +5346,8 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		mockACS := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
-			{ID: channelID, Active: true},
+		_, appErr := thMock.App.UpdateAccessControlPoliciesAutoAdd(thMock.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: channelID, AutoAdd: model.AccessControlAutoAddAlways},
 		})
 
 		require.Nil(t, appErr)
@@ -5162,9 +5367,9 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
-		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+		mockACPStore.On("SetMembershipAutoAdd", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
-		// Activating a parent must fan out to BOTH its channel and team children.
+		// Toggling a parent must fan out to BOTH its channel and team children.
 		// With no children the import searches still run but broadcast nothing — the
 		// team search is what was previously missing on this path.
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
@@ -5177,8 +5382,8 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		mockACS := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
-			{ID: parentID, Active: true},
+		_, appErr := thMock.App.UpdateAccessControlPoliciesAutoAdd(thMock.Context, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: parentID, AutoAdd: model.AccessControlAutoAddAlways},
 		})
 
 		require.Nil(t, appErr)

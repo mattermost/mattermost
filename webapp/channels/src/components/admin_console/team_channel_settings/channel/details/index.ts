@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPoliciesActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
@@ -131,7 +131,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             saveChannelAccessPolicy: createAccessControlPolicy,
             validateChannelExpression: validateExpressionAgainstRequester,
             createAccessControlSyncJob: createJob,
-            updateAccessControlPoliciesActive,
             searchUsersForExpression,
             getChannelMembers,
             getProfilesByIds,

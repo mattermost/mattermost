@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -84,7 +84,7 @@ function PolicyDetails({
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
-    const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
+    const [autoSyncMembership, setAutoSyncMembership] = useState(getAutoAddFromRules(policy?.rules));
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
@@ -177,7 +177,7 @@ function PolicyDetails({
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
-                setAutoSyncMembership(result.data?.active || false);
+                setAutoSyncMembership(getAutoAddFromRules(result.data?.rules));
 
                 // Child counts + ids are stamped by the GET handler (see
                 // PopulateAccessControlPolicyChildCounts): child_ids lists channels
@@ -270,7 +270,7 @@ function PolicyDetails({
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
-                setAutoSyncMembership(result.data?.active || false);
+                setAutoSyncMembership(getAutoAddFromRules(result.data?.rules));
             });
 
             if (!currentPolicyId || !success) {
@@ -300,15 +300,16 @@ function PolicyDetails({
                 }
             }
 
-            // --- Step 3: Handle Policy Active Status Changes ---
+            // --- Step 3: Handle Auto-add Changes ---
             if (success && policyActiveStatusChanges.length > 0) {
-                try {
-                    await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
-                } catch (error) {
+                // The action resolves with an error rather than throwing, so a
+                // rejected update has to be read off the result.
+                const autoAddResult = await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                if (autoAddResult.error) {
                     setServerError(formatMessage({
                         id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                        defaultMessage: 'Error updating policy active status: {error}',
-                    }, {error: error.message}));
+                        defaultMessage: 'Error updating auto-add members: {error}',
+                    }, {error: autoAddResult.error.message}));
                     success = false;
                     return;
                 }
@@ -787,7 +788,7 @@ function PolicyDetails({
 
             {showConfirmationModal && (
                 <PolicyConfirmationModal
-                    active={autoSyncMembership}
+                    autoAdd={autoSyncMembership}
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}

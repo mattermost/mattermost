@@ -790,32 +790,11 @@ func (s *RetryLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, op
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+func (s *RetryLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error) {
 
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.SetActiveStatus(rctx, id, active)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
-
-	tries := 0
-	for {
-		result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
+		result, err := s.AccessControlPolicyStore.SetMembershipAutoAdd(rctx, list)
 		if err == nil {
 			return result, nil
 		}

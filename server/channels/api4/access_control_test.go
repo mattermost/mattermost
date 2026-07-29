@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -1853,7 +1854,10 @@ func TestSetActiveStatus(t *testing.T) {
 		require.NotNil(t, policies, "expected policies in response")
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, samplePolicy.ID, policies[0].ID, "expected policy ID to match")
-		require.True(t, policies[0].Active, "expected policy to be active")
+		// The deprecated active field maps onto the membership rule's auto-add
+		// setting; the reserved Active column is left alone.
+		require.True(t, policies[0].AutoAddMembers(), "expected policy to auto-add members")
+		require.False(t, policies[0].Active, "expected the reserved active flag to be untouched")
 	}, "SetActiveStatus with system admin")
 
 	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
@@ -1911,7 +1915,7 @@ func TestSetActiveStatus(t *testing.T) {
 		require.NotNil(t, policies, "expected policies in response")
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, channelPolicy.ID, policies[0].ID, "expected policy ID to match")
-		require.True(t, policies[0].Active, "expected policy to be active")
+		require.True(t, policies[0].AutoAddMembers(), "expected policy to auto-add members")
 	})
 
 	t.Run("SetActiveStatus with channel admin for another channel should fail", func(t *testing.T) {
@@ -1973,6 +1977,160 @@ func TestSetActiveStatus(t *testing.T) {
 		_, resp, err := channelAdminClient.SetAccessControlPolicyActive(context.Background(), maliciousUpdateReq)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+// wirePolicyStore points the mocked access control service at the real policy
+// store so a test can exercise the wire format end to end instead of asserting
+// against a canned mock response.
+func wirePolicyStore(t *testing.T, th *TestHelper) {
+	t.Helper()
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	policies := th.App.Srv().Store().AccessControlPolicy()
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(
+		func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			saved, err := policies.Save(rctx, policy)
+			if err != nil {
+				return nil, model.NewAppError("SavePolicy", "app.pap.save_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return saved, nil
+		})
+	mockACS.On("GetPolicy", mock.Anything, mock.Anything).Return(
+		func(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
+			policy, err := policies.Get(rctx, id)
+			if err != nil {
+				return nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+			return policy, nil
+		})
+	th.App.Srv().Channels().AccessControl = mockACS
+}
+
+// TestAccessControlPolicyAutoAddWire pins the wire contract for auto-add now
+// that it lives on the membership rule instead of the policy's Active flag.
+func TestAccessControlPolicyAutoAddWire(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	wirePolicyStore(t, th)
+
+	client := th.SystemAdminClient
+	channel := th.CreatePrivateChannel(t)
+
+	membershipRule := model.AccessControlPolicyRule{
+		Actions:    []string{model.AccessControlPolicyActionMembership},
+		Expression: "user.attributes.team == 'engineering'",
+	}
+
+	submit := func(t *testing.T, rules []model.AccessControlPolicyRule, active bool) *model.AccessControlPolicy {
+		t.Helper()
+		saved, resp, err := client.CreateAccessControlPolicy(context.Background(), &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Active:   active,
+			Rules:    rules,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		return saved
+	}
+
+	fetch := func(t *testing.T) *model.AccessControlPolicy {
+		t.Helper()
+		policy, resp, err := client.GetAccessControlPolicy(context.Background(), channel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		return policy
+	}
+
+	onRule := membershipRule
+	onRule.SetAutoAddMode(model.AccessControlAutoAddAlways)
+	created := submit(t, []model.AccessControlPolicyRule{onRule}, false)
+	require.True(t, created.AutoAddMembers())
+
+	t.Run("the mode serializes under the membership rule's metadata", func(t *testing.T) {
+		js, err := json.Marshal(fetch(t))
+		require.NoError(t, err)
+
+		var body struct {
+			Rules []struct {
+				Metadata map[string]any `json:"metadata"`
+			} `json:"rules"`
+		}
+		require.NoError(t, json.Unmarshal(js, &body))
+		require.Len(t, body.Rules, 1)
+		require.Equal(t, model.AccessControlAutoAddAlways, body.Rules[0].Metadata["auto_add"])
+	})
+
+	// A client built before this field existed reads a policy and writes it back
+	// unchanged. Treating the missing bag as "off" would silently stop membership
+	// sync for every such client, so absence has to mean "preserve".
+	t.Run("a client that omits the field preserves the setting", func(t *testing.T) {
+		stale := fetch(t)
+		for i := range stale.Rules {
+			stale.Rules[i].Metadata = nil
+		}
+
+		updated := submit(t, stale.Rules, false)
+		require.True(t, updated.AutoAddMembers())
+		require.True(t, fetch(t).AutoAddMembers())
+	})
+
+	t.Run("an explicit empty mode turns it off and leaves no residue", func(t *testing.T) {
+		offRule := membershipRule
+		offRule.Metadata = map[string]any{model.AccessControlRuleMetadataAutoAdd: ""}
+
+		updated := submit(t, []model.AccessControlPolicyRule{offRule}, false)
+		require.False(t, updated.AutoAddMembers())
+
+		stored := fetch(t)
+		require.False(t, stored.AutoAddMembers())
+		require.Nil(t, stored.MembershipRule().Metadata, "off is the absence of the key, not an explicit empty mode")
+	})
+
+	t.Run("an unrecognized mode is rejected", func(t *testing.T) {
+		futureRule := membershipRule
+		futureRule.Metadata = map[string]any{model.AccessControlRuleMetadataAutoAdd: "only_once"}
+
+		_, resp, err := client.CreateAccessControlPolicy(context.Background(), &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules:    []model.AccessControlPolicyRule{futureRule},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("active on the wire is ignored", func(t *testing.T) {
+		updated := submit(t, []model.AccessControlPolicyRule{onRule}, true)
+		require.True(t, updated.AutoAddMembers())
+		require.False(t, updated.Active, "the reserved flag is not client-writable")
+		require.False(t, fetch(t).Active)
+	})
+
+	// The activate endpoint stays as a shim for clients that have not moved over.
+	t.Run("the activate shim writes the rule, not the reserved flag", func(t *testing.T) {
+		for _, autoAdd := range []bool{false, true} {
+			policies, resp, err := client.SetAccessControlPolicyActive(context.Background(), model.AccessControlPolicyActiveUpdateRequest{
+				Entries: []model.AccessControlPolicyActiveUpdate{{ID: channel.Id, Active: autoAdd}},
+			})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Len(t, policies, 1)
+			require.Equal(t, autoAdd, policies[0].AutoAddMembers())
+
+			stored := fetch(t)
+			require.Equal(t, autoAdd, stored.AutoAddMembers())
+			require.False(t, stored.Active, "the shim must not write the reserved flag")
+		}
 	})
 }
 

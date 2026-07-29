@@ -177,6 +177,10 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	if appErr := a.reconcileServerOwnedPolicyFields(rctx, policy); appErr != nil {
+		return nil, appErr
+	}
+
 	var appErr *model.AppError
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
@@ -194,6 +198,75 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	}
 
 	return policy, nil
+}
+
+// reconcileServerOwnedPolicyFields resolves the two fields on an incoming policy
+// that the client does not own.
+//
+// Active is reserved: it is always taken from the stored row (false on create) so
+// the policy PUT can never write it.
+//
+// auto_add is tri-state on the wire. An explicit mode wins; an absent metadata
+// bag means "not specified", and the stored mode carries forward. Absence has to
+// mean preserve because a client built before this field existed round-trips the
+// policy without it, and treating that as off would silently stop membership sync.
+func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.AccessControlPolicy) *model.AppError {
+	var storedActive bool
+	var storedAutoAdd string
+
+	stored, err := a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	switch {
+	case err == nil:
+		storedActive = stored.Active
+		storedAutoAdd = stored.AutoAddMode()
+	case errors.As(err, new(*store.ErrNotFound)):
+		// Creating: there is nothing to preserve, so both default to off.
+	default:
+		return model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	policy.Active = storedActive
+
+	rule := policy.MembershipRule()
+	if rule == nil {
+		// The submission carries no membership rule to read a mode off, so the
+		// stored setting lives on through a carrier rule.
+		policy.SetAutoAddMode(storedAutoAdd)
+		return nil
+	}
+
+	mode := storedAutoAdd
+	if raw, specified := rule.Metadata[model.AccessControlRuleMetadataAutoAdd]; specified {
+		requested, appErr := requestedAutoAddMode(raw)
+		if appErr != nil {
+			return appErr
+		}
+		mode = requested
+	}
+
+	// SetAutoAddMode canonicalizes "off" into the absence of the key.
+	rule.SetAutoAddMode(mode)
+
+	policy.PruneInertMembershipRule()
+
+	return nil
+}
+
+// requestedAutoAddMode reads the auto_add value as it arrived on the wire. The
+// empty string is how a client turns auto-adding off; any other unrecognized
+// value is a client error rather than a silent downgrade to off, so a client
+// asking for a mode this server does not implement hears about it.
+func requestedAutoAddMode(raw any) (string, *model.AppError) {
+	mode, ok := raw.(string)
+	if !ok {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
+	}
+
+	if mode != "" && !model.IsValidAccessControlAutoAddMode(mode) {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": mode}, "", http.StatusBadRequest)
+	}
+
+	return mode, nil
 }
 
 // policyHasMaskedValuesForCaller returns true if policy contains any attribute values
@@ -260,7 +333,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		switch {
 		case r.Name != "":
 			storedByName[r.Name] = r
-		case isMembershipRule(r):
+		case r.IsMembershipRule():
 			if storedMembership == nil {
 				storedMembership = r
 			}
@@ -280,7 +353,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if stored != nil {
 				pairedNames[rule.Name] = true
 			}
-		case isMembershipRule(rule):
+		case rule.IsMembershipRule():
 			if !membershipPaired {
 				stored = storedMembership
 				membershipPaired = true
@@ -332,7 +405,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if pairedNames[stored.Name] {
 				continue
 			}
-		case isMembershipRule(stored):
+		case stored.IsMembershipRule():
 			if membershipPaired {
 				continue
 			}
@@ -355,20 +428,6 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	}
 
 	return mergedHidden, nil
-}
-
-// isMembershipRule reports whether a rule fills the policy's
-// membership slot for the merge-time pairing logic. v0.4 membership
-// rules carry no Name and the membership action; legacy v0.1/v0.2
-// channel policies used the wildcard "*" (rejected at v0.3+ IsValid)
-// for the same role, so both anchor the same single storedMembership
-// pairing slot.
-func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
-	if rule == nil || rule.Name != "" {
-		return false
-	}
-	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) ||
-		slices.Contains(rule.Actions, "*")
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
@@ -1438,6 +1497,10 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing channel policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1491,8 +1554,9 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
-			// If the policy has no imports and no rules, we can delete it
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
+			// If the policy has no imports and no rules of its own, we can
+			// delete it. A lone auto-add carrier rule is not a rule of its own.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1548,6 +1612,10 @@ func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing team policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1601,10 +1669,11 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
 			// No imports and no custom rules left — the child only existed to
 			// carry this parent assignment, so remove it. A child with custom
 			// rules is kept (a team admin's rules must survive an unassign).
+			// A lone auto-add carrier rule doesn't count as custom rules.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1720,22 +1789,31 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	return fields, nil
 }
 
-func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
+func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// Deactivating a policy is enforcement-equivalent to deleting it: the policy stops
-	// filtering membership. Mirror the delete-path guard so a caller blocked from
-	// deleting a policy with hidden values cannot achieve the same effect via deactivation.
+	// Reject an unknown mode up front: the store canonicalizes anything it does
+	// not recognize to off, which would turn a typo into a silent disable.
+	for _, u := range updates {
+		if u.AutoAdd != "" && !model.IsValidAccessControlAutoAddMode(u.AutoAdd) {
+			return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": u.AutoAdd}, "", http.StatusBadRequest)
+		}
+	}
+
+	// Turning auto-add off stops the sync job from maintaining membership, which
+	// is enforcement-equivalent to deleting the policy. Mirror the delete-path
+	// guard so a caller blocked from deleting a policy with hidden values cannot
+	// achieve the same effect by switching auto-add off.
 	if a.Config().FeatureFlags.AttributeValueMasking {
 		session := rctx.Session()
 		if session != nil {
 			callerID := session.UserId
 			for _, u := range updates {
-				if u.Active {
-					continue // activation never widens access
+				if u.AutoAdd != "" {
+					continue // enabling auto-add never widens access
 				}
 				policy, appErr := acs.GetPolicy(rctx, u.ID)
 				if appErr != nil {
@@ -1744,15 +1822,15 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 				if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, policy, callerID); appErr != nil {
 					return nil, appErr
 				} else if hasMasked {
-					return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+					return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
 				}
 			}
 		}
 	}
 
-	policies, err := a.Srv().Store().AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+	policies, err := a.Srv().Store().AccessControlPolicy().SetMembershipAutoAdd(rctx, updates)
 	if err != nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, policy := range policies {

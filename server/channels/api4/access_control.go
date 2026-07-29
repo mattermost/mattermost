@@ -827,7 +827,9 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// updateActiveStatus updates the active status of a single access control policy.
+// updateActiveStatus toggles auto-adding members for a single access control
+// policy. The active query parameter is kept for compatibility; it maps onto the
+// membership rule's auto_add setting rather than the policy's active flag.
 //
 // Deprecated: This endpoint is deprecated and will be removed in a future release.
 // Use PUT /api/v4/access_control/policies/activate instead, which supports batch updates.
@@ -874,10 +876,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
 	// Wrap single update in slice to use the batch update method
-	updates := []model.AccessControlPolicyActiveUpdate{
-		{ID: policyID, Active: activeBool},
+	updates := []model.AccessControlPolicyAutoAddUpdate{
+		{ID: policyID, AutoAdd: autoAddModeForLegacyActive(activeBool)},
 	}
-	_, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, updates)
+	_, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -899,6 +901,19 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// autoAddModeForLegacyActive maps the deprecated active flag onto an auto-add
+// mode. The flag only ever expressed on or off, so true becomes the always mode
+// and false becomes no mode at all.
+func autoAddModeForLegacyActive(active bool) string {
+	if !active {
+		return ""
+	}
+	return model.AccessControlAutoAddAlways
+}
+
+// setActiveStatus toggles auto-adding members for a batch of access control
+// policies. The request's active field is kept for compatibility; it maps onto
+// each membership rule's auto_add setting rather than the policy's active flag.
 func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	var list model.AccessControlPolicyActiveUpdateRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
@@ -941,7 +956,12 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	policies, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, list.Entries)
+	updates := make([]model.AccessControlPolicyAutoAddUpdate, 0, len(list.Entries))
+	for _, entry := range list.Entries {
+		updates = append(updates, model.AccessControlPolicyAutoAddUpdate{ID: entry.ID, AutoAdd: autoAddModeForLegacyActive(entry.Active)})
+	}
+
+	policies, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return

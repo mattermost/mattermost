@@ -11183,6 +11183,22 @@
     "translation": "Permission policies must be applied to exactly one role."
   },
   {
+    "id": "model.access_policy.is_valid.rule_expression.app_error",
+    "translation": "Only a membership rule may omit its expression."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
+    "translation": "Automatically adding members can only be set on the policy's membership rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
+    "translation": "\"{{.Mode}}\" is not a supported way of automatically adding members."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
+    "translation": "Rule metadata contains an unrecognized key."
+  },
+  {
     "id": "model.access_policy.is_valid.rule_name.app_error",
     "translation": "Permission rules require a non-empty name within the policy max length."
   },

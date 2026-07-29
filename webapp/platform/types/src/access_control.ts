@@ -40,9 +40,51 @@ export type AccessControlPolicyChannelsResult = {
     total: number;
 };
 
+/**
+ * Ways a policy can add matching users to its resource.
+ *
+ * - `always` — every sync pass re-evaluates, so a user who starts matching is
+ *   added even long after the policy was written.
+ */
+export const ACCESS_CONTROL_AUTO_ADD_ALWAYS = 'always';
+
+export const ACCESS_CONTROL_AUTO_ADD_MODES = [
+    ACCESS_CONTROL_AUTO_ADD_ALWAYS,
+] as const;
+
+export type AccessControlAutoAddMode = typeof ACCESS_CONTROL_AUTO_ADD_MODES[number];
+
+/**
+ * Maps an on/off control onto the argument {@link buildRulesWithMembership}
+ * takes. Off is an explicit `null` rather than `undefined` so the server turns
+ * the setting off instead of preserving what it has stored.
+ */
+export function autoAddModeForToggle(enabled: boolean): AccessControlAutoAddMode | null {
+    return enabled ? ACCESS_CONTROL_AUTO_ADD_ALWAYS : null;
+}
+
+/**
+ * Per-rule knobs that don't take part in CEL evaluation.
+ *
+ * Tri-state on the wire: an absent `auto_add` means "not specified" and the
+ * server preserves whatever it has stored, so a client that round-trips a
+ * policy without this bag can't silently disable membership sync. Send an empty
+ * string to turn auto-add off — the server stores that as the absence of the
+ * setting.
+ */
+export type AccessControlPolicyRuleMetadata = {
+    auto_add?: AccessControlAutoAddMode | '';
+};
+
 export type AccessControlPolicyRule = {
     actions?: string[];
     expression: string;
+
+    /**
+     * Only meaningful on the membership rule. See
+     * {@link AccessControlPolicyRuleMetadata} for the tri-state semantics.
+     */
+    metadata?: AccessControlPolicyRuleMetadata;
 
     /**
      * Admin-facing name. Required for v0.4 channel-scoped permission rules
@@ -155,16 +197,66 @@ export function hasOverlappingPermissionRules(rules?: AccessControlPolicyRule[])
  * that here so a wildcard membership rule isn't preserved alongside the
  * newly inserted explicit one — the user would otherwise end up with
  * two membership rules in the same payload.
+ *
+ * `autoAdd` is three-way, mirroring the wire contract: `undefined` leaves the
+ * stored setting alone, `null` turns auto-adding off, and a mode turns it on.
  */
-export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[], expression: string): AccessControlPolicyRule[] {
+export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[], expression: string, autoAdd?: AccessControlAutoAddMode | null): AccessControlPolicyRule[] {
     const otherRules = existingRules.filter((r) =>
         !r.actions?.includes(ACCESS_CONTROL_ACTION_MEMBERSHIP) &&
         !r.actions?.includes('*'),
     );
-    if (!expression.trim()) {
-        return otherRules;
+
+    // Omitting autoAdd means the caller doesn't manage the setting, so the
+    // stored value is carried through unchanged.
+    const metadata: AccessControlPolicyRuleMetadata | undefined = autoAdd === undefined ?
+        getMembershipRule(existingRules)?.metadata :
+        {auto_add: autoAdd ?? ''};
+
+    const trimmed = expression.trim();
+    if (!trimmed) {
+        // An expression-less membership rule is still worth sending when it
+        // carries a value: the server reads auto-add off it, and the engine
+        // skips empty expressions so the rule grants nothing on its own.
+        if (metadata?.auto_add === undefined) {
+            return otherRules;
+        }
+        return [{actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: '', metadata}, ...otherRules];
     }
-    return [{actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: expression.trim()}, ...otherRules];
+
+    const membershipRule: AccessControlPolicyRule = {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: trimmed};
+    if (metadata) {
+        membershipRule.metadata = metadata;
+    }
+    return [membershipRule, ...otherRules];
+}
+
+/**
+ * Reports whether any rule contributes to policy evaluation. A membership rule
+ * with an empty expression exists only to carry metadata — the engine skips it —
+ * so callers asking "does this policy define anything?" must not count it.
+ */
+export function hasEffectiveRules(rules?: AccessControlPolicyRule[]): boolean {
+    return Boolean(rules?.some((r) => r.expression.trim() !== ''));
+}
+
+/**
+ * Reads the auto-add mode off a policy's membership rule, or undefined when the
+ * policy does not auto-add members. Auto-add is per-resource and never inherited
+ * from an imported parent policy, so this only ever looks at the policy's own
+ * rules. A mode this client doesn't know reads as undefined rather than as on,
+ * so the UI never claims to honour behaviour it can't describe.
+ */
+export function getAutoAddModeFromRules(rules?: AccessControlPolicyRule[]): AccessControlAutoAddMode | undefined {
+    const mode = getMembershipRule(rules)?.metadata?.auto_add;
+    return ACCESS_CONTROL_AUTO_ADD_MODES.find((known) => known === mode);
+}
+
+/**
+ * Reports whether a policy adds matching users to its resource, in any mode.
+ */
+export function getAutoAddFromRules(rules?: AccessControlPolicyRule[]): boolean {
+    return getAutoAddModeFromRules(rules) !== undefined;
 }
 
 /**
