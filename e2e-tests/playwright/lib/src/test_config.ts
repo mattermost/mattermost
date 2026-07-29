@@ -205,7 +205,6 @@ export function resolveAppUrl(pathOrUrl: string): string {
     return new URL(pathOrUrl, testConfig.baseURL).href;
 }
 
-
 function parseBool(actualValue: string | undefined, defaultValue: boolean) {
     return actualValue ? actualValue === 'true' : defaultValue;
 }
