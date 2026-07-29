@@ -36,6 +36,28 @@ const userField: UserPropertyField = {
     updated_by: '',
 };
 
+const ownerManagedField: UserPropertyField = {
+    id: 'f3',
+    name: 'clearance',
+    type: 'text',
+    group_id: CPA_GROUP_UUID,
+    target_id: '',
+    target_type: '',
+    object_type: 'user',
+    attrs: {
+        sort_order: 0,
+        visibility: 'always',
+        value_type: '',
+        display_name: 'Clearance',
+        owners: [{id: 'com.example.plugin', type: 'plugin', scopes: []}],
+    },
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+};
+
 const sessionField = {
     id: 'f2',
     name: 'ip_address',
@@ -105,6 +127,26 @@ describe('AttributeSelectorMenu', () => {
 
         fireEvent.click(sessionItem as HTMLElement);
         expect(baseProps.onChange).toHaveBeenCalledWith('f2');
+    });
+
+    test('keeps an owner-managed option selectable even when user-managed attributes are disabled', () => {
+        renderWithContext(
+            <AttributeSelectorMenu
+                {...baseProps}
+                enableUserManagedAttributes={false}
+                availableAttributes={[ownerManagedField]}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+
+        const ownerItem = document.getElementById('attribute-f3');
+        expect(ownerItem).toBeInTheDocument();
+        expect(ownerItem).not.toHaveClass('Mui-disabled');
+        expect(ownerItem).not.toHaveAttribute('aria-disabled', 'true');
+
+        fireEvent.click(ownerItem as HTMLElement);
+        expect(baseProps.onChange).toHaveBeenCalledWith('f3');
     });
 
     test('does not render the Session attributes header when no session attributes are present', () => {
