@@ -577,22 +577,29 @@ function applyResolvedConfig(stack: StartedStack): void {
 // `#`-led lines) followed by the current resolved KEY=VALUE state, including bootEnvOverrides
 // JSON-encoded and single-quoted so its embedded double quotes/braces survive dotenv's parser.
 function envFileLines(label: string): string[] {
+    // Omit unset optional URLs/hosts — otherwise dotenv would load the literal string
+    // "undefined" (truthy) when webhook/sidecars are not started.
+    const entries: Array<[string, unknown]> = [
+        ['PW_BASE_URL', testConfig.baseURL],
+        ['PW_SMTP_URL', testConfig.smtpURL],
+        ['PW_POSTGRES_URL', testConfig.postgresUrl],
+        ['PW_WEBHOOK_BASE_URL', testConfig.webhookBaseUrl],
+        ['PW_TESTCONTAINERS_NETWORK_GATEWAY_IP', testConfig.testcontainersNetworkGatewayIp],
+        ['PW_LDAP_HOST', testConfig.ldapHost],
+        ['PW_LDAP_PORT', testConfig.ldapPort],
+        ['PW_KEYCLOAK_URL', testConfig.keycloakUrl],
+        ['PW_ELASTICSEARCH_URL', testConfig.elasticsearchUrl],
+        ['PW_OPENSEARCH_URL', testConfig.opensearchUrl],
+        ['PW_MINIO_URL', testConfig.minioUrl],
+        ['PW_AZURITE_URL', testConfig.azuriteUrl],
+        ['PW_TESTCONTAINERS_NETWORK_NAME', testConfig.testcontainersNetworkName],
+        ['PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID', testConfig.mattermostContainerId],
+    ];
     return [
         `# [${new Date().toISOString()}] ${label}`,
-        `PW_BASE_URL=${testConfig.baseURL}`,
-        `PW_SMTP_URL=${testConfig.smtpURL}`,
-        `PW_POSTGRES_URL=${testConfig.postgresUrl}`,
-        `PW_WEBHOOK_BASE_URL=${testConfig.webhookBaseUrl}`,
-        `PW_TESTCONTAINERS_NETWORK_GATEWAY_IP=${testConfig.testcontainersNetworkGatewayIp}`,
-        `PW_LDAP_HOST=${testConfig.ldapHost}`,
-        `PW_LDAP_PORT=${testConfig.ldapPort}`,
-        `PW_KEYCLOAK_URL=${testConfig.keycloakUrl}`,
-        `PW_ELASTICSEARCH_URL=${testConfig.elasticsearchUrl}`,
-        `PW_OPENSEARCH_URL=${testConfig.opensearchUrl}`,
-        `PW_MINIO_URL=${testConfig.minioUrl}`,
-        `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
-        `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
-        `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
+        ...entries
+            .filter(([, value]) => value !== undefined && value !== null && value !== '')
+            .map(([key, value]) => `${key}=${value}`),
         `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(testConfig.bootEnvOverrides)}'`,
         '',
     ];
