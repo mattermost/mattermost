@@ -6,7 +6,7 @@ import {test as base} from '@playwright/test';
 import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -20,6 +20,8 @@ import {
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
     configureAIBridgeMock,
+    createKeycloakUser,
+    createLdapUser,
     createMockAIAgent,
     createNewUserProfile,
     createNewTeam,
@@ -28,11 +30,23 @@ import {
     createRandomTeam,
     createRandomUser,
     createUserWithAttributes,
+    deleteKeycloakUser,
+    deleteLdapUser,
     enableAIBridgeTestMode,
+    listMinioObjectKeys,
+    ensureMinio,
+    ensureAzurite,
+    listAzuriteBlobNames,
+    ensureLocalFile,
+    ensurePostgresSearch,
+    ensureFeatureFlag,
+    generateLdapUser,
     getAIBridgeMock,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    ldapServerConfig,
+    ensureOpenldap,
     makeClient,
     mergeWithOnPremServerConfig,
     recapCompletion,
@@ -40,6 +54,15 @@ import {
     rewriteCompletion,
     installAndEnablePlugin,
     isPluginActive,
+    samlServerConfig,
+    ensureKeycloak,
+    elasticsearchServerConfig,
+    opensearchServerConfig,
+    ensureElasticsearch,
+    ensureOpensearch,
+    runMmctl,
+    ensureMmctl,
+    updateLdapUser,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -72,6 +95,9 @@ export const test = base.extend<ExtendedFixtures>({
         await use(ab);
     },
     pw: async ({browser, page, isMobile}, use) => {
+        // Playwright's project baseURL is fixed at worker start; rebind so navigations follow
+        // testConfig.baseURL after testcontainers restarts remap the host port.
+        bindPageToLiveBaseURL(page);
         const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
@@ -109,6 +135,31 @@ export class PlaywrightExtended {
     readonly recapCompletion;
     readonly installAndEnablePlugin;
     readonly isPluginActive;
+
+    // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+    readonly generateLdapUser;
+    readonly createLdapUser;
+    readonly updateLdapUser;
+    readonly deleteLdapUser;
+    readonly ldapServerConfig;
+    readonly ensureOpenldap;
+    readonly createKeycloakUser;
+    readonly deleteKeycloakUser;
+    readonly samlServerConfig;
+    readonly ensureKeycloak;
+    readonly elasticsearchServerConfig;
+    readonly opensearchServerConfig;
+    readonly ensureElasticsearch;
+    readonly ensureOpensearch;
+    readonly listMinioObjectKeys;
+    readonly ensureMinio;
+    readonly ensureAzurite;
+    readonly ensureLocalFile;
+    readonly ensurePostgresSearch;
+    readonly ensureFeatureFlag;
+    readonly listAzuriteBlobNames;
+    readonly runMmctl;
+    readonly ensureMmctl;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -179,6 +230,31 @@ export class PlaywrightExtended {
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
+
+        // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+        this.generateLdapUser = generateLdapUser;
+        this.createLdapUser = createLdapUser;
+        this.updateLdapUser = updateLdapUser;
+        this.deleteLdapUser = deleteLdapUser;
+        this.ldapServerConfig = ldapServerConfig;
+        this.ensureOpenldap = ensureOpenldap;
+        this.createKeycloakUser = createKeycloakUser;
+        this.deleteKeycloakUser = deleteKeycloakUser;
+        this.samlServerConfig = samlServerConfig;
+        this.ensureKeycloak = ensureKeycloak;
+        this.elasticsearchServerConfig = elasticsearchServerConfig;
+        this.opensearchServerConfig = opensearchServerConfig;
+        this.ensureElasticsearch = ensureElasticsearch;
+        this.ensureOpensearch = ensureOpensearch;
+        this.listMinioObjectKeys = listMinioObjectKeys;
+        this.ensureMinio = ensureMinio;
+        this.ensureAzurite = ensureAzurite;
+        this.ensureLocalFile = ensureLocalFile;
+        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureFeatureFlag = ensureFeatureFlag;
+        this.listAzuriteBlobNames = listAzuriteBlobNames;
+        this.runMmctl = runMmctl;
+        this.ensureMmctl = ensureMmctl;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
