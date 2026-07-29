@@ -25,29 +25,21 @@ func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*st
 }
 
 func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
-	// Check if token is valid
-	userId, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
+	// Atomically consume the token: delete it and return its UserId in one operation.
+	// This prevents duplicate sessions from concurrent requests racing on the same token.
+	userId, err := a.Srv().Store().DesktopTokens().ConsumeToken(token, expiryTime)
 	if err != nil {
-		// Delete the token if it is expired or invalid
-		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {
-			a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
-		}
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, "", http.StatusUnauthorized).Wrap(err)
+	}
+	if userId == nil {
+		// Token was not found or already consumed.
+		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, "", http.StatusUnauthorized)
 	}
 
 	// Get the user profile
 	user, userErr := a.GetUser(*userId)
 	if userErr != nil {
-		// Delete the token if the user is invalid somehow
-		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {
-			a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
-		}
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, "", http.StatusInternalServerError).Wrap(userErr)
-	}
-
-	// Clean up other tokens if they exist
-	if deleteErr := a.Srv().Store().DesktopTokens().DeleteByUserId(*userId); deleteErr != nil {
-		a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
 	}
 
 	return user, nil

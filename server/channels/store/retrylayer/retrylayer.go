@@ -5065,6 +5065,11 @@ func (s *RetryLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings m
 
 }
 
+func (s *RetryLayerDesktopTokensStore) ConsumeToken(token string, minCreateAt int64) (*string, error) {
+	// ConsumeToken must not be retried: a partial failure must not create a second consume attempt.
+	return s.DesktopTokensStore.ConsumeToken(token, minCreateAt)
+}
+
 func (s *RetryLayerDesktopTokensStore) Delete(token string) error {
 
 	tries := 0
