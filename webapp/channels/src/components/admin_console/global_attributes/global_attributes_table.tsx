@@ -141,6 +141,8 @@ function ActionsCell({field}: {field: PropertyField}) {
                 id: `${menuId}-menu`,
                 'aria-label': formatMessage(actionsLabels.menuLabel),
             }}
+            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+            transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
             <Menu.Item
                 id={`${menuId}-edit`}
