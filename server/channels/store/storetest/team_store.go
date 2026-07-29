@@ -657,6 +657,13 @@ func testTeamStoreSearchOpen(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Empty(t, r1)
 	})
+
+	t.Run("Search for an open team with GroupConstrained explicitly set must still return it, proving GroupConstrained is reset rather than merely intersected", func(t *testing.T) {
+		r1, err := ss.Team().SearchOpen(&model.TeamSearch{Term: o.DisplayName, GroupConstrained: new(true)})
+		require.NoError(t, err)
+		require.Len(t, r1, 1)
+		assert.Equal(t, o.Id, r1[0].Id)
+	})
 }
 
 func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -791,6 +798,13 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 		r1, err := ss.Team().SearchPrivate(&model.TeamSearch{Term: o.DisplayName, GroupConstrained: new(false)})
 		require.NoError(t, err)
 		require.Empty(t, r1)
+	})
+
+	t.Run("Search for a private team with GroupConstrained explicitly set must still return it, proving GroupConstrained is reset rather than merely intersected", func(t *testing.T) {
+		r1, err := ss.Team().SearchPrivate(&model.TeamSearch{Term: p.DisplayName, GroupConstrained: new(true)})
+		require.NoError(t, err)
+		require.Len(t, r1, 1)
+		assert.Equal(t, p.Id, r1[0].Id)
 	})
 }
 
