@@ -3397,7 +3397,6 @@ func (s *ElasticsearchSettings) SetDefaults() {
 type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
-	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"` // Deprecated: use `MessageRetentionHours`
 	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays              *int    `access:"compliance_data_retention_policy"` // Deprecated: use `FileRetentionHours`
@@ -3417,10 +3416,6 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.EnableFileDeletion == nil {
 		s.EnableFileDeletion = new(false)
-	}
-
-	if s.EnableBoardsDeletion == nil {
-		s.EnableBoardsDeletion = new(false)
 	}
 
 	if s.MessageRetentionDays == nil {
