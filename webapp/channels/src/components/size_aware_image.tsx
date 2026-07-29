@@ -395,11 +395,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
         } = this.props;
 
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
-        if (fileInfo) {
-            ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
-        }
-
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
@@ -409,37 +404,23 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
             const miniPreview = getFileMiniPreviewUrl(fileInfo);
 
-            if (miniPreview) {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
-                    >
-                        <img
-                            aria-label={ariaLabelImage}
-                            className={this.props.className}
-                            src={miniPreview}
-                            tabIndex={0}
-                            height={height}
-                            width={width}
-                        />
-                    </div>
-                );
-            } else {
-                fallback = (
-                    <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
-                    >
-                        {this.renderImageLoaderIfNeeded()}
-                        <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox={`0 0 ${width} ${height}`}
-                            style={{maxHeight: height, maxWidth: width, verticalAlign: 'middle'}}
-                        />
-                    </div>
-                );
-            }
+            const fallbackSrc = miniPreview ?? emptyImageForDimensions(width, height);
+
+            fallback = (
+                <div
+                    className={`image-loading__container ${this.props.className}`}
+                    style={{maxWidth: width}}
+                >
+                    {this.renderImageLoaderIfNeeded()}
+                    <img
+                        role='presentation'
+                        className={classNames('image-loading__placeholder', this.props.className)}
+                        src={fallbackSrc}
+                        height={height}
+                        width={width}
+                    />
+                </div>
+            );
         }
 
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
@@ -498,6 +479,13 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             this.renderImageOrFallback()
         );
     }
+}
+
+// Returns a transparent SVG data URI with the given intrinsic dimensions. Used as the src of the
+// placeholder image so it reserves exactly the same space as the real image.
+function emptyImageForDimensions(width: number, height: number): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"/>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
 export default injectIntl(SizeAwareImage);

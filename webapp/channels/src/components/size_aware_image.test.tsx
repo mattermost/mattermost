@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper, ShallowWrapper} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -39,12 +40,15 @@ describe('components/SizeAwareImage', () => {
         },
     });
 
-    test('should render an svg when first mounted with dimensions and img display set to none', () => {
+    const findActualImage = <P, S>(wrapper: ReactWrapper<P, S> | ShallowWrapper<P, S>) => wrapper.find('img').filterWhere((node) => node.prop('role') !== 'presentation');
+    const findPlaceholderImage = <P, S>(wrapper: ReactWrapper<P, S> | ShallowWrapper<P, S>) => wrapper.find('img').filterWhere((node) => node.prop('role') === 'presentation');
+
+    test('should render a placeholder when first mounted with dimensions and img display set to none', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
 
-        // since download and copy icons use svgs now, attachment svg should be searched as a direct child of image-loading__container
-        const viewBox = wrapper.find(SizeAwareImageComponent).find('.image-loading__container').children().filter('svg').prop('viewBox');
-        expect(viewBox).toEqual('0 0 300 200');
+        const placeholder = findPlaceholderImage(wrapper.find(SizeAwareImageComponent));
+        expect(placeholder.prop('height')).toEqual(200);
+        expect(placeholder.prop('width')).toEqual(300);
         const style = wrapper.find('.file-preview__button').prop('style');
         expect(style).toHaveProperty('display', 'none');
     });
@@ -52,7 +56,7 @@ describe('components/SizeAwareImage', () => {
     test('img should have inherited class name from prop', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...{...baseProps, className: 'imgClass'}}/></Provider>);
 
-        const className = wrapper.find('img').prop('className');
+        const className = findActualImage(wrapper).prop('className');
         expect(className).toEqual('imgClass');
     });
 
@@ -101,7 +105,7 @@ describe('components/SizeAwareImage', () => {
 
         wrapper.find(SizeAwareImageComponent).setState({error: false});
 
-        const src = wrapper.find('img').prop('src');
+        const src = findActualImage(wrapper).prop('src');
         expect(src).toEqual(baseProps.src);
     });
 
@@ -111,12 +115,12 @@ describe('components/SizeAwareImage', () => {
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...baseProps}/>);
 
-        wrapper.find('img')?.prop('onLoad')?.({target: {naturalHeight: height, naturalWidth: width}} as unknown as React.SyntheticEvent<HTMLImageElement>);
+        findActualImage(wrapper)?.prop('onLoad')?.({target: {naturalHeight: height, naturalWidth: width}} as unknown as React.SyntheticEvent<HTMLImageElement>);
         expect(wrapper.state('loaded')).toBe(true);
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
-    test('should call onImageLoadFail when image load fails and should have svg', () => {
+    test('should call onImageLoadFail when image load fails and should have placeholder', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
         const errorEvent = {
             target: {},
@@ -124,10 +128,10 @@ describe('components/SizeAwareImage', () => {
             preventDefault: () => { },
             stopPropagation: () => { },
         } as React.SyntheticEvent<HTMLImageElement>;
-        wrapper.find(SizeAwareImageComponent).find('img').prop('onError')?.(errorEvent);
+        findActualImage(wrapper.find(SizeAwareImageComponent)).prop('onError')?.(errorEvent);
 
         expect(wrapper.find(SizeAwareImageComponent).state('error')).toBe(true);
-        expect(wrapper.find(SizeAwareImageComponent).find('svg').exists()).toEqual(true);
+        expect(findPlaceholderImage(wrapper.find(SizeAwareImageComponent)).exists()).toEqual(true);
         expect(wrapper.find(SizeAwareImageComponent).find(LoadingImagePreview).exists()).toEqual(false);
     });
 
@@ -185,7 +189,7 @@ describe('components/SizeAwareImage', () => {
 
         wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
 
-        expect(wrapper.find('img').prop('className')).toBe(`${props.className} small-image--inside-container`);
+        expect(findActualImage(wrapper).prop('className')).toBe(`${props.className} small-image--inside-container`);
     });
 
     test('should load download and copy link buttons when an image is mounted', () => {
