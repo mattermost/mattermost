@@ -43,13 +43,21 @@
         text-align: right;
     }
 
-    .view-details-link {
+    .view-details-link.btn {
         display: inline-flex;
         align-items: center;
+        padding: 0;
+        background: transparent;
         color: rgba(var(--sys-center-channel-color-rgb), 0.56);
         font-size: 12px;
         font-weight: 600;
         white-space: nowrap;
+
+        &:hover,
+        &:focus {
+            background: transparent;
+            color: var(--button-bg);
+        }
 
         .icon {
             font-size: 16px;

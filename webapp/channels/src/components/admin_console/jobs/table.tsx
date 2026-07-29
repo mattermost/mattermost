@@ -170,13 +170,24 @@ class JobTable extends React.PureComponent<Props, State> {
                         column is hidden — keep it that way so this cell and its header stay aligned. */}
                     {this.props.onRowClick && (
                         <td className='view-details-field whitespace--nowrap'>
-                            <span className='view-details-link'>
+                            {/* A real button so the action is keyboard-focusable; stopPropagation
+                                keeps the row's own onClick from firing a second time. */}
+                            <Button
+                                type='button'
+                                emphasis='quaternary'
+                                size='sm'
+                                className='view-details-link'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.props.onRowClick!(job);
+                                }}
+                            >
                                 <FormattedMessage
                                     id='admin.jobTable.viewDetails'
                                     defaultMessage='View details'
                                 />
                                 <i className='icon icon-chevron-right'/>
-                            </span>
+                            </Button>
                         </td>
                     )}
                     <td className='cancel-button-field whitespace--nowrap text-center'>

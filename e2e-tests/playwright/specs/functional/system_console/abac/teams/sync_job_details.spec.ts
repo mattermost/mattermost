@@ -132,7 +132,9 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await expect(page.locator('#user-list-modal-dialog')).toBeVisible({timeout: 10000});
     });
 
-    test('MM-69827-T1 Membership Sync Jobs names the channel scope and points to team sync when team ABAC is on', async ({pw}) => {
+    test('MM-69827-T1 Membership Sync Jobs names the channel scope and points to team sync when team ABAC is on', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();
         if (!adminUser) {

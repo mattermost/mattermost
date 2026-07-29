@@ -260,6 +260,23 @@ describe('components/admin_console/jobs/table', () => {
         expect(onRowClick).toHaveBeenCalledWith(baseProps.jobs[0]);
     });
 
+    test('fires onRowClick when View details is activated via keyboard', async () => {
+        const onRowClick = jest.fn();
+        renderWithContext(
+            <JobTable
+                {...baseProps}
+                jobType='access_control_sync'
+                onRowClick={onRowClick}
+            />,
+        );
+
+        const viewDetailsButtons = screen.getAllByRole('button', {name: /View details/i});
+        viewDetailsButtons[0].focus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(onRowClick).toHaveBeenCalledWith(baseProps.jobs[0]);
+    });
+
     test('hides the View details affordance when onRowClick is not provided', () => {
         renderWithContext(
             <JobTable {...baseProps}/>,
