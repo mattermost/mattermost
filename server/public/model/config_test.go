@@ -33,10 +33,9 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring these 2 settings.
-				// TODO: remove them completely in v8.0.
-				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
+				// Ignoring this setting.
+				// TODO: remove it completely in v8.0.
+				if name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
 
