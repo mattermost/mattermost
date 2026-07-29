@@ -510,7 +510,6 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
-
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
