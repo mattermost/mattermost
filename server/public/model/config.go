@@ -257,7 +257,6 @@ const (
 	DataRetentionSettingsDefaultMessageRetentionHours          = 0
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
 	DataRetentionSettingsDefaultFileRetentionHours             = 0
-	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
@@ -3401,7 +3400,6 @@ type DataRetentionSettings struct {
 	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays              *int    `access:"compliance_data_retention_policy"` // Deprecated: use `FileRetentionHours`
 	FileRetentionHours             *int    `access:"compliance_data_retention_policy"`
-	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
@@ -3432,10 +3430,6 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.FileRetentionHours == nil {
 		s.FileRetentionHours = new(DataRetentionSettingsDefaultFileRetentionHours)
-	}
-
-	if s.BoardsRetentionDays == nil {
-		s.BoardsRetentionDays = new(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {
