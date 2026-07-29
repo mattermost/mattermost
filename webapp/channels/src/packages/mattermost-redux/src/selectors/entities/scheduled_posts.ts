@@ -7,6 +7,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getTeamIdByChannelId} from 'mattermost-redux/selectors/entities/teams';
 
 const emptyList: string[] = [];
 
@@ -53,6 +54,19 @@ export function getScheduledPostsByTeamCount(state: GlobalState, teamId: string,
     }
 
     return count;
+}
+
+// getScheduledPostTeamId resolves the team bucket a scheduled post belongs to: its channel's team
+// when the channel is loaded, otherwise whichever bucket already holds the post. A falsy result
+// means the directChannels bucket.
+export function getScheduledPostTeamId(state: GlobalState, scheduledPost: ScheduledPost): string | undefined {
+    const teamId = getTeamIdByChannelId(state, scheduledPost.channel_id);
+    if (teamId !== undefined) {
+        return teamId;
+    }
+
+    const byTeamId = state.entities.scheduledPosts.byTeamId;
+    return Object.keys(byTeamId).find((currentTeamId) => byTeamId[currentTeamId].includes(scheduledPost.id));
 }
 
 export function hasScheduledPostError(state: GlobalState, teamId: string) {

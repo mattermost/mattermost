@@ -121,7 +121,7 @@ import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
     getMyTeams,
@@ -2250,7 +2250,7 @@ function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
 function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
-        const teamId = getTeamIdByChannelId(getState(), scheduledPost.channel_id);
+        const teamId = getScheduledPostTeamId(getState(), scheduledPost);
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
