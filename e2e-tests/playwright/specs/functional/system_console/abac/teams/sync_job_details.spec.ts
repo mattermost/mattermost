@@ -150,7 +150,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await expect(page.getByRole('button', {name: /Run Channel Sync/i})).toBeVisible({timeout: 10000});
 
         // * A note points admins to where team-membership sync actually lives
-        await expect(page.getByText(/This runs a channel membership sync only/i)).toBeVisible({timeout: 10000});
+        await expect(page.getByText(/This syncs channel membership only/i)).toBeVisible({timeout: 10000});
         await expect(page.getByText(/Team Settings/i)).toBeVisible();
     });
 

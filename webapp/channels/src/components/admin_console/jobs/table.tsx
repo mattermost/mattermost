@@ -166,6 +166,8 @@ class JobTable extends React.PureComponent<Props, State> {
                     {!hideDetailsColumn && (
                         <td>{this.getExtraInfoText(job)}</td>
                     )}
+                    {/* onRowClick is only wired for ACCESS_CONTROL_SYNC, where the details
+                        column is hidden — keep it that way so this cell and its header stay aligned. */}
                     {this.props.onRowClick && (
                         <td className='view-details-field whitespace--nowrap'>
                             <span className='view-details-link'>

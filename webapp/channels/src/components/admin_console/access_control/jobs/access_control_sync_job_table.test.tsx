@@ -36,7 +36,8 @@ describe('components/admin_console/access_control/jobs/AccessControlSyncJobTable
 
         expect(screen.getByText('Run Channel Sync')).toBeInTheDocument();
         expect(screen.getByText(/Re-sync channel membership/)).toBeInTheDocument();
-        expect(screen.getByText(/This runs a channel membership sync only/)).toBeInTheDocument();
+        expect(screen.getByText('This syncs channel membership only')).toBeInTheDocument();
+        expect(screen.getByText(/To re-sync team membership/)).toBeInTheDocument();
     });
 
     test('keeps the generic copy and hides the team-sync note when team ABAC is disabled', () => {
@@ -44,6 +45,6 @@ describe('components/admin_console/access_control/jobs/AccessControlSyncJobTable
 
         expect(screen.getByText('Run Sync Job')).toBeInTheDocument();
         expect(screen.getByText('Apply membership policies to their assigned resources.')).toBeInTheDocument();
-        expect(screen.queryByText(/This runs a channel membership sync only/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/To re-sync team membership/)).not.toBeInTheDocument();
     });
 });

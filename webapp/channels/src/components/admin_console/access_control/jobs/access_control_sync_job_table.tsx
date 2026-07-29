@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
 
 import JobsTable from 'components/admin_console/jobs';
+import SectionNotice from 'components/section_notice';
 
 import {JobTypes} from 'utils/constants';
 
@@ -26,31 +27,6 @@ type Props = {
         getJobsByType: (jobType: JobType) => void;
     };
 };
-
-function renderButtonLabel(isSubmitting: boolean, teamAbacEnabled: boolean): JSX.Element {
-    if (isSubmitting) {
-        return (
-            <FormattedMessage
-                id='admin.access_control.sync_jobs.running'
-                defaultMessage='Running Job...'
-            />
-        );
-    }
-    if (teamAbacEnabled) {
-        return (
-            <FormattedMessage
-                id='admin.access_control.sync_jobs.run_channel'
-                defaultMessage='Run Channel Sync'
-            />
-        );
-    }
-    return (
-        <FormattedMessage
-            id='admin.access_control.sync_jobs.run'
-            defaultMessage='Run Sync Job'
-        />
-    );
-}
 
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const {formatMessage} = useIntl();
@@ -103,6 +79,31 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
         setSelectedJob(null);
     };
 
+    const renderButtonLabel = (): JSX.Element => {
+        if (isSubmitting) {
+            return (
+                <FormattedMessage
+                    id='admin.access_control.sync_jobs.running'
+                    defaultMessage='Running Job...'
+                />
+            );
+        }
+        if (teamAbacEnabled) {
+            return (
+                <FormattedMessage
+                    id='admin.access_control.sync_jobs.run_channel'
+                    defaultMessage='Run Channel Sync'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='admin.access_control.sync_jobs.run'
+                defaultMessage='Run Sync Job'
+            />
+        );
+    };
+
     return (
         <div className='AccessControlSyncJobTable'>
             <div className='policy-header'>
@@ -134,20 +135,23 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 >
                     <i className='icon icon-plus'/>
                     <span>
-                        {renderButtonLabel(isSubmitting, teamAbacEnabled)}
+                        {renderButtonLabel()}
                     </span>
                 </Button>
             </div>
             {teamAbacEnabled && (
                 <div className='team-sync-note'>
-                    <i className='icon icon-information-outline'/>
-                    <span>
-                        <FormattedMessage
-                            id='admin.access_control.sync_jobs.team_sync_note'
-                            defaultMessage='This runs a channel membership sync only. To re-sync team membership, use <b>Sync now</b> in Team Settings → Team Membership or the team’s page in the System Console.'
-                            values={{b: (chunks: React.ReactNode) => <b>{chunks}</b>}}
-                        />
-                    </span>
+                    <SectionNotice
+                        type='info'
+                        title={formatMessage({
+                            id: 'admin.access_control.sync_jobs.team_sync_note.title',
+                            defaultMessage: 'This syncs channel membership only',
+                        })}
+                        text={formatMessage({
+                            id: 'admin.access_control.sync_jobs.team_sync_note',
+                            defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
+                        })}
+                    />
                 </div>
             )}
             <JobsTable
