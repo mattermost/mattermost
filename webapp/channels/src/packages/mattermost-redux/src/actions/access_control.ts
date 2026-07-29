@@ -39,12 +39,23 @@ export function createAccessControlPolicy(policy: AccessControlPolicy, teamId?: 
     };
 }
 
-export function deleteAccessControlPolicy(id: string, teamId?: string) {
-    return bindClientFunc({
-        clientFunc: () => Client4.deleteAccessControlPolicy(id, teamId),
-        onSuccess: [AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS],
-        params: [],
-    });
+export function deleteAccessControlPolicy(id: string, teamId?: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.deleteAccessControlPolicy(id, teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        // Dispatch the id directly. Routing this through bindClientFunc's onSuccess
+        // would drop the payload (its dispatcher sends no data for *_SUCCESS types),
+        // and the reducer needs the id to evict the policy — reading it off a null
+        // payload would throw and reject the delete on an otherwise successful call.
+        dispatch({type: AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS, data: {id}});
+
+        return {data: true};
+    };
 }
 
 export function searchAccessControlPolicies(term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {

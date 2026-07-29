@@ -1,19 +1,21 @@
 ---
 title: "Import, export, and migrate"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-ent" />
 
 ## Import and export a board archive
 
 If you’d like to back up your board or re-use it on another team or channel workspace, you can export it as an archive file, and then import the archive file in the team or channel workspace of your choosing. Exported and imported board archives include all card content such as properties, comments, descriptions, and image attachments.
 
-To do this, select the options menu <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> to the left of the **New** button at the top of the board. Then select **Export board archive**. Download the archive file. Navigate to the team or channel workspace where you’d like to add the exported board. Select the Gear icon next to your profile picture, then choose **Import archive**. The board you exported will be added to this team or channel workspace.
+To do this, select the options menu <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> to the left of the **New** button at the top of the board. Then select **Export board archive**. Download the archive file. Navigate to the team or channel workspace where you’d like to add the exported board. Select the Gear icon next to your profile picture, then choose **Import archive**. The board you exported will be added to this team or channel workspace.
 
 The **Import archive** option will import the board to your current team. Use [board permissions](/end-user-guide/project-management/share-and-collaborate#board-permissions) to control access to your imported board. The previous `.focalboard` format will be deprecated in a future release, but will support importing until then. Currently, the import dialog looks for `.boardarchive`. Use **Select all files** to select `.focalboard` files to import.
 
 ## Export to CSV
 
-To export a board into a CSV file, select the options menu <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> to the left of the **New** button at the top of the board. Then select **Export to CSV**.
+To export a board into a CSV file, select the options menu <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> to the left of the **New** button at the top of the board. Then select **Export to CSV**.
 
 ## Import and export from other applications
 
