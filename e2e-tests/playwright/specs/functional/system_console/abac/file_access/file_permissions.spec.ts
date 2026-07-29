@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC, testConfig} from '@mattermost/playwright-lib';
 
 import {getAsset} from '../../../../../asset';
 import {
@@ -449,8 +449,10 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         // # Retrieve the post ID and construct the permalink URL
         const postsResult = await adminClient.getPosts(channelId, 0, 1);
         const postId = postsResult.order[0];
-        const serverUrl = adminClient.getBaseRoute().replace('/api/v4', '');
-        const permalinkUrl = `${serverUrl}/${team.name}/pl/${postId}`;
+        // Use testConfig.internalBaseURL, not adminClient's host-mapped route — the server itself
+        // must recognize this URL as its own SiteURL to embed it via an internal permalink lookup,
+        // instead of trying (and, in `testcontainers` mode, failing) to fetch it back over HTTP as a link.
+        const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${postId}`;
 
         // # Admin posts the permalink in the same channel (creates an embedded preview)
         await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);

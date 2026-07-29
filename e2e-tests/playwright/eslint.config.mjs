@@ -19,7 +19,14 @@ eslintPluginHeader.rules.header.meta.schema = false;
 
 export default [
     {
-        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: [
+            '**/node_modules',
+            '**/dist',
+            '**/playwright-report',
+            '**/test-results',
+            '**/results',
+            'lib/src/containers/assets/webhook/tests/**',
+        ],
     },
     ...compat
         .extends('eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended')
