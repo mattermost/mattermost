@@ -1387,8 +1387,12 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
 	var cascadeParentEventID string
+	var policyRevision int
 	if policyDriven {
 		cascadeParentEventID = model.NewId()
+		if a.accessControlAuditLoggingEnabled() {
+			policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
+		}
 	}
 
 	for _, channel := range channelList {
@@ -1398,12 +1402,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 				return appErr
 			}
 			if policyDriven {
-				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
-				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
-				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
-				a.LogAuditRec(rctx, rec, nil)
+				a.logAccessControlTeamCascadedChannelRemoval(rctx, team.Id, channel.Id, user.Id, cascadeParentEventID, policyRevision)
 			}
 		}
 	}
@@ -1451,11 +1450,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		if removeErr != nil {
 			auditStatus = model.AuditStatusFail
 		}
-		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
-		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
-		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-		a.LogAuditRec(rctx, rec, nil)
+		a.logAccessControlTeamRemoval(rctx, team.Id, user.Id, cascadeParentEventID, policyRevision, auditStatus)
 	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
