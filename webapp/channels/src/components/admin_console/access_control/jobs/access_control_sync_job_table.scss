@@ -34,6 +34,16 @@
 
     .team-sync-note {
         margin-bottom: 16px;
+
+        // Pull the body closer to the title; the default notice spacing reads as
+        // a disconnected paragraph for a one-line note like this.
+        .sectionNoticeBody {
+            gap: 2px;
+        }
+
+        .sectionNoticeBody p {
+            margin: 0;
+        }
     }
 
     .job-table__access-control {

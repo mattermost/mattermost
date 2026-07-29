@@ -37,6 +37,11 @@
                 color: var(--button-bg);
             }
         }
+
+        // Keep View details aligned with the hover-only cancel button next to it.
+        > td {
+            vertical-align: middle;
+        }
     }
 
     .view-details-field {
