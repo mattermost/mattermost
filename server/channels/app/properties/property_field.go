@@ -393,8 +393,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		expectedUpdateAts[id] = ef.UpdateAt
 	}
 
-	// Update fields atomically. The store handles propagation of type and
-	// options to linked dependents automatically via a JOIN-based UPDATE.
+	// Update fields atomically. Along with the requested fields the store returns
+	// any linked dependents whose option list changed as a result: a dependent
+	// derives its options from the field it links to, so its own row does not
+	// change but what it serves does.
 	all, uErr := ps.fieldStore.Update(groupID, fields, expectedUpdateAts)
 	if uErr != nil {
 		return nil, nil, nil, uErr
@@ -575,9 +577,9 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 }
 
 // UpdatePropertyFields updates a batch of fields and returns the requested set,
-// any linked-property propagated fields, and the IDs of fields whose dependent
-// property values were cleared as a side effect. The caller is expected to
-// publish any value-cleanup WS events.
+// any linked fields whose derived option list the update changed, and the IDs of
+// fields whose dependent property values were cleared as a side effect. The
+// caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {

@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -30,8 +31,9 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
-	t.Run("UpdateWithPropagation", func(t *testing.T) { testUpdateWithPropagation(t, rctx, ss) })
+	t.Run("UpdateWithLinkedDependents", func(t *testing.T) { testUpdateWithLinkedDependents(t, rctx, ss) })
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
+	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 }
 
 func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -3069,7 +3071,7 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
 	optA := map[string]any{"id": model.NewId(), "name": "A"}
@@ -3118,7 +3120,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 	linked2, err = ss.PropertyField().Create(linked2)
 	require.NoError(t, err)
 
-	t.Run("should propagate updated options to all linked fields", func(t *testing.T) {
+	t.Run("added options are visible through all linked fields", func(t *testing.T) {
 		optC := map[string]any{"id": model.NewId(), "name": "C"}
 		newOptions := []any{optA, optB, optC}
 
@@ -3145,7 +3147,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, options2, 3)
 	})
 
-	t.Run("should propagate option removal to all linked fields", func(t *testing.T) {
+	t.Run("removed options disappear from all linked fields", func(t *testing.T) {
 		// Remove option B, keep only A and the previously-added C
 		optC := map[string]any{"id": model.NewId(), "name": "C"} // re-create to have a fresh ID
 		reducedOptions := []any{optA, optC}
@@ -3170,7 +3172,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, options2, 2)
 	})
 
-	t.Run("should propagate option content (names) to linked fields", func(t *testing.T) {
+	t.Run("renamed options are visible through linked fields", func(t *testing.T) {
 		// Update option A's name
 		optAUpdated := map[string]any{"id": optA["id"], "name": "A-Renamed"}
 		updatedOptions := []any{optAUpdated}
@@ -3192,7 +3194,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("name-only update does not return linked fields when options unchanged", func(t *testing.T) {
-		// Update source field name only — no propagation needed
+		// Update source field name only — the options are untouched
 		sourceField.Name = "Updated Name"
 		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
@@ -3293,7 +3295,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, "Concurrent Batch Change", afterBatch.Name)
 	})
 
-	t.Run("should propagate and enforce optimistic concurrency together", func(t *testing.T) {
+	t.Run("should return linked dependents and enforce optimistic concurrency together", func(t *testing.T) {
 		// Get fresh state of source field for OCC
 		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
 		require.NoError(t, gErr)
@@ -3308,7 +3310,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		// source + 2 linked fields
 		require.Len(t, result, 3)
 
-		// Verify propagation occurred on linked fields
+		// Verify the linked fields serve the new option
 		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
@@ -3316,7 +3318,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, "PropagateOCC", opts[0].(map[string]any)["name"])
 	})
 
-	t.Run("should reject propagation when source has stale expectedUpdateAt", func(t *testing.T) {
+	t.Run("should reject an option change when source has stale expectedUpdateAt", func(t *testing.T) {
 		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
 		require.NoError(t, gErr)
 
@@ -3328,7 +3330,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshSource}, nil)
 		require.NoError(t, uErr)
 
-		// Try to propagate with the stale UpdateAt
+		// Try to change the options with the stale UpdateAt
 		optStale := map[string]any{"id": model.NewId(), "name": "ShouldNotPropagate"}
 		staleOptions := []any{optStale}
 		freshSource.Attrs = map[string]any{"options": staleOptions}
@@ -3340,7 +3342,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		var conflictErr *store.ErrConflict
 		require.ErrorAs(t, uErr, &conflictErr)
 
-		// Verify linked fields were NOT updated (propagation rolled back)
+		// Verify the option change was rolled back
 		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
@@ -3423,5 +3425,299 @@ func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 		})
 		require.NoError(t, sErr)
 		require.Len(t, results, 0)
+	})
+}
+
+// testPropertyFieldOptionStorage covers the seam between a field's inline option
+// list and the PropertyOptions rows behind it: the list a caller writes has to
+// read back unchanged, a field's options have to include the ones its link source
+// owns, and a list too large to inline has to degrade instead of erroring.
+func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	groupID := model.NewId()
+
+	newSelectField := func(t *testing.T, name string, options []any) *model.PropertyField {
+		t.Helper()
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       name + "-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{"options": options},
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	// countOwnedOptions reports how many live options the field owns itself, as
+	// opposed to the ones it derives from its link source.
+	countOwnedOptions := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		err := s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", fieldID)
+		require.NoError(t, err)
+		return count
+	}
+
+	optionNames := func(field *model.PropertyField) []string {
+		var names []string
+		for _, raw := range field.Attrs["options"].([]any) {
+			opt := raw.(map[string]any)
+			name, _ := opt["name"].(string)
+			names = append(names, name)
+		}
+		return names
+	}
+
+	t.Run("an option list reads back exactly as written", func(t *testing.T) {
+		// Every shape the option list is known to carry: the canonical
+		// id/name/color triple, a rank, an option with no color key at all, an
+		// explicitly empty color, extra keys a plugin attached, and -- from
+		// callers that write the store directly -- a short id and no name key.
+		options := []any{
+			map[string]any{"id": model.NewId(), "name": "Canonical", "color": "#112233"},
+			map[string]any{"id": model.NewId(), "name": "Ranked", "color": "", "rank": 3},
+			map[string]any{"id": model.NewId(), "name": "NoColorKey"},
+			map[string]any{"id": model.NewId(), "name": "Extras", "color": "#445566", "shape": "circle", "meta": map[string]any{"k": 1}},
+			map[string]any{"id": "short-id", "value": "NoNameKey"},
+		}
+		field := newSelectField(t, "RoundTrip", options)
+
+		written, err := json.Marshal(field.Attrs)
+		require.NoError(t, err)
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		readBack, err := json.Marshal(read.Attrs)
+		require.NoError(t, err)
+		require.JSONEq(t, string(written), string(readBack), "a field must read back the option list it was written with")
+
+		// The blob key itself is gone from the row: the rows are the only copy.
+		var stored int
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT COUNT(*) FROM PropertyFields WHERE ID = $1 AND Attrs->'options' IS NOT NULL", field.ID))
+		require.Zero(t, stored, "the options key must not be stored on the field row")
+
+		// Reordering and renaming through an update round-trips too, order
+		// included -- the order options are written in is the order they display
+		// in.
+		reordered := []any{options[4], options[2], options[0], options[3], options[1]}
+		read.Attrs["options"] = reordered
+		updated, err := ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+
+		reread, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		expected, err := json.Marshal(model.StringInterface{"options": reordered})
+		require.NoError(t, err)
+		actual, err := json.Marshal(model.StringInterface{"options": reread.Attrs["options"]})
+		require.NoError(t, err)
+		require.JSONEq(t, string(expected), string(actual))
+	})
+
+	t.Run("a field with no options has no options key", func(t *testing.T) {
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "NoOptions-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.NotContains(t, read.Attrs, "options")
+		require.NotContains(t, read.Attrs, "options_omitted")
+		// And a field written with no attrs at all does not come back with an
+		// empty object: hydration adds a key only when it has one to add.
+		require.Nil(t, read.Attrs)
+	})
+
+	t.Run("an oversized option list is reported rather than inlined", func(t *testing.T) {
+		total := model.PropertyFieldMaxHydratedOptions + 1
+		options := make([]any, 0, total)
+		for i := range total {
+			options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Option %d", i)})
+		}
+		field := newSelectField(t, "Oversized", options)
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.NotContains(t, read.Attrs, "options", "an oversized list must be left out, not truncated")
+		require.Equal(t, true, read.Attrs["options_omitted"])
+		require.Equal(t, total, read.Attrs["options_count"])
+
+		// Writing that field back must not be read as "this field has no
+		// options": the caller never saw them and cannot be asked to resend them.
+		read.Name = "Oversized-Renamed-" + model.NewId()
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)
+		require.NoError(t, err)
+		require.Equal(t, total, countOwnedOptions(t, field.ID))
+
+		// Neither must the marker keys reach the row.
+		var stored int
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT COUNT(*) FROM PropertyFields WHERE ID = $1 AND (Attrs->'options_omitted' IS NOT NULL OR Attrs->'options_count' IS NOT NULL)", field.ID))
+		require.Zero(t, stored, "the read-side marker keys must not be stored on the field row")
+	})
+
+	t.Run("a list at the cap is still inlined", func(t *testing.T) {
+		options := make([]any, 0, model.PropertyFieldMaxHydratedOptions)
+		for i := range model.PropertyFieldMaxHydratedOptions {
+			options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Option %d", i)})
+		}
+		field := newSelectField(t, "AtCap", options)
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.Len(t, read.Attrs["options"].([]any), model.PropertyFieldMaxHydratedOptions)
+		require.NotContains(t, read.Attrs, "options_omitted")
+	})
+
+	t.Run("linked fields derive their options from the template", func(t *testing.T) {
+		optA := map[string]any{"id": model.NewId(), "name": "A"}
+		optB := map[string]any{"id": model.NewId(), "name": "B"}
+		template := newSelectField(t, "DeriveTemplate", []any{optA, optB})
+
+		// Both linked fields are created the way the app layer creates them:
+		// carrying a copy of the template's list, same option IDs.
+		linked := make([]*model.PropertyField, 2)
+		for i := range linked {
+			field, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:       groupID,
+				Name:          fmt.Sprintf("DeriveLinked%d-%s", i, model.NewId()),
+				Type:          model.PropertyFieldTypeSelect,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &template.ID,
+				Attrs:         model.StringInterface{"options": []any{optA, optB}},
+			})
+			require.NoError(t, err)
+			linked[i] = field
+		}
+
+		// The copy created no rows of its own: the template owns all of them.
+		require.Equal(t, 2, countOwnedOptions(t, template.ID))
+		for _, field := range linked {
+			require.Zero(t, countOwnedOptions(t, field.ID), "a linked field must not store a copy of its template's options")
+
+			read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+			require.NoError(t, err)
+			require.Equal(t, []string{"A", "B"}, optionNames(read))
+		}
+
+		// A template edit reaches both linked fields without writing to them.
+		beforeUpdateAt := map[string]int64{}
+		for _, field := range linked {
+			beforeUpdateAt[field.ID] = field.UpdateAt
+		}
+
+		optC := map[string]any{"id": model.NewId(), "name": "C"}
+		template.Attrs["options"] = []any{optA, optB, optC}
+		returned, err := ss.PropertyField().Update(groupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		require.Len(t, returned, 3, "the update must return the template and both dependents")
+
+		for _, field := range linked {
+			read, gErr := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+			require.NoError(t, gErr)
+			require.Equal(t, []string{"A", "B", "C"}, optionNames(read))
+			require.Equal(t, beforeUpdateAt[field.ID], read.UpdateAt, "a template option change must not write to its dependents")
+			require.Zero(t, countOwnedOptions(t, field.ID))
+		}
+	})
+
+	t.Run("a linked field keeps options the template does not have", func(t *testing.T) {
+		shared := map[string]any{"id": model.NewId(), "name": "Shared"}
+		template := newSelectField(t, "DivergeTemplate", []any{shared})
+
+		local := map[string]any{"id": model.NewId(), "name": "Local"}
+		linked, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "DivergeLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         model.StringInterface{"options": []any{shared, local}},
+		})
+		require.NoError(t, err)
+
+		// Only the option the template does not have becomes a row of the linked
+		// field's own; the shared one stays the template's.
+		require.Equal(t, 1, countOwnedOptions(t, linked.ID))
+		require.Equal(t, 1, countOwnedOptions(t, template.ID))
+
+		readLinked, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Shared", "Local"}, optionNames(readLinked))
+
+		readTemplate, err := ss.PropertyField().Get(context.Background(), groupID, template.ID)
+		require.NoError(t, err)
+		require.Equal(t, []string{"Shared"}, optionNames(readTemplate), "a linked field's own option must not appear on the template")
+	})
+
+	t.Run("unlinking a field keeps the options it was deriving", func(t *testing.T) {
+		optA := map[string]any{"id": model.NewId(), "name": "A"}
+		optB := map[string]any{"id": model.NewId(), "name": "B"}
+		template := newSelectField(t, "UnlinkTemplate", []any{optA, optB})
+
+		linked, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "UnlinkLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         model.StringInterface{"options": []any{optA, optB}},
+		})
+		require.NoError(t, err)
+		require.Zero(t, countOwnedOptions(t, linked.ID))
+
+		// Unlinking takes over the derived options under the IDs the field's
+		// property values already point at, and leaves the template's alone.
+		linked.LinkedFieldID = nil
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{linked}, nil)
+		require.NoError(t, err)
+
+		require.Equal(t, 2, countOwnedOptions(t, linked.ID))
+		require.Equal(t, 2, countOwnedOptions(t, template.ID))
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		require.NoError(t, err)
+		require.Equal(t, []string{"A", "B"}, optionNames(read))
+
+		readIDs := []string{}
+		for _, raw := range read.Attrs["options"].([]any) {
+			readIDs = append(readIDs, raw.(map[string]any)["id"].(string))
+		}
+		require.Equal(t, []string{optA["id"].(string), optB["id"].(string)}, readIDs)
+	})
+
+	t.Run("a type that carries no options keeps its attrs untouched", func(t *testing.T) {
+		// Nothing ever read "options" on a text field, so whatever sits there is
+		// not an option list and must not be moved or dropped.
+		attrs := model.StringInterface{"options": []any{"not", "an", "object"}, "value_type": "email"}
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "TextWithOptionsKey-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      attrs,
+		})
+		require.NoError(t, err)
+
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		written, err := json.Marshal(attrs)
+		require.NoError(t, err)
+		readBack, err := json.Marshal(read.Attrs)
+		require.NoError(t, err)
+		require.JSONEq(t, string(written), string(readBack))
+		require.Zero(t, countOwnedOptions(t, field.ID))
 	})
 }

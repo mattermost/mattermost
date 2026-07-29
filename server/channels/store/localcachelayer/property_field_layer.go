@@ -29,8 +29,8 @@ func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.Pro
 	}
 
 	// The returned slice includes both the requested fields and any linked
-	// fields the store propagated to. Invalidate each distinct group so all
-	// affected GetForGroup caches are cleared.
+	// fields whose derived option list the update changed. Invalidate each
+	// distinct group so all affected GetForGroup caches are cleared.
 	invalidated := make(map[string]bool, len(updated))
 	for _, field := range updated {
 		if invalidated[field.GroupID] {

@@ -283,7 +283,7 @@ func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss sto
 }
 
 // testAttributesStoreEmptyMultiselect pins the fail-closed contract for
-// multiselect attributes (migration 000212): an empty multiselect resolves to
+// multiselect attributes (migration 000213): an empty multiselect resolves to
 // NULL in the matview, never an empty array. The view builds the value with
 // jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
 // NULL — there is no NULLIF/COALESCE. A refactor that wrapped it in

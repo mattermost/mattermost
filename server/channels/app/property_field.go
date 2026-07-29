@@ -399,7 +399,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	// Broadcast websocket events for both requested and propagated fields
+	// Broadcast websocket events for the requested fields and for the linked
+	// fields whose derived option list changed with them
 	for _, field := range updated {
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
 	}

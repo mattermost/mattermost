@@ -39,10 +39,10 @@ type PropertyHook interface {
 	PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
 
-	// PostUpdatePropertyFields runs after a successful field update (including
-	// the linked-field propagation pass). It receives the pre-update state of
-	// the requested fields (parallel to requested), the post-update requested
-	// fields, and the post-update propagated fields. Hooks may transform attrs
+	// PostUpdatePropertyFields runs after a successful field update. It receives
+	// the pre-update state of the requested fields (parallel to requested), the
+	// post-update requested fields, and the linked fields whose derived option
+	// list the update changed (the propagated bucket). Hooks may transform attrs
 	// on either bucket (e.g. redact information for the caller); the
 	// dispatcher enforces cardinality preservation on both buckets so a buggy
 	// hook that drops fields surfaces an error rather than silently truncating

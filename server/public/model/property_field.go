@@ -592,6 +592,20 @@ func (pf *PropertyField) GetAttr(key string) any {
 
 const PropertyFieldAttributeOptions = "options"
 
+// A field's options are stored as rows and inlined into
+// Attrs[PropertyFieldAttributeOptions] when the field is read. Past
+// PropertyFieldMaxHydratedOptions that would be an unbounded amount of JSON on
+// every field listing, so the options are left out and replaced by these two
+// keys: the number of options the field actually has, and a marker saying the
+// list was withheld rather than empty. Never an error — a field with too many
+// options must still list.
+const (
+	PropertyFieldAttributeOptionsCount   = "options_count"
+	PropertyFieldAttributeOptionsOmitted = "options_omitted"
+
+	PropertyFieldMaxHydratedOptions = 1000
+)
+
 type PropertyOption interface {
 	GetID() string
 	GetName() string

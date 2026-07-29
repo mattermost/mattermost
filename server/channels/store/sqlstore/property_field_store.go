@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -46,13 +45,30 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
 	}
 
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_create_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
 		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
+	}
+
+	// The field's options become rows of their own. A field linking to a
+	// template is created holding a copy of that template's option list, and
+	// those options stay owned by the template.
+	if _, err = s.syncPropertyFieldOptions(transaction, []*model.PropertyField{field}, field.CreateAt); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_options")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_commit_transaction")
 	}
 
 	return field, nil
@@ -65,12 +81,18 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	db := s.DBXFromContext(ctx)
+
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := db.GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
 		return nil, errors.Wrap(err, "property_field_get_select")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, []*model.PropertyField{&field}); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_hydrate_options")
 	}
 
 	return &field, nil
@@ -106,12 +128,18 @@ func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string)
 }
 
 func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
+	db := s.DBXFromContext(ctx)
+
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := db.GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", name)
 		}
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, []*model.PropertyField{&field}); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_by_name_hydrate_options")
 	}
 
 	return &field, nil
@@ -124,13 +152,19 @@ func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	db := s.DBXFromContext(ctx)
+
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := db.SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
 	}
 
 	if len(fields) < len(ids) {
 		return nil, store.NewErrResultsMismatch(len(fields), len(ids))
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_many_hydrate_options")
 	}
 
 	return fields, nil
@@ -195,9 +229,15 @@ func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string)
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"DeleteAt": 0})
 
+	db := s.DBXFromContext(ctx)
+
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := db.SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_for_group_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_for_group_hydrate_options")
 	}
 
 	return fields, nil
@@ -336,6 +376,10 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		return nil, errors.Wrap(err, "property_field_search_query")
 	}
 
+	if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_search_hydrate_options")
+	}
+
 	return fields, nil
 }
 
@@ -378,7 +422,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		whenID := sq.Expr("?", field.ID)
 		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
 		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", storedFieldAttrs(field)))
 		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
 		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
 		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
@@ -444,61 +488,39 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
 	}
 
-	// Propagate type and options from updated source fields to all their
-	// linked dependents. This self-joins PropertyFields: "source" is the
-	// row we just updated, "linked" is any row whose LinkedFieldID points
-	// to it. Only rows where type or options actually differ are touched,
-	// so this is a no-op when none of the updated fields have dependents.
-	//
-	// We build the query manually because squirrel doesn't support
-	// PostgreSQL's UPDATE ... FROM syntax, and use ExecRaw because the
-	// placeholders are already in $N format (Exec would try to rebind them).
-	//
-	// For ids = ["aaa", "bbb"] the args and SQL expand to:
-	//   propagateArgs = [updateTime, "aaa", "bbb"]  →  $1, $2, $3
-	//   SQL: ... WHERE source.ID IN ($2, $3) ... UpdateAt = $1
-	inPlaceholders := make([]string, len(ids))
-	propagateArgs := make([]any, 0, len(ids)+1)
-	propagateArgs = append(propagateArgs, updateTime)
-	for i, id := range ids {
-		inPlaceholders[i] = fmt.Sprintf("$%d", i+2)
-		propagateArgs = append(propagateArgs, id)
+	// Bring each field's option rows in line with the option list it was
+	// submitted with.
+	changedFieldIDs, err := s.syncPropertyFieldOptions(transaction, fields, updateTime)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_options")
 	}
 
-	propagateSQL := fmt.Sprintf(`
-UPDATE PropertyFields AS linked
-   SET Type = source.Type,
-       Attrs = jsonb_set(COALESCE(linked.Attrs, '{}'::jsonb), '{options}',
-                         COALESCE(source.Attrs->'options', '[]'::jsonb)),
-       UpdateAt = $1
-  FROM PropertyFields AS source
- WHERE source.ID IN (%s)
-   AND linked.LinkedFieldID = source.ID
-   AND linked.DeleteAt = 0
-   AND (linked.Type != source.Type
-        OR linked.Attrs->'options' IS DISTINCT FROM source.Attrs->'options')
-`, strings.Join(inPlaceholders, ", "))
+	// A field that links to a template derives that template's options rather
+	// than holding a copy of them, so changing a template's options changes what
+	// every dependent serves without touching a single dependent row. Return the
+	// dependents anyway: a caller broadcasting these fields has to tell the
+	// dependents' clients that their option list moved.
+	var dependents []*model.PropertyField
+	if len(changedFieldIDs) > 0 {
+		selectBuilder := s.tableSelectQuery.
+			Where(sq.Eq{"LinkedFieldID": changedFieldIDs}).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Where(sq.NotEq{"ID": ids})
 
-	if _, execErr := transaction.ExecRaw(propagateSQL, propagateArgs...); execErr != nil {
-		return nil, errors.Wrap(execErr, "property_field_update_propagate")
+		if selectErr := transaction.SelectBuilder(&dependents, selectBuilder); selectErr != nil {
+			return nil, errors.Wrap(selectErr, "property_field_update_select_dependents")
+		}
+
+		if hydrateErr := s.hydratePropertyFieldOptions(transaction, dependents); hydrateErr != nil {
+			return nil, errors.Wrap(hydrateErr, "property_field_update_hydrate_dependents")
+		}
 	}
 
-	// Retrieve propagated linked fields to include in the return value
-	selectBuilder := s.tableSelectQuery.
-		Where(sq.Eq{"LinkedFieldID": ids}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.Eq{"UpdateAt": updateTime})
-
-	var propagatedFields []*model.PropertyField
-	if selectErr := transaction.SelectBuilder(&propagatedFields, selectBuilder); selectErr != nil {
-		return nil, errors.Wrap(selectErr, "property_field_update_select_propagated")
-	}
-
-	if err := transaction.Commit(); err != nil {
+	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
 
-	return append(fields, propagatedFields...), nil
+	return append(fields, dependents...), nil
 }
 
 func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
