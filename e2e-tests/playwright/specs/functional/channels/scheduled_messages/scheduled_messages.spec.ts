@@ -697,6 +697,11 @@ async function verifyScheduledPost(
     // * Verify scheduled posts page is visible
     await scheduledPostsPage.toBeVisible();
 
+    // Clear hover and focus (e.g. left behind by the reschedule modal); the panel hides its
+    // timestamp/tag info section while hovered or focused.
+    await scheduledPostsPage.page.mouse.move(0, 0);
+    await scheduledPostsPage.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+
     // * Verify scheduled post badge on tab has correct count
     expect(await scheduledPostsPage.getBadgeCountOnTab()).toBe(badgeCountOnTab.toString());
 
