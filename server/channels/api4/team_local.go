@@ -234,20 +234,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
-		var deactivatedEmailList []string
-		for _, emailAddr := range emailList {
-			deactivated, userErr := c.App.IsDeactivatedUserEmail(emailAddr)
-			if userErr != nil {
-				c.Err = userErr
-				return
-			}
-			if deactivated {
-				deactivatedEmailList = append(deactivatedEmailList, emailAddr)
-			}
-		}
-		if len(deactivatedEmailList) > 0 {
-			s := strings.Join(deactivatedEmailList, ", ")
-			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+		if c.Err = c.App.CheckForDeactivatedInvites("localInviteUsersToTeam", emailList); c.Err != nil {
 			return
 		}
 

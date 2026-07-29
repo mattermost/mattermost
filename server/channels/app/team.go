@@ -1571,9 +1571,9 @@ func (a *App) IsDeactivatedUserEmail(email string) (bool, *model.AppError) {
 	return existingUser.DeleteAt != 0, nil
 }
 
-// checkForDeactivatedInvites returns an error if any email belongs to a
+// CheckForDeactivatedInvites returns an error if any email belongs to a
 // deactivated account. where identifies the caller in the returned AppError.
-func (a *App) checkForDeactivatedInvites(where string, emailList []string) *model.AppError {
+func (a *App) CheckForDeactivatedInvites(where string, emailList []string) *model.AppError {
 	var deactivatedEmailList []string
 	for _, email := range emailList {
 		deactivated, userErr := a.IsDeactivatedUserEmail(email)
@@ -1926,7 +1926,7 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	if err = a.checkForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
+	if err = a.CheckForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
 		return err
 	}
 
@@ -1976,7 +1976,7 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	if err = a.checkForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
+	if err = a.CheckForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
 		return err
 	}
 
