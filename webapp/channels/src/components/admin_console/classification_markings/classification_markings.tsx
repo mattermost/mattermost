@@ -570,14 +570,19 @@ export default function ClassificationMarkings({disabled}: Props) {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <InformationNoticeWrapper>
-                    <SectionNotice
-                        type='warning'
-                        iconOverride='icon-information-outline'
-                        title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
-                        text={formatMessage(msg.informationalNoticeBody)}
-                    />
-                </InformationNoticeWrapper>
+                {/* Only true while nothing enforces the levels. The clearance attribute
+                    feeds a membership policy, so once it is on the markings do decide
+                    access and this notice would contradict the section below. */}
+                {!clearanceEnabled && (
+                    <InformationNoticeWrapper>
+                        <SectionNotice
+                            type='warning'
+                            iconOverride='icon-information-outline'
+                            title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
+                            text={formatMessage(msg.informationalNoticeBody)}
+                        />
+                    </InformationNoticeWrapper>
+                )}
                 <form
                     className='form-horizontal'
                     onSubmit={(e) => e.preventDefault()}

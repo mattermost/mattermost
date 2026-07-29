@@ -502,6 +502,44 @@ describe('ClassificationMarkings component', () => {
         ).toBeInTheDocument();
     });
 
+    test('should hide the informational notice while the clearance attribute is enabled', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Clearance exists, so the levels are enforced and the notice is untrue.
+        // Second user-object-type page comes back empty to end pagination.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByText('Classification Enforcement');
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(
+            screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
+        ).not.toBeInTheDocument();
+
+        // ...and it comes back the moment enforcement is turned off again.
+        await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
+        expect(
+            await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
+        ).toBeInTheDocument();
+        await act(async () => {});
+    });
+
     test('should render disabled state when no existing field', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
