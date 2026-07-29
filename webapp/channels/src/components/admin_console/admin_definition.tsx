@@ -768,6 +768,17 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'bool',
+                                    key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                                        it.clientConfigIsFalse('AuditLoggingActive'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
                                     key: 'AccessControlSettings.EnableChannelPolicyIndicators',
                                     label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
