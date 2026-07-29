@@ -42,5 +42,10 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}
 
+	// Clean up any remaining tokens for this user (e.g. from multiple concurrent login attempts).
+	if deleteErr := a.Srv().Store().DesktopTokens().DeleteByUserId(*userId); deleteErr != nil {
+		a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
+	}
+
 	return user, nil
 }
