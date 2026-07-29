@@ -863,6 +863,7 @@ const defaultServerConfig: AdminConfig = {
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
+        EnableAccessControlAuditLogging: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
