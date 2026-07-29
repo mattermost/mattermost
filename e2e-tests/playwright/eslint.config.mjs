@@ -19,7 +19,15 @@ eslintPluginHeader.rules.header.meta.schema = false;
 
 export default [
     {
-        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: [
+            '**/node_modules',
+            '**/dist',
+            '**/playwright-report',
+            '**/test-results',
+            '**/results',
+            'lib/src/containers/assets/webhook/tests/**',
+            'lib/src/containers/assets/webhook/**',
+        ],
     },
     ...compat
         .extends('eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended')
@@ -51,6 +59,7 @@ export default [
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'no-console': 'error',
             'header/header': [
                 'error',
