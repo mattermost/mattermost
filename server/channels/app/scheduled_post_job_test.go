@@ -61,7 +61,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
 		scheduledAt := model.GetMillis() - 1000
-		scheduledPost1 := &model.ScheduledPost{
+		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
 				UserId:    th.BasicUser.Id,
@@ -72,7 +72,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 		assert.NoError(t, err)
 		require.NotNil(t, created)
 
@@ -83,7 +83,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 		require.NotNil(t, updated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
 		assert.Equal(t, "UTC", updated.RepeatTimezone)
-		assert.Equal(t, "", updated.ErrorCode)
+		assert.Empty(t, updated.ErrorCode)
 		assert.Zero(t, updated.ProcessedAt)
 
 		const weekMs = int64(7 * 24 * 60 * 60 * 1000)

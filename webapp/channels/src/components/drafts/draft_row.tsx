@@ -76,7 +76,7 @@ function DraftRow({
     const [isEditing, setIsEditing] = useState(false);
 
     const isScheduledPost = 'scheduled_at' in item;
-    const isWeeklyRecurringScheduledPost = isScheduledPost && isRecurringScheduledPost(item as ScheduledPost);
+    const isWeeklyRecurringScheduledPost = isScheduledPost && isRecurringScheduledPost(item);
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;

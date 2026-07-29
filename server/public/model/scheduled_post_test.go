@@ -79,6 +79,79 @@ func TestScheduledPostBaseIsValid(t *testing.T) {
 		assert.Equal(t, "model.scheduled_post.is_valid.processed_at.app_error", err.Id)
 	})
 
+	t.Run("invalid repeat type", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+			},
+			Id:          NewId(),
+			ScheduledAt: GetMillis() + 100000,
+			RepeatType:  "daily",
+		}
+		err := s.BaseIsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.scheduled_post.is_valid.repeat_type.app_error", err.Id)
+	})
+
+	t.Run("weekly repeat requires a timezone", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+			},
+			Id:          NewId(),
+			ScheduledAt: GetMillis() + 100000,
+			RepeatType:  ScheduledPostRepeatTypeWeekly,
+		}
+		err := s.BaseIsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.scheduled_post.is_valid.repeat_timezone.app_error", err.Id)
+	})
+
+	t.Run("weekly repeat requires a valid timezone", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+			},
+			Id:             NewId(),
+			ScheduledAt:    GetMillis() + 100000,
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "Not/AZone",
+		}
+		err := s.BaseIsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", err.Id)
+	})
+
+	t.Run("valid weekly repeat", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+			},
+			Id:             NewId(),
+			ScheduledAt:    GetMillis() + 100000,
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "Europe/Berlin",
+		}
+		err := s.BaseIsValid()
+		require.Nil(t, err)
+	})
+
 	t.Run("valid with message", func(t *testing.T) {
 		s := ScheduledPost{
 			Draft: Draft{

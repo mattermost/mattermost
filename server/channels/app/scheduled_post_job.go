@@ -363,9 +363,8 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 }
 
 // handleSuccessfulScheduledPosts advances recurring scheduled posts to their next occurrence and
-// permanently deletes completed ones (posted one-shots, and posts whose channel no longer exists).
-// The two operations touch disjoint rows and run independently, so a store failure in one can't
-// cause reposts in the other.
+// permanently deletes completed ones. The two operations touch disjoint rows and run
+// independently, so a store failure in one can't cause reposts in the other.
 func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, completedScheduledPosts, recurringScheduledPosts []*model.ScheduledPost) error {
 	var errs []error
 
