@@ -26,6 +26,7 @@ export default [
             '**/test-results',
             '**/results',
             'lib/src/containers/assets/webhook/tests/**',
+            'lib/src/containers/assets/webhook/**',
         ],
     },
     ...compat
@@ -58,6 +59,7 @@ export default [
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'no-console': 'error',
             'header/header': [
                 'error',
