@@ -228,6 +228,61 @@ const DEPLOYMENT_GROUPS = {
     ],
   },
 
+  // Scaling Architecture — moved here (physically, from
+  // administration-guide/scale/) to mirror Sphinx's live nav, where this
+  // whole cluster (capacity planning, HA/architecture, search infra, caching)
+  // sits under Reference Architecture as a sibling of Application
+  // Architecture. `scaling-for-enterprise` is the general entry point
+  // referencing the sub-groups below, so it's the group's landing page.
+  scaling: {
+    label: 'Scaling Architecture',
+    landing: 'reference-architecture/scale/scaling-for-enterprise',
+    items: [
+      {label: 'Capacity Planning', items: [
+        'reference-architecture/scale/scale-to-200-users',
+        'reference-architecture/scale/scale-to-2000-users',
+        'reference-architecture/scale/scale-to-15000-users',
+        'reference-architecture/scale/scale-to-30000-users',
+        'reference-architecture/scale/scale-to-50000-users',
+        'reference-architecture/scale/scale-to-80000-users',
+        'reference-architecture/scale/scale-to-90000-users',
+        'reference-architecture/scale/scale-to-100000-users',
+        'reference-architecture/scale/scale-to-200000-users',
+        'reference-architecture/scale/estimated-storage-per-user-per-month',
+        'reference-architecture/scale/backing-storage-benchmarks',
+        'reference-architecture/scale/lifetime-storage',
+        'reference-architecture/scale/additional-ha-considerations',
+      ]},
+      {label: 'High Availability & Architecture', items: [
+        'reference-architecture/scale/high-availability-cluster-based-deployment',
+        'reference-architecture/scale/server-architecture',
+      ]},
+      {label: 'Search Infrastructure', landing: 'reference-architecture/scale/enterprise-search', items: [
+        'reference-architecture/scale/elasticsearch-setup',
+        'reference-architecture/scale/opensearch-setup',
+        'reference-architecture/scale/common-configure-mattermost-for-enterprise-search',
+      ]},
+      {label: 'Caching', items: [
+        'reference-architecture/scale/redis',
+      ]},
+    ],
+  },
+
+  // Calls Deployment & Configuration — moved here from Administration
+  // Guide → Configure. RTCD, Offloader, Kubernetes, logging, and metrics
+  // are deployment/operations concerns, not settings-reference material.
+  calls: {
+    label: 'Calls Deployment & Configuration',
+    landing: 'calls/calls-deployment-guide',
+    items: [
+      'calls/calls-rtcd-setup',
+      'calls/calls-offloader-setup',
+      'calls/calls-kubernetes',
+      'calls/calls-logging',
+      'calls/calls-metrics-monitoring',
+    ],
+  },
+
   // Backup & Disaster Recovery — group the two related pages.
   backupDr: {
     label: 'Backup & Disaster Recovery',
@@ -279,6 +334,8 @@ const DEPLOYMENT_ROOT_ORDER = [
   {group: 'deploymentScenarios'},
   'deployment-architecture',
   {group: 'server'},
+  {group: 'scaling'},
+  {group: 'calls'},
   // Desktop, Mobile, Air-Gapped Operations keep their auto-generated trees
   // (each has its own index file + sub-pages). Referenced by the `__auto__`
   // sentinel so we slot them in here, in the order we want.
@@ -317,8 +374,8 @@ const DEPLOYMENT_HIDDEN = new Set([
 //
 // Configure is a flat 34-file settings-reference dump. This override groups
 // it by task/subsystem so the ~12 "*-configuration-settings" reference pages
-// don't drown the handful of task-oriented pages (Search, Calls, Storage,
-// Email, Billing, Branding) sitting alongside them at the same level.
+// don't drown the handful of task-oriented pages (Search, Email, Billing,
+// Branding) sitting alongside them at the same level.
 //
 // AI Agents Configuration is deliberately kept as its own standalone,
 // un-grouped top-level entry (not folded into a "misc/optional" bucket) —
@@ -348,25 +405,6 @@ const ADMIN_CONFIGURE_GROUPS = {
     items: [
       'bleve-search',
       'enabling-chinese-japanese-korean-search',
-    ],
-  },
-  calls: {
-    label: 'Calls Deployment & Configuration',
-    landing: 'calls-deployment-guide',
-    items: [
-      'calls-rtcd-setup',
-      'calls-offloader-setup',
-      'calls-kubernetes',
-      'calls-logging',
-      'calls-metrics-monitoring',
-    ],
-  },
-  storage: {
-    label: 'Storage & Database',
-    items: [
-      'configuration-in-your-database',
-      'azure-blob-storage',
-      'environment-variables',
     ],
   },
   email: {
@@ -418,8 +456,9 @@ const ADMIN_CONFIGURE_ORDER = [
   {group: 'settingsReference'},
   {group: 'search'},
   {group: 'agents'},
-  {group: 'calls'},
-  {group: 'storage'},
+  'configuration-in-your-database',
+  'environment-variables',
+  'azure-blob-storage',
   {group: 'email'},
   {group: 'billing'},
   {group: 'branding'},
@@ -438,9 +477,6 @@ const ADMIN_CONFIGURE_HIDDEN = new Set([
   'rate-limiting-configuration-settings', 'push-notification-server-configuration-settings',
   'experimental-configuration-settings', 'deprecated-configuration-settings',
   'bleve-search', 'enabling-chinese-japanese-korean-search',
-  'calls-rtcd-setup', 'calls-offloader-setup', 'calls-kubernetes',
-  'calls-logging', 'calls-metrics-monitoring',
-  'configuration-in-your-database', 'azure-blob-storage', 'environment-variables',
   'smtp-email', 'email-templates',
   'self-hosted-account-settings', 'cloud-billing-account-settings',
   'custom-branding-tools', 'customize-mattermost', 'optimize-your-workspace',
@@ -700,6 +736,153 @@ const COLLABORATE_HIDDEN = new Set([
   'keyboard-shortcuts', 'team-keyboard-shortcuts', 'keyboard-accessibility',
   'view-system-information',
 ]);
+
+// ---------------------------------------------------------------------------
+// Administration Guide — Onboard — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Onboard is a flat 34-file dump spanning SSO/identity setup, guest/admin
+// permissions, user provisioning, and one-time migration tasks. All SSO and
+// identity-provider protocols (SAML, OIDC, Google, GitLab, Entra ID native,
+// OAuth->OIDC conversion, AD/LDAP) live under one "SSO & Identity" group;
+// SAML is nested as its own sub-category within it since it alone accounts
+// for 11 of those files (one per IdP plus FAQ/technical docs).
+
+const ADMIN_ONBOARD_GROUPS = {
+  sso: {
+    label: 'SSO & Identity',
+    items: [
+      {
+        label: 'SAML Single Sign-On',
+        landing: 'sso-saml',
+        items: [
+          'sso-saml-before-you-begin',
+          'sso-saml-adfs',
+          'sso-saml-adfs-msws2016',
+          'sso-saml-entraid',
+          'sso-saml-keycloak',
+          'sso-saml-ldapsync',
+          'sso-saml-okta',
+          'sso-saml-onelogin',
+          'sso-saml-technical',
+          'sso-saml-faq',
+        ],
+      },
+      'sso-openidconnect',
+      'sso-google',
+      'sso-gitlab',
+      'sso-entraid',
+      'convert-oauth20-service-providers-to-openidconnect',
+      'common-converting-oauth-to-openidconnect',
+      'ad-ldap',
+      'ad-ldap-groups-synchronization',
+      'managing-team-channel-membership-using-ad-ldap-sync-groups',
+    ],
+  },
+  mfaCert: {
+    label: 'Multi-Factor & Certificate-Based Authentication',
+    items: [
+      'multi-factor-authentication',
+      'certificate-based-authentication',
+      'ssl-client-certificate',
+    ],
+  },
+  userManagement: {
+    label: 'User Management',
+    items: [
+      'guest-accounts',
+      'delegated-granular-administration',
+      'advanced-permissions',
+      'advanced-permissions-backend-infrastructure',
+    ],
+  },
+  provisioning: {
+    label: 'User Provisioning & Bulk Data',
+    items: [
+      'user-provisioning-workflows',
+      'bulk-loading-data',
+      'connected-workspaces',
+    ],
+  },
+  migration: {
+    label: 'Migrating to Mattermost',
+    landing: 'migrating-to-mattermost',
+    items: [
+      'migrate-from-slack',
+      'migrate-gitlab-omnibus',
+      'migration-announcement-email',
+    ],
+  },
+};
+
+// Top-level Onboard order. Identity/auth setup first (SSO, then MFA/cert),
+// then user management, then provisioning/bulk data, then the one-time
+// migration tasks admins hit least often.
+const ADMIN_ONBOARD_ORDER = [
+  {group: 'sso'},
+  {group: 'mfaCert'},
+  {group: 'userManagement'},
+  {group: 'provisioning'},
+  {group: 'migration'},
+];
+
+// Files re-parented into groups — exclude from the orphan check. Every
+// Onboard file lives in a group (no standalone top-level docs), so this
+// covers all 34.
+const ADMIN_ONBOARD_HIDDEN = new Set([
+  'sso-saml', 'sso-saml-before-you-begin', 'sso-saml-adfs', 'sso-saml-adfs-msws2016',
+  'sso-saml-entraid', 'sso-saml-keycloak', 'sso-saml-ldapsync', 'sso-saml-okta',
+  'sso-saml-onelogin', 'sso-saml-technical', 'sso-saml-faq',
+  'sso-openidconnect', 'sso-google', 'sso-gitlab', 'sso-entraid',
+  'convert-oauth20-service-providers-to-openidconnect', 'common-converting-oauth-to-openidconnect',
+  'ad-ldap', 'ad-ldap-groups-synchronization', 'managing-team-channel-membership-using-ad-ldap-sync-groups',
+  'multi-factor-authentication', 'certificate-based-authentication', 'ssl-client-certificate',
+  'guest-accounts', 'delegated-granular-administration', 'advanced-permissions',
+  'advanced-permissions-backend-infrastructure',
+  'user-provisioning-workflows', 'bulk-loading-data', 'connected-workspaces',
+  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-gitlab-omnibus',
+  'migration-announcement-email',
+]);
+
+// ---------------------------------------------------------------------------
+// Administration Guide — Scale — manual grouping override.
+// ---------------------------------------------------------------------------
+//
+// Scale was originally a flat 28-file dump mixing a whole run of
+// `scale-to-N-users` capacity-planning pages with unrelated HA, search, and
+// monitoring topics. In Sphinx's live nav, only the 7 monitoring/observability
+// pages below actually stay under Administration Guide — the other 21 files
+// (capacity planning, HA/architecture, search infrastructure, caching) are
+// listed under Deployment Guide → Reference Architecture instead (Sphinx
+// decouples toctree/nav placement from a page's physical file location, so
+// those files keep their `/administration-guide/scale/...` URLs there even
+// though they're navigated to from Deployment Guide). We mirror that split
+// here by physically moving those 21 files to
+// `deployment-guide/reference-architecture/scale/` (see the `scaling` group
+// in DEPLOYMENT_GROUPS), leaving only the 7 monitoring pages here. With just
+// one theme left, they're listed flat rather than wrapped in a redundant
+// "Observability & Monitoring" sub-category one level above itself.
+
+// Empty for now — kept (rather than removed) so buildAdminScaleItem's
+// `{group: '...'}` branch still throws a clear "unknown admin scale group"
+// error instead of a raw ReferenceError if a themed sub-group is needed here
+// again in the future (e.g. if Scale grows past this one theme).
+const ADMIN_SCALE_GROUPS = {};
+
+const ADMIN_SCALE_ORDER = [
+  'deploy-prometheus-grafana-for-performance-monitoring',
+  'collect-performance-metrics',
+  'performance-monitoring-metrics',
+  'performance-alerting',
+  'deploy-grafana-loki-for-centralized-logging',
+  'push-notification-health-targets',
+  'ensuring-releases-perform-at-scale',
+];
+
+// Files re-parented into groups — exclude from the orphan check. Empty now
+// that Scale's 7 remaining files are listed flat (directly known via
+// ADMIN_SCALE_ORDER) rather than nested inside a sub-group.
+const ADMIN_SCALE_HIDDEN = new Set([]);
 
 // ---------------------------------------------------------------------------
 // Integrations Guide — manual grouping override.
@@ -1177,9 +1360,115 @@ function regroupAdminManage(manageCat) {
   return manageCat;
 }
 
+function buildAdminOnboardItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/onboard/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.group) {
+    const g = ADMIN_ONBOARD_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin onboard group: ${spec.group}`);
+    return buildAdminOnboardGroup(g, leafLabels);
+  }
+  return buildAdminOnboardGroup(spec, leafLabels);
+}
+
+function buildAdminOnboardGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminOnboardItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/onboard/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Onboard" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories)
+// with the manual grouping above.
+function regroupAdminOnboard(onboardCat) {
+  const leafLabels = collectLeafLabels(onboardCat);
+  const items = ADMIN_ONBOARD_ORDER.map((spec) => buildAdminOnboardItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_ONBOARD_HIDDEN) hiddenIds.add(`administration-guide/onboard/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Onboard file(s) missing from ADMIN_ONBOARD_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  onboardCat.items = items;
+  return onboardCat;
+}
+
+function buildAdminScaleItem(spec, leafLabels) {
+  if (typeof spec === 'string') {
+    const id = `administration-guide/scale/${spec}`;
+    return {type: 'doc', id, label: leafLabels[id] || humanize(spec.split('/').pop())};
+  }
+  if (spec.group) {
+    const g = ADMIN_SCALE_GROUPS[spec.group];
+    if (!g) throw new Error(`unknown admin scale group: ${spec.group}`);
+    return buildAdminScaleGroup(g, leafLabels);
+  }
+  return buildAdminScaleGroup(spec, leafLabels);
+}
+
+function buildAdminScaleGroup(g, leafLabels) {
+  const items = g.items.map((it) => buildAdminScaleItem(it, leafLabels));
+  const cat = {type: 'category', label: g.label, collapsed: true, items};
+  if (g.landing) cat.link = {type: 'doc', id: `administration-guide/scale/${g.landing}`};
+  return cat;
+}
+
+// Replace the auto-generated "Scale" sub-category's items (in place,
+// preserving its position among Administration Guide's other sub-categories)
+// with the manual grouping above.
+function regroupAdminScale(scaleCat) {
+  const leafLabels = collectLeafLabels(scaleCat);
+  const items = ADMIN_SCALE_ORDER.map((spec) => buildAdminScaleItem(spec, leafLabels));
+
+  const known = new Set();
+  (function walk(n) {
+    if (Array.isArray(n)) n.forEach(walk);
+    else if (n && typeof n === 'object') {
+      if (n.type === 'doc' && n.id) known.add(n.id);
+      if (n.link && n.link.id) known.add(n.link.id);
+      if (n.items) walk(n.items);
+    }
+  })(items);
+  const hiddenIds = new Set();
+  for (const h of ADMIN_SCALE_HIDDEN) hiddenIds.add(`administration-guide/scale/${h}`);
+  const orphans = [];
+  for (const id of Object.keys(leafLabels)) {
+    if (!known.has(id) && !hiddenIds.has(id)) orphans.push(id);
+  }
+  if (orphans.length > 0) {
+    console.warn(`[sidebar] WARN: ${orphans.length} Scale file(s) missing from ADMIN_SCALE_ORDER — falling through to root:`);
+    for (const id of orphans) console.warn(`  - ${id}`);
+    for (const id of orphans) items.push({type: 'doc', id, label: leafLabels[id]});
+  }
+
+  scaleCat.items = items;
+  return scaleCat;
+}
+
 function buildAdminGuideSidebar(autoCat) {
   let foundConfigure = false;
   let foundManage = false;
+  let foundOnboard = false;
+  let foundScale = false;
   for (const it of autoCat.items) {
     if (it.type !== 'category') continue;
     let dirName = null;
@@ -1196,6 +1485,12 @@ function buildAdminGuideSidebar(autoCat) {
     } else if (dirName === 'manage') {
       regroupAdminManage(it);
       foundManage = true;
+    } else if (dirName === 'onboard') {
+      regroupAdminOnboard(it);
+      foundOnboard = true;
+    } else if (dirName === 'scale') {
+      regroupAdminScale(it);
+      foundScale = true;
     }
   }
   if (!foundConfigure) {
@@ -1203,6 +1498,12 @@ function buildAdminGuideSidebar(autoCat) {
   }
   if (!foundManage) {
     console.warn('[sidebar] WARN: Administration Guide "Manage" sub-category not found — ADMIN_MANAGE_GROUPS override was not applied.');
+  }
+  if (!foundOnboard) {
+    console.warn('[sidebar] WARN: Administration Guide "Onboard" sub-category not found — ADMIN_ONBOARD_GROUPS override was not applied.');
+  }
+  if (!foundScale) {
+    console.warn('[sidebar] WARN: Administration Guide "Scale" sub-category not found — ADMIN_SCALE_GROUPS override was not applied.');
   }
   return autoCat;
 }

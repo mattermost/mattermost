@@ -16,13 +16,13 @@ Mattermost database search starts to show performance degradation at around 2 mi
 
 Elasticsearch is a well-established and widely used search engine with a large ecosystem and community support that provides enterprise-scale deployments with optimized search performance, dedicated indexing, and usage resourcing via cluster support for fast, predicable search results.
 
-Mattermost's implementation uses [Elasticsearch](https://www.elastic.co) as a distributed, RESTful search engine supporting highly efficient database searches in a [cluster environment](/administration-guide/scale/high-availability-cluster-based-deployment). Learn more about [setting up and configuring Mattermost for an Elasticsearch server](/administration-guide/scale/elasticsearch-setup).
+Mattermost's implementation uses [Elasticsearch](https://www.elastic.co) as a distributed, RESTful search engine supporting highly efficient database searches in a [cluster environment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment). Learn more about [setting up and configuring Mattermost for an Elasticsearch server](/deployment-guide/reference-architecture/scale/elasticsearch-setup).
 
 ## AWS OpenSearch Service
 
 AWS OpenSearch Service is the official path forward from Elasticsearch v7.10.x for AWS customers. It's a fully managed service that makes it easy to deploy, operate, and scale OpenSearch clusters in the AWS Cloud to provide a simple and cost-effective way to search, analyze, and visualize data in real time.
 
-The AWS OpenSearch Service is built on the open-source OpenSearch project, which is a community-driven fork of Elasticsearch. Learn more about [setting up and configuring Mattermost for an OpenSearch server](/administration-guide/scale/opensearch-setup).
+The AWS OpenSearch Service is built on the open-source OpenSearch project, which is a community-driven fork of Elasticsearch. Learn more about [setting up and configuring Mattermost for an OpenSearch server](/deployment-guide/reference-architecture/scale/opensearch-setup).
 
 ## Supported paths
 
@@ -31,12 +31,12 @@ Review the following support paths for enterprise search based on the version yo
 <Tabs>
 <TabItem value="elasticsearch-v9" label="Elasticsearch v9">
 
-[Elasticsearch v9](https://www.elastic.co/guide/en/elasticsearch/reference/current/elasticsearch-intro.html) is supported from Mattermost v11.7. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
+[Elasticsearch v9](https://www.elastic.co/guide/en/elasticsearch/reference/current/elasticsearch-intro.html) is supported from Mattermost v11.7. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
 
 </TabItem>
 <TabItem value="elasticsearch-v8" label="Elasticsearch v8">
 
-[Elasticsearch v8](https://www.elastic.co/guide/en/elasticsearch/reference/8.19/elasticsearch-intro.html) is supported from Mattermost v9.11. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
+[Elasticsearch v8](https://www.elastic.co/guide/en/elasticsearch/reference/8.19/elasticsearch-intro.html) is supported from Mattermost v9.11. We recommend upgrading to Elasticsearch v9 for the latest features and security updates. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
 
 <Note>
 
@@ -49,7 +49,7 @@ Elasticsearch v7.17 is no longer supported as of Mattermost v11.7. If you're sti
 
 AWS OpenSearch Service is the official path forward from Elasticsearch v7.10.x for AWS customers to provide a simple and cost-effective way to search, analyze, and visual data in real time. It's essentially a continuation of Elasticsearch v7.10.x but maintained as open source by AWS. It provides long-term support, active development, and compatibility with AWS clients, libraries, and managed services.
 
-See the **AWS Elasticsearch v7.10.x** tab on this page for details on upgrading to AWS OpenSearch, and see the [AWS OpenSearch setup](/administration-guide/scale/opensearch-setup) documentation for details on configuring your Mattermost deployment to use AWS OpenSearch.
+See the **AWS Elasticsearch v7.10.x** tab on this page for details on upgrading to AWS OpenSearch, and see the [AWS OpenSearch setup](/deployment-guide/reference-architecture/scale/opensearch-setup) documentation for details on configuring your Mattermost deployment to use AWS OpenSearch.
 
 </TabItem>
 <TabItem value="aws-elasticsearch-v7-10-x" label="AWS Elasticsearch v7.10.x">
