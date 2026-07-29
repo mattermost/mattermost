@@ -54,7 +54,8 @@ test('reports the same version as the server it is bundled with', {tag: '@mmctl'
     await pw.ensureMmctl();
 
     const {adminClient} = await pw.getAdminClient();
-    const serverConfig = await adminClient.getClientConfig();
+    // release-10.11 client still exposes this as getClientConfigOld (renamed to getClientConfig later)
+    const serverConfig = await adminClient.getClientConfigOld();
 
     // # Query the version reported by the remote mmctl container instance
     const result = await pw.runMmctl(['version', '--json']);
