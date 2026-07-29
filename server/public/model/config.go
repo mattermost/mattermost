@@ -4508,7 +4508,6 @@ func (s *TeamSettings) isValid() *AppError {
 }
 
 func (s *ExperimentalSettings) isValid() *AppError {
-
 	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
