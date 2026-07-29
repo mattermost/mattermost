@@ -5395,6 +5395,10 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
 
 	rctx := request.TestContext(t)
 
@@ -5438,6 +5442,10 @@ func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *t
 func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
 
 	rctx := request.TestContext(t)
 
@@ -5471,6 +5479,24 @@ func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing
 	require.Nil(t, appErr)
 	assert.False(t, contains(withoutFlag, channelField.ID),
 		"channel field must not appear without a channel scope or the flag")
+
+	// With the feature off, neither entry path offers a channel field. This is what
+	// keeps every editor from being able to author a resource rule, so assert both
+	// the request flag and a channel scope are powerless on their own.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = false
+	})
+
+	gatedByRequestFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByRequestFlag, channelField.ID),
+		"channel field must not appear via includeResourceFields while the feature is off")
+	assert.NotEmpty(t, gatedByRequestFlag, "user attributes must still be returned while the feature is off")
+
+	gatedByScope, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByScope, channelField.ID),
+		"channel field must not appear via a channel scope while the feature is off")
 }
 
 // Verify that the team join path (channelID="") produces a subject with no

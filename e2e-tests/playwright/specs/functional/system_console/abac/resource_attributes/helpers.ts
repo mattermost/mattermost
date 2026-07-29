@@ -11,6 +11,13 @@ import type {Client4} from '@mattermost/client';
  * access_control group and per-channel values — plus API-driven policy authoring
  * so a spec can exercise the resource side without also driving the policy
  * editor UI.
+ *
+ * The server under test must run with MM_FEATUREFLAGS_RESOURCEATTRIBUTESINPOLICIES
+ * set: the feature is flag-gated, and a feature flag cannot be turned on through
+ * the config API (the config store restores flags on write), so no amount of
+ * patchConfig in a spec substitutes for the environment variable. Without it the
+ * autocomplete omits channel fields and these specs fail on their first
+ * attribute assertion rather than skipping.
  */
 
 const PROPERTY_GROUP = 'access_control';

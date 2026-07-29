@@ -21,6 +21,22 @@ import (
 const attributeViewRefreshInterval = 30 * time.Second
 const accessControlChildPolicySearchLimit = 1000
 
+// ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
+// user's attributes against the accessed channel's. It gates authoring only: the
+// autocomplete endpoint stops offering channel-object-type fields, so no editor
+// can build such a rule, and the engine rejects one at save time. Evaluation of a
+// rule already stored is deliberately not gated — those rules deny for any channel
+// missing a value, so dropping enforcement would remove every member of every
+// channel the policy governs.
+//
+// Only the flag is checked here. The licence and AccessControlSettings gates are
+// applied by the surfaces that need them, and ABAC is unusable without both
+// anyway; re-checking them here would make the autocomplete endpoint stricter
+// than it is for user attributes today.
+func (a *App) ResourceAttributesInPoliciesEnabled() bool {
+	return a.Config().FeatureFlags.ResourceAttributesInPolicies
+}
+
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
 	if appErr != nil {
@@ -1762,8 +1778,12 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 	// channels import has no single channel to scope by, and still needs the
 	// fields to author against. Each returned field carries its ObjectType, so
 	// a caller can tell the two namespaces apart.
+	//
+	// Both paths are gated: while resource attributes are off, omitting the
+	// channel object type is what keeps every editor from offering one, since
+	// each authoring surface is driven by what this endpoint returns.
 	objectTypes := []string{model.PropertyFieldObjectTypeUser}
-	if channelID != "" || includeResourceFields {
+	if (channelID != "" || includeResourceFields) && a.ResourceAttributesInPoliciesEnabled() {
 		objectTypes = append(objectTypes, model.PropertyFieldObjectTypeChannel)
 	}
 

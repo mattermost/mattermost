@@ -3129,6 +3129,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	// Setup() only clears the read-only guard on feature flags when it is handed a
+	// config updater, so do it explicitly before flipping one.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -3185,6 +3191,22 @@ func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 		fields := get(t, th.SystemAdminClient, "?limit=100")
 		require.NotNil(t, find(fields, userField.ID), "user field must still be present")
 		require.Nil(t, find(fields, channelField.ID), "channel field must be excluded when neither channelId nor the flag is set")
+	})
+
+	t.Run("channel fields excluded on both paths while the feature is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = true
+		})
+
+		scoped := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.Nil(t, find(scoped, channelField.ID), "channel scope must not surface a channel field while off")
+		require.NotNil(t, find(scoped, userField.ID), "user fields must keep working while off")
+
+		asked := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
 	})
 
 	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
