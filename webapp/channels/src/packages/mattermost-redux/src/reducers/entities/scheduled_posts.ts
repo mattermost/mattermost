@@ -26,13 +26,7 @@ function byId(state: ScheduledPostsState['byId'] = {}, action: MMReduxAction) {
 
         return newState;
     }
-    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
-        const scheduledPost = action.data.scheduledPost;
-        return {
-            ...state,
-            [scheduledPost.id]: scheduledPost,
-        };
-    }
+    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED:
     case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
         const scheduledPost = action.data.scheduledPost;
         return {
@@ -119,7 +113,10 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
 
         return newState;
     }
-    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
+    case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED:
+    case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
+        // A scheduled post's channel (and so its team) can't change, so both actions reduce to
+        // keeping the post in its team's error list exactly when it has an error code.
         const teamId = action.data.teamId || 'directChannels';
         const existingScheduledPostIds = state[teamId] || emptyList;
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
@@ -142,23 +139,6 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
             ...state,
             [teamId]: existingScheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id),
         };
-    }
-    case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
-        const scheduledPost = action.data.scheduledPost as ScheduledPost;
-        const teamId = action.data.teamId || 'directChannels';
-
-        // Remove the post from every team's error list, then re-add it under its team if it errored.
-        const newState: ScheduledPostsState['errorsByTeamId'] = {};
-        for (const currentTeamId of Object.keys(state)) {
-            const scheduledPostIds = state[currentTeamId];
-            newState[currentTeamId] = scheduledPostIds.includes(scheduledPost.id) ? scheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id) : scheduledPostIds;
-        }
-
-        if (scheduledPost.error_code) {
-            newState[teamId] = [...(newState[teamId] || emptyList), scheduledPost.id];
-        }
-
-        return newState;
     }
     case ScheduledPostTypes.SCHEDULED_POST_DELETED: {
         let changed = false;

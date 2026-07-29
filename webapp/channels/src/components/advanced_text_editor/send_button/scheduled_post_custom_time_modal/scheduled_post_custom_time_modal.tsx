@@ -94,10 +94,6 @@ export default function ScheduledPostCustomTimeModal({
                         type='checkbox'
                         checked={repeatWeekly}
                         onChange={(e) => setRepeatWeekly(e.target.checked)}
-                        aria-label={formatMessage({
-                            id: 'schedule_post.custom_time_modal.repeat_weekly',
-                            defaultMessage: 'Repeat weekly',
-                        })}
                     />
                     <label htmlFor='scheduled_post_repeat_weekly'>
                         <FormattedMessage
@@ -112,7 +108,7 @@ export default function ScheduledPostCustomTimeModal({
                 />
             </>
         );
-    }, [channelId, selectedDateTime, repeatWeekly, formatMessage]);
+    }, [channelId, selectedDateTime, repeatWeekly]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 

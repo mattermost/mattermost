@@ -58,35 +58,31 @@ describe('scheduled_posts reducer', () => {
             expect(state.errorsByTeamId.team1).toEqual([]);
         });
 
-        it('should move an errored post between team error lists', () => {
+        it('should not duplicate a post already in its team error list, keeping the state reference', () => {
             const scheduledPost = makeScheduledPost({error_code: 'unable_to_send'});
-            let state = reducer(initialState, {
+            const state = reducer(initialState, {
                 type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
                 data: {scheduledPost, teamId: 'team1'},
             });
 
-            state = reducer(state, {
+            const newState = reducer(state, {
                 type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
-                data: {scheduledPost, teamId: 'team2'},
+                data: {scheduledPost, teamId: 'team1'},
             });
 
-            expect(state.errorsByTeamId.team1).toEqual([]);
-            expect(state.errorsByTeamId.team2).toEqual(['post1']);
+            expect(newState.errorsByTeamId.team1).toEqual(['post1']);
+            expect(newState.errorsByTeamId).toBe(state.errorsByTeamId);
         });
 
-        it('should not duplicate a post already in its team error list', () => {
-            const scheduledPost = makeScheduledPost({error_code: 'unable_to_send'});
-            let state = reducer(initialState, {
+        it('should keep the error state reference when a post without errors is updated', () => {
+            const scheduledPost = makeScheduledPost({error_code: undefined});
+
+            const state = reducer(initialState, {
                 type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
                 data: {scheduledPost, teamId: 'team1'},
             });
 
-            state = reducer(state, {
-                type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
-                data: {scheduledPost, teamId: 'team1'},
-            });
-
-            expect(state.errorsByTeamId.team1).toEqual(['post1']);
+            expect(state.errorsByTeamId).toBe(initialState.errorsByTeamId);
         });
     });
 });

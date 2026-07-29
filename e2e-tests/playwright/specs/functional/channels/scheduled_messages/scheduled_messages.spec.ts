@@ -90,12 +90,8 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
 
         // * Verify scheduled post indicator shows recurring weekly details
-        await verifyScheduledPostIndicator(
-            channelsPage.centerView.scheduledPostIndicator,
-            selectedDate,
-            selectedTime,
-            true,
-        );
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
+        await expect(channelsPage.centerView.scheduledPostIndicator.container).toContainText('repeats weekly');
 
         // # Navigate to scheduled posts page via indicator link
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
@@ -289,8 +285,8 @@ test(
             channelsPage.centerView.scheduledPostIndicator,
             newSelectedDate,
             newSelectedTime,
-            true,
         );
+        await expect(channelsPage.centerView.scheduledPostIndicator.container).toContainText('repeats weekly');
     },
 );
 
@@ -651,7 +647,6 @@ async function verifyScheduledPostIndicator(
     scheduledPostIndicator: ScheduledPostIndicator,
     selectedDate: string,
     selectedTime: string | null,
-    repeatWeekly: boolean = false,
 ) {
     await scheduledPostIndicator.toBeVisible();
     await expect(scheduledPostIndicator.icon).toBeVisible();
@@ -675,10 +670,6 @@ async function verifyScheduledPostIndicator(
         throw new Error(
             `Indicator text "${messageText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
         );
-    }
-
-    if (repeatWeekly) {
-        await expect(scheduledPostIndicator.container).toContainText('repeats weekly');
     }
 }
 

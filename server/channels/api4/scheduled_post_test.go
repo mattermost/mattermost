@@ -75,7 +75,6 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(createdScheduledPost))
 
 		createdScheduledPost.ScheduledAt = model.GetMillis() + 300000
-		createdScheduledPost.RepeatType = model.ScheduledPostRepeatTypeWeekly
 		createdScheduledPost.RepeatTimezone = "America/New_York"
 
 		updatedScheduledPost, _, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)

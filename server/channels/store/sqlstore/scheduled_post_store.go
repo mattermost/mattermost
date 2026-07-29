@@ -264,6 +264,7 @@ func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*
 	for i, scheduledPost := range scheduledPosts {
 		scheduledPost.UpdateAt = updateAt
 		ids[i] = scheduledPost.Id
+		// The ::bigint cast is required for Postgres to infer the parameter type inside CASE...THEN.
 		scheduledAtCase = scheduledAtCase.When(sq.Expr("?", scheduledPost.Id), sq.Expr("?::bigint", scheduledPost.ScheduledAt))
 	}
 

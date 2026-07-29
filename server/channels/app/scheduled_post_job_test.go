@@ -60,7 +60,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
-		scheduledAt := model.GetMillis() + 1000
+		scheduledAt := model.GetMillis() - 1000
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -75,8 +75,6 @@ func TestProcessScheduledPosts(t *testing.T) {
 		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
 		assert.NoError(t, err)
 		require.NotNil(t, created)
-
-		time.Sleep(1 * time.Second)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
@@ -97,7 +95,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
-		scheduledAt := model.GetMillis() + 1000
+		scheduledAt := model.GetMillis() - 1000
 		firstScheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -127,8 +125,6 @@ func TestProcessScheduledPosts(t *testing.T) {
 		secondCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(secondScheduledPost)
 		require.NoError(t, err)
 		require.NotNil(t, secondCreated)
-
-		time.Sleep(1 * time.Second)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
