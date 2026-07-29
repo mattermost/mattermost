@@ -22,9 +22,9 @@ export const TESTCONTAINERS_SERVICE_NAMES = [
 ] as const;
 export type TestContainersServiceName = (typeof TESTCONTAINERS_SERVICE_NAMES)[number];
 
-// Started whenever PW_TESTCONTAINERS_SERVICES is unset
-// opensearch and azurite are opt-in only
-const DEFAULT_TESTCONTAINERS_SERVICES: TestContainersServiceName[] = ['minio', 'openldap', 'keycloak', 'elasticsearch'];
+// Started whenever PW_TESTCONTAINERS_SERVICES is unset.
+// On older release branches CI leaves this empty; opt in per-service as needed.
+const DEFAULT_TESTCONTAINERS_SERVICES: TestContainersServiceName[] = [];
 
 // All process.env should be defined here
 export class TestConfig {
