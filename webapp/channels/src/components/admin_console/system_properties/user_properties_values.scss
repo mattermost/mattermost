@@ -9,20 +9,20 @@
     &--with-owners {
         flex-direction: column;
         align-items: stretch;
-        gap: 4px;
         padding-top: 12px;
         padding-bottom: 12px;
+        gap: 4px;
     }
 }
 
 .user-property-field-values__sync {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
     min-height: 24px;
+    flex-wrap: wrap;
+    align-items: center;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
+    gap: 4px;
     line-height: 16px;
 }
 
