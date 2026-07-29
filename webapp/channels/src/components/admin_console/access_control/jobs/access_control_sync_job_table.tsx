@@ -3,6 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
@@ -10,6 +11,8 @@ import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import JobsTable from 'components/admin_console/jobs';
+
+import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
 
 import {JobTypes} from 'utils/constants';
 
@@ -24,8 +27,38 @@ type Props = {
     };
 };
 
+function renderButtonLabel(isSubmitting: boolean, teamAbacEnabled: boolean): JSX.Element {
+    if (isSubmitting) {
+        return (
+            <FormattedMessage
+                id='admin.access_control.sync_jobs.running'
+                defaultMessage='Running Job...'
+            />
+        );
+    }
+    if (teamAbacEnabled) {
+        return (
+            <FormattedMessage
+                id='admin.access_control.sync_jobs.run_channel'
+                defaultMessage='Run Channel Sync'
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='admin.access_control.sync_jobs.run'
+            defaultMessage='Run Sync Job'
+        />
+    );
+}
+
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const {formatMessage} = useIntl();
+
+    // This button only syncs channel membership; when team ABAC is on, name the
+    // scope so a green success isn't mistaken for a team re-evaluation.
+    const teamAbacEnabled = useSelector(isTeamMembershipAccessControlEnabled);
+
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,10 +114,17 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                         />
                     </h1>
                     <p>
-                        <FormattedMessage
-                            id='admin.access_control.sync_jobs.description'
-                            defaultMessage='Apply membership policies to their assigned resources.'
-                        />
+                        {teamAbacEnabled ? (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.description_channel_scope'
+                                defaultMessage='Re-sync channel membership for channels assigned to a membership policy.'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.description'
+                                defaultMessage='Apply membership policies to their assigned resources.'
+                            />
+                        )}
                     </p>
                 </div>
                 <Button
@@ -94,20 +134,22 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 >
                     <i className='icon icon-plus'/>
                     <span>
-                        {isSubmitting ? (
-                            <FormattedMessage
-                                id='admin.access_control.sync_jobs.running'
-                                defaultMessage='Running Job...'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.access_control.sync_jobs.run'
-                                defaultMessage='Run Sync Job'
-                            />
-                        )}
+                        {renderButtonLabel(isSubmitting, teamAbacEnabled)}
                     </span>
                 </Button>
             </div>
+            {teamAbacEnabled && (
+                <div className='team-sync-note'>
+                    <i className='icon icon-information-outline'/>
+                    <span>
+                        <FormattedMessage
+                            id='admin.access_control.sync_jobs.team_sync_note'
+                            defaultMessage='This runs a channel membership sync only. To re-sync team membership, use <b>Sync now</b> in Team Settings → Team Membership or the team’s page in the System Console.'
+                            values={{b: (chunks: React.ReactNode) => <b>{chunks}</b>}}
+                        />
+                    </span>
+                </div>
+            )}
             <JobsTable
                 perPage={5}
                 jobType={JobTypes.ACCESS_CONTROL_SYNC}

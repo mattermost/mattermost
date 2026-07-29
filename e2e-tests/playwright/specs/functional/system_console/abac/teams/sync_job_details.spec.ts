@@ -128,6 +128,28 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await expect(page.locator('#user-list-modal-dialog')).toBeVisible({timeout: 10000});
     });
 
+    test('MM-69827-T1 Membership Sync Jobs names the channel scope and points to team sync when team ABAC is on', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        await page.goto('/admin_console/system_attributes/membership_policies');
+        await page.waitForLoadState('networkidle');
+
+        // * Button names its scope so a green success isn't mistaken for a team re-sync
+        await expect(page.getByRole('button', {name: /Run Channel Sync/i})).toBeVisible({timeout: 10000});
+
+        // * A note points admins to where team-membership sync actually lives
+        await expect(page.getByText(/This runs a channel membership sync only/i)).toBeVisible({timeout: 10000});
+        await expect(page.getByText(/Team Settings/i)).toBeVisible();
+    });
+
     test('MM-69100-T5 sync job details shows mass-removal warning when >50% of members are removed', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();

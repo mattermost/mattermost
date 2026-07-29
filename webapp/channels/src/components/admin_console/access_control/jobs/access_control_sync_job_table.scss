@@ -32,6 +32,24 @@
         }
     }
 
+    .team-sync-note {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        padding: 10px 12px;
+        border-radius: 4px;
+        background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        line-height: 16px;
+        gap: 8px;
+
+        .icon {
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+    }
+
     .job-table__access-control {
         .job-table__table {
             max-height: 400px;
