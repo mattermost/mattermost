@@ -35,8 +35,7 @@
     .team-sync-note {
         margin-bottom: 16px;
 
-        // Pull the body closer to the title; the default notice spacing reads as
-        // a disconnected paragraph for a one-line note like this.
+        // Tighten default notice spacing for this one-line note.
         .sectionNoticeBody {
             gap: 2px;
         }
