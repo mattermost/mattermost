@@ -604,7 +604,6 @@ const defaultServerConfig: AdminConfig = {
         MobileJailbreakProtection: false,
         MobileEnableSecureFilePreview: false,
         MobileAllowPdfLinkNavigation: false,
-        EnableIntuneMAM: false,
     },
     IntuneSettings: {
         Enable: false,
