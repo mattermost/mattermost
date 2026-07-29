@@ -8645,6 +8645,10 @@
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },
   {
+    "id": "app.property_field.update.options_withheld.app_error",
+    "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead."
+  },
+  {
     "id": "app.property_field.update.protected.app_error",
     "translation": "Cannot update a protected property field."
   },

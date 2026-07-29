@@ -1892,44 +1892,43 @@ func TestPropertyField_WithheldOptions(t *testing.T) {
 		assert.Equal(t, []any{}, pf.Attrs[PropertyFieldAttributeOptions])
 	})
 
-	t.Run("patching a non-empty option list drops the withheld markers", func(t *testing.T) {
-		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
-		options := []any{map[string]any{"id": "opt1", "name": "Option 1"}}
+	t.Run("PropertyFieldSuppliesOptions tells an asserted list from an echoed-back one", func(t *testing.T) {
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}},
+		}))
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []map[string]any{{"id": "opt1"}},
+		}), "a Go caller's slice shape counts too")
 
-		pf.Patch(&PropertyFieldPatch{Attrs: &StringInterface{PropertyFieldAttributeOptions: options}}, true)
+		assert.False(t, PropertyFieldSuppliesOptions(withheldAttrs()), "no key at all")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: []any{}}),
+			"an empty list asserts nothing; it is what a caller echoes back when the list it read was withheld")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: nil}))
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: "not a list"}))
 
-		assert.Equal(t, options, pf.Attrs[PropertyFieldAttributeOptions])
-		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsCount,
-			"the supplied list is authoritative; leaving the markers on would make the store ignore it")
-		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+		var typedNil PropertyOptions[*PluginPropertyOption]
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: typedNil}),
+			"a typed nil slice is still an empty list")
 	})
 
-	t.Run("patching an empty option list keeps the withheld markers", func(t *testing.T) {
-		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
+	t.Run("Patch leaves the withheld markers alone", func(t *testing.T) {
+		// Patch is deliberately dumb about them: whether a supplied option list may
+		// be applied at all is decided by the property service, which can see the
+		// stored field. Patch clearing them here would let the store take a list
+		// built on nothing at face value.
+		for name, patchAttrs := range map[string]StringInterface{
+			"a non-empty list": {PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}}},
+			"an empty list":    {PropertyFieldAttributeOptions: []any{}},
+			"another attr":     {"visibility": "always"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
 
-		pf.Patch(&PropertyFieldPatch{Attrs: &StringInterface{PropertyFieldAttributeOptions: []any{}}}, true)
+				pf.Patch(&PropertyFieldPatch{Attrs: &patchAttrs}, true)
 
-		assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs),
-			"an empty list is a caller echoing back the list it was never given; honouring it would delete every option")
-		assert.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
-	})
-
-	t.Run("patching something other than options keeps the withheld markers", func(t *testing.T) {
-		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
-
-		pf.Patch(&PropertyFieldPatch{Attrs: &StringInterface{"visibility": "always"}}, true)
-
-		assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs))
-		assert.Equal(t, "always", pf.Attrs["visibility"])
-	})
-
-	t.Run("markers survive a patch that carries a typed empty option slice", func(t *testing.T) {
-		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
-		var empty PropertyOptions[*PluginPropertyOption]
-
-		pf.Patch(&PropertyFieldPatch{Attrs: &StringInterface{PropertyFieldAttributeOptions: empty}}, true)
-
-		assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs),
-			"a typed nil slice is still an empty list, not an authoritative one")
+				assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs))
+				assert.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
+			})
+		}
 	})
 }

@@ -275,20 +275,20 @@ func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
 
 		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, uErr)
-		assert.Contains(t, uErr.Error(), "cannot modify options of a linked field")
+		assert.Contains(t, uErr.Error(), "option list of a field whose options were not loaded")
 	})
 
-	t.Run("supplying an empty option list is refused", func(t *testing.T) {
-		// The dangerous shape: a client that read the field, saw no options, and
-		// normalized that to an empty array. Taking it at face value would ask the
-		// store to delete every option the field derives.
+	t.Run("supplying an empty option list changes nothing", func(t *testing.T) {
+		// A client that read the field, saw no options, and normalised that to an
+		// empty array. It asserts nothing, so it is neither refused nor obeyed —
+		// obeying it would ask the store to delete every option the field derives.
 		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 
 		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
-		require.Error(t, uErr)
-		assert.Contains(t, uErr.Error(), "cannot modify options of a linked field")
+		require.NoError(t, uErr)
+		requireStoredOptionsWithheld(t, th, group.ID, linked.ID)
 	})
 
 	t.Run("the template keeps every option throughout", func(t *testing.T) {
@@ -354,13 +354,17 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		return field
 	}
 
-	patchAndUpdate := func(t *testing.T, fieldID string, attrs model.StringInterface) *model.PropertyField {
+	patched := func(t *testing.T, fieldID string, attrs model.StringInterface) *model.PropertyField {
 		t.Helper()
 		field, err := th.service.GetPropertyField(th.Context, group.ID, fieldID)
 		require.NoError(t, err)
 		field.Patch(&model.PropertyFieldPatch{Attrs: &attrs}, true)
+		return field
+	}
 
-		_, _, err = th.service.UpdatePropertyField(th.Context, group.ID, field)
+	patchAndUpdate := func(t *testing.T, fieldID string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		_, _, err := th.service.UpdatePropertyField(th.Context, group.ID, patched(t, fieldID, attrs))
 		require.NoError(t, err)
 
 		updated, err := th.service.GetPropertyField(th.Context, group.ID, fieldID)
@@ -368,21 +372,17 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		return updated
 	}
 
-	t.Run("a supplied option list replaces the withheld one", func(t *testing.T) {
+	t.Run("a supplied option list is refused, options intact", func(t *testing.T) {
 		field := newOversizedField(t, "patch-replaces")
-		replacement := []any{
-			map[string]any{"id": model.NewId(), "name": "Only Option"},
-		}
 
-		updated := patchAndUpdate(t, field.ID, model.StringInterface{
-			model.PropertyFieldAttributeOptions: replacement,
-		})
-
-		require.False(t, model.PropertyFieldOptionsOmitted(updated.Attrs), "one option fits under the cap")
-		options, ok := updated.Attrs[model.PropertyFieldAttributeOptions].([]any)
-		require.True(t, ok)
-		require.Len(t, options, 1)
-		assert.Equal(t, "Only Option", options[0].(map[string]any)["name"])
+		_, _, err := th.service.UpdatePropertyField(th.Context, group.ID, patched(t, field.ID, model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Only Option"},
+			},
+		}))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option list of a field whose options were not loaded")
+		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
 	})
 
 	t.Run("a supplied empty option list leaves every option in place", func(t *testing.T) {

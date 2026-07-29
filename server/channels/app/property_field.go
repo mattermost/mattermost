@@ -21,10 +21,10 @@ import (
 // nested map/slice shape produced by JSON unmarshalling.
 //
 // A field read above model.PropertyFieldMaxHydratedOptions has no options key,
-// so both sides of a read-modify-write are nil and compare equal (the update is
-// allowed and touches no option), while any supplied list — including an empty
-// one — compares unequal against that nil and is refused. Both are the answers
-// the guard wants, so the withheld case needs no branch of its own here.
+// so a read-modify-write of one compares nil against nil and is allowed through
+// to leave its options untouched. A caller that supplies a real list for such a
+// field is refused before reaching the store, by the option-list invariant in
+// the property service's UpdatePropertyFields.
 func propertyFieldOptionsEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
