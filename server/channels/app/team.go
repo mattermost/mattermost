@@ -1526,6 +1526,29 @@ func (a *App) IsDeactivatedUserEmail(email string) (bool, *model.AppError) {
 	return existingUser.DeleteAt != 0, nil
 }
 
+// checkForDeactivatedInvites returns an error if any of the given emails belong
+// to a deactivated user account. The where argument identifies the calling
+// function for the returned AppError.
+func (a *App) checkForDeactivatedInvites(where string, emailList []string) *model.AppError {
+	var deactivatedEmailList []string
+	for _, email := range emailList {
+		deactivated, userErr := a.IsDeactivatedUserEmail(email)
+		if userErr != nil {
+			return userErr
+		}
+		if deactivated {
+			deactivatedEmailList = append(deactivatedEmailList, email)
+		}
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError(where, "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1777,20 +1800,8 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	var deactivatedEmailList []string
-	for _, email := range emailList {
-		deactivated, userErr := a.IsDeactivatedUserEmail(email)
-		if userErr != nil {
-			return userErr
-		}
-		if deactivated {
-			deactivatedEmailList = append(deactivatedEmailList, email)
-		}
-	}
-
-	if len(deactivatedEmailList) > 0 {
-		s := strings.Join(deactivatedEmailList, ", ")
-		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	if err := a.checkForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
@@ -1831,20 +1842,8 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
-	var deactivatedEmailList []string
-	for _, email := range guestsInvite.Emails {
-		deactivated, userErr := a.IsDeactivatedUserEmail(email)
-		if userErr != nil {
-			return userErr
-		}
-		if deactivated {
-			deactivatedEmailList = append(deactivatedEmailList, email)
-		}
-	}
-
-	if len(deactivatedEmailList) > 0 {
-		s := strings.Join(deactivatedEmailList, ", ")
-		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	if err := a.checkForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
