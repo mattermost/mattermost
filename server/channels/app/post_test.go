@@ -1544,6 +1544,379 @@ func TestCreatePost(t *testing.T) {
 		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
 
+	t.Run("should reject silent notification from a human user", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		_, _, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.create_post.silent_notification.app_error", err.Id)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("should preserve silent notification on non-SafeUpdate edit", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent before edit",
+			UserId:    bot.UserId,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+
+		createdPost.Message = "silent after edit"
+		createdPost.DelProp(model.PostPropsSilentNotification)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
+		require.Nil(t, err)
+		require.True(t, updatedPost.HasSilentNotification())
+	})
+
+	t.Run("should preserve from_webhook on non-SafeUpdate edit", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "webhook before edit",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true, FromIncomingWebhook: true})
+		require.Nil(t, err)
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromWebhook))
+
+		createdPost.Message = "webhook after edit"
+		createdPost.DelProp(model.PostPropsFromWebhook)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
+		require.Nil(t, err)
+		require.Equal(t, "true", updatedPost.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("should preserve from_bot on non-SafeUpdate edit", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "bot before edit",
+			UserId:    bot.UserId,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, err)
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromBot))
+
+		createdPost.Message = "bot after edit"
+		createdPost.DelProp(model.PostPropsFromBot)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
+		require.Nil(t, err)
+		require.Equal(t, "true", updatedPost.GetProp(model.PostPropsFromBot))
+	})
+
+	t.Run("should not promote post to silent via edit payload", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "normal post",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.False(t, createdPost.HasSilentNotification())
+
+		createdPost.Message = "edited post"
+		createdPost.AddProp(model.PostPropsSilentNotification, true)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
+		require.Nil(t, err)
+		require.False(t, updatedPost.HasSilentNotification())
+	})
+
+	t.Run("should not preserve force notification on non-SafeUpdate edit", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "forced before edit",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasForceNotification())
+
+		createdPost.Message = "forced after edit"
+		createdPost.AddProp(model.PostPropsForceNotification, model.NewId())
+		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
+		require.Nil(t, err)
+		require.False(t, updatedPost.HasForceNotification())
+	})
+
+	t.Run("should add silent notification prop for OAuth app posts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		session := *th.Context.Session()
+		session.IsOAuth = true
+		oauthCtx := th.Context.WithSession(&session)
+
+		createdPost, _, err := th.App.CreatePost(oauthCtx, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "oauth silent",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+	})
+
+	t.Run("should add silent notification prop for incoming webhook flag", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "webhook silent",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true, FromIncomingWebhook: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("should add silent notification prop for plugin posts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "plugin silent",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true, FromPlugin: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromPlugin))
+	})
+
+	t.Run("should strip forged notification-policy props from human payload", func(t *testing.T) {
+		// silent_notification and force_notification are authorization-load-bearing
+		// (they change notification delivery for everyone in the channel) and must
+		// be stripped from non-integration callers regardless of hardened-mode
+		// setting. The from_* identity markers are not stripped by default in v11
+		// — they remain user-settable for backward compatibility. Hardened mode
+		// rejects from_webhook and from_plugin via ContainsIntegrationsReservedProps;
+		// from_bot and from_oauth_app are not currently in that reserved set.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "forged integration props",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsSilentNotification: true,
+				model.PostPropsForceNotification:  "forged-id",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.Empty(t, createdPost.GetProp(model.PostPropsSilentNotification))
+		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("force notification wins over silent", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "forced notify",
+			UserId:    bot.UserId,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true, ForceNotification: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+		require.False(t, createdPost.IsNotificationSuppressed())
+	})
+
+	t.Run("should add silent notification prop for bot posts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent status",
+			UserId:    bot.UserId,
+		}
+		createdPost, _, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, err)
+		require.True(t, createdPost.HasSilentNotification())
+		require.True(t, createdPost.IsNotificationSuppressed())
+	})
+
+	t.Run("should reject silent notification with persistent notifications", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			*cfg.ServiceSettings.AllowPersistentNotifications = true
+		})
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent persistent @" + th.BasicUser2.Username,
+			UserId:    bot.UserId,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.create_post.silent_persistent_notification.app_error", err.Id)
+	})
+
+	t.Run("silent notification does not increase DM unread", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+
+		dm, appErr := th.App.createDirectChannel(th.Context, botUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{dm.Id}, th.BasicUser2.Id, "", false, false)
+		require.Nil(t, appErr)
+
+		unreadBefore, appErr := th.App.GetChannelUnread(th.Context, dm.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: dm.Id,
+			Message:   "silent dm",
+			UserId:    botUser.Id,
+		}, dm, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, appErr)
+
+		unreadAfter, appErr := th.App.GetChannelUnread(th.Context, dm.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, unreadBefore.MsgCount, unreadAfter.MsgCount)
+	})
+
+	t.Run("silent notification does not increase GM unread", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
+		require.Nil(t, appErr)
+
+		gm, appErr := th.App.createGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, botUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{gm.Id}, th.BasicUser2.Id, "", false, false)
+		require.Nil(t, appErr)
+
+		unreadBefore, appErr := th.App.GetChannelUnread(th.Context, gm.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: gm.Id,
+			Message:   "silent gm",
+			UserId:    botUser.Id,
+		}, gm, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, appErr)
+
+		unreadAfter, appErr := th.App.GetChannelUnread(th.Context, gm.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, unreadBefore.MsgCount, unreadAfter.MsgCount)
+	})
+
+	t.Run("silent notification does not increase channel unread", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "baseline",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicChannel.Id}, th.BasicUser2.Id, "", false, false)
+		require.Nil(t, appErr)
+
+		unreadBefore, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent update",
+			UserId:    bot.UserId,
+		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+		require.Nil(t, appErr)
+
+		unreadAfter, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, unreadBefore.MsgCount, unreadAfter.MsgCount)
+	})
+
 	t.Run("creates post with type card", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
@@ -1824,14 +2197,20 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test",
 			UserId:    th.BasicUser.Id,
 		}
-		post.AddProp(model.PostPropsFromWebhook, "true")
 
 		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		// from_webhook is now server-set via FromIncomingWebhook flag, not client-supplied Props.
+		// Route through CreatePostAsUserWithFlags so the "skip view-marking for webhook" branch
+		// (post.go) is actually exercised — CreatePost alone never touches LastViewedAt.
+		createdPost, _, appErr := th.App.CreatePostAsUserWithFlags(th.Context, post, "", model.CreatePostFlags{
+			SetOnline:           true,
+			FromIncomingWebhook: true,
+		})
 		require.Nil(t, appErr)
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromWebhook))
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
@@ -3220,14 +3599,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
+		// from_webhook is now server-set via FromIncomingWebhook flag, not client-supplied Props.
 		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
-			Props: map[string]any{
-				model.PostPropsFromWebhook: "true",
-			},
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, channel, model.CreatePostFlags{SetOnline: true, FromIncomingWebhook: true})
 		require.Nil(t, err)
 
 		// post3 should mention the user

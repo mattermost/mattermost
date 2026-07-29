@@ -319,7 +319,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 			end := min(start+c.Params.PerPage, len(teamJobs))
 			jobs = teamJobs[start:end]
 		}
-	} else if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
+	} else if policyID != "" && (c.Params.JobType == model.JobTypeAccessControlSync || c.Params.JobType == model.JobTypeAccessControlTeamSync) {
 		// Only system admins may filter by policy_id to prevent job enumeration across policies.
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)

@@ -20,7 +20,6 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -272,6 +271,14 @@ const AdvancedTextEditor = ({
                 return;
             }
 
+            // Editing an existing post must never create a synced/visible draft. Edit
+            // content is only persisted locally under the edit_draft_* key, so skip the
+            // show + server-upsert paths that would surface it in the drafts UI.
+            if (isInEditMode) {
+                dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
+                return;
+            }
+
             if (options.show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
@@ -289,7 +296,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch]);
+    }, [dispatch, isInEditMode, storageKey]);
 
     const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
         const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
@@ -669,17 +676,6 @@ const AdvancedTextEditor = ({
         setShowPreview(false);
         setServerError(null);
     }, [channelId, rootId]);
-
-    // Remove uploads in progress on mount
-    useEffect(() => {
-        dispatch(actionOnGlobalItemsWithPrefix(rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT, (_key: string, draft: PostDraft) => {
-            if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
-                return draft;
-            }
-
-            return {...draft, uploadsInProgress: []};
-        }));
-    }, []);
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {

@@ -338,6 +338,42 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 	})
 
+	t.Run("static, with EnableConcurrentReact enabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = true
+
+		web := New(th.Server)
+
+		// NewStaticHandler computes the CSP SHA directive from the current config, so the
+		// concurrent React inline script's hash must be present in the script-src directive.
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"}, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, with EnableConcurrentReact disabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = false
+
+		web := New(th.Server)
+
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
+	})
+
 	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 

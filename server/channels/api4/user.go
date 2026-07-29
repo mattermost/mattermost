@@ -96,6 +96,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.APISessionRequired(enableUserAccessToken)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/tokens/rotate", api.APISessionRequired(rotateUserAccessToken)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/typing", api.APISessionRequiredDisableWhenBusy(publishUserTyping)).Methods(http.MethodPost)
 
@@ -671,6 +672,13 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.IsProfileImageLockedForUser(*c.AppContext.Session(), user) {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.profile_field_locked.app_error",
+			nil, "", http.StatusConflict)
+		return
+	}
+
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
@@ -709,6 +717,13 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
+
+	if c.App.IsProfileImageLockedForUser(*c.AppContext.Session(), user) {
+		c.Err = model.NewAppError(
+			"setDefaultProfileImage", "api.user.upload_profile_user.profile_field_locked.app_error",
+			nil, "", http.StatusConflict)
+		return
+	}
 
 	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
@@ -1522,6 +1537,13 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if lockedField := c.App.CheckLockedProfileFields(*c.AppContext.Session(), ouser, user.ToPatch()); lockedField != "" {
+		c.Err = model.NewAppError(
+			"updateUser", "api.user.update_user.profile_field_locked.app_error",
+			map[string]any{"Field": lockedField}, "", http.StatusConflict)
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
@@ -1597,6 +1619,13 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
 			map[string]any{"Field": conflictField}, "", http.StatusConflict)
+		return
+	}
+
+	if lockedField := c.App.CheckLockedProfileFields(*c.AppContext.Session(), ouser, &patch); lockedField != "" {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.profile_field_locked.app_error",
+			map[string]any{"Field": lockedField}, "", http.StatusConflict)
 		return
 	}
 
@@ -3326,6 +3355,86 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success - token_id=" + accessToken.Id)
 
 	ReturnStatusOK(w)
+}
+
+func rotateUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	var props struct {
+		TokenId   string `json:"token_id"`
+		ExpiresAt int64  `json:"expires_at"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("rotate_user_access_token", err)
+		return
+	}
+
+	if props.TokenId == "" {
+		c.SetInvalidParam("token_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRotateUserAccessToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "token_id", props.TokenId)
+	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		return
+	}
+
+	accessToken, err := c.App.GetUserAccessToken(props.TokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	user, errGet := c.App.GetUser(accessToken.UserId)
+	if errGet != nil {
+		c.Err = errGet
+		return
+	}
+
+	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
+
+	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), accessToken.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if user.IsRemote() {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		return
+	}
+
+	if !accessToken.IsActive {
+		c.Err = model.NewAppError("rotateUserAccessToken", "api.user.rotate_user_access_token.disabled_token.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	token, err := c.App.RotateUserAccessToken(c.AppContext, accessToken, props.ExpiresAt)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("token_id", token.Id)
+	c.LogAudit("success - token_id=" + token.Id)
+
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {

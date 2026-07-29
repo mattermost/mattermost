@@ -803,6 +803,75 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	}
 }
 
+func TestPermanentDeleteTeamRemovesSpaceChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	team := th.CreateTeam(t)
+
+	// Space backing channels are excluded from GetTeamChannels, so team teardown must clean them
+	// up through the dedicated path or they orphan with a dead TeamId.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	// Sanity: the space backing channel resolves through the typed getter before deletion.
+	_, appErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+
+	appErr = th.App.PermanentDeleteTeam(th.Context, team)
+	require.Nil(t, appErr)
+
+	// Assert through the typed getter: generic Get already excludes spaces, so it returns
+	// not-found whether or not the row was deleted and would pass vacuously.
+	_, getErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+	require.NotNil(t, getErr, "space backing channel should be permanently deleted with its team")
+
+	_, memErr := th.App.Srv().Store().Channel().GetMember(th.Context, space.Id, th.BasicUser.Id)
+	require.Error(t, memErr, "space channel membership should be removed with its team")
+}
+
+func TestLeaveTeamRemovesSpaceMemberships(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Space backing channels are excluded from GetChannels, so a plain team leave leaves their
+	// membership rows behind unless LeaveTeam removes them explicitly.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	appErr := th.App.LeaveTeam(th.Context, th.BasicTeam, th.BasicUser, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, memErr := th.App.Srv().Store().Channel().GetMember(th.Context, space.Id, th.BasicUser.Id)
+	require.Error(t, memErr, "space channel membership should be removed when the user leaves the team")
+}
+
 func TestSanitizeTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1152,6 +1221,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		},
 	}, nil)
 	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
+	mockChannelStore.On("GetTeamSpaceChannelsForUser", "myteam", "userID").Return(model.ChannelList{}, nil)
 
 	var err error
 	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
@@ -2034,9 +2104,34 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
 	})
+
+	inviteDataMatches := func(memberInvite *model.MemberInvite) any {
+		return mock.MatchedBy(func(inviteData email.InviteEmailData) bool {
+			if inviteData.Team.Id != th.BasicTeam.Id ||
+				inviteData.ErrorWhenNotSent != true ||
+				len(inviteData.Invites) != len(memberInvite.Emails) ||
+				len(inviteData.Channels) != len(memberInvite.ChannelIds) ||
+				len(inviteData.Profiles) != len(memberInvite.Profiles) {
+				return false
+			}
+			for i, invite := range inviteData.Invites {
+				if invite != memberInvite.Emails[i] {
+					return false
+				}
+			}
+			for _, profile := range memberInvite.Profiles {
+				if inviteData.Profiles[profile.Email] != profile {
+					return false
+				}
+			}
+			return true
+		})
+	}
 
 	t.Run("it return list of email with no error on success", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
@@ -2045,15 +2140,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2071,15 +2158,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2098,18 +2177,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("[]*model.Channel"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("[]uint8"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			mock.AnythingOfType("string"),
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2127,15 +2195,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			[]string{"idontexist@mattermost.com"},
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2144,6 +2204,50 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it passes the invite profiles keyed by email to the email service", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:     "idontexist@mattermost.com",
+				Username:  "un_" + model.NewId(),
+				FirstName: "Pre",
+				LastName:  "Set",
+			}},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			inviteDataMatches(memberInvite),
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it fails the email gracefully when the pre-set username is taken", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:    "idontexist@mattermost.com",
+				Username: th.BasicUser2.Username,
+			}},
+		}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", res[0].Error.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
 	})
 }
 

@@ -1,7 +1,10 @@
 ---
 title: "Format messages"
-draft: true
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Use the messaging formatting toolbar
@@ -49,19 +52,19 @@ The message formatting toolbar offers the following formatting options:
 <td><a href="mm-subst:numbered-icon">numbered-icon</a> | <a href="mm-subst:bullets-icon">bullets-icon</a> | <a href="mm-subst:quotes-icon">quotes-icon</a> | <a href="mm-subst:code-icon">code-icon</a> |</td>
 </tr>
 <tr>
-<td colspan="2"><a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Freact-with-emojis-gifs">Add emojis or GIFs</a> | <a href="mm-subst:emoji-icon">emoji-icon</a> |</td>
+<td colspan="2"><a href="/end-user-guide/collaborate/react-with-emojis-gifs">Add emojis or GIFs</a> | <a href="mm-subst:emoji-icon">emoji-icon</a> |</td>
 </tr>
 <tr>
-<td colspan="2"><a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fmessage-priority">Set message priority</a> | <a href="mm-subst:message-priority-icon">message-priority-icon</a></td>
+<td colspan="2"><a href="/end-user-guide/collaborate/message-priority">Set message priority</a> | <a href="mm-subst:message-priority-icon">message-priority-icon</a></td>
 </tr>
 </tbody>
 </table>
 
-Review how your message formatting will look when the message is sent by selecting the **Show/Hide Preview** <img src="/img/ui/eye-outline_F06D0.svg" alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon. Return to your draft message by selecting the icon again.
+Review how your message formatting will look when the message is sent by selecting the **Show/Hide Preview** <img src={useBaseUrl('/img/ui/eye-outline_F06D0.svg')} alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon. Return to your draft message by selecting the icon again.
 
 <Tip>
 
-- Hide the formatting options by selecting the **Show/Hide Formatting** <img src="/img/ui/format-letter-case_F0B34.svg" alt="Hide formatting options in the message formatting toolbar using the Show/Hide Formatting icon." className="theme-icon" /> icon. Select the icon again to show the formatting options.
+- Hide the formatting options by selecting the **Show/Hide Formatting** <img src={useBaseUrl('/img/ui/format-letter-case_F0B34.svg')} alt="Hide formatting options in the message formatting toolbar using the Show/Hide Formatting icon." className="theme-icon" /> icon. Select the icon again to show the formatting options.
 - You can control whether post formatting is rendered within the message formatting editor. When disabled, raw text is shown. See the [Channels customization](/end-user-guide/preferences/manage-advanced-options) documentation for details.
 
 </Tip>
@@ -84,8 +87,8 @@ Common formatting keyboard shortcuts are supported. Bold text by pressing <kbd>C
 
 - `*italics*` (or `_italics_`) renders as *italics*
 - `**bold**` renders as **bold**
-- `***bold-italic***` renders as <img src="../../images/bold_italics.png" width="100" alt="Bold Italics" />
-- `~~strikethrough~~` renders as <img src="../../images/strikethrough.png" width="100" alt="Strike Through" />
+- `***bold-italic***` renders as <img src={useBaseUrl('/images/bold_italics.png')} width="100" alt="Bold Italics" />
+- `~~strikethrough~~` renders as <img src={useBaseUrl('/images/strikethrough.png')} width="100" alt="Strike Through" />
 
 ### Links
 
@@ -560,7 +563,7 @@ Example: An in-line image that's 50 pixels wide and 76 pixels high.
 
 Renders as:
 
-> <img src="../../images/icon-50x76.png" id="Mattermost Icon" alt="Mattermost" />
+> <img src={useBaseUrl('/images/icon-50x76.png')} id="Mattermost Icon" alt="Mattermost" />
 
 #### In-line image displayed with fixed width
 
@@ -572,7 +575,7 @@ Example: An in-line image that's 50 pixels wide where the system adjusts the hei
 
 Renders as:
 
-> <img src="../../images/icon-76x76.png" width="50" alt="Mattermost" />
+> <img src={useBaseUrl('/images/icon-76x76.png')} width="50" alt="Mattermost" />
 
 ### Horizontal lines
 
@@ -616,9 +619,8 @@ Multi-line text in a table cell isn't supported using HTML tags such as `<br />`
 
 ### Math Formulas
 
-<div class="tab">
-
-Using Inline LaTeX
+<Tabs>
+<TabItem value="using-inline-latex" label="Using Inline LaTeX">
 
 You can create formulas that display inline using LaTeX. Use the dollar sign ($) symbol at the beginning and end of each formula.
 
@@ -636,11 +638,8 @@ Renders as:
 
 ![An inline LaTeX math equation sample.](/images/latex-inline.png)
 
-</div>
-
-<div class="tab">
-
-Using LaTeX in Code Blocks
+</TabItem>
+<TabItem value="using-latex-in-code-blocks" label="Using LaTeX in Code Blocks">
 
 Create formulas as code blocks by using LaTeX in a `latex` [code blocks](#code-blocks).
 
@@ -660,6 +659,8 @@ Renders as:
 
 ![A LaTeX code block math equation sample.](/images/latex-codeblock.png)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <PlanAvailability slug="academy-message-formatting" />

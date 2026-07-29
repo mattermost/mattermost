@@ -26,9 +26,10 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import * as Menu from 'components/menu';
@@ -36,6 +37,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 
 import type {GlobalState} from 'types/store';
 
@@ -173,6 +175,7 @@ function ChannelSettingsPermissionsPolicyTab({
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const sessionAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'SessionAttributes') === 'true');
 
     // Gate the "Simulate rules" button + modal. The
     // /cel/simulate_users endpoint returns 501 when this is off, so
@@ -195,6 +198,15 @@ function ChannelSettingsPermissionsPolicyTab({
 
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
+
+    // The CEL autocomplete endpoint returns access control group attributes
+    // and does not return session attributes, so fetch
+    // the enabled ones separately and merge them into the picker.
+    const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
+    const mergedAttributes = useMemo(
+        () => mergeSessionAttributes(userAttributes, sessionFields),
+        [userAttributes, sessionFields],
+    );
 
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState<string>('');
@@ -605,7 +617,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 isNew={isNew}
                 channelId={channel.id}
                 actions={actions}
-                userAttributes={userAttributes}
+                userAttributes={mergedAttributes}
                 attributesLoaded={attributesLoaded}
                 enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                 isSystemAdmin={isSystemAdmin}

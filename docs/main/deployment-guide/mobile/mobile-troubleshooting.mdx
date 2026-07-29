@@ -1,6 +1,8 @@
 ---
 title: "Mobile deployment troubleshooting"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 ## I keep getting a message "Cannot connect to the server. Please check your server URL and internet connection."
@@ -11,11 +13,32 @@ If the server URL is correct, there could be an issue with the SSL certificate c
 
 To check your SSL certificate set up, test it by visiting a site such as [SSL Labs](https://www.ssllabs.com/ssltest/index.html). If there’s an error about the missing chain or certificate path, there is likely an intermediate certificate missing that needs to be included.
 
-Please note that the apps cannot connect to servers with self-signed certificates, consider using [Let's Encrypt](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http-2) instead.
+Please note that the apps cannot connect to servers with self-signed certificates, consider using [Let's Encrypt](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2) instead.
 
 ## Login with ADFS/Office365 is not working
 
 In line with Microsoft guidance we recommend [configuring intranet forms-based authentication for devices that do not support WIA](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/operations/configure-intranet-forms-based-authentication-for-devices-that-do-not-support-wia).
+
+## How do I attach mobile app logs to a message?
+
+Use `/mobile-logs` during mobile troubleshooting to let users attach Mattermost mobile app logs to messages. Running `/mobile-logs on` shows the **Attach app logs** option in the attachment menu of the message composer, so users can include device-side logs when messaging an administrator or support engineer. Users can also turn this option on or off from the **Report a problem** screen in the mobile app. The command responds with an ephemeral message visible only to the user who ran it.
+
+<Important>
+
+This command requires Mattermost mobile app v2.38 or later.
+
+</Important>
+
+- Enable **Attach app logs** for yourself using `/mobile-logs on`.
+- Disable **Attach app logs** for yourself using `/mobile-logs off`.
+- Check whether **Attach app logs** is enabled using `/mobile-logs status`.
+- System admins can manage the setting for another user by appending a username, such as `/mobile-logs on @username`, `/mobile-logs off @username`, or `/mobile-logs status @username`.
+
+<Important>
+
+Non-admin users can only manage their own preference. Attempts to target another account return a neutral **Unable to change mobile log settings for that user** message to avoid username enumeration. Preference changes made through this command are recorded in the audit log.
+
+</Important>
 
 ## I see a “Connecting…” bar that does not go away
 
@@ -82,19 +105,19 @@ Then use the following instructions to confirm push notifications are working pr
 1.  Log in to your mobile app with an account on your Mattermost Server, which we’ll refer to as “Account A”.
 2.  (iOS) When the app asks whether you wish to receive notifications, **confirm you want to receive notifications**.
 
-> <img src="../../images/mobile_push_prompt.png" width="300" alt="Mattermost prompts you to confirm whether you want to allow mobile push notifications. To test mobile push notifications, you must select Allow." />
+    <img src={useBaseUrl('/images/mobile_push_prompt.png')} width="300" alt="Mattermost prompts you to confirm whether you want to allow mobile push notifications. To test mobile push notifications, you must select Allow." />
 
 3.  Confirm push notifications are enabled for “Account A”.
 
-> 1.  Go to the notification settings menu in the mobile app.
->
-> <img src="../../images/mobile_notification_settings.gif" width="300" alt="Access notification settings by selecting your profile picture to access Settings &gt; Notifications." />
->
-> 2.  Check that the mobile push notifications are set to send.
->
-> <img src="../../images/mobile_push_send_for.png" width="300" alt="Select Push Notifications to confirm when mobile push notifications will be sent." />
->
-> <img src="../../images/mobile_push_send_when.png" width="300" alt="Specify whether all new messages or only mentions and direct messages send push notifications." />
+    1.  Go to the notification settings menu in the mobile app.
+
+        <img src={useBaseUrl('/images/mobile_notification_settings.gif')} width="300" alt="Access notification settings by selecting your profile picture to access Settings &gt; Notifications." />
+
+    2.  Check that the mobile push notifications are set to send.
+
+        <img src={useBaseUrl('/images/mobile_push_send_for.png')} width="300" alt="Select Push Notifications to confirm when mobile push notifications will be sent." />
+
+        <img src={useBaseUrl('/images/mobile_push_send_when.png')} width="300" alt="Specify whether all new messages or only mentions and direct messages send push notifications." />
 
 4.  Have “Account A” put the app to background or close the app.
 5.  Using a browser, log in to “Account B” on the same Mattermost Server.

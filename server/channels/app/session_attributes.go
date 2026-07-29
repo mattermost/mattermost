@@ -81,8 +81,11 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		return
 	}
 
-	// Only process session attributes for actual user sessions.
-	if rctx.Session().Local {
+	// Only process session attributes for actual end-user sessions. Local
+	// sessions and OAuth app sessions do not correspond to a physical device
+	// with a real security posture, so they must not be able to self-attest
+	// session attributes.
+	if rctx.Session().Local || rctx.Session().IsOAuth {
 		return
 	}
 	switch rctx.Session().Props[model.SessionPropType] {

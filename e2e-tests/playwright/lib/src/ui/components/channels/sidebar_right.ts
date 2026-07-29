@@ -15,6 +15,11 @@ export default class ChannelsSidebarRight {
     readonly container: Locator;
 
     readonly closeButton;
+    readonly backButton;
+    readonly expandButton;
+    readonly collapseButton;
+    readonly manageMembersButton;
+    readonly addMembersButton;
     readonly postCreate;
     readonly rhsPostBody;
     readonly scheduledPostIndicator;
@@ -26,6 +31,8 @@ export default class ChannelsSidebarRight {
     readonly currentVersionEditedPosttext;
     readonly restorePreviousPostVersionIcon;
     readonly channelBanner;
+    readonly notificationSeparator;
+    readonly mobileSearchInput;
 
     constructor(container: Locator) {
         this.container = container;
@@ -41,6 +48,13 @@ export default class ChannelsSidebarRight {
         this.rhsPostBody = container.getByTestId('post-message-text');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.backButton = container.getByRole('button', {name: 'Back to channel'});
+        this.expandButton = container.getByRole('button', {name: 'Expand Sidebar Icon'});
+        this.collapseButton = container.getByRole('button', {name: 'Collapse Sidebar Icon'});
+
+        // Member-management controls shown in the channel members list (RHS).
+        this.manageMembersButton = container.getByRole('button', {name: 'Manage'});
+        this.addMembersButton = container.getByRole('button', {name: 'Add'});
 
         this.editTextbox = container.locator('#edit_textbox');
         this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
@@ -49,10 +63,22 @@ export default class ChannelsSidebarRight {
             'button[aria-label="Select to restore an old message."]',
         );
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+
+        // Search input shown in the RHS when opened from the mobile/narrow-width channel header.
+        this.mobileSearchInput = container.locator('#sbrSearchBox');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async expand() {
+        await this.expandButton.click();
+    }
+
+    async collapse() {
+        await this.collapseButton.click();
     }
 
     async postMessage(message: string) {
@@ -90,6 +116,17 @@ export default class ChannelsSidebarRight {
     async close() {
         await this.closeButton.waitFor();
         await this.closeButton.click();
+
+        await expect(this.container).not.toBeVisible();
+    }
+
+    /**
+     * Closes the RHS in narrow/mobile view via the "Back to channel" button — the desktop "Close"
+     * button is hidden (not the on-screen control) at this width.
+     */
+    async closeMobile() {
+        await this.backButton.waitFor();
+        await this.backButton.click();
 
         await expect(this.container).not.toBeVisible();
     }

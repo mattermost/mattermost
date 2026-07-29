@@ -1,6 +1,10 @@
 ---
 title: "Connect GitLab to Mattermost"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Minimize distractions and reduce context switching between your GitLab code repositories and your communication platform by integrating GitLab with Mattermost. You control which events trigger notifications beyond default events, including merges, issue comments, merge request comments, pipelines, pull reviews, and many more. Help your teams stay focused and productive with daily task summaries, real-time updates and notifications on new and closed merge requests, new and closed issues, and tag creation events, directly from Mattermost channel subscriptions.
@@ -15,16 +19,15 @@ A Mattermost system admin must perform the following steps to deploy the GitLab 
 
 ### Install the integration
 
-1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 2.  Search for or scroll to GitLab, and select **Install**.
 
 ### Set up the integration
 
 You can configure the GitLab integration using either the built-in setup wizard (recommended) or by following the manual configuration steps.
 
-<div class="tab">
-
-Setup wizard (recommended)
+<Tabs>
+<TabItem value="setup-wizard-recommended" label="Setup wizard (recommended)">
 
 The recommended way to configure the GitLab integration is using the built-in setup wizard. The wizard guides you through each step of the configuration process, including creating the OAuth app in GitLab.
 
@@ -42,11 +45,8 @@ You can also run individual setup steps at any time using the following subcomma
 - `/gitlab setup oauth`: Configure the OAuth2 application in GitLab.
 - `/gitlab setup announce`: Announce the integration availability to designated channels.
 
-</div>
-
-<div class="tab">
-
-Manual configuration
+</TabItem>
+<TabItem value="manual-configuration" label="Manual configuration">
 
 If you prefer to configure the integration manually instead of using the setup wizard, follow the steps below.
 
@@ -105,7 +105,9 @@ If you prefer to configure the integration manually instead of using the setup w
 >
 >   - Maximum 10 lines displayed per preview (single line permalinks may show fewer preview lines due to context limits)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Upgrade
 

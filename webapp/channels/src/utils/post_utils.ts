@@ -63,6 +63,17 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isFromBot(post: Post): boolean {
     return post.props && post.props.from_bot === 'true';
 }
