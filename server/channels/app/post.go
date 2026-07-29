@@ -3511,6 +3511,20 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 	return post, nil
 }
 
+// rewriteResponseJSONSchema is the structured output schema for the LLM rewrite response.
+// Defined at package level to avoid re-allocating on every call.
+var rewriteResponseJSONSchema = map[string]any{
+	"type": "object",
+	"properties": map[string]any{
+		"rewritten_text": map[string]any{
+			"type":        "string",
+			"description": "The rewritten version of the message",
+		},
+	},
+	"required":             []any{"rewritten_text"},
+	"additionalProperties": false,
+}
+
 // RewriteMessage rewrites a message using AI based on the specified action
 func (a *App) RewriteMessage(
 	rctx request.CTX,
@@ -3559,6 +3573,7 @@ func (a *App) RewriteMessage(
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		JSONOutputFormat: rewriteResponseJSONSchema,
 		OperationSubType: normalizeRewriteAction(action),
 		UserID:           sessionUserID,
 	}
