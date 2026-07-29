@@ -35,9 +35,9 @@
     .team-sync-note {
         margin-bottom: 16px;
 
-        // Tighten default notice spacing for this one-line note.
-        .sectionNoticeBody {
-            gap: 2px;
+        // A global h4 margin overrides the notice's flex gap; clamp it directly.
+        h4 {
+            margin-bottom: 1em !important;
         }
 
         .sectionNoticeBody p {
