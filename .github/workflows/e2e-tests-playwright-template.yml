@@ -181,6 +181,12 @@ jobs:
           fetch-depth: 1
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
+      # release-10.11 ships Node 20 via .nvmrc, but testcontainers 12 → undici 8
+      # needs Node ≥22.5 (webidl.util.markAsUncloneable). Switch only for Playwright.
+      - name: ci/setup-node-for-testcontainers
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version: "24.11"
       - name: ci/cache-playwright-deps
         # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
         # so workers don't re-run rollup on every job.
@@ -191,7 +197,7 @@ jobs:
             e2e-tests/playwright/node_modules
             e2e-tests/playwright/lib/dist
             e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
+          key: e2e-playwright-deps-node24-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
       - name: ci/install-playwright-deps
         # `npm ci` creates symlinks at node_modules/@mattermost/{client,types}
         # → webapp/platform/{client,types}; targets must already be built.
@@ -293,6 +299,11 @@ jobs:
           fetch-depth: 0
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
+      # See prep-deps: testcontainers 12 needs Node ≥22.5; release-10.11 .nvmrc is Node 20.
+      - name: ci/setup-node-for-testcontainers
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version: "24.11"
       - name: ci/restore-playwright-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -300,7 +311,7 @@ jobs:
             e2e-tests/playwright/node_modules
             e2e-tests/playwright/lib/dist
             e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
+          key: e2e-playwright-deps-node24-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
           fail-on-cache-miss: true
       - name: ci/restore-playwright-browsers
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
