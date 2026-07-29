@@ -5,7 +5,7 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import type {Browser, BrowserContext} from '@playwright/test';
+import type {Browser, BrowserContext, Page} from '@playwright/test';
 import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -14,7 +14,7 @@ import {pages} from './ui/pages';
 import {resolvePlaywrightPath} from './util';
 
 /** Keep page.goto pointed at testConfig.baseURL after testcontainers remaps the host port. */
-export function bindPageToLiveBaseURL(page: import('@playwright/test').Page): void {
+export function bindPageToLiveBaseURL(page: Page): void {
     const originalGoto = page.goto.bind(page);
     page.goto = ((url, options) => {
         if (typeof url === 'string') {
