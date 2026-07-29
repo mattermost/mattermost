@@ -154,15 +154,15 @@ func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 }
 
 func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
-	var pendingCursor sq.Sqlizer = sq.LtOrEq{"ScheduledAt": beforeTime}
+	// The ScheduledAt <= beforeTime bound stays outside the keyset tie-break so Postgres can
+	// use it as the boundary of idx_scheduledposts_pending_scheduled_at_id; the equivalent
+	// pure OR form would force scanning the index from the top on every page.
+	pendingCursor := sq.And{sq.LtOrEq{"ScheduledAt": beforeTime}}
 	if lastScheduledPostId != "" {
-		pendingCursor = sq.Or{
+		pendingCursor = append(pendingCursor, sq.Or{
 			sq.Lt{"ScheduledAt": beforeTime},
-			sq.And{
-				sq.Eq{"ScheduledAt": beforeTime},
-				sq.Gt{"Id": lastScheduledPostId},
-			},
-		}
+			sq.Gt{"Id": lastScheduledPostId},
+		})
 	}
 
 	query := s.getQueryBuilder().

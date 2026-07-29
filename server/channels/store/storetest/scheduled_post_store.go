@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -199,6 +200,58 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(jan2100Midnight), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
+	})
+
+	t.Run("should paginate with the keyset cursor without skipping or repeating posts", func(t *testing.T) {
+		batchTime := model.GetMillisForTime(time.Date(2100, time.June, 1, 9, 0, 0, 0, time.UTC))
+		earlierTime := batchTime - (60 * 60 * 1000)
+		scheduledAts := []int64{batchTime, batchTime, batchTime, earlierTime, earlierTime}
+
+		var createdIDs []string
+		for i, scheduledAt := range scheduledAts {
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    model.NewId(),
+					ChannelId: model.NewId(),
+					Message:   fmt.Sprintf("pagination scheduled post %d", i),
+				},
+				ScheduledAt: scheduledAt,
+			}
+
+			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+			require.NoError(t, err)
+			createdIDs = append(createdIDs, createdScheduledPost.Id)
+		}
+
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts(createdIDs)
+		}()
+
+		// page through the same way ProcessScheduledPosts does: the last item of each
+		// page provides the next page's beforeTime and lastScheduledPostId.
+		beforeTime := batchTime + (24 * 60 * 60 * 1000)
+		afterTime := earlierTime - (24 * 60 * 60 * 1000)
+		lastScheduledPostId := ""
+		perPage := uint64(2)
+
+		var seenIDs []string
+		for {
+			page, err := ss.ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+			require.NoError(t, err)
+			if len(page) == 0 {
+				break
+			}
+
+			for _, scheduledPost := range page {
+				seenIDs = append(seenIDs, scheduledPost.Id)
+			}
+
+			lastScheduledPostId = page[len(page)-1].Id
+			beforeTime = page[len(page)-1].ScheduledAt
+		}
+
+		assert.ElementsMatch(t, createdIDs, seenIDs)
 	})
 
 	t.Run("should include overdue recurring scheduled posts older than the one-shot window", func(t *testing.T) {
