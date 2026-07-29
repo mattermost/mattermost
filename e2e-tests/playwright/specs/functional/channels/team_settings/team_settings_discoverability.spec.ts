@@ -89,8 +89,8 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.openAccessTab();
 
         // * Public and Private cards are visible
-        await expect(teamSettings.container.getByText('Public Team')).toBeVisible();
-        await expect(teamSettings.container.getByText('Private Team')).toBeVisible();
+        await expect(teamSettings.container.getByText('Public Team', {exact: true})).toBeVisible();
+        await expect(teamSettings.container.getByText('Private Team', {exact: true})).toBeVisible();
 
         // * Old open-invite checkboxes are gone
         await expect(teamSettings.container.locator('input[name="allowOpenInvite"]')).not.toBeVisible();
