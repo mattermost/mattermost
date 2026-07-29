@@ -305,7 +305,9 @@ export async function runSyncJob(page: Page): Promise<string | null> {
         (resp) => resp.url().includes('/api/v4/jobs') && resp.request().method() === 'POST',
         {timeout: 10000},
     );
-    await page.getByRole('button', {name: 'Run Sync Job'}).click();
+    // Label is "Run Sync Job" by default, or "Run Channel Sync" when the
+    // team-membership ABAC flag is on — match either.
+    await page.getByRole('button', {name: /Run (Sync Job|Channel Sync)/}).click();
     try {
         const response = await jobResponsePromise;
         if (!response.ok()) {
