@@ -361,7 +361,7 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockACS
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 		return mockACS
 	}
