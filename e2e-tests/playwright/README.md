@@ -39,7 +39,6 @@ Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=tr
 
 See `lib/README.md` for every available environment variable.
 
-
 #### 2. Install dependencies and run the test.
 
 ```bash
