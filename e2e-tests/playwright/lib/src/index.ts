@@ -3,10 +3,10 @@
 
 export {test, expect, PlaywrightExtended} from './test_fixture';
 export type {ExtendedFixtures} from './test_fixture';
-export {testConfig, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
+export {testConfig, resolveAppUrl, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
 export type {TestContainersServiceName} from './test_config';
 export {baseGlobalSetup} from './global_setup';
-export {TestBrowser} from './browser_context';
+export {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {duration, getRandomId, wait, newTestPassword} from './util';

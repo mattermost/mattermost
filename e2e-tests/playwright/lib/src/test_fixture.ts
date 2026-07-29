@@ -6,7 +6,7 @@ import {test as base} from '@playwright/test';
 import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 import {
     ensureLicense,
     ensurePluginsLoaded,
