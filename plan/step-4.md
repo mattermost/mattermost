@@ -38,12 +38,12 @@ no additional org projects before final archive.
 
 - [ ] Publish deprecation / transition notice on translate.mattermost.com
   and community channels **before** disabling writes.
-- [ ] Explicitly call out (these are announcements, not approval
-  requests — the decisions are already coordinated):
+- [ ] Publish **one combined notice** (D15) covering:
   - End of Weblate as submission path
   - Retirement of WIP-language promotion pipeline (Beta × 3 releases +
     6 months language-expert commitment)
-  - Calls/Playbooks locale adds/drops (not fine print)
+  - Calls/Playbooks locale adds/drops (explicit section, not fine print)
+  - No separate WIP notice or grace period
 - [ ] Confirm/replace handbook contacts (historically John Combs, Tom De
   Moor for language permissions).
 
@@ -58,17 +58,13 @@ no additional org projects before final archive.
 
 ### 4.4 Handbook and policy
 
-Decision #6 revised: do **not** wait for "fully off" to start fixing
-contradictory guidance.
+**D18: handbook banner/rewrite is out of band** — not a gate for this
+plan's engineering cutover. Still recommended content when that work
+happens:
 
-- [ ] **During transition**: banner on handbook localization page —
-  "submissions moving to GitHub; Weblate freezing on DATE".
-- [ ] **After cutover**: full rewrite of
-  `contributors/join-us/localization.md` reversing "don't submit
-  translations via GitHub PRs".
-- [ ] Update per-project Weblate list → one process, one locale list.
-- [ ] Fold glossary/rule links into the new author/correction docs
-  (steps 2–5).
+- Transition banner before freeze; full rewrite after cutover.
+- Point glossary/rules at in-repo `i18n/glossary/` ([glossary.md](./glossary.md)).
+- Update per-project Weblate list → one process, one locale list.
 
 ### 4.5 Archive
 
@@ -80,10 +76,10 @@ contradictory guidance.
 | Assumption | Verdict | Evidence / rationale |
 |------------|---------|----------------------|
 | Handbook only after fully off (#6) | **Revise** | Leaves "don't use GitHub" live while step 5 moves corrections to PRs. Use transition banner first. |
-| One notice for WIP + plugin locale drops (#8) | **Revise** | Locale support removal needs explicit callouts and grace period. |
+| One notice for WIP + plugin locale drops (#8) | **Resolved (D15)** | One combined notice with explicit sections; no grace period. |
 | Named individuals as owners (#11) | **Resolved — no DRI needed** | Coordination already complete; comms tasks execute within this workstream. |
 | Regen makes Weblate clobber harmless (#14) | **Resolved — freeze first** | Owner confirmed: freeze writes first; AI translations supersede Weblate content. |
-| Five Weblate projects are the full set | **Confirm** | Local workspace only has Calls/Playbooks plugins; org-wide inventory still required before archive. |
+| Five Weblate projects are the full set | **Resolved (D16)** | Live instance check: Mattermost / Playbooks / Calls only; desktop+mobile are Mattermost components. |
 
 ## Risks
 
@@ -106,6 +102,11 @@ contradictory guidance.
 
 1. ~~Role-owning DRI for sunset?~~ **Resolved: no DRI required —
    coordination already done.**
-2. Separate WIP-pipeline notice and grace period?
-3. Final list of Weblate projects org-wide?
-4. Retention policy for Weblate history/glossary after archive?
+2. ~~Separate WIP-pipeline notice and grace period?~~ **Resolved (D15):
+   one combined notice; no grace period.**
+3. ~~Final list of Weblate projects org-wide?~~ **Resolved (D16): already
+   checked — Mattermost / Playbooks / Calls.**
+4. ~~Retention policy for Weblate history/glossary?~~ **Resolved (D17):
+   model glossary in-repo ([glossary.md](./glossary.md)); optional final
+   CSV snapshot under `i18n/glossary/sources/weblate/`. History retention
+   on the Weblate host is out of band.**

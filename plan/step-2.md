@@ -17,6 +17,7 @@ From step 1 (minimum bar — do **not** wait for every optional tool):
 - [ ] Filename normalization landed for surfaces in the current wave
 - [ ] Key-parity inventory available (missing/extra keys per locale)
 - [ ] Minimum syntax validators available on the wave's surfaces
+- [ ] Glossary bootstrap Phase A landed — see [glossary.md](./glossary.md)
 
 Spend policy (**decided**): unlimited — no budget requirements, no soft
 checkpoint. Decision #10 stands as originally locked.
@@ -47,8 +48,8 @@ coverage would still look "complete" for the overlapping keys.
   baseline rate.
 - [ ] Flag known-bad locales/files (Playbooks `zh_Hant`, any spike above
   baseline).
-- [ ] Record glossary/rule sources (handbook links German, French, Dutch
-  translation rules — prose, not clean term maps).
+- [ ] Confirm `i18n/glossary/` import from Weblate + handbook per
+  [glossary.md](./glossary.md).
 
 ### 2.2 Pilot (quality tuning only)
 
@@ -82,12 +83,16 @@ on full `mmjstool`/`mmgotool` metadata work.
 
 ### 2.4 Generation policy
 
-- [ ] **First pass**: fill gaps + rewrite flagged bad strings only.
-- [ ] Preserve existing Weblate/human translations unless flagged
-  (identical-copy spike, missing placeholders, failed syntax, failed
-  review).
-- [ ] Broaden to proactive rewrite of all existing strings only after
-  scoring shows systematic quality issues.
+**Decided (D9): AI reviews/rewrites all existing strings**, not only
+gaps. Existing Weblate/human translations are inputs to review, not
+sacred outputs.
+
+- [ ] For every key × locale: generate or revise so the result meets
+  glossary/style constraints and passes syntax validation.
+- [ ] Still prioritize known-bad files (Playbooks `zh_Hant`) and
+  high-risk ICU/plural strings in wave ordering / sampling density.
+- [ ] Glossary constraints loaded from `i18n/glossary/` — see
+  [glossary.md](./glossary.md); handbook DE/FR/NL are `required`.
 
 ### 2.5 Validation before land
 
@@ -96,7 +101,9 @@ on full `mmjstool`/`mmgotool` metadata work.
   template/token checks (Go — whatever minimum exists)
 - [ ] One-time identical-to-`en` scan of bulk output to catch
   copy-English generator failures **in this pass only** — no ongoing CI
-  gate ships (decided); `en-AU` excluded (~84–92% identical is normal)
+  gate ships (decided). Treat `en-AU` like any other locale (D3); expect
+  higher legitimate identical rates and use judgment in the one-time
+  scan, not a hard exemption rule.
 - [ ] Back-translation as a **semantic drift** signal, not the sole gate
 - [ ] Native-speaker / language-expert sampling for: glossary locales,
   RTL/Persian, high-visibility UI, and any locale that fails automated
@@ -123,18 +130,21 @@ Suggested order (adjust with owners):
 | Back-translation only (#5) | **Reject as sole review** | `"Owner"` → `"Owner"` looks perfect; misses copy-English, formality (e.g. German Sie/Ihre), gender, RTL punctuation, UI length. |
 | No credit cap (#10) | **Resolved — keep original** | Owner confirmed unlimited spend; no budget checkpoint required. |
 | Full grep context per key × locale (#15) | **Revise** | Cache per source key; batch by component; reuse across locales. |
-| Glossary as hard constraint (#16) | **Revise** | Sources are prose rules; hard maps break inflection/case. Prefer constrained + conflict report + sampling. |
-| Review *all* existing translations | **Narrow first** | Gaps + flagged + high-risk ICU first; expand if needed. |
+| Glossary as hard constraint (#16) | **Resolved** | In-repo model + filtered Weblate/handbook import ([glossary.md](./glossary.md)); soft/`required` priorities, not blind overrides. |
+| Review *all* existing translations | **Resolved — review all (D9)** | Owner directed AI to review/rewrite all existing strings in the bulk pass. |
 | Single sweep all six codebases | **Reject** | Nine surfaces, two syntaxes, multiple tools — wave landings. |
 | Wait for all step-1 tooling | **Do not** | Wait for trim, names, parity inventory, minimum validators only. |
 | Anti-identical allowlist | **Resolved — dropped** | Owner deleted the identical-copy gate from scope; only a one-time scan of this pass's output remains, with no allowlist machinery. |
 
 ## Risks
 
-- Overwriting good human/Weblate translations with worse AI output.
+- Overwriting good human/Weblate translations with worse AI output —
+  accepted under D9; mitigate with glossary constraints, back-translation,
+  and sampling (D7).
 - Spending credits on locales later dropped if step 1's trim hasn't
   landed yet (the locale scope itself is settled).
-- Reviewer fatigue on mega-diffs; wave PRs mitigate.
+- No human locale-diff review (D11) — quality rests on generator + CI
+  syntax/parity gates + sampling.
 - Treating Playbooks `zh_Hant` as done after fill without deleting extras /
   fixing missing keys.
 
@@ -150,10 +160,9 @@ Suggested order (adjust with owners):
 
 ## Open questions
 
-1. Who signs off that back-translation **plus sampling** is enough?
-2. Are German/French/Dutch handbook rules current and authoritative?
-3. Should AI overwrite unflagged human translations at all in v12?
-4. ~~What identical-copy threshold fails a locale file?~~ **Resolved: no
-   ongoing gate — one-time scan of bulk output only.**
-5. ~~Soft spend budget and stop/go owner?~~ **Resolved: unlimited spend,
-   no budget requirements.**
+*(none remaining for step 2.)*
+
+Resolved: D7 (owner accepts back-translation + sampling), D8 (handbook
+rules authoritative), D9 (review all existing strings), D3 (`en-AU`
+treated like any other locale), D6 (no ongoing identical-copy gate),
+D10 (unlimited spend).

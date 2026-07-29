@@ -97,6 +97,8 @@ Weblate even when developer docs do — search broadly (`Weblate`,
 
 ## Open questions
 
-1. Who owns handbook PR timing vs engineering cutover?
-2. ~~Keep Alpha/Beta labels after AI bulk pass?~~ **Resolved: drop them.**
-3. Any public status page besides handbook for the sunset?
+*(none remaining for step 6.)*
+
+Resolved: D4 (drop Alpha/Beta), D18 (handbook timing out of band — not a
+plan gate). No separate public status page required beyond the combined
+Weblate notice (step 4).

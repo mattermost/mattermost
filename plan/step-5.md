@@ -19,14 +19,17 @@ that maintainers can land safely against locale JSON.
 
 ### 5.1 Intake channels
 
-Offer more than "open a PR against JSON":
+**Decided (D20):** GitHub issues and support tickets. PRs remain welcome
+from people who can edit JSON directly.
 
 - [ ] **GitHub PR** — preferred for engineers / language leads comfortable
   with git.
 - [ ] **Issue template** — for non-engineers: bad string, locale, URL or
   screenshot, suggested fix (optional), product area.
-- [ ] **Community channel / forum pointer** — optional mirror so people
-  who never use GitHub still have a path (maintainer converts to issue).
+- [ ] **Support ticket path** — support converts customer reports into
+  GitHub issues (or applies the fix).
+- [ ] Triage is **best-effort by repo maintainers** (D19); no formal SLA
+  in v12.
 
 ### 5.2 Issue template fields
 
@@ -87,9 +90,8 @@ guidance, and translation-server lookup/context. After sunset:
 
 ## Open questions
 
-1. Non-engineer correction SLA and owning team?
-2. Per-locale language experts still exist post-Weblate? How are they
-   routed?
-3. Security/privacy handling for screenshots in issues?
-4. Should customers use the support ticket path instead of GitHub for
-   proprietary deployments?
+*(none remaining for step 5.)*
+
+Resolved: D19 (best-effort triage by repo maintainers, no formal SLA),
+D20 (GitHub issues **and** support tickets; screenshots follow existing
+issue norms).

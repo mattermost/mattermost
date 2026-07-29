@@ -97,10 +97,10 @@ authoring-tier metadata pipeline.
   their verify scripts.
 - [ ] Upgrade Calls/Playbooks `@formatjs/cli` if their pinned versions
   lack `verify` (Calls webapp ~5.0.7, Playbooks ~4.7.0 surveyed).
-- [ ] Define canonical `mmgotool` ownership/release path **before**
-  implementing plugin-dependent `i18n verify` (Calls →
-  `mattermost/tools/mmgotool@latest`; Playbooks →
-  `mattermost-utilities/mmgotool`).
+- [ ] **Canonical `mmgotool` = platform `mattermost/tools/mmgotool`**
+  (D5). Migrate Playbooks off `mattermost-utilities/mmgotool` before it
+  consumes `i18n verify`; Calls already tracks
+  `mattermost/tools/mmgotool@latest`.
 - [ ] Optionally keep Calls `temp.json` extract artifact if step 2 will
   consume it immediately; otherwise defer.
 
@@ -125,7 +125,7 @@ authoring-tier metadata pipeline.
 | Hyphen filenames + zh region mapping | **Keep (qualified)** | Fine as product convention; `zh-Hans`/`zh-Hant` are valid BCP-47 — document as aliasing. |
 | Mobile/desktop are purely underscore | **False** | Mixed conventions today (`en_AU` alongside `pt-BR`/`zh-CN`). Normalization must inventory real names. |
 | Full source-location tooling before bulk pass | **Revise** | Overbuilt for one-time pass; grep + formatjs source-location enough to start. |
-| Scaffold `mmgotool verify` and plugins pick it up | **Reject as stated** | Two install sources; local platform change does not reach Playbooks' utilities pin. |
+| Scaffold `mmgotool verify` and plugins pick it up | **Resolved path** | Canonical module is platform `mattermost/tools/mmgotool`; Playbooks must migrate off utilities pin (D5). |
 | English fallback already solid | **Keep + test** | Behavior exists across surfaces; still need explicit deleted-locale tests. |
 
 ## Risks
@@ -157,6 +157,7 @@ authoring-tier metadata pipeline.
    no signoff needed — already coordinated.**
 2. ~~Archive unsupported locale JSON until Weblate sunset, or delete
    now?~~ **Resolved: delete immediately.**
-3. Which repo is the canonical released `mmgotool`?
+3. ~~Which repo is the canonical released `mmgotool`?~~ **Resolved:
+   platform `mattermost/tools/mmgotool` (D5).**
 4. ~~Should Chinese keep script tags internally with aliases?~~
    **Resolved: rename on disk to `zh-CN`/`zh-TW` only; no alias layer.**

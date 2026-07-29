@@ -15,6 +15,7 @@ because new strings ship with their translations in the same PR.
 | Step | File | Focus |
 |------|------|--------|
 | 1 | [step-1.md](./step-1.md) | Lock the 22-locale list; trim, normalize, lint scaffolding |
+| — | [glossary.md](./glossary.md) | In-repo glossary model + Weblate/handbook import path |
 | 2 | [step-2.md](./step-2.md) | One-time bulk AI translation + review |
 | 3 | [step-3.md](./step-3.md) | Author-submitted translation workflow + CI gates |
 | 4 | [step-4.md](./step-4.md) | Sunset Weblate |
@@ -85,17 +86,17 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 | 3 | Unify all surveyed surfaces on the same 22-locale list and coverage bar | **Keep** |
 | 4 | Trim locales before bulk AI spend | **Keep** |
 | 5 | Review methodology: back-translation only | **Reject as sole review** — add native sampling; back-translation misses copy-English and register. A one-time identical-to-`en` scan during the bulk pass finds existing bad files; **no ongoing CI gate** (decided) |
-| 6 | Handbook rewrite only after Weblate fully off | **Revise** — need a transition banner *before* cutover so guidance isn't contradictory |
+| 6 | Handbook rewrite only after Weblate fully off | **Superseded by D18** — handbook banner/rewrite is out of band; not a gate for engineering cutover |
 | 7 | Standardize filenames on hyphens (`en-AU.json`) | **Keep as product convention**; treat `zh_Hans`→`zh-CN` as compatibility mapping, not BCP-47 purity |
-| 8 | Fold WIP/Calls/Playbooks retirement into one Weblate notice | **Revise** — locale drops need explicit callouts, not fine print |
+| 8 | Fold WIP/Calls/Playbooks retirement into one Weblate notice | **Resolved** — one combined notice with explicit sections; no grace period; no separate WIP notice |
 | 9 | iOS `.lproj` gap out of scope | **Keep** — file separately |
 | 10 | No hard Cursor/Fable credit cap | **Keep — resolved**: unlimited spend, no budget requirements or checkpoint |
 | 11 | Katie Wiersgalla & Amy Blais own Weblate sunset comms | **Resolved** — no DRI required; coordination already complete, comms are announcements executed in step 4 |
 | 12 | Dropped-locale fallback → `en` | **Keep**, with explicit migration tests |
-| 13 | Syntax linters: `formatjs verify` (JS) + new `mmgotool i18n verify` (Go) | **Revise** — `--extra-keys` is **not** a formatjs flag on current CLIs; plugin `@formatjs/cli` versions may lack `verify`; mmgotool release path is split |
+| 13 | Syntax linters: `formatjs verify` (JS) + new `mmgotool i18n verify` (Go) | **Revise tooling details, path settled**: `--extra-keys` is not a FormatJS flag (custom check); plugin CLI upgrades may be needed. **Canonical mmgotool** is platform-vendored `mattermost/tools/mmgotool`; migrate Playbooks off `mattermost-utilities` |
 | 14 | Weblate overlap with author PRs is fine (regen is cheap) | **Resolved** — freeze Weblate writes first; AI translations supersede Weblate content thereafter |
 | 15 | Full per-key context (source grep) for bulk pass | **Revise** — cache once per source key, batch by component; don't block on full metadata tooling |
-| 16 | Build glossaries now as hard constraints | **Revise** — treat as high-priority constraints with conflict reporting; sources are prose rules, not clean term maps |
+| 16 | Build glossaries now as hard constraints | **Resolved** — in-repo glossary at `i18n/glossary/` (see [glossary.md](./glossary.md)); handbook DE/FR/NL authoritative soft/`required` constraints; Weblate CSV filtered (Mattermost EN dump is ~28k polluted rows — do not import wholesale); no CI glossary enforcement in v12 |
 | 17 | Two-tier authoring vs runtime format; never change shipped JSON shape | **Keep** architecture; **defer** full tooling hardening past the minimum needed for step 2 |
 
 ## Explicitly out of scope
@@ -103,9 +104,9 @@ Status after verification pass: **keep** / **revise** / **reopen**.
 - Automated CI-side translation generation (bot) — deferred.
 - Automated quality *scoring* of author-submitted translations — later.
 - iOS native `.lproj` permission-string wiring — separate ticket.
-- Org-wide plugin inventory beyond Calls/Playbooks — must be confirmed
-  before final Weblate shutdown, but not part of the first engineering
-  cutover in the surveyed repos.
+- Org-wide Weblate project inventory — **already checked** (D16); instance
+  has Mattermost / Playbooks / Calls only (desktop/mobile are Mattermost
+  components).
 
 ## Cross-cutting risks
 
@@ -117,11 +118,12 @@ Status after verification pass: **keep** / **revise** / **reopen**.
    human review of locale diffs, an English string copy-pasted into all
    22 locales passes CI silently; the correction workflow (step 5) is the
    recourse.
-4. **mmgotool is not one binary**: platform vendors a copy; Calls installs
-   `mattermost/tools/mmgotool@latest`; Playbooks pins
-   `mattermost-utilities/mmgotool`.
+4. **mmgotool path settled**: canonical is platform
+   `mattermost/tools/mmgotool`; Playbooks must migrate off
+   `mattermost-utilities/mmgotool` before it can consume `i18n verify`.
 5. **Community attrition**: replacing Weblate UI with GitHub PRs raises
-   the bar for non-engineer translators.
+   the bar for non-engineer translators (mitigate via step 5 issue +
+   support-ticket paths).
 
 ## Sequencing (intended)
 
@@ -138,9 +140,35 @@ step-1 (trim + normalize + minimum validators)
 ## How to use this plan
 
 - Prefer the step files for execution checklists and acceptance criteria.
-- Locale scope (decision #1) is settled — product/comms coordination is
-  already done, so locale drops are unblocked. Remaining **Reopen /
-  Revise** rows are engineering-level (tooling flags, review methodology,
-  sequencing), resolvable within the workstreams.
+- Product/comms decisions are settled. Remaining engineering follow-through
+  lives in the step checklists (FormatJS flags, mmgotool Playbooks
+  migration, glossary import phases).
+- Glossary work is specified in [glossary.md](./glossary.md) and gates
+  the step 2 pilot.
 - Keep investigation evidence in the step files' "Challenges" sections;
   do not silently re-lock rejected assumptions.
+
+## Decision log (iteration resolutions)
+
+| ID | Resolution |
+|----|------------|
+| D1 | Delete dropped/experimental locale JSON immediately |
+| D2 | Rename Chinese on disk to `zh-CN`/`zh-TW`; no alias layer |
+| D3 | Treat `en-AU` like any other locale; let translation do the right thing |
+| D4 | Drop Alpha/Beta labels |
+| D5 | Canonical `mmgotool` = platform `mattermost/tools/mmgotool` |
+| D6 | Identical-copy CI gate **deleted**; one-time bulk-pass scan only |
+| D7 | Owner accepts back-translation + sampling as sufficient review now |
+| D8 | Handbook DE/FR/NL rules authoritative (soft/`required` constraints) |
+| D9 | AI reviews/rewrites **all** existing strings in the bulk pass |
+| D10 | Unlimited spend; no budget checkpoint |
+| D11 | No human reviewers of locale diffs |
+| D12 | Strict same-PR for translations |
+| D13 | Freeze Weblate before gates; AI supersedes Weblate content |
+| D14 | No DRI required for sunset comms |
+| D15 | One combined Weblate/WIP/locale-drop notice |
+| D16 | No further org Weblate inventory — already checked |
+| D17 | Model glossary in-repo; export/import from Weblate + handbook |
+| D18 | Handbook banner/rewrite executed out of band (not a plan gate) |
+| D19 | Correction triage best-effort by repo maintainers; no formal SLA |
+| D20 | Corrections via GitHub issues **and** support tickets |

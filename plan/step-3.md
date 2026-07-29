@@ -99,7 +99,7 @@ practice.
 | `formatjs verify --extra-keys` (#13) | **Reject as stated** | Flag does not exist on pinned CLIs; implement custom extra-key check. |
 | Plugin FormatJS parity | **Reopen** | Older `@formatjs/cli` pins may not expose `verify`. |
 | Identical-to-`en` hard fail | **Resolved — gate deleted** | Threshold design was debated (`en-AU` ~84–92% identical is normal); owner removed the gate from scope entirely. |
-| mmgotool one release path | **Reopen** | Platform vendored vs Calls `@latest` vs Playbooks utilities pin. |
+| mmgotool one release path | **Resolved (D5)** | Canonical = platform `mattermost/tools/mmgotool`; migrate Playbooks. |
 | Weblate overlap OK (#14) | **Resolved — freeze first** | Owner confirmed: freeze Weblate writes first; AI translations supersede Weblate content from then on. |
 
 ## Risks
@@ -121,13 +121,13 @@ practice.
 
 ## Open questions
 
-1. Is `en-AU` required to diverge, or mostly inherit `en` with a small
-   overlay? (With the identical-copy gate deleted, this is now purely a
-   content policy question — no CI implications.)
+1. ~~`en-AU` overlay vs full locale?~~ **Resolved (D3): treat like any
+   other locale; let the translation step do the right thing.**
 2. ~~Who reviews 22-locale AI diffs in product PRs?~~ **Resolved: no
    human reviewers — CI gates are the sole check on locale diffs.**
 3. ~~Hard gate start date vs Weblate freeze date?~~ **Resolved: freeze
    first; AI translations supersede Weblate content.**
-4. Canonical `mmgotool` module path going forward?
+4. ~~Canonical `mmgotool` module path?~~ **Resolved (D5): platform
+   `mattermost/tools/mmgotool`; migrate Playbooks off utilities.**
 5. ~~Product PR lands `en` only + follow-up translation PR?~~ **Resolved:
    strict same-PR.**

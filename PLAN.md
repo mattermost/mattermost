@@ -8,6 +8,7 @@ This plan has been split into focused documents under [`plan/`](./plan/).
 |------|-----|
 | Overview | [plan/summary.md](./plan/summary.md) |
 | 1. Lock locales / normalize / validators | [plan/step-1.md](./plan/step-1.md) |
+| Glossary model + import | [plan/glossary.md](./plan/glossary.md) |
 | 2. Bulk AI translation + review | [plan/step-2.md](./plan/step-2.md) |
 | 3. Author workflow + CI gates | [plan/step-3.md](./plan/step-3.md) |
 | 4. Sunset Weblate | [plan/step-4.md](./plan/step-4.md) |
