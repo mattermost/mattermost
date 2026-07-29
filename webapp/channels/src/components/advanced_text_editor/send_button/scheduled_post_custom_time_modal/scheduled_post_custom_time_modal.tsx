@@ -31,7 +31,6 @@ type Props = {
     onConfirm: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     initialTime?: Moment;
     initialRepeatWeekly?: boolean;
-    initialRepeatTimezone?: string;
 };
 
 export default function ScheduledPostCustomTimeModal({
@@ -40,14 +39,12 @@ export default function ScheduledPostCustomTimeModal({
     onConfirm,
     initialTime,
     initialRepeatWeekly = false,
-    initialRepeatTimezone,
 }: Props) {
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
-    const currentUserTimezone = useSelector(getCurrentTimezone);
+    const userTimezone = useSelector(getCurrentTimezone);
     const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
-    const effectiveTimezone = repeatWeekly && initialRepeatTimezone ? initialRepeatTimezone : currentUserTimezone;
-    const now = moment().tz(effectiveTimezone);
+    const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
@@ -58,13 +55,14 @@ export default function ScheduledPostCustomTimeModal({
         return now.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
     });
 
-    const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(effectiveTimezone), [effectiveTimezone]);
+    const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
 
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
         const selectedTime = dateTime.valueOf();
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: selectedTime,
-            ...(repeatWeekly ? {repeat_type: 'weekly' as const, repeat_timezone: effectiveTimezone} : {repeat_type: '', repeat_timezone: ''}),
+            repeat_type: repeatWeekly ? 'weekly' : '',
+            repeat_timezone: repeatWeekly ? userTimezone : '',
         };
         const response = await onConfirm(schedulingInfo);
 
@@ -75,7 +73,7 @@ export default function ScheduledPostCustomTimeModal({
                     user_id: currentUserId,
                     category: scheduledPosts.SCHEDULED_POSTS,
                     name: scheduledPosts.RECENTLY_USED_CUSTOM_TIME,
-                    value: JSON.stringify({update_at: moment().tz(currentUserTimezone).valueOf(), timestamp: selectedTime}),
+                    value: JSON.stringify({update_at: moment().tz(userTimezone).valueOf(), timestamp: selectedTime}),
                 }],
             ),
         );
@@ -85,7 +83,7 @@ export default function ScheduledPostCustomTimeModal({
         } else {
             onExited();
         }
-    }, [onConfirm, onExited, repeatWeekly, effectiveTimezone, dispatch, currentUserId, currentUserTimezone]);
+    }, [onConfirm, onExited, repeatWeekly, userTimezone, dispatch, currentUserId]);
 
     const bodySuffix = useMemo(() => {
         return (

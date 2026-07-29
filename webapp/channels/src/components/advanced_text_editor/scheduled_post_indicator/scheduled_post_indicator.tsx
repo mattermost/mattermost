@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
+
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -58,37 +60,26 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
 
     // display scheduled post's details of there is only one scheduled post
     if (scheduledPostData.count === 1 && scheduledPostData.scheduledPost) {
-        const sp = scheduledPostData.scheduledPost;
-        const isWeekly = sp.repeat_type === 'weekly';
-        scheduledPostText = isWeekly ? (
+        const scheduledPost = scheduledPostData.scheduledPost;
+        const dateTime = (
+            <Timestamp
+                value={scheduledPost.scheduled_at}
+                ranges={SCHEDULED_POST_TIME_RANGES}
+                useSemanticOutput={false}
+                useTime={scheduledPostTimeFormat}
+            />
+        );
+        scheduledPostText = isRecurringScheduledPost(scheduledPost) ? (
             <FormattedMessage
                 id='scheduled_post.channel_indicator.single_repeats_weekly'
                 defaultMessage='Message scheduled for {dateTime}; repeats weekly.'
-                values={{
-                    dateTime: (
-                        <Timestamp
-                            value={sp.scheduled_at}
-                            ranges={SCHEDULED_POST_TIME_RANGES}
-                            useSemanticOutput={false}
-                            useTime={scheduledPostTimeFormat}
-                        />
-                    ),
-                }}
+                values={{dateTime}}
             />
         ) : (
             <FormattedMessage
                 id='scheduled_post.channel_indicator.single'
                 defaultMessage='Message scheduled for {dateTime}.'
-                values={{
-                    dateTime: (
-                        <Timestamp
-                            value={sp.scheduled_at}
-                            ranges={SCHEDULED_POST_TIME_RANGES}
-                            useSemanticOutput={false}
-                            useTime={scheduledPostTimeFormat}
-                        />
-                    ),
-                }}
+                values={{dateTime}}
             />
         );
     }

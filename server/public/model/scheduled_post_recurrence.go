@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -12,16 +13,20 @@ const (
 	ScheduledPostRepeatTypeWeekly = "weekly"
 )
 
-// AdvanceWeeklyScheduledNextOccurrence returns the next weekly occurrence strictly after `nowMillis`.
-// It preserves local wall-clock time in `timezone` (IANA), advancing by 7-day steps until the result is in the future.
-func AdvanceWeeklyScheduledNextOccurrence(lastScheduledAtMillis int64, timezone string, nowMillis int64) int64 {
-	loc, err := time.LoadLocation(timezone)
+func (s *ScheduledPost) IsRecurring() bool {
+	return s.RepeatType == ScheduledPostRepeatTypeWeekly
+}
+
+// ComputeNextScheduledAt returns the next weekly occurrence strictly after nowMillis,
+// preserving local wall-clock time in RepeatTimezone.
+func (s *ScheduledPost) ComputeNextScheduledAt(nowMillis int64) (int64, error) {
+	loc, err := time.LoadLocation(s.RepeatTimezone)
 	if err != nil {
-		return lastScheduledAtMillis
+		return 0, fmt.Errorf("failed to load repeat timezone %q: %w", s.RepeatTimezone, err)
 	}
-	next := time.UnixMilli(lastScheduledAtMillis).In(loc).AddDate(0, 0, 7)
+	next := time.UnixMilli(s.ScheduledAt).In(loc).AddDate(0, 0, 7)
 	for !next.After(time.UnixMilli(nowMillis).In(loc)) {
 		next = next.AddDate(0, 0, 7)
 	}
-	return next.UTC().UnixMilli()
+	return next.UTC().UnixMilli(), nil
 }

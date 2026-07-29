@@ -7,6 +7,7 @@ import {ScheduledPostTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
+import {getTeamIdByChannelId} from 'mattermost-redux/selectors/entities/teams';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, connectionId: string) {
@@ -58,7 +59,7 @@ export function updateScheduledPost(scheduledPost: ScheduledPost, connectionId: 
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
             const updatedScheduledPost = await Client4.updateScheduledPost(scheduledPost, connectionId);
-            const teamId = getState().entities.channels.channels[updatedScheduledPost.data.channel_id]?.team_id || 'directChannels';
+            const teamId = getTeamIdByChannelId(getState(), updatedScheduledPost.data.channel_id);
 
             dispatch({
                 type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,

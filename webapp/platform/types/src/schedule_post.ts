@@ -20,6 +20,10 @@ export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
     id: string;
 };
 
+export function isRecurringScheduledPost(schedulingInfo: Pick<SchedulingInfo, 'repeat_type'>): boolean {
+    return schedulingInfo.repeat_type === 'weekly';
+}
+
 export type ScheduledPostsState = {
     byId: {
         [scheduledPostId: string]: ScheduledPost | undefined;

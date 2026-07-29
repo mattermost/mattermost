@@ -172,10 +172,7 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 		Where(pendingCursor).
 		Where(sq.Or{
 			sq.Eq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
-			sq.And{
-				sq.NotEq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
-				sq.GtOrEq{"ScheduledAt": afterTime},
-			},
+			sq.GtOrEq{"ScheduledAt": afterTime},
 		}).
 		OrderBy("ScheduledAt DESC", "Id").
 		Limit(perPage)
@@ -227,6 +224,8 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 	return nil
 }
 
+// UpdatedScheduledPost persists the scheduled post as given; ProcessedAt and ErrorCode are
+// caller-owned and stored verbatim.
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	scheduledPost.PreUpdate()
 
@@ -250,6 +249,9 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 	return nil
 }
 
+// UpdateRecurringScheduledPosts advances recurring scheduled posts to their next occurrence in a
+// single query, persisting each post's ScheduledAt and resetting ErrorCode/ProcessedAt so the posts
+// are pending again. It also stamps UpdateAt on the given posts.
 func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
 	if len(scheduledPosts) == 0 {
 		return nil
@@ -257,24 +259,19 @@ func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*
 
 	updateAt := model.GetMillis()
 	scheduledAtCase := sq.Case("Id")
-	errorCodeCase := sq.Case("Id")
-	processedAtCase := sq.Case("Id")
 	ids := make([]string, len(scheduledPosts))
 
 	for i, scheduledPost := range scheduledPosts {
 		scheduledPost.UpdateAt = updateAt
 		ids[i] = scheduledPost.Id
-		whenID := sq.Expr("?", scheduledPost.Id)
-		scheduledAtCase = scheduledAtCase.When(whenID, sq.Expr("?::bigint", scheduledPost.ScheduledAt))
-		errorCodeCase = errorCodeCase.When(whenID, sq.Expr("?", scheduledPost.ErrorCode))
-		processedAtCase = processedAtCase.When(whenID, sq.Expr("?::bigint", scheduledPost.ProcessedAt))
+		scheduledAtCase = scheduledAtCase.When(sq.Expr("?", scheduledPost.Id), sq.Expr("?::bigint", scheduledPost.ScheduledAt))
 	}
 
 	builder := s.getQueryBuilder().
 		Update("ScheduledPosts").
 		Set("ScheduledAt", scheduledAtCase).
-		Set("ErrorCode", errorCodeCase).
-		Set("ProcessedAt", processedAtCase).
+		Set("ErrorCode", "").
+		Set("ProcessedAt", 0).
 		Set("UpdateAt", updateAt).
 		Where(sq.Eq{"Id": ids})
 

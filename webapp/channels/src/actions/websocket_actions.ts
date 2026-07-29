@@ -2248,9 +2248,9 @@ function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
 }
 
 function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
-    return async (doDispatch, getState) => {
+    return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
-        const teamId = getChannel(getState(), scheduledPost.channel_id)?.team_id || 'directChannels';
+        const teamId = getTeamIdByChannelId(getState(), scheduledPost.channel_id);
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,

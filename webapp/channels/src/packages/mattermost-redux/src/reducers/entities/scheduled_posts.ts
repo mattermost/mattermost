@@ -145,32 +145,20 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
     }
     case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
-        const teamId = action.data.teamId as string | undefined;
-        const newState = {...state};
-        const teamIds = new Set<string>(Object.keys(state));
-        if (teamId) {
-            teamIds.add(teamId);
+        const teamId = action.data.teamId || 'directChannels';
+
+        // Remove the post from every team's error list, then re-add it under its team if it errored.
+        const newState: ScheduledPostsState['errorsByTeamId'] = {};
+        for (const currentTeamId of Object.keys(state)) {
+            const scheduledPostIds = state[currentTeamId];
+            newState[currentTeamId] = scheduledPostIds.includes(scheduledPost.id) ? scheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id) : scheduledPostIds;
         }
 
-        let changed = false;
-        for (const currentTeamId of teamIds) {
-            const existingScheduledPostIds = state[currentTeamId] || emptyList;
-            const hasScheduledPost = existingScheduledPostIds.includes(scheduledPost.id);
-            const shouldHaveScheduledPost = Boolean(scheduledPost.error_code) && (teamId ? currentTeamId === teamId : hasScheduledPost);
-
-            if (shouldHaveScheduledPost && !hasScheduledPost) {
-                newState[currentTeamId] = [...existingScheduledPostIds, scheduledPost.id];
-                changed = true;
-                continue;
-            }
-
-            if (!shouldHaveScheduledPost && hasScheduledPost) {
-                newState[currentTeamId] = existingScheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id);
-                changed = true;
-            }
+        if (scheduledPost.error_code) {
+            newState[teamId] = [...(newState[teamId] || emptyList), scheduledPost.id];
         }
 
-        return changed ? newState : state;
+        return newState;
     }
     case ScheduledPostTypes.SCHEDULED_POST_DELETED: {
         let changed = false;
