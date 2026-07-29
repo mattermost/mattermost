@@ -345,7 +345,7 @@ export async function loadProfilesForGM() {
     const currentUserId = Selectors.getCurrentUserId(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
-    const userIdsForLoadingCustomEmojis = new Set();
+    const userIdsForLoadingCustomEmojis = new Set<string>();
     const channelUsersToLoad: string[] = [];
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();

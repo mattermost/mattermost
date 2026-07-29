@@ -93,4 +93,38 @@ describe('OperatorSelectorMenu', () => {
         expect(menuTexts).not.toContain('has any of');
         expect(menuTexts).not.toContain('has all of');
     });
+
+    test('restricts the menu to allowedOperators when provided (native attribute)', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='is'
+                attributeType='text'
+                allowedOperators={['is', 'is not']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['is', 'is not']);
+    });
+
+    test('shows only the younger than operator for native createat', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='younger than'
+                attributeType='text'
+                allowedOperators={['younger than']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['younger than (days)']);
+    });
 });

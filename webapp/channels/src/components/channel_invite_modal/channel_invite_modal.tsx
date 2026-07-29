@@ -7,6 +7,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -19,6 +20,8 @@ import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
@@ -81,7 +84,7 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
 };
@@ -133,11 +136,15 @@ const ChannelInviteModalComponent = (props: Props) => {
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
+    // Admins can disable the attribute indicators to avoid leaking policy
+    // details; when off we skip fetching/rendering the tags entirely.
+    const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
+
     // Use the useAccessControlAttributes hook
     const {structuredAttributes} = useAccessControlAttributes(
         EntityType.Channel,
         props.channel.id,
-        isMembershipPolicy,
+        isMembershipPolicy && indicatorsEnabled,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
@@ -229,9 +236,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         let users: UserProfileValue[];
         if (isPolicyEnforcedPrivate) {
             const sourceList =
-                term.trim().length > 0 ?
-                    (privateAbacSearchHits ?? []) :
-                    abacFilteredUsers;
+                term.trim().length > 0 ? (privateAbacSearchHits ?? []) : abacFilteredUsers;
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(sourceList, excludedAndNotInTeamUserIds);
         } else {
             // Non-ABAC or advisory (public policy): full team list.
@@ -422,16 +427,14 @@ const ChannelInviteModalComponent = (props: Props) => {
             // getOptions() reads from. Routing through Redux here would
             // populate profilesNotInCurrentChannel which getOptions ignores
             // on the strict-gate path, leaving subsequent pages invisible.
-            const fetchPage = isPolicyEnforcedPrivate ?
-                fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) :
-                props.actions.getProfilesNotInChannel(
-                    props.channel.team_id,
-                    props.channel.id,
-                    props.channel.group_constrained,
-                    page + 1,
-                    USERS_PER_PAGE,
-                    cursorId,
-                );
+            const fetchPage = isPolicyEnforcedPrivate ? fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) : props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            );
 
             fetchPage.then((result) => {
                 // Store the cursor for the next page (ID of the last user)

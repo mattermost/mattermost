@@ -1,0 +1,20 @@
+.icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  -webkit-mask-position: center;
+}
+
+.xs { width: 0.85em; height: 0.85em; }
+.sm { width: 1em;    height: 1em; }
+.md { width: 1.4em;  height: 1.4em; }
+.lg { width: 2em;    height: 2em; }
+
+.denim    { color: var(--mm-color-denim); }
+.marigold { color: var(--mm-color-marigold); }
+.inherit  { color: inherit; }

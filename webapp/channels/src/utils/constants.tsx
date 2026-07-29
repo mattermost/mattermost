@@ -9,6 +9,7 @@ import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
 import {defineMessage, defineMessages} from 'react-intl';
 
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
@@ -57,6 +58,19 @@ export const InviteTypes = {
     INVITE_GUEST: 'guest',
 };
 
+export const LOCK_PROFILE_FIELDS = {
+    NONE: 'none',
+    NAME_AND_USERNAME: 'name_and_username',
+    ALL: 'all',
+} as const satisfies Record<string, LockProfileFieldsSetting>;
+
+export function normalizeLockProfileFieldsSetting(value: unknown): LockProfileFieldsSetting {
+    if (value === LOCK_PROFILE_FIELDS.NAME_AND_USERNAME || value === LOCK_PROFILE_FIELDS.ALL) {
+        return value;
+    }
+    return LOCK_PROFILE_FIELDS.NONE;
+}
+
 export const PreviousViewedTypes = {
     CHANNELS: 'channels',
     THREADS: 'threads',
@@ -90,6 +104,8 @@ export const Preferences = {
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
     RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
     RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
+    WYSIWYG_EDITOR: 'wysiwyg_editor',
+    WYSIWYG_EDITOR_DEFAULT: 'false',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
@@ -118,6 +134,8 @@ export const Preferences = {
     ADMIN_CLOUD_UPGRADE_PANEL: 'admin_cloud_upgrade_panel',
     CATEGORY_EMOJI: 'emoji',
     EMOJI_SKINTONE: 'emoji_skintone',
+    CATEGORY_AGENTS: 'agents',
+    SELECTED_AGENT: 'selected_agent',
     ONE_CLICK_REACTIONS_ENABLED: 'one_click_reactions_enabled',
     ONE_CLICK_REACTIONS_ENABLED_DEFAULT: 'true',
     CLOUD_TRIAL_END_BANNER: 'cloud_trial_end_banner',
@@ -151,7 +169,6 @@ export const Preferences = {
     SINGLE_CHANNEL_GUEST_LIMIT_BANNER: 'sc_guest_limit_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
-    CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -242,6 +259,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: null,
     RECEIVED_PLUGIN_STATS_HANDLER: null,
     RECEIVED_PLUGIN_USER_SETTINGS: null,
+    RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB: null,
 
     MODAL_OPEN: null,
     MODAL_CLOSE: null,
@@ -347,6 +365,7 @@ export const ModalIdentifiers = {
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
     CHANNEL_SETTINGS: 'channel_settings',
+    REQUEST_JOIN_CHANNEL: 'request_join_channel',
     TEAM_MEMBERS: 'team_members',
     TEST_RESULTS: 'test_results',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
@@ -480,8 +499,11 @@ export const ModalIdentifiers = {
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
     CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
+    SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
+    BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
     CREATE_RECAP_MODAL: 'create_recap_modal',
@@ -699,8 +721,6 @@ export const CloudBanners = {
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
     NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
     NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
-    ANNUAL_RENEWAL_60_DAY: 'annual_renewal_60_day',
-    ANNUAL_RENEWAL_30_DAY: 'annual_renewal_30_day',
 };
 
 export const ConfigurationBanners = {
@@ -732,6 +752,8 @@ export const PostTypes = {
     LEAVE_TEAM: 'system_leave_team',
     ADD_TO_TEAM: 'system_add_to_team',
     REMOVE_FROM_TEAM: 'system_remove_from_team',
+    ACCESS_CONTROL_TEAM_REMOVAL: 'system_team_abac_removal',
+    ACCESS_CONTROL_TEAM_ADDITION: 'system_team_abac_addition',
     HEADER_CHANGE: 'system_header_change',
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     CONVERT_CHANNEL: 'system_convert_channel',
@@ -844,6 +866,7 @@ export const JobTypes = {
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
     ACCESS_CONTROL_SYNC: 'access_control_sync',
+    ACCESS_CONTROL_TEAM_SYNC: 'access_control_team_sync',
 } as const;
 
 export const JobStatuses = {
@@ -2055,6 +2078,7 @@ export const Constants = {
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
         SHOW_FULLNAME: 'full_name',
     },
+    LOCK_PROFILE_FIELDS,
     SEARCH_POST: 'searchpost',
     CHANNEL_ID_LENGTH: 26,
     TRANSPARENT_PIXEL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',

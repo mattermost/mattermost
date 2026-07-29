@@ -1,0 +1,146 @@
+.grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 2.5rem;
+}
+
+.cols2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.cols3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cols4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.4rem 1.6rem;
+  background: var(--mm-bg-surface);
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(30, 50, 92, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease,
+    background 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -18px rgba(30, 50, 92, 0.3);
+  border-color: var(--mm-border-strong);
+  background: var(--mm-bg-subtle);
+  text-decoration: none;
+  color: inherit;
+}
+/* --mm-focus-ring (marigold) is ~1.7:1 against the white card surface,
+ * well under the 3:1 WCAG 1.4.11 minimum for non-text UI indicators.
+ * Use denim instead, which passes on both the light and dark surface. */
+.card:focus-visible {
+  outline: 2px solid var(--mm-color-denim);
+  outline-offset: 2px;
+}
+
+[data-theme='dark'] .card:focus-visible {
+  outline-color: var(--mm-denim-300, #8499C5);
+}
+
+[data-theme='dark'] .card {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+[data-theme='dark'] .card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--mm-denim-300);
+}
+
+.icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  background: var(--mm-bg-subtle);
+  color: var(--mm-color-denim);
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.card:hover .icon {
+  background: var(--mm-color-denim);
+  color: var(--mm-color-white);
+}
+
+[data-theme='dark'] .icon {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mm-denim-200);
+}
+[data-theme='dark'] .card:hover .icon {
+  background: var(--mm-color-white);
+  color: var(--mm-color-denim);
+}
+
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 1.5rem;
+}
+
+.title {
+  /* Mixed-case, multi-word labels (e.g. "For End Users") read as too
+   * heavy/shouty in Archivo Black at 900 — same issue already fixed for
+   * h1-h4 — so use the sans face at a lighter bold weight instead. */
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.35rem;
+  color: var(--mm-text-primary);
+}
+
+.description {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 0 0.4rem;
+  color: var(--mm-text-secondary);
+}
+
+.meta {
+  display: inline-block;
+  font-family: var(--mm-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--mm-marigold-700);
+  background: var(--mm-marigold-100);
+  padding: 0.1rem 0.45rem;
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .meta {
+  color: var(--mm-color-marigold);
+  background: rgba(255, 188, 31, 0.12);
+}
+
+.arrow {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  color: var(--mm-text-secondary);
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.card:hover .arrow {
+  background: var(--mm-bg-page);
+  color: var(--mm-color-denim);
+  transform: translateX(3px);
+}
+
+[data-theme='dark'] .card:hover .arrow {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--mm-color-white);
+}

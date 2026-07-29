@@ -3,11 +3,7 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-	"time"
-)
+import "time"
 
 const (
 	CurrentSupportPacketVersion = 2
@@ -88,7 +84,7 @@ type SupportPacketDiagnostics struct {
 
 	FileStore struct {
 		Status         string `yaml:"file_status"`
-		Error          string `yaml:"erorr,omitempty"`
+		Error          string `yaml:"error,omitempty"`
 		Driver         string `yaml:"file_driver"`
 		FilesystemType string `yaml:"filesystem_type,omitempty"`
 		TotalMB        uint64 `yaml:"total_mb,omitempty"`
@@ -239,17 +235,10 @@ type FileData struct {
 }
 
 type SupportPacketOptions struct {
-	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
-	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
-}
-
-// SupportPacketOptionsFromReader decodes a json-encoded request from the given io.Reader.
-func SupportPacketOptionsFromReader(reader io.Reader) (*SupportPacketOptions, error) {
-	var r *SupportPacketOptions
-	err := json.NewDecoder(reader).Decode(&r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
+	IncludeLogs   bool     // IncludeLogs is the option to include server logs
+	PluginPackets []string // PluginPackets is a list of pluginids to call hooks
+	// CPUProfileDuration lets programmatic callers (e.g. tests) override how long to sample
+	// the CPU profile for. It is not exposed via the HTTP API.
+	// nil leaves the server default in place; 0 skips CPU profile generation entirely.
+	CPUProfileDuration *time.Duration
 }

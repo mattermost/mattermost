@@ -61,6 +61,11 @@ export type State = {
     submitting: string | null;
     form: AppForm;
     isInteracting: boolean;
+
+    // Names of fields with an upload in progress. Submit is blocked while non-empty.
+    // Tracked per-field (not a single boolean) so concurrent uploads in different file
+    // fields don't clobber each other's pending state.
+    uploadingFields: Set<string>;
 };
 
 // Helper function to validate date format and warn if datetime format is used
@@ -219,6 +224,9 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
         // Work with sanitized copies for safe usage
         form.fields.forEach((originalField) => {
+            if (originalField.type === AppFieldTypes.ACTION_BUTTON) {
+                return;
+            }
             const field = createSanitizedField(originalField);
 
             let defaultValue: AppFormValue = null;
@@ -281,6 +289,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             submitting: null,
             form,
             isInteracting: false,
+            uploadingFields: new Set(),
         };
     }
 
@@ -345,6 +354,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
     handleSubmit = async (e: React.FormEvent, submitName?: string, value?: string) => {
         e.preventDefault();
+
+        // Block submission while any field has an upload in progress. Submitting now
+        // would race the upload's onChange and send the form before the uploaded file
+        // IDs have propagated into the values. The submit button is also disabled in
+        // this state; this guard covers Enter-key submits.
+        if (this.state.uploadingFields.size > 0) {
+            return;
+        }
 
         const {fields} = this.props.form;
         const values = this.state.values;
@@ -571,6 +588,23 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({isInteracting});
     };
 
+    // Track per-field upload state. Returning null from the updater when membership is
+    // unchanged avoids a re-render (and a feedback loop with the field's effect).
+    setFieldUploading = (fieldName: string, uploading: boolean) => {
+        this.setState((prev) => {
+            if (uploading === prev.uploadingFields.has(fieldName)) {
+                return null;
+            }
+            const uploadingFields = new Set(prev.uploadingFields);
+            if (uploading) {
+                uploadingFields.add(fieldName);
+            } else {
+                uploadingFields.delete(fieldName);
+            }
+            return {uploadingFields};
+        });
+    };
+
     hasDateTimeFields = (): boolean => {
         const {fields} = this.props.form;
         return fields ? fields.some((field) =>
@@ -713,6 +747,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     performLookup={this.performLookup}
                     onChange={this.onChange}
                     setIsInteracting={this.setIsInteracting}
+                    setFieldUploading={this.setFieldUploading}
                     listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
                 />
             );
@@ -751,6 +786,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 type='submit'
                 autoFocus={!fields || fields.length === 0}
                 spinning={Boolean(this.state.submitting)}
+                disabled={this.state.uploadingFields.size > 0}
                 spinningText={defineMessage({
                     id: 'interactive_dialog.submitting',
                     defaultMessage: 'Submitting...',
@@ -769,6 +805,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         key={o.value}
                         type='submit'
                         spinning={this.state.submitting === o.value}
+                        disabled={this.state.uploadingFields.size > 0}
                         spinningText={o.label}
                         onClick={(e: React.MouseEvent) => this.handleSubmit(e, field.name, o.value)}
                     >
@@ -814,7 +851,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 }
 
 function fieldsAsElements(fields?: AppField[]): DialogElement[] {
-    return fields?.map((f) => ({
+    return fields?.filter((f) => f.type !== AppFieldTypes.ACTION_BUTTON).map((f) => ({
         name: f.name,
         type: f.type,
         subtype: f.subtype,

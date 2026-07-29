@@ -3,12 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {
-    PropertyField,
-    PropertyFieldsState,
-    PropertyGroupsState,
-    PropertyValuesState,
-} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValuesState} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PropertyTypes, UserTypes} from 'mattermost-redux/action_types';

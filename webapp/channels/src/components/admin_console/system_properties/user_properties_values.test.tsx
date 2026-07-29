@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -219,6 +219,27 @@ describe('UserPropertyValues', () => {
 
         const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('shows a read-only owner pill with plugin provenance and scope under Synced with', () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByTestId(`user-property-field-values__owner-${ownedField.name}-com.mattermost.scim`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+
+        // Owner-managed fields are read-only: no value input is shown.
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     });
 
     it('applies autoFocus when prop is true', () => {

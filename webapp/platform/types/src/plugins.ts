@@ -169,7 +169,10 @@ export type NewChannelFormState = {
     url: string;
     purpose: string;
     type: string;
+    defaultCategoryName?: string;
     managedCategoryName?: string;
+    classificationId?: string;
+    bannerText?: string;
 };
 
 /**

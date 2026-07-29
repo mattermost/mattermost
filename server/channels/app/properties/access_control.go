@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -54,6 +55,7 @@ type PluginChecker func(pluginID string) bool
 // The hook only applies to groups whose IDs are in managedGroupIDs. Operations
 // on other groups pass through without access control checks.
 type AccessControlHook struct {
+	BasePropertyHook
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
 	managedGroupIDs map[string]struct{}
@@ -113,6 +115,12 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 		if model.IsPropertyFieldProtected(field) {
 			return nil, fmt.Errorf("protected can only be set by a plugin: %w", ErrAccessDenied)
 		}
+	}
+
+	// Owners are managed only by administrators via the REST API. Machine
+	// callers (plugins/sync) may not declare owners when creating a field.
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(field) {
+		return nil, fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
 	}
 
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
@@ -189,7 +197,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+	if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 		return nil, err
 	}
 
@@ -239,7 +247,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
-		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+		if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -329,7 +337,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -355,7 +363,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -376,7 +384,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -402,7 +410,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -423,7 +431,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -449,7 +457,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -475,7 +483,7 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID)
+	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
 }
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
@@ -543,7 +551,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 	}
 
 	for _, field := range fields {
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
@@ -564,7 +572,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID)
+	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
 }
 
 // Value Post-Hooks
@@ -613,9 +621,130 @@ func (h *AccessControlHook) extractCallerID(rctx request.CTX) string {
 	return h.propertyService.extractCallerID(rctx)
 }
 
+// extractActingAsScope gets the caller's acting-as scope from a request context
+// using the property service's extractor.
+func (h *AccessControlHook) extractActingAsScope(rctx request.CTX) string {
+	return h.propertyService.extractRequestOptions(rctx).ActingAsScope
+}
+
 // isCallerPlugin checks whether the callerID corresponds to an installed plugin.
 func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
 	return callerID != "" && h.pluginChecker != nil && h.pluginChecker(callerID)
+}
+
+// isMachineCaller reports whether the caller is a machine actor (an installed
+// plugin or a built-in sync service) rather than a human. Owner-list
+// enforcement applies only to machine callers; human callers (session users
+// and local admins) are governed by the API-layer permission levels.
+func (h *AccessControlHook) isMachineCaller(callerID string) bool {
+	return h.isCallerPlugin(callerID) ||
+		callerID == model.CallerIDLDAPSync ||
+		callerID == model.CallerIDSAMLSync
+}
+
+// callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
+// owner identity it would match in a field's owners list. A built-in sync
+// service is a singleton (one LDAP, one SAML), so its owner type is "service"
+// and it carries no scope; for a plugin the manifest ID is the owner ID and the
+// scope is whatever the plugin declared on the request context.
+func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
+	switch callerID {
+	case model.CallerIDLDAPSync:
+		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, ""
+	case model.CallerIDSAMLSync:
+		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
+	default:
+		return callerID, model.PropertyOwnerTypePlugin, scope
+	}
+}
+
+// effectiveOwners returns the owners list used for value-write access checks on
+// an owner-managed field. Explicit owners from the attrs blob are augmented
+// with implicit service owners derived from attrs.ldap / attrs.saml so a field
+// can be written by both a listed plugin/scope and its legacy sync source.
+// Implicit service owners are only added when explicit owners are present;
+// legacy synced-only fields continue through checkSyncLock instead.
+func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
+	owners := model.GetPropertyFieldOwners(field)
+	if len(owners) == 0 || field.Attrs == nil {
+		return owners
+	}
+
+	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
+		owners = append(owners, model.PropertyOwner{
+			ID:   model.PropertyFieldAttrLDAP,
+			Type: model.PropertyOwnerTypeService,
+		})
+	}
+	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
+		owners = append(owners, model.PropertyOwner{
+			ID:   model.PropertyFieldAttrSAML,
+			Type: model.PropertyOwnerTypeService,
+		})
+	}
+	return owners
+}
+
+// checkOwnerValueWriteAccess enforces a field's owners list on a value write.
+// A machine caller is allowed only if it is a listed owner (matching ID and
+// type) whose scopes contain the caller's acting-as scope. An owner with an
+// empty scopes list is not restricted by scope and may write for any scope.
+//
+// Human callers are always rejected: an owner-managed field's values are
+// authoritative to the owning integration, so no session user — including
+// sysadmins — may overwrite them. This mirrors checkSyncLock for ldap/saml
+// fields and is the sole write authority for owner-managed fields (their
+// PermissionValues are left at the normal default and are not consulted here).
+func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
+	if !h.isMachineCaller(callerID) {
+		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
+	}
+
+	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	for _, owner := range h.effectiveOwners(field) {
+		if owner.Type == ownerType && owner.ID == ownerID &&
+			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
+}
+
+// isListedOwner reports whether the machine caller matches an explicit owner
+// entry on the field (by id and type). Scope is not consulted: being a listed
+// owner is what authorizes managing the field; scope only gates value writes.
+func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
+	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+	for _, owner := range model.GetPropertyFieldOwners(field) {
+		if owner.Type == ownerType && owner.ID == ownerID {
+			return true
+		}
+	}
+	return false
+}
+
+// enforceFieldUpdateAccess gates a field-definition update.
+//
+// Owner-managed fields allow a machine caller only if it is a listed owner
+// (checked against the stored owners, so a non-owner cannot add itself). A
+// listed owner may edit the whole definition including the owners attr. Human
+// callers pass through to the API-layer sysadmin pin.
+//
+// For non-owner-managed fields, machine callers may not add owners, and legacy
+// protected / source_plugin_id rules continue to apply.
+func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
+	if model.HasPropertyFieldOwners(existing) {
+		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
+		}
+		return nil
+	}
+
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
+		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
+	}
+	return h.checkLegacyFieldWriteAccess(existing, callerID)
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -686,9 +815,12 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 	return nil
 }
 
-// checkFieldWriteAccess checks if the given caller can modify a PropertyField.
+// checkLegacyFieldWriteAccess enforces the protected / source_plugin_id rules on
+// a non-owner-managed field. Owner-managed fields are gated by
+// enforceFieldUpdateAccess; callers must confirm the field has no owners before
+// calling this.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, callerID string) error {
+func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyField, callerID string) error {
 	if !model.IsPropertyFieldProtected(field) {
 		return nil
 	}
@@ -708,6 +840,13 @@ func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, ca
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+	if model.HasPropertyFieldOwners(field) {
+		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
+		}
+		return nil
+	}
+
 	if !model.IsPropertyFieldProtected(field) {
 		return nil
 	}
@@ -756,10 +895,16 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	return nil
 }
 
-// checkValueWriteAccess combines the protected-field write access check and
-// the sync lock check for value write operations.
-func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID string) error {
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+// checkValueWriteAccess gates a value write. When the field declares an owners
+// list, the owner check (with scope matching) supersedes the legacy
+// protected-field and sync-lock checks. Otherwise it falls back to today's
+// behaviour.
+func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
+	if model.HasPropertyFieldOwners(field) {
+		return h.checkOwnerValueWriteAccess(field, callerID, scope)
+	}
+
+	if err := h.checkLegacyFieldWriteAccess(field, callerID); err != nil {
 		return err
 	}
 	return h.checkSyncLock(field, callerID)
@@ -821,7 +966,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 	optionIDs := make(map[string]struct{})
 
 	switch fieldType {
-	case model.PropertyFieldTypeSelect:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var optionID string
 		if err := json.Unmarshal(value, &optionID); err != nil {
 			return nil, err
@@ -842,7 +987,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 		}
 
 	default:
-		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select and multiselect field types, got: %s", fieldType)
+		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select, multiselect and rank field types, got: %s", fieldType)
 	}
 
 	return optionIDs, nil
@@ -889,9 +1034,18 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 }
 
 // filterSharedOnlyFieldOptions filters a field's options to only include those the caller has values for.
+//
+// Rank fields are the exception: rather than exact-match membership, a rank
+// field exposes every option at or below the caller's own rank ("everything at
+// your rank and lower"), so a higher-cleared caller sees the full ladder up to
+// their level. See filterSharedOnlyRankFieldOptions.
 func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+	if !field.Type.SupportsOptions() {
 		return field
+	}
+
+	if field.Type == model.PropertyFieldTypeRank {
+		return h.filterSharedOnlyRankFieldOptions(field, callerID)
 	}
 
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
@@ -934,8 +1088,108 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 	return filteredField
 }
 
+// filterSharedOnlyRankFieldOptions filters a rank field's options to those at
+// or below the caller's own rank, rather than the exact-match intersection
+// used for select/multiselect. A caller who holds no value for the field (and
+// therefore has no rank) sees no options.
+func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+	// Bail out before building the rank map or the caller-rank store lookup when
+	// there are no options to filter: an absent or malformed options array has
+	// nothing to hide, so the field is returned untouched.
+	if field.Attrs == nil {
+		return field
+	}
+	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return field
+	}
+	optionsSlice, ok := optionsArr.([]any)
+	if !ok {
+		return field
+	}
+
+	rankByID := buildOptionRankMap(field)
+	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	if !ok {
+		filteredField := h.copyPropertyField(field)
+		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		return filteredField
+	}
+
+	filteredOptions := []any{}
+	for _, opt := range optionsSlice {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, ok := optMap["id"].(string)
+		if !ok {
+			continue
+		}
+		rank, ok := rankByID[optID]
+		if !ok {
+			continue
+		}
+		if rank <= callerRank {
+			filteredOptions = append(filteredOptions, opt)
+		}
+	}
+
+	filteredField := h.copyPropertyField(field)
+	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
+	return filteredField
+}
+
+// callerRankForField returns the rank the caller holds for a rank field, using
+// the already-built option-ID-to-rank map. A rank field is select-shaped (a
+// single value per user), so the caller has at most one option; we take it.
+// ok is false when the caller has no value for the field or the option carries
+// no rank, in which case the caller has no clearance and sees nothing.
+func (h *AccessControlHook) callerRankForField(field *model.PropertyField, callerID string, rankByID map[string]int) (int, bool) {
+	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil || len(callerOptionIDs) == 0 {
+		return 0, false
+	}
+
+	var callerOptionID string
+	for id := range callerOptionIDs {
+		callerOptionID = id
+		break
+	}
+
+	rank, ok := rankByID[callerOptionID]
+	return rank, ok
+}
+
+// buildOptionRankMap returns a map of option ID to rank for a rank field.
+// Options without a rank are skipped.
+func buildOptionRankMap(field *model.PropertyField) map[string]int {
+	out := map[string]int{}
+	if field.Attrs == nil {
+		return out
+	}
+	rawOpts, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return out
+	}
+	opts, err := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](rawOpts)
+	if err != nil {
+		return out
+	}
+	for _, o := range opts {
+		if o.Rank == nil {
+			continue
+		}
+		out[o.ID] = *o.Rank
+	}
+	return out
+}
+
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
 // Returns the filtered value or nil if there's no intersection.
+//   - rank: clearance-style. The caller sees the option at the highest rank they share with the
+//     target — the target's own value when its rank is at or below the caller's, otherwise the
+//     value clamped down to the option at the caller's own rank. See filterSharedOnlyRankValue.
 //   - select / multiselect: per-value intersection (a multi-value field may return a subset).
 //   - text / date / user / any other primitive type: binary — visible only if the caller's
 //     stored value equals the target's value exactly. Otherwise nil.
@@ -944,6 +1198,10 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
 func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	if field.Type == model.PropertyFieldTypeRank {
+		return h.filterSharedOnlyRankValue(field, value, callerID)
+	}
+
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
 		return h.filterSharedOnlyScalarValue(field, value, callerID)
 	}
@@ -993,6 +1251,70 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	}
 }
 
+// filterSharedOnlyRankValue returns the target's value clamped to the highest
+// rank the caller shares with the target: the target's own value when its rank
+// is at or below the caller's, otherwise the value rewritten to the option at
+// the caller's own rank. The caller therefore always learns the highest level
+// they have in common ("what can we talk about, and at what level") rather than
+// seeing nothing when the target outranks them, but never sees a rank above
+// their own. This differs from select/multiselect, which require an exact
+// option match. A caller who holds no value of their own (and therefore has no
+// rank) sees nothing. A rank field is select-shaped, so the target has at most
+// one option.
+func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	rankByID := buildOptionRankMap(field)
+	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	if !ok {
+		return nil
+	}
+
+	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
+	if err != nil || len(targetOptionIDs) == 0 {
+		return nil
+	}
+
+	for targetID := range targetOptionIDs {
+		targetRank, ok := rankByID[targetID]
+		if !ok {
+			continue
+		}
+		if targetRank <= callerRank {
+			filtered := *value
+			return &filtered
+		}
+		// The target outranks the caller: clamp the value down to the option at
+		// the caller's own rank, the highest rung they share with the target.
+		return h.clampRankValueToRank(value, rankByID, callerRank)
+	}
+	return nil
+}
+
+// clampRankValueToRank returns a copy of value rewritten to the rank field's
+// option at the given rank. Ranks are unique per field, so exactly one option
+// matches. Returns nil if no option carries the rank (not expected, since the
+// rank is taken from an existing option) or the rewrite fails.
+func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, rankByID map[string]int, rank int) *model.PropertyValue {
+	var optionID string
+	for id, r := range rankByID {
+		if r == rank {
+			optionID = id
+			break
+		}
+	}
+	if optionID == "" {
+		return nil
+	}
+
+	jsonValue, err := json.Marshal(optionID)
+	if err != nil {
+		return nil
+	}
+
+	clamped := *value
+	clamped.Value = jsonValue
+	return &clamped
+}
+
 // filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
 // returns the value as-is if the caller's own stored value for the same field equals
 // the target's value, otherwise nil. Caller and target may legitimately store nothing,
@@ -1036,7 +1358,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 
 	// Source-only or unknown: return with empty options (secure default)
 	filteredField := h.copyPropertyField(field)
-	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+	if field.Type.SupportsOptions() {
 		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 	}
 	return filteredField

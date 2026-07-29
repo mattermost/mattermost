@@ -37,6 +37,7 @@ describe('components/admin_console/jobs/table', () => {
             getJobsByType,
         },
         jobType: 'data_retention',
+        isSystemAdmin: true,
         jobs: [{
             create_at: 1540834294674,
             last_activity_at: 1540834294674,
@@ -203,6 +204,42 @@ describe('components/admin_console/jobs/table', () => {
 
         const button = container.querySelectorAll('button.btn-default');
         expect(button).toHaveLength(0);
+    });
+
+    test('should poll for updates when user is not a system admin', () => {
+        jest.useFakeTimers();
+
+        renderWithContext(
+            <JobTable
+                {...baseProps}
+                isSystemAdmin={false}
+            />,
+        );
+
+        expect(getJobsByType).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(15000);
+        expect(getJobsByType).toHaveBeenCalledTimes(2);
+
+        jest.useRealTimers();
+    });
+
+    test('should not poll for updates when user is a system admin', () => {
+        jest.useFakeTimers();
+
+        renderWithContext(
+            <JobTable
+                {...baseProps}
+                isSystemAdmin={true}
+            />,
+        );
+
+        expect(getJobsByType).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(15000);
+        expect(getJobsByType).toHaveBeenCalledTimes(1);
+
+        jest.useRealTimers();
     });
 
     test('add custom class', () => {

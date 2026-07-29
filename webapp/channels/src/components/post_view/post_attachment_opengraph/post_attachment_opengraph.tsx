@@ -45,7 +45,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     toggleEmbedVisibility: () => void;
     actions: {
-        editPost: (post: {id: string; props: Record<string, any>}) => void;
+        editPost: (post: Post) => void;
     };
     isInPermalink?: boolean;
     imageCollapsed?: boolean;
@@ -115,7 +115,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             props,
         };
 
-        return actions.editPost(patchedPost);
+        return actions.editPost(patchedPost as Post);
     };
 
     const safeLink = makeUrlSafe(openGraphData?.url || link);

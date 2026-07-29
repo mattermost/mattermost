@@ -1,0 +1,16 @@
+{
+  "title": "Mattermost Security Guide",
+  "subtitle": "Security architecture, threat model, and hardening guidance.",
+  "eyebrow": "SECURITY",
+  "version": "unreleased",
+  "spine": [
+    "/security-guide/cmmc-compliance",
+    "/security-guide/dependency-vulnerability-analysis",
+    "/security-guide/finra-compliance",
+    "/security-guide/hipaa-compliance",
+    "/security-guide/mobile-security",
+    "/security-guide/secure-mattermost",
+    "/security-guide/security-guide-index",
+    "/security-guide/zero-trust"
+  ]
+}

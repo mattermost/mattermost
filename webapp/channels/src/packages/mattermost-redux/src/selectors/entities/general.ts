@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
@@ -24,6 +24,13 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
 
 export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagCustomProfileAttributes === 'true';
+}
+
+// Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
+// server flag. When the flag is off the toggle UI, request endpoints, and
+// admin queue routes are all hidden — old clients see today's behavior.
+export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagDiscoverableChannels === 'true';
 }
 
 export function isPermissionPoliciesEnabled(state: GlobalState): boolean {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -12,7 +11,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 
-import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
+import {temporarilySetPageLoadContext} from 'actions/telemetry_actions';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
@@ -25,10 +24,10 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
+import ProductPluggable from 'components/product_pluggable';
 import Readout from 'components/readout/readout';
 import {WithUserTheme} from 'components/theme_provider';
 
-import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
 import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
@@ -36,6 +35,7 @@ import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {isTeamScopedProduct} from 'utils/products';
 import {getSiteURL} from 'utils/url';
 import {isTextDroppableEvent} from 'utils/utils';
 
@@ -445,33 +445,15 @@ export default class Root extends React.PureComponent<Props, State> {
                                         }}
                                     />
                                 ))}
-                                {this.props.products?.map((product) => (
+                                {this.props.products?.filter((product) => !isTeamScopedProduct(product)).map((product) => (
                                     <Route
                                         key={product.id}
                                         path={product.baseURL}
-                                        render={(props) => {
-                                            let pluggable = (
-                                                <Pluggable
-                                                    pluggableName={'Product'}
-                                                    subComponentName={'mainComponent'}
-                                                    pluggableId={product.id}
-                                                    webSocketClient={webSocketClient}
-                                                    css={product.wrapped ? undefined : {gridArea: 'center'}}
-                                                />
-                                            );
-                                            if (product.wrapped) {
-                                                pluggable = (
-                                                    <div className={classNames(['product-wrapper', {wide: !product.showTeamSidebar}])}>
-                                                        {pluggable}
-                                                    </div>
-                                                );
-                                            }
-                                            return (
-                                                <LoggedIn {...props}>
-                                                    {pluggable}
-                                                </LoggedIn>
-                                            );
-                                        }}
+                                        render={(props) => (
+                                            <LoggedIn {...props}>
+                                                <ProductPluggable product={product}/>
+                                            </LoggedIn>
+                                        )}
                                     />
                                 ))}
                                 {this.props.plugins?.map((plugin) => (

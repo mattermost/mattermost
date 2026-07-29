@@ -71,8 +71,18 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		// The post is only used for tests, so even if there are membership issues, we won't send the post to the client.
-		createdPost, _, appErr := a.CreatePostMissingChannel(rctx, post, true, true)
+		// Bot-style (non-builtin) command responses are flagged via from_webhook by HandleCommandResponsePost.
+		// Strip the prop here and pass the marker through the server-set FromIncomingWebhook flag so
+		// SanitizeProps does not drop it on save.
+		fromWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
+		if fromWebhook {
+			post.DelProp(model.PostPropsFromWebhook)
+		}
+		createdPost, _, appErr := a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{
+			TriggerWebhooks:     true,
+			SetOnline:           true,
+			FromIncomingWebhook: fromWebhook,
+		})
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -597,6 +607,10 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	} else if response == nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError)
+	}
+
+	if appErr := response.IsValid(); appErr != nil {
+		rctx.Logger().Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(appErr))
 	}
 
 	return cmd, response, nil

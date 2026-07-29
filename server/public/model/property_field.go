@@ -28,6 +28,7 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+	PropertyFieldTypeRank        PropertyFieldType = "rank"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -79,6 +80,22 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
+}
+
+// optionFieldTypes are the property field types whose `options` attribute is
+// meaningful: each stores a list of selectable options. Kept as a single
+// allow-list so the "does this field carry options?" check stays consistent
+// across the model, API, and access-control layers.
+var optionFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeRank,
+}
+
+// SupportsOptions reports whether the field type carries a list of options
+// (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
+func (t PropertyFieldType) SupportsOptions() bool {
+	return slices.Contains(optionFieldTypes, t)
 }
 
 type PropertyField struct {
@@ -140,7 +157,7 @@ func (pf *PropertyField) PreSave() {
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
 func (pf *PropertyField) EnsureOptionIDs() error {
-	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+	if !pf.Type.SupportsOptions() {
 		return nil
 	}
 
@@ -258,7 +275,8 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeMultiselect &&
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser {
+		pf.Type != PropertyFieldTypeMultiuser &&
+		pf.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -355,7 +373,8 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeMultiselect &&
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser {
+		*pfp.Type != PropertyFieldTypeMultiuser &&
+		*pfp.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 
@@ -436,13 +455,26 @@ func IsValidPropertyFieldObjectType(objectType string) bool {
 	return slices.Contains(validPropertyFieldObjectTypes, objectType)
 }
 
+// PropertyFieldSearchCursor carries two alternative pagination keys because
+// field listings serve two different read patterns:
+//
+//   - Directory listings (no since filter) page in creation order using
+//     CreateAt + PropertyFieldID. CreateAt never changes, so the scan is
+//     stable across concurrent patches.
+//   - Delta sync (SinceUpdateAt > 0) pages in update order using UpdateAt +
+//     PropertyFieldID, matching the ORDER BY the store applies in that mode.
+//
+// IsValid requires exactly one of CreateAt or UpdateAt to be positive
+// alongside a valid PropertyFieldID. An empty cursor is also valid and means
+// "start from the beginning".
 type PropertyFieldSearchCursor struct {
 	PropertyFieldID string
 	CreateAt        int64
+	UpdateAt        int64
 }
 
 func (p PropertyFieldSearchCursor) IsEmpty() bool {
-	return p.PropertyFieldID == "" && p.CreateAt == 0
+	return p.PropertyFieldID == "" && p.CreateAt == 0 && p.UpdateAt == 0
 }
 
 func (p PropertyFieldSearchCursor) IsValid() error {
@@ -450,36 +482,108 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 		return nil
 	}
 
-	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
-	}
-
 	if !IsValidId(p.PropertyFieldID) {
 		return errors.New("property field id is invalid")
+	}
+
+	hasCreate := p.CreateAt > 0
+	hasUpdate := p.UpdateAt > 0
+	if hasCreate == hasUpdate {
+		return errors.New("cursor must have exactly one of create_at or update_at set")
 	}
 	return nil
 }
 
 // PropertyFieldSearch captures the parameters provided by a client for
-// searching property fields
+// searching property fields.
+//
+// Scope is specified one of two ways (mutually exclusive):
+//   - Hierarchical: ChannelID and/or TeamID — returns rows at the named scope
+//     plus every ancestor above it.
+//   - Single-target: TargetType + TargetID — returns rows for exactly one
+//     resource.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// update_at, tombstones are included, and pagination must use CursorUpdateAt
+// (CursorCreateAt is used in the default directory mode).
 type PropertyFieldSearch struct {
-	TargetType     string `json:"target_type,omitempty"`
-	TargetID       string `json:"target_id,omitempty"`
-	CursorID       string `json:"cursor_id,omitempty"`
-	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
-	PerPage        int    `json:"per_page"`
+	ObjectTypes    []string `json:"object_types,omitempty"`
+	TargetType     string   `json:"target_type,omitempty"`
+	TargetID       string   `json:"target_id,omitempty"`
+	ChannelID      string   `json:"channel_id,omitempty"`
+	TeamID         string   `json:"team_id,omitempty"`
+	SinceUpdateAt  int64    `json:"since,omitempty"`
+	CursorID       string   `json:"cursor_id,omitempty"`
+	CursorCreateAt int64    `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64    `json:"cursor_update_at,omitempty"`
+	PerPage        int      `json:"per_page"`
 }
 
+// PropertyFieldSearchOpts captures the filters accepted by SearchPropertyFields.
+//
+// Invariants enforced by IsValid:
+//   - ObjectType and ObjectTypes are mutually exclusive.
+//   - Every entry in ObjectTypes must be a valid PSAv2 object type.
+//   - ChannelID/TeamID and TargetType/TargetIDs are mutually exclusive scope modes.
+//   - ChannelID requires TeamID (callers must resolve TeamID before search).
+//   - SinceUpdateAt <= 0 means "no filter".
 type PropertyFieldSearchOpts struct {
-	GroupID        string
+	GroupID string
+	// Deprecated: use ObjectTypes instead. Kept for backwards compatibility
+	// with existing callers; mutually exclusive with ObjectTypes.
 	ObjectType     string
+	ObjectTypes    []string
 	TargetType     string
 	TargetIDs      []string
+	ChannelID      string
+	TeamID         string
 	LinkedFieldID  string
-	SinceUpdateAt  int64 // UpdatedAt after which to send the items
+	SinceUpdateAt  int64
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
+}
+
+// IsValid runs the cross-field invariants documented on PropertyFieldSearchOpts.
+func (o PropertyFieldSearchOpts) IsValid() error {
+	if o.ObjectType != "" && len(o.ObjectTypes) > 0 {
+		return errors.New("object_type and object_types are mutually exclusive")
+	}
+
+	if o.ObjectType != "" && !IsValidPropertyFieldObjectType(o.ObjectType) {
+		return fmt.Errorf("invalid object_type %q", o.ObjectType)
+	}
+
+	for _, ot := range o.ObjectTypes {
+		if !IsValidPropertyFieldObjectType(ot) {
+			return fmt.Errorf("invalid object_type %q", ot)
+		}
+	}
+
+	scopeByChanTeam := o.ChannelID != "" || o.TeamID != ""
+	scopeByTarget := o.TargetType != "" || len(o.TargetIDs) > 0
+	if scopeByChanTeam && scopeByTarget {
+		return errors.New("channel_id/team_id cannot be combined with target_type/target_id")
+	}
+
+	if err := o.Cursor.IsValid(); err != nil {
+		return err
+	}
+
+	// Cursor key must match the active ordering: delta mode (SinceUpdateAt>0)
+	// pages by UpdateAt; directory mode pages by CreateAt. A mismatch would
+	// silently skip rows because the WHERE clause references the wrong column.
+	if !o.Cursor.IsEmpty() {
+		deltaMode := o.SinceUpdateAt > 0
+		if deltaMode && o.Cursor.UpdateAt == 0 {
+			return errors.New("cursor_update_at required when since is set")
+		}
+		if !deltaMode && o.Cursor.CreateAt == 0 {
+			return errors.New("cursor_create_at required when since is not set")
+		}
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) GetAttr(key string) any {

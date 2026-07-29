@@ -51,6 +51,31 @@ func TestCreateJob(t *testing.T) {
 	})
 }
 
+func TestCreateNotifyExpiringAccessTokensJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.LoginSystemManager(t)
+
+	job := &model.Job{Type: model.JobTypeNotifyExpiringAccessTokens}
+
+	t.Run("forbidden without manage_jobs permission", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.CreateJob(context.Background(), job)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("allowed as system admin", func(t *testing.T) {
+		received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
+		require.NoError(t, err)
+		defer func() {
+			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
+			require.NoErrorf(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
+		}()
+		require.Equal(t, model.JobTypeNotifyExpiringAccessTokens, received.Type)
+	})
+}
+
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -168,6 +193,12 @@ func TestGetJobs(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
+	})
+
+	t.Run("Return 400 for invalid status", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetJobs(context.Background(), "", "not_a_valid_status", 0, 60)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 
@@ -622,8 +653,8 @@ func TestDownloadJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
-	updateStatus, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.True(t, updateStatus)
+	updatedJob, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.NotNil(t, updatedJob)
 	require.NoError(t, err)
 
 	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)

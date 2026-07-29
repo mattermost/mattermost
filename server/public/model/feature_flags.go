@@ -16,17 +16,8 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Enable the remote cluster service for shared channels.
-	EnableRemoteClusterService bool
-
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
-
-	// Enable plugins in shared channels.
-	EnableSharedChannelsPlugins bool
-
-	// Enable synchronization of channel members in shared channels
-	EnableSharedChannelsMemberSync bool
 
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
@@ -34,47 +25,25 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	PermalinkPreviews bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	OnboardingTourTips bool
-
-	DeprecateCloudFree bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
 
-	StreamlinedMarketplace bool
-
-	CloudIPFiltering bool
-	ConsumePostHook  bool
-
-	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
-
-	ChannelBookmarks bool
-
-	WebSocketEventScope bool
 
 	NotificationMonitoring bool
 
-	ExperimentalAuditSettingsSystemConsoleUI bool
-
 	CustomProfileAttributes bool
 
-	AttributeBasedAccessControl bool
-
 	// Mask non-held attribute values in the policy editor for delegated admins.
-	// Requires AttributeBasedAccessControl.
 	AttributeValueMasking bool
 
 	// Enable permission policies (file upload/download ABAC policies).
-	// Requires AttributeBasedAccessControl to also be enabled.
 	//
 	// This is the umbrella flag: when off, both ChannelPermissionPolicies
 	// and PolicySimulation are also off regardless of their individual
@@ -118,6 +87,9 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
+	// Enable the Global Attributes management page in the System Console
+	GlobalAttributes bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -130,6 +102,10 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: IntegratedBoards - Remove this when GA is released
 	// Enable the Integrated Boards feature within Mattermost channels
 	IntegratedBoards bool
+
+	// FEATURE_FLAG_REMOVAL: EnableDocs - Remove this when GA is released
+	// Enable the Docs (spaces and pages) feature within Mattermost channels
+	EnableDocs bool
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
@@ -151,41 +127,48 @@ type FeatureFlags struct {
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
 
-	// Requires AttributeBasedAccessControl to also be enabled.
+	// FEATURE_FLAG_REMOVAL: PropertyFieldRank - Remove this when the feature is GA.
+	// Gates the "rank" custom profile attribute type: when off, the app layer
+	// rejects creating a rank property field or converting an existing field to
+	// rank, and the admin console hides the rank type option.
+	PropertyFieldRank bool
+
 	TeamMembershipAccessControl bool
+
+	// Enable the new mm_blocks Interactive Messages framework
+	MmBlocksEnabled bool
+
+	// ClusterGracefulDrain enables waiting for peer silence before closing the gossip
+	// socket during shutdown. Otherwise, peers keep sending messages before the gossip
+	// leave message finishes propagating and spam the logs with errors about the peer
+	// being unreachable.
+	ClusterGracefulDrain bool
+
+	ChannelBookmarks bool
+
+	// Enable React concurrent rendering
+	EnableConcurrentReact bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.EnableRemoteClusterService = false
+	f.ClusterGracefulDrain = true
 	f.EnableSharedChannelsDMs = false
-	f.EnableSharedChannelsMemberSync = false
 	f.EnableSyncAllUsersForRemoteCluster = false
-	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
-	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.StreamlinedMarketplace = true
-	f.CloudIPFiltering = false
-	f.ConsumePostHook = false
-	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
-	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
-	f.AttributeBasedAccessControl = true
-	f.AttributeValueMasking = false
-	f.PermissionPolicies = false
+	f.AttributeValueMasking = true
+	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false
-	f.ChannelPermissionPolicies = false
-	f.PolicySimulation = false
+	f.ChannelPermissionPolicies = true
+	f.PolicySimulation = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -206,6 +189,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
+	f.EnableDocs = false
+
 	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
@@ -217,6 +202,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
+
+	f.PropertyFieldRank = true
+
+	f.MmBlocksEnabled = true
+
+	f.ChannelBookmarks = true
+
+	f.EnableConcurrentReact = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

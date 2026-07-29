@@ -8,7 +8,7 @@ const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
-const CHANNEL_LINKED_FIELD_NAME = 'channel_classification';
+const CHANNEL_LINKED_FIELD_NAME = 'classification';
 
 export const TEST_LEVELS = [
     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
@@ -51,7 +51,7 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
         try {
             const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, '');
             for (const f of linkedFields.filter(
-                (f) => f.name === 'system_classification' && f.delete_at === 0 && f.linked_field_id,
+                (f) => f.name === 'classification' && f.delete_at === 0 && f.linked_field_id,
             )) {
                 await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, f.id);
             }

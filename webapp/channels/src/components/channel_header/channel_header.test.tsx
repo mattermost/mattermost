@@ -47,8 +47,9 @@ describe('components/ChannelHeader', () => {
         ],
         hideGuestTags: false,
         remoteNames: [],
-        sharedChannelsPluginsEnabled: false,
+
         isChannelAutotranslated: false,
+        hasPendingJoinRequests: false,
     };
 
     const populatedProps = {
@@ -79,6 +80,18 @@ describe('components/ChannelHeader', () => {
     test('should render properly when populated', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render properly when there are pending join requests', () => {
+        const props = {
+            ...populatedProps,
+            hasPendingJoinRequests: true,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
