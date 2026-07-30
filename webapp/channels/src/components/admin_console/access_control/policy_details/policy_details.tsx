@@ -152,6 +152,14 @@ function PolicyDetails({
         loadPage();
     }, [policyId]);
 
+    // Clear any navigation-block flag inherited from the linking page (e.g. the
+    // per-team System Console page). This editor tracks its own unsaved changes,
+    // so a stale flag would raise a spurious "Discard changes?" prompt on exit.
+    useEffect(() => {
+        actions.setNavigationBlocked(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // isSimpleExpression imported from ../editors/shared
 
     const loadPage = async (): Promise<void> => {

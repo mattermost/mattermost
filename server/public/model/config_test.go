@@ -70,6 +70,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
 	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
+	})
 }
 
 func TestConfigIsValid(t *testing.T) {
@@ -108,6 +114,30 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
+}
+
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		IntervalSeconds int
+		ExpectError     bool
+	}{
+		"zero":                {IntervalSeconds: 0, ExpectError: true},
+		"negative":            {IntervalSeconds: -1000, ExpectError: true},
+		"sub-minute rejected": {IntervalSeconds: 30, ExpectError: true},
+		"just below minimum":  {IntervalSeconds: 59, ExpectError: true},
+		"minimum":             {IntervalSeconds: 60, ExpectError: false},
+		"default":             {IntervalSeconds: 3600, ExpectError: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := AccessControlSettings{SyncJobIntervalSeconds: new(test.IntervalSeconds)}
+
+			if test.ExpectError {
+				require.NotNil(t, s.isValid())
+			} else {
+				require.Nil(t, s.isValid())
+			}
+		})
+	}
 }
 
 func TestConfigEmptySiteName(t *testing.T) {

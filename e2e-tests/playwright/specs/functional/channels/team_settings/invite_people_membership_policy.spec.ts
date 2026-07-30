@@ -217,8 +217,16 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
         await expect(inviteModal.container).toBeVisible({timeout: 10000});
 
-        // * Banner still shown (governed)
-        await expect(inviteModal.container.locator('.InviteView__policyBanner')).toBeVisible({timeout: 10000});
+        // * Banner still shown (governed) but with softened advisory copy
+        const banner = inviteModal.container.locator('.InviteView__policyBanner');
+        await expect(banner).toBeVisible({timeout: 10000});
+        await expect(banner.getByText('This team has membership requirements')).toBeVisible();
+        await expect(banner.getByText(/can still join, but will not be automatically added/i)).toBeVisible();
+        await expect(banner.getByText('Team access is restricted by user attributes')).toHaveCount(0);
+
+        // * Invite-link warning uses the advisory wording (no join block)
+        const linkWarning = inviteModal.container.locator('.InviteView__inviteLinkWarning');
+        await expect(linkWarning).toHaveText(/can join even if they do not meet the membership requirements/i);
 
         // # Search with the shared prefix to surface both users
         await inviteModal.inviteInput.pressSequentially(userPrefix);
@@ -256,5 +264,83 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         // * Normal invite input present
         await expect(inviteModal.inviteInput).toBeVisible();
+    });
+
+    test('MM-69100_34 PRIVATE governed team narrows candidates by the typed term server-side', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        const userPrefix = pw.random.id();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Private (strict) team governed by a policy
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # Two qualifying (Engineering) users sharing a prefix but with distinct
+        // # suffixes, so a suffix-specific term matches exactly one of them. Since
+        // # the strict picker searches server-side (no pre-buffered candidate set),
+        // # the non-matching qualifier must be excluded by the term, not surfaced.
+        const createEngUser = async (tag: string) => {
+            const uid = `${userPrefix}eng${tag}`;
+            const user = await adminClient.createUser(
+                {email: `${uid}@sample.mattermost.com`, username: uid, password: newTestPassword()} as any,
+                '',
+                '',
+            );
+            await setUserAttribute(adminClient, user.id, 'Department', 'Engineering');
+            return user;
+        };
+
+        const engAlpha = await createEngUser('alpha');
+        const engBeta = await createEngUser('beta');
+        createdUserIds.push(engAlpha.id, engBeta.id);
+
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'team should show policy_enforced=true before opening the invite modal',
+            })
+            .toBe(true);
+
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            engAlpha.id,
+            engBeta.id,
+            teamAdmin.id,
+        ]);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        // # Open Invite People
+        await channelsPage.sidebarLeft.teamMenuButton.click();
+        await channelsPage.teamMenu.toBeVisible();
+        await channelsPage.teamMenu.clickInvitePeople();
+
+        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
+        await expect(inviteModal.container).toBeVisible({timeout: 10000});
+        await expect(inviteModal.container.locator('.InviteView__policyBanner')).toBeVisible({timeout: 15000});
+
+        // # Search a term that matches only engAlpha
+        await inviteModal.inviteInput.click();
+        await inviteModal.inviteInput.pressSequentially(`${userPrefix}engalpha`);
+        const listbox = inviteModal.container.getByRole('listbox');
+        await expect(listbox).toBeVisible({timeout: 10000});
+
+        // * engAlpha is returned by the server-side policy-scoped search
+        await expect(listbox.getByRole('option', {name: `@${engAlpha.username}`})).toBeVisible({timeout: 30000});
+
+        // * engBeta — also a qualifier — is excluded by the term, proving the
+        //   search is applied server-side rather than dumping a buffered set
+        await expect(listbox.getByRole('option', {name: `@${engBeta.username}`})).not.toBeAttached();
     });
 });
