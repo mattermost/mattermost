@@ -1,0 +1,458 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. Some legacy strings translate edition names (e.g. 'Командная редакция' for Team Edition); do not follow that pattern."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English despite legacy 'Командная редакция' appearing in about-dialog strings."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name, keep in English. The common noun 'channel' is 'канал'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO",
+    "note": "Keep abbreviation; when spelled out, existing strings use 'единый вход' / 'единого входа'."
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Keep abbreviation; when spelled out, use 'многофакторная аутентификация'."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "системная консоль",
+    "note": "Capitalize as 'Системная консоль' when used as the named UI area. Consistent in existing translations."
+  },
+  "marketplace": {
+    "target": "магазин плагинов",
+    "note": "Existing translations consistently use 'магазин плагинов'. If the context covers apps beyond plugins, 'маркетплейс' is an acceptable alternative, but prefer the established term."
+  },
+  "channel": {
+    "target": "канал",
+    "note": "Plural 'каналы'."
+  },
+  "team": {
+    "target": "команда",
+    "note": "Same word as 'command' in Russian; existing translations rely on context. Plural 'команды'."
+  },
+  "post": {
+    "target": "сообщение",
+    "note": "Existing translations render both 'post' and 'message' as 'сообщение'; do not use 'пост'."
+  },
+  "message": {
+    "target": "сообщение"
+  },
+  "thread": {
+    "target": "обсуждение",
+    "note": "Majority rendering; existing strings occasionally use 'тема' or 'ветка' — avoid those, and avoid the anglicism 'тред'. The Threads view is 'Обсуждения'."
+  },
+  "reply": {
+    "target": "ответ",
+    "note": "Verb: 'ответить'. Plural 'ответы'."
+  },
+  "direct message": {
+    "target": "личное сообщение",
+    "note": "Majority rendering (85+ occurrences); a few legacy strings use 'прямое сообщение' — avoid. Plural 'личные сообщения'."
+  },
+  "group message": {
+    "target": "групповое сообщение",
+    "note": "Plural 'групповые сообщения'."
+  },
+  "mention": {
+    "target": "упоминание",
+    "note": "Verb: 'упомянуть'. '@mention' can stay '@упоминание' or keep the @ with the username untouched."
+  },
+  "notification": {
+    "target": "уведомление"
+  },
+  "pin": {
+    "target": "закрепить",
+    "note": "Existing translations are inconsistent ('Прикрепить сообщение' in the post menu vs 'Закреплённые сообщения' in the channel header). Prefer 'закрепить' / 'закреплённые сообщения' (standard Telegram/Slack convention). Unpin: 'открепить'."
+  },
+  "bookmark": {
+    "target": "закладка",
+    "note": "Verb: 'добавить в закладки'. Consistent in existing translations."
+  },
+  "saved messages": {
+    "target": "сохранённые сообщения",
+    "note": "Save: 'сохранить'; unsave: 'убрать из сохранённых'. Existing strings write it without ё ('сохраненные')."
+  },
+  "draft": {
+    "target": "черновик",
+    "note": "Plural 'черновики'."
+  },
+  "scheduled post": {
+    "target": "запланированное сообщение",
+    "note": "Consistent with existing 'Запланированные сообщения'."
+  },
+  "emoji": {
+    "target": "эмодзи",
+    "note": "Indeclinable. Existing translations are split between 'эмодзи' and legacy 'смайлик' (custom-emoji admin strings); prefer 'эмодзи', which mobile also uses."
+  },
+  "custom emoji": {
+    "target": "пользовательский эмодзи",
+    "note": "Plural 'пользовательские эмодзи'. Legacy strings use 'пользовательский смайлик' — prefer 'эмодзи'."
+  },
+  "reaction": {
+    "target": "реакция",
+    "note": "Verb 'react': 'отреагировать' / 'добавить реакцию'."
+  },
+  "status": {
+    "target": "статус",
+    "note": "For user availability. 'Состояние' appears in existing strings only for system/billing state, not user status."
+  },
+  "custom status": {
+    "target": "пользовательский статус",
+    "note": "Consistent in existing mobile and webapp strings."
+  },
+  "do not disturb": {
+    "target": "не беспокоить",
+    "note": "Capitalized as 'Не беспокоить' when shown as a status value."
+  },
+  "away": {
+    "target": "отошёл",
+    "note": "Existing status value is 'Отошёл' (masculine past form, conventional for status labels)."
+  },
+  "online": {
+    "target": "в сети",
+    "note": "Status value 'В сети'; existing strings occasionally use 'онлайн' in prose."
+  },
+  "offline": {
+    "target": "не в сети",
+    "note": "Status value 'Не в сети'."
+  },
+  "out of office": {
+    "target": "не на работе",
+    "note": "Existing status value is 'Не на работе'."
+  },
+  "guest": {
+    "target": "гость",
+    "note": "Adjectival uses: 'гостевой доступ', 'гостевая учётная запись'."
+  },
+  "member": {
+    "target": "участник",
+    "note": "Plural 'участники'."
+  },
+  "user": {
+    "target": "пользователь"
+  },
+  "system admin": {
+    "target": "системный администратор",
+    "note": "Majority rendering (45 occurrences vs 1 'администратор системы')."
+  },
+  "team admin": {
+    "target": "администратор команды"
+  },
+  "channel admin": {
+    "target": "администратор канала"
+  },
+  "session": {
+    "target": "сеанс",
+    "note": "Existing usage is mixed: 'сеанс' (46) vs 'сессия' (31). 'Сеанс' is the slight majority and the standard Windows/Microsoft term; either is understood, but stay consistent."
+  },
+  "sign in": {
+    "target": "войти",
+    "note": "Noun 'sign-in/login': 'вход'. Translate 'log in' identically."
+  },
+  "sign out": {
+    "target": "выйти",
+    "note": "Existing 'Log Out' is 'Выйти'. Translate 'log out' identically."
+  },
+  "join": {
+    "target": "присоединиться",
+    "note": "E.g. 'присоединиться к каналу/команде'."
+  },
+  "leave": {
+    "target": "покинуть",
+    "note": "E.g. 'покинуть канал/команду'."
+  },
+  "archive": {
+    "target": "архивировать",
+    "note": "Adjective 'archived': 'архивированный' / 'заархивированный'."
+  },
+  "unarchive": {
+    "target": "разархивировать",
+    "note": "Consistent in existing translations."
+  },
+  "mute": {
+    "target": "отключить уведомления",
+    "note": "For channels (existing 'Mute Channel' = 'Отключить уведомления'). Distinct from Calls 'mute' = 'отключить звук/микрофон'. A single-word alternative 'заглушить' appears once in existing strings."
+  },
+  "follow": {
+    "target": "подписаться",
+    "note": "For threads: 'подписаться на обсуждение'. 'Following': 'подписан(ы)'."
+  },
+  "unfollow": {
+    "target": "отписаться"
+  },
+  "favorite": {
+    "target": "избранное",
+    "note": "Sidebar category 'Избранное'; verb: 'добавить в избранное'; unfavorite: 'убрать из избранного'."
+  },
+  "search": {
+    "target": "поиск",
+    "note": "Verb: 'искать' / 'найти'."
+  },
+  "integration": {
+    "target": "интеграция",
+    "note": "Plural 'интеграции'."
+  },
+  "slash command": {
+    "target": "быстрая команда",
+    "note": "Established majority rendering in existing translations (25 occurrences vs 2 'слэш-команда'). Keep even though 'слэш-команда' is more literal."
+  },
+  "webhook": {
+    "target": "вебхук",
+    "note": "Majority rendering; a few legacy strings keep English 'Webhook' — prefer the transliteration consistently."
+  },
+  "incoming webhook": {
+    "target": "входящий вебхук"
+  },
+  "outgoing webhook": {
+    "target": "исходящий вебхук"
+  },
+  "trigger word": {
+    "target": "триггерное слово",
+    "note": "Existing usage is inconsistent ('ключевое слово', 'слово-триггер', 'триггерное слово'). Prefer 'триггерное слово' to avoid colliding with 'keyword' = 'ключевое слово' in notification settings."
+  },
+  "plugin": {
+    "target": "плагин",
+    "note": "Consistent in existing translations (70 occurrences)."
+  },
+  "bot": {
+    "target": "бот",
+    "note": "Bot account: 'учётная запись бота'."
+  },
+  "role": {
+    "target": "роль"
+  },
+  "permission": {
+    "target": "разрешение",
+    "note": "Plural 'разрешения'. Permission scheme: 'схема разрешений'."
+  },
+  "scheme": {
+    "target": "схема"
+  },
+  "license": {
+    "target": "лицензия"
+  },
+  "seat": {
+    "target": "место",
+    "note": "Licensed seat; existing plural forms: 'место/места/мест'."
+  },
+  "trial": {
+    "target": "пробный период",
+    "note": "Existing strings mix 'пробный период' (the period) and 'пробная версия' (the trial product/license); use 'пробный период' for the time-limited period sense."
+  },
+  "workspace": {
+    "target": "рабочее пространство",
+    "note": "Consistent majority rendering (16 occurrences)."
+  },
+  "subscription": {
+    "target": "подписка"
+  },
+  "deactivate": {
+    "target": "деактивировать",
+    "note": "Deactivated: 'деактивирован(а)'."
+  },
+  "invite": {
+    "target": "пригласить",
+    "note": "Noun: 'приглашение'."
+  },
+  "invitation": {
+    "target": "приглашение"
+  },
+  "sidebar": {
+    "target": "боковая панель"
+  },
+  "unread": {
+    "target": "непрочитанное",
+    "note": "Adjective agrees with noun: 'непрочитанные сообщения/каналы'. The Unreads view: 'Непрочитанные'."
+  },
+  "attachment": {
+    "target": "вложение",
+    "note": "Plural 'вложения'."
+  },
+  "public channel": {
+    "target": "публичный канал",
+    "note": "Existing usage is split between 'публичный канал' and 'общий канал'; prefer 'публичный канал' because 'общий канал' collides with both 'shared channel' and the Town Square default channel name."
+  },
+  "private channel": {
+    "target": "частный канал",
+    "note": "Strong majority ('частный' 272 vs 'приватный' 34); keep 'частный канал'."
+  },
+  "shared channel": {
+    "target": "общий канал",
+    "note": "Existing rendering. Beware: 'Общий канал' is also the existing translation of the Town Square default channel name — rely on context, or use 'подключённый общий канал' in ambiguous admin prose."
+  },
+  "channel header": {
+    "target": "заголовок канала"
+  },
+  "channel purpose": {
+    "target": "назначение канала",
+    "note": "Several existing system messages mistranslate 'purpose' as 'заголовок канала' (collides with header); use 'назначение канала'."
+  },
+  "system message": {
+    "target": "системное сообщение"
+  },
+  "persistent notification": {
+    "target": "постоянное уведомление",
+    "note": "Existing rendering 'Постоянные уведомления'."
+  },
+  "message priority": {
+    "target": "приоритет сообщения",
+    "note": "Consistent in existing translations."
+  },
+  "urgent": {
+    "target": "срочно",
+    "note": "Priority label 'Срочно'; adjective form 'срочный/срочное' when modifying a noun (e.g. 'срочное упоминание')."
+  },
+  "recap": {
+    "target": "сводка",
+    "note": "No existing translation yet (new AI feature). 'Сводка' matches Russian conventions for AI activity summaries; plural 'сводки'."
+  },
+  "agent": {
+    "target": "агент",
+    "note": "Existing mention suggestion uses 'Агенты'."
+  },
+  "burn-on-read": {
+    "target": "сгорающее после прочтения",
+    "note": "No established translation yet; feature-discovery strings paraphrase ('сообщения, которые автоматически удаляются после прочтения'). For the label/adjective use 'сгорающее после прочтения (сообщение)'; the all-caps badge can be 'СГОРАЕТ ПОСЛЕ ПРОЧТЕНИЯ'."
+  },
+  "magic link": {
+    "target": "магическая ссылка",
+    "note": "Existing rendering ('доступ по магическим ссылкам')."
+  },
+  "personal access token": {
+    "target": "персональный токен доступа",
+    "note": "Existing strings mix 'персональный' and 'личный токен доступа'; prefer 'персональный токен доступа' (matches GitHub/GitLab ru convention)."
+  },
+  "announcement banner": {
+    "target": "баннер объявления",
+    "note": "Existing strings use 'баннер объявления' / 'баннер с объявлением'; one admin-permissions string mistranslates it as 'Система уведомлений' — ignore that."
+  },
+  "channel banner": {
+    "target": "баннер канала",
+    "note": "No existing translation; follows 'баннер' + genitive pattern used for announcement banner."
+  },
+  "keyword": {
+    "target": "ключевое слово",
+    "note": "Plural 'ключевые слова'. Reserved for notification keywords; use 'триггерное слово' for webhook trigger words."
+  },
+  "user group": {
+    "target": "группа пользователей",
+    "note": "Bare 'group' in group-mention context: 'группа'."
+  },
+  "permalink": {
+    "target": "постоянная ссылка",
+    "note": "Consistent in existing translations."
+  },
+  "profile": {
+    "target": "профиль"
+  },
+  "username": {
+    "target": "имя пользователя"
+  },
+  "nickname": {
+    "target": "псевдоним",
+    "note": "Majority rendering (8 vs 3 'прозвище'); avoid 'прозвище'."
+  },
+  "display name": {
+    "target": "отображаемое имя",
+    "note": "For apps/channels: 'отображаемое название'."
+  },
+  "collapsed reply threads": {
+    "target": "свёрнутые обсуждения",
+    "note": "No stable existing translation; derived from thread = 'обсуждение' and existing 'Collapsed' = 'Свёрнуто'."
+  },
+  "auto-translation": {
+    "target": "автоперевод",
+    "note": "Consistent in existing server strings; 'auto-translated' = 'переведено автоматически' or badge 'АВТОПЕРЕВОД'."
+  },
+  "data retention": {
+    "target": "хранение данных",
+    "note": "Policy: 'политика хранения данных'. Existing strings also use 'удержание' in one place — avoid."
+  },
+  "compliance export": {
+    "target": "экспорт комплаенса",
+    "note": "Majority rendering in the System Console; some strings use 'экспорт соответствия' / 'отчёты о соответствии'. Stay with 'экспорт комплаенса' for the feature name."
+  },
+  "access control": {
+    "target": "контроль доступа",
+    "note": "Attribute-based access control: 'контроль доступа на основе атрибутов (ABAC)'."
+  },
+  "attribute": {
+    "target": "атрибут",
+    "note": "Plural 'атрибуты'."
+  },
+  "onboarding": {
+    "target": "адаптация",
+    "note": "Existing rendering ('Включить адаптацию')."
+  },
+  "Town Square": {
+    "target": "Общий канал",
+    "note": "Existing server translation of the default channel name. Collides with 'shared channel' = 'общий канал'; keep capitalized as a proper channel name."
+  },
+  "Off-Topic": {
+    "target": "Флуд",
+    "note": "Existing server translation of the default channel name; keep for consistency (alternative 'Оффтопик' is not used in the repos)."
+  },
+  "read-only": {
+    "target": "только для чтения",
+    "note": "E.g. 'канал доступен только для чтения'."
+  },
+  "server": {
+    "target": "сервер"
+  }
+}

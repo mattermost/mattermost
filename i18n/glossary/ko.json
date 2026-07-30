@@ -1,0 +1,430 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Prose occasionally uses 엔터프라이즈 에디션; keep the English name for the edition itself."
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; the common noun 'channel' is 채널."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name; the common noun 'playbook' is 플레이북."
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; the common noun 'call' is 통화."
+  },
+  "Markdown": {
+    "target": "Markdown",
+    "note": "마크다운 is acceptable in prose, but existing UI keeps the English form."
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "AD/LDAP stays as AD/LDAP."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "When spelled out, 'multi-factor authentication' is 다단계 인증 in existing strings."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "시스템 콘솔",
+    "note": "Majority rendering (32 vs 6); a few legacy strings use 관리자 도구 — do not reuse it."
+  },
+  "marketplace": {
+    "target": "마켓플레이스"
+  },
+  "channel": {
+    "target": "채널"
+  },
+  "team": {
+    "target": "팀"
+  },
+  "post": {
+    "target": "게시물",
+    "note": "Repo usage is mixed (메시지/글/게시물/게시글). Use 게시물 to keep the noun distinct from message = 메시지; 글 appears in some admin labels."
+  },
+  "message": {
+    "target": "메시지"
+  },
+  "thread": {
+    "target": "스레드",
+    "note": "Majority rendering (40 vs 22); older strings use 글타래 — prefer 스레드 for consistency."
+  },
+  "reply": {
+    "target": "답글",
+    "note": "Noun and verb stem (답글, 답글 달기). 댓글/회신 appear in a few legacy strings; prefer 답글."
+  },
+  "direct message": {
+    "target": "쪽지",
+    "note": "Majority rendering (30 vs 18); some headings/legacy strings use 개인 메시지. DM abbreviation can stay DM."
+  },
+  "group message": {
+    "target": "그룹 메시지"
+  },
+  "mention": {
+    "target": "멘션",
+    "note": "Verb: 멘션하다. 언급 appears in some admin strings; prefer 멘션."
+  },
+  "notification": {
+    "target": "알림"
+  },
+  "pin": {
+    "target": "고정",
+    "note": "Verb: 고정하다; pinned messages = 고정된 메시지; unpin = 고정 해제. One legacy string uses 공지하기 — avoid."
+  },
+  "bookmark": {
+    "target": "북마크",
+    "note": "Verb: 북마크에 추가하다 / 북마크하다."
+  },
+  "saved messages": {
+    "target": "저장된 메시지",
+    "note": "Repo is inconsistent (중요 메시지, 보관된 메시지 in legacy strings); save = 저장, unsave = 저장 해제."
+  },
+  "draft": {
+    "target": "초안",
+    "note": "Repo splits between 초안 (10) and 임시 글 (8); use 초안 consistently."
+  },
+  "scheduled post": {
+    "target": "예약된 메시지",
+    "note": "Also rendered 예약된 게시물 in admin strings; prefer 예약된 메시지."
+  },
+  "emoji": {
+    "target": "이모지",
+    "note": "이모티콘 is nearly as frequent in the repo, but 이모지 is the accurate Korean term for emoji; use it consistently."
+  },
+  "custom emoji": {
+    "target": "커스텀 이모지"
+  },
+  "reaction": {
+    "target": "반응",
+    "note": "Verb: 반응 추가하다. 리액션 appears in a few strings; prefer 반응."
+  },
+  "status": {
+    "target": "상태"
+  },
+  "custom status": {
+    "target": "사용자 지정 상태"
+  },
+  "do not disturb": {
+    "target": "방해 금지"
+  },
+  "away": {
+    "target": "자리 비움",
+    "note": "Existing labels vary between 자리비움 and 자리 비움; standard spacing is 자리 비움."
+  },
+  "online": {
+    "target": "온라인"
+  },
+  "offline": {
+    "target": "오프라인"
+  },
+  "out of office": {
+    "target": "부재 중"
+  },
+  "guest": {
+    "target": "게스트"
+  },
+  "member": {
+    "target": "구성원",
+    "note": "Majority rendering (103 vs 32 멤버, 48 회원); use 구성원."
+  },
+  "user": {
+    "target": "사용자"
+  },
+  "system admin": {
+    "target": "시스템 관리자"
+  },
+  "team admin": {
+    "target": "팀 관리자"
+  },
+  "channel admin": {
+    "target": "채널 관리자"
+  },
+  "session": {
+    "target": "세션"
+  },
+  "sign in": {
+    "target": "로그인",
+    "note": "Verb: 로그인하다. Both 'sign in' and 'log in' map to 로그인."
+  },
+  "sign out": {
+    "target": "로그아웃",
+    "note": "Verb: 로그아웃하다. Both 'sign out' and 'log out' map to 로그아웃."
+  },
+  "join": {
+    "target": "참여",
+    "note": "Verb: 참여하다 for channels; teams often use 가입(하다) in existing strings — either is fine per object, but keep channels = 참여."
+  },
+  "leave": {
+    "target": "나가기",
+    "note": "Verb: 나가다. Repo mixes 떠나기/탈퇴/나가기; prefer 나가기 (탈퇴 acceptable for teams)."
+  },
+  "archive": {
+    "target": "보관",
+    "note": "Verb: 보관하다; archived = 보관됨. A few strings use 아카이브 — prefer 보관."
+  },
+  "unarchive": {
+    "target": "보관 해제",
+    "note": "Verb: 보관을 해제하다."
+  },
+  "mute": {
+    "target": "음소거",
+    "note": "Channel-mute strings often render 'Mute Channel' as 채널 알림 끄기; plain Mute label is 음소거. Keep Calls microphone mute also 음소거."
+  },
+  "follow": {
+    "target": "팔로우",
+    "note": "Verb: 팔로우하다. Legacy strings use 구독/지켜보기; prefer 팔로우 (matches follower = 팔로워)."
+  },
+  "unfollow": {
+    "target": "팔로우 해제",
+    "note": "Legacy strings use 구독 해제; prefer 팔로우 해제."
+  },
+  "favorite": {
+    "target": "즐겨찾기",
+    "note": "Verb: 즐겨찾기에 추가하다; unfavorite = 즐겨찾기에서 제거."
+  },
+  "search": {
+    "target": "검색",
+    "note": "Verb: 검색하다."
+  },
+  "integration": {
+    "target": "통합"
+  },
+  "slash command": {
+    "target": "슬래시 명령어"
+  },
+  "webhook": {
+    "target": "웹훅",
+    "note": "Repo is inconsistent (many strings keep English 'Webhook'); standardize on 웹훅."
+  },
+  "incoming webhook": {
+    "target": "들어오는 웹훅",
+    "note": "Repo mostly leaves this in English; 들어오는 웹훅 mirrors the existing 나가는 웹훅. 수신 웹훅 is an acceptable alternative if used consistently with 발신 웹훅."
+  },
+  "outgoing webhook": {
+    "target": "나가는 웹훅",
+    "note": "Existing rendering; pair with 들어오는 웹훅."
+  },
+  "trigger word": {
+    "target": "트리거 단어"
+  },
+  "plugin": {
+    "target": "플러그인"
+  },
+  "bot": {
+    "target": "봇"
+  },
+  "role": {
+    "target": "역할"
+  },
+  "permission": {
+    "target": "권한"
+  },
+  "scheme": {
+    "target": "스키마",
+    "note": "Majority rendering; avoid 스킴/계획 seen in a few strings."
+  },
+  "license": {
+    "target": "라이선스"
+  },
+  "seat": {
+    "target": "좌석"
+  },
+  "trial": {
+    "target": "평가판",
+    "note": "Majority rendering (45 vs 7 체험판); free trial = 무료 평가판."
+  },
+  "workspace": {
+    "target": "워크스페이스",
+    "note": "Majority rendering (33 vs 22 작업 공간); prefer 워크스페이스."
+  },
+  "subscription": {
+    "target": "구독"
+  },
+  "deactivate": {
+    "target": "비활성화",
+    "note": "Verb: 비활성화하다; deactivated = 비활성화됨."
+  },
+  "invite": {
+    "target": "초대",
+    "note": "Verb: 초대하다."
+  },
+  "invitation": {
+    "target": "초대",
+    "note": "For the email/link itself, 초대장 or 초대 링크 may be used where the sentence needs a concrete object."
+  },
+  "sidebar": {
+    "target": "사이드바"
+  },
+  "unread": {
+    "target": "읽지 않음",
+    "note": "Attributive: 읽지 않은 (e.g. 읽지 않은 메시지)."
+  },
+  "attachment": {
+    "target": "첨부 파일"
+  },
+  "public channel": {
+    "target": "공개 채널"
+  },
+  "private channel": {
+    "target": "비공개 채널",
+    "note": "Never 개인 채널 (seen once in a legacy string)."
+  },
+  "shared channel": {
+    "target": "공유 채널"
+  },
+  "channel header": {
+    "target": "채널 헤더"
+  },
+  "channel purpose": {
+    "target": "채널 목적",
+    "note": "Some legacy strings use 설명; prefer 목적."
+  },
+  "system message": {
+    "target": "시스템 메시지"
+  },
+  "persistent notification": {
+    "target": "영구 알림",
+    "note": "Majority rendering; 지속 알림 appears in a few strings — prefer 영구 알림."
+  },
+  "message priority": {
+    "target": "메시지 우선순위"
+  },
+  "urgent": {
+    "target": "긴급"
+  },
+  "recap": {
+    "target": "리캡",
+    "note": "No existing translation; 리캡 keeps it distinct from summary = 요약. If a descriptive form is needed, 요약 정리 works in prose."
+  },
+  "agent": {
+    "target": "에이전트",
+    "note": "One legacy string mistranslates Agents as 상담원 (customer-service agent) — avoid."
+  },
+  "burn-on-read": {
+    "target": "읽은 후 삭제",
+    "note": "No existing translation; label form (BURN ON READ) can be 읽은 후 삭제됨."
+  },
+  "magic link": {
+    "target": "매직 링크"
+  },
+  "personal access token": {
+    "target": "개인 액세스 토큰"
+  },
+  "announcement banner": {
+    "target": "공지 배너",
+    "note": "Repo also has 알림 배너/시스템 전체 알림; standardize on 공지 배너."
+  },
+  "channel banner": {
+    "target": "채널 배너"
+  },
+  "keyword": {
+    "target": "키워드"
+  },
+  "user group": {
+    "target": "사용자 그룹"
+  },
+  "permalink": {
+    "target": "영구 링크"
+  },
+  "profile": {
+    "target": "프로필",
+    "note": "Legacy menu items use 계정 설정 for Profile; the current convention is 프로필."
+  },
+  "username": {
+    "target": "사용자 이름"
+  },
+  "nickname": {
+    "target": "별명"
+  },
+  "display name": {
+    "target": "표시 이름",
+    "note": "표시명 appears in some short labels; prefer 표시 이름."
+  },
+  "collapsed reply threads": {
+    "target": "접힌 답글 스레드",
+    "note": "No existing translation; keep 스레드 (not 글타래) to match the thread glossary entry."
+  },
+  "auto-translation": {
+    "target": "자동 번역",
+    "note": "AUTO-TRANSLATED label: 자동 번역됨."
+  },
+  "data retention": {
+    "target": "데이터 보존",
+    "note": "Policy: 데이터 보존 정책."
+  },
+  "compliance export": {
+    "target": "컴플라이언스 내보내기",
+    "note": "규정 준수 내보내기 also appears; prefer 컴플라이언스 내보내기 (majority)."
+  },
+  "access control": {
+    "target": "액세스 제어",
+    "note": "Policy: 액세스 제어 정책; attribute-based access control = 속성 기반 액세스 제어."
+  },
+  "attribute": {
+    "target": "속성"
+  },
+  "onboarding": {
+    "target": "온보딩"
+  },
+  "Town Square": {
+    "target": "타운 스퀘어",
+    "note": "Grounded in the only existing rendering; write with a space (타운 스퀘어), not 타운스퀘어."
+  },
+  "Off-Topic": {
+    "target": "오프토픽",
+    "note": "Grounded in the only existing rendering."
+  },
+  "read-only": {
+    "target": "읽기 전용"
+  },
+  "server": {
+    "target": "서버"
+  }
+}

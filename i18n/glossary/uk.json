@@ -1,0 +1,459 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. Existing translations sometimes render it as 'Enterprise версія'; prefer the untranslated product name."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. Existing translations sometimes use 'Командне видання'; prefer the untranslated product name per doNotTranslate."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; do not confuse with the common noun 'channel' = 'канал'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "системна консоль",
+    "note": "Feminine noun; capitalize as 'Системна консоль' when used as the named UI area. Consistent in existing translations."
+  },
+  "marketplace": {
+    "target": "магазин плагінів",
+    "note": "Existing translations consistently use 'Магазин плагінів' (lit. 'plugin store') rather than a transliteration like 'маркетплейс'."
+  },
+  "channel": {
+    "target": "канал",
+    "note": "Masculine. Genitive 'каналу', plural 'канали'."
+  },
+  "team": {
+    "target": "команда",
+    "note": "Feminine. Same word as 'command'; context disambiguates."
+  },
+  "post": {
+    "target": "допис",
+    "note": "Masculine. Majority rendering; existing strings occasionally use 'повідомлення' or 'публікація' — prefer 'допис' to keep the post/message distinction."
+  },
+  "message": {
+    "target": "повідомлення",
+    "note": "Neuter; identical in singular and plural nominative."
+  },
+  "thread": {
+    "target": "обговорення",
+    "note": "Neuter. Consistently used in existing translations (not 'потік' or 'гілка', though 'потік' appears in a few admin strings)."
+  },
+  "reply": {
+    "target": "відповідь (ім.) / відповісти (дієсл.)",
+    "note": "Noun is feminine ('відповідь', plural 'відповіді'); verb 'відповісти' (perfective) for buttons."
+  },
+  "direct message": {
+    "target": "приватне повідомлення",
+    "note": "Majority rendering; 'особисте повідомлення' appears sporadically — use 'приватне повідомлення' everywhere. Note the same adjective is used for 'private channel' = 'приватний канал'."
+  },
+  "group message": {
+    "target": "групове повідомлення"
+  },
+  "mention": {
+    "target": "згадка (ім.) / згадати (дієсл.)",
+    "note": "Noun 'згадка' is feminine; 'згадування' also appears for the act of mentioning."
+  },
+  "notification": {
+    "target": "сповіщення",
+    "note": "Neuter. Consistently 'сповіщення', not 'повідомлення' (reserved for 'message')."
+  },
+  "pin": {
+    "target": "закріпити",
+    "note": "'unpin' = 'відкріпити'; 'pinned messages' = 'закріплені повідомлення'."
+  },
+  "bookmark": {
+    "target": "закладка (ім.) / додати в закладки (дієсл.)",
+    "note": "Feminine noun."
+  },
+  "saved messages": {
+    "target": "збережені повідомлення",
+    "note": "'save' = 'зберегти', 'unsave' = 'скасувати збереження'."
+  },
+  "draft": {
+    "target": "чернетка",
+    "note": "Feminine. Plural 'чернетки'."
+  },
+  "scheduled post": {
+    "target": "запланований допис",
+    "note": "Existing strings mix 'запланований допис', 'заплановане повідомлення', and 'запланована публікація'; standardize on 'запланований допис'."
+  },
+  "emoji": {
+    "target": "емодзі",
+    "note": "Indeclinable neuter borrowing; same form in singular and plural."
+  },
+  "custom emoji": {
+    "target": "користувацький емодзі",
+    "note": "Existing translations use 'користувацькі емодзі' (plural); adjective agrees with indeclinable 'емодзі'."
+  },
+  "reaction": {
+    "target": "реакція",
+    "note": "Feminine. 'react' = 'відреагувати' / 'додати реакцію'."
+  },
+  "status": {
+    "target": "статус"
+  },
+  "custom status": {
+    "target": "користувацький статус",
+    "note": "Majority rendering; 'власний статус' also appears occasionally."
+  },
+  "do not disturb": {
+    "target": "Не турбувати",
+    "note": "Consistent across all apps."
+  },
+  "away": {
+    "target": "Не на місці",
+    "note": "Majority rendering for the status; 'Відсутній' appears in some strings — prefer 'Не на місці' (gender-neutral)."
+  },
+  "online": {
+    "target": "В мережі",
+    "note": "Majority rendering for the status; 'Онлайн' also appears — prefer 'В мережі'."
+  },
+  "offline": {
+    "target": "Не в мережі",
+    "note": "Majority rendering; 'Офлайн' appears occasionally."
+  },
+  "out of office": {
+    "target": "Поза офісом",
+    "note": "Majority rendering; 'Не в офісі' appears once in mobile."
+  },
+  "guest": {
+    "target": "гість",
+    "note": "Masculine. 'guest access' = 'гостьовий доступ', 'guest account' = 'гостьовий обліковий запис'."
+  },
+  "member": {
+    "target": "учасник",
+    "note": "Majority rendering; 'член' appears in some strings — prefer 'учасник'."
+  },
+  "user": {
+    "target": "користувач",
+    "note": "Masculine. Genitive 'користувача'."
+  },
+  "system admin": {
+    "target": "системний адміністратор",
+    "note": "Consistent in existing translations."
+  },
+  "team admin": {
+    "target": "адміністратор команди"
+  },
+  "channel admin": {
+    "target": "адміністратор каналу"
+  },
+  "session": {
+    "target": "сесія",
+    "note": "Majority rendering; 'сеанс' also appears — prefer 'сесія'."
+  },
+  "sign in": {
+    "target": "увійти",
+    "note": "Existing translations are inconsistent: the standalone Log in button is often 'Авторизуватися', while sentences use forms of 'увійти'/'вхід'. Standardize on 'увійти' ('вхід' as noun); translate 'log in' and 'sign in' identically."
+  },
+  "sign out": {
+    "target": "вийти",
+    "note": "Consistent; noun form 'вихід'. Translate 'log out' and 'sign out' identically."
+  },
+  "join": {
+    "target": "приєднатися",
+    "note": "Followed by 'до' + genitive: 'приєднатися до каналу/команди'."
+  },
+  "leave": {
+    "target": "покинути",
+    "note": "Majority rendering ('Покинути канал'); 'залишити' also appears — prefer 'покинути'."
+  },
+  "archive": {
+    "target": "архівувати",
+    "note": "Perfective 'заархівувати' for one-shot actions; 'archived' = 'заархівовано' / 'архівний'."
+  },
+  "unarchive": {
+    "target": "розархівувати",
+    "note": "Consistent in existing translations."
+  },
+  "mute": {
+    "target": "заглушити",
+    "note": "For channel notifications. Existing strings are inconsistent ('Не сповіщати', 'Вимкнути звук', 'Заглушити канал'); use 'заглушити' for channels and reserve 'вимкнути звук' for microphone muting in Calls."
+  },
+  "follow": {
+    "target": "стежити",
+    "note": "Existing strings mix 'Відстежувати', 'Слідкувати за' and 'стежити за'; standardize on 'стежити за' + instrumental."
+  },
+  "unfollow": {
+    "target": "припинити стежити",
+    "note": "Existing strings mix 'Не слідувати за' and 'Відписатися від'; use 'припинити стежити за' for consistency with 'follow' = 'стежити'."
+  },
+  "favorite": {
+    "target": "обране (ім.) / додати в обране (дієсл.)",
+    "note": "'Favorites' category = 'Обране'; 'unfavorite' = 'вилучити з обраного'."
+  },
+  "search": {
+    "target": "пошук (ім.) / шукати (дієсл.)"
+  },
+  "integration": {
+    "target": "інтеграція",
+    "note": "Feminine."
+  },
+  "slash command": {
+    "target": "швидка команда",
+    "note": "Majority rendering in existing translations; 'слеш-команда' appears occasionally. Note ambiguity with 'команда' = team."
+  },
+  "webhook": {
+    "target": "вебхук",
+    "note": "Masculine borrowing; majority spelling. 'веб-хук' (hyphenated) and untranslated 'Webhook' also appear — standardize on 'вебхук'."
+  },
+  "incoming webhook": {
+    "target": "вхідний вебхук"
+  },
+  "outgoing webhook": {
+    "target": "вихідний вебхук"
+  },
+  "trigger word": {
+    "target": "тригерне слово",
+    "note": "Existing strings split between 'тригерне слово' and 'ключове слово'; use 'тригерне слово' to keep it distinct from 'keyword' = 'ключове слово'. Avoid the misspelling 'триггерне' found in some strings."
+  },
+  "plugin": {
+    "target": "плагін",
+    "note": "Masculine. Consistent in existing translations."
+  },
+  "bot": {
+    "target": "бот",
+    "note": "'bot account' = 'обліковий запис бота'."
+  },
+  "role": {
+    "target": "роль",
+    "note": "Feminine."
+  },
+  "permission": {
+    "target": "дозвіл",
+    "note": "Masculine. Plural 'дозволи'."
+  },
+  "scheme": {
+    "target": "схема",
+    "note": "'permission scheme' = 'схема дозволів'."
+  },
+  "license": {
+    "target": "ліцензія"
+  },
+  "seat": {
+    "target": "місце",
+    "note": "No existing translation found in repos; 'місце' (licensed seat) is the standard SaaS rendering. Use 'ліцензійне місце' where ambiguous."
+  },
+  "trial": {
+    "target": "пробний період",
+    "note": "Existing strings mix 'пробний період' and 'пробна версія'; prefer 'пробний період' for the time-limited trial."
+  },
+  "workspace": {
+    "target": "робочий простір",
+    "note": "Consistent in existing translations."
+  },
+  "subscription": {
+    "target": "підписка"
+  },
+  "deactivate": {
+    "target": "деактивувати",
+    "note": "Consistent; 'deactivated' = 'деактивовано'."
+  },
+  "invite": {
+    "target": "запросити (дієсл.) / запрошення (ім.)"
+  },
+  "invitation": {
+    "target": "запрошення",
+    "note": "Neuter."
+  },
+  "sidebar": {
+    "target": "бічна панель",
+    "note": "Consistent in existing translations."
+  },
+  "unread": {
+    "target": "непрочитане",
+    "note": "Adjective; agrees in gender/number: 'непрочитані повідомлення', 'непрочитаний канал'."
+  },
+  "attachment": {
+    "target": "вкладення",
+    "note": "Neuter; identical singular/plural nominative."
+  },
+  "public channel": {
+    "target": "публічний канал",
+    "note": "Majority rendering; 'загальнодоступний канал' appears in some admin strings — prefer 'публічний канал'."
+  },
+  "private channel": {
+    "target": "приватний канал"
+  },
+  "shared channel": {
+    "target": "спільний канал"
+  },
+  "channel header": {
+    "target": "заголовок каналу"
+  },
+  "channel purpose": {
+    "target": "призначення каналу",
+    "note": "Majority rendering in webapp; mobile occasionally uses 'мета' or mistakenly 'заголовок' — always use 'призначення каналу'."
+  },
+  "system message": {
+    "target": "системне повідомлення"
+  },
+  "persistent notification": {
+    "target": "постійне сповіщення",
+    "note": "Consistent in existing translations ('постійні сповіщення')."
+  },
+  "message priority": {
+    "target": "пріоритет повідомлення"
+  },
+  "urgent": {
+    "target": "терміново",
+    "note": "As the priority label; adjectival form 'терміновий' when modifying a noun. All-caps label: 'ТЕРМІНОВО'."
+  },
+  "recap": {
+    "target": "підсумок",
+    "note": "No existing translation in repos; 'підсумок' aligns with 'meeting summary' = 'підсумок зустрічі' in Calls. Genitive 'підсумку'."
+  },
+  "agent": {
+    "target": "агент",
+    "note": "Existing mobile strings use 'Агент' capitalized when referring to the AI feature; plural 'агенти'."
+  },
+  "burn-on-read": {
+    "target": "що зникає після прочитання",
+    "note": "Existing mobile string: 'Повідомлення, що зникає після прочитання'. For the all-caps inline label use 'ЗНИКАЄ ПІСЛЯ ПРОЧИТАННЯ' (avoid mobile's incorrect 'ПРОЧИТАТИ')."
+  },
+  "magic link": {
+    "target": "магічне посилання",
+    "note": "Grounded in existing mobile string 'Скористайтесь магічним посиланням'."
+  },
+  "personal access token": {
+    "target": "персональний токен доступу",
+    "note": "Existing strings mix 'токен' and 'маркер' for token; standardize on 'токен'."
+  },
+  "announcement banner": {
+    "target": "банер оголошень",
+    "note": "Existing strings inconsistent ('банер оголошення', 'банер з оголошеннями', 'Загальносистемні сповіщення'); standardize on 'банер оголошень'."
+  },
+  "channel banner": {
+    "target": "банер каналу",
+    "note": "Consistent in existing translations."
+  },
+  "keyword": {
+    "target": "ключове слово",
+    "note": "Plural 'ключові слова'."
+  },
+  "user group": {
+    "target": "група користувачів"
+  },
+  "permalink": {
+    "target": "постійне посилання",
+    "note": "No established rendering in repos; 'постійне посилання' is the standard Ukrainian software term."
+  },
+  "profile": {
+    "target": "профіль",
+    "note": "Masculine. 'profile picture' = 'зображення профілю'."
+  },
+  "username": {
+    "target": "ім'я користувача",
+    "note": "Existing translations use 'Логін' for the standalone field label and 'ім'я користувача' in sentences; prefer 'ім'я користувача' for consistency."
+  },
+  "nickname": {
+    "target": "псевдонім",
+    "note": "Consistent in existing translations."
+  },
+  "display name": {
+    "target": "відображуване ім'я",
+    "note": "Existing strings mix 'відображуване ім'я' and 'ім'я відображення'; prefer 'відображуване ім'я'. For channels/teams use 'відображувана назва'."
+  },
+  "collapsed reply threads": {
+    "target": "згорнуті відповіді в обговореннях",
+    "note": "Established rendering in mobile; keep as the feature name even though a more literal option would be 'згорнуті обговорення'."
+  },
+  "auto-translation": {
+    "target": "автоматичний переклад",
+    "note": "No existing rendering in repos; 'AUTO-TRANSLATED' label = 'ПЕРЕКЛАДЕНО АВТОМАТИЧНО'."
+  },
+  "data retention": {
+    "target": "зберігання даних",
+    "note": "'data retention policy' = 'політика зберігання даних' (consistent in existing translations)."
+  },
+  "compliance export": {
+    "target": "експорт відповідності",
+    "note": "Consistent in existing translations."
+  },
+  "access control": {
+    "target": "контроль доступу",
+    "note": "'attribute-based access control' = 'контроль доступу на основі атрибутів'."
+  },
+  "attribute": {
+    "target": "атрибут",
+    "note": "Masculine."
+  },
+  "onboarding": {
+    "target": "адаптація",
+    "note": "Grounded in existing 'Увімкнути Адаптацію' / 'процес адаптації'."
+  },
+  "Town Square": {
+    "target": "Загальний канал",
+    "note": "Established default-channel name in server uk.json; keep consistent everywhere."
+  },
+  "Off-Topic": {
+    "target": "Офтопік",
+    "note": "Established default-channel name in server uk.json."
+  },
+  "read-only": {
+    "target": "лише для читання",
+    "note": "Grounded: 'Цей канал доступний лише для читання.'"
+  },
+  "server": {
+    "target": "сервер",
+    "note": "Masculine. Genitive 'сервера'."
+  }
+}

@@ -1,0 +1,438 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Existing strings render it as 'Enterprise sürümü' when 'Edition' is generic ('Enterprise Edition License' -> 'Enterprise sürümü lisansı'); keep the product name itself in English."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Existing strings use 'Team sürümü' in running text; keep 'Team' in English, never translate it as 'Takım' here."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; do not confuse with the common noun 'channel' = 'kanal'."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name; the common noun 'playbook' is 'senaryo' in the Playbooks plugin."
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; the common noun 'call' is 'çağrı'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Also 'AD/LDAP' stays unchanged."
+  },
+  "SSO": {
+    "target": "SSO",
+    "note": "Spelled out as 'tek oturum açma' in explanatory text; keep the abbreviation in labels."
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled out as 'çok aşamalı kimlik doğrulama' in explanatory text; keep the abbreviation in labels."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "sistem panosu",
+    "note": "Consistently 'sistem panosu' in existing translations (not 'sistem konsolu'). Capitalize only sentence-initially; Turkish UI text here uses sentence case."
+  },
+  "marketplace": {
+    "target": "mağaza",
+    "note": "'App Marketplace' = 'uygulama mağazası'."
+  },
+  "channel": {
+    "target": "kanal"
+  },
+  "team": {
+    "target": "takım"
+  },
+  "post": {
+    "target": "ileti",
+    "note": "Turkish uses 'ileti' for both 'post' and 'message'; existing translations do not distinguish them."
+  },
+  "message": {
+    "target": "ileti"
+  },
+  "thread": {
+    "target": "konu",
+    "note": "Majority rendering is 'konu'; a few mobile strings use 'ileti dizisi' — prefer 'konu'. Threads view = 'Konular'."
+  },
+  "reply": {
+    "target": "yanıt",
+    "note": "Noun: 'yanıt'; verb (buttons): 'yanıtla'. Turkish buttons use imperative verb forms."
+  },
+  "direct message": {
+    "target": "doğrudan ileti",
+    "note": "Do not use 'özel mesaj'; 'DM' is spelled out."
+  },
+  "group message": {
+    "target": "grup iletisi"
+  },
+  "mention": {
+    "target": "anma",
+    "note": "Noun: 'anma'; verb: 'anmak' (e.g. 'yalnızca anıldığınızda' = 'only when mentioned'). '@mention' = '@anma'. Do not use 'bahsetme'."
+  },
+  "notification": {
+    "target": "bildirim"
+  },
+  "pin": {
+    "target": "sabitle",
+    "note": "Verb 'sabitlemek'; 'pinned messages' = 'sabitlenmiş iletiler'; 'unpin' = 'sabitlemeyi kaldır'."
+  },
+  "bookmark": {
+    "target": "yer imi",
+    "note": "Noun: 'yer imi'; verb phrase: 'yer imi ekle'."
+  },
+  "saved messages": {
+    "target": "kaydedilmiş iletiler",
+    "note": "'save' = 'kaydet'; 'unsave' / 'Remove from Saved' = 'kaydedilmişlerden kaldır'."
+  },
+  "draft": {
+    "target": "taslak"
+  },
+  "scheduled post": {
+    "target": "zamanlanmış ileti",
+    "note": "Verb 'schedule' = 'zamanla' (e.g. 'Taslağı zamanla')."
+  },
+  "emoji": {
+    "target": "görsel ifade",
+    "note": "Long-standing repo convention; do not use the loanword 'emoji' to stay consistent with existing UI."
+  },
+  "custom emoji": {
+    "target": "özel görsel ifade"
+  },
+  "reaction": {
+    "target": "tepki",
+    "note": "Verb 'react' = 'tepki ver(mek)'."
+  },
+  "status": {
+    "target": "durum"
+  },
+  "custom status": {
+    "target": "özel durum"
+  },
+  "do not disturb": {
+    "target": "rahatsız etmeyin",
+    "note": "Sentence case in UI: 'Rahatsız etmeyin'. 'DND' is spelled out."
+  },
+  "away": {
+    "target": "uzakta"
+  },
+  "online": {
+    "target": "çevrim içi",
+    "note": "Written as two words per repo convention (TDK spelling), not 'çevrimiçi'."
+  },
+  "offline": {
+    "target": "çevrim dışı",
+    "note": "Two words, matching 'çevrim içi'."
+  },
+  "out of office": {
+    "target": "ofis dışında"
+  },
+  "guest": {
+    "target": "konuk",
+    "note": "Repo uses 'konuk', not 'misafir'."
+  },
+  "member": {
+    "target": "üye"
+  },
+  "user": {
+    "target": "kullanıcı"
+  },
+  "system admin": {
+    "target": "sistem yöneticisi",
+    "note": "'System Administrator' also 'sistem yöneticisi'; plural 'sistem yöneticileri'."
+  },
+  "team admin": {
+    "target": "takım yöneticisi"
+  },
+  "channel admin": {
+    "target": "kanal yöneticisi"
+  },
+  "session": {
+    "target": "oturum",
+    "note": "Same root as sign-in ('oturum aç'); context disambiguates."
+  },
+  "sign in": {
+    "target": "oturum aç",
+    "note": "Both 'sign in' and 'log in' are 'oturum aç' throughout; imperative for buttons ('Oturum aç'), 'oturum açın' in instructions."
+  },
+  "sign out": {
+    "target": "oturumu kapat",
+    "note": "Both 'sign out' and 'log out' are 'oturumu kapat'."
+  },
+  "join": {
+    "target": "katıl",
+    "note": "Verb 'katılmak'; takes dative: 'kanala katıl', 'takıma katıl'."
+  },
+  "leave": {
+    "target": "ayrıl",
+    "note": "Verb 'ayrılmak'; takes ablative: 'kanaldan ayrıl', 'takımdan ayrıl'."
+  },
+  "archive": {
+    "target": "arşivle",
+    "note": "'archived' = 'arşivlenmiş'."
+  },
+  "unarchive": {
+    "target": "arşivden çıkar"
+  },
+  "mute": {
+    "target": "bildirimleri kapat",
+    "note": "For channels/categories the repo renders mute as 'bildirimleri kapat' (turn off notifications), e.g. 'Mute Channel' = 'Kanal bildirimlerini kapat'; 'unmute' = 'bildirimleri aç'. Distinct from Calls microphone mute = 'sesi kapat'."
+  },
+  "follow": {
+    "target": "izle",
+    "note": "Verb 'izlemek' ('Konuyu izle'); mobile occasionally uses 'takip et' — prefer 'izle' for consistency."
+  },
+  "unfollow": {
+    "target": "izlemeyi bırak"
+  },
+  "favorite": {
+    "target": "beğendiklerime ekle",
+    "note": "Core apps: 'Favorite' = 'Beğendiklerime ekle', 'Favorites' category = 'Beğendiklerim', 'Unfavorite' = 'Beğendiklerimden kaldır'. Playbooks inconsistently uses 'sık kullanılanlar' — the core 'beğen-' family is the majority rendering."
+  },
+  "search": {
+    "target": "arama",
+    "note": "Noun: 'arama'; verb (buttons/placeholders): 'ara' / 'arayın'."
+  },
+  "integration": {
+    "target": "bütünleştirme",
+    "note": "Repo convention; do not use 'entegrasyon'."
+  },
+  "slash command": {
+    "target": "bölü komutu"
+  },
+  "webhook": {
+    "target": "internet kancası",
+    "note": "Repo consistently localizes webhook as 'internet kancası'; do not keep English 'webhook'."
+  },
+  "incoming webhook": {
+    "target": "gelen internet kancası"
+  },
+  "outgoing webhook": {
+    "target": "giden internet kancası"
+  },
+  "trigger word": {
+    "target": "tetikleyici sözcük",
+    "note": "'sözcük' (not 'kelime') per repo vocabulary."
+  },
+  "plugin": {
+    "target": "uygulama eki",
+    "note": "Repo convention; do not use 'eklenti'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "'bot account' = 'bot hesabı'."
+  },
+  "role": {
+    "target": "rol"
+  },
+  "permission": {
+    "target": "izin"
+  },
+  "scheme": {
+    "target": "şema",
+    "note": "'permission scheme' = 'izin şeması'."
+  },
+  "license": {
+    "target": "lisans"
+  },
+  "seat": {
+    "target": "koltuk",
+    "note": "'licensed seats' = 'lisanslı koltuklar'."
+  },
+  "trial": {
+    "target": "deneme",
+    "note": "'free trial' = 'ücretsiz deneme'; 'trial period' often rendered 'deneme süresi'."
+  },
+  "workspace": {
+    "target": "çalışma alanı"
+  },
+  "subscription": {
+    "target": "abonelik"
+  },
+  "deactivate": {
+    "target": "etkisizleştir",
+    "note": "Webapp (user-facing) uses 'etkisizleştir' for accounts; server strings sometimes use 'kullanımdan kaldır' (also used for disabling features). Prefer 'etkisizleştir' for user accounts."
+  },
+  "invite": {
+    "target": "davet et",
+    "note": "Verb: 'davet et'; noun: 'davet' ('Davet kodu' = invite code)."
+  },
+  "invitation": {
+    "target": "davet",
+    "note": "'invitation email' = 'davet e-postası'."
+  },
+  "sidebar": {
+    "target": "kenar çubuğu"
+  },
+  "unread": {
+    "target": "okunmamış",
+    "note": "'Unreads' as a filter/list = 'okunmamışlar'."
+  },
+  "attachment": {
+    "target": "ek dosya"
+  },
+  "public channel": {
+    "target": "herkese açık kanal",
+    "note": "Do not use 'genel kanal'."
+  },
+  "private channel": {
+    "target": "özel kanal"
+  },
+  "shared channel": {
+    "target": "paylaşılan kanal",
+    "note": "Both 'paylaşılan kanal' and 'paylaşılmış kanal' appear; 'paylaşılan kanal' is the majority."
+  },
+  "channel header": {
+    "target": "kanal başlığı"
+  },
+  "channel purpose": {
+    "target": "kanal amacı"
+  },
+  "system message": {
+    "target": "sistem iletisi"
+  },
+  "persistent notification": {
+    "target": "kalıcı bildirim"
+  },
+  "message priority": {
+    "target": "ileti önceliği"
+  },
+  "urgent": {
+    "target": "acil",
+    "note": "All-caps label: 'ACİL' (Turkish dotted İ)."
+  },
+  "recap": {
+    "target": "özet",
+    "note": "No existing tr strings for this feature yet; 'özet' matches Turkish UI convention for AI summaries. If it must be distinguished from a plain 'summary' in the same view, 'etkinlik özeti' is a safe longer form."
+  },
+  "agent": {
+    "target": "aracı",
+    "note": "Existing webapp/mobile strings use 'aracı' (e.g. 'Aracıyı seçin', 'yapay zeka aracısı'). Beware case suffixes: accusative 'aracıyı'. Despite the homonym meaning 'intermediary', keep 'aracı' for consistency."
+  },
+  "burn-on-read": {
+    "target": "okunduğunda yok edilecek",
+    "note": "Established as 'okunduğunda yok edilecek ileti(ler)' for burn-on-read messages; the bare label 'Burn-on-read' = 'Okunduğunda yok edilecek'."
+  },
+  "magic link": {
+    "target": "sihirli bağlantı"
+  },
+  "personal access token": {
+    "target": "kişisel erişim kodu",
+    "note": "Repo renders 'token' as 'kod' in this term (not 'jeton'/'belirteç')."
+  },
+  "announcement banner": {
+    "target": "duyuru bildirimi",
+    "note": "Existing strings are inconsistent ('Duyuru bildirimi', plain 'bildirim'). 'duyuru bildirimi' is the labeled form; 'duyuru şeridi' would be clearer but is not established."
+  },
+  "channel banner": {
+    "target": "kanal bildirimi",
+    "note": "Webapp majority is 'kanal bildirimi'; server strings use 'kanal duyurusu', which is arguably clearer (avoids collision with notifications) — flag for future harmonization."
+  },
+  "keyword": {
+    "target": "anahtar sözcük"
+  },
+  "user group": {
+    "target": "kullanıcı grubu",
+    "note": "Plain 'group' = 'grup'."
+  },
+  "permalink": {
+    "target": "kalıcı bağlantı"
+  },
+  "profile": {
+    "target": "profil",
+    "note": "'profile picture' = 'profil görseli' (not 'profil resmi')."
+  },
+  "username": {
+    "target": "kullanıcı adı"
+  },
+  "nickname": {
+    "target": "takma ad"
+  },
+  "display name": {
+    "target": "görüntülenecek ad",
+    "note": "Repo uses the future participle 'görüntülenecek ad' (name to be displayed), not 'görünen ad'."
+  },
+  "collapsed reply threads": {
+    "target": "daraltılmış yanıt konuları"
+  },
+  "auto-translation": {
+    "target": "otomatik çeviri",
+    "note": "'auto-translated' = 'otomatik çevrilmiş'; 'channel translations' = 'kanal çevirileri'."
+  },
+  "data retention": {
+    "target": "verileri tutma",
+    "note": "'data retention policy' = 'verileri tutma ilkesi'. Some strings use 'veri tutma'; majority is 'verileri tutma'. 'policy' = 'ilke' (not 'politika')."
+  },
+  "compliance export": {
+    "target": "uyumluluk dışa aktarma"
+  },
+  "access control": {
+    "target": "erişim denetimi",
+    "note": "'attribute-based access control (ABAC)' = 'öznitelik temelli erişim denetimi'; 'access control policy' = 'erişim denetimi ilkesi'."
+  },
+  "attribute": {
+    "target": "öznitelik"
+  },
+  "onboarding": {
+    "target": "başlamaya hazırlanma",
+    "note": "Repo renders onboarding descriptively as 'başlamaya hazırlanma / başlamaya hazırlık'; no loanword."
+  },
+  "Town Square": {
+    "target": "Meydan",
+    "note": "Established default-channel name in server i18n; keep exactly 'Meydan'."
+  },
+  "Off-Topic": {
+    "target": "Konu dışı",
+    "note": "Established default-channel name in server i18n."
+  },
+  "read-only": {
+    "target": "salt okunur"
+  },
+  "server": {
+    "target": "sunucu",
+    "note": "Beware: the Calls plugin also uses 'sunucu' for the call host; in core/server contexts 'sunucu' always means server."
+  }
+}

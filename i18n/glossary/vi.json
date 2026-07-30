@@ -1,0 +1,436 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Repo once renders this as 'Phiên bản cho Nhóm'; per doNotTranslate keep the English edition name."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name only; the common noun 'channel' is 'kênh'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Bảng điều khiển Hệ thống",
+    "note": "Established in vi.json; capitalize as a named UI area."
+  },
+  "marketplace": {
+    "target": "thị trường",
+    "note": "vi.json uses 'Thị trường' (e.g. 'Bật Thị trường'); capitalize when used as the feature name."
+  },
+  "channel": {
+    "target": "kênh",
+    "note": "Consistently 'kênh' throughout vi.json."
+  },
+  "team": {
+    "target": "nhóm",
+    "note": "Majority rendering (236 'nhóm' vs 33 'đội' in vi.json). Caution: 'nhóm' also translates 'group' (user group = 'nhóm người dùng', group message = 'tin nhắn nhóm'); use context or 'đội' only if disambiguation is essential — but 'nhóm' is the established default."
+  },
+  "post": {
+    "target": "bài đăng",
+    "note": "Distinct from 'message' = 'tin nhắn'; vi.json uses 'bài đăng' for post."
+  },
+  "message": {
+    "target": "tin nhắn"
+  },
+  "thread": {
+    "target": "chủ đề",
+    "note": "Established in vi.json ('Chủ đề trong', 'chủ đề chưa đọc'). Also means 'topic'; alternative 'luồng' is not used in the repo — keep 'chủ đề'."
+  },
+  "reply": {
+    "target": "trả lời",
+    "note": "Verb and noun both 'trả lời'; a reply message can be 'câu trả lời'."
+  },
+  "direct message": {
+    "target": "tin nhắn trực tiếp",
+    "note": "Consistent in vi.json; capitalize as 'Tin nhắn Trực tiếp' in headings."
+  },
+  "group message": {
+    "target": "tin nhắn nhóm"
+  },
+  "mention": {
+    "target": "đề cập",
+    "note": "Verb 'đề cập'; noun/count 'lượt đề cập' (per vi.json 'mentions' -> 'lượt đề cập')."
+  },
+  "notification": {
+    "target": "thông báo"
+  },
+  "pin": {
+    "target": "ghim",
+    "note": "unpin = 'bỏ ghim'; pinned = 'đã ghim'; pinned messages = 'tin nhắn được ghim'."
+  },
+  "bookmark": {
+    "target": "dấu trang",
+    "note": "No existing vi rendering in repo; 'dấu trang' is the standard Vietnamese UI term (browsers). Verb: 'thêm dấu trang'."
+  },
+  "saved messages": {
+    "target": "tin nhắn đã lưu",
+    "note": "vi.json is inconsistent: 'Bài đăng đã lưu' in one label but 'tin nhắn được lưu' elsewhere; prefer 'tin nhắn đã lưu' to match message = 'tin nhắn'. save = 'lưu', unsave = 'bỏ lưu'."
+  },
+  "draft": {
+    "target": "bản nháp",
+    "note": "vi.json uses short form 'nháp' in buttons ('Gửi nháp', 'Xoá nháp'); 'bản nháp' as the standalone noun."
+  },
+  "scheduled post": {
+    "target": "tin nhắn đã lên lịch",
+    "note": "No existing vi rendering; align with message = 'tin nhắn'. Verb schedule = 'lên lịch'."
+  },
+  "emoji": {
+    "target": "biểu tượng cảm xúc",
+    "note": "Consistent in vi.json."
+  },
+  "custom emoji": {
+    "target": "biểu tượng cảm xúc tùy chỉnh"
+  },
+  "reaction": {
+    "target": "phản ứng",
+    "note": "Established in vi.json; verb react = 'phản ứng' or 'thêm phản ứng'."
+  },
+  "status": {
+    "target": "trạng thái"
+  },
+  "custom status": {
+    "target": "trạng thái tùy chỉnh"
+  },
+  "do not disturb": {
+    "target": "Không làm phiền",
+    "note": "Established status label in vi.json; keep the DND abbreviation untranslated if it appears."
+  },
+  "away": {
+    "target": "Đi vắng"
+  },
+  "online": {
+    "target": "Trực tuyến"
+  },
+  "offline": {
+    "target": "Ngoại tuyến"
+  },
+  "out of office": {
+    "target": "Vắng mặt",
+    "note": "vi.json uses 'Vắng mặt' for the status label; expanded 'vắng mặt tại văn phòng' in prose."
+  },
+  "guest": {
+    "target": "khách"
+  },
+  "member": {
+    "target": "thành viên"
+  },
+  "user": {
+    "target": "người dùng"
+  },
+  "system admin": {
+    "target": "quản trị viên hệ thống",
+    "note": "vi.json labels the role 'Quản trị hệ thống'; use 'quản trị viên hệ thống' when referring to the person."
+  },
+  "team admin": {
+    "target": "quản trị viên nhóm"
+  },
+  "channel admin": {
+    "target": "quản trị viên kênh"
+  },
+  "session": {
+    "target": "phiên",
+    "note": "Also 'phiên đăng nhập' where clarity is needed (vi.json uses both)."
+  },
+  "sign in": {
+    "target": "đăng nhập",
+    "note": "Translate both 'sign in' and 'log in' as 'đăng nhập'."
+  },
+  "sign out": {
+    "target": "đăng xuất",
+    "note": "Translate both 'sign out' and 'log out' as 'đăng xuất'."
+  },
+  "join": {
+    "target": "tham gia"
+  },
+  "leave": {
+    "target": "rời khỏi",
+    "note": "'rời' alone in short buttons; 'rời khỏi kênh/nhóm' in full phrases."
+  },
+  "archive": {
+    "target": "lưu trữ",
+    "note": "archived = 'đã lưu trữ'. Caution: 'lưu trữ' also means 'store/save' in some legacy strings; for the channel action always 'lưu trữ kênh'."
+  },
+  "unarchive": {
+    "target": "hủy lưu trữ"
+  },
+  "mute": {
+    "target": "tắt thông báo",
+    "note": "vi.json is inconsistent ('Tắt tiếng kênh' vs 'Tắt thông báo'). For channels/notifications use 'tắt thông báo'; reserve 'tắt tiếng' for microphone mute in Calls. unmute = 'bật thông báo'."
+  },
+  "follow": {
+    "target": "theo dõi"
+  },
+  "unfollow": {
+    "target": "bỏ theo dõi"
+  },
+  "favorite": {
+    "target": "yêu thích",
+    "note": "Favorites category = 'Yêu thích'; unfavorite = 'bỏ yêu thích'."
+  },
+  "search": {
+    "target": "tìm kiếm"
+  },
+  "integration": {
+    "target": "tích hợp"
+  },
+  "slash command": {
+    "target": "lệnh gạch chéo",
+    "note": "Majority in vi.json; some strings leave 'Slash Commands' untranslated — prefer 'lệnh gạch chéo'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English throughout vi.json."
+  },
+  "incoming webhook": {
+    "target": "webhook đến",
+    "note": "Established in vi.json."
+  },
+  "outgoing webhook": {
+    "target": "webhook đi",
+    "note": "Established in vi.json."
+  },
+  "trigger word": {
+    "target": "từ kích hoạt",
+    "note": "Established in vi.json."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English throughout vi.json; do not translate as 'trình cắm'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept in English; bot account = 'tài khoản bot'."
+  },
+  "role": {
+    "target": "vai trò"
+  },
+  "permission": {
+    "target": "quyền"
+  },
+  "scheme": {
+    "target": "lược đồ",
+    "note": "vi.json mixes 'lược đồ' and 'sơ đồ' ('Sơ đồ quyền'); prefer 'lược đồ' for permission schemes."
+  },
+  "license": {
+    "target": "giấy phép"
+  },
+  "seat": {
+    "target": "người dùng",
+    "note": "vi.json is inconsistent ('người dùng trả phí', 'chỗ', 'ghế người dùng'). Render seat counts as 'người dùng' (e.g. '{num} người dùng'); avoid literal 'ghế'."
+  },
+  "trial": {
+    "target": "bản dùng thử",
+    "note": "'dùng thử' as verb/period ('Bắt đầu dùng thử', 'ngày dùng thử')."
+  },
+  "workspace": {
+    "target": "không gian làm việc",
+    "note": "Majority in vi.json; a few strings leave 'workspace' untranslated — prefer 'không gian làm việc'."
+  },
+  "subscription": {
+    "target": "gói đăng ký",
+    "note": "vi.json uses bare 'Đăng ký', which collides with 'sign up/register'; 'gói đăng ký' is clearer for the paid-plan sense."
+  },
+  "deactivate": {
+    "target": "hủy kích hoạt",
+    "note": "vi.json mixes 'hủy kích hoạt' and 'vô hiệu hóa'; prefer 'hủy kích hoạt' for user accounts, matching 'Deactivate' -> 'Hủy kích hoạt'."
+  },
+  "invite": {
+    "target": "mời",
+    "note": "Noun sense: use 'lời mời'."
+  },
+  "invitation": {
+    "target": "lời mời"
+  },
+  "sidebar": {
+    "target": "thanh bên",
+    "note": "Majority in vi.json; one legacy string uses 'thanh tiện ích' — prefer 'thanh bên'."
+  },
+  "unread": {
+    "target": "chưa đọc"
+  },
+  "attachment": {
+    "target": "tệp đính kèm"
+  },
+  "public channel": {
+    "target": "kênh công khai"
+  },
+  "private channel": {
+    "target": "kênh riêng tư"
+  },
+  "shared channel": {
+    "target": "kênh được chia sẻ"
+  },
+  "channel header": {
+    "target": "tiêu đề kênh"
+  },
+  "channel purpose": {
+    "target": "mục đích kênh"
+  },
+  "system message": {
+    "target": "thông báo hệ thống",
+    "note": "Established in vi.json; slight collision with notification = 'thông báo', but keep for consistency."
+  },
+  "persistent notification": {
+    "target": "thông báo liên tục",
+    "note": "No existing vi rendering; 'liên tục' conveys the repeated-until-acknowledged behavior."
+  },
+  "message priority": {
+    "target": "mức ưu tiên tin nhắn",
+    "note": "vi.json has 'Ưu tiên tin nhắn'; 'mức ưu tiên' is clearer for the noun (the priority level)."
+  },
+  "urgent": {
+    "target": "Khẩn cấp",
+    "note": "vi.json has one legacy 'Gấp'; 'Khẩn cấp' is the standard priority label in Vietnamese UIs and matches Important/Standard register."
+  },
+  "recap": {
+    "target": "bản tóm tắt",
+    "note": "No existing vi rendering (new AI feature); aligns with 'tóm tắt' = summary."
+  },
+  "agent": {
+    "target": "tác nhân",
+    "note": "No existing vi rendering. 'Tác nhân' follows Microsoft/Google Vietnamese AI terminology; 'trợ lý AI' is a friendlier alternative. Keep 'Agents' in English when used as the product/plugin name."
+  },
+  "burn-on-read": {
+    "target": "tự hủy sau khi đọc",
+    "note": "No existing vi rendering; follows Vietnamese messaging-app convention for self-destructing messages (tin nhắn tự hủy)."
+  },
+  "magic link": {
+    "target": "liên kết đăng nhập nhanh",
+    "note": "No existing vi rendering; avoid literal 'liên kết ma thuật'. Describes a passwordless email sign-in link."
+  },
+  "personal access token": {
+    "target": "mã thông báo truy cập cá nhân",
+    "note": "vi.json mixes this with shorter 'mã truy cập cá nhân'; 'mã thông báo' is the standard rendering of 'token' — prefer the full form."
+  },
+  "announcement banner": {
+    "target": "biểu ngữ thông báo",
+    "note": "Majority in vi.json; one string uses 'Banner thông báo' — prefer 'biểu ngữ thông báo'."
+  },
+  "channel banner": {
+    "target": "biểu ngữ kênh"
+  },
+  "keyword": {
+    "target": "từ khóa"
+  },
+  "user group": {
+    "target": "nhóm người dùng",
+    "note": "Established in vi.json. Note collision: 'nhóm' alone also renders 'team'."
+  },
+  "permalink": {
+    "target": "liên kết cố định",
+    "note": "No existing vi rendering; standard Vietnamese term for permanent link."
+  },
+  "profile": {
+    "target": "hồ sơ"
+  },
+  "username": {
+    "target": "tên người dùng"
+  },
+  "nickname": {
+    "target": "biệt hiệu",
+    "note": "Established in vi.json ('thêm biệt hiệu')."
+  },
+  "display name": {
+    "target": "tên hiển thị"
+  },
+  "collapsed reply threads": {
+    "target": "chủ đề trả lời được thu gọn",
+    "note": "Exact existing rendering in vi.json for 'Threaded Discussions'/collapsed threads."
+  },
+  "auto-translation": {
+    "target": "dịch tự động",
+    "note": "auto-translated (label) = 'ĐÃ DỊCH TỰ ĐỘNG'."
+  },
+  "data retention": {
+    "target": "lưu giữ dữ liệu",
+    "note": "Policy = 'chính sách lưu giữ dữ liệu' (established in vi.json)."
+  },
+  "compliance export": {
+    "target": "xuất tuân thủ",
+    "note": "Established in vi.json."
+  },
+  "access control": {
+    "target": "kiểm soát truy cập",
+    "note": "One legacy vi string renders 'Advanced Access Control' as 'Kiểm duyệt kênh' (channel moderation) — do not follow it; 'kiểm soát truy cập' is the standard term."
+  },
+  "attribute": {
+    "target": "thuộc tính",
+    "note": "Established in vi.json for LDAP/profile attributes."
+  },
+  "onboarding": {
+    "target": "hướng dẫn bắt đầu",
+    "note": "vi.json has one legacy 'giới thiệu'; 'hướng dẫn bắt đầu' better conveys the guided first-run experience."
+  },
+  "Town Square": {
+    "target": "Không gian chung",
+    "note": "Established channel-name translation in server vi.json."
+  },
+  "Off-Topic": {
+    "target": "Chủ đề ngoài lề",
+    "note": "Established channel-name translation in server vi.json."
+  },
+  "read-only": {
+    "target": "chỉ đọc"
+  },
+  "server": {
+    "target": "máy chủ"
+  }
+}
