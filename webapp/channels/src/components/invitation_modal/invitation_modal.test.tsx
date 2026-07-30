@@ -292,10 +292,71 @@ describe('InvitationModal', () => {
         expect(guestChannels.length).toBe(2);
     });
 
-    it('loads only policy-matching candidates for a private governed team and filters them by term', async () => {
+    it('searches policy-matching candidates server-side for a private governed team', async () => {
+        // Server returns only users matching both the policy and the search term.
+        const matching = [TestHelper.getUserMock({id: 'u_eng', username: 'engineer'})];
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockResolvedValue(matching);
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+
+        // No pre-buffering on mount — the picker only queries when the user types.
+        expect(spy).not.toHaveBeenCalled();
+
+        const instance = ref.current!;
+        const results: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('eng', resolve);
+        });
+
+        // The typed term is forwarded to the policy-scoped endpoint and the
+        // server result is surfaced verbatim (no client-side cap or filtering).
+        expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), '', 'eng');
+        expect(results.map((u) => u.id)).toEqual(['u_eng']);
+
+        spy.mockRestore();
+    });
+
+    it('fails closed when the policy candidate search errors', async () => {
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockRejectedValue(new Error('boom'));
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+
+        const instance = ref.current!;
+        const results: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('eng', resolve);
+        });
+
+        // Never fall through to the unfiltered search — empty list instead.
+        expect(results).toEqual([]);
+
+        spy.mockRestore();
+    });
+
+    it('queries the server with an empty term when the picker is focused', async () => {
         const matching = [
-            TestHelper.getUserMock({id: 'u_eng', username: 'engineer'}),
-            TestHelper.getUserMock({id: 'u_mkt', username: 'marketer'}),
+            TestHelper.getUserMock({id: 'u1', username: 'alice'}),
+            TestHelper.getUserMock({id: 'u2', username: 'bob'}),
         ];
         const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockResolvedValue(matching);
 
@@ -312,15 +373,81 @@ describe('InvitationModal', () => {
             state,
         );
 
-        await waitFor(() => expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), ''));
+        const instance = ref.current!;
+        const results: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('', resolve);
+        });
+
+        // Empty term still hits the server so the picker shows initial candidates on focus.
+        expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), '', '');
+        expect(results.map((u) => u.id)).toEqual(['u1', 'u2']);
+
+        spy.mockRestore();
+    });
+
+    it('caps the displayed strict candidates at 20', async () => {
+        const many = Array.from({length: 50}, (_, i) => TestHelper.getUserMock({id: `u${i}`, username: `user${i}`}));
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockResolvedValue(many);
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
 
         const instance = ref.current!;
-        await waitFor(() => expect(instance.state.abacCandidates).toHaveLength(2));
-
         const results: UserProfile[] = await new Promise((resolve) => {
-            instance.usersLoader('engineer', resolve);
+            instance.usersLoader('user', resolve);
         });
-        expect(results.map((u) => u.id)).toEqual(['u_eng']);
+
+        expect(results).toHaveLength(20);
+
+        spy.mockRestore();
+    });
+
+    it('short-circuits refinements of a term that returned no results', async () => {
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').
+            mockResolvedValueOnce([]).
+            mockResolvedValueOnce([TestHelper.getUserMock({id: 'late', username: 'late'})]);
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+
+        const instance = ref.current!;
+
+        // First search finds nothing.
+        const first: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('nomatch', resolve);
+        });
+        expect(first).toEqual([]);
+        expect(spy).toHaveBeenCalledTimes(1);
+
+        // termWithoutResults is committed asynchronously in the resolve handler.
+        await waitFor(() => expect(instance.state.termWithoutResults).toBe('nomatch'));
+
+        // Refining the same no-results term must not hit the server again.
+        const second: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('nomatchx', resolve);
+        });
+        expect(second).toEqual([]);
+        expect(spy).toHaveBeenCalledTimes(1);
 
         spy.mockRestore();
     });

@@ -356,6 +356,28 @@ func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.Re
 	return "done", nil
 }
 
+// waitForExtractionSlotsIdle polls until every extraction slot has been
+// released. be.done only signals that the extractor finished; the detached
+// goroutine may still be running defers that release its slot.
+func waitForExtractionSlotsIdle(t *testing.T, limit int) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		acquired := 0
+		ok := true
+		for range limit {
+			if !tryAcquireExtractionSlot() {
+				ok = false
+				break
+			}
+			acquired++
+		}
+		for range acquired {
+			releaseExtractionSlot()
+		}
+		return ok
+	}, 2*time.Second, 10*time.Millisecond, "extraction slots did not become idle")
+}
+
 func TestExtractReaderCloserOwnership(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -521,7 +543,10 @@ func TestArchiveMaxFileSize(t *testing.T) {
 func TestExtractConcurrency(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 	resetExtractionConcurrencyForTest(1)
-	t.Cleanup(func() { resetExtractionConcurrencyForTest(runtime.NumCPU()) })
+	t.Cleanup(func() {
+		waitForExtractionSlotsIdle(t, 1)
+		resetExtractionConcurrencyForTest(runtime.NumCPU())
+	})
 
 	data := []byte("hello world")
 
@@ -550,11 +575,10 @@ func TestExtractConcurrency(t *testing.T) {
 		case <-time.After(2 * time.Second):
 			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
+		waitForExtractionSlotsIdle(t, 1)
 	})
 
 	t.Run("a timed-out extraction keeps its slot until the detached goroutine finishes", func(t *testing.T) {
-		resetExtractionConcurrencyForTest(1)
-
 		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
 		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
 
@@ -578,5 +602,6 @@ func TestExtractConcurrency(t *testing.T) {
 		case <-time.After(2 * time.Second):
 			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
+		waitForExtractionSlotsIdle(t, 1)
 	})
 }
