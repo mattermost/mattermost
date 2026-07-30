@@ -16,6 +16,7 @@ import {
     assignChannelsToPolicy,
     createChannelTextField,
     createParentPolicyViaAPI,
+    expectAddToChannelDenied,
     setChannelAttributeValue,
     triggerSyncJob,
 } from './helpers';
@@ -36,6 +37,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
     test('mixed user/resource scalar policy syncs and enforces joins', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -91,17 +93,14 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         await adminClient.addToChannel(matchingUserNotInChannel.id, channel.id);
         expect(await verifyUserInChannel(adminClient, matchingUserNotInChannel.id, channel.id)).toBe(true);
 
-        try {
-            await adminClient.addToChannel(nonMatchingUserInChannel.id, channel.id);
-        } catch {
-            // expected: the runtime PDP denies the non-matching user
-        }
+        await expectAddToChannelDenied(adminClient, nonMatchingUserInChannel.id, channel.id);
         expect(await verifyUserInChannel(adminClient, nonMatchingUserInChannel.id, channel.id)).toBe(false);
     });
 
     test('deny-on-miss removes all members when the channel attribute is absent', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);

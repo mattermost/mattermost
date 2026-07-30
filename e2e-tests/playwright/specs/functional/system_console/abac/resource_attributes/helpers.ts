@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
 /**
@@ -15,9 +15,11 @@ import type {Client4} from '@mattermost/client';
  * The server under test must run with MM_FEATUREFLAGS_RESOURCEATTRIBUTESINPOLICIES
  * set: the feature is flag-gated, and a feature flag cannot be turned on through
  * the config API (the config store restores flags on write), so no amount of
- * patchConfig in a spec substitutes for the environment variable. Without it the
- * autocomplete omits channel fields and these specs fail on their first
- * attribute assertion rather than skipping.
+ * patchConfig in a spec substitutes for the environment variable. Both CI paths
+ * set it — SERVER_ENV_BASELINE for the testcontainers stack the Playwright suite
+ * runs on, and e2e-tests/.ci/server.generate.sh for the docker-compose one — and
+ * every spec here guards with skipIfFeatureFlagNotSet so a server without it
+ * skips rather than failing on a policy save the server refuses.
  */
 
 const PROPERTY_GROUP = 'access_control';
@@ -225,4 +227,23 @@ export async function setChannelMultiselectValue(
 export async function openPolicyEditor(page: Page, policyId: string): Promise<void> {
     await page.goto(`/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`);
     await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Assert the runtime PDP refuses to add a user to a channel. The specific
+ * authorization failure is asserted rather than swallowing any error: a bare
+ * catch would also pass on a 500 or a transport fault, and the "user is not in
+ * the channel" check that follows can pass on its own because the sync job
+ * already removed them.
+ */
+export async function expectAddToChannelDenied(adminClient: Client4, userId: string, channelId: string): Promise<void> {
+    let error: {status_code?: number; server_error_id?: string} | undefined;
+    try {
+        await adminClient.addToChannel(userId, channelId);
+    } catch (err) {
+        error = err as {status_code?: number; server_error_id?: string};
+    }
+    expect(error, 'expected the runtime PDP to refuse the add').toBeDefined();
+    expect(error?.status_code).toBe(403);
+    expect(error?.server_error_id).toBe('api.channel.add_user.to.channel.rejected');
 }

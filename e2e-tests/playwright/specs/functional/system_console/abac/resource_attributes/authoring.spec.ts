@@ -21,6 +21,7 @@ import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
 test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     test('accepts a parent policy mixing user and resource attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -42,6 +43,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
     test('rejects has(resource.attributes.*) at check time', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -60,6 +62,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
     test('rejects assigning a resource parent to a team', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);

@@ -27,6 +27,7 @@ import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
 test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '@abac_masking']}, () => {
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);

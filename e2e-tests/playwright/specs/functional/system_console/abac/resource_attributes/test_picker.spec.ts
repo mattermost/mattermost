@@ -33,6 +33,7 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
     test('picker resolves a resource rule against the chosen channel', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
