@@ -918,6 +918,10 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
     };
 }
 
+// permission_policy_updated is system-scoped and reaches every connected client, so jitter the
+// current-channel reconcile to avoid a synchronized cluster-wide post reload (thundering herd).
+const permissionPolicyReconcileMaxJitterMs = 5000;
+
 // handlePermissionPolicyUpdatedEvent handles a TypePermission policy change.
 // These are system-scoped; no resource ID is carried — all channels are affected.
 export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
@@ -928,7 +932,11 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
         const currentChannelId = getCurrentChannelId(state);
 
         if (currentChannelId) {
-            doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
+            // A mid-window channel switch is still covered by the stale-marking below.
+            const delay = Math.floor(Math.random() * permissionPolicyReconcileMaxJitterMs);
+            window.setTimeout(() => {
+                doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
+            }, delay);
         }
 
         // Mark all channels stale so syncPostsOrReloadIfStale calls loadUnreads on

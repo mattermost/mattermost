@@ -40,6 +40,7 @@ import {setIntl} from 'utils/i18n';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handlePermissionPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
     handleFileUploadRejected,
@@ -1708,6 +1709,60 @@ describe('render permission invalidation via existing events', () => {
         const types = testStore.getActions().map((a) => a.type);
         expect(types).not.toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
         expect(types).not.toContain('MOCK_RECONCILE');
+    });
+});
+
+describe('handlePermissionPolicyUpdatedEvent', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
+    });
+
+    function stateWith(currentChannelId, channelIds = []) {
+        return {
+            entities: {
+                channels: {currentChannelId},
+                posts: {postsInChannel: channelIds.reduce((acc, id) => ({...acc, [id]: []}), {})},
+            },
+        };
+    }
+
+    test('invalidates current-user decisions and marks channels stale immediately, without an eager reconcile', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
+        expect(types.filter((t) => t === RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION)).toHaveLength(2);
+
+        // Jittered: the reconcile must not fire synchronously with the event.
+        expect(types).not.toContain('MOCK_RECONCILE');
+    });
+
+    test('reconciles the visible channel after the jitter window elapses', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        expect(testStore.getActions().map((a) => a.type)).not.toContain('MOCK_RECONCILE');
+
+        // Advance past permissionPolicyReconcileMaxJitterMs (max scheduled delay).
+        jest.advanceTimersByTime(5000);
+
+        expect(testStore.getActions().map((a) => a.type)).toContain('MOCK_RECONCILE');
+    });
+
+    test('does not schedule a reconcile when no channel is being viewed', () => {
+        const testStore = configureStore(stateWith('', []));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        jest.advanceTimersByTime(5000);
+
+        expect(testStore.getActions().map((a) => a.type)).not.toContain('MOCK_RECONCILE');
     });
 });
 
