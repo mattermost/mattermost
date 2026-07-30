@@ -95,7 +95,21 @@ func TestGetPublicKeyFilesystemFallback(t *testing.T) {
 	})
 
 	t.Run("does not fall back for a relative name", func(t *testing.T) {
-		_, appErr := th.App.GetPublicKey("key.asc")
+		// Name a key that is genuinely readable at a relative path, so that refusing to fall back
+		// for relative names is the only thing that can fail the lookup.
+		testsPath, _ := fileutils.FindDir("tests")
+		absKeyPath, err := filepath.Abs(filepath.Join(testsPath, "development-public-key.gpg"))
+		require.NoError(t, err)
+		cwd, err := os.Getwd()
+		require.NoError(t, err)
+		relKeyPath, err := filepath.Rel(cwd, absKeyPath)
+		require.NoError(t, err)
+		require.False(t, filepath.IsAbs(relKeyPath))
+
+		_, err = os.ReadFile(relKeyPath)
+		require.NoError(t, err, "fixture must be readable at the relative path for this test to mean anything")
+
+		_, appErr := th.App.GetPublicKey(relKeyPath)
 		require.NotNil(t, appErr)
 	})
 }
