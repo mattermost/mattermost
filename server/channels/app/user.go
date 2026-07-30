@@ -1896,6 +1896,12 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 
 	T := i18n.GetUserTranslations(user.Locale)
 
+	// Validate the new password before consuming the token, so a request with an
+	// invalid password (e.g. too short) doesn't burn the caller's one-time link.
+	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
+		return err
+	}
+
 	// Atomically consume the token as the last step before the password change side
 	// effect, so a concurrent reset with the same token fails here instead of a false
 	// success being returned while the change is silently dropped.
