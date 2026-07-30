@@ -22,7 +22,15 @@
 
 .menuModal {
     & .modal-header {
-        display: none;
+        display: block;
+        height: 0;
+        min-height: 0;
+        padding: 0;
+        border-bottom: none;
+
+        & .close {
+            z-index: 1;
+        }
     }
 
     & .GenericModal__body {
