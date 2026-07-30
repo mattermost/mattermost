@@ -29,13 +29,24 @@ func SetMaxPostSizeFunc(f func() int) {
 // MaxLen returns the current maximum markdown input length, in bytes, enforced by Parse and
 // Inspect: four times the maximum post size, in runes, returned by the function registered via
 // SetMaxPostSizeFunc, assuming a worst case of four bytes per rune. Falls back to a conservative
-// default if no function has been registered, which should not happen in practice.
+// default if no function has been registered, or if calling it panics (e.g. a test double for
+// the store that doesn't expect to be asked for it), since this is only meant to bound resource
+// usage and should never itself be the reason parsing fails.
 func MaxLen() int {
 	maxPostSize := defaultMaxPostSize
 	if p := maxPostSizeFunc.Load(); p != nil {
-		maxPostSize = (*p)()
+		maxPostSize = callMaxPostSizeFunc(*p)
 	}
 	return 4 * maxPostSize
+}
+
+func callMaxPostSizeFunc(f func() int) (maxPostSize int) {
+	defer func() {
+		if recover() != nil {
+			maxPostSize = defaultMaxPostSize
+		}
+	}()
+	return f()
 }
 
 // Inspect traverses the markdown tree in depth-first order. If f returns true, Inspect invokes f

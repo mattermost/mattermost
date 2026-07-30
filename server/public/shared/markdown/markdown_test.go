@@ -47,6 +47,14 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, 4*(defaultMaxPostSize+2), MaxLen())
 	})
 
+	t.Run("MaxLen falls back to the default if the registered function panics", func(t *testing.T) {
+		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+
+		SetMaxPostSizeFunc(func() int { panic("boom") })
+
+		assert.Equal(t, 4*defaultMaxPostSize, MaxLen())
+	})
+
 	t.Run("nesting depth is bounded regardless of how deeply a single line nests", func(t *testing.T) {
 		// Without the depth cap in blockStart/blockQuoteStart/listStart, this would force parse
 		// work that grows with the nesting depth rather than staying bounded.
