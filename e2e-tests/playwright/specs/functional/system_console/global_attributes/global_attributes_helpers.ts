@@ -14,6 +14,11 @@ const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const TARGET_TYPE = 'system';
 
+// Server clamps per_page to this max (see web.PerPageMaximum in server/channels/web/params.go).
+// Directory-mode search with no cursor sorts CreateAt ASC, so the default 60-item page only
+// returns the oldest fields — request the max to reduce the risk of missing newer ones.
+const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
+
 /**
  * Toggle via System Console config API. On servers without SplitKey, feature flags are
  * read-only from config (see server/config/store.go); effective values come from env
@@ -61,7 +66,13 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(
+            PROPERTY_GROUP,
+            OBJECT_TYPE,
+            TARGET_TYPE,
+            undefined,
+            {perPage: MAX_PROPERTY_FIELDS_PER_PAGE},
+        );
         for (const field of fields.filter((f) => f.name === name && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id);
         }
