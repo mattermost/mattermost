@@ -357,6 +357,43 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		CheckOKStatus(t, resp)
 	})
 
+	t.Run("system admin is allowed for every policy type", func(t *testing.T) {
+		// Guards the hoisted ManageSystem check: a system admin must be
+		// accepted in every case of the policy-type switch. Parent and Team
+		// types are only exercised as sysadmin here; Channel and Permission
+		// sysadmin paths are covered by the sibling subtests above.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		for _, policyType := range []string{model.AccessControlPolicyTypeParent, model.AccessControlPolicyTypeTeam} {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Type:     policyType,
+				Name:     "sysadmin-" + policyType,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Revision: 1,
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Expression: "user.attributes.department == 'engineering'",
+						Actions:    []string{model.AccessControlPolicyActionMembership},
+					},
+				},
+			}
+
+			mockAccessControlService := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockAccessControlService
+			mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil).Times(1)
+
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			require.NoError(t, err, "system admin should create a %s policy", policyType)
+			CheckOKStatus(t, resp)
+		}
+	})
+
 	t.Run("CreateChannelPolicy with permission rules rejected when ChannelPermissionPolicies sub-flag is off", func(t *testing.T) {
 		// Channel-scope policies that ONLY have membership rules
 		// stay available even when the permission-rule sub-flag is
