@@ -66,13 +66,9 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
     try {
-        const fields = await adminClient.getPropertyFields(
-            PROPERTY_GROUP,
-            OBJECT_TYPE,
-            TARGET_TYPE,
-            undefined,
-            {perPage: MAX_PROPERTY_FIELDS_PER_PAGE},
-        );
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+        });
         for (const field of fields.filter((f) => f.name === name && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id);
         }
