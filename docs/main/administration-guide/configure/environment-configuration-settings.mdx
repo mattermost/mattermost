@@ -1,6 +1,7 @@
 ---
 title: "Environment configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -9,7 +10,7 @@ import Inc1_rate_limiting_configuration_settings from './rate-limiting-configura
 
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
+Review and manage the following environmental configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Environment**:
 
 - [Web server](#web-server)
 - [Database](#database)
@@ -332,7 +333,7 @@ When using the Mattermost Desktop App, additional configuration is required to o
 
 <Note>
 
-Purging the caches may adversely impact performance. [high availability cluster-based deployments](/administration-guide/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
+Purging the caches may adversely impact performance. [high availability cluster-based deployments](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) will attempt to purge all the servers in the cluster.
 
 </Note>
 
@@ -696,7 +697,7 @@ Your database admin must configure the functionality according to supported valu
 
 #### AWS High Availablity RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting to the write/read endpoint at the **cluster** level to benefit from the AWS failover handling. AWS takes care of promoting different database nodes to be the writer node. Mattermost doesn't need to manage this. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Maximum open connections
 
@@ -834,14 +835,14 @@ MySQL databases must be configured to support searching strings shorter than thr
 </colgroup>
 <tbody>
 <tr>
-<td>When <a href="mm-doc:%2Fadministration-guide%2Fscale%2Fenterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
+<td>When <a href="/administration-guide/scale/enterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
 </tr>
 </tbody>
 </table>
 
 Search behavior in Mattermost depends on which search engines are enabled:
 
-- When [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [AWS OpenSearch](/administration-guide/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
+- When [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) or [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) is enabled, Mattermost will try to use it first.
 - If Elasticsearch fails or is disabled, Mattermost will attempt to use Bleve search, if enabled. Bleve search has been deprecated in Mattermost v11.0. We recommend using Elasticsearch or OpenSearch for enterprise search capabilities.
 - If these fail or are disabled, Mattermost tries to search the database directly, if this is enabled.
 - If all of the above methods fail or are disabled, the search results will be empty.
@@ -862,7 +863,7 @@ However, the ability to perform database searches in Mattermost is a critical fe
 
 ### Applied schema migrations
 
-A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
+A list of all migrations that have been applied to the data store based on the version information available in the `db_migrations` table. Select **About Mattermost** from the Product <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu to review the current database schema version applied to your deployment.
 
 ### Active search backend
 
@@ -892,7 +893,7 @@ Read-only display of the currently active backend used for search. Values can in
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Search replicas
 
@@ -917,7 +918,7 @@ Each database connection string in the array must be in the same form used for t
 
 #### AWS High Availability RDS cluster deployments
 
-For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/administration-guide/scale/high-availability-cluster-based-deployment#database) documentation for details.
+For an AWS High Availability RDS cluster deployment, point this configuration setting directly to the underlying read-only node endpoint within the RDS cluster to circumvent the failover/load balancing that AWS/RDS takes care of (except for the write traffic). Mattermost has its own method of balancing the read-only connections and can also balance those queries to the data source/write+read connection should those nodes fail. See the [high availability database configuration](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#database) documentation for details.
 
 ### Replica lag settings
 
@@ -1095,7 +1096,7 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 ### Backend type
 
-Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch](/administration-guide/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/administration-guide/scale/enterprise-search) in our product documentation.
+Both [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) in our product documentation.
 
 <table>
 <colgroup>
@@ -1110,7 +1111,7 @@ Both [Elasticsearch](/administration-guide/scale/elasticsearch-setup) and [AWS O
 </tbody>
 </table>
 
-Learn more about [enterprise search version support](/administration-guide/scale/enterprise-search#supported-paths).
+Learn more about [enterprise search version support](/deployment-guide/reference-architecture/scale/enterprise-search#supported-paths).
 
 ### Server connection address
 
@@ -1506,7 +1507,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 
 <Note>
 
-If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/administration-guide/scale/enterprise-search), configure this with a value greater than your data retention policy.
+If you’re using [data retention](/administration-guide/comply/data-retention-policy) and [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search), configure this with a value greater than your data retention policy.
 
 </Note>
 
@@ -1697,9 +1698,9 @@ During busy periods, this delay will be faster as more traffic is occurring, cau
 
 <Note>
 
-Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) and [AWS OpenSearch setup](/administration-guide/scale/opensearch-setup) documentation for plugin installation instructions.
+Available from Mattermost v11.6. The required analyzer plugins should be installed on the Elasticsearch or AWS OpenSearch server before enabling this setting for full analysis support. If no plugin is detected, a warning will be logged. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) and [AWS OpenSearch setup](/deployment-guide/reference-architecture/scale/opensearch-setup) documentation for plugin installation instructions.
 
-If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
+If you enable this setting on a server that was previously running Elasticsearch or AWS OpenSearch, you must purge and rebuild the search indexes for existing content to be properly searchable with the new analyzers. See the [Elasticsearch setup](/deployment-guide/reference-architecture/scale/elasticsearch-setup) documentation for instructions on purging and rebuilding indexes.
 
 </Note>
 
@@ -2513,7 +2514,7 @@ See the [Telemetry](/administration-guide/manage/telemetry#security-update-check
 
 <PlanAvailability slug="ent-plus" />
 
-With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
+With self-hosted deployments, you can configure Mattermost as a [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) by going to **System Console \> Environment \> High Availability**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
 
 In a Mattermost high availability cluster-based deployment, the System Console is set to read-only, and settings can only be changed by editing the `config.json` file directly. However, to test a high availability cluster-based environment, you can disable `ClusterSettings.ReadOnlyConfig` in the `config.json` file by setting it to `false`. This allows changes applied using the System Console to be saved back to the configuration file.
 
@@ -2562,7 +2563,7 @@ In a Mattermost high availability cluster-based deployment, the System Console i
 </tbody>
 </table>
 
-See the [high availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment) documentation for details.
+See the [high availability cluster-based deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) documentation for details.
 
 ### Use IP address
 
@@ -3336,7 +3337,7 @@ After changing this setting, the new session length takes effect after the next 
 
 - This setting has no effect when [extend session length with activity](#extend-session-length-with-activity) is set to **true**.
 - This setting applies to the webapp and the desktop app. For mobile apps, use an [EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider) to lock the app when not in use. |
-- In [high availability mode](/administration-guide/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
+- In [high availability mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), enable IP hash load balancing for reliable timeout measurement.
 
 </Note>
 
@@ -3746,7 +3747,7 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Aallow%20file%20downloads%20on%20mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -4014,7 +4015,7 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 </colgroup>
 <tbody>
 <tr>
-<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fbulk-export-tool">bulk exports</a> and <a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
+<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="/administration-guide/manage/bulk-export-tool">bulk exports</a> and <a href="/administration-guide/comply/compliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="/administration-guide/configure/environment-configuration-settings#file-storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
 <td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code></li><li>Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code></li></ul></td>
 </tr>
 </tbody>
