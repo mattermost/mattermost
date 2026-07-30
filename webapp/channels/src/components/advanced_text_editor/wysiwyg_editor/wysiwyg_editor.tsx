@@ -153,9 +153,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     extensions: extraExtensions,
     onContentError,
 }, ref) => {
-    // contentType, extensions, and initial value are read at mount only; the
-    // underlying Tiptap schema is fixed at construction. Freeze here so paste
-    // and update handlers can't drift out of sync with a mid-flight prop swap.
+    // Frozen: the Tiptap schema is fixed at construction, so a mid-flight prop
+    // swap would desync the paste and update handlers from the actual editor.
     const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
     const channelIdRef = useLatest(channelId);
@@ -226,9 +225,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const mountedRef = useRef(false);
     const pendingErrorRef = useRef<Error | null>(null);
 
-    // A ref, not state: nothing renders from it, and the imperative handle must
-    // report the current value synchronously — a consumer reading it from its
-    // own onContentError handler runs before any re-render would land.
+    // A ref, not state: the handle must report this synchronously, and a
+    // consumer reading it from its own onContentError handler runs before any
+    // re-render would land.
     const hasContentErrorRef = useRef(false);
 
     const [initialContent] = useState<string | Record<string, unknown>>(() => {
@@ -269,9 +268,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         contentType: jsonMode ? undefined : 'markdown',
         enableContentCheck: jsonMode,
 
-        // Tiptap emits this synchronously inside the Editor constructor, which
-        // runs during useEditor's lazy state init (render). Defer via a ref +
-        // mount effect so consumer setState never happens during render.
+        // Tiptap emits this from the Editor constructor, which useEditor runs
+        // during render — hence the buffering in captureContentError.
         onContentError: ({error}) => captureContentError(error),
         editable: !disabled,
         editorProps: {

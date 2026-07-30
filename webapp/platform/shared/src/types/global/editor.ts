@@ -34,20 +34,14 @@ export type WysiwygEditorProps = {
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
 
-    // 'json' expects `value` as stringified ProseMirror JSON. Mount-only.
+    // 'json' reads and emits stringified ProseMirror JSON. Mount-only.
     contentType?: 'markdown' | 'json';
 
-    // Registered at mount; later changes are ignored. Typed as `any[]` so
-    // consumers don't need `@tiptap/core` transitively — cast at the call site.
+    // Mount-only. `any[]` so consumers don't need `@tiptap/core` transitively.
     extensions?: any[];
 
-    // Fires in 'json' mode for any content error during the editor's lifetime:
-    // `value` failing to load at mount, and later schema mismatches from
-    // commands driven through `getEditor()`. Malformed JSON falls back to an
-    // empty doc; a Tiptap content-check failure may either fall back to empty
-    // or preserve the original doc on Tiptap's non-fatal retry. For the
-    // autosave-gating contract see `hasContentError()`, which covers the load
-    // case only. No-op in 'markdown' mode.
+    // Any content error in 'json' mode, for the editor's lifetime. See
+    // hasContentError() for the autosave-gating contract.
     onContentError?: (error: Error) => void;
 };
 
@@ -138,17 +132,13 @@ export type PublishedWysiwygEditorHandle = {
     blur: () => void;
     getInputBox: () => HTMLElement | null;
 
-    // Returns the Tiptap Editor, or `null` before create / after destroy. The
-    // ref is populated in a passive effect, so a consumer's useLayoutEffect
-    // can still observe null on the initial render. In 'json' mode use
-    // `getJSON()`; `getMarkdown()` isn't attached.
+    // Null until the mount effect runs, so a useLayoutEffect can still miss it.
+    // In 'json' mode use getJSON(); getMarkdown() isn't attached.
     getEditor: () => any;
 
-    // Returns true when the initial `value` failed to load in 'json' mode.
-    // Consumers autosaving MUST gate the first onChange on this — otherwise the
-    // empty fallback overwrites the source. Latches for the editor's lifetime
-    // and is not set by post-mount errors, so it never silently stops an
-    // autosave loop that started from a clean load.
+    // True when the initial `value` failed to load in 'json' mode. Autosaving
+    // consumers must gate the first onChange on this, or the empty fallback
+    // overwrites the source. Load-only, so it can't stall a healthy session.
     hasContentError: () => boolean;
 };
 
