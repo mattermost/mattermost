@@ -1,0 +1,157 @@
+  /api/v4/ephemeral_mode/cleanup:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode cleanup run
+      description: >
+        Records the outcome of a client-side ephemeral mode auto cache cleanup run as an
+        audit event.
+
+        __Minimum server version__: 11.10
+
+        ##### Permissions
+
+        Must be logged in.
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogCleanup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                posts_deleted:
+                  description: The number of posts deleted by the cleanup run. Defaults to 0 if omitted.
+                  type: integer
+                  format: int64
+                playbook_runs_deleted:
+                  description: The number of playbook runs deleted by the cleanup run. Defaults to 0 if omitted.
+                  type: integer
+                  format: int64
+                cleanup_at:
+                  description: >
+                    The time in milliseconds the cleanup run completed. If omitted, no
+                    cleanup_at value is recorded on the audit event; the server-observed
+                    time is always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        "200":
+          description: Cleanup logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ephemeral_mode/purge:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode offline purge
+      description: >
+        Records the outcome of a client-side ephemeral mode offline purge as
+        an audit event.
+
+        __Minimum server version__: 11.10
+
+        ##### Permissions
+
+        Must be logged in.
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogOfflinePurge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offline_time_minutes:
+                  description: The number of minutes the client was offline before the purge.
+                  type: integer
+                  format: int64
+                purge_at:
+                  description: >
+                    The time in milliseconds the purge completed. If omitted, no purge_at
+                    value is recorded on the audit event; the server-observed time is
+                    always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+              required:
+                - offline_time_minutes
+        required: true
+      responses:
+        "200":
+          description: Offline purge logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ephemeral_mode/wipe:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode session wipe
+      description: >
+        Records a client-side ephemeral mode wipe confirming that a session
+        revoked by the server has completed its local wipe. Sent without a
+        session, since the session being confirmed is already revoked by the
+        time the client can report it.
+
+        __Minimum server version__: 11.10
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogSessionWipe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  description: The ID of the user whose session was wiped.
+                  type: string
+                session_id:
+                  description: The ID of the session that was wiped.
+                  type: string
+                wipe_at:
+                  description: >
+                    The time in milliseconds the wipe completed. If omitted, no wipe_at
+                    value is recorded on the audit event; the server-observed time is
+                    always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+              required:
+                - user_id
+                - session_id
+        required: true
+      responses:
+        "200":
+          description: Session wipe logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
