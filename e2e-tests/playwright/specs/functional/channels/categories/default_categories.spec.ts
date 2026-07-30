@@ -184,20 +184,15 @@ test.describe('Channel Category Sorting', () => {
         const sidebar = channelsPage.sidebarLeft.container;
         await expect(sidebar.getByText('Removable')).toBeVisible();
 
-        // # Open channel settings and click the clear button on the default category selector
+        // # Open channel settings and clear the default category selector
         let channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+        const infoTab = await channelSettingsModal.openInfoTab();
 
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(defaultCategorySection).toContainText('Removable');
+        await expect(infoTab.defaultCategoryGroup).toContainText('Removable');
+        await infoTab.clearDefaultCategory();
 
-        const clearButton = defaultCategorySection.locator('.CategorySelector__clear-indicator');
-        await expect(clearButton).toBeVisible();
-        await clearButton.click();
-        await pw.wait(pw.duration.half_sec);
-
-        // * Verify the clear button is gone (no value selected)
-        await expect(clearButton).not.toBeVisible();
+        // * Value cleared (clear control gone); select may still show the focused placeholder
+        await expect(infoTab.defaultCategoryGroup).not.toContainText('Removable');
 
         // # Save and close
         await channelSettingsModal.save();
@@ -206,11 +201,11 @@ test.describe('Channel Category Sorting', () => {
 
         // # Reopen channel settings to verify the cleared value persisted
         channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+        const reopenedInfoTab = await channelSettingsModal.openInfoTab();
 
-        // * Verify the default category selector shows the placeholder (value is cleared)
-        const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(reopenedDefaultCategorySection).toContainText('Choose a default category (optional)');
+        // * Unfocused selector shows the default placeholder once the value is cleared
+        await expect(reopenedInfoTab.defaultCategoryGroup).toContainText('Choose a default category (optional)');
+        await expect(reopenedInfoTab.defaultCategoryClear).not.toBeVisible();
 
         await channelSettingsModal.close();
     });
