@@ -1577,7 +1577,7 @@ func TestAccessControlPolicyRuleMetadataValidation(t *testing.T) {
 				}
 				appErr := newPolicy(version, rule).IsValid()
 				require.NotNil(t, appErr)
-				require.Equal(t, "model.access_policy.is_valid.rule_metadata_auto_add.app_error", appErr.Id)
+				require.Equal(t, "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", appErr.Id)
 			})
 
 			t.Run("unrecognized auto_add mode is rejected", func(t *testing.T) {

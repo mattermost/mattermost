@@ -5320,6 +5320,89 @@ func TestUpdateAccessControlPoliciesAutoAdd_MaskingGuard(t *testing.T) {
 	})
 }
 
+// TestReconcileServerOwnedPolicyFields_MaskingGuard covers the other way to stop
+// membership sync: a policy save carrying auto_add off. It answers to the same
+// guard as the bulk endpoint, or the guard there would be trivially avoidable.
+func TestReconcileServerOwnedPolicyFields_MaskingGuard(t *testing.T) {
+	const expression = `user.attributes.f_unknown == "Secret"`
+
+	// setup stores a policy with auto-add on and returns a save of the same policy
+	// that turns it off, which is the transition the guard watches for.
+	setup := func(t *testing.T, hasMasked bool) (*TestHelper, *model.AccessControlPolicy) {
+		t.Helper()
+		th := Setup(t).InitBasic(t)
+
+		th.Context = th.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		policyID := model.NewId()
+		stored := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "policy-" + policyID,
+			Type:     model.AccessControlPolicyTypeParent,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: expression},
+			},
+		}
+		stored.SetAutoAddMode(model.AccessControlAutoAddAlways)
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, stored)
+		require.NoError(t, err)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("HasMaskedValuesForCaller", mock.Anything, expression, mock.Anything).Return(hasMasked, nil).Maybe()
+
+		incoming := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "policy-" + policyID,
+			Type:     model.AccessControlPolicyTypeParent,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: expression,
+					Metadata:   map[string]any{model.AccessControlRuleMetadataAutoAdd: ""},
+				},
+			},
+		}
+
+		return th, incoming
+	}
+
+	t.Run("turning auto-add off is blocked when the caller has masked values", func(t *testing.T) {
+		th, incoming := setup(t, true)
+
+		appErr := th.App.reconcileServerOwnedPolicyFields(th.Context, incoming)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.delete_policy.masked_values", appErr.Id)
+	})
+
+	t.Run("turning auto-add off proceeds when the caller sees every value", func(t *testing.T) {
+		th, incoming := setup(t, false)
+
+		appErr := th.App.reconcileServerOwnedPolicyFields(th.Context, incoming)
+		require.Nil(t, appErr)
+		require.False(t, incoming.AutoAddMembers())
+	})
+
+	t.Run("an expression-only save is not treated as turning auto-add off", func(t *testing.T) {
+		th, incoming := setup(t, true)
+
+		// No metadata means "not specified", so the stored mode carries forward and
+		// there is nothing for the guard to block.
+		incoming.Rules[0].Metadata = nil
+
+		appErr := th.App.reconcileServerOwnedPolicyFields(th.Context, incoming)
+		require.Nil(t, appErr)
+		require.Equal(t, model.AccessControlAutoAddAlways, incoming.AutoAddMode())
+	})
+}
+
 // TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents verifies that toggling
 // auto-add fires cache invalidation and WS events for channel and parent policies.
 func TestUpdateAccessControlPoliciesAutoAdd_BroadcastsWebsocketEvents(t *testing.T) {

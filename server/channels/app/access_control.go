@@ -244,6 +244,12 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 		mode = requested
 	}
 
+	if mode == "" && storedAutoAdd != "" {
+		if appErr := a.guardAutoAddDisable(rctx, stored); appErr != nil {
+			return appErr
+		}
+	}
+
 	// SetAutoAddMode canonicalizes "off" into the absence of the key.
 	rule.SetAutoAddMode(mode)
 
@@ -259,7 +265,7 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 func requestedAutoAddMode(raw any) (string, *model.AppError) {
 	mode, ok := raw.(string)
 	if !ok {
-		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
 	}
 
 	if mode != "" && !model.IsValidAccessControlAutoAddMode(mode) {
@@ -267,6 +273,34 @@ func requestedAutoAddMode(raw any) (string, *model.AppError) {
 	}
 
 	return mode, nil
+}
+
+// guardAutoAddDisable rejects turning auto-add off on a policy holding values
+// the caller cannot see. Stopping the sync job from maintaining membership is
+// enforcement-equivalent to deleting the policy, so both ways of doing it — the
+// policy save and the bulk auto-add endpoint — answer to the delete-path guard.
+//
+// It is a no-op unless masking is on, and tolerates a sessionless internal
+// caller, which has nothing to be blind to.
+func (a *App) guardAutoAddDisable(rctx request.CTX, stored *model.AccessControlPolicy) *model.AppError {
+	if !a.Config().FeatureFlags.AttributeValueMasking {
+		return nil
+	}
+
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return nil
+	}
+
+	hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, stored, session.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	if hasMasked {
+		return model.NewAppError("guardAutoAddDisable", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+	}
+
+	return nil
 }
 
 // policyHasMaskedValuesForCaller returns true if policy contains any attribute values
@@ -1803,27 +1837,19 @@ func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []mod
 		}
 	}
 
-	// Turning auto-add off stops the sync job from maintaining membership, which
-	// is enforcement-equivalent to deleting the policy. Mirror the delete-path
-	// guard so a caller blocked from deleting a policy with hidden values cannot
-	// achieve the same effect by switching auto-add off.
+	// Fetch a policy only when masking can actually block the change; the guard
+	// itself is a no-op with the flag off.
 	if a.Config().FeatureFlags.AttributeValueMasking {
-		session := rctx.Session()
-		if session != nil {
-			callerID := session.UserId
-			for _, u := range updates {
-				if u.AutoAdd != "" {
-					continue // enabling auto-add never widens access
-				}
-				policy, appErr := acs.GetPolicy(rctx, u.ID)
-				if appErr != nil {
-					return nil, appErr
-				}
-				if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, policy, callerID); appErr != nil {
-					return nil, appErr
-				} else if hasMasked {
-					return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
-				}
+		for _, u := range updates {
+			if u.AutoAdd != "" {
+				continue // enabling auto-add never widens access
+			}
+			policy, appErr := acs.GetPolicy(rctx, u.ID)
+			if appErr != nil {
+				return nil, appErr
+			}
+			if appErr := a.guardAutoAddDisable(rctx, policy); appErr != nil {
+				return nil, appErr
 			}
 		}
 	}

@@ -571,7 +571,10 @@ func testAccessControlPolicyStoreSetMembershipAutoAdd(t *testing.T, rctx request
 		require.Len(t, stored.Rules, 1)
 		require.Empty(t, stored.Rules[0].Expression)
 		require.False(t, stored.HasEffectiveRules(), "a carrier rule governs nothing")
-		require.False(t, parent.AutoAddMembers(), "the parent is not touched")
+
+		storedParent, err := ss.AccessControlPolicy().Get(rctx, parent.ID)
+		require.NoError(t, err)
+		require.False(t, storedParent.AutoAddMembers(), "the parent is not touched")
 	})
 
 	t.Run("applies mixed values in one call and skips unknown ids", func(t *testing.T) {

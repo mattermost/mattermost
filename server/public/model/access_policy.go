@@ -263,7 +263,7 @@ func (r *AccessControlPolicyRule) validateMetadata() *AppError {
 		if key == AccessControlRuleMetadataAutoAdd {
 			mode, ok := value.(string)
 			if !ok {
-				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_metadata_auto_add.app_error", nil, "auto_add must be a string", 400)
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", 400)
 			}
 			if mode != "" && !IsValidAccessControlAutoAddMode(mode) {
 				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": mode}, fmt.Sprintf("unrecognized auto_add mode: %q", mode), 400)

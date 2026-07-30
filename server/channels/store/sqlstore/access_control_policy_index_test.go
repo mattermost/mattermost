@@ -59,14 +59,21 @@ func TestAccessControlPolicyContainmentIndexes(t *testing.T) {
 	_, err = master.ExecNoTimeout("ANALYZE AccessControlPolicies")
 	require.NoError(t, err)
 
+	// Both statements have to run on one connection: enable_seqscan is a session
+	// setting, and the pool is free to hand the EXPLAIN a different connection
+	// than the SET. A transaction pins one, and SET LOCAL is undone by the
+	// rollback, so no setting leaks back into the pool.
 	explain := func(t *testing.T, query string, args ...any) string {
 		t.Helper()
-		_, sErr := master.Exec("SET enable_seqscan = off")
-		require.NoError(t, sErr)
-		t.Cleanup(func() { master.Exec("SET enable_seqscan = on") }) //nolint:errcheck
+		tx, err := master.Begin()
+		require.NoError(t, err)
+		defer tx.Rollback() //nolint:errcheck
+
+		_, err = tx.Exec("SET LOCAL enable_seqscan = off")
+		require.NoError(t, err)
 
 		var lines []string
-		require.NoError(t, master.Select(&lines, "EXPLAIN "+query, args...))
+		require.NoError(t, tx.Select(&lines, "EXPLAIN "+query, args...))
 		return strings.Join(lines, "\n")
 	}
 

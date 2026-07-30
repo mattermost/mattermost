@@ -198,13 +198,13 @@ describe('autoAddModeForToggle', () => {
 
 describe('hasEffectiveRules', () => {
     test('ignores a membership rule that only carries metadata', () => {
-        expect(hasEffectiveRules([{actions: ['membership'], expression: '', metadata: {auto_add: true}}])).toBe(false);
+        expect(hasEffectiveRules([{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}])).toBe(false);
         expect(hasEffectiveRules([{actions: ['membership'], expression: '   '}])).toBe(false);
     });
 
     test('is true once any rule has an expression', () => {
         expect(hasEffectiveRules([
-            {actions: ['membership'], expression: '', metadata: {auto_add: true}},
+            {actions: ['membership'], expression: '', metadata: {auto_add: 'always'}},
             {actions: ['file_upload'], expression: 'upload_expr'},
         ])).toBe(true);
     });

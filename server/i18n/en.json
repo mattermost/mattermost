@@ -11195,6 +11195,10 @@
     "translation": "\"{{.Mode}}\" is not a supported way of automatically adding members."
   },
   {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
+    "translation": "The way members are automatically added must be given as text."
+  },
+  {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
     "translation": "Rule metadata contains an unrecognized key."
   },
