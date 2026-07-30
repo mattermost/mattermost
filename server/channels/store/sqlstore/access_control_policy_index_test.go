@@ -77,6 +77,12 @@ func TestAccessControlPolicyContainmentIndexes(t *testing.T) {
 		return strings.Join(lines, "\n")
 	}
 
+	// Rendered from the same helper SearchPolicies filters with, so the plan
+	// asserted here is the plan the store gets. Spelling the predicate out in the
+	// test instead is how an unindexable wrapper slips into production unnoticed.
+	autoAddFilter, autoAddArgs, err := autoAddMembersFilter(true).ToSql()
+	require.NoError(t, err)
+
 	for _, tc := range []struct {
 		name  string
 		index string
@@ -86,7 +92,8 @@ func TestAccessControlPolicyContainmentIndexes(t *testing.T) {
 		{
 			name:  "auto-add containment uses the rules index",
 			index: "idx_access_control_policies_rules",
-			query: "SELECT ID FROM AccessControlPolicies WHERE " + autoAddMembersContainment,
+			query: "SELECT ID FROM AccessControlPolicies WHERE " + autoAddFilter,
+			args:  autoAddArgs,
 		},
 		{
 			name:  "parent lookup uses the imports index",

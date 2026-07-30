@@ -27,8 +27,26 @@ const DefaultPerPage = 10
 // rather than as an expansion so idx_access_control_policies_rules can serve it;
 // with several modes it is an OR of containments, one per mode, which Postgres
 // can bitmap-OR over the same index. The containment yields NULL for a policy
-// with no Data, so callers that need a boolean must wrap it in COALESCE.
+// with no Data, so callers selecting it as a value must wrap it in COALESCE —
+// but see autoAddMembersFilter before doing that in a WHERE clause.
 var autoAddMembersContainment = autoAddMembersExpr("")
+
+// autoAddMembersFilter renders the WHERE-clause predicate for filtering on
+// auto-add. Shared with the index test so the plan it asserts is the plan
+// SearchPolicies gets.
+//
+// The positive filter is the bare containment: COALESCE around it hides the
+// containment operator from the planner, which silently costs the index, and a
+// WHERE clause already reads a NULL result as not matching. The negative filter
+// does need COALESCE, so that a policy with no Data at all counts as not
+// auto-adding rather than dropping out; no index can serve a negated
+// containment anyway.
+func autoAddMembersFilter(autoAdd bool) sq.Sqlizer {
+	if !autoAdd {
+		return sq.Expr("NOT COALESCE(" + autoAddMembersContainment + ", false)")
+	}
+	return sq.Expr(autoAddMembersContainment)
+}
 
 // autoAddMembersExpr renders the auto-add predicate against the given
 // AccessControlPolicies alias, for use inside a correlated subquery. The modes
@@ -675,10 +693,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if opts.AutoAdd != nil {
-		condition := sq.Expr("COALESCE(" + autoAddMembersContainment + ", false)")
-		if !*opts.AutoAdd {
-			condition = sq.Expr("NOT COALESCE(" + autoAddMembersContainment + ", false)")
-		}
+		condition := autoAddMembersFilter(*opts.AutoAdd)
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
