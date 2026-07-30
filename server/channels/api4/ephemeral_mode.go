@@ -17,6 +17,11 @@ func (api *API) InitEphemeralMode() {
 }
 
 func logCleanup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("logCleanup", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Ephemeral Mode"}, "", http.StatusNotImplemented)
+		return
+	}
+
 	var report model.CleanupReport
 	if err := json.NewDecoder(r.Body).Decode(&report); err != nil {
 		c.SetInvalidParamWithErr("cleanup_report", err)
@@ -39,14 +44,12 @@ func logCleanup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if report.PlaybookRunsDeleted != nil {
 		playbookRunsDeleted = *report.PlaybookRunsDeleted
 	}
-	cleanupAt := model.GetMillis()
-	if report.CleanupAt != nil {
-		cleanupAt = *report.CleanupAt
-	}
-
 	model.AddEventParameterToAuditRec(auditRec, "posts_deleted", postsDeleted)
 	model.AddEventParameterToAuditRec(auditRec, "playbook_runs_deleted", playbookRunsDeleted)
-	model.AddEventParameterToAuditRec(auditRec, "cleanup_at", cleanupAt)
+	if report.CleanupAt != nil {
+		model.AddEventParameterToAuditRec(auditRec, "cleanup_at", *report.CleanupAt)
+	}
+	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
 	auditRec.Success()
 
@@ -54,6 +57,11 @@ func logCleanup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func logOfflinePurge(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("logOfflinePurge", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Ephemeral Mode"}, "", http.StatusNotImplemented)
+		return
+	}
+
 	var report model.OfflinePurgeReport
 	if err := json.NewDecoder(r.Body).Decode(&report); err != nil {
 		c.SetInvalidParamWithErr("offline_purge_report", err)
@@ -68,13 +76,11 @@ func logOfflinePurge(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	purgeAt := model.GetMillis()
-	if report.PurgeAt != nil {
-		purgeAt = *report.PurgeAt
-	}
-
 	model.AddEventParameterToAuditRec(auditRec, "offline_time_minutes", *report.OfflineTimeMinutes)
-	model.AddEventParameterToAuditRec(auditRec, "purge_at", purgeAt)
+	if report.PurgeAt != nil {
+		model.AddEventParameterToAuditRec(auditRec, "purge_at", *report.PurgeAt)
+	}
+	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
 	auditRec.Success()
 
@@ -84,6 +90,11 @@ func logOfflinePurge(c *Context, w http.ResponseWriter, r *http.Request) {
 // logSessionWipe is called by a client confirming a local wipe after its session was revoked, so
 // it runs without a session and the actor is taken from the self-reported user_id/session_id.
 func logSessionWipe(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("logSessionWipe", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Ephemeral Mode"}, "", http.StatusNotImplemented)
+		return
+	}
+
 	var report model.SessionWipeReport
 	if err := json.NewDecoder(r.Body).Decode(&report); err != nil {
 		c.SetInvalidParamWithErr("session_wipe_report", err)
@@ -105,11 +116,10 @@ func logSessionWipe(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Actor.UserId = report.UserId
 	auditRec.Actor.SessionId = report.SessionId
 
-	wipeAt := model.GetMillis()
 	if report.WipeAt != nil {
-		wipeAt = *report.WipeAt
+		model.AddEventParameterToAuditRec(auditRec, "wipe_at", *report.WipeAt)
 	}
-	model.AddEventParameterToAuditRec(auditRec, "wipe_at", wipeAt)
+	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
 	auditRec.Success()
 
