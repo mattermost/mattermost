@@ -5,7 +5,8 @@ import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {duration, newTestPassword, wait} from '@mattermost/playwright-lib';
+import type {ChannelsPage} from '@mattermost/playwright-lib';
 
 export async function enableABACConfig(client: Client4) {
     await client.patchConfig({
@@ -14,6 +15,50 @@ export async function enableABACConfig(client: Client4) {
             EnableUserManagedAttributes: true,
         },
     });
+}
+
+/**
+ * Enable ABAC and wait until config read-back confirms it is on.
+ */
+export async function ensureABACEnabled(client: Client4, timeoutMs = duration.ten_sec) {
+    const deadline = Date.now() + timeoutMs;
+    const remainingMs = () => deadline - Date.now();
+
+    const withRemainingTimeout = async <T>(promise: Promise<T>): Promise<T> => {
+        const ms = remainingMs();
+        if (ms <= 0) {
+            throw new Error(`ABAC was not enabled within ${timeoutMs}ms`);
+        }
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            return await Promise.race([
+                promise,
+                new Promise<T>((_, reject) => {
+                    timer = setTimeout(() => {
+                        reject(new Error(`ABAC was not enabled within ${timeoutMs}ms`));
+                    }, ms);
+                }),
+            ]);
+        } finally {
+            if (timer !== undefined) {
+                clearTimeout(timer);
+            }
+        }
+    };
+
+    while (remainingMs() > 0) {
+        await withRemainingTimeout(enableABACConfig(client));
+        const cfg = await withRemainingTimeout(client.getConfig());
+        if (cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true) {
+            return;
+        }
+        const sleepMs = Math.min(duration.half_sec, remainingMs());
+        if (sleepMs <= 0) {
+            break;
+        }
+        await wait(sleepMs);
+    }
+    throw new Error(`ABAC was not enabled within ${timeoutMs}ms`);
 }
 
 /**
@@ -380,16 +425,16 @@ export async function createPrivateTeam(client: Client4, suffix: string) {
 /**
  * Adds a channel to the policy via the channel selector modal.
  */
-export async function addChannelToPolicy(container: Locator, page: Page, channelDisplayName: string) {
+export async function addChannelToPolicy(container: Locator, channelsPage: ChannelsPage, channelDisplayName: string) {
     await container.getByRole('button', {name: /Add channels/}).click();
-    const channelModal = page.locator('.channel-selector-modal');
-    await channelModal.waitFor();
-    await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-    await channelModal.locator('.more-modal__row').filter({hasText: channelDisplayName}).click();
-    await channelModal.getByRole('button', {name: 'Add'}).click();
+    const channelModal = channelsPage.getChannelSelectorModal();
+    await channelModal.toBeVisible();
+    await expect(channelModal.listItems.first()).toBeVisible();
+    await channelModal.channelRow(channelDisplayName).click();
+    await channelModal.addButton.click();
 
     // Wait for the modal to fully close before returning — callers must not proceed
     // until the channel is committed to form state, otherwise a save click races
     // against the React state update and the confirmation modal never appears.
-    await channelModal.waitFor({state: 'hidden', timeout: 20000});
+    await channelModal.toBeHidden(duration.four_sec);
 }

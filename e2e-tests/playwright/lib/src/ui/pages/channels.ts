@@ -179,6 +179,10 @@ export default class ChannelsPage {
         return new components.AddPeopleToChannelModal(this.page.getByRole('dialog', {name: /Add people to/}));
     }
 
+    getChannelSelectorModal() {
+        return new components.ChannelSelectorModal(this.page.getByTestId('channelSelectorModal'));
+    }
+
     getViewUserGroupModal(groupDisplayName: string) {
         return new components.ViewUserGroupModal(this.page.getByRole('dialog', {name: groupDisplayName, exact: true}));
     }
