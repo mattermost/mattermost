@@ -13,10 +13,38 @@ import (
 
 func TestParse(t *testing.T) {
 	t.Run("rejects input longer than maxLen bytes without parsing it", func(t *testing.T) {
-		markdown := strings.Repeat("a", maxLen+1)
+		markdown := strings.Repeat("a", MaxLen()+1)
 		document, referenceDefinitions := Parse(markdown)
 		assert.Empty(t, document.Children)
 		assert.Empty(t, referenceDefinitions)
+	})
+
+	t.Run("SetMaxPostSizeFunc raises the cap so a previously rejected input is parsed", func(t *testing.T) {
+		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+
+		SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+		markdown := strings.Repeat("a", MaxLen()+1)
+
+		document, _ := Parse(markdown)
+		assert.Empty(t, document.Children)
+
+		SetMaxPostSizeFunc(func() int { return defaultMaxPostSize + 1 })
+
+		document, _ = Parse(markdown)
+		assert.NotEmpty(t, document.Children)
+	})
+
+	t.Run("SetMaxPostSizeFunc is called on every MaxLen call", func(t *testing.T) {
+		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+
+		calls := 0
+		SetMaxPostSizeFunc(func() int {
+			calls++
+			return defaultMaxPostSize + calls
+		})
+
+		assert.Equal(t, 4*(defaultMaxPostSize+1), MaxLen())
+		assert.Equal(t, 4*(defaultMaxPostSize+2), MaxLen())
 	})
 
 	t.Run("nesting depth is bounded regardless of how deeply a single line nests", func(t *testing.T) {

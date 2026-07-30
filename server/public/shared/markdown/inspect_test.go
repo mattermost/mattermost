@@ -55,7 +55,7 @@ func TestInspect(t *testing.T) {
 	})
 
 	t.Run("visit nodes when len is smaller than maxLen", func(t *testing.T) {
-		n := maxLen / 5
+		n := MaxLen() / 5
 		markdown := strings.Repeat(`![`, n) + strings.Repeat(`]()`, n)
 
 		visited := []string{}
@@ -74,7 +74,7 @@ func TestInspect(t *testing.T) {
 	})
 
 	t.Run("do not visit any nodes when len is greater than maxLen", func(t *testing.T) {
-		n := (maxLen / 5) + 1
+		n := (MaxLen() / 5) + 1
 		markdown := strings.Repeat(`![`, n) + strings.Repeat(`]()`, n)
 
 		visited := []string{}
