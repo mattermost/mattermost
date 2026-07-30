@@ -70,6 +70,9 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, re
 		decision := model.NewNoPolicyAccessDecision()
 		return &decision, nil
 	}
+	unavailable := func() *model.AppError {
+		return model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+	}
 
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, resourceID)
 	if err != nil {
@@ -81,7 +84,7 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, re
 		rctx.Logger().Warn("Plugin access evaluation: existence fallback store read failed",
 			mlog.String("plugin_id", pluginID), mlog.String("resource_id", resourceID),
 			mlog.String("reason", reason), mlog.Err(err))
-		return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+		return nil, unavailable()
 	}
 	if policy.Type != resourceType {
 		rctx.Logger().Debug("Plugin access evaluation: existence fallback found only a foreign-type policy under the resource ID",
@@ -90,7 +93,7 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, re
 			mlog.String("reason", reason))
 		return noPolicy()
 	}
-	return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+	return nil, unavailable()
 }
 
 // EvaluatePluginAccessRequest evaluates whether userID may perform action on
