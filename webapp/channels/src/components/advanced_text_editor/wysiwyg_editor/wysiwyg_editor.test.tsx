@@ -8,6 +8,10 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 const mockCapturedConfig: {current: any} = {current: null};
 
+// Set to make the useEditor mock emit a contentError during construction,
+// matching Tiptap's render-phase emit.
+const mockConstructorError: {current: Error | null} = {current: null};
+
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
     return {
@@ -27,8 +31,21 @@ jest.mock('@tiptap/react', () => {
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 view: {dom: globalThis.document.createElement('div')},
             };
-            if (config?.contentType === 'markdown') {
+
+            // Mirrors the real library: getMarkdown is attached by the Markdown
+            // extension's onBeforeCreate, not by the contentType option.
+            const hasMarkdownExt = (config?.extensions ?? []).some((e: any) => (e.name || e.config?.name) === 'markdown');
+            if (hasMarkdownExt) {
                 base.getMarkdown = () => 'hi';
+            }
+
+            // Tiptap emits contentError synchronously inside the Editor
+            // constructor, i.e. during render, and constructs only once per
+            // mount. Consume the error so re-renders don't re-emit.
+            if (mockConstructorError.current) {
+                const error = mockConstructorError.current;
+                mockConstructorError.current = null;
+                config?.onContentError?.({error, editor: base, disableCollaboration: () => undefined});
             }
             return base;
         },
@@ -55,7 +72,12 @@ const extensionNames = (): string[] => (mockCapturedConfig.current?.extensions ?
 describe('WysiwygEditor', () => {
     beforeEach(() => {
         mockCapturedConfig.current = null;
+        mockConstructorError.current = null;
         jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     test('markdown mode (default) registers the Markdown extension', () => {
@@ -88,8 +110,28 @@ describe('WysiwygEditor', () => {
         );
 
         const names = extensionNames();
-        expect(names).toContain('customNode');
         expect(names).toContain('table'); // built-ins still present
+
+        // Position matters: consumer extensions must come last so they can
+        // override built-in nodes of the same name.
+        expect(names.indexOf('customNode')).toBe(names.length - 1);
+        expect(names.indexOf('customNode')).toBeGreaterThan(names.indexOf('markdown'));
+    });
+
+    test('extensions prop is appended in json mode too, where Markdown is absent', () => {
+        const CustomNode = Node.create({name: 'customNode', group: 'block'});
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                contentType='json'
+                extensions={[CustomNode]}
+            />,
+        );
+
+        const names = extensionNames();
+        expect(names).not.toContain('markdown');
+        expect(names.indexOf('customNode')).toBe(names.length - 1);
     });
 
     test('onChange emits JSON in json mode', () => {
@@ -191,6 +233,107 @@ describe('WysiwygEditor', () => {
         const err = new Error('bad node');
         mockCapturedConfig.current?.onContentError?.({error: err});
         expect(onContentError).toHaveBeenCalledWith(err);
+    });
+
+    test('a post-mount content error forwards but does not latch hasContentError', () => {
+        const onContentError = jest.fn();
+        const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                ref={ref}
+                value='{"type":"doc","content":[]}'
+                contentType='json'
+                onContentError={onContentError}
+            />,
+        );
+
+        expect(ref.current!.hasContentError()).toBe(false);
+
+        const err = new Error('bad insert');
+        mockCapturedConfig.current?.onContentError?.({error: err});
+
+        expect(onContentError).toHaveBeenCalledWith(err);
+
+        // Latching here would permanently stall a consumer's autosave loop that
+        // started from a clean load.
+        expect(ref.current!.hasContentError()).toBe(false);
+    });
+
+    test('a content error emitted during construction is deferred so a consumer can setState', () => {
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const seen: Array<Error | null> = [];
+        const constructorError = new Error('schema mismatch');
+
+        mockConstructorError.current = constructorError;
+
+        // Models the real consumer: a parent that records the error in state.
+        // If the editor emits during its own render, this setState happens while
+        // rendering a different component and React logs an error.
+        const Parent = () => {
+            const [err, setErr] = React.useState<Error | null>(null);
+            seen.push(err);
+            return (
+                <WysiwygEditor
+                    {...baseProps}
+                    value='{"type":"doc","content":[]}'
+                    contentType='json'
+                    onContentError={setErr}
+                />
+            );
+        };
+
+        renderWithContext(<Parent/>);
+
+        expect(seen[seen.length - 1]).toBe(constructorError);
+        expect(consoleError).not.toHaveBeenCalled();
+        consoleError.mockRestore();
+    });
+
+    test('hasContentError latches when the initial load fails during construction', () => {
+        const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+        mockConstructorError.current = new Error('schema mismatch');
+
+        renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                ref={ref}
+                value='{"type":"doc","content":[]}'
+                contentType='json'
+            />,
+        );
+
+        expect(ref.current!.hasContentError()).toBe(true);
+    });
+
+    test('contentType is frozen at mount and ignores a later prop change', () => {
+        const onChange = jest.fn();
+        const {rerender} = renderWithContext(
+            <WysiwygEditor
+                {...baseProps}
+                onChange={onChange}
+                contentType='json'
+            />,
+        );
+
+        rerender(
+            <WysiwygEditor
+                {...baseProps}
+                onChange={onChange}
+                contentType='markdown'
+            />,
+        );
+
+        // Still json mode: paste stays short-circuited and updates stay JSON.
+        expect(mockCapturedConfig.current?.editorProps?.handlePaste?.({}, {})).toBe(false);
+
+        jest.useFakeTimers();
+        mockCapturedConfig.current?.onUpdate?.({editor: {getJSON: () => ({type: 'doc'})}});
+        jest.runAllTimers();
+
+        expect(onChange).toHaveBeenCalledWith(JSON.stringify({type: 'doc'}));
     });
 
     test('json mode reports a parse error via onContentError when value is unparseable', async () => {

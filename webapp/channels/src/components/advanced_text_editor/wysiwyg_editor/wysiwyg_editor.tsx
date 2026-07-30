@@ -94,10 +94,8 @@ export type WysiwygEditorHandle = {
     blur: () => void;
     getInputBox: () => HTMLElement | null;
 
-    // True when the initial `value` failed to load (unparseable JSON in json
-    // mode, or a Tiptap schema mismatch). Consumers autosaving in json mode
-    // MUST gate the first onChange on this to avoid overwriting the source
-    // with the fallback empty doc.
+    // True when the initial `value` failed to load in json mode. See
+    // PublishedWysiwygEditorHandle for the autosave-gating contract.
     hasContentError: () => boolean;
 };
 
@@ -227,7 +225,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const onContentErrorRef = useLatest(onContentError);
     const mountedRef = useRef(false);
     const pendingErrorRef = useRef<Error | null>(null);
-    const [hasContentError, setHasContentError] = useState(false);
+
+    // A ref, not state: nothing renders from it, and the imperative handle must
+    // report the current value synchronously — a consumer reading it from its
+    // own onContentError handler runs before any re-render would land.
+    const hasContentErrorRef = useRef(false);
 
     const [initialContent] = useState<string | Record<string, unknown>>(() => {
         if (!jsonMode) {
@@ -235,26 +237,27 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         }
         const {content, error} = parseJsonModeContent(value);
         if (error) {
+            hasContentErrorRef.current = true;
             pendingErrorRef.current = error;
         }
         return content;
     });
 
-    // Errors emitted during initial construction (useEditor's lazy init runs
-    // during render) are buffered; post-mount emits are surfaced directly.
     const captureContentError = (error: Error) => {
+        // Post-mount errors come from consumer-driven commands, not the initial
+        // load, so they forward without latching hasContentError.
         if (mountedRef.current) {
-            setHasContentError(true);
             onContentErrorRef.current?.(error);
             return;
         }
+
+        hasContentErrorRef.current = true;
         pendingErrorRef.current = error;
     };
 
     useEffect(() => {
         mountedRef.current = true;
         if (pendingErrorRef.current) {
-            setHasContentError(true);
             onContentErrorRef.current?.(pendingErrorRef.current);
             pendingErrorRef.current = null;
         }
@@ -502,8 +505,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             }
             return null;
         },
-        hasContentError: () => hasContentError,
-    }), [hasContentError]);
+        hasContentError: () => hasContentErrorRef.current,
+    }), []);
 
     const lastValueRef = useRef(value);
     useEffect(() => {
