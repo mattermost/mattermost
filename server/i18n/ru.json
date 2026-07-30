@@ -10670,5 +10670,49 @@
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
     "translation": "Этот канал больше не используется совместно с другим рабочим пространством."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Функция политик разрешений не включена."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Функция моделирования политик не включена."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Все пользователи в симуляции должны быть участниками команды или канала, указанного в запросе."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Функция контроля доступа к членству в команде не включена."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Настройка Azure Blob Storage отсутствует или недействительна."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Помощник по тестированию мостов отключен."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Не удалось создать субъект контроля доступа для пользователя."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Каналы досок недоступны через конечные точки /channels. Используйте вместо этого API /boards."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Закладками досок управляет функция «Доски», и их нельзя создавать, обновлять или удалять через API закладок."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Вы уже являетесь участником этого канала."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Невозможно отправить запрос на присоединение к архивному каналу."
   }
 ]
