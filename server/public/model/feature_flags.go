@@ -166,7 +166,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
-	f.TeamMembershipAccessControl = false
+	f.TeamMembershipAccessControl = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
