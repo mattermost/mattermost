@@ -166,7 +166,7 @@ import {
     CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
-import DialogRouter from 'components/dialog_router';
+import LazyDialogRouter from 'components/dialog_router/lazy_dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
@@ -1850,7 +1850,7 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
     store.dispatch(openModal({
         modalId,
-        dialogType: DialogRouter,
+        dialogType: LazyDialogRouter,
         dialogProps: {
             triggerId: dialog.trigger_id,
             onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),

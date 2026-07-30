@@ -754,7 +754,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 
 		select {
 		case ev := <-messages:
-			t.Fatalf("expected no ephemeral_message websocket event, got %v", ev.EventType())
+			require.FailNowf(t, "unexpected websocket event", "expected no ephemeral_message websocket event, got %v", ev.EventType())
 		case <-time.After(300 * time.Millisecond):
 		}
 	})
@@ -812,7 +812,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 			assert.Equal(t, th.BasicChannel.Id, post.ChannelId)
 			assert.Equal(t, "hello from dialog", post.Message)
 		case <-time.After(5 * time.Second):
-			t.Fatal("timed out waiting for ephemeral_message websocket event")
+			require.FailNow(t, "timed out waiting for ephemeral_message websocket event")
 		}
 	})
 
