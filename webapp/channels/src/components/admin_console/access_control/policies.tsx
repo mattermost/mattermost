@@ -239,6 +239,7 @@ export default function PolicyList(props: Props): JSX.Element {
                         <div
                             id={descriptionId}
                             className='policy-name'
+                            data-testid='policyName'
                         >
                             {policy.name}
                         </div>
