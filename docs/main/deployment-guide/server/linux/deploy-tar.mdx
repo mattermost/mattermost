@@ -48,14 +48,14 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.8.3/mattermost-11.8.3-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.9.0/mattermost-11.9.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
 <TabItem value="esr" label="Current ESR">
 
 ```sh
-wget https://releases.mattermost.com/11.7.6/mattermost-11.7.6-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.7.7/mattermost-11.7.7-linux-amd64.tar.gz
 ```
 
 </TabItem>
@@ -68,7 +68,7 @@ Enterprise and Team Edition releases are listed in the [version archive](/produc
 
 <Note title="Air-gapped installs">
 
-In an air-gapped environment, stage the tarball on your operator workstation, verify the SHA-256 and PGP signature, then transfer it across the boundary. See [Air-Gapped Operations → Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook) for the full procedure.
+In an air-gapped environment, stage the tarball on your operator workstation, verify the SHA-256 and PGP signature, then transfer it across the boundary. See [Air-Gapped Operations → Deployment Overview](/deployment-guide/air-gapped-operations/quick-start-runbook) for the full procedure.
 
 </Note>
 
@@ -191,4 +191,4 @@ sudo userdel mattermost
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
 - [Set up TLS](/deployment-guide/server/setup-tls)
-- For air-gapped deployments: [Air-Gapped Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook), [Disable Phone-Home Features](/deployment-guide/air-gapped-operations/disable-phone-home-features)
+- For air-gapped deployments: [Air-Gapped Deployment Overview](/deployment-guide/air-gapped-operations/quick-start-runbook), [Configure for Air-Gapped Operation](/deployment-guide/air-gapped-operations/disable-phone-home-features)

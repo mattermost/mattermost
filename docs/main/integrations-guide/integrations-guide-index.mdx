@@ -1,6 +1,8 @@
 ---
 title: "Integrations Guide"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 Mattermost provides a variety of methods to integrate with your favorite tools, automate critical workflows, and extend the capabilities of the platform. This guide provides a high-level overview of integration options and the level of technical skills required [(no-code, low-code, or pro-code)](/integrations-guide/faq#what-is-meant-by-no-code-low-code-and-pro-code), and links to detailed documentation for each.
 
 ## Choose Your Path
@@ -20,7 +22,7 @@ Mattermost provides a variety of methods to integrate with your favorite tools, 
 </thead>
 <tbody>
 <tr>
-<td><a href="mm-ref:no-code">No-code</a></td>
+<td><a href="/integrations-guide/faq#no-code">No-code</a></td>
 <td><ul>
 <li><a href="#pre-built-plugins">Pre-built plugins</a></li>
 <li><a href="#built-in-slash-commands">Built-in slash commands</a></li>
@@ -35,7 +37,7 @@ Mattermost provides a variety of methods to integrate with your favorite tools, 
 </ul></td>
 </tr>
 <tr>
-<td><a href="mm-ref:low-code">Low-code</a></td>
+<td><a href="/integrations-guide/faq#low-code">Low-code</a></td>
 <td><ul>
 <li><a href="#webhooks">Webhooks</a></li>
 <li><a href="#custom-slash-commands">Custom slash commands</a></li>
@@ -46,7 +48,7 @@ Mattermost provides a variety of methods to integrate with your favorite tools, 
 </ul></td>
 </tr>
 <tr>
-<td><a href="mm-ref:pro-code">Pro-code</a></td>
+<td><a href="/integrations-guide/faq#pro-code">Pro-code</a></td>
 <td><ul>
 <li><a href="#restful-api">REST API</a></li>
 <li><a href="#custom-built-plugins">Custom plugins</a></li>
@@ -71,7 +73,7 @@ Learn more about [Mattermost plugins](/integrations-guide/plugins).
 
 Mattermost provides a set of [pre-built plugins](/integrations-guide/popular-integrations) that require no coding to install, configure, and use. These plugins are installed and managed entirely through the System Console, where you can enable, configure, and customize settings without any development work.
 
-<img src="../images/prebuilt-integrations.png" width="800" alt="Pre-built plugins available for no-code integration" />
+<img src={useBaseUrl('/images/prebuilt-integrations.png')} width="800" alt="Pre-built plugins available for no-code integration" />
 
 #### Custom-Built Plugins
 

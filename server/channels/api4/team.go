@@ -1744,7 +1744,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := range emailList {
-		emailList[i] = strings.ToLower(emailList[i])
+		emailList[i] = model.NormalizeEmail(emailList[i])
+	}
+
+	if !graceful && len(memberInvite.Profiles) > 0 {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.team.invite_members.profiles_graceful.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteUsersToTeam, model.AuditStatusFail)
@@ -1783,24 +1788,33 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// we get the emailList after it has finished checks like the emails over the list
-		scheduledAt := model.GetMillis()
-		jobData := map[string]string{
-			"emailList":   model.ArrayToJSON(emailList),
-			"teamID":      c.Params.TeamId,
-			"senderID":    c.AppContext.Session().UserId,
-			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
-		}
+		if len(emailList) > 0 {
+			scheduledAt := model.GetMillis()
+			jobData := map[string]string{
+				"emailList":   model.ArrayToJSON(emailList),
+				"teamID":      c.Params.TeamId,
+				"senderID":    c.AppContext.Session().UserId,
+				"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+			}
 
-		if len(memberInvite.ChannelIds) > 0 {
-			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
-		}
+			if len(memberInvite.ChannelIds) > 0 {
+				jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
+			}
 
-		// we then manually schedule the job to send another invite after 48 hours
-		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
-		if appErr != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
-			return
+			if len(memberInvite.Profiles) > 0 {
+				profilesJSON, jsonErr := json.Marshal(memberInvite.Profiles)
+				if jsonErr != nil {
+					c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+					return
+				}
+				jobData["profilesList"] = string(profilesJSON)
+			}
+
+			_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
+			if appErr != nil {
+				c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
+				return
+			}
 		}
 
 		// in graceful mode we return both the successful ones and the failed ones
