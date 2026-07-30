@@ -33,24 +33,6 @@ func (_m *AccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	return r0
 }
 
-// DeleteIfType provides a mock function with given fields: rctx, id, expectedType
-func (_m *AccessControlPolicyStore) DeleteIfType(rctx request.CTX, id string, expectedType string) error {
-	ret := _m.Called(rctx, id, expectedType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteIfType")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
-		r0 = rf(rctx, id, expectedType)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Get provides a mock function with given fields: rctx, id
 func (_m *AccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
 	ret := _m.Called(rctx, id)

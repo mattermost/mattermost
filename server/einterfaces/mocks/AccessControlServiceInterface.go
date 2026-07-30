@@ -97,26 +97,6 @@ func (_m *AccessControlServiceInterface) DeletePolicy(rctx request.CTX, id strin
 	return r0
 }
 
-// DeletePolicyOfType provides a mock function with given fields: rctx, id, expectedType
-func (_m *AccessControlServiceInterface) DeletePolicyOfType(rctx request.CTX, id string, expectedType string) *model.AppError {
-	ret := _m.Called(rctx, id, expectedType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeletePolicyOfType")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
-		r0 = rf(rctx, id, expectedType)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // ExpressionToVisualAST provides a mock function with given fields: rctx, expression
 func (_m *AccessControlServiceInterface) ExpressionToVisualAST(rctx request.CTX, expression string) (*model.VisualExpression, *model.AppError) {
 	ret := _m.Called(rctx, expression)
@@ -236,38 +216,6 @@ func (_m *AccessControlServiceInterface) GetPolicy(rctx request.CTX, id string) 
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(rctx, id)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetPolicyOfType provides a mock function with given fields: rctx, id, expectedType
-func (_m *AccessControlServiceInterface) GetPolicyOfType(rctx request.CTX, id string, expectedType string) (*model.AccessControlPolicy, *model.AppError) {
-	ret := _m.Called(rctx, id, expectedType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPolicyOfType")
-	}
-
-	var r0 *model.AccessControlPolicy
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.AccessControlPolicy, *model.AppError)); ok {
-		return rf(rctx, id, expectedType)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AccessControlPolicy); ok {
-		r0 = rf(rctx, id, expectedType)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AccessControlPolicy)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(rctx, id, expectedType)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

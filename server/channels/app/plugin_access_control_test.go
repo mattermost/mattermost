@@ -614,21 +614,22 @@ func TestDeletePluginAccessControlPolicy(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.invalid_id.app_error", appErr.Id)
 
-		mockACS.AssertNotCalled(t, "DeletePolicyOfType", mock.Anything, mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
 	})
 
 	t.Run("absent and stored-type mismatch return the same byte-identical 404", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		// The enterprise 404s carry different details; the app layer must
-		// collapse both.
+		// The enterprise 404 carries the ID in its details; the app layer must
+		// collapse it and the type mismatch into one reply.
 		absentID := model.NewId()
 		mismatchID := model.NewId()
-		mockACS.On("DeletePolicyOfType", mock.Anything, absentID, resourceType).
-			Return(model.NewAppError("DeletePolicyOfType", "app.pap.delete_policy.app_error", nil, "resource: AccessControlPolicy id: "+absentID, http.StatusNotFound)).Once()
-		mockACS.On("DeletePolicyOfType", mock.Anything, mismatchID, resourceType).
-			Return(model.NewAppError("DeletePolicyOfType", "app.pap.delete_policy.app_error", nil, "type mismatch", http.StatusNotFound)).Once()
+		mockACS.On("GetPolicy", mock.Anything, absentID).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "resource: AccessControlPolicy id: "+absentID, http.StatusNotFound)).Once()
+		mockACS.On("GetPolicy", mock.Anything, mismatchID).
+			Return(validForeignTypePolicy(mismatchID), nil).Once()
 
 		absentErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, absentID)
 		mismatchErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, mismatchID)
@@ -637,22 +638,22 @@ func TestDeletePluginAccessControlPolicy(t *testing.T) {
 		require.NotNil(t, mismatchErr)
 		assert.Equal(t, "app.access_control.plugin.policy_not_found.app_error", absentErr.Id)
 		assert.Equal(t, absentErr.Error(), mismatchErr.Error())
+		// A foreign-type policy must never reach the delete.
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("happy path deletes atomically with the expected type", func(t *testing.T) {
+	t.Run("happy path deletes after the stored-type check", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
 		id := model.NewId()
-		mockACS.On("DeletePolicyOfType", mock.Anything, id, resourceType).Return(nil).Once()
+		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
+		mockACS.On("DeletePolicy", mock.Anything, id).Return(nil).Once()
 
 		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
 		require.Nil(t, appErr)
 		mockACS.AssertExpectations(t)
-		// No read-then-delete: the type guard lives inside the atomic delete.
-		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
-		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
 	})
 
 	t.Run("infra error propagates", func(t *testing.T) {
@@ -660,12 +661,28 @@ func TestDeletePluginAccessControlPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		id := model.NewId()
-		mockACS.On("DeletePolicyOfType", mock.Anything, id, resourceType).
-			Return(model.NewAppError("DeletePolicyOfType", "app.pap.delete_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
+		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
+		mockACS.On("DeletePolicy", mock.Anything, id).
+			Return(model.NewAppError("DeletePolicy", "app.pap.delete_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
 
 		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("read error propagates without a delete", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		id := model.NewId()
+		mockACS.On("GetPolicy", mock.Anything, id).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
+
+		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 }
@@ -991,7 +1008,8 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		id := model.NewId()
-		mockACS.On("DeletePolicyOfType", mock.Anything, id, resourceType).Return(nil).Once()
+		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
+		mockACS.On("DeletePolicy", mock.Anything, id).Return(nil).Once()
 
 		rec := assertNextRecord(t, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusSuccess, func() {
 			appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)

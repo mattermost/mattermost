@@ -647,22 +647,6 @@ func (s *TimerLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string)
 	return err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) DeleteIfType(rctx request.CTX, id string, expectedType string) error {
-	start := time.Now()
-
-	err := s.AccessControlPolicyStore.DeleteIfType(rctx, id, expectedType)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.DeleteIfType", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
 	start := time.Now()
 

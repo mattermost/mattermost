@@ -39,16 +39,8 @@ type PolicyAdministrationPointInterface interface {
 	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// GetPolicy retrieves the access control policy with the given ID.
 	GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError)
-	// GetPolicyOfType retrieves the policy with the given ID only when its
-	// stored Type equals expectedType. Absent and type-mismatch both return
-	// the same 404 so type-scoped callers cannot probe foreign policies.
-	GetPolicyOfType(rctx request.CTX, id string, expectedType string) (*model.AccessControlPolicy, *model.AppError)
 	// DeletePolicy deletes the access control policy with the given ID.
 	DeletePolicy(rctx request.CTX, id string) *model.AppError
-	// DeletePolicyOfType atomically deletes the policy with the given ID only
-	// when its stored Type equals expectedType. Absent and type-mismatch both
-	// return the same 404 so type-scoped callers cannot probe foreign policies.
-	DeletePolicyOfType(rctx request.CTX, id string, expectedType string) *model.AppError
 	// GetPoliciesForFieldIDs returns the policies that reference any of the given
 	// property field IDs in their CEL rule expressions.
 	GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError)
