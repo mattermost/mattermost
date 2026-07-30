@@ -88,7 +88,8 @@ func TestPluginAccessControlGobSafety(t *testing.T) {
 		requirePluginRPCGobSafe(t, &model.AccessControlPolicyTestResponse{Users: []*model.User{th.BasicUser}, Total: 1})
 	})
 
-	t.Run("evaluation decision", func(t *testing.T) {
-		requirePluginRPCGobSafe(t, &model.PluginAccessControlDecision{Outcome: model.AccessDecisionOutcomeAllow})
+	t.Run("evaluation decision carrying a context reason", func(t *testing.T) {
+		decision := model.NewNoPolicyAccessDecision()
+		requirePluginRPCGobSafe(t, &decision)
 	})
 }

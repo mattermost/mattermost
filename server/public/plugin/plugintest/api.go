@@ -1304,23 +1304,23 @@ func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
 }
 
 // EvaluateAccessControl provides a mock function with given fields: userID, resourceType, resourceID, action
-func (_m *API) EvaluateAccessControl(userID string, resourceType string, resourceID string, action string) (*model.PluginAccessControlDecision, *model.AppError) {
+func (_m *API) EvaluateAccessControl(userID string, resourceType string, resourceID string, action string) (*model.AccessDecision, *model.AppError) {
 	ret := _m.Called(userID, resourceType, resourceID, action)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EvaluateAccessControl")
 	}
 
-	var r0 *model.PluginAccessControlDecision
+	var r0 *model.AccessDecision
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.PluginAccessControlDecision, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.AccessDecision, *model.AppError)); ok {
 		return rf(userID, resourceType, resourceID, action)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.PluginAccessControlDecision); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AccessDecision); ok {
 		r0 = rf(userID, resourceType, resourceID, action)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PluginAccessControlDecision)
+			r0 = ret.Get(0).(*model.AccessDecision)
 		}
 	}
 

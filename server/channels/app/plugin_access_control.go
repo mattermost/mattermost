@@ -59,41 +59,45 @@ func (a *App) validatePluginActingUser(where, actingUserID string) *model.AppErr
 
 // resolvePluginPolicyExistence resolves policy existence via a raw open-core
 // store read when evaluation is impossible. Any stored row under resourceID
-// (any type) makes the resource policy-gated: no_policy only on a definitive
-// not-found; any failure to determine existence stays unavailable (fail closed).
-func (a *App) resolvePluginPolicyExistence(rctx request.CTX, pluginID, resourceType, resourceID, reason string) *model.PluginAccessControlDecision {
+// (any type) makes the resource policy-gated: a definitive not-found yields the
+// vacuous no-policy allow, and every other case is an error the caller must
+// treat as a deny.
+func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, resourceType, resourceID, reason string) (*model.AccessDecision, *model.AppError) {
+	unavailable := func() *model.AppError {
+		return model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+	}
+
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, resourceID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			return &model.PluginAccessControlDecision{Outcome: model.AccessDecisionOutcomeNoPolicy}
+			decision := model.NewNoPolicyAccessDecision()
+			return &decision, nil
 		}
-		rctx.Logger().Warn("Plugin access evaluation: existence fallback store read failed; returning unavailable",
+		rctx.Logger().Warn("Plugin access evaluation: existence fallback store read failed",
 			mlog.String("plugin_id", pluginID), mlog.String("resource_id", resourceID),
 			mlog.String("reason", reason), mlog.Err(err))
-		return &model.PluginAccessControlDecision{Outcome: model.AccessDecisionOutcomeUnavailable}
+		return nil, unavailable()
 	}
 	if policy.Type != resourceType {
 		// A foreign-type row under a plugin resource ID is an anomaly; fail closed.
-		rctx.Logger().Warn("Plugin access evaluation: existence fallback found a policy of a different type under the resource ID; returning unavailable",
+		rctx.Logger().Warn("Plugin access evaluation: existence fallback found a policy of a different type under the resource ID",
 			mlog.String("plugin_id", pluginID), mlog.String("resource_id", resourceID),
 			mlog.String("requested_type", resourceType), mlog.String("stored_type", policy.Type),
 			mlog.String("reason", reason))
 	}
-	return &model.PluginAccessControlDecision{Outcome: model.AccessDecisionOutcomeUnavailable}
+	return nil, unavailable()
 }
 
 // EvaluatePluginAccessRequest evaluates whether userID may perform action on
-// the plugin-registered resource (resourceType, resourceID). AppErrors are
-// returned only for caller programming errors; every operational condition is
-// an outcome, and failures never map to allow or no_policy.
+// the plugin-owned resource (resourceType, resourceID).
 //
 // When evaluation is impossible, policy existence is still resolved via a raw
-// store read: no_policy means no policy exists for the resource (the caller
-// can safely apply legacy behavior); unavailable means a policy exists under
-// the resource ID (any type) or existence could not be determined (the caller
-// must fail closed).
-func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError) {
+// store read: a no-policy decision means no policy exists for the resource (the
+// caller can safely apply legacy behavior). Every other failure — including a
+// policy existing under the resource ID whose rules could not be evaluated — is
+// an AppError the caller must treat as a deny.
+func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
 	if appErr := a.pluginAccessControlScopeCheck("EvaluatePluginAccessRequest", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
@@ -104,8 +108,10 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 		return nil, model.NewAppError("EvaluatePluginAccessRequest", "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	const where = "EvaluatePluginAccessRequest"
+
 	if !a.pluginAccessControlAvailable() {
-		return a.resolvePluginPolicyExistence(rctx, pluginID, resourceType, resourceID, "abac_unavailable"), nil
+		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "abac_unavailable")
 	}
 
 	user, appErr := a.GetUser(userID)
@@ -114,7 +120,7 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 			mlog.String("plugin_id", pluginID),
 			mlog.String("user_id", userID),
 			mlog.Err(appErr))
-		return a.resolvePluginPolicyExistence(rctx, pluginID, resourceType, resourceID, "user_load_failed"), nil
+		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "user_load_failed")
 	}
 	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
@@ -122,7 +128,7 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 			mlog.String("plugin_id", pluginID),
 			mlog.String("user_id", userID),
 			mlog.Err(appErr))
-		return a.resolvePluginPolicyExistence(rctx, pluginID, resourceType, resourceID, "subject_build_failed"), nil
+		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "subject_build_failed")
 	}
 
 	decision, evalErr := a.Srv().ch.AccessControl.AccessEvaluation(rctx, model.AccessRequest{
@@ -137,22 +143,10 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 			mlog.String("plugin_id", pluginID),
 			mlog.String("resource_id", resourceID),
 			mlog.Err(evalErr))
-		return a.resolvePluginPolicyExistence(rctx, pluginID, resourceType, resourceID, "evaluator_error"), nil
+		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "evaluator_error")
 	}
 
-	switch decision.Outcome {
-	case model.AccessDecisionOutcomeAllow,
-		model.AccessDecisionOutcomeDeny,
-		model.AccessDecisionOutcomeNoPolicy,
-		model.AccessDecisionOutcomeUnavailable:
-		return &model.PluginAccessControlDecision{Outcome: decision.Outcome}, nil
-	default:
-		// Decision==true is ambiguous between allow and no_policy; fail closed.
-		rctx.Logger().Warn("Plugin access evaluation: evaluator returned no outcome; resolving policy existence",
-			mlog.String("plugin_id", pluginID),
-			mlog.String("resource_id", resourceID))
-		return a.resolvePluginPolicyExistence(rctx, pluginID, resourceType, resourceID, "unknown_outcome"), nil
-	}
+	return &decision, nil
 }
 
 // SavePluginAccessControlPolicy creates or updates a plugin-owned access

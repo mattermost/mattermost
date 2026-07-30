@@ -9359,11 +9359,11 @@ type Z_EvaluateAccessControlArgs struct {
 }
 
 type Z_EvaluateAccessControlReturns struct {
-	A *model.PluginAccessControlDecision
+	A *model.AccessDecision
 	B *model.AppError
 }
 
-func (g *apiRPCClient) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError) {
+func (g *apiRPCClient) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
 	_args := &Z_EvaluateAccessControlArgs{userID, resourceType, resourceID, action}
 	_returns := &Z_EvaluateAccessControlReturns{}
 	if err := g.client.Call("Plugin.EvaluateAccessControl", _args, _returns); err != nil {
@@ -9374,7 +9374,7 @@ func (g *apiRPCClient) EvaluateAccessControl(userID, resourceType, resourceID, a
 
 func (s *apiRPCServer) EvaluateAccessControl(args *Z_EvaluateAccessControlArgs, returns *Z_EvaluateAccessControlReturns) error {
 	if hook, ok := s.impl.(interface {
-		EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError)
+		EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.EvaluateAccessControl(args.A, args.B, args.C, args.D)
 	} else {

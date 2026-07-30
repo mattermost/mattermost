@@ -1770,7 +1770,7 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
 
-func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError) {
+func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControl(userID, resourceType, resourceID, action)
 	api.recordTime(startTime, "EvaluateAccessControl", _returnsB == nil)

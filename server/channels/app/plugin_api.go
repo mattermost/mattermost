@@ -1907,7 +1907,7 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 	return nil
 }
 
-func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError) {
+func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
 	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
 }
 

@@ -1709,18 +1709,19 @@ type API interface {
 
 	// EvaluateAccessControl evaluates whether userID may perform action on the
 	// plugin-owned resource (resourceType, resourceID). resourceType must be
-	// "<callingPluginID>:<type>". Outcome is one of allow / deny / no_policy /
-	// unavailable; failures never map to allow. no_policy means the server
-	// positively determined that no policy exists for the resource — resolved
-	// even when the access control engine is unavailable — so the caller can
-	// safely apply legacy behavior. unavailable means evaluation was impossible
-	// AND a policy exists for the resource or existence could not be determined
-	// — the caller MUST fail closed (deny). The plugin must treat any returned
-	// error defensively as deny.
+	// "<callingPluginID>:<type>". The reply follows the OpenID AuthZEN
+	// evaluation response: Decision plus an optional Context.
+	//
+	// AccessDecision.IsNoPolicy() reports that the server positively determined
+	// no policy governs the resource — resolved even when the access control
+	// engine is unavailable — so the caller can safely apply its own defaults
+	// instead of treating the allow as an explicit grant. Any returned error
+	// means the decision could not be computed and the plugin MUST fail closed
+	// (deny).
 	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
-	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError)
+	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
 
 	// SaveAccessControlPolicy creates or updates a policy whose Type is
 	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
