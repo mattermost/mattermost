@@ -131,6 +131,18 @@ func doBlockAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if actionRequest.ChannelId != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, actionRequest.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	}
+
 	// MmBlocksEnabled is enforced where mm_blocks resolution happens
 	// (post mm_block/block/card formats and mm_blocks cookies), so attachment
 	// format requests can use this endpoint when the flag is off.

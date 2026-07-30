@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 import {
     expect,
@@ -204,6 +204,37 @@ export async function expectEphemeral(page: Page, text: string | RegExp) {
     const ephemeral = page.locator('.post').filter({hasText: text}).filter({hasText: '(Only visible to you)'});
     await expect(ephemeral).toBeVisible();
     return ephemeral;
+}
+
+/** Future calendar day relative to today (local browser timezone). */
+export function getSelectableDay(offsetDays = 5): {day: string; needsNextMonth: boolean; isoDate: string} {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const now = new Date();
+    return {
+        day: String(d.getDate()),
+        needsNextMonth: d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear(),
+        isoDate: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+    };
+}
+
+export async function openDatePicker(dialog: Locator, page: Page, label: string) {
+    const field = dialog.locator('.mm-blocks-date-input, .mm-blocks-datetime-input').filter({hasText: label});
+    await field.locator('.date-time-input, .dateTime__date .date-time-input').first().click();
+    await expect(page.locator('.rdp').first()).toBeVisible();
+}
+
+export async function selectDayFromPicker(page: Page, day: string, needsNextMonth: boolean) {
+    const calendar = page.locator('.rdp').first();
+    await expect(calendar).toBeVisible();
+    if (needsNextMonth) {
+        await calendar.locator('.rdp-nav_button_next, button[name="next-month"]').first().click();
+    }
+    await calendar
+        .locator('.rdp-day:not(.rdp-day_outside), .rdp-day_button')
+        .filter({hasText: new RegExp(`^${day}$`)})
+        .first()
+        .click();
 }
 
 /**

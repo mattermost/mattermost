@@ -761,7 +761,14 @@ export function convertAppFormValuesToDialogSubmission(
                 submission[element.name] = value;
             } else if (typeof value === 'string') {
                 const lower = value.toLowerCase().trim();
-                submission[element.name] = lower === 'true' || lower === '1' || lower === 'yes';
+                if (lower === 'true' || lower === '1' || lower === 'yes') {
+                    submission[element.name] = true;
+                } else if (lower === 'false' || lower === '0' || lower === 'no') {
+                    submission[element.name] = false;
+                } else {
+                    // Noncanonical truthy strings (e.g. "on") keep Boolean() coercion.
+                    submission[element.name] = Boolean(value);
+                }
             } else {
                 submission[element.name] = Boolean(value);
             }

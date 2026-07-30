@@ -27,4 +27,3 @@ func TestNormalizeBlockActionContext(t *testing.T) {
 	assert.Equal(t, "", NormalizeBlockActionContext(""))
 	assert.Equal(t, "", NormalizeBlockActionContext("unknown"))
 }
-

@@ -1293,6 +1293,7 @@ describe('dialog_conversion', () => {
                 bool_true: 'true',
                 bool_false: 'false',
                 bool_yes: 'yes',
+                bool_on: 'on',
                 bool_real: false,
             };
 
@@ -1300,6 +1301,7 @@ describe('dialog_conversion', () => {
                 {name: 'bool_true', type: 'bool', display_name: 'T', optional: false} as DialogElement,
                 {name: 'bool_false', type: 'bool', display_name: 'F', optional: false} as DialogElement,
                 {name: 'bool_yes', type: 'bool', display_name: 'Y', optional: false} as DialogElement,
+                {name: 'bool_on', type: 'bool', display_name: 'O', optional: false} as DialogElement,
                 {name: 'bool_real', type: 'bool', display_name: 'R', optional: false} as DialogElement,
             ];
 
@@ -1314,6 +1316,7 @@ describe('dialog_conversion', () => {
                 bool_true: true,
                 bool_false: false,
                 bool_yes: true,
+                bool_on: true,
                 bool_real: false,
             });
         });

@@ -853,7 +853,6 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		assert.True(t, request.IsBlocksMode())
 	})
 
-
 	t.Run("should fail blocks mode without title", func(t *testing.T) {
 		request := OpenDialogRequest{
 			TriggerId: "triggerId",
@@ -922,7 +921,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 				Blocks: []any{
 					map[string]any{"type": "text", "text": "Hello"},
 				},
-				Submit: &BlockDialogButton{Action: "dialog_submit"},
+				Submit:  &BlockDialogButton{Action: "dialog_submit"},
 				Actions: map[string]any{},
 			},
 		}

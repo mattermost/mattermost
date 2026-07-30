@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    testConfig,
-} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
-import {postIncomingWebhook, setupExternalMmBlocksInThread} from './mm_blocks_dialog_helpers';
+import {
+    getSelectableDay,
+    postIncomingWebhook,
+    selectDayFromPicker,
+    setupExternalMmBlocksInThread,
+} from './mm_blocks_dialog_helpers';
 
 test.describe('Interactive mm_blocks (form inputs)', () => {
     test(
@@ -231,7 +232,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
             const dueDay = getSelectableDay(5);
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks date_input onChange',
                 markerHint: 'mm_blocks date_input onChange',
                 mmBlocks: [
@@ -272,7 +273,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const dueDay = getSelectableDay(5);
             const meetingDay = getSelectableDay(7);
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks date datetime submit',
                 markerHint: 'mm_blocks date datetime submit',
                 mmBlocks: [
@@ -340,7 +341,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
             const uploadName = `pw-mm-blocks-file-${pw.random.id()}.txt`;
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks file_input submit',
                 markerHint: 'mm_blocks file_input submit',
                 mmBlocks: [
@@ -396,7 +397,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
             const titleValue = `PW title ${pw.random.id()}`;
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks classic form submit',
                 markerHint: 'mm_blocks classic form submit',
                 mmBlocks: [
@@ -480,7 +481,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
             const titleValue = `PW onChange ${pw.random.id()}`;
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks text_input onChange',
                 markerHint: 'mm_blocks text_input onChange',
                 mmBlocks: [
@@ -517,7 +518,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         async ({pw, request}) => {
             const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks bool select onChange',
                 markerHint: 'mm_blocks bool select onChange',
                 mmBlocks: [
@@ -577,7 +578,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const lookupUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_lookup`;
             const submitUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
 
-            const {channelsPage, marker, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
+            const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks dynamic select',
                 markerHint: 'mm_blocks dynamic select',
                 mmBlocks: [
@@ -630,28 +631,3 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         },
     );
 });
-
-/** Future calendar day relative to today (local browser timezone). */
-function getSelectableDay(offsetDays = 5): {day: string; needsNextMonth: boolean; isoDate: string} {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    const now = new Date();
-    return {
-        day: String(d.getDate()),
-        needsNextMonth: d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear(),
-        isoDate: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-    };
-}
-
-async function selectDayFromPicker(page: {locator: (selector: string) => any}, day: string, needsNextMonth: boolean) {
-    const calendar = page.locator('.rdp').first();
-    await expect(calendar).toBeVisible();
-    if (needsNextMonth) {
-        await calendar.locator('.rdp-nav_button_next, button[name="next-month"]').first().click();
-    }
-    await calendar
-        .locator('.rdp-day:not(.rdp-day_outside), .rdp-day_button')
-        .filter({hasText: new RegExp(`^${day}$`)})
-        .first()
-        .click();
-}

@@ -314,10 +314,12 @@ func (a *App) encryptDoBlockActionMmBlocksActions(setup *postActionSetup, postID
 
 	cookie, err := model.EncryptMmBlocksActionsCookie(
 		actionsMap,
-		postID,
-		rootID,
-		channelID,
-		setup.upstreamRequest.UserId,
+		model.EncryptMmBlocksActionsCookieParams{
+			PostID:     postID,
+			RootPostID: rootID,
+			ChannelID:  channelID,
+			UserID:     setup.upstreamRequest.UserId,
+		},
 		setup.retain,
 		setup.remove,
 		a.PostActionCookieSecret(),

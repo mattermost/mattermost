@@ -583,7 +583,7 @@ type OpenDialogRequest struct {
 	URL string `json:"url,omitempty"`
 
 	// Exactly one of Dialog (legacy) or BlockDialog should be set.
-	Dialog      Dialog       `json:"dialog,omitempty"`
+	Dialog      Dialog       `json:"dialog,omitzero"`
 	BlockDialog *BlockDialog `json:"block_dialog,omitempty"`
 }
 

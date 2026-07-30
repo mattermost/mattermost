@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -12,6 +12,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {MmSelectInputBlock, MmStaticSelectOption} from '@mattermost/types/mm_blocks';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
@@ -27,6 +30,8 @@ import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import RadioSetting from 'components/widgets/settings/radio_setting';
 import Setting from 'components/widgets/settings/setting';
+
+import type {GlobalState} from 'types/store';
 
 import {ExpandedChoiceList} from './expanded_choice_list';
 import {FormFieldLabel} from './form_field_label';
@@ -93,10 +98,18 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
     const singleValue = normalizeSingleValue(rawValue, initialSingleValue(element));
     const multiValue = normalizeMultiValue(rawValue, initialMultiValue(element));
 
+    const selectedUser = useSelector((state: GlobalState) => (
+        isUserSource && singleValue ? getUser(state, singleValue) : undefined
+    ));
+    const selectedChannel = useSelector((state: GlobalState) => (
+        isChannelSource && singleValue ? getChannel(state, singleValue) : undefined
+    ));
+    const resolvedDynamicLabel = selectedUser?.username || selectedChannel?.display_name || '';
+
     const [autocompleteDisplay, setAutocompleteDisplay] = useState(() => {
         if (isDynamicSource) {
-            // Seed from stored form value so remounts keep the selection visible.
-            return singleValue;
+            // Prefer resolved username/display_name; fall back to stored id until loaded.
+            return resolvedDynamicLabel || singleValue;
         }
         return displayTextForValue(flatOptions, initialSingleValue(element));
     });
@@ -110,8 +123,12 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
             setAutocompleteDisplay('');
             return;
         }
+        if (resolvedDynamicLabel) {
+            setAutocompleteDisplay(resolvedDynamicLabel);
+            return;
+        }
         setAutocompleteDisplay((prev) => prev || singleValue);
-    }, [isDynamicSource, singleValue]);
+    }, [isDynamicSource, resolvedDynamicLabel, singleValue]);
 
     // Multiselect users/channels need AsyncSelect (AutocompleteSelector is single-value only).
     const useAsyncUserChannelSelect = isDynamicSource && multiselect;

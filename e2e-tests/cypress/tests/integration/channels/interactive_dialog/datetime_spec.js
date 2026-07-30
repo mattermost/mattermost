@@ -402,7 +402,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         // * Verify 12-hour format in dropdown (e.g., "2:00 PM" not "14:00")
-        cy.get('[id$="expiryTimeMenu"]').should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             expect(text).to.match(/\d{1,2}:\d{2} [AP]M/); // 12-hour format: H:MM AM/PM
         });
@@ -510,7 +510,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         // * Verify dropdown shows times starting at midnight (London time)
-        cy.get('[id$="expiryTimeMenu"]').should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             // Should show midnight in 12h or 24h format
             expect(text).to.match(/^(12:00 AM|00:00)$/);

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -715,6 +716,9 @@ func TestDoBlockActionExecute(t *testing.T) {
 	})
 
 	t.Run("dialog-scoped cookie skips ephemeral_text without channel", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventEphemeralMessage})
+		defer closeWS()
+
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"type":"ok","ephemeral_text":"hello from dialog"}`))
@@ -747,9 +751,18 @@ func TestDoBlockActionExecute(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, resp)
 		assert.Equal(t, model.BlockActionResponseTypeOK, resp.Type)
+
+		select {
+		case ev := <-messages:
+			t.Fatalf("expected no ephemeral_message websocket event, got %v", ev.EventType())
+		case <-time.After(300 * time.Millisecond):
+		}
 	})
 
 	t.Run("dialog channel_id fills ephemeral but not upstream request", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventEphemeralMessage})
+		defer closeWS()
+
 		var gotReq model.PostActionIntegrationRequest
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			require.NoError(t, json.NewDecoder(r.Body).Decode(&gotReq))
@@ -788,6 +801,19 @@ func TestDoBlockActionExecute(t *testing.T) {
 		assert.Empty(t, gotReq.ChannelId)
 		assert.Empty(t, gotReq.ChannelName)
 		assert.Empty(t, gotReq.TeamId)
+
+		select {
+		case ev := <-messages:
+			require.Equal(t, model.WebsocketEventEphemeralMessage, ev.EventType())
+			postData, ok := ev.GetData()["post"].(string)
+			require.True(t, ok)
+			var post model.Post
+			require.NoError(t, json.Unmarshal([]byte(postData), &post))
+			assert.Equal(t, th.BasicChannel.Id, post.ChannelId)
+			assert.Equal(t, "hello from dialog", post.Message)
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for ephemeral_message websocket event")
+		}
 	})
 
 	t.Run("empty post_id ignores update from integration", func(t *testing.T) {

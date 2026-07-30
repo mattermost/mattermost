@@ -5,39 +5,17 @@
  * Date / datetime fields in native block_dialog (datetime_config).
  */
 
-import type {Locator, Page} from '@playwright/test';
-
 import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
-import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
-
-function getSelectableDay(offsetDays = 5): {day: string; needsNextMonth: boolean} {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    const now = new Date();
-    return {
-        day: String(d.getDate()),
-        needsNextMonth: d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear(),
-    };
-}
-
-async function openDatePicker(dialog: Locator, page: Page, label: string) {
-    const field = dialog.locator('.mm-blocks-date-input, .mm-blocks-datetime-input').filter({hasText: label});
-    await field.locator('.date-time-input, .dateTime__date .date-time-input').first().click();
-    await expect(page.locator('.rdp').first()).toBeVisible();
-}
-
-async function selectDayFromPicker(page: Page, day: string, needsNextMonth: boolean) {
-    const calendar = page.locator('.rdp').first();
-    if (needsNextMonth) {
-        await calendar.locator('.rdp-nav_button_next, button[name="next-month"]').first().click();
-    }
-    await calendar
-        .locator('.rdp-day:not(.rdp-day_outside), .rdp-day_button')
-        .filter({hasText: new RegExp(`^${day}$`)})
-        .first()
-        .click();
-}
+import {
+    dialogTags,
+    expectEphemeral,
+    getSelectableDay,
+    openBlocksDialogFromPost,
+    openDatePicker,
+    selectDayFromPicker,
+    setupDialogOpenPost,
+} from './mm_blocks_dialog_helpers';
 
 test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
     test.beforeEach(async ({request}) => {

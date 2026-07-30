@@ -184,11 +184,20 @@ func ParseDecryptedActionCookiePayload(decrypted string) (legacy *PostActionCook
 	return &c, nil, nil
 }
 
+// EncryptMmBlocksActionsCookieParams identifies the post/channel/user binding
+// stored on an encrypted mm_blocks_actions cookie.
+type EncryptMmBlocksActionsCookieParams struct {
+	PostID     string
+	RootPostID string
+	ChannelID  string
+	UserID     string
+}
+
 // EncryptMmBlocksActionsCookie encrypts a plaintext mm_blocks_actions map into
 // an opaque cookie string. Returns ("", nil) when there is nothing to encrypt.
 func EncryptMmBlocksActionsCookie(
 	actions any,
-	postID, rootPostID, channelID, userID string,
+	ids EncryptMmBlocksActionsCookieParams,
 	retainProps map[string]any,
 	removeProps []string,
 	secret []byte,
@@ -222,10 +231,10 @@ func EncryptMmBlocksActionsCookie(
 
 	mmCookie := MmBlocksActionCookie{
 		Kind:        MmBlocksActionCookieKind,
-		PostId:      postID,
-		RootPostId:  rootPostID,
-		ChannelId:   channelID,
-		UserId:      userID,
+		PostId:      ids.PostID,
+		RootPostId:  ids.RootPostID,
+		ChannelId:   ids.ChannelID,
+		UserId:      ids.UserID,
 		RetainProps: retainProps,
 		RemoveProps: removeProps,
 		Actions:     actionsForEnc,
@@ -249,7 +258,7 @@ func EncryptBlockDialogMmBlocksActions(d *BlockDialog, secret []byte, userID str
 	}
 	removeProps := make([]string, len(PostActionRetainPropKeys))
 	copy(removeProps, PostActionRetainPropKeys)
-	return EncryptMmBlocksActionsCookie(d.Actions, "", "", "", userID, map[string]any{}, removeProps, secret)
+	return EncryptMmBlocksActionsCookie(d.Actions, EncryptMmBlocksActionsCookieParams{UserID: userID}, map[string]any{}, removeProps, secret)
 }
 
 // AddMmBlocksActionCookies encrypts the full mm_blocks_actions map into one cookie string stored in PostPropsMmBlocksActions.
@@ -274,7 +283,11 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 	if p.RootId != "" {
 		rootPostID = p.RootId
 	}
-	enc, err := EncryptMmBlocksActionsCookie(raw, p.Id, rootPostID, p.ChannelId, "", retainProps, removeProps, secret)
+	enc, err := EncryptMmBlocksActionsCookie(raw, EncryptMmBlocksActionsCookieParams{
+		PostID:     p.Id,
+		RootPostID: rootPostID,
+		ChannelID:  p.ChannelId,
+	}, retainProps, removeProps, secret)
 	if err != nil || enc == "" {
 		return
 	}
