@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"slices"
 
@@ -27,9 +28,26 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 
 func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
 	data, err := s.platform.GetConfigFile(name)
-	if err != nil {
+	if err == nil {
+		return data, nil
+	}
+
+	// The configuration store is the canonical home for these keys, but AddPublicKey is the only
+	// way to populate it, and that requires a running server. A database-backed store never
+	// consults the filesystem, so a deployment that prepackages plugins signed with its own key
+	// has no way to make that key available before startup. Fall back to reading an absolute path
+	// directly, so such a key can be baked into an image or mounted as a secret whichever way the
+	// configuration is stored. Names the store already resolves never reach this point, and
+	// relative names are left to the store alone, having no meaning outside of it.
+	if !filepath.IsAbs(name) {
 		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	data, fsErr := os.ReadFile(name)
+	if fsErr != nil {
+		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, "", http.StatusInternalServerError).Wrap(fsErr)
+	}
+
 	return data, nil
 }
 
