@@ -248,7 +248,7 @@ Search limitations on PostgreSQL:
 - Terms containing a dash return incorrect results as dashes are ignored in the search query.
 - Limitations set by [PostgreSQL itself](https://www.postgresql.org/docs/current/textsearch-limitations.html):
   - One of them is: `The length of a tsvector (lexemes + positions) must be less than 1 megabyte`, which means that, based on the file content, even files with content less than 1 MB won't be searchable if they hit the `tsvector` limit of 1 MB.
-- If any of the above is an issue, you can [set up and enable enterprise search](/administration-guide/scale/enterprise-search).
+- If any of the above is an issue, you can [set up and enable enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search).
 
 ##### MySQL Support
 
@@ -305,7 +305,7 @@ Most small to medium Mattermost team deployments can be supported on a single se
 
 #### Scale requirements
 
-For Enterprise Edition deployments with a multi-server setup, see [our scaling guide](/administration-guide/scale/scaling-for-enterprise).
+For Enterprise Edition deployments with a multi-server setup, see [our scaling guide](/deployment-guide/reference-architecture/scale/scaling-for-enterprise).
 
 It is highly recommended that pilots are run before enterprise-wide deployments in order to estimate full scale usage based on your specific organizational needs. You can use the Mattermost open source load testing framework to simulate usage of your system: [https://github.com/mattermost/mattermost-load-test-ng](https://github.com/mattermost/mattermost-load-test-ng).
 
@@ -317,5 +317,5 @@ For Enterprise Edition deployments with a multi-server setup, we highly recommen
 
 - Prometheus to track system health of your Mattermost deployment, through [performance monitoring feature](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) available in Mattermost Enterprise.
 - Grafana to visualize the system health metrics collected by Prometheus with the [performance monitoring feature](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring). Grafana 5.0.0 and later is recommended.
-- Elasticsearch to support highly efficient database searches in a cluster environment. Elasticsearch v8.x and v9.x are supported, and Elasticsearch v9.x or AWS OpenSearch is recommended. [Learn more](/administration-guide/scale/enterprise-search).
+- Elasticsearch to support highly efficient database searches in a cluster environment. Elasticsearch v8.x and v9.x are supported, and Elasticsearch v9.x or AWS OpenSearch is recommended. [Learn more](/deployment-guide/reference-architecture/scale/enterprise-search).
 - AWS S3 or any S3-compatible service. Mattermost is compatible with object storage systems which implement the S3 API. You can also use local storage or a network drive using NFS. Learn more about file storage configuration options [in our documentation](/administration-guide/configure/environment-configuration-settings#file-storage).

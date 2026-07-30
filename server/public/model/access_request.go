@@ -268,6 +268,13 @@ const (
 	// "Policy doesn't apply" pill from this entry. Never produced by
 	// production evaluation — simulation-only.
 	PolicySimulationBlameSourceNoApplicablePolicy = "no_applicable_policy"
+	// PolicySimulationBlameSourceNoSessionData is a synthetic blame source
+	// emitted by the simulator when a picked user has no cached session
+	// attributes (and no explicit session_overrides) but the action's
+	// contributing rules reference user.session.*. The decision is recorded
+	// as a vacuous ALLOW so the picker renders a neutral "No recent
+	// session" pill instead of a misleading deny. Simulation-only.
+	PolicySimulationBlameSourceNoSessionData = "no_session_data"
 	// PolicySimulationBlameSourceSiblingSaved is attached to an ALLOW
 	// decision when the rule the author is editing alone would have DENIED
 	// the subject, but a sibling rule (same role + action, OR-combined at
