@@ -89,3 +89,43 @@ func TestBuildAccessControlMembershipAuditRecord(t *testing.T) {
 		require.Equal(t, AccessControlAuditActionRemove, params["action"])
 	})
 }
+
+// TestAccessControlTeamRemovalAuditPayloads covers the state leaveTeam shares
+// between the team-removal record and the cascade records it triggers: both carry
+// the sync job id and the team's policy, and each cascade record points back at
+// the removal record via parent_event_id.
+func TestAccessControlTeamRemovalAuditPayloads(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	removal := accessControlTeamRemovalAudit{
+		teamID:         "team1",
+		userID:         "user1",
+		jobID:          "job7",
+		eventID:        "event7",
+		policyRevision: 5,
+	}
+
+	require.Equal(t, AccessControlMembershipAuditData{
+		JobID:          "job7",
+		PolicyID:       "team1",
+		PolicyRevision: 5,
+		ResourceType:   AccessControlAuditResourceTeam,
+		ResourceID:     "team1",
+		UserID:         "user1",
+		Action:         AccessControlAuditActionRemove,
+		Reason:         AccessControlAuditReasonNoLongerMatches,
+		EventID:        "event7",
+	}, removal.removalData())
+
+	require.Equal(t, AccessControlMembershipAuditData{
+		JobID:          "job7",
+		PolicyID:       "team1",
+		PolicyRevision: 5,
+		ResourceType:   AccessControlAuditResourceChannel,
+		ResourceID:     "channel1",
+		UserID:         "user1",
+		Action:         AccessControlAuditActionRemove,
+		Reason:         AccessControlAuditReasonTeamCascade,
+		ParentEventID:  "event7",
+	}, removal.cascadeData("channel1"))
+}

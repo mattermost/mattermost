@@ -71,7 +71,7 @@ func (a *App) RemoveChannelMemberByAccessPolicy(rctx request.CTX, channel *model
 // access policy, then records the decision. The "you were added" DM is
 // best-effort and must not undo the add. systemBot may be pre-resolved by the
 // caller (nil resolves it lazily).
-func (a *App) AddTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, systemBot *model.Bot, userID string) *model.AppError {
+func (a *App) AddTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, systemBot *model.Bot, userID, jobID string) *model.AppError {
 	if _, _, appErr := a.AddUserToTeam(rctx, team.Id, userID, ""); appErr != nil {
 		return appErr
 	}
@@ -83,6 +83,7 @@ func (a *App) AddTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, sy
 		policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
 	}
 	a.LogAccessControlMembershipAudit(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess, AccessControlMembershipAuditData{
+		JobID:          jobID,
 		PolicyID:       team.Id,
 		PolicyRevision: policyRevision,
 		ResourceType:   AccessControlAuditResourceTeam,
@@ -106,8 +107,8 @@ func (a *App) AddTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, sy
 // those triggers because only it enumerates the cascaded channels. The "you were
 // removed" DM is best-effort. systemBot may be pre-resolved by the caller (nil
 // resolves it lazily).
-func (a *App) RemoveTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, systemBot *model.Bot, userID string) *model.AppError {
-	if appErr := a.RemoveUserFromTeam(rctx, team.Id, userID, ""); appErr != nil {
+func (a *App) RemoveTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team, systemBot *model.Bot, userID, jobID string) *model.AppError {
+	if appErr := a.removeUserFromTeam(rctx, team.Id, userID, "", jobID); appErr != nil {
 		return appErr
 	}
 
@@ -117,39 +118,62 @@ func (a *App) RemoveTeamMemberByAccessPolicy(rctx request.CTX, team *model.Team,
 	return nil
 }
 
-// logAccessControlTeamRemoval records a policy-driven team membership removal.
-// eventID is the shared correlation ID that the cascaded channel-removal records
-// reference as their parent. It is called from LeaveTeam, which owns the trigger
-// because only it enumerates the cascaded channels; the field/event mapping lives
-// here so all ABAC membership audit shapes stay in one place. Gated behind
-// EnableAccessControlAuditLogging.
-func (a *App) logAccessControlTeamRemoval(rctx request.CTX, teamID, userID, eventID string, policyRevision int, status string) {
-	a.LogAccessControlMembershipAudit(rctx, model.AuditEventTeamMembershipRemoved, status, AccessControlMembershipAuditData{
-		PolicyID:       teamID,
-		PolicyRevision: policyRevision,
+// accessControlTeamRemovalAudit is the correlation state shared by every record a
+// single policy-driven team removal emits: the team-removal record and one
+// cascade record per channel the user loses. leaveTeam builds it once and owns
+// the triggers, because only it enumerates those channels; the field/event
+// mapping lives here so all ABAC membership audit shapes stay in one place.
+type accessControlTeamRemovalAudit struct {
+	teamID string
+	userID string
+	jobID  string
+	// eventID is the team-removal record's own ID and the parent ID carried by
+	// each cascade record, which is what ties the two together.
+	eventID        string
+	policyRevision int
+}
+
+// removalData is the payload for the team-removal record itself.
+func (d accessControlTeamRemovalAudit) removalData() AccessControlMembershipAuditData {
+	return AccessControlMembershipAuditData{
+		JobID:          d.jobID,
+		PolicyID:       d.teamID,
+		PolicyRevision: d.policyRevision,
 		ResourceType:   AccessControlAuditResourceTeam,
-		ResourceID:     teamID,
-		UserID:         userID,
+		ResourceID:     d.teamID,
+		UserID:         d.userID,
 		Action:         AccessControlAuditActionRemove,
 		Reason:         AccessControlAuditReasonNoLongerMatches,
-		EventID:        eventID,
-	})
+		EventID:        d.eventID,
+	}
+}
+
+// cascadeData is the payload for one channel the team removal cascaded into. The
+// policy is still the team's, so PolicyID stays the team ID while the resource is
+// the channel.
+func (d accessControlTeamRemovalAudit) cascadeData(channelID string) AccessControlMembershipAuditData {
+	return AccessControlMembershipAuditData{
+		JobID:          d.jobID,
+		PolicyID:       d.teamID,
+		PolicyRevision: d.policyRevision,
+		ResourceType:   AccessControlAuditResourceChannel,
+		ResourceID:     channelID,
+		UserID:         d.userID,
+		Action:         AccessControlAuditActionRemove,
+		Reason:         AccessControlAuditReasonTeamCascade,
+		ParentEventID:  d.eventID,
+	}
+}
+
+// logAccessControlTeamRemoval records a policy-driven team membership removal.
+// Gated behind EnableAccessControlAuditLogging.
+func (a *App) logAccessControlTeamRemoval(rctx request.CTX, data accessControlTeamRemovalAudit, status string) {
+	a.LogAccessControlMembershipAudit(rctx, model.AuditEventTeamMembershipRemoved, status, data.removalData())
 }
 
 // logAccessControlTeamCascadedChannelRemoval records that a policy-driven team
-// removal cascaded the user out of one of the team's channels. parentEventID
-// correlates it with the team-removal record from logAccessControlTeamRemoval.
-// The policy is still the team's, so PolicyID is the team ID while the resource
-// is the channel. Gated behind EnableAccessControlAuditLogging.
-func (a *App) logAccessControlTeamCascadedChannelRemoval(rctx request.CTX, teamID, channelID, userID, parentEventID string, policyRevision int) {
-	a.LogAccessControlMembershipAudit(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess, AccessControlMembershipAuditData{
-		PolicyID:       teamID,
-		PolicyRevision: policyRevision,
-		ResourceType:   AccessControlAuditResourceChannel,
-		ResourceID:     channelID,
-		UserID:         userID,
-		Action:         AccessControlAuditActionRemove,
-		Reason:         AccessControlAuditReasonTeamCascade,
-		ParentEventID:  parentEventID,
-	})
+// removal cascaded the user out of one of the team's channels. Gated behind
+// EnableAccessControlAuditLogging.
+func (a *App) logAccessControlTeamCascadedChannelRemoval(rctx request.CTX, data accessControlTeamRemovalAudit, channelID string) {
+	a.LogAccessControlMembershipAudit(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess, data.cascadeData(channelID))
 }
