@@ -41,6 +41,13 @@ func TestAccessDecisionIsNoPolicy(t *testing.T) {
 		{"non-string reason", AccessDecision{Decision: true, Context: map[string]any{AccessDecisionContextKeyReason: 1}}, false},
 		{"unrelated reason", AccessDecision{Decision: true, Context: map[string]any{AccessDecisionContextKeyReason: "whatever"}}, false},
 		{"no_policy reason", NewNoPolicyAccessDecision(), true},
+		// A deny must never be classified as an unregulated request, however
+		// the context labels it.
+		{
+			"deny contradicting the no_policy reason",
+			AccessDecision{Decision: false, Context: map[string]any{AccessDecisionContextKeyReason: string(AccessDecisionReasonNoPolicy)}},
+			false,
+		},
 	}
 
 	for _, tc := range tests {

@@ -252,10 +252,12 @@ func (d AccessDecision) Reason() AccessDecisionReason {
 	return AccessDecisionReason(reason)
 }
 
-// IsNoPolicy reports whether the decision was reached because no policy
-// governs the request.
+// IsNoPolicy reports whether the request is unregulated: no policy governs it,
+// so the caller may apply its own defaults. A denial is never treated as a
+// no-policy fallback, however it is labelled, so a contradictory response
+// (decision false carrying the no_policy reason) stays a deny.
 func (d AccessDecision) IsNoPolicy() bool {
-	return d.Reason() == AccessDecisionReasonNoPolicy
+	return d.Decision && d.Reason() == AccessDecisionReasonNoPolicy
 }
 
 type QueryExpressionParams struct {
