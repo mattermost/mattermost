@@ -237,7 +237,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -255,7 +255,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks integration',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration`;
 
             await postIncomingWebhook(webhook.id, {
                 text: 'E2E mm_blocks external integration',
@@ -317,7 +317,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -335,7 +335,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks update',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_update`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_update`;
 
             await postIncomingWebhook(webhook.id, {
                 text: 'E2E mm_blocks before apply update',
@@ -385,7 +385,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -406,7 +406,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
 
             const overrideAuthorName = 'Playwright mm_blocks override';
             const marker = `E2E mm_blocks override author ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_update`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_update`;
 
             await postIncomingWebhook(webhook.id, {
                 username: overrideAuthorName,
@@ -466,7 +466,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -484,7 +484,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks static_select',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_static_select`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_static_select`;
             const marker = `E2E mm_blocks static_select ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -561,7 +561,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -579,7 +579,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks static_select users',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_static_select`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_static_select`;
             const marker = `E2E mm_blocks static_select users ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -655,7 +655,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -673,7 +673,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks static_select channels',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_static_select`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_static_select`;
             const marker = `E2E mm_blocks static_select channels ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -748,7 +748,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -767,7 +767,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             });
 
             const contextMarker = `ctx_${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_context`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_context`;
             const marker = `E2E mm_blocks action_context ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -888,7 +888,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -906,7 +906,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks button query',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
             const marker = `E2E mm_blocks button query ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -974,7 +974,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -992,7 +992,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks query override',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
             const marker = `E2E mm_blocks query override ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
@@ -1049,7 +1049,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -1067,7 +1067,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 display_name: 'Playwright mm_blocks select query',
             });
 
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
             const marker = `E2E mm_blocks static_select query ${pw.random.id()}`;
 
             await postIncomingWebhook(webhook.id, {
