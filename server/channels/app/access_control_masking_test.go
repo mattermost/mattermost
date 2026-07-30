@@ -1315,8 +1315,24 @@ func TestSplitCPAAttribute(t *testing.T) {
 // USER-side holdings for the linked template, since users never hold channel
 // values directly. A shared_only channel field whose user sibling the caller
 // partially holds must expose only the held option values.
+//
+// Run over both option-bearing types the clearance/classification pairing uses.
+// Rank is the one that regresses if the resolver spells its type list out instead
+// of asking Type.SupportsOptions(): a rank field would fall through to the
+// caller's raw text values, which hold the option ID rather than its name, so
+// every option would read as hidden.
 func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
 	mainHelper.Parallel(t)
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank} {
+		t.Run(string(fieldType), func(t *testing.T) {
+			assertChannelFieldUsesUserHoldings(t, fieldType)
+		})
+	}
+}
+
+func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFieldType) {
+	t.Helper()
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	rctx := request.TestContext(t)
@@ -1330,15 +1346,15 @@ func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
 	optA := model.NewId()
 	optB := model.NewId()
 	options := []any{
-		map[string]any{"id": optA, "name": "A"},
-		map[string]any{"id": optB, "name": "B"},
+		map[string]any{"id": optA, "name": "A", "rank": 1},
+		map[string]any{"id": optB, "name": "B", "rank": 2},
 	}
 
-	// Template select field that both the user and channel fields link to.
+	// Template field that both the user and channel fields link to.
 	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:    groupID,
 		Name:       celSafeName(),
-		Type:       model.PropertyFieldTypeSelect,
+		Type:       fieldType,
 		ObjectType: model.PropertyFieldObjectTypeTemplate,
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
@@ -1360,7 +1376,7 @@ func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
 	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
 		Name:          celSafeName(),
-		Type:          model.PropertyFieldTypeSelect,
+		Type:          fieldType,
 		ObjectType:    model.PropertyFieldObjectTypeUser,
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &tmpl.ID,
@@ -1372,7 +1388,7 @@ func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
 	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
 		Name:          channelFieldName,
-		Type:          model.PropertyFieldTypeSelect,
+		Type:          fieldType,
 		ObjectType:    model.PropertyFieldObjectTypeChannel,
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &tmpl.ID,

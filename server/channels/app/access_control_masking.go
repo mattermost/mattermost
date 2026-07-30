@@ -256,7 +256,13 @@ func (r *appMaskingResolver) fieldToMaskingInfo(h *maskingHoldings) *model.Maski
 		info.Access = model.MaskingFieldAccessSourceOnly
 	case model.PropertyAccessModeSharedOnly:
 		info.Access = model.MaskingFieldAccessSharedOnly
-		if h.field.Type == model.PropertyFieldTypeSelect || h.field.Type == model.PropertyFieldTypeMultiselect {
+
+		// Same split as maskConditionValues, through the same predicate: an
+		// options-bearing field's visible values are its caller-filtered option
+		// names, anything else's are the caller's stored text values. Spelling the
+		// type list out here instead would drop rank — whose values are options
+		// too — and the two paths would disagree about what a caller can see.
+		if h.field.Type.SupportsOptions() {
 			info.VisibleValues = extractVisibleOptionNames(h.field)
 		} else {
 			info.VisibleValues = r.app.getCallerTextValues(r.rctxWithCaller, r.callerID, h.field, r.cpaGroupID)
