@@ -4,12 +4,18 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 test('/login accessibility quick check', async ({pw, axe}) => {
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        EmailSettings: {EnableSignUpWithEmail: true},
+    });
+
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
     // # Go to login page
     await pw.loginPage.goto();
     await pw.loginPage.toBeVisible();
+    await expect(pw.loginPage.createAccountLink).toBeVisible();
 
     // # Analyze the page
     const accessibilityScanResults = await axe.builder(pw.loginPage.page).analyze();
@@ -19,12 +25,18 @@ test('/login accessibility quick check', async ({pw, axe}) => {
 });
 
 test('/login accessibility tab support', async ({pw}) => {
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        EmailSettings: {EnableSignUpWithEmail: true},
+    });
+
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
     // # Go to login page
     await pw.loginPage.goto();
     await pw.loginPage.toBeVisible();
+    await expect(pw.loginPage.createAccountLink).toBeVisible();
 
     // * Should have focused at login input on page load
     expect(await pw.loginPage.loginInput).toBeFocused();
