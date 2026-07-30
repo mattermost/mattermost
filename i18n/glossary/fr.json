@@ -1,0 +1,453 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name, keep in English; the common noun 'channel' is 'canal'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO",
+    "note": "When spelled out, use 'authentification unique (SSO)' per community rules; keep the abbreviation itself."
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled out as 'authentification multi-facteurs (MFA)' where needed."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Weblate glossary allows the clarification 'Bavardage (gossip protocol)'; never translate alone as 'bavardage'."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "console système",
+    "note": "Feminine. Lowercase in running text per French rules; capitalize only as a menu item ('Console système')."
+  },
+  "marketplace": {
+    "target": "marché",
+    "note": "Masculine. Existing webapp translations consistently use 'marché' (e.g. 'Activer le marché'); the community glossary suggests 'place de marché', which is clearer but not the current majority."
+  },
+  "channel": {
+    "target": "canal",
+    "note": "Masculine; plural 'canaux'. Never 'chaîne' or 'salon'."
+  },
+  "team": {
+    "target": "équipe",
+    "note": "Feminine."
+  },
+  "post": {
+    "target": "message",
+    "note": "General rule from community glossary: translate 'post' as 'message'. Use 'publication' only for the root message of a thread or integration-posted content."
+  },
+  "message": {
+    "target": "message",
+    "note": "Masculine. A user 'envoie' (sends) a message; the system 'publie' (posts) system messages."
+  },
+  "thread": {
+    "target": "fil de discussion",
+    "note": "Masculine. 'fil' alone is acceptable when space is tight or on repeat mentions."
+  },
+  "reply": {
+    "target": "réponse",
+    "note": "Noun: 'réponse' (f.); verb: 'répondre'."
+  },
+  "direct message": {
+    "target": "message personnel",
+    "note": "Webapp/server consistently use 'message personnel'; mobile inconsistently uses 'message direct'. Community rules mandate 'message personnel' and forbid 'message direct'/'DM'."
+  },
+  "group message": {
+    "target": "message de groupe",
+    "note": "Webapp also uses 'conversation de groupe' in places; 'message de groupe' is the community-rules rendering and mobile majority."
+  },
+  "mention": {
+    "target": "mention",
+    "note": "Noun: 'mention' (f.); verb: 'mentionner'."
+  },
+  "notification": {
+    "target": "notification",
+    "note": "Feminine. Order: 'notification par e-mail', 'notifications push' — put 'notification' first per community rules."
+  },
+  "pin": {
+    "target": "épingler",
+    "note": "'messages épinglés' for pinned messages; unpin: 'désépingler'."
+  },
+  "bookmark": {
+    "target": "marque-page",
+    "note": "Masculine; plural 'marque-pages'. Verb: 'ajouter un marque-page'."
+  },
+  "saved messages": {
+    "target": "messages marqués",
+    "note": "Webapp majority is 'messages marqués' (legacy of 'flagged'); mobile uses 'messages enregistrés', which matches the save='enregistrer' rule and may be the better long-term choice. Verb save: 'enregistrer'."
+  },
+  "draft": {
+    "target": "brouillon",
+    "note": "Masculine."
+  },
+  "scheduled post": {
+    "target": "message planifié",
+    "note": "Majority rendering; 'programmé' also appears (esp. verb 'programmer le brouillon'). Pick one per surface but stay consistent."
+  },
+  "emoji": {
+    "target": "émoticône",
+    "note": "Feminine. Community rules prefer 'émoticône' over 'emoji'."
+  },
+  "custom emoji": {
+    "target": "émoticône personnalisée",
+    "note": "Feminine agreement."
+  },
+  "reaction": {
+    "target": "réaction",
+    "note": "Feminine. Verb react: 'réagir'."
+  },
+  "status": {
+    "target": "statut",
+    "note": "'statut' for user availability; existing translations use 'état' for system/job status."
+  },
+  "custom status": {
+    "target": "statut personnalisé"
+  },
+  "do not disturb": {
+    "target": "Ne pas déranger"
+  },
+  "away": {
+    "target": "absent",
+    "note": "Agreement: 'absent(e)' when referring to a specific user; mobile uses 'Absent(e)' in places."
+  },
+  "online": {
+    "target": "en ligne"
+  },
+  "offline": {
+    "target": "hors ligne"
+  },
+  "out of office": {
+    "target": "absent du bureau",
+    "note": "As a status label: « Absent du bureau »."
+  },
+  "guest": {
+    "target": "utilisateur invité",
+    "note": "Community rules mandate 'utilisateur invité' (not 'invité' alone) to avoid awkward phrases like 'inviter des invités'."
+  },
+  "member": {
+    "target": "membre",
+    "note": "Masculine."
+  },
+  "user": {
+    "target": "utilisateur",
+    "note": "Masculine; 'le masculin l'emporte' per community rules — no inclusive middot forms."
+  },
+  "system admin": {
+    "target": "administrateur système",
+    "note": "Plural: 'administrateurs système' (invariable 'système') per community rules."
+  },
+  "team admin": {
+    "target": "administrateur d'équipe"
+  },
+  "channel admin": {
+    "target": "administrateur de canal"
+  },
+  "session": {
+    "target": "session",
+    "note": "Feminine."
+  },
+  "sign in": {
+    "target": "se connecter",
+    "note": "Noun/label: 'Connexion'. Translate 'log in' identically."
+  },
+  "sign out": {
+    "target": "se déconnecter",
+    "note": "Noun/label: 'Déconnexion'. Translate 'log out' identically."
+  },
+  "join": {
+    "target": "rejoindre",
+    "note": "For channels/teams/calls. 'joindre' is reserved for attaching files per community rules."
+  },
+  "leave": {
+    "target": "quitter"
+  },
+  "archive": {
+    "target": "archiver",
+    "note": "Adjective: 'archivé'."
+  },
+  "unarchive": {
+    "target": "désarchiver"
+  },
+  "mute": {
+    "target": "mettre en sourdine",
+    "note": "Channel notifications context. Muted: 'en sourdine'; unmute: 'réactiver' or 'enlever la sourdine'."
+  },
+  "follow": {
+    "target": "suivre"
+  },
+  "unfollow": {
+    "target": "ne plus suivre"
+  },
+  "favorite": {
+    "target": "favori",
+    "note": "Noun: 'favori' (m.); category: 'Favoris'. Verb: 'mettre en favori' / 'ajouter aux favoris'."
+  },
+  "search": {
+    "target": "recherche",
+    "note": "Noun: 'recherche' (f.); verb/button: 'rechercher'."
+  },
+  "integration": {
+    "target": "intégration",
+    "note": "Feminine."
+  },
+  "slash command": {
+    "target": "commande slash",
+    "note": "Community-rules rendering; do not translate 'slash'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English (masculine) — consistent across 60+ existing strings."
+  },
+  "incoming webhook": {
+    "target": "webhook entrant"
+  },
+  "outgoing webhook": {
+    "target": "webhook sortant"
+  },
+  "trigger word": {
+    "target": "mot-clé déclencheur",
+    "note": "Community-rules rendering; 'mot déclencheur' also appears in server strings."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English (masculine) per Weblate glossary and existing translations."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept in English per community rules."
+  },
+  "role": {
+    "target": "rôle",
+    "note": "Masculine."
+  },
+  "permission": {
+    "target": "permission",
+    "note": "Feminine. Community rules mandate 'permission' (not 'droit' or 'autorisation') for role capabilities."
+  },
+  "scheme": {
+    "target": "schéma de permissions",
+    "note": "Permission-scheme sense per community rules. For URI/URL scheme use 'protocole URL' instead."
+  },
+  "license": {
+    "target": "licence",
+    "note": "Feminine."
+  },
+  "seat": {
+    "target": "siège",
+    "note": "Masculine; existing billing strings use 'sièges'."
+  },
+  "trial": {
+    "target": "essai",
+    "note": "Masculine; free trial: 'essai gratuit'."
+  },
+  "workspace": {
+    "target": "espace de travail",
+    "note": "Masculine."
+  },
+  "subscription": {
+    "target": "abonnement",
+    "note": "Masculine."
+  },
+  "deactivate": {
+    "target": "désactiver",
+    "note": "Deactivated: 'désactivé'."
+  },
+  "invite": {
+    "target": "inviter",
+    "note": "Verb: 'inviter'; noun: 'invitation' (f.)."
+  },
+  "invitation": {
+    "target": "invitation",
+    "note": "'invitation par e-mail' (never 'adresse électronique' — use 'e-mail')."
+  },
+  "sidebar": {
+    "target": "barre latérale",
+    "note": "Feminine."
+  },
+  "unread": {
+    "target": "non lu",
+    "note": "No hyphen per community rules; plural 'non lus'."
+  },
+  "attachment": {
+    "target": "pièce jointe",
+    "note": "Feminine. Verb attach (files): 'joindre'."
+  },
+  "public channel": {
+    "target": "canal public"
+  },
+  "private channel": {
+    "target": "canal privé"
+  },
+  "shared channel": {
+    "target": "canal partagé"
+  },
+  "channel header": {
+    "target": "en-tête du canal",
+    "note": "Masculine. Webapp uses 'en-tête'; older server/mobile strings use 'entête' — prefer 'en-tête'."
+  },
+  "channel purpose": {
+    "target": "description du canal",
+    "note": "Community rules translate 'purpose' as 'description' in this context, not 'objet' or 'but'."
+  },
+  "system message": {
+    "target": "message système"
+  },
+  "persistent notification": {
+    "target": "notification persistante"
+  },
+  "message priority": {
+    "target": "priorité du message"
+  },
+  "urgent": {
+    "target": "urgent",
+    "note": "Label: 'Urgent'; feminine agreement 'priorité urgente' when qualifying 'priorité'."
+  },
+  "recap": {
+    "target": "récapitulatif",
+    "note": "No existing French translation yet (new AI feature); 'récapitulatif' (m.) is the natural rendering, 'résumé' being reserved for 'summary'."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "Masculine; same word in French for AI agents."
+  },
+  "burn-on-read": {
+    "target": "à autodestruction après lecture",
+    "note": "No existing French translation yet. For short badges (BURN ON READ) 'AUTODESTRUCTION' may be needed for space."
+  },
+  "magic link": {
+    "target": "lien magique",
+    "note": "No existing translation yet; 'lien magique' is the established rendering in French SaaS (Slack, Notion)."
+  },
+  "personal access token": {
+    "target": "jeton d'accès personnel",
+    "note": "'token' is always 'jeton' per community rules."
+  },
+  "announcement banner": {
+    "target": "bannière d'annonce"
+  },
+  "channel banner": {
+    "target": "bannière de canal"
+  },
+  "keyword": {
+    "target": "mot-clé",
+    "note": "Masculine; plural 'mots-clés'."
+  },
+  "user group": {
+    "target": "groupe d'utilisateurs"
+  },
+  "permalink": {
+    "target": "lien permanent",
+    "note": "Masculine."
+  },
+  "profile": {
+    "target": "profil",
+    "note": "Masculine."
+  },
+  "username": {
+    "target": "nom d'utilisateur"
+  },
+  "nickname": {
+    "target": "pseudo",
+    "note": "Existing user-settings label; 'surnom' appears in some admin strings — prefer 'pseudo' for the profile field."
+  },
+  "display name": {
+    "target": "nom d'affichage",
+    "note": "'nom affiché' also appears; prefer 'nom d'affichage' (desktop and admin majority)."
+  },
+  "collapsed reply threads": {
+    "target": "fils de discussion repliables",
+    "note": "Weblate glossary rendering; singular 'fil de discussion repliable'. Mobile has older inconsistent renderings."
+  },
+  "auto-translation": {
+    "target": "traduction automatique",
+    "note": "AUTO-TRANSLATED label: 'TRADUIT AUTOMATIQUEMENT'."
+  },
+  "data retention": {
+    "target": "rétention des données",
+    "note": "Admin console uses 'rétention des données'; 'conservation de données' also appears — prefer 'rétention'."
+  },
+  "compliance export": {
+    "target": "export de conformité",
+    "note": "Existing strings vary ('vérification de conformité de l'exportation' is a mistranslation); 'export de conformité' matches the feature."
+  },
+  "access control": {
+    "target": "contrôle d'accès",
+    "note": "Policy: 'politique de contrôle d'accès'."
+  },
+  "attribute": {
+    "target": "attribut",
+    "note": "Masculine."
+  },
+  "onboarding": {
+    "target": "intégration",
+    "note": "'processus d'intégration' in existing admin strings; avoid 'inscription' which appears once and means registration."
+  },
+  "Town Square": {
+    "target": "Centre-ville",
+    "note": "Established default-channel name in server fr.json; keep consistently."
+  },
+  "Off-Topic": {
+    "target": "Hors-sujet",
+    "note": "Established default-channel name in server fr.json."
+  },
+  "read-only": {
+    "target": "en lecture seule"
+  },
+  "server": {
+    "target": "serveur",
+    "note": "Masculine."
+  }
+}

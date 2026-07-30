@@ -1,0 +1,469 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Product edition name; keep in English. Legacy webapp strings sometimes render 'Ediția Enterprise' — prefer the English name."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English; an old webapp string renders 'Ediție de echipă' but edition names should stay untranslated."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; do not confuse with the common noun 'canal/canale'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Consola de sistem",
+    "note": "Established in webapp ro.json ('consola de sistem'). Genitive: 'consolei de sistem'."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Webapp ro.json is inconsistent: some labels use 'piața', others keep 'Marketplace'. Keep the English name as the primary rendering (modern Romanian software convention) and treat 'piață' occurrences as legacy."
+  },
+  "channel": {
+    "target": "canal",
+    "note": "Plural: 'canale'. Definite: 'canalul/canalele'."
+  },
+  "team": {
+    "target": "echipă",
+    "note": "Plural: 'echipe'."
+  },
+  "post": {
+    "target": "postare",
+    "note": "Noun; plural 'postări'. Verb: 'a posta'. Avoid the calque 'post/posturi' seen in a few legacy strings ('posturi fixate')."
+  },
+  "message": {
+    "target": "mesaj",
+    "note": "Plural: 'mesaje'."
+  },
+  "thread": {
+    "target": "fir",
+    "note": "Majority rendering in webapp/server ('firul', 'fir de discuție'). Inconsistencies observed: 'subiect' and 'Detalii Mesaj' for the Thread panel title — prefer 'fir' everywhere. Plural: 'fire'."
+  },
+  "reply": {
+    "target": "răspuns",
+    "note": "Noun; plural 'răspunsuri'. Verb: 'a răspunde' (button: 'Răspunde'/'Răspundeți')."
+  },
+  "direct message": {
+    "target": "mesaj direct",
+    "note": "Plural: 'mesaje directe'. Keep 'DM' untranslated if the abbreviation appears."
+  },
+  "group message": {
+    "target": "mesaj de grup",
+    "note": "Plural: 'mesaje de grup'."
+  },
+  "mention": {
+    "target": "mențiune",
+    "note": "Noun; plural 'mențiuni'. Verb: 'a menționa'. Use modern diacritics (ț not ţ)."
+  },
+  "notification": {
+    "target": "notificare",
+    "note": "Plural: 'notificări'."
+  },
+  "pin": {
+    "target": "a fixa",
+    "note": "'Fixați pe canal' (mobile), 'mesaje fixate'. Unpin: 'a anula fixarea'. Avoid untranslated 'Pin' seen in one webapp string."
+  },
+  "bookmark": {
+    "target": "marcaj",
+    "note": "Noun; plural 'marcaje'. Verb: 'a adăuga la marcaje'. No established repo rendering; standard Romanian UI term."
+  },
+  "saved messages": {
+    "target": "mesaje salvate",
+    "note": "Webapp mixes 'mesaje salvate' and 'postări salvate'; prefer 'mesaje salvate'. Save/unsave: 'a salva' / 'a elimina din salvate'."
+  },
+  "draft": {
+    "target": "schiță",
+    "note": "Plural: 'schițe'. No repo signal; standard Romanian software term (Gmail, Teams)."
+  },
+  "scheduled post": {
+    "target": "postare programată",
+    "note": "Plural: 'postări programate'. 'Scheduled message' = 'mesaj programat'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Invariable loanword, already used in webapp ro.json. Plural in running text: 'emoji-uri'."
+  },
+  "custom emoji": {
+    "target": "emoji personalizat",
+    "note": "Plural: 'emoji-uri personalizate'."
+  },
+  "reaction": {
+    "target": "reacție",
+    "note": "Plural: 'reacții'. Verb 'react': 'a reacționa'."
+  },
+  "status": {
+    "target": "stare",
+    "note": "Majority rendering; webapp occasionally uses 'statut' ('să vă schimbați statutul') — prefer 'stare' consistently."
+  },
+  "custom status": {
+    "target": "stare personalizată"
+  },
+  "do not disturb": {
+    "target": "Nu deranjați",
+    "note": "Established in webapp ('Nu deranjați'). Keep the formal plural imperative."
+  },
+  "away": {
+    "target": "Plecat",
+    "note": "Established in webapp; ignore the stray 'Deplasare' mistranslation."
+  },
+  "online": {
+    "target": "Online",
+    "note": "Kept in English in existing translations; standard in Romanian UIs."
+  },
+  "offline": {
+    "target": "Offline",
+    "note": "Kept in English in existing translations."
+  },
+  "out of office": {
+    "target": "Plecat din birou",
+    "note": "Majority webapp rendering; mobile once uses 'Afară din birou' — prefer 'Plecat din birou'."
+  },
+  "guest": {
+    "target": "oaspete",
+    "note": "Plural: 'oaspeți'. Webapp mixes 'oaspete' and 'invitat'; prefer 'oaspete' — 'invitat' collides with 'invited' and produces ambiguities like 'Invitați invitați'."
+  },
+  "member": {
+    "target": "membru",
+    "note": "Plural: 'membri' (not 'membrii' unless definite)."
+  },
+  "user": {
+    "target": "utilizator",
+    "note": "Plural: 'utilizatori'."
+  },
+  "system admin": {
+    "target": "administrator de sistem",
+    "note": "Established in webapp/server."
+  },
+  "team admin": {
+    "target": "administrator de echipă"
+  },
+  "channel admin": {
+    "target": "administrator de canal"
+  },
+  "session": {
+    "target": "sesiune",
+    "note": "Plural: 'sesiuni'."
+  },
+  "sign in": {
+    "target": "a se conecta",
+    "note": "Majority webapp rendering ('vă conectați', 'Conectare'); 'autentificare' also appears — translate both 'sign in' and 'log in' as 'conectare / a se conecta'. Button label: 'Conectare'."
+  },
+  "sign out": {
+    "target": "a se deconecta",
+    "note": "Button/menu label: 'Deconectare' (established in webapp)."
+  },
+  "join": {
+    "target": "a se alătura",
+    "note": "'Alăturați-vă canalului'. For join messages, webapp also uses 'intrare' — prefer 'a se alătura' in UI actions."
+  },
+  "leave": {
+    "target": "a părăsi",
+    "note": "'Părăsiți canalul/echipa'."
+  },
+  "archive": {
+    "target": "a arhiva",
+    "note": "'Arhivați canalul'; adjective 'arhivat'."
+  },
+  "unarchive": {
+    "target": "a dezarhiva",
+    "note": "Majority webapp rendering ('Dezarhivează canalul', 'Dezarhivați'); ignore the stray 'Canal nearhivat'."
+  },
+  "mute": {
+    "target": "a pune pe silențios",
+    "note": "Channel notification muting. Existing renderings are inconsistent and poor ('Canal mut', 'muțește') — prefer 'a pune pe silențios' / 'silențios'. Distinct from muting a microphone in Calls ('a dezactiva microfonul')."
+  },
+  "follow": {
+    "target": "a urmări",
+    "note": "'Urmăriți firul' (established). Following: 'urmărit'."
+  },
+  "unfollow": {
+    "target": "a nu mai urmări",
+    "note": "'Nu mai urmăriți firul'. One webapp string wrongly reuses 'Urmărește firul' for unfollow — do not copy it."
+  },
+  "favorite": {
+    "target": "favorit",
+    "note": "Noun/adjective; plural 'favorite'. Verb: 'a adăuga la favorite'; unfavorite: 'a elimina din favorite'."
+  },
+  "search": {
+    "target": "căutare",
+    "note": "Noun; verb 'a căuta' (button: 'Caută'/'Căutați')."
+  },
+  "integration": {
+    "target": "integrare",
+    "note": "Plural: 'integrări'."
+  },
+  "slash command": {
+    "target": "comandă slash",
+    "note": "Established in webapp ('comanda slash'). Plural: 'comenzi slash'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Keep untranslated (masculine: 'webhook-ul', plural 'webhook-uri'). Legacy machine translations ('bara de intrare', 'bijuteria') are errors — never reuse them."
+  },
+  "incoming webhook": {
+    "target": "webhook de intrare",
+    "note": "Plural: 'webhook-uri de intrare'."
+  },
+  "outgoing webhook": {
+    "target": "webhook de ieșire",
+    "note": "Plural: 'webhook-uri de ieșire'."
+  },
+  "trigger word": {
+    "target": "cuvânt de declanșare",
+    "note": "Follows webapp 'cuvintele tale de declanșare'. Plural: 'cuvinte de declanșare'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept as loanword in webapp ('pluginul', 'pluginuri'). Articulate as 'plugin-ul' / plural 'plugin-uri' per current orthographic norms."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept in webapp ('Conturi Bot'). Plural: 'boți' or 'bot-uri'; 'cont de bot' for bot account."
+  },
+  "role": {
+    "target": "rol",
+    "note": "Plural: 'roluri'."
+  },
+  "permission": {
+    "target": "permisiune",
+    "note": "Plural: 'permisiuni'. One legacy string uses 'autorizare' — prefer 'permisiune'."
+  },
+  "scheme": {
+    "target": "schemă",
+    "note": "Plural: 'scheme'. 'Permission scheme' = 'schemă de permisiuni'."
+  },
+  "license": {
+    "target": "licență",
+    "note": "Plural: 'licențe'."
+  },
+  "seat": {
+    "target": "loc",
+    "note": "Licensed user slot; plural 'locuri'. No repo signal; standard Romanian SaaS term."
+  },
+  "trial": {
+    "target": "perioadă de probă",
+    "note": "'Free trial' = 'perioadă de probă gratuită'."
+  },
+  "workspace": {
+    "target": "spațiu de lucru",
+    "note": "Established in mobile ro.json. Plural: 'spații de lucru'."
+  },
+  "subscription": {
+    "target": "abonament"
+  },
+  "deactivate": {
+    "target": "a dezactiva",
+    "note": "'Dezactivat' for the deactivated state."
+  },
+  "invite": {
+    "target": "a invita",
+    "note": "Noun sense: 'invitație'. Button: 'Invitați'."
+  },
+  "invitation": {
+    "target": "invitație",
+    "note": "Plural: 'invitații'."
+  },
+  "sidebar": {
+    "target": "bară laterală",
+    "note": "Established in webapp ('bara laterală')."
+  },
+  "unread": {
+    "target": "necitit",
+    "note": "Feminine/plural: 'necitită/necitite'. 'Unreads' = 'mesaje necitite'."
+  },
+  "attachment": {
+    "target": "atașament",
+    "note": "Plural: 'atașamente'."
+  },
+  "public channel": {
+    "target": "canal public",
+    "note": "Plural: 'canale publice'."
+  },
+  "private channel": {
+    "target": "canal privat",
+    "note": "Plural: 'canale private'."
+  },
+  "shared channel": {
+    "target": "canal partajat",
+    "note": "Established in server strings. Plural: 'canale partajate'."
+  },
+  "channel header": {
+    "target": "antetul canalului",
+    "note": "Standalone 'Header' = 'Antet'."
+  },
+  "channel purpose": {
+    "target": "scopul canalului",
+    "note": "Established in webapp. Standalone 'Purpose' = 'Scop'."
+  },
+  "system message": {
+    "target": "mesaj de sistem",
+    "note": "Plural: 'mesaje de sistem'."
+  },
+  "persistent notification": {
+    "target": "notificare persistentă",
+    "note": "Plural: 'notificări persistente'."
+  },
+  "message priority": {
+    "target": "prioritatea mesajului",
+    "note": "Feature name usable as 'Prioritate mesaj' in compact UI."
+  },
+  "urgent": {
+    "target": "urgent",
+    "note": "Label form: 'URGENT'. Feminine: 'urgentă'."
+  },
+  "recap": {
+    "target": "recapitulare",
+    "note": "AI channel summary; plural 'recapitulări'."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "AI assistant; plural 'agenți'. Same word as English."
+  },
+  "burn-on-read": {
+    "target": "autodistrugere la citire",
+    "note": "No repo signal. Label form: 'AUTODISTRUGERE LA CITIRE'; adjectival use: 'mesaj cu autodistrugere la citire' (Telegram-style convention)."
+  },
+  "magic link": {
+    "target": "link magic",
+    "note": "Plural: 'linkuri magice'."
+  },
+  "personal access token": {
+    "target": "token de acces personal",
+    "note": "Webapp mixes 'jeton de acces personal' and 'token' — prefer 'token' (established loanword in Romanian tech UI); treat 'jeton'/'indice' as legacy."
+  },
+  "announcement banner": {
+    "target": "banner de anunțuri",
+    "note": "Established in webapp."
+  },
+  "channel banner": {
+    "target": "banner de canal"
+  },
+  "keyword": {
+    "target": "cuvânt-cheie",
+    "note": "Plural: 'cuvinte-cheie'."
+  },
+  "user group": {
+    "target": "grup de utilizatori",
+    "note": "Standalone 'group' = 'grup'."
+  },
+  "permalink": {
+    "target": "permalink",
+    "note": "Kept untranslated in webapp ro.json."
+  },
+  "profile": {
+    "target": "profil"
+  },
+  "username": {
+    "target": "nume de utilizator",
+    "note": "Established in webapp; do not shorten to just 'utilizator' as some legacy strings do."
+  },
+  "nickname": {
+    "target": "pseudonim",
+    "note": "Legacy strings use 'poreclă' in an example and mistranslate the field as 'Prenume' — prefer 'pseudonim' (standard software term)."
+  },
+  "display name": {
+    "target": "nume afișat",
+    "note": "Established in webapp ('Nume afișat')."
+  },
+  "collapsed reply threads": {
+    "target": "fire de răspuns restrânse",
+    "note": "Feature name; keeps 'fir' for thread."
+  },
+  "auto-translation": {
+    "target": "traducere automată",
+    "note": "'AUTO-TRANSLATED' label: 'TRADUS AUTOMAT'."
+  },
+  "data retention": {
+    "target": "păstrarea datelor",
+    "note": "Established in webapp: 'Politica de păstrare a datelor' for data retention policy."
+  },
+  "compliance export": {
+    "target": "export de conformitate",
+    "note": "Legacy strings are garbled ('lucrare de complianță') — use 'export de conformitate' consistently."
+  },
+  "access control": {
+    "target": "controlul accesului",
+    "note": "'Access control policy' = 'politică de control al accesului'."
+  },
+  "attribute": {
+    "target": "atribut",
+    "note": "Established in webapp (LDAP/SAML strings). Plural: 'atribute'."
+  },
+  "onboarding": {
+    "target": "inițiere",
+    "note": "No repo signal. 'Inițiere' for the guided first-run experience; the English 'onboarding' is also widely understood in Romanian business software and may be kept in marketing copy."
+  },
+  "Town Square": {
+    "target": "Canalul principal",
+    "note": "Established in server ro.json as the default channel name."
+  },
+  "Off-Topic": {
+    "target": "În afara subiectului",
+    "note": "Server ro.json has 'In afara topicului' (missing diacritic, calqued 'topic'); prefer the corrected 'În afara subiectului' but note the existing channel name users may already see."
+  },
+  "read-only": {
+    "target": "doar în citire",
+    "note": "Existing renderings vary ('numai în citire', 'doar-în-citire', 'doar pentru citire'); standardize on 'doar în citire'."
+  },
+  "server": {
+    "target": "server",
+    "note": "Plural: 'servere'."
+  }
+}

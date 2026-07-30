@@ -1,0 +1,373 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "System Console"
+  },
+  "marketplace": {
+    "target": "marketplace"
+  },
+  "channel": {
+    "target": "channel"
+  },
+  "team": {
+    "target": "team"
+  },
+  "post": {
+    "target": "post"
+  },
+  "message": {
+    "target": "message"
+  },
+  "thread": {
+    "target": "thread"
+  },
+  "reply": {
+    "target": "reply"
+  },
+  "direct message": {
+    "target": "direct message"
+  },
+  "group message": {
+    "target": "group message"
+  },
+  "mention": {
+    "target": "mention"
+  },
+  "notification": {
+    "target": "notification"
+  },
+  "pin": {
+    "target": "pin"
+  },
+  "bookmark": {
+    "target": "bookmark"
+  },
+  "saved messages": {
+    "target": "saved messages"
+  },
+  "draft": {
+    "target": "draft"
+  },
+  "scheduled post": {
+    "target": "scheduled post"
+  },
+  "emoji": {
+    "target": "emoji"
+  },
+  "custom emoji": {
+    "target": "custom emoji"
+  },
+  "reaction": {
+    "target": "reaction"
+  },
+  "status": {
+    "target": "status"
+  },
+  "custom status": {
+    "target": "custom status"
+  },
+  "do not disturb": {
+    "target": "do not disturb"
+  },
+  "away": {
+    "target": "away"
+  },
+  "online": {
+    "target": "online"
+  },
+  "offline": {
+    "target": "offline"
+  },
+  "out of office": {
+    "target": "out of office"
+  },
+  "guest": {
+    "target": "guest"
+  },
+  "member": {
+    "target": "member"
+  },
+  "user": {
+    "target": "user"
+  },
+  "system admin": {
+    "target": "system admin"
+  },
+  "team admin": {
+    "target": "team admin"
+  },
+  "channel admin": {
+    "target": "channel admin"
+  },
+  "session": {
+    "target": "session"
+  },
+  "sign in": {
+    "target": "sign in"
+  },
+  "sign out": {
+    "target": "sign out"
+  },
+  "join": {
+    "target": "join"
+  },
+  "leave": {
+    "target": "leave"
+  },
+  "archive": {
+    "target": "archive"
+  },
+  "unarchive": {
+    "target": "unarchive"
+  },
+  "mute": {
+    "target": "mute"
+  },
+  "follow": {
+    "target": "follow"
+  },
+  "unfollow": {
+    "target": "unfollow"
+  },
+  "favorite": {
+    "target": "favourite",
+    "note": "AU spelling; Favourites category, Unfavourite."
+  },
+  "search": {
+    "target": "search"
+  },
+  "integration": {
+    "target": "integration"
+  },
+  "slash command": {
+    "target": "slash command"
+  },
+  "webhook": {
+    "target": "webhook"
+  },
+  "incoming webhook": {
+    "target": "incoming webhook"
+  },
+  "outgoing webhook": {
+    "target": "outgoing webhook"
+  },
+  "trigger word": {
+    "target": "trigger word"
+  },
+  "plugin": {
+    "target": "plugin"
+  },
+  "bot": {
+    "target": "bot"
+  },
+  "role": {
+    "target": "role"
+  },
+  "permission": {
+    "target": "permission"
+  },
+  "scheme": {
+    "target": "scheme"
+  },
+  "license": {
+    "target": "licence",
+    "note": "Noun is 'licence'; verb/participle stays 'licensed' (matches existing en-AU)."
+  },
+  "seat": {
+    "target": "seat"
+  },
+  "trial": {
+    "target": "trial"
+  },
+  "workspace": {
+    "target": "workspace"
+  },
+  "subscription": {
+    "target": "subscription"
+  },
+  "deactivate": {
+    "target": "deactivate"
+  },
+  "invite": {
+    "target": "invite"
+  },
+  "invitation": {
+    "target": "invitation"
+  },
+  "sidebar": {
+    "target": "sidebar"
+  },
+  "unread": {
+    "target": "unread"
+  },
+  "attachment": {
+    "target": "attachment"
+  },
+  "public channel": {
+    "target": "public channel"
+  },
+  "private channel": {
+    "target": "private channel"
+  },
+  "shared channel": {
+    "target": "shared channel"
+  },
+  "channel header": {
+    "target": "channel header"
+  },
+  "channel purpose": {
+    "target": "channel purpose"
+  },
+  "system message": {
+    "target": "system message"
+  },
+  "persistent notification": {
+    "target": "persistent notification"
+  },
+  "message priority": {
+    "target": "message priority"
+  },
+  "urgent": {
+    "target": "urgent"
+  },
+  "recap": {
+    "target": "recap"
+  },
+  "agent": {
+    "target": "agent"
+  },
+  "burn-on-read": {
+    "target": "burn-on-read"
+  },
+  "magic link": {
+    "target": "magic link"
+  },
+  "personal access token": {
+    "target": "personal access token"
+  },
+  "announcement banner": {
+    "target": "announcement banner"
+  },
+  "channel banner": {
+    "target": "channel banner"
+  },
+  "keyword": {
+    "target": "keyword"
+  },
+  "user group": {
+    "target": "user group"
+  },
+  "permalink": {
+    "target": "permalink"
+  },
+  "profile": {
+    "target": "profile"
+  },
+  "username": {
+    "target": "username"
+  },
+  "nickname": {
+    "target": "nickname"
+  },
+  "display name": {
+    "target": "display name"
+  },
+  "collapsed reply threads": {
+    "target": "collapsed reply threads"
+  },
+  "auto-translation": {
+    "target": "auto-translation"
+  },
+  "data retention": {
+    "target": "data retention"
+  },
+  "compliance export": {
+    "target": "compliance export"
+  },
+  "access control": {
+    "target": "access control"
+  },
+  "attribute": {
+    "target": "attribute"
+  },
+  "onboarding": {
+    "target": "onboarding"
+  },
+  "Town Square": {
+    "target": "Town Square"
+  },
+  "Off-Topic": {
+    "target": "Off-Topic"
+  },
+  "read-only": {
+    "target": "read-only"
+  },
+  "server": {
+    "target": "server"
+  }
+}

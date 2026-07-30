@@ -1,0 +1,1021 @@
+{
+  "Mattermost": {
+    "definition": "Brand name of the product and the company; never translate or transliterate.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Enterprise Edition": {
+    "definition": "Name of the commercial, licensed edition of the Mattermost server.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "EE"
+    ]
+  },
+  "Team Edition": {
+    "definition": "Name of the free, open-source edition of the Mattermost server.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Mattermost Cloud": {
+    "definition": "Name of the hosted SaaS offering of Mattermost.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Channels": {
+    "definition": "Product name of the Mattermost messaging product; as a product name it stays in English, unlike the common noun 'channel'.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Playbooks": {
+    "definition": "Product name of the Mattermost workflow product; as a product name it stays in English.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Boards": {
+    "definition": "Product name of the Mattermost project/kanban board product; as a product name it stays in English.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Calls": {
+    "definition": "Product name of the Mattermost voice/video calling feature; as a product name it stays in English.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Markdown": {
+    "definition": "Name of the text formatting syntax used in Mattermost messages.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "OAuth": {
+    "definition": "Authorization protocol used for app integrations and single sign-on; technical identity.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "OAuth 2.0"
+    ]
+  },
+  "SAML": {
+    "definition": "Single sign-on protocol (Security Assertion Markup Language); technical identity.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "LDAP": {
+    "definition": "Directory protocol used for AD/LDAP login and user sync; technical identity.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "AD/LDAP"
+    ]
+  },
+  "SSO": {
+    "definition": "Abbreviation for single sign-on; keep the abbreviation as-is.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "MFA": {
+    "definition": "Abbreviation for multi-factor authentication; keep the abbreviation as-is.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "OpenID Connect": {
+    "definition": "Identity protocol used as a single sign-on option; technical identity.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Entra ID": {
+    "definition": "Microsoft's identity platform (formerly Azure AD), offered as a login option.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "GitLab": {
+    "definition": "Third-party product offered as a single sign-on option; brand name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Elasticsearch": {
+    "definition": "Third-party search engine that can back Mattermost's search; brand name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Bleve": {
+    "definition": "Name of the embedded search engine option in the System Console; brand name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Gossip": {
+    "definition": "Name of the cluster communication protocol shown in high-availability settings; never translate literally as 'chatter'.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Actiance XML": {
+    "definition": "Name of a compliance export format; product identity.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Global Relay": {
+    "definition": "Third-party compliance archiving service and export format; brand name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "Global Relay EML"
+    ]
+  },
+  "System Console": {
+    "definition": "The administrator interface where system admins configure the Mattermost server; translate consistently as a named UI area.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "system console"
+    ]
+  },
+  "marketplace": {
+    "definition": "The in-product store where admins browse and install plugins and apps.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Marketplace"
+    ]
+  },
+  "channel": {
+    "definition": "A conversation space where messages are exchanged; the basic organizing unit of communication in Mattermost.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Channel",
+      "channels"
+    ]
+  },
+  "team": {
+    "definition": "A named collection of channels and users; a workspace can contain multiple teams.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Team",
+      "teams"
+    ]
+  },
+  "post": {
+    "definition": "A single message published to a channel or thread; used interchangeably with 'message' in the UI.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "posts"
+    ]
+  },
+  "message": {
+    "definition": "Text (and attachments) a user sends in a channel, thread, or direct message.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Message",
+      "messages"
+    ]
+  },
+  "thread": {
+    "definition": "A set of replies attached to a root message, viewed and followed as one conversation.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Thread",
+      "threads",
+      "Threads"
+    ]
+  },
+  "reply": {
+    "definition": "A message posted in a thread in response to a root message; also the act of doing so.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "replies",
+      "Reply"
+    ]
+  },
+  "direct message": {
+    "definition": "A private one-to-one conversation between two users.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Direct Message",
+      "direct messages",
+      "DM"
+    ]
+  },
+  "group message": {
+    "definition": "A private conversation among three to eight users, without a named channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Group Message",
+      "group messages",
+      "GM"
+    ]
+  },
+  "mention": {
+    "definition": "Referencing a user or group with @username so they are notified; also the notification itself.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Mention",
+      "mentions",
+      "@mention"
+    ]
+  },
+  "notification": {
+    "definition": "An alert (desktop, email, or mobile) informing a user of activity such as mentions or replies.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Notifications"
+    ]
+  },
+  "pin": {
+    "definition": "To attach a message to a channel's pinned list so all members can find it easily.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Pinned",
+      "unpin",
+      "pinned messages"
+    ]
+  },
+  "bookmark": {
+    "definition": "A saved link or file attached to the top of a channel for quick access; also the act of adding one.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Bookmarks",
+      "bookmarks"
+    ]
+  },
+  "saved messages": {
+    "definition": "A user's personal list of messages they saved for later follow-up; visible only to that user.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Saved Messages",
+      "save",
+      "unsave"
+    ]
+  },
+  "draft": {
+    "definition": "An unsent message that is kept until the user sends, schedules, or deletes it.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Drafts",
+      "drafts"
+    ]
+  },
+  "scheduled post": {
+    "definition": "A message set to be sent automatically at a future date and time.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Scheduled Post",
+      "scheduled message",
+      "scheduled posts"
+    ]
+  },
+  "emoji": {
+    "definition": "A small pictograph inserted into messages or used as a reaction.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Emoji",
+      "emojis"
+    ]
+  },
+  "custom emoji": {
+    "definition": "A user-uploaded emoji available across the workspace in addition to the standard set.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Custom Emoji"
+    ]
+  },
+  "reaction": {
+    "definition": "An emoji attached to an existing message to respond without posting a reply.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "reactions",
+      "react"
+    ]
+  },
+  "status": {
+    "definition": "A user's availability indicator: online, away, do not disturb, or offline.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Status"
+    ]
+  },
+  "custom status": {
+    "definition": "A user-defined emoji and text (e.g. 'In a meeting') shown next to their name, separate from availability.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Custom Status"
+    ]
+  },
+  "do not disturb": {
+    "definition": "Availability status that silences all notifications until turned off or a timer expires.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Do Not Disturb",
+      "Do not disturb",
+      "DND"
+    ]
+  },
+  "away": {
+    "definition": "Availability status shown when a user is inactive or sets themselves as away.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Away"
+    ]
+  },
+  "online": {
+    "definition": "Availability status shown when a user is active in Mattermost.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Online"
+    ]
+  },
+  "offline": {
+    "definition": "Availability status shown when a user is not connected to Mattermost.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Offline"
+    ]
+  },
+  "out of office": {
+    "definition": "Availability status set automatically or manually when a user is away from work; can trigger automatic replies.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Out of Office",
+      "Out Of Office"
+    ]
+  },
+  "guest": {
+    "definition": "An account type with restricted access, limited to specific channels and teams they are invited to.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Guest",
+      "guests"
+    ]
+  },
+  "member": {
+    "definition": "A regular (non-guest, non-admin) user belonging to a team or channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Member",
+      "members"
+    ]
+  },
+  "user": {
+    "definition": "Any account on the Mattermost server, including members, guests, admins, and bots.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "User",
+      "users"
+    ]
+  },
+  "system admin": {
+    "definition": "The highest administrative role, with full access to the System Console and server settings.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "System Admin",
+      "system administrator",
+      "System Administrator"
+    ]
+  },
+  "team admin": {
+    "definition": "A role with administrative permissions scoped to a single team.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Team Admin"
+    ]
+  },
+  "channel admin": {
+    "definition": "A role with administrative permissions scoped to a single channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Channel Admin"
+    ]
+  },
+  "session": {
+    "definition": "An authenticated login on a device; sessions expire and can be revoked by admins.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "sessions",
+      "Session"
+    ]
+  },
+  "sign in": {
+    "definition": "To authenticate and start a session; the UI uses 'log in' and 'sign in' interchangeably — translate both the same way.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Sign in",
+      "log in",
+      "Log In",
+      "login"
+    ]
+  },
+  "sign out": {
+    "definition": "To end the current session; the UI uses 'log out' and 'sign out' interchangeably — translate both the same way.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "log out",
+      "Log Out",
+      "logout"
+    ]
+  },
+  "join": {
+    "definition": "To become a member of a channel or team.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Join",
+      "joined"
+    ]
+  },
+  "leave": {
+    "definition": "To remove oneself from a channel or team.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Leave",
+      "left"
+    ]
+  },
+  "archive": {
+    "definition": "To close a channel so it becomes read-only and hidden from the sidebar, without deleting its history.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Archive",
+      "archived",
+      "Archived"
+    ]
+  },
+  "unarchive": {
+    "definition": "To restore an archived channel to active use.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Unarchive"
+    ]
+  },
+  "mute": {
+    "definition": "To silence notifications from a channel while remaining a member; distinct from muting a microphone in Calls.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Mute",
+      "muted",
+      "unmute"
+    ]
+  },
+  "follow": {
+    "definition": "To subscribe to a thread (or message) so its replies appear in the Threads view and trigger notifications.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Follow",
+      "following",
+      "followed"
+    ]
+  },
+  "unfollow": {
+    "definition": "To stop following a thread and its reply notifications.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Unfollow"
+    ]
+  },
+  "favorite": {
+    "definition": "To mark a channel so it appears in the Favorites sidebar category; also the marked item itself.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Favorite",
+      "Favorites",
+      "unfavorite"
+    ]
+  },
+  "search": {
+    "definition": "The feature for finding messages and files across channels using terms and modifiers.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Search"
+    ]
+  },
+  "integration": {
+    "definition": "A connection between Mattermost and an external tool, such as webhooks, slash commands, or OAuth apps.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Integrations",
+      "integrations"
+    ]
+  },
+  "slash command": {
+    "definition": "A command typed in the message box starting with '/', which triggers a built-in or custom action.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Slash Command",
+      "slash commands"
+    ]
+  },
+  "webhook": {
+    "definition": "An HTTP-based integration for posting or receiving messages; the word may be translated or kept depending on locale convention, but must be consistent.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Webhook",
+      "webhooks"
+    ]
+  },
+  "incoming webhook": {
+    "definition": "An integration that lets external services post messages into a Mattermost channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Incoming Webhook",
+      "incoming webhooks"
+    ]
+  },
+  "outgoing webhook": {
+    "definition": "An integration that sends channel messages matching trigger words to an external service.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Outgoing Webhook",
+      "outgoing webhooks"
+    ]
+  },
+  "trigger word": {
+    "definition": "A word that, when it starts or appears in a message, activates an outgoing webhook.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "trigger words",
+      "Trigger Words"
+    ]
+  },
+  "plugin": {
+    "definition": "An installable extension that adds features to the Mattermost server and apps.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Plugin",
+      "plugins",
+      "Plugins"
+    ]
+  },
+  "bot": {
+    "definition": "A non-human account used by integrations and plugins to post and interact.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Bot",
+      "bots",
+      "bot account"
+    ]
+  },
+  "role": {
+    "definition": "A named set of permissions assigned to users, such as member, team admin, or system admin.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "roles",
+      "Role"
+    ]
+  },
+  "permission": {
+    "definition": "An individual capability (e.g. create channels) that roles grant or deny.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Permissions",
+      "permissions"
+    ]
+  },
+  "scheme": {
+    "definition": "A named set of role-to-permission mappings applied to teams or channels (permission scheme).",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Scheme",
+      "schemes"
+    ]
+  },
+  "license": {
+    "definition": "The file or key that activates paid Mattermost features on a server.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "License"
+    ]
+  },
+  "seat": {
+    "definition": "One licensed user slot counted against a paid subscription.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "seats"
+    ]
+  },
+  "trial": {
+    "definition": "A time-limited free period of Enterprise features before purchasing a license.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Trial",
+      "free trial"
+    ]
+  },
+  "workspace": {
+    "definition": "A complete Mattermost instance (server plus its teams and data), especially in Cloud contexts.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Workspace",
+      "workspaces"
+    ]
+  },
+  "subscription": {
+    "definition": "A recurring paid plan for Mattermost Cloud or licensed features.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Subscription"
+    ]
+  },
+  "deactivate": {
+    "definition": "To disable a user account so it can no longer sign in, without deleting its data.",
+    "partOfSpeech": "verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Deactivate",
+      "deactivated",
+      "Deactivated"
+    ]
+  },
+  "invite": {
+    "definition": "To ask a person to join a team or channel, typically by email or link; also the request itself.",
+    "partOfSpeech": "noun/verb",
+    "doNotTranslate": false,
+    "aliases": [
+      "Invite",
+      "invited"
+    ]
+  },
+  "invitation": {
+    "definition": "The email or link sent when inviting someone to a team or channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "invitations"
+    ]
+  },
+  "sidebar": {
+    "definition": "The left-hand panel listing channels, direct messages, and categories.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Sidebar"
+    ]
+  },
+  "unread": {
+    "definition": "Describes messages or channels with content the user has not viewed yet.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Unread",
+      "Unreads",
+      "unreads"
+    ]
+  },
+  "attachment": {
+    "definition": "A file or media item included with a message.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Attachment",
+      "attachments"
+    ]
+  },
+  "public channel": {
+    "definition": "A channel any team member can find and join.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Public Channel",
+      "public channels"
+    ]
+  },
+  "private channel": {
+    "definition": "A channel visible only to invited members.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Private Channel",
+      "private channels"
+    ]
+  },
+  "shared channel": {
+    "definition": "A channel shared across connected Mattermost workspaces so users on different servers can participate.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Shared Channel",
+      "shared channels"
+    ]
+  },
+  "channel header": {
+    "definition": "The editable text shown at the top of a channel, next to the channel name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Header",
+      "header"
+    ]
+  },
+  "channel purpose": {
+    "definition": "A short description of what a channel is for, shown in channel info and search.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Purpose",
+      "purpose"
+    ]
+  },
+  "system message": {
+    "definition": "An automatic message posted by Mattermost itself, e.g. when someone joins or renames a channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "system messages"
+    ]
+  },
+  "persistent notification": {
+    "definition": "A repeated notification for an urgent message that keeps alerting recipients until acknowledged.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "persistent notifications",
+      "Persistent notifications"
+    ]
+  },
+  "message priority": {
+    "definition": "A label (Standard, Important, Urgent) a sender can attach to a message to indicate importance.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Message Priority"
+    ]
+  },
+  "urgent": {
+    "definition": "The highest message priority level; shown as a red label on the message.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Urgent",
+      "URGENT"
+    ]
+  },
+  "recap": {
+    "definition": "An AI-generated summary of activity in one or more channels over a time period.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Recap",
+      "recaps"
+    ]
+  },
+  "agent": {
+    "definition": "An AI assistant in Mattermost that users can ask questions or delegate tasks to.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Agent",
+      "Agents",
+      "agents"
+    ]
+  },
+  "burn-on-read": {
+    "definition": "A message type that is permanently deleted a set time after the recipient reads it.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Burn-on-read",
+      "Burn-on-Read",
+      "BURN ON READ"
+    ]
+  },
+  "magic link": {
+    "definition": "A sign-in link sent by email that authenticates the user without a password.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Magic Link",
+      "magic links"
+    ]
+  },
+  "personal access token": {
+    "definition": "A user-generated credential for authenticating API requests without a password.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Personal Access Token",
+      "personal access tokens"
+    ]
+  },
+  "announcement banner": {
+    "definition": "A system-wide banner configured by admins, shown across the top of the app for all users.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Announcement Banner"
+    ]
+  },
+  "channel banner": {
+    "definition": "A colored banner with custom text shown at the top of a specific channel.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Channel Banner",
+      "Channel banner"
+    ]
+  },
+  "keyword": {
+    "definition": "A word or phrase a user configures to trigger mention notifications when posted.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "keywords",
+      "Keywords"
+    ]
+  },
+  "user group": {
+    "definition": "A named collection of users that can be @-mentioned together and used for membership management.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "User Group",
+      "user groups",
+      "group"
+    ]
+  },
+  "permalink": {
+    "definition": "A permanent link to a specific message that can be copied and shared.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Permalink"
+    ]
+  },
+  "profile": {
+    "definition": "A user's account information: name, username, nickname, picture, and custom attributes.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Profile"
+    ]
+  },
+  "username": {
+    "definition": "The unique handle used for @-mentions and sign-in; distinct from the display name.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Username",
+      "user name"
+    ]
+  },
+  "nickname": {
+    "definition": "An optional informal name a user can set, shown according to display settings.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Nickname"
+    ]
+  },
+  "display name": {
+    "definition": "The human-readable name shown for a user, channel, team, or server in the UI.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Display Name"
+    ]
+  },
+  "collapsed reply threads": {
+    "definition": "The threading mode where replies are grouped under the root message and tracked in a Threads view.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Collapsed Reply Threads",
+      "Collapsed Reply Thread"
+    ]
+  },
+  "auto-translation": {
+    "definition": "A feature that automatically translates channel messages into the viewer's language.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Auto-translation",
+      "auto-translated",
+      "AUTO-TRANSLATED"
+    ]
+  },
+  "data retention": {
+    "definition": "Admin policies that automatically delete messages and files after a set period.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Data Retention",
+      "data retention policy"
+    ]
+  },
+  "compliance export": {
+    "definition": "An admin feature that exports message history in formats required for legal compliance.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Compliance Export"
+    ]
+  },
+  "access control": {
+    "definition": "Attribute-based rules that restrict who can access certain channels or resources.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Access Control",
+      "access control policy"
+    ]
+  },
+  "attribute": {
+    "definition": "A custom profile field or property (e.g. department) used on user profiles and in access control rules.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Attribute",
+      "attributes",
+      "custom profile attribute"
+    ]
+  },
+  "onboarding": {
+    "definition": "The guided first-run experience that helps new users and admins set up Mattermost.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Onboarding"
+    ]
+  },
+  "Town Square": {
+    "definition": "The default channel every team member belongs to; translate as a channel name, consistently.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Off-Topic": {
+    "definition": "A default channel for informal conversation created with each team; translate consistently.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "read-only": {
+    "definition": "Describes a channel where only authorized users can post; others can only read.",
+    "partOfSpeech": "adjective",
+    "doNotTranslate": false,
+    "aliases": [
+      "Read only",
+      "read only"
+    ]
+  },
+  "server": {
+    "definition": "The Mattermost backend instance that hosts teams, channels, and users.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false,
+    "aliases": [
+      "Server",
+      "servers"
+    ]
+  }
+}

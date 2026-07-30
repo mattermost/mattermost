@@ -1,0 +1,412 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Existing zh-TW UI renders the edition name as 企業版 in the About dialog; keep English when treated as a product name, 企業版 when the surrounding sentence is fully translated."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Existing zh-TW UI renders it as 團隊版 in the About dialog; same guidance as Enterprise Edition."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; the common noun channel is 頻道."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "系統控制台",
+    "note": "Consistently used across existing zh-TW admin strings."
+  },
+  "marketplace": {
+    "target": "市集"
+  },
+  "channel": {
+    "target": "頻道"
+  },
+  "team": {
+    "target": "團隊"
+  },
+  "post": {
+    "target": "訊息",
+    "note": "Existing zh-TW renders both 'post' and 'message' as 訊息; do not introduce a separate word such as 貼文."
+  },
+  "message": {
+    "target": "訊息"
+  },
+  "thread": {
+    "target": "討論串"
+  },
+  "reply": {
+    "target": "回覆",
+    "note": "Noun and verb are identical in Chinese."
+  },
+  "direct message": {
+    "target": "私人訊息",
+    "note": "Established zh-TW rendering; note it uses 私人 even though 'private channel' is also 私人頻道 — context disambiguates."
+  },
+  "group message": {
+    "target": "群組訊息"
+  },
+  "mention": {
+    "target": "提及",
+    "note": "Noun and verb are identical; @mention → @提及."
+  },
+  "notification": {
+    "target": "通知"
+  },
+  "pin": {
+    "target": "釘選",
+    "note": "Majority rendering; a minority of strings use 置頂 (e.g. no_results.pinned_messages) — prefer 釘選 and converge."
+  },
+  "bookmark": {
+    "target": "書籤",
+    "note": "Verb: 加入書籤."
+  },
+  "saved messages": {
+    "target": "已儲存的訊息",
+    "note": "save → 儲存, unsave → 取消儲存."
+  },
+  "draft": {
+    "target": "草稿"
+  },
+  "scheduled post": {
+    "target": "排程訊息",
+    "note": "Per admin.posts.scheduledPosts.title; schedule (verb) → 排程."
+  },
+  "emoji": {
+    "target": "表情符號"
+  },
+  "custom emoji": {
+    "target": "自訂表情符號"
+  },
+  "reaction": {
+    "target": "反應",
+    "note": "User-facing strings use 反應 (新增反應, 反應上限); some admin/moderation strings use 互動 — prefer 反應."
+  },
+  "status": {
+    "target": "狀態"
+  },
+  "custom status": {
+    "target": "自訂狀態"
+  },
+  "do not disturb": {
+    "target": "請勿打擾"
+  },
+  "away": {
+    "target": "離開",
+    "note": "Same word as the verb 'leave' (離開); availability context makes it clear."
+  },
+  "online": {
+    "target": "線上"
+  },
+  "offline": {
+    "target": "離線"
+  },
+  "out of office": {
+    "target": "不在辦公室"
+  },
+  "guest": {
+    "target": "訪客"
+  },
+  "member": {
+    "target": "成員"
+  },
+  "user": {
+    "target": "使用者"
+  },
+  "system admin": {
+    "target": "系統管理員"
+  },
+  "team admin": {
+    "target": "團隊管理員"
+  },
+  "channel admin": {
+    "target": "頻道管理員"
+  },
+  "session": {
+    "target": "工作階段",
+    "note": "Standard Taiwan term; do not use 會話 (Simplified convention)."
+  },
+  "sign in": {
+    "target": "登入",
+    "note": "Both 'sign in' and 'log in' map to 登入."
+  },
+  "sign out": {
+    "target": "登出"
+  },
+  "join": {
+    "target": "加入"
+  },
+  "leave": {
+    "target": "離開"
+  },
+  "archive": {
+    "target": "封存",
+    "note": "archived → 已封存."
+  },
+  "unarchive": {
+    "target": "取消封存"
+  },
+  "mute": {
+    "target": "靜音",
+    "note": "Channel muting also uses 靜音 (靜音頻道 / 取消靜音頻道), same word as microphone mute in Calls."
+  },
+  "follow": {
+    "target": "追蹤"
+  },
+  "unfollow": {
+    "target": "取消追蹤"
+  },
+  "favorite": {
+    "target": "我的最愛",
+    "note": "Verb/menu action: 加入我的最愛 (Add to Favorites) / 從我的最愛中移除; standalone label sometimes shortened to 最愛."
+  },
+  "search": {
+    "target": "搜尋"
+  },
+  "integration": {
+    "target": "整合"
+  },
+  "slash command": {
+    "target": "斜線命令",
+    "note": "Majority rendering (33 vs 3 for 斜線指令); keep 斜線命令."
+  },
+  "webhook": {
+    "target": "Webhook",
+    "note": "Kept in English with capital W throughout existing zh-TW strings."
+  },
+  "incoming webhook": {
+    "target": "送入的 Webhook"
+  },
+  "outgoing webhook": {
+    "target": "寄出的 Webhook"
+  },
+  "trigger word": {
+    "target": "觸發關鍵字"
+  },
+  "plugin": {
+    "target": "擴充程式",
+    "note": "Established zh-TW rendering; do not use 外掛 or 插件."
+  },
+  "bot": {
+    "target": "機器人",
+    "note": "bot account → 機器人帳號."
+  },
+  "role": {
+    "target": "地位",
+    "note": "Majority in existing zh-TW permission strings (授予的地位); 角色 is the standard Taiwan software term and also appears — flagging as an inconsistency worth converging on 角色 in a future cleanup."
+  },
+  "permission": {
+    "target": "權限"
+  },
+  "scheme": {
+    "target": "策略",
+    "note": "Permission Scheme → 權限策略, System Scheme → 系統級策略, Team Override Scheme → 團隊級覆寫策略."
+  },
+  "license": {
+    "target": "授權"
+  },
+  "seat": {
+    "target": "席次",
+    "note": "Existing billing strings render '{n} seats' simply as '{n} 人'; keep that counting pattern, use 席次 only when a standalone noun is required."
+  },
+  "trial": {
+    "target": "試用",
+    "note": "試用版 for the trial license/edition, 試用期 for the trial period, per context."
+  },
+  "workspace": {
+    "target": "工作區"
+  },
+  "subscription": {
+    "target": "訂閱"
+  },
+  "deactivate": {
+    "target": "停用",
+    "note": "Also used for 'disable'; deactivated users occasionally rendered 停權 — prefer 停用."
+  },
+  "invite": {
+    "target": "邀請"
+  },
+  "invitation": {
+    "target": "邀請"
+  },
+  "sidebar": {
+    "target": "側邊欄"
+  },
+  "unread": {
+    "target": "未讀"
+  },
+  "attachment": {
+    "target": "附件"
+  },
+  "public channel": {
+    "target": "公開頻道"
+  },
+  "private channel": {
+    "target": "私人頻道"
+  },
+  "shared channel": {
+    "target": "共享頻道"
+  },
+  "channel header": {
+    "target": "頻道標題"
+  },
+  "channel purpose": {
+    "target": "頻道用途"
+  },
+  "system message": {
+    "target": "系統訊息"
+  },
+  "persistent notification": {
+    "target": "持續性通知"
+  },
+  "message priority": {
+    "target": "訊息優先順序"
+  },
+  "urgent": {
+    "target": "緊急",
+    "note": "One legacy priority label uses 急迫; related persistent-notification strings use 緊急 — prefer 緊急."
+  },
+  "recap": {
+    "target": "重點回顧",
+    "note": "Feature not yet translated in zh-TW; 重點回顧 chosen to avoid clashing with 摘要 (summary) and 回顧 (Playbooks retrospective)."
+  },
+  "agent": {
+    "target": "代理",
+    "note": "No existing zh-TW translation; Taiwan tech convention for AI agent is (AI) 代理. Keep 'Agents' in English where it names the plugin/product."
+  },
+  "burn-on-read": {
+    "target": "閱後即焚",
+    "note": "Established Chinese term for self-destructing messages; not yet translated in zh-TW files."
+  },
+  "magic link": {
+    "target": "魔法連結",
+    "note": "Not yet translated in zh-TW files; 魔法連結 follows common Taiwan usage for passwordless email links."
+  },
+  "personal access token": {
+    "target": "個人存取 Token",
+    "note": "Existing zh-TW keeps 'Token' in English."
+  },
+  "announcement banner": {
+    "target": "公告橫幅"
+  },
+  "channel banner": {
+    "target": "頻道橫幅",
+    "note": "Not yet translated; follows 公告橫幅 (announcement banner) pattern."
+  },
+  "keyword": {
+    "target": "關鍵字"
+  },
+  "user group": {
+    "target": "使用者群組"
+  },
+  "permalink": {
+    "target": "永久連結"
+  },
+  "profile": {
+    "target": "個人檔案",
+    "note": "Majority rendering across webapp and mobile; 個人資料 also appears — prefer 個人檔案."
+  },
+  "username": {
+    "target": "使用者名稱"
+  },
+  "nickname": {
+    "target": "暱稱"
+  },
+  "display name": {
+    "target": "顯示名稱"
+  },
+  "collapsed reply threads": {
+    "target": "摺疊回覆討論串",
+    "note": "Not yet translated in zh-TW; uses 摺疊 (collapse) per existing display-settings strings."
+  },
+  "auto-translation": {
+    "target": "自動翻譯",
+    "note": "AUTO-TRANSLATED badge → 自動翻譯."
+  },
+  "data retention": {
+    "target": "資料保留"
+  },
+  "compliance export": {
+    "target": "法遵匯出",
+    "note": "法遵 is the majority rendering for compliance (25 vs 12 for 合規)."
+  },
+  "access control": {
+    "target": "存取控制",
+    "note": "Standard Taiwan term; the attribute-based feature is not yet translated."
+  },
+  "attribute": {
+    "target": "屬性"
+  },
+  "onboarding": {
+    "target": "新手上路",
+    "note": "Per existing 「新手上路」流程 strings."
+  },
+  "Town Square": {
+    "target": "市民廣場"
+  },
+  "Off-Topic": {
+    "target": "話家常"
+  },
+  "read-only": {
+    "target": "唯讀"
+  },
+  "server": {
+    "target": "伺服器"
+  }
+}

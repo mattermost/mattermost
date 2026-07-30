@@ -1,0 +1,456 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "systemkonsolen",
+    "note": "Existing translations overwhelmingly use 'systemkonsolen' (definite form) / 'systemkonsol'. Capitalize as 'Systemkonsolen' when used as a named UI area at sentence start or in titles."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Usage is split: 'Marketplace' (kept in English, majority) vs 'marknadsplatsen'. Keep 'Marketplace' as the named in-product store; definite form 'Marketplace' unchanged."
+  },
+  "channel": {
+    "target": "kanal",
+    "note": "en kanal, kanalen, kanaler."
+  },
+  "team": {
+    "target": "team",
+    "note": "Neuter loanword: ett team, teamet, team (pl.), teamen. Majority of existing strings keep 'team'; a legacy minority uses 'grupp' — avoid 'grupp' here since it is needed for 'user group' (användargrupp)."
+  },
+  "post": {
+    "target": "meddelande",
+    "note": "Existing translations render both 'post' and 'message' as 'meddelande' (majority). 'inlägg' appears in some admin strings (e.g. 'Schemalagda inlägg'); prefer 'meddelande' for consistency."
+  },
+  "message": {
+    "target": "meddelande",
+    "note": "ett meddelande, meddelandet, meddelanden."
+  },
+  "thread": {
+    "target": "tråd",
+    "note": "en tråd, tråden, trådar. Threads view: 'Trådar'."
+  },
+  "reply": {
+    "target": "svar",
+    "note": "Noun: 'svar' (ett svar, svaret, svar). Verb: 'svara'."
+  },
+  "direct message": {
+    "target": "direktmeddelande",
+    "note": "Majority rendering. A couple of legacy strings use '(Privat meddelande)' — do not reuse. Sidebar category: 'DIREKTMEDDELANDEN'."
+  },
+  "group message": {
+    "target": "gruppmeddelande"
+  },
+  "mention": {
+    "target": "omnämnande",
+    "note": "Noun: 'omnämnande' (pl. 'omnämnanden'). Verb: 'omnämna' or 'nämna'."
+  },
+  "notification": {
+    "target": "notifiering",
+    "note": "Existing usage is inconsistent: 'notifiering' (majority), 'avisering', 'meddelande'. Keep 'notifiering' for consistency; 'avisering' is the standard Swedish OS-level term and would be the better choice in a coordinated cleanup. Never use 'meddelande' (collides with 'message')."
+  },
+  "pin": {
+    "target": "fästa",
+    "note": "Inconsistent today: the action is 'Fäst i kanal' but the list is 'Nålade meddelanden'. Prefer 'fästa'/'fäst' (imperative 'Fäst') throughout; unpin = 'ta bort fäst meddelande'/'lossa'."
+  },
+  "bookmark": {
+    "target": "bokmärke",
+    "note": "Noun: 'bokmärke' (ett bokmärke, bokmärken). Verb: 'bokmärka' or 'lägga till bokmärke'."
+  },
+  "saved messages": {
+    "target": "sparade meddelanden",
+    "note": "UI title: 'Sparade meddelanden'. save = 'spara', unsave = 'ta bort från sparade'."
+  },
+  "draft": {
+    "target": "utkast",
+    "note": "ett utkast, utkastet, utkast (pl.)."
+  },
+  "scheduled post": {
+    "target": "schemalagt meddelande",
+    "note": "Existing strings use 'schemalagda meddelanden/utkast' and admin title 'Schemalagda inlägg'. Prefer 'schemalagt meddelande' to align with post/message = 'meddelande'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "en emoji, pl. 'emojier' (or invariant 'emoji'). NOTE: existing sv.json frequently misspells this as 'emoij' — always use 'emoji'."
+  },
+  "custom emoji": {
+    "target": "anpassad emoji",
+    "note": "Existing uses 'Anpassad emoij' (typo) and 'Egna emoij'. Use 'anpassad emoji'."
+  },
+  "reaction": {
+    "target": "reaktion",
+    "note": "en reaktion, reaktioner. Verb: 'reagera'. Existing has typo 'rekationer' — do not copy."
+  },
+  "status": {
+    "target": "status",
+    "note": "en status, statusen."
+  },
+  "custom status": {
+    "target": "anpassad status"
+  },
+  "do not disturb": {
+    "target": "stör ej",
+    "note": "Status label: 'Stör ej'."
+  },
+  "away": {
+    "target": "borta",
+    "note": "Status label: 'Borta'. A legacy string uses 'Tillfälligt borta'."
+  },
+  "online": {
+    "target": "online",
+    "note": "Existing is inconsistent: 'Uppkopplad', 'Ansluten', 'Online'. Prefer 'online' (invariant, standard Swedish) — it also pairs naturally with 'offline'."
+  },
+  "offline": {
+    "target": "offline",
+    "note": "Majority rendering keeps 'Offline'."
+  },
+  "out of office": {
+    "target": "ej tillgänglig",
+    "note": "Existing UI uses 'Ej tillgänglig'. A more literal option is 'inte på kontoret'/'frånvarande', but keep the established term."
+  },
+  "guest": {
+    "target": "gäst",
+    "note": "en gäst, gäster. Tag: 'GÄST'."
+  },
+  "member": {
+    "target": "medlem",
+    "note": "en medlem, medlemmar."
+  },
+  "user": {
+    "target": "användare",
+    "note": "en användare, användare (pl.), användarna."
+  },
+  "system admin": {
+    "target": "systemadministratör"
+  },
+  "team admin": {
+    "target": "teamadministratör"
+  },
+  "channel admin": {
+    "target": "kanaladministratör",
+    "note": "Existing has typo 'Kanaladminstratör' and role-vs-activity mixup 'Kanaladministration' — use 'kanaladministratör' for the role."
+  },
+  "session": {
+    "target": "session",
+    "note": "en session, sessioner."
+  },
+  "sign in": {
+    "target": "logga in",
+    "note": "Use 'logga in' for both 'sign in' and 'log in'. Noun: 'inloggning'."
+  },
+  "sign out": {
+    "target": "logga ut",
+    "note": "Use 'logga ut' for both 'sign out' and 'log out'."
+  },
+  "join": {
+    "target": "gå med",
+    "note": "'gå med i' a channel/team (Gå med i kanalen). Calls uses 'anslut' for joining a call — keep those distinct."
+  },
+  "leave": {
+    "target": "lämna"
+  },
+  "archive": {
+    "target": "arkivera",
+    "note": "archived = 'arkiverad'."
+  },
+  "unarchive": {
+    "target": "avarkivera",
+    "note": "Existing is very inconsistent: 'avarkivera', 'återställ ... från arkiv(et)', 'dearkivera', 'packa upp', and even a mistranslation 'Arkivera kanaler' for 'Unarchive Channel'. Standardize on 'avarkivera'."
+  },
+  "mute": {
+    "target": "mjuta",
+    "note": "Existing majority uses the anglicism 'mjuta' (Mjuta/mjutad) for channel mute; a minority uses 'tysta'. Keep 'mjuta' for consistency, though 'tysta' is more standard Swedish and would be the better choice in a coordinated cleanup."
+  },
+  "follow": {
+    "target": "följa",
+    "note": "Button: 'Följ'. following = 'följer'."
+  },
+  "unfollow": {
+    "target": "sluta följa",
+    "note": "Existing: 'Sluta följa tråden'. Avoid the calque 'avfölj' seen once in Playbooks."
+  },
+  "favorite": {
+    "target": "favorit",
+    "note": "Noun: 'favorit'; sidebar category 'Favoriter'. Verb: 'markera som favorit'; unfavorite = 'ta bort från favoriter'."
+  },
+  "search": {
+    "target": "söka",
+    "note": "Verb: 'söka' (button 'Sök'). Noun: 'sökning'."
+  },
+  "integration": {
+    "target": "integration",
+    "note": "en integration, integrationer."
+  },
+  "slash command": {
+    "target": "slash-kommando",
+    "note": "Consistently 'slash-kommando(n)' in existing translations."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English, common gender: en webhook, webhooken, webhooks/webhookar."
+  },
+  "incoming webhook": {
+    "target": "inkommande webhook"
+  },
+  "outgoing webhook": {
+    "target": "utgående webhook"
+  },
+  "trigger word": {
+    "target": "aktiveringsord",
+    "note": "Established rendering in existing translations (9 of 11 strings)."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English (majority): ett plugin, pl. 'plugins' or 'plugin-program'. 'tillägg' appears in a minority of strings — avoid."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "en bot, bottar/botar; bot account = 'bot-konto'."
+  },
+  "role": {
+    "target": "roll",
+    "note": "en roll, roller."
+  },
+  "permission": {
+    "target": "behörighet",
+    "note": "en behörighet, behörigheter."
+  },
+  "scheme": {
+    "target": "schema",
+    "note": "ett schema, scheman. Permission scheme = 'behörighetsschema'."
+  },
+  "license": {
+    "target": "licens",
+    "note": "en licens, licensen."
+  },
+  "seat": {
+    "target": "plats",
+    "note": "Existing renders licensed seats as 'platser' ('antalet platser i din licens')."
+  },
+  "trial": {
+    "target": "prova-på-period",
+    "note": "Majority rendering ('prova-på-period', 48 strings); 'testperiod' is a significant minority (23). Keep 'prova-på-period'."
+  },
+  "workspace": {
+    "target": "arbetsyta",
+    "note": "en arbetsyta, arbetsytan, arbetsytor. Majority rendering; some strings keep 'workspace'."
+  },
+  "subscription": {
+    "target": "prenumeration",
+    "note": "Majority; billing copy sometimes uses 'abonnemang' ('Köp ett abonnemang'). Prefer 'prenumeration'."
+  },
+  "deactivate": {
+    "target": "avaktivera",
+    "note": "deactivated = 'avaktiverad'."
+  },
+  "invite": {
+    "target": "bjuda in",
+    "note": "Verb: 'bjuda in' (imperative 'Bjud in'). Noun sense: use 'inbjudan'."
+  },
+  "invitation": {
+    "target": "inbjudan",
+    "note": "en inbjudan, inbjudningar."
+  },
+  "sidebar": {
+    "target": "sidofält",
+    "note": "Majority rendering ('sidofältet'); a few strings use 'meny'/'sidopanel' — prefer 'sidofält'."
+  },
+  "unread": {
+    "target": "oläst",
+    "note": "olästa meddelanden; Unreads view: 'Olästa'."
+  },
+  "attachment": {
+    "target": "bilaga",
+    "note": "en bilaga, bilagor. 'bifogad fil' also acceptable in running text."
+  },
+  "public channel": {
+    "target": "publik kanal",
+    "note": "Established as 'publik kanal' (not 'offentlig kanal')."
+  },
+  "private channel": {
+    "target": "privat kanal"
+  },
+  "shared channel": {
+    "target": "delad kanal"
+  },
+  "channel header": {
+    "target": "kanalens sidhuvud",
+    "note": "Inconsistent today: 'kanalens sidhuvud' (most common), 'kanalhuvudet', 'rubrik', 'header'. Standardize on 'kanalens sidhuvud' / 'sidhuvud'."
+  },
+  "channel purpose": {
+    "target": "kanalens syfte",
+    "note": "purpose = 'syfte' (majority)."
+  },
+  "system message": {
+    "target": "systemmeddelande"
+  },
+  "persistent notification": {
+    "target": "persistent notifiering",
+    "note": "Very inconsistent today: server uses 'persistenta notifieringar'; webapp variously 'återkommande/varaktiga/upprepade aviseringar'. Standardize on 'persistent notifiering' (pl. 'persistenta notifieringar') to match notification = 'notifiering'."
+  },
+  "message priority": {
+    "target": "meddelandeprioritet"
+  },
+  "urgent": {
+    "target": "brådskande",
+    "note": "Label: 'BRÅDSKANDE'."
+  },
+  "recap": {
+    "target": "sammanfattning",
+    "note": "No existing sv translation (new feature). 'sammanfattning' matches how related AI summaries are rendered; if a distinct word is needed to avoid clashing with 'summary', use 'återblick'."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "en agent, agenter. Mobile strings often say 'AI-agent' — acceptable where the AI context is not obvious."
+  },
+  "burn-on-read": {
+    "target": "bränn vid läsning",
+    "note": "UI labels use 'Bränn vid läsning' / 'BRÄNN VID LÄSNING'. One admin title uses 'Förstör meddelanden efter läsning' — prefer 'bränn vid läsning'."
+  },
+  "magic link": {
+    "target": "magisk länk",
+    "note": "Existing usage is split 50/50 between keeping 'Magic Link' and 'magisk länk'. Prefer the Swedish 'magisk länk' (en magisk länk, magiska länkar)."
+  },
+  "personal access token": {
+    "target": "personligt åtkomst-token",
+    "note": "As used in existing UI ('ett personligt åtkomst-token'). A cleaner compound would be 'personlig åtkomsttoken'; keep the existing form for consistency."
+  },
+  "announcement banner": {
+    "target": "informationsbanner",
+    "note": "Majority rendering; one permissions string uses 'System-aviseringar' — avoid."
+  },
+  "channel banner": {
+    "target": "kanalbanner",
+    "note": "Existing strings phrase it as 'kanalens banner'; use 'kanalbanner' as the compact term."
+  },
+  "keyword": {
+    "target": "nyckelord",
+    "note": "ett nyckelord, nyckelorden."
+  },
+  "user group": {
+    "target": "användargrupp",
+    "note": "en användargrupp, användargrupper. Plain 'group' = 'grupp'."
+  },
+  "permalink": {
+    "target": "permalänk"
+  },
+  "profile": {
+    "target": "profil",
+    "note": "en profil, profilen."
+  },
+  "username": {
+    "target": "användarnamn"
+  },
+  "nickname": {
+    "target": "smeknamn"
+  },
+  "display name": {
+    "target": "visningsnamn"
+  },
+  "collapsed reply threads": {
+    "target": "sammanfällda svarstrådar",
+    "note": "Mobile consistently uses 'Sammanfällda svarstrådar'; one legacy webapp string says 'Dialog med Svarstrådar' — prefer the mobile rendering."
+  },
+  "auto-translation": {
+    "target": "automatisk översättning",
+    "note": "auto-translated = 'automatiskt översatt' (label 'AUTOMATISKT ÖVERSATT')."
+  },
+  "data retention": {
+    "target": "gallring",
+    "note": "Existing consistently uses the Swedish records-management term 'gallring' (gallringspolicy, gallringsjobb, gallringsschema); literal 'datalagring' appears only twice. Data retention policy = 'gallringspolicy'."
+  },
+  "compliance export": {
+    "target": "efterlevnadsexport"
+  },
+  "access control": {
+    "target": "åtkomstkontroll",
+    "note": "Access control policy = 'åtkomstkontrollpolicy'."
+  },
+  "attribute": {
+    "target": "attribut",
+    "note": "ett attribut, attributet, attribut (pl.)."
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Majority keeps 'onboarding'; 'introduktion' appears in a minority of strings."
+  },
+  "Town Square": {
+    "target": "Torg",
+    "note": "Existing server translation of the default channel name is 'Torg'. Keep as-is for consistency with existing servers; 'Torget' would be more idiomatic."
+  },
+  "Off-Topic": {
+    "target": "Off-topic",
+    "note": "Existing server translation is 'Orelevant' (a misspelling of 'Irrelevant'). Prefer 'Off-topic', a common loanword in Swedish forums; 'Utanför ämnet' is an alternative."
+  },
+  "read-only": {
+    "target": "skrivskyddad",
+    "note": "skrivskyddad kanal."
+  },
+  "server": {
+    "target": "server",
+    "note": "en server, servern, servrar."
+  }
+}

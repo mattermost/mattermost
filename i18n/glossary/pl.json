@@ -1,0 +1,468 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; never translate or decline. Keep uninflected in all cases (do Mattermost, w Mattermost)."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Product edition name; keep in English. Existing pl.json once mistranslates it as 'Edytuj Zespół' (Team Edition) — do not follow that."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Product edition name; keep in English."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; keep in English. The common noun 'channel' is translated as 'kanał'."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name; keep in English."
+  },
+  "Boards": {
+    "target": "Boards",
+    "note": "Product name; keep in English."
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; keep in English. The common noun 'call' is translated as 'połączenie'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Keep 'AD/LDAP' compound as-is too."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled-out form is 'uwierzytelnianie wieloskładnikowe' in existing translations."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never translate literally (not 'plotka')."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Konsola systemowa",
+    "note": "Established rendering across webapp/server/mobile. Locative: 'w Konsoli systemowej'. Existing usage varies in capitalization ('konsola systemowa' mid-sentence is fine)."
+  },
+  "marketplace": {
+    "target": "sklep z wtyczkami",
+    "note": "Existing usage is inconsistent: 'sklep z wtyczkami' (webapp admin), plain 'Sklep' (server /marketplace command), and untranslated 'Marketplace'. Prefer 'sklep z wtyczkami'; when referring to the proper name in admin settings, 'Marketplace' may be kept."
+  },
+  "channel": {
+    "target": "kanał",
+    "note": "Masculine. Plural 'kanały'; locative 'w kanale/na kanale' (both occur; 'w kanale' is slightly more common and preferred)."
+  },
+  "team": {
+    "target": "zespół",
+    "note": "Masculine. Plural 'zespoły'; genitive 'zespołu'."
+  },
+  "post": {
+    "target": "post",
+    "note": "Majority rendering is the loanword 'post' (masculine; plural 'posty'). 'wpis' appears sporadically — avoid it for consistency."
+  },
+  "message": {
+    "target": "wiadomość",
+    "note": "Feminine. Plural 'wiadomości'."
+  },
+  "thread": {
+    "target": "wątek",
+    "note": "Masculine. Plural 'wątki'; locative 'w wątku'."
+  },
+  "reply": {
+    "target": "odpowiedź",
+    "note": "Noun: 'odpowiedź' (feminine, plural 'odpowiedzi'). Verb: 'odpowiedzieć' / imperative button 'Odpowiedz'."
+  },
+  "direct message": {
+    "target": "wiadomość bezpośrednia",
+    "note": "Established rendering; plural 'wiadomości bezpośrednie'. Do not translate the DM abbreviation."
+  },
+  "group message": {
+    "target": "wiadomość grupowa",
+    "note": "Plural 'wiadomości grupowe'."
+  },
+  "mention": {
+    "target": "wzmianka",
+    "note": "Noun: 'wzmianka' (feminine). Verb: 'wspomnieć (o kimś)'. '@mention' → 'wzmianka @'."
+  },
+  "notification": {
+    "target": "powiadomienie",
+    "note": "Neuter. Plural 'powiadomienia'."
+  },
+  "pin": {
+    "target": "przypiąć",
+    "note": "Imperative button 'Przypnij'. 'Pinned messages' → 'Przypięte wiadomości'; 'unpin' → 'odepnij'. One legacy webapp string uses 'pinezki' — avoid."
+  },
+  "bookmark": {
+    "target": "zakładka",
+    "note": "Noun: 'zakładka' (feminine). Verb: 'dodaj zakładkę'. Channel bookmark → 'zakładka kanału'."
+  },
+  "saved messages": {
+    "target": "zapisane wiadomości",
+    "note": "'save' → 'zapisz'; 'unsave' → 'usuń z zapisanych'."
+  },
+  "draft": {
+    "target": "wersja robocza",
+    "note": "Existing usage is split between 'wersja robocza' and 'szkic'; 'wersja robocza' is the majority in user-facing strings and matches Polish UI convention. Plural 'wersje robocze'."
+  },
+  "scheduled post": {
+    "target": "zaplanowany post",
+    "note": "'scheduled message' → 'zaplanowana wiadomość'. Section label 'Scheduled' → 'Zaplanowane'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Indeclinable neuter loanword; same form in singular and plural ('to emoji', 'te emoji')."
+  },
+  "custom emoji": {
+    "target": "niestandardowe emoji"
+  },
+  "reaction": {
+    "target": "reakcja",
+    "note": "Verb 'react' → 'zareagować'; 'Add reaction' → 'Dodaj reakcję'."
+  },
+  "status": {
+    "target": "status",
+    "note": "Masculine. Use 'status' (not 'stan') for user availability."
+  },
+  "custom status": {
+    "target": "status niestandardowy",
+    "note": "Word order varies in existing strings ('niestandardowy status' also common); both acceptable, prefer 'status niestandardowy' for labels."
+  },
+  "do not disturb": {
+    "target": "Nie przeszkadzać",
+    "note": "Established status name. Keep 'tryb „Nie przeszkadzać”' when used as a noun phrase. Do not translate the DND abbreviation."
+  },
+  "away": {
+    "target": "Zaraz wracam",
+    "note": "Established status name (lit. 'be right back'), consistent across webapp and mobile. Avoid 'nieobecny', which appears in a few legacy server strings."
+  },
+  "online": {
+    "target": "Online",
+    "note": "Majority keeps the loanword 'online' (indeclinable). Mobile occasionally uses 'Dostępny' — prefer 'Online' for the status name."
+  },
+  "offline": {
+    "target": "Offline",
+    "note": "Majority keeps 'offline' (indeclinable). 'Niedostępny' appears in some server command strings."
+  },
+  "out of office": {
+    "target": "Poza biurem",
+    "note": "Established status name."
+  },
+  "guest": {
+    "target": "gość",
+    "note": "Masculine. Plural 'goście'; genitive plural 'gości'. 'Guest access' → 'dostęp dla gości'."
+  },
+  "member": {
+    "target": "członek",
+    "note": "Masculine personal. Plural 'członkowie'; genitive 'członka'. 'channel member' → 'członek kanału'."
+  },
+  "user": {
+    "target": "użytkownik",
+    "note": "Plural 'użytkownicy'."
+  },
+  "system admin": {
+    "target": "administrator systemu",
+    "note": "Plural 'administratorzy systemu'. Use consistently for 'System Administrator' too."
+  },
+  "team admin": {
+    "target": "administrator zespołu"
+  },
+  "channel admin": {
+    "target": "administrator kanału"
+  },
+  "session": {
+    "target": "sesja",
+    "note": "Feminine. Plural 'sesje'. 'Session expired' → 'Sesja wygasła'."
+  },
+  "sign in": {
+    "target": "zalogować się",
+    "note": "Button 'Zaloguj się'. Translate 'log in' and 'sign in' identically."
+  },
+  "sign out": {
+    "target": "wylogować się",
+    "note": "Button 'Wyloguj się'. Translate 'log out' and 'sign out' identically."
+  },
+  "join": {
+    "target": "dołączyć",
+    "note": "Button 'Dołącz'. 'joined the channel' → 'dołączył(a) do kanału'."
+  },
+  "leave": {
+    "target": "opuścić",
+    "note": "Button 'Opuść'. 'left the channel' → 'opuścił(a) kanał'."
+  },
+  "archive": {
+    "target": "zarchiwizować",
+    "note": "Button 'Zarchiwizuj'; 'archived' → 'zarchiwizowany'."
+  },
+  "unarchive": {
+    "target": "cofnąć archiwizację",
+    "note": "Existing renderings are inconsistent ('Odarchiwizuj', 'Zdearchiwizuj', 'Cofnij archiwizację'); none has a clear majority. Prefer the standard 'cofnij archiwizację' (button 'Cofnij archiwizację') and avoid the non-standard coinages."
+  },
+  "mute": {
+    "target": "wyciszyć",
+    "note": "Button 'Wycisz'; 'muted' → 'wyciszony'; 'unmute' → 'wyłącz wyciszenie'. Same verb is used for Calls microphone muting."
+  },
+  "follow": {
+    "target": "obserwować",
+    "note": "Button 'Obserwuj'. Majority rendering; 'śledzić' appears in some thread-related strings — prefer 'obserwować' for consistency with webapp and Playbooks."
+  },
+  "unfollow": {
+    "target": "przestać obserwować",
+    "note": "Button 'Przestań obserwować' (mobile/playbooks) or 'Nie obserwuj' (webapp menu items)."
+  },
+  "favorite": {
+    "target": "ulubiony",
+    "note": "Adjective/noun 'ulubiony'; sidebar category 'Ulubione'; verb → 'dodaj do ulubionych', 'unfavorite' → 'usuń z ulubionych'."
+  },
+  "search": {
+    "target": "wyszukiwanie",
+    "note": "Noun 'wyszukiwanie'; verb/button 'Szukaj' or 'wyszukaj'."
+  },
+  "integration": {
+    "target": "integracja",
+    "note": "Feminine. Plural 'integracje'."
+  },
+  "slash command": {
+    "target": "polecenie po ukośniku",
+    "note": "Majority rendering (mobile, playbooks, newer webapp). Older strings use 'komenda po ukośniku' — prefer 'polecenie'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English by convention; declined as masculine ('webhooka', 'webhooki', 'webhookami')."
+  },
+  "incoming webhook": {
+    "target": "webhook przychodzący",
+    "note": "Word order varies in existing strings ('przychodzący webhook' also common); prefer noun-first 'webhook przychodzący' for term consistency with 'webhook wychodzący'."
+  },
+  "outgoing webhook": {
+    "target": "webhook wychodzący"
+  },
+  "trigger word": {
+    "target": "słowo wyzwalające",
+    "note": "Existing usage mixes 'słowo wyzwalające' and 'słowo wyzwalacza'; prefer 'słowo wyzwalające'."
+  },
+  "plugin": {
+    "target": "wtyczka",
+    "note": "Feminine. Plural 'wtyczki'. Avoid the loanword 'plugin' seen in a few legacy strings."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Masculine. Plural 'boty'; 'bot account' → 'konto bota'."
+  },
+  "role": {
+    "target": "rola",
+    "note": "Feminine. Plural 'role'."
+  },
+  "permission": {
+    "target": "uprawnienie",
+    "note": "Neuter. Plural 'uprawnienia'. Majority rendering; avoid 'pozwolenie' seen sporadically."
+  },
+  "scheme": {
+    "target": "schemat",
+    "note": "'permission scheme' → 'schemat uprawnień'."
+  },
+  "license": {
+    "target": "licencja"
+  },
+  "seat": {
+    "target": "miejsce",
+    "note": "Licensed seat → 'miejsce' (plural 'miejsca', genitive plural 'miejsc'). 'stanowisko' appears once — avoid."
+  },
+  "trial": {
+    "target": "okres próbny",
+    "note": "For the time period use 'okres próbny'; for a trial license use 'licencja próbna'. Avoid 'wersja testowa' seen in some strings."
+  },
+  "workspace": {
+    "target": "obszar roboczy",
+    "note": "Majority rendering; 'przestrzeń robocza' also occurs — prefer 'obszar roboczy'. Locative 'w obszarze roboczym'."
+  },
+  "subscription": {
+    "target": "subskrypcja",
+    "note": "Majority rendering; 'abonament' appears once in billing — prefer 'subskrypcja'."
+  },
+  "deactivate": {
+    "target": "dezaktywować",
+    "note": "Button 'Dezaktywuj'; 'deactivated' → 'dezaktywowany'."
+  },
+  "invite": {
+    "target": "zaprosić",
+    "note": "Verb 'zaprosić' (button 'Zaproś'); noun uses 'zaproszenie'."
+  },
+  "invitation": {
+    "target": "zaproszenie",
+    "note": "Neuter. Plural 'zaproszenia'."
+  },
+  "sidebar": {
+    "target": "pasek boczny",
+    "note": "Locative 'w pasku bocznym' / 'na pasku bocznym'."
+  },
+  "unread": {
+    "target": "nieprzeczytane",
+    "note": "Adjective; agrees in gender/number ('nieprzeczytana wiadomość', 'nieprzeczytane kanały'). Category label 'Unreads' → 'Nieprzeczytane'."
+  },
+  "attachment": {
+    "target": "załącznik",
+    "note": "Masculine. Plural 'załączniki'."
+  },
+  "public channel": {
+    "target": "kanał publiczny"
+  },
+  "private channel": {
+    "target": "kanał prywatny"
+  },
+  "shared channel": {
+    "target": "kanał udostępniony",
+    "note": "Majority rendering; 'kanał współdzielony' appears in some server strings — prefer 'udostępniony'."
+  },
+  "channel header": {
+    "target": "nagłówek kanału"
+  },
+  "channel purpose": {
+    "target": "cel kanału",
+    "note": "Standalone label 'Purpose' → 'Cel'."
+  },
+  "system message": {
+    "target": "wiadomość systemowa"
+  },
+  "persistent notification": {
+    "target": "trwałe powiadomienie",
+    "note": "Majority rendering; 'powiadomienie stałe' also occurs — prefer 'trwałe powiadomienie'."
+  },
+  "message priority": {
+    "target": "priorytet wiadomości",
+    "note": "Priority levels: Standard → 'Standardowy', Important → 'Ważne', Urgent → 'Pilne'."
+  },
+  "urgent": {
+    "target": "pilne",
+    "note": "Label 'PILNE' when uppercased. Agrees with 'wiadomość': 'pilna wiadomość', 'pilna wzmianka'."
+  },
+  "recap": {
+    "target": "podsumowanie",
+    "note": "Established rendering in webapp/server AI strings. Plural 'podsumowania'."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "AI assistant. Masculine personal: plural 'agenci' (nominative), 'agentów' (genitive/accusative). 'AI agents' → 'agenci AI'."
+  },
+  "burn-on-read": {
+    "target": "burn-on-read",
+    "note": "Existing translations mostly keep the English term ('wiadomość burn-on-read', 'post burn-on-read'); occasional literal renderings ('do zniszczenia przy odczycie') are inconsistent. Keep English and treat as indeclinable attribute."
+  },
+  "magic link": {
+    "target": "magiczny link",
+    "note": "Majority rendering; a few strings keep English 'magic link' — prefer 'magiczny link'. Genitive 'magicznego linku'."
+  },
+  "personal access token": {
+    "target": "osobisty token dostępu",
+    "note": "Plural 'osobiste tokeny dostępu'."
+  },
+  "announcement banner": {
+    "target": "baner ogłoszeń",
+    "note": "Existing renderings vary ('baner ogłoszenia', 'baner ogłoszeniowy'); prefer 'baner ogłoszeń'."
+  },
+  "channel banner": {
+    "target": "baner kanału"
+  },
+  "keyword": {
+    "target": "słowo kluczowe",
+    "note": "Plural 'słowa kluczowe'."
+  },
+  "user group": {
+    "target": "grupa użytkowników",
+    "note": "Plain 'group' in this sense is also 'grupa'."
+  },
+  "permalink": {
+    "target": "permalink",
+    "note": "Kept as loanword in existing translations; declined as masculine ('permalinku'). A more descriptive alternative would be 'link bezpośredni', but stay with 'permalink' for consistency."
+  },
+  "profile": {
+    "target": "profil",
+    "note": "'Profile picture' → 'zdjęcie profilowe'."
+  },
+  "username": {
+    "target": "nazwa użytkownika"
+  },
+  "nickname": {
+    "target": "pseudonim"
+  },
+  "display name": {
+    "target": "nazwa wyświetlana"
+  },
+  "collapsed reply threads": {
+    "target": "zawijanie odpowiedzi w wątkach",
+    "note": "Only existing rendering (mobile settings) is 'Zawijanie Odpowiedzi w Wątkach'. A more literal alternative is 'zwinięte wątki odpowiedzi', but keep the established form for consistency."
+  },
+  "auto-translation": {
+    "target": "autotłumaczenie",
+    "note": "'auto-translated' → 'przetłumaczone automatycznie'; label 'AUTO-TRANSLATED' → 'AUTOTŁUMACZENIE'."
+  },
+  "data retention": {
+    "target": "przechowywanie danych",
+    "note": "Majority rendering in webapp; 'retencja danych' appears in server enterprise strings. Prefer 'przechowywanie danych'; policy → 'zasady przechowywania danych'."
+  },
+  "compliance export": {
+    "target": "eksport zgodności"
+  },
+  "access control": {
+    "target": "kontrola dostępu",
+    "note": "'attribute-based access control' → 'kontrola dostępu oparta na atrybutach'; policy → 'polityka kontroli dostępu'."
+  },
+  "attribute": {
+    "target": "atrybut",
+    "note": "Masculine. Plural 'atrybuty'. 'custom profile attribute' → 'niestandardowy atrybut profilu' / 'atrybut użytkownika'."
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Existing translations mostly keep the loanword 'onboarding'; 'proces wprowadzania' appears descriptively. Keep 'onboarding' (masculine, declinable: 'onboardingu')."
+  },
+  "Town Square": {
+    "target": "Rynek",
+    "note": "Established default-channel name in server translations; translate consistently as a channel name."
+  },
+  "Off-Topic": {
+    "target": "Pogawędki",
+    "note": "Established default-channel name in server translations."
+  },
+  "read-only": {
+    "target": "tylko do odczytu",
+    "note": "Avoid hyphenated 'tylko-do-odczytu' seen in a few legacy strings; standard Polish is unhyphenated."
+  },
+  "server": {
+    "target": "serwer",
+    "note": "Masculine. Locative 'na serwerze'; genitive 'serwera'."
+  }
+}

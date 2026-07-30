@@ -1,0 +1,424 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Consola del Sistema",
+    "note": "Repo mixes 'Consola del Sistema' and 'Consola de sistema'; standardize on 'Consola del Sistema' as a named UI area."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Kept in English throughout existing es.json (e.g. 'URL del Marketplace'); treat as a proper name, masculine ('el Marketplace')."
+  },
+  "channel": {
+    "target": "canal",
+    "note": "Masculine; plural 'canales'."
+  },
+  "team": {
+    "target": "equipo"
+  },
+  "post": {
+    "target": "mensaje",
+    "note": "Existing translations render both 'post' and 'message' as 'mensaje'; 'publicación' appears occasionally but 'mensaje' is the majority."
+  },
+  "message": {
+    "target": "mensaje"
+  },
+  "thread": {
+    "target": "hilo",
+    "note": "Majority rendering; a few legacy strings use 'conversación' (e.g. 'Seguir conversación') — prefer 'hilo'."
+  },
+  "reply": {
+    "target": "respuesta",
+    "note": "Verb: 'responder'."
+  },
+  "direct message": {
+    "target": "mensaje directo",
+    "note": "Abbreviation DM is not used in Spanish UI; spell out."
+  },
+  "group message": {
+    "target": "mensaje de grupo",
+    "note": "Majority rendering; 'mensaje grupal' also appears — prefer 'mensaje de grupo'."
+  },
+  "mention": {
+    "target": "mención",
+    "note": "Verb: 'mencionar'."
+  },
+  "notification": {
+    "target": "notificación"
+  },
+  "pin": {
+    "target": "destacar",
+    "note": "Majority rendering ('Mensajes Destacados'); one string uses 'anclados'. Unpin: 'dejar de destacar'. Pinned: 'destacado'."
+  },
+  "bookmark": {
+    "target": "marcador",
+    "note": "No established repo rendering; 'marcador' matches browser convention. Verb: 'añadir a marcadores'."
+  },
+  "saved messages": {
+    "target": "mensajes guardados",
+    "note": "Save: 'guardar'; unsave: 'eliminar de guardados'."
+  },
+  "draft": {
+    "target": "borrador"
+  },
+  "scheduled post": {
+    "target": "mensaje programado",
+    "note": "No repo signal; 'programado' follows es convention for scheduled sends (e.g. Gmail 'programar envío')."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Repo is split: legacy strings use 'emoticono' (slight majority) while newer ones use 'emoji'. 'Emoji' is the modern es convention (WhatsApp, Slack, Discord) and RAE-accepted; invariable-ish plural 'emojis'."
+  },
+  "custom emoji": {
+    "target": "emoji personalizado"
+  },
+  "reaction": {
+    "target": "reacción",
+    "note": "Verb 'reaccionar'; existing UI renders 'Add Reaction' simply as 'Reaccionar'."
+  },
+  "status": {
+    "target": "estado"
+  },
+  "custom status": {
+    "target": "estado personalizado"
+  },
+  "do not disturb": {
+    "target": "No molestar"
+  },
+  "away": {
+    "target": "Ausente"
+  },
+  "online": {
+    "target": "En línea"
+  },
+  "offline": {
+    "target": "Desconectado"
+  },
+  "out of office": {
+    "target": "Fuera de la oficina",
+    "note": "Repo mixes 'Fuera de Oficina' and 'Fuera de la Oficina'; prefer 'Fuera de la oficina'."
+  },
+  "guest": {
+    "target": "huésped",
+    "note": "Majority rendering (~85 vs ~22 for 'invitado'). 'Invitado' also appears and collides with 'invite/invitar'; keep 'huésped' for the account type."
+  },
+  "member": {
+    "target": "miembro"
+  },
+  "user": {
+    "target": "usuario"
+  },
+  "system admin": {
+    "target": "administrador del sistema",
+    "note": "Short form 'Admin del Sistema' used where space is tight."
+  },
+  "team admin": {
+    "target": "administrador del equipo"
+  },
+  "channel admin": {
+    "target": "administrador del canal"
+  },
+  "session": {
+    "target": "sesión"
+  },
+  "sign in": {
+    "target": "iniciar sesión",
+    "note": "Used for both 'sign in' and 'log in' consistently in the repo."
+  },
+  "sign out": {
+    "target": "cerrar sesión",
+    "note": "Repo mixes 'Salir' (menu items) and 'Cerrar sesión'; prefer 'cerrar sesión' for both 'sign out' and 'log out'."
+  },
+  "join": {
+    "target": "unirse",
+    "note": "'Unirse al canal/equipo'."
+  },
+  "leave": {
+    "target": "abandonar",
+    "note": "Existing convention: 'Abandonar Canal', 'Abandonar Equipo'."
+  },
+  "archive": {
+    "target": "archivar",
+    "note": "Archived: 'archivado'."
+  },
+  "unarchive": {
+    "target": "desarchivar"
+  },
+  "mute": {
+    "target": "silenciar",
+    "note": "For channel notifications; same verb is used in Calls for microphones."
+  },
+  "follow": {
+    "target": "seguir"
+  },
+  "unfollow": {
+    "target": "dejar de seguir"
+  },
+  "favorite": {
+    "target": "favorito",
+    "note": "Verb: 'marcar como favorito'; sidebar category 'Favoritos'."
+  },
+  "search": {
+    "target": "búsqueda",
+    "note": "Verb/button: 'buscar'."
+  },
+  "integration": {
+    "target": "integración"
+  },
+  "slash command": {
+    "target": "comando de barra"
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English throughout existing es.json; masculine ('el webhook')."
+  },
+  "incoming webhook": {
+    "target": "webhook de entrada"
+  },
+  "outgoing webhook": {
+    "target": "webhook de salida"
+  },
+  "trigger word": {
+    "target": "palabra de activación",
+    "note": "Legacy strings paraphrase as 'palabra que dispara la acción/el comando'; 'palabra de activación' is the concise glossary form consistent with that intent."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English throughout existing es.json; masculine ('el plugin', 'los plugins'). 'Complemento' would be the alternative but is not used."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Bot account: 'cuenta bot'."
+  },
+  "role": {
+    "target": "rol",
+    "note": "Plural 'roles'."
+  },
+  "permission": {
+    "target": "permiso"
+  },
+  "scheme": {
+    "target": "esquema"
+  },
+  "license": {
+    "target": "licencia"
+  },
+  "seat": {
+    "target": "puesto",
+    "note": "Repo is inconsistent ('sedes' [incorrect], 'puestos pagados', 'licencias para usuarios'); 'puesto' is the standard SaaS term."
+  },
+  "trial": {
+    "target": "prueba",
+    "note": "'Período de prueba' when spelled out; free trial: 'prueba gratuita'."
+  },
+  "workspace": {
+    "target": "espacio de trabajo"
+  },
+  "subscription": {
+    "target": "suscripción"
+  },
+  "deactivate": {
+    "target": "desactivar",
+    "note": "Deactivated: 'desactivado'."
+  },
+  "invite": {
+    "target": "invitar",
+    "note": "Noun: 'invitación'."
+  },
+  "invitation": {
+    "target": "invitación"
+  },
+  "sidebar": {
+    "target": "barra lateral"
+  },
+  "unread": {
+    "target": "no leído",
+    "note": "Majority rendering; 'sin leer' also appears. Plural 'no leídos'."
+  },
+  "attachment": {
+    "target": "adjunto",
+    "note": "Also 'archivo adjunto' when spelled out."
+  },
+  "public channel": {
+    "target": "canal público"
+  },
+  "private channel": {
+    "target": "canal privado"
+  },
+  "shared channel": {
+    "target": "canal compartido"
+  },
+  "channel header": {
+    "target": "encabezado del canal",
+    "note": "Majority rendering; one legacy string uses 'cabecera'."
+  },
+  "channel purpose": {
+    "target": "propósito del canal"
+  },
+  "system message": {
+    "target": "mensaje del sistema"
+  },
+  "persistent notification": {
+    "target": "notificación persistente"
+  },
+  "message priority": {
+    "target": "prioridad del mensaje"
+  },
+  "urgent": {
+    "target": "urgente",
+    "note": "Label form: 'URGENTE'."
+  },
+  "recap": {
+    "target": "resumen",
+    "note": "No repo signal; 'resumen' aligns with the AI summary concept. Disambiguate from Calls 'meeting summary' ('resumen de la reunión') via context if both appear."
+  },
+  "agent": {
+    "target": "agente"
+  },
+  "burn-on-read": {
+    "target": "autodestrucción al leer",
+    "note": "No repo signal; follows messaging-app convention (Telegram 'autodestrucción'). As a message label: 'AUTODESTRUCCIÓN AL LEER'."
+  },
+  "magic link": {
+    "target": "enlace mágico"
+  },
+  "personal access token": {
+    "target": "token de acceso personal"
+  },
+  "announcement banner": {
+    "target": "banner de anuncio",
+    "note": "Existing strings use 'banner de anuncio'; one legacy string uses 'Notificaciones para todo el sistema' — prefer 'banner de anuncio'."
+  },
+  "channel banner": {
+    "target": "banner del canal"
+  },
+  "keyword": {
+    "target": "palabra clave",
+    "note": "Plural 'palabras clave' (clave stays singular)."
+  },
+  "user group": {
+    "target": "grupo de usuarios"
+  },
+  "permalink": {
+    "target": "enlace permanente"
+  },
+  "profile": {
+    "target": "perfil"
+  },
+  "username": {
+    "target": "nombre de usuario"
+  },
+  "nickname": {
+    "target": "sobrenombre",
+    "note": "Consistent repo rendering; 'apodo' is the common alternative but is not used."
+  },
+  "display name": {
+    "target": "nombre a mostrar",
+    "note": "Majority rendering; 'nombre de visualización' appears occasionally."
+  },
+  "collapsed reply threads": {
+    "target": "hilos de respuesta contraídos",
+    "note": "No established repo rendering for the feature name; 'contraído' matches the UI sense of collapsed."
+  },
+  "auto-translation": {
+    "target": "traducción automática",
+    "note": "Auto-translated label: 'TRADUCIDO AUTOMÁTICAMENTE'."
+  },
+  "data retention": {
+    "target": "retención de datos",
+    "note": "Majority rendering; 'conservación de datos' appears once. Policy: 'política de retención de datos'."
+  },
+  "compliance export": {
+    "target": "exportación de cumplimiento",
+    "note": "Majority rendering; some legacy strings use 'Exportación de Conformidad'."
+  },
+  "access control": {
+    "target": "control de acceso"
+  },
+  "attribute": {
+    "target": "atributo"
+  },
+  "onboarding": {
+    "target": "incorporación",
+    "note": "Existing rendering ('Habilitar la incorporación')."
+  },
+  "Town Square": {
+    "target": "General",
+    "note": "Existing server translation renders the default channel name as 'General' (not a literal translation); keep for consistency with created channels."
+  },
+  "Off-Topic": {
+    "target": "Fuera de Tópico",
+    "note": "Existing server translation; 'Fuera de tema' would be more natural but keep the established name."
+  },
+  "read-only": {
+    "target": "solo lectura",
+    "note": "Prefer un-accented 'solo' per current RAE; repo mixes 'solo' and 'sólo'."
+  },
+  "server": {
+    "target": "servidor"
+  }
+}

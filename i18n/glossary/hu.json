@@ -1,0 +1,445 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Repo sometimes shows 'Enterprise Kiadás'; keep the English product name."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Repo shows 'Team kiadás'; keep the English product name, 'kiadás' (edition) may follow as a common noun."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Rendszerkonzol",
+    "note": "Consistently one word in the repo (Rendszerkonzol); lowercase 'rendszerkonzol' mid-sentence."
+  },
+  "marketplace": {
+    "target": "piactér",
+    "note": "Established in webapp ('Piactér engedélyezése'); capitalize as Piactér when used as a named UI area."
+  },
+  "channel": {
+    "target": "csatorna",
+    "note": "Majority rendering. Some legacy mobile/webapp strings use 'beszélgetés' (conversation) — do not follow; use 'csatorna' consistently."
+  },
+  "team": {
+    "target": "csapat"
+  },
+  "post": {
+    "target": "bejegyzés",
+    "note": "Established; distinct from 'üzenet' (message) even though English uses them interchangeably."
+  },
+  "message": {
+    "target": "üzenet"
+  },
+  "thread": {
+    "target": "üzenetszál",
+    "note": "Established compound; plural 'üzenetszálak'."
+  },
+  "reply": {
+    "target": "válasz",
+    "note": "Noun 'válasz'; verb 'válaszol' (e.g. 'Válasz erre az üzenetszálra')."
+  },
+  "direct message": {
+    "target": "közvetlen üzenet",
+    "note": "Established; do not use 'privát üzenet'."
+  },
+  "group message": {
+    "target": "csoportos üzenet"
+  },
+  "mention": {
+    "target": "említés",
+    "note": "Noun 'említés'; verb 'megemlít'."
+  },
+  "notification": {
+    "target": "értesítés"
+  },
+  "pin": {
+    "target": "kitűz",
+    "note": "Verb 'kitűz', noun/adjective 'kitűzött' (e.g. 'Kitűzött üzenetek'); unpin = 'kitűzés eltávolítása' or 'levesz'."
+  },
+  "bookmark": {
+    "target": "könyvjelző",
+    "note": "Established in mobile; verb: 'könyvjelző hozzáadása'."
+  },
+  "saved messages": {
+    "target": "mentett üzenetek",
+    "note": "Mobile/Playbooks use 'mentett üzenetek'; webapp sometimes 'mentett bejegyzések' — prefer 'mentett üzenetek'. save = 'mentés', unsave = 'eltávolítás a mentettek közül'."
+  },
+  "draft": {
+    "target": "piszkozat",
+    "note": "Mobile uses 'piszkozat'; server has legacy 'tervezet' — prefer 'piszkozat'."
+  },
+  "scheduled post": {
+    "target": "időzített bejegyzés",
+    "note": "Established in mobile ('Időzített bejegyzés törlése'); scheduled message = 'időzített üzenet'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Kept as 'emoji' in Hungarian; plural 'emojik'."
+  },
+  "custom emoji": {
+    "target": "egyéni emoji"
+  },
+  "reaction": {
+    "target": "reakció",
+    "note": "Verb react = 'reagál'."
+  },
+  "status": {
+    "target": "állapot"
+  },
+  "custom status": {
+    "target": "egyéni állapot"
+  },
+  "do not disturb": {
+    "target": "Ne zavarj",
+    "note": "Established status name; keep as a quoted status label ('Ne zavarj')."
+  },
+  "away": {
+    "target": "Nincs a gépnél",
+    "note": "Established status name; 'távol' appears occasionally but 'Nincs a gépnél' is the majority rendering."
+  },
+  "online": {
+    "target": "Elérhető",
+    "note": "Established status name."
+  },
+  "offline": {
+    "target": "Nem elérhető",
+    "note": "Established status name; lowercase 'nem elérhető' mid-sentence."
+  },
+  "out of office": {
+    "target": "Irodán kívül",
+    "note": "Established status name."
+  },
+  "guest": {
+    "target": "vendég"
+  },
+  "member": {
+    "target": "tag"
+  },
+  "user": {
+    "target": "felhasználó"
+  },
+  "system admin": {
+    "target": "rendszergazda",
+    "note": "Established; 'rendszer adminisztrátor' appears in legacy server strings — prefer 'rendszergazda'."
+  },
+  "team admin": {
+    "target": "csapat admin",
+    "note": "Webapp majority is 'Csapat admin'; mobile has 'csapatadminisztrátor'. Follow the majority."
+  },
+  "channel admin": {
+    "target": "csatorna admin"
+  },
+  "session": {
+    "target": "munkamenet"
+  },
+  "sign in": {
+    "target": "bejelentkezés",
+    "note": "Verb: 'bejelentkezik'; imperative in UI: 'Jelentkezzen be' (formal Ön register is used throughout). Translate 'log in' identically."
+  },
+  "sign out": {
+    "target": "kijelentkezés",
+    "note": "Verb: 'kijelentkezik'; translate 'log out' identically."
+  },
+  "join": {
+    "target": "csatlakozás",
+    "note": "Verb: 'csatlakozik' + -hoz/-hez (e.g. 'Csatlakozás a csatornához')."
+  },
+  "leave": {
+    "target": "kilépés",
+    "note": "Verb: 'kilép' + -ból/-ből (e.g. 'Kilépés a csatornából')."
+  },
+  "archive": {
+    "target": "archiválás",
+    "note": "Verb: 'archivál'; adjective: 'archivált'."
+  },
+  "unarchive": {
+    "target": "visszaállítás",
+    "note": "Webapp uses 'visszaállítás'; mobile has 'visszaaktiválás' — prefer 'visszaállítás'."
+  },
+  "mute": {
+    "target": "némítás",
+    "note": "Verb: 'némít' / 'elnémít'; unmute = 'némítás feloldása'. Channel-notification sense; same word family as Calls mute."
+  },
+  "follow": {
+    "target": "követés",
+    "note": "Verb: 'követ' (e.g. 'Üzenetszál követése')."
+  },
+  "unfollow": {
+    "target": "követés kikapcsolása",
+    "note": "Webapp: 'követés kikapcsolása'; mobile: 'követés visszavonása' — prefer the webapp form."
+  },
+  "favorite": {
+    "target": "kedvenc",
+    "note": "Noun 'kedvenc', category 'Kedvencek'; verb 'kedvencnek jelöl', unfavorite = 'eltávolítás a kedvencekből'."
+  },
+  "search": {
+    "target": "keresés",
+    "note": "Verb: 'keres'."
+  },
+  "integration": {
+    "target": "integráció",
+    "note": "Repo shows minor inconsistency ('integrálás' once); use 'integráció'."
+  },
+  "slash command": {
+    "target": "perjel parancs",
+    "note": "Majority in webapp; 'perjeles parancs' also appears (Playbooks). Prefer 'perjel parancs'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English in webapp/server (majority). Playbooks legacy uses 'webhorog' — do not follow; use 'webhook'."
+  },
+  "incoming webhook": {
+    "target": "bejövő webhook"
+  },
+  "outgoing webhook": {
+    "target": "kimenő webhook"
+  },
+  "trigger word": {
+    "target": "kulcsszó",
+    "note": "Established repo rendering, although it collides with 'keyword' (also 'kulcsszó'). If disambiguation is needed, 'aktiváló szó' may be used, but repo convention is 'kulcsszó'."
+  },
+  "plugin": {
+    "target": "bővítmény",
+    "note": "Majority; 'plugin' and 'kiegészítő' appear sporadically — use 'bővítmény'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept as 'bot'; bot account = 'bot fiók'."
+  },
+  "role": {
+    "target": "szerepkör"
+  },
+  "permission": {
+    "target": "jogosultság"
+  },
+  "scheme": {
+    "target": "séma",
+    "note": "Permission scheme = 'jogosultság séma'."
+  },
+  "license": {
+    "target": "licenc",
+    "note": "Spelling 'licenc' (not 'licensz'/'license'); minor misspellings exist in repo."
+  },
+  "seat": {
+    "target": "felhasználói hely",
+    "note": "No existing repo rendering; 'felhasználói hely' is the common Hungarian SaaS term for a licensed seat."
+  },
+  "trial": {
+    "target": "próbaidőszak",
+    "note": "Established; free trial = 'ingyenes próbaidőszak'."
+  },
+  "workspace": {
+    "target": "munkaterület"
+  },
+  "subscription": {
+    "target": "előfizetés"
+  },
+  "deactivate": {
+    "target": "deaktivál",
+    "note": "Majority 'deaktivál' (Fiók deaktiválása); 'letilt' also appears for accounts — reserve 'letilt' for disable."
+  },
+  "invite": {
+    "target": "meghívás",
+    "note": "Verb: 'meghív'; noun act: 'meghívás'."
+  },
+  "invitation": {
+    "target": "meghívó",
+    "note": "The email/link artifact is 'meghívó' (invitation), distinct from the act 'meghívás'."
+  },
+  "sidebar": {
+    "target": "oldalsáv"
+  },
+  "unread": {
+    "target": "olvasatlan"
+  },
+  "attachment": {
+    "target": "melléklet",
+    "note": "Majority; 'csatolmány' also appears — prefer 'melléklet'."
+  },
+  "public channel": {
+    "target": "nyilvános csatorna"
+  },
+  "private channel": {
+    "target": "privát csatorna",
+    "note": "Majority; 'magán csatorna' appears sporadically — use 'privát csatorna'."
+  },
+  "shared channel": {
+    "target": "megosztott csatorna"
+  },
+  "channel header": {
+    "target": "csatorna fejléce",
+    "note": "Short UI label: 'Fejléc'."
+  },
+  "channel purpose": {
+    "target": "csatorna célja",
+    "note": "Short UI label: 'Cél'."
+  },
+  "system message": {
+    "target": "rendszerüzenet"
+  },
+  "persistent notification": {
+    "target": "tartós értesítés",
+    "note": "Server majority; 'állandó értesítés' appears once — prefer 'tartós értesítés'."
+  },
+  "message priority": {
+    "target": "üzenet prioritása",
+    "note": "No established repo rendering; label form 'Üzenet prioritása'. Priority levels: Standard = 'Normál', Important = 'Fontos', Urgent = 'Sürgős'."
+  },
+  "urgent": {
+    "target": "sürgős",
+    "note": "Established ('Sürgős'); as a red label: 'SÜRGŐS'."
+  },
+  "recap": {
+    "target": "összefoglaló",
+    "note": "No repo signal; 'összefoglaló' (summary) is the natural Hungarian term for an AI recap."
+  },
+  "agent": {
+    "target": "ügynök",
+    "note": "Established in mobile ('Ügynök kiválasztása', 'MI ügynök')."
+  },
+  "burn-on-read": {
+    "target": "olvasás után megsemmisülő",
+    "note": "Mobile label uses 'MEGSEMMISÍTÉS OLVASÁS UTÁN' for the BURN ON READ badge; adjectival form 'olvasás után megsemmisülő üzenet'."
+  },
+  "magic link": {
+    "target": "varázslink",
+    "note": "No repo signal; 'varázslink' is the common Hungarian rendering for passwordless sign-in links."
+  },
+  "personal access token": {
+    "target": "személyes hozzáférési token",
+    "note": "Established in server strings."
+  },
+  "announcement banner": {
+    "target": "közlemény banner",
+    "note": "Webapp majority ('közlemény banneren'); 'bejelentés banner' appears once. 'Banner' is kept in Hungarian."
+  },
+  "channel banner": {
+    "target": "csatorna banner"
+  },
+  "keyword": {
+    "target": "kulcsszó",
+    "note": "Same word as the repo rendering of 'trigger word'; context disambiguates."
+  },
+  "user group": {
+    "target": "felhasználói csoport",
+    "note": "Plain 'group' = 'csoport'."
+  },
+  "permalink": {
+    "target": "állandó hivatkozás",
+    "note": "No consistent repo rendering (one instance loosely translated as 'link'); 'állandó hivatkozás' is the standard Hungarian term."
+  },
+  "profile": {
+    "target": "profil"
+  },
+  "username": {
+    "target": "felhasználónév"
+  },
+  "nickname": {
+    "target": "becenév"
+  },
+  "display name": {
+    "target": "megjelenítési név"
+  },
+  "collapsed reply threads": {
+    "target": "összecsukott válaszszálak",
+    "note": "Established in mobile."
+  },
+  "auto-translation": {
+    "target": "automatikus fordítás",
+    "note": "Adjective 'automatikusan fordított'; badge form 'AUTOMATIKUSAN FORDÍTVA'."
+  },
+  "data retention": {
+    "target": "adatmegőrzés",
+    "note": "Policy = 'adatmegőrzési szabályzat'; written as one compound ('adatmegőrzés'), though the repo occasionally splits it."
+  },
+  "compliance export": {
+    "target": "megfelelőségi export",
+    "note": "Repo has occasional misspelling 'megfelelősségi' — correct form is 'megfelelőségi'."
+  },
+  "access control": {
+    "target": "hozzáférés-vezérlés",
+    "note": "Webapp once rendered 'Advanced Access Control' as 'Csatorna moderáció' (legacy, do not follow). Use the standard 'hozzáférés-vezérlés'; policy = 'hozzáférés-vezérlési szabályzat'."
+  },
+  "attribute": {
+    "target": "attribútum"
+  },
+  "onboarding": {
+    "target": "bevezetés",
+    "note": "Repo is inconsistent ('üdvözlő varázsló', 'rendszerbeállítás'); 'bevezetés' is a safe general term, 'üdvözlő varázsló' acceptable for the setup wizard specifically."
+  },
+  "Town Square": {
+    "target": "Főtér",
+    "note": "Established default-channel name in server i18n."
+  },
+  "Off-Topic": {
+    "target": "Egyebek",
+    "note": "Established default-channel name in server i18n."
+  },
+  "read-only": {
+    "target": "csak olvasható",
+    "note": "Majority; 'írásvédett' also appears — prefer 'csak olvasható'."
+  },
+  "server": {
+    "target": "szerver",
+    "note": "Majority in webapp/server; 'kiszolgáló' also widely used (especially mobile). Prefer 'szerver' for core product; keep consistency within a given surface."
+  }
+}

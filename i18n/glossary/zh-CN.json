@@ -1,0 +1,407 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Product edition name; existing zh-CN UI sometimes says 企业版 in marketing copy, but keep the edition name in English."
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name only; the common noun 'channel' is 频道."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name only; the common noun 'call' is 通话."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "系统控制台"
+  },
+  "marketplace": {
+    "target": "市场"
+  },
+  "channel": {
+    "target": "频道"
+  },
+  "team": {
+    "target": "团队"
+  },
+  "post": {
+    "target": "消息",
+    "note": "Existing zh-CN does not distinguish post from message; both are 消息 (e.g. 创建消息, 固定消息). Do not use 帖子."
+  },
+  "message": {
+    "target": "消息"
+  },
+  "thread": {
+    "target": "话题",
+    "note": "Established rendering is 话题, not 会话串 or 主题; Threads view = 话题."
+  },
+  "reply": {
+    "target": "回复",
+    "note": "Noun and verb are both 回复."
+  },
+  "direct message": {
+    "target": "私信",
+    "note": "Occasionally expanded to 私信消息 in descriptions; standalone 私信 is standard."
+  },
+  "group message": {
+    "target": "群组消息"
+  },
+  "mention": {
+    "target": "提及",
+    "note": "Noun and verb are both 提及; @mention = @提及 or 提及."
+  },
+  "notification": {
+    "target": "通知"
+  },
+  "pin": {
+    "target": "固定",
+    "note": "Pin to Channel = 固定至频道; pinned messages = 固定消息; unpin = 取消固定. A few legacy strings use 标记 — avoid."
+  },
+  "bookmark": {
+    "target": "书签",
+    "note": "Noun; as a verb use 添加书签."
+  },
+  "saved messages": {
+    "target": "保存的消息",
+    "note": "save = 保存, unsave = 取消保存."
+  },
+  "draft": {
+    "target": "草稿"
+  },
+  "scheduled post": {
+    "target": "计划消息",
+    "note": "Majority rendering; 定时消息/定时发送 appear in a minority of strings."
+  },
+  "emoji": {
+    "target": "表情符",
+    "note": "Majority rendering in webapp zh-CN is 表情符; 表情 and 表情符号 appear in a minority of strings and in other repos."
+  },
+  "custom emoji": {
+    "target": "自定义表情",
+    "note": "Existing UI uses 自定义表情 (without 符), inconsistent with emoji = 表情符; keep the established form."
+  },
+  "reaction": {
+    "target": "表情回应",
+    "note": "Consistently 表情回应, not bare 回应 or 反应; react (verb) = 添加表情回应."
+  },
+  "status": {
+    "target": "状态"
+  },
+  "custom status": {
+    "target": "自定义状态"
+  },
+  "do not disturb": {
+    "target": "请勿打扰"
+  },
+  "away": {
+    "target": "离开",
+    "note": "Same word as leave (离开); context disambiguates."
+  },
+  "online": {
+    "target": "在线"
+  },
+  "offline": {
+    "target": "离线"
+  },
+  "out of office": {
+    "target": "离开办公室"
+  },
+  "guest": {
+    "target": "访客"
+  },
+  "member": {
+    "target": "成员"
+  },
+  "user": {
+    "target": "用户"
+  },
+  "system admin": {
+    "target": "系统管理员"
+  },
+  "team admin": {
+    "target": "团队管理员"
+  },
+  "channel admin": {
+    "target": "频道管理员"
+  },
+  "session": {
+    "target": "会话"
+  },
+  "sign in": {
+    "target": "登录",
+    "note": "log in and sign in are both 登录."
+  },
+  "sign out": {
+    "target": "退出登录",
+    "note": "log out and sign out are both 退出登录."
+  },
+  "join": {
+    "target": "加入"
+  },
+  "leave": {
+    "target": "离开"
+  },
+  "archive": {
+    "target": "归档",
+    "note": "archived = 已归档."
+  },
+  "unarchive": {
+    "target": "取消归档"
+  },
+  "mute": {
+    "target": "静音",
+    "note": "Channel mute is 静音 (e.g. 静音频道), same word as microphone mute in Calls."
+  },
+  "follow": {
+    "target": "关注"
+  },
+  "unfollow": {
+    "target": "取消关注"
+  },
+  "favorite": {
+    "target": "收藏",
+    "note": "Verb/adjective 收藏; the Favorites sidebar category is 收藏夹."
+  },
+  "search": {
+    "target": "搜索"
+  },
+  "integration": {
+    "target": "集成"
+  },
+  "slash command": {
+    "target": "斜杠命令"
+  },
+  "webhook": {
+    "target": "Webhook",
+    "note": "Kept in English with capital W throughout existing zh-CN."
+  },
+  "incoming webhook": {
+    "target": "传入 Webhook"
+  },
+  "outgoing webhook": {
+    "target": "传出 Webhook"
+  },
+  "trigger word": {
+    "target": "触发词"
+  },
+  "plugin": {
+    "target": "插件"
+  },
+  "bot": {
+    "target": "机器人",
+    "note": "bot account = 机器人账号 (账号, not 帐号/账户)."
+  },
+  "role": {
+    "target": "角色"
+  },
+  "permission": {
+    "target": "权限"
+  },
+  "scheme": {
+    "target": "方案",
+    "note": "permission scheme = 权限方案."
+  },
+  "license": {
+    "target": "许可证"
+  },
+  "seat": {
+    "target": "席位"
+  },
+  "trial": {
+    "target": "试用"
+  },
+  "workspace": {
+    "target": "工作区"
+  },
+  "subscription": {
+    "target": "订阅"
+  },
+  "deactivate": {
+    "target": "停用"
+  },
+  "invite": {
+    "target": "邀请"
+  },
+  "invitation": {
+    "target": "邀请"
+  },
+  "sidebar": {
+    "target": "侧栏",
+    "note": "Majority is 侧栏 (24 vs 7); 侧边栏 appears in a minority of strings."
+  },
+  "unread": {
+    "target": "未读"
+  },
+  "attachment": {
+    "target": "附件"
+  },
+  "public channel": {
+    "target": "公共频道",
+    "note": "公共, not 公开."
+  },
+  "private channel": {
+    "target": "私有频道"
+  },
+  "shared channel": {
+    "target": "共享频道"
+  },
+  "channel header": {
+    "target": "频道标题"
+  },
+  "channel purpose": {
+    "target": "频道用途"
+  },
+  "system message": {
+    "target": "系统消息"
+  },
+  "persistent notification": {
+    "target": "持久通知"
+  },
+  "message priority": {
+    "target": "消息优先级"
+  },
+  "urgent": {
+    "target": "紧急"
+  },
+  "recap": {
+    "target": "回顾"
+  },
+  "agent": {
+    "target": "代理",
+    "note": "Existing UI renders AI agents as AI 代理; standalone 代理 in agent contexts. 智能体 is a common industry alternative but not used here."
+  },
+  "burn-on-read": {
+    "target": "阅后即焚"
+  },
+  "magic link": {
+    "target": "登录链接",
+    "note": "Existing zh-CN renders it simply as 登录链接 (e.g. 访客登录链接 for Guest Magic Link), describing passwordless sign-in as 免密方式. 免密登录链接 is clearer where ambiguity matters."
+  },
+  "personal access token": {
+    "target": "个人访问令牌"
+  },
+  "announcement banner": {
+    "target": "公告横幅"
+  },
+  "channel banner": {
+    "target": "频道横幅"
+  },
+  "keyword": {
+    "target": "关键词",
+    "note": "Majority is 关键词 (21 vs 6); 关键字 appears in a minority of strings."
+  },
+  "user group": {
+    "target": "用户组",
+    "note": "用户组, not 用户群组; standalone group in this sense is 组."
+  },
+  "permalink": {
+    "target": "永久链接"
+  },
+  "profile": {
+    "target": "个人资料"
+  },
+  "username": {
+    "target": "用户名"
+  },
+  "nickname": {
+    "target": "昵称"
+  },
+  "display name": {
+    "target": "显示名称",
+    "note": "显示名 also appears in a minority of strings."
+  },
+  "collapsed reply threads": {
+    "target": "话题讨论",
+    "note": "The user-facing setting title is 话题讨论 (also used for Threaded Discussions); the literal 折叠回复话题 is not used."
+  },
+  "auto-translation": {
+    "target": "自动翻译",
+    "note": "AUTO-TRANSLATED label = 自动翻译."
+  },
+  "data retention": {
+    "target": "数据保留",
+    "note": "data retention policy = 数据保留策略."
+  },
+  "compliance export": {
+    "target": "合规导出",
+    "note": "合规性导出 appears in a minority of strings."
+  },
+  "access control": {
+    "target": "访问控制",
+    "note": "Attribute-Based Access Control = 基于属性的访问控制."
+  },
+  "attribute": {
+    "target": "属性"
+  },
+  "onboarding": {
+    "target": "入职流程"
+  },
+  "Town Square": {
+    "target": "广场"
+  },
+  "Off-Topic": {
+    "target": "杂谈"
+  },
+  "read-only": {
+    "target": "只读"
+  },
+  "server": {
+    "target": "服务器"
+  }
+}

@@ -1,0 +1,434 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; stays in English. The common noun 'channel' is translated as 'canal'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; stays in English. The common noun 'call' is translated as 'chamada'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Console do Sistema",
+    "note": "Established rendering across webapp and server; capitalize both words when used as the UI area name."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Kept in English throughout existing translations (e.g. 'Marketplace de aplicativos', 'URL do Marketplace'); masculine noun ('o Marketplace')."
+  },
+  "channel": {
+    "target": "canal",
+    "note": "Masculine; plural 'canais'."
+  },
+  "team": {
+    "target": "equipe",
+    "note": "Feminine. Consistently 'equipe' in existing translations; avoid 'time' (appears rarely, e.g. 'Time Padrão' in one server string)."
+  },
+  "post": {
+    "target": "publicação",
+    "note": "Majority rendering in newer strings. Legacy strings mix 'postagem' and untranslated 'post'; prefer 'publicação' (noun) / 'publicar' (verb)."
+  },
+  "message": {
+    "target": "mensagem"
+  },
+  "thread": {
+    "target": "tópico",
+    "note": "Clear majority across webapp, mobile, server, and Calls. A few webapp strings use 'fio' ('Seguir o fio'); avoid it."
+  },
+  "reply": {
+    "target": "responder",
+    "note": "Verb 'responder'; noun 'resposta' (e.g. 'Última resposta')."
+  },
+  "direct message": {
+    "target": "mensagem direta",
+    "note": "Capitalized 'Mensagem Direta' when used as a feature name. Do not keep the 'DM' abbreviation; spell out."
+  },
+  "group message": {
+    "target": "mensagem de grupo"
+  },
+  "mention": {
+    "target": "menção",
+    "note": "Noun 'menção'; verb 'mencionar'."
+  },
+  "notification": {
+    "target": "notificação"
+  },
+  "pin": {
+    "target": "fixar",
+    "note": "'Fixar no Canal', 'fixado', 'mensagens fixadas'. Unpin = 'desafixar'. A few server strings use 'pinadas'/'Pinar'; avoid."
+  },
+  "bookmark": {
+    "target": "marcador",
+    "note": "Noun 'marcador'; verb 'adicionar um marcador'. Established in mobile and server strings."
+  },
+  "saved messages": {
+    "target": "mensagens salvas",
+    "note": "Save = 'salvar', unsave = 'remover de salvos'. Webapp legacy strings use 'Publicações Salvas'; mobile uses 'Mensagens Salvas' — prefer 'mensagens salvas'."
+  },
+  "draft": {
+    "target": "rascunho"
+  },
+  "scheduled post": {
+    "target": "publicação agendada",
+    "note": "Majority rendering; 'programada' appears in a couple of server strings — avoid."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Masculine, invariable spelling; plural 'emojis'."
+  },
+  "custom emoji": {
+    "target": "emoji personalizado"
+  },
+  "reaction": {
+    "target": "reação",
+    "note": "Verb: 'reagir'."
+  },
+  "status": {
+    "target": "status",
+    "note": "Kept as 'status' (masculine, invariable) in pt-BR."
+  },
+  "custom status": {
+    "target": "status personalizado"
+  },
+  "do not disturb": {
+    "target": "Não Perturbe",
+    "note": "Established status name across webapp, mobile, and server."
+  },
+  "away": {
+    "target": "ausente"
+  },
+  "online": {
+    "target": "conectado",
+    "note": "Majority rendering for the availability status (server commands, mobile). Some webapp strings keep 'Online'; prefer 'conectado' for the status name."
+  },
+  "offline": {
+    "target": "desconectado",
+    "note": "Some webapp strings keep 'Offline'; prefer 'desconectado' for the status name."
+  },
+  "out of office": {
+    "target": "Fora do Escritório",
+    "note": "Established rendering in status modals."
+  },
+  "guest": {
+    "target": "convidado",
+    "note": "Consistent majority; one webapp string uses 'Visitante' — avoid. Same word as the past participle of 'convidar' (to invite); context usually disambiguates."
+  },
+  "member": {
+    "target": "membro"
+  },
+  "user": {
+    "target": "usuário"
+  },
+  "system admin": {
+    "target": "administrador do sistema",
+    "note": "Short label 'Admin do Sistema' also appears; prefer the full form in prose."
+  },
+  "team admin": {
+    "target": "administrador da equipe"
+  },
+  "channel admin": {
+    "target": "administrador de canal"
+  },
+  "session": {
+    "target": "sessão"
+  },
+  "sign in": {
+    "target": "fazer login",
+    "note": "Existing translations are inconsistent ('Conecte-se', 'Entrar', 'fazer login'); 'fazer login' is the overall majority. For short buttons 'Entrar' is acceptable; translate 'log in' and 'sign in' identically."
+  },
+  "sign out": {
+    "target": "sair",
+    "note": "'Log Out' is consistently 'Sair'. Translate 'log out' and 'sign out' identically."
+  },
+  "join": {
+    "target": "entrar",
+    "note": "'Entrar' for channels/teams ('Entrar no canal'); 'participar' is used for calls and open teams; avoid 'juntar-se' except for groups where it already appears."
+  },
+  "leave": {
+    "target": "sair",
+    "note": "Existing UI mixes 'Deixar o Canal' (majority for channels) and 'Sair da Equipe' (teams). Either is acceptable; keep each context internally consistent."
+  },
+  "archive": {
+    "target": "arquivar",
+    "note": "'Arquivar Canal', 'arquivado'. Note 'arquivo' also means 'file' in Portuguese; avoid ambiguous noun uses."
+  },
+  "unarchive": {
+    "target": "desarquivar"
+  },
+  "mute": {
+    "target": "silenciar",
+    "note": "For channel notifications: 'Silenciar Canal' (majority). Legacy strings use 'Mutar'/'Ativar Mudo'; avoid. Unmute = 'desativar o silêncio' or 'reativar notificações' per context."
+  },
+  "follow": {
+    "target": "seguir"
+  },
+  "unfollow": {
+    "target": "deixar de seguir"
+  },
+  "favorite": {
+    "target": "favorito",
+    "note": "Noun/category 'Favoritos'; verb 'favoritar' (already used in webapp); unfavorite = 'remover dos favoritos'."
+  },
+  "search": {
+    "target": "pesquisar",
+    "note": "Corpus mixes 'Procurar' (main search bar), 'pesquisar' (results, groups, members), and 'buscar'. 'Pesquisar'/'pesquisa' is the overall majority; noun = 'pesquisa'."
+  },
+  "integration": {
+    "target": "integração"
+  },
+  "slash command": {
+    "target": "comando slash",
+    "note": "Established rendering; 'slash' stays in English."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English (masculine: 'o webhook') consistently."
+  },
+  "incoming webhook": {
+    "target": "webhook de entrada"
+  },
+  "outgoing webhook": {
+    "target": "webhook de saída"
+  },
+  "trigger word": {
+    "target": "palavra gatilho",
+    "note": "Established without hyphen in existing strings; plural 'palavras gatilho'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English (masculine: 'o plugin'); avoid the hyphenated 'plug-in' that appears once."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept in English; 'conta de bot' for bot account."
+  },
+  "role": {
+    "target": "função",
+    "note": "Consistent majority ('Função de Membro', 'Funções de Administrador'); avoid 'papel'."
+  },
+  "permission": {
+    "target": "permissão"
+  },
+  "scheme": {
+    "target": "esquema",
+    "note": "'Esquema de Permissões', 'Esquema de Equipe'."
+  },
+  "license": {
+    "target": "licença"
+  },
+  "seat": {
+    "target": "assento",
+    "note": "No existing translation found in the repos; 'assento' is the common pt-BR SaaS pricing term. 'Licença de usuário' is an acceptable descriptive alternative."
+  },
+  "trial": {
+    "target": "avaliação",
+    "note": "Corpus splits between 'avaliação' and 'teste' ('teste gratuito'); 'avaliação (gratuita)' is slightly more common in newer strings — standardize on it."
+  },
+  "workspace": {
+    "target": "espaço de trabalho",
+    "note": "Clear majority; a few server email strings keep 'workspace' — avoid."
+  },
+  "subscription": {
+    "target": "assinatura",
+    "note": "One admin sidebar string uses 'Inscrição'; prefer 'assinatura'."
+  },
+  "deactivate": {
+    "target": "desativar"
+  },
+  "invite": {
+    "target": "convidar",
+    "note": "Verb 'convidar'; noun 'convite'."
+  },
+  "invitation": {
+    "target": "convite"
+  },
+  "sidebar": {
+    "target": "barra lateral"
+  },
+  "unread": {
+    "target": "não lido",
+    "note": "Agrees in gender/number: 'mensagens não lidas', 'canais não lidos'; 'Não lidos' for the Unreads view."
+  },
+  "attachment": {
+    "target": "anexo"
+  },
+  "public channel": {
+    "target": "canal público"
+  },
+  "private channel": {
+    "target": "canal privado"
+  },
+  "shared channel": {
+    "target": "canal compartilhado"
+  },
+  "channel header": {
+    "target": "cabeçalho do canal"
+  },
+  "channel purpose": {
+    "target": "propósito do canal",
+    "note": "Majority 'propósito'; a couple of strings use 'finalidade' — avoid."
+  },
+  "system message": {
+    "target": "mensagem do sistema"
+  },
+  "persistent notification": {
+    "target": "notificação persistente"
+  },
+  "message priority": {
+    "target": "prioridade da mensagem"
+  },
+  "urgent": {
+    "target": "urgente",
+    "note": "All-caps label: 'URGENTE'."
+  },
+  "recap": {
+    "target": "resumo",
+    "note": "No existing translation in the repos. 'Resumo' is natural for AI-generated summaries; Microsoft Teams uses 'recapitulação' if a distinct word from 'summary' is required."
+  },
+  "agent": {
+    "target": "agente",
+    "note": "Masculine even when referring to the AI assistant; 'Agentes' for the feature area."
+  },
+  "burn-on-read": {
+    "target": "autodestruição após leitura",
+    "note": "No existing translation. Adjectival use: 'mensagem com autodestruição após leitura'; all-caps label: 'AUTODESTRUIÇÃO APÓS LEITURA'. Avoid literal 'queimar'."
+  },
+  "magic link": {
+    "target": "link mágico",
+    "note": "No existing translation in the repos; 'link mágico' is the established pt-BR term (e.g. Slack, Notion)."
+  },
+  "personal access token": {
+    "target": "token de acesso individual",
+    "note": "Majority in existing webapp/server strings. 'Token de acesso pessoal' (the GitHub/GitLab industry standard) appears once and is arguably better; keep 'individual' for consistency unless a global cleanup is done."
+  },
+  "announcement banner": {
+    "target": "banner de anúncio"
+  },
+  "channel banner": {
+    "target": "banner do canal"
+  },
+  "keyword": {
+    "target": "palavra-chave",
+    "note": "Plural 'palavras-chave' (invariable second element)."
+  },
+  "user group": {
+    "target": "grupo de usuários"
+  },
+  "permalink": {
+    "target": "permalink",
+    "note": "Kept in English in existing strings ('O permalink pertence...'); 'link permanente' is an acceptable alternative if translating."
+  },
+  "profile": {
+    "target": "perfil"
+  },
+  "username": {
+    "target": "nome de usuário",
+    "note": "Short form 'Usuário' is used in existing login/form labels; use the full 'nome de usuário' in prose."
+  },
+  "nickname": {
+    "target": "apelido"
+  },
+  "display name": {
+    "target": "nome de exibição",
+    "note": "Majority; 'nome para exibição' also appears in server strings — prefer 'nome de exibição'."
+  },
+  "collapsed reply threads": {
+    "target": "tópicos de resposta recolhidos",
+    "note": "Mobile currently has 'Respostas de Tópicos Recolhidos', which inverts the meaning; prefer 'tópicos de resposta recolhidos' and keep it consistent as the feature name."
+  },
+  "auto-translation": {
+    "target": "tradução automática",
+    "note": "'traduzido automaticamente' for 'auto-translated'; all-caps label: 'TRADUZIDO AUTOMATICAMENTE'."
+  },
+  "data retention": {
+    "target": "retenção de dados",
+    "note": "'Política de Retenção de Dados' for data retention policy."
+  },
+  "compliance export": {
+    "target": "exportação de conformidade"
+  },
+  "access control": {
+    "target": "controle de acesso",
+    "note": "'controle de acesso baseado em atributos' for attribute-based access control."
+  },
+  "attribute": {
+    "target": "atributo"
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Kept in English in most server strings (masculine: 'o onboarding'). One webapp string uses 'Integração', which collides with 'integration' — avoid."
+  },
+  "Town Square": {
+    "target": "Town Square",
+    "note": "Existing pt-BR translations keep the default channel name in English (server default-channel string is untranslated). Keep as-is for consistency with existing workspaces."
+  },
+  "Off-Topic": {
+    "target": "Off-Topic",
+    "note": "Existing pt-BR translations keep this default channel name in English; keep as-is."
+  },
+  "read-only": {
+    "target": "somente leitura"
+  },
+  "server": {
+    "target": "servidor"
+  }
+}
