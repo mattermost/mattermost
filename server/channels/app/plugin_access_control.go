@@ -280,22 +280,27 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 		return nil, pluginPolicyNotFoundError(where)
 	}
 
-	// The raw gate has approved ownership, so this read may report its own
-	// errors.
+	// This read is independent of the gate above, so neither its result nor its
+	// failure is trusted without re-confirming ownership. In the
+	// delete/recreate window the delete path documents, the row could have
+	// turned foreign in between, and returning that policy — or surfacing its
+	// normalization error — would disclose the collision. Reaching the window
+	// needs a cross-plugin resource-ID collision plus an owner or admin
+	// recreating mid-flight, so it is not adversary-reachable by the caller.
 	policy, appErr := acs.GetPolicy(rctx, id)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return nil, pluginPolicyNotFoundError(where)
 		}
+		// Confirm-read, on this cold path only. Whatever cannot be confirmed as
+		// still owned — absent, foreign, or unreadable — collapses into the
+		// uniform 404; the legitimate owner still sees the real error.
+		confirmedType, confirmErr := a.readStoredPolicyType(rctx, where, id)
+		if confirmErr != nil || !model.PluginOwnsAccessControlPolicyType(pluginID, confirmedType) {
+			return nil, pluginPolicyNotFoundError(where)
+		}
 		return nil, appErr
 	}
-	// This is an independent second read, so re-check what it actually
-	// returned: in the same delete/recreate window the delete path documents,
-	// the row could have become foreign between the two reads. Reaching that
-	// needs a cross-plugin resource-ID collision plus an owner or admin
-	// recreating mid-flight, so it is not adversary-reachable by the caller —
-	// but returning a foreign policy would be a disclosure, not just a stale
-	// read.
 	if !model.PluginOwnsAccessControlPolicyType(pluginID, policy.Type) {
 		return nil, pluginPolicyNotFoundError(where)
 	}

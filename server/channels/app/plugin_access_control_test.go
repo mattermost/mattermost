@@ -639,20 +639,73 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("normalized read error propagates once ownership passes", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
+	// A normalization failure is a real error for the owner but would leak the
+	// collision if the row raced to a foreign type, so it is only surfaced when
+	// the row is confirmed still owned. The mocked normalized read runs between
+	// the gate read and the confirm read, so mutating the row inside it
+	// reproduces the window exactly.
+	t.Run("a normalization error is surfaced only to the still-owning caller", func(t *testing.T) {
+		normalizeErr := model.NewAppError("GetPolicy", "app.pap.rehydrate_rank.app_error", nil, "cannot normalize", http.StatusInternalServerError)
 
-		p := validPluginPolicy(model.NewId())
-		savePluginPolicyRow(t, th, p)
+		tests := []struct {
+			name       string
+			race       func(t *testing.T, id string)
+			wantErrID  string
+			wantStatus int
+		}{
+			{
+				name: "row raced to a foreign type",
+				race: func(t *testing.T, id string) {
+					require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, id))
+					foreign := validPluginPolicy(id)
+					foreign.Type = "other-plugin:agent"
+					_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, foreign)
+					require.NoError(t, err)
+				},
+				wantErrID:  "app.access_control.plugin.policy_not_found.app_error",
+				wantStatus: http.StatusNotFound,
+			},
+			{
+				name: "row raced to absent",
+				race: func(t *testing.T, id string) {
+					require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, id))
+				},
+				wantErrID:  "app.access_control.plugin.policy_not_found.app_error",
+				wantStatus: http.StatusNotFound,
+			},
+			{
+				name:       "row still owned",
+				race:       func(*testing.T, string) {},
+				wantErrID:  normalizeErr.Id,
+				wantStatus: http.StatusInternalServerError,
+			},
+		}
 
-		mockACS.On("GetPolicy", mock.Anything, p.ID).
-			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				mockACS := &mocks.AccessControlServiceInterface{}
+				th.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, p.ID)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
-		mockACS.AssertExpectations(t)
+				p := validPluginPolicy(model.NewId())
+				_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, p)
+				require.NoError(t, err)
+				t.Cleanup(func() {
+					// The race may already have swapped or removed the row.
+					_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, p.ID)
+				})
+
+				mockACS.On("GetPolicy", mock.Anything, p.ID).
+					Run(func(mock.Arguments) { tc.race(t, p.ID) }).
+					Return(nil, normalizeErr).Once()
+
+				policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, p.ID)
+				require.Nil(t, policy)
+				require.NotNil(t, appErr)
+				assert.Equal(t, tc.wantErrID, appErr.Id)
+				assert.Equal(t, tc.wantStatus, appErr.StatusCode)
+				mockACS.AssertExpectations(t)
+			})
+		}
 	})
 }
 
