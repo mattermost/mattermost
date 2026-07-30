@@ -107,11 +107,13 @@ func IsPluginAccessControlPolicyType(policyType string) bool {
 
 // PluginOwnsAccessControlPolicyType reports whether policyType is a
 // well-formed plugin policy type whose plugin-ID prefix is pluginID. The
-// prefix is the entire ownership check. Case-insensitive so callers that
-// lowercase plugin IDs (a plugin API convention) still match.
+// prefix is the entire ownership check. The comparison is exact: the stored
+// type is matched byte-for-byte everywhere (delete, evaluation), so accepting
+// case variants here would let a mixed-case type be read but never deleted or
+// evaluated.
 func PluginOwnsAccessControlPolicyType(pluginID, policyType string) bool {
 	owner, _, ok := SplitPluginAccessControlPolicyType(policyType)
-	return ok && strings.EqualFold(owner, pluginID)
+	return ok && owner == pluginID
 }
 
 // IsValidPolicyAction reports whether action is a well-formed action name.

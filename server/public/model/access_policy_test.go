@@ -1461,12 +1461,28 @@ func TestSplitPluginAccessControlPolicyType(t *testing.T) {
 }
 
 func TestPluginOwnsAccessControlPolicyType(t *testing.T) {
-	require.True(t, PluginOwnsAccessControlPolicyType("mattermost-ai", "mattermost-ai:agent"))
-	require.True(t, PluginOwnsAccessControlPolicyType("Mattermost-AI", "mattermost-ai:agent"),
-		"ownership check must be case-insensitive")
-	require.False(t, PluginOwnsAccessControlPolicyType("other-plugin", "mattermost-ai:agent"))
-	require.False(t, PluginOwnsAccessControlPolicyType("", "mattermost-ai:agent"))
-	require.False(t, PluginOwnsAccessControlPolicyType("mattermost-ai", AccessControlPolicyTypeChannel))
+	tests := []struct {
+		name       string
+		pluginID   string
+		policyType string
+		want       bool
+	}{
+		{"owner matches", "mattermost-ai", "mattermost-ai:agent", true},
+		{"foreign plugin", "other-plugin", "mattermost-ai:agent", false},
+		{"empty plugin ID", "", "mattermost-ai:agent", false},
+		{"core policy type", "mattermost-ai", AccessControlPolicyTypeChannel, false},
+		// The stored type is matched byte-for-byte on delete and during
+		// evaluation, so a case variant that could Get but never Delete would
+		// be a trap.
+		{"caller ID case mismatch", "Mattermost-AI", "mattermost-ai:agent", false},
+		{"stored prefix case mismatch", "mattermost-ai", "Mattermost-AI:agent", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, PluginOwnsAccessControlPolicyType(tc.pluginID, tc.policyType))
+		})
+	}
 }
 
 func TestIsValidPolicyAction(t *testing.T) {
