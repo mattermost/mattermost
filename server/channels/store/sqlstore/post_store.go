@@ -1915,7 +1915,7 @@ func burnOnReadVisibleCondition(alias, userID string) sq.Sqlizer {
 // read receipt has already expired for that user. Because the filtering happens
 // in a single query, any number of consecutive expired posts are skipped in one
 // round trip, so pagination cursors never point at a post the user can't see.
-func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string) (string, error) {
+func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string, excludeMembershipSystemPosts bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1934,6 +1934,9 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 	}
 	if collapsedThreads {
 		conditions = append(conditions, sq.Eq{"Posts.RootId": ""})
+	}
+	if excludeMembershipSystemPosts {
+		conditions = append(conditions, sq.NotEq{"Posts.Type": model.MembershipSystemPostTypes()})
 	}
 
 	query := s.getQueryBuilder().

@@ -1955,7 +1955,7 @@ func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, c
 	// subquery) is used when the feature is enabled; otherwise fall back to the
 	// plain lookups so there is no added query cost for instances not using it.
 	if a.isBurnOnReadEnabled() {
-		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
+		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID, exclude)
 	} else if before {
 		postId, err = a.Srv().Store().Post().GetPostIdBeforeTime(channelID, fromTime, collapsedThreads, exclude)
 	} else {

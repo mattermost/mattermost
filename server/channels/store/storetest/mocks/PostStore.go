@@ -1048,9 +1048,9 @@ func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*
 	return r0, r1
 }
 
-// GetVisiblePostIdAroundTime provides a mock function with given fields: channelID, timestamp, before, collapsedThreads, userID
-func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error) {
-	ret := _m.Called(channelID, timestamp, before, collapsedThreads, userID)
+// GetVisiblePostIdAroundTime provides a mock function with given fields: channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts
+func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string, excludeMembershipSystemPosts bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetVisiblePostIdAroundTime")
@@ -1058,17 +1058,17 @@ func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int6
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) (string, error)); ok {
-		return rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string, bool) (string, error)); ok {
+		return rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) string); ok {
-		r0 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string, bool) string); ok {
+		r0 = rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, bool, bool, string) error); ok {
-		r1 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool, string, bool) error); ok {
+		r1 = rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	} else {
 		r1 = ret.Error(1)
 	}

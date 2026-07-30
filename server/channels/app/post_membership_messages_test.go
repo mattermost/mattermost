@@ -352,6 +352,93 @@ func TestGetPostsBeforeAfterSuppression(t *testing.T) {
 	})
 }
 
+// TestPaginationCursorExcludesMembershipPosts covers the "Load more messages"
+// bug where NextPostId/PrevPostId, computed via AddCursorIdsForPostList after
+// the fetch, pointed at a membership post the read paths had already excluded
+// from the response - most visibly when the excluded post was the newest or
+// oldest post in the channel and burn-on-read's visibility-aware cursor lookup
+// (which takes over from the plain lookups) had no membership-post exclusion
+// of its own.
+func TestPaginationCursorExcludesMembershipPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("newest post in channel is a membership post", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		normal1 := th.CreatePost(t, channel)
+		normal2 := th.CreatePost(t, channel)
+		membershipPost := createMembershipSystemPost(t, th, channel)
+		setChannelDisableJoinLeaveMessages(t, th, channel, true)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   60,
+			UserId:    th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		require.NotContains(t, postList.Posts, membershipPost.Id)
+		require.Contains(t, postList.Posts, normal1.Id)
+		require.Contains(t, postList.Posts, normal2.Id)
+
+		th.App.AddCursorIdsForPostList(postList, th.BasicUser.Id, "", "", 0, 0, 60, false)
+		require.Empty(t, postList.NextPostId, "NextPostId must not reference the suppressed membership post")
+	})
+
+	t.Run("newest post in channel is a membership post, burn-on-read enabled", func(t *testing.T) {
+		enableBoRFeature(th)
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableBurnOnRead = new(false) })
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		normal1 := th.CreatePost(t, channel)
+		normal2 := th.CreatePost(t, channel)
+		membershipPost := createMembershipSystemPost(t, th, channel)
+		setChannelDisableJoinLeaveMessages(t, th, channel, true)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   60,
+			UserId:    th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		require.NotContains(t, postList.Posts, membershipPost.Id)
+		require.Contains(t, postList.Posts, normal1.Id)
+		require.Contains(t, postList.Posts, normal2.Id)
+
+		th.App.AddCursorIdsForPostList(postList, th.BasicUser.Id, "", "", 0, 0, 60, false)
+		require.Empty(t, postList.NextPostId, "NextPostId must not reference the suppressed membership post even with burn-on-read enabled")
+	})
+
+	t.Run("run of membership posts between two blocks of real content is paged past in one round trip", func(t *testing.T) {
+		enableBoRFeature(th)
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableBurnOnRead = new(false) })
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		older := th.CreatePost(t, channel)
+		for range 5 {
+			createMembershipSystemPost(t, th, channel)
+		}
+		newer := th.CreatePost(t, channel)
+		setChannelDisableJoinLeaveMessages(t, th, channel, true)
+
+		// perPage (3) is smaller than the run of membership posts (5), so a
+		// naive offset-then-filter approach would return an empty page here.
+		postList, appErr := th.App.GetPostsAfterPost(th.Context, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			PostId:    older.Id,
+			Page:      0,
+			PerPage:   3,
+			UserId:    th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		require.Contains(t, postList.Posts, newer.Id)
+
+		th.App.AddCursorIdsForPostList(postList, th.BasicUser.Id, older.Id, "", 0, 0, 3, false)
+		require.Empty(t, postList.NextPostId, "no more posts exist after newer")
+	})
+}
+
 func TestGetPermalinkPostSuppression(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
