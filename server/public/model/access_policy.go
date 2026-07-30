@@ -31,6 +31,12 @@ const (
 	// plugin-owned policy type.
 	MaxPluginResourceTypeLength = 64
 
+	// MaxPolicyTypeLength bounds a whole policy type to the width of the
+	// AccessControlPolicies.Type column. A valid plugin ID alone can exceed
+	// it, so the combined key must be bounded here or an otherwise-valid type
+	// would fail at insert time instead of validation.
+	MaxPolicyTypeLength = 128
+
 	// MaxPolicyActionLength bounds an action name.
 	MaxPolicyActionLength = 64
 
@@ -88,6 +94,9 @@ var policyActionRe = regexp.MustCompile(`^[a-z0-9]+(_[a-z0-9]+)*$`)
 // its owning plugin ID and resource-type segment. ok is false unless both
 // segments are well formed.
 func SplitPluginAccessControlPolicyType(policyType string) (pluginID string, resourceType string, ok bool) {
+	if len(policyType) > MaxPolicyTypeLength {
+		return "", "", false
+	}
 	pluginID, resourceType, found := strings.Cut(policyType, PluginAccessControlPolicyTypeSeparator)
 	if !found || !IsValidPluginId(pluginID) {
 		return "", "", false

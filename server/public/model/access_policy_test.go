@@ -1424,6 +1424,12 @@ func TestSplitPluginAccessControlPolicyType(t *testing.T) {
 		{"com.example.plugin:widget", "com.example.plugin", "widget"},
 		{"my_plugin:some.nested-type", "my_plugin", "some.nested-type"},
 		{"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength), "mattermost-ai", strings.Repeat("a", MaxPluginResourceTypeLength)},
+		// Exactly the column width: a 63-char plugin ID + ":" + 64-char type.
+		{
+			strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength-1) + ":" + strings.Repeat("a", MaxPluginResourceTypeLength),
+			strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength-1),
+			strings.Repeat("a", MaxPluginResourceTypeLength),
+		},
 	}
 	for _, tc := range valid {
 		t.Run("valid "+tc.policyType, func(t *testing.T) {
@@ -1448,6 +1454,8 @@ func TestSplitPluginAccessControlPolicyType(t *testing.T) {
 		"mattermost-ai:agent:v2",   // separator inside the resource type
 		"mattermost-ai:agent type", // space inside the resource type
 		"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength+1),
+		// One over the column width, with both segments individually valid.
+		strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength) + ":" + strings.Repeat("a", MaxPluginResourceTypeLength),
 		"",
 	}
 	for _, policyType := range invalid {
