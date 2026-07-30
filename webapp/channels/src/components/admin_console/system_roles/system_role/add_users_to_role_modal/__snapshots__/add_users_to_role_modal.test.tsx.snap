@@ -148,6 +148,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"
@@ -337,6 +338,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"
@@ -526,6 +528,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"
@@ -715,6 +718,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"
@@ -904,6 +908,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"

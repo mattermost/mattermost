@@ -108,6 +108,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
     <div
       aria-live="polite"
       class="multi-select__wrapper"
+      data-testid="multiSelectWrapper"
     >
       <div
         class="more-modal__list"
@@ -124,9 +125,11 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           aria-atomic="true"
           aria-live="polite"
           class="sr-only"
+          data-testid="multiSelectSelectionStatus"
         />
         <div
           class="more-modal__options"
+          data-testid="multiSelectList"
           id="multiSelectList"
           role="presentation"
         >
@@ -273,6 +276,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
     <div
       aria-live="polite"
       class="multi-select__wrapper"
+      data-testid="multiSelectWrapper"
     >
       <div
         class="more-modal__list"
@@ -289,9 +293,11 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           aria-atomic="true"
           aria-live="polite"
           class="sr-only"
+          data-testid="multiSelectSelectionStatus"
         />
         <div
           class="more-modal__options"
+          data-testid="multiSelectList"
           id="multiSelectList"
           role="presentation"
         >
@@ -438,6 +444,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
     <div
       aria-live="polite"
       class="multi-select__wrapper"
+      data-testid="multiSelectWrapper"
     >
       <div
         class="more-modal__list"
@@ -454,11 +461,13 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           aria-atomic="true"
           aria-live="polite"
           class="sr-only"
+          data-testid="multiSelectSelectionStatus"
         >
           5
         </div>
         <div
           class="more-modal__options"
+          data-testid="multiSelectList"
           id="multiSelectList"
           role="presentation"
         >
