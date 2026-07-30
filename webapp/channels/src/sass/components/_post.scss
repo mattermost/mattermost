@@ -405,7 +405,7 @@
     > button {
         @include mixins.button-small;
 
-        padding: 10px 16px;
+        flex-shrink: 0;
         border-width: 0;
         border-radius: 4px;
         box-shadow: none;
