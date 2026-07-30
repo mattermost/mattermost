@@ -3,11 +3,7 @@
 
 import type {Page} from '@playwright/test';
 
-import {
-    expect,
-    setupWebhookTestServer,
-    testConfig,
-} from '@mattermost/playwright-lib';
+import {expect, setupWebhookTestServer, testConfig} from '@mattermost/playwright-lib';
 
 export async function postIncomingWebhook(webhookId: string, payload: Record<string, unknown>) {
     const hookUrl = `${testConfig.baseURL}/hooks/${webhookId}`;
@@ -115,10 +111,7 @@ export async function openBlocksDialogFromPost(channelsPage: any, marker: string
 }
 
 export async function expectEphemeral(page: Page, text: string | RegExp) {
-    const ephemeral = page.
-        locator('.post').
-        filter({hasText: text}).
-        filter({hasText: '(Only visible to you)'});
+    const ephemeral = page.locator('.post').filter({hasText: text}).filter({hasText: '(Only visible to you)'});
     await expect(ephemeral).toBeVisible();
     return ephemeral;
 }
@@ -126,10 +119,7 @@ export async function expectEphemeral(page: Page, text: string | RegExp) {
 /**
  * Create a slash command that opens a legacy Interactive Dialog (action_button parent).
  */
-export async function setupLegacyActionButtonCommand(
-    pw: any,
-    request: Parameters<typeof setupWebhookTestServer>[0],
-) {
+export async function setupLegacyActionButtonCommand(pw: any, request: Parameters<typeof setupWebhookTestServer>[0]) {
     await setupWebhookTestServer(request, {
         mattermostBaseUrl: testConfig.baseURL,
         adminUsername: testConfig.adminUsername,

@@ -5,19 +5,9 @@
  * File upload fields in native block_dialog (single replace vs allow_multiple append).
  */
 
-import {
-    expect,
-    isWebhookTestServerReachable,
-    test,
-    testConfig,
-} from '@mattermost/playwright-lib';
+import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
-import {
-    dialogTags,
-    expectEphemeral,
-    openBlocksDialogFromPost,
-    setupDialogOpenPost,
-} from './mm_blocks_dialog_helpers';
+import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
 
 function fakeFile(name: string, contents: string) {
     return {
@@ -38,55 +28,49 @@ test.describe('Interactive mm_blocks (blocks dialog files)', () => {
         );
     });
 
-    test(
-        'renders Choose File vs Choose Files labels',
-        {tag: [...dialogTags]},
-        async ({pw, request}) => {
-            const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
-                scenario: 'file_upload',
-                buttonText: 'Open file upload UI',
-                titleHint: 'mm_blocks file upload UI',
-            });
+    test('renders Choose File vs Choose Files labels', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
+            scenario: 'file_upload',
+            buttonText: 'Open file upload UI',
+            titleHint: 'mm_blocks file upload UI',
+        });
 
-            const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            const single = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Single Document'});
-            const multi = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Multiple Files'});
-            await expect(single.getByRole('button', {name: 'Choose File'})).toBeVisible();
-            await expect(multi.getByRole('button', {name: 'Choose Files'})).toBeVisible();
-        },
-    );
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
+        const single = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Single Document'});
+        const multi = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Multiple Files'});
+        await expect(single.getByRole('button', {name: 'Choose File'})).toBeVisible();
+        await expect(multi.getByRole('button', {name: 'Choose Files'})).toBeVisible();
+    });
 
-    test(
-        'uploads required single and multiple files then submits',
-        {tag: [...dialogTags]},
-        async ({pw, request}) => {
-            const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
-                scenario: 'file_upload',
-                buttonText: 'Open file upload submit',
-                titleHint: 'mm_blocks file upload submit',
-            });
+    test('uploads required single and multiple files then submits', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
+            scenario: 'file_upload',
+            buttonText: 'Open file upload submit',
+            titleHint: 'mm_blocks file upload submit',
+        });
 
-            const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            const single = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Single Document'});
-            const multi = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Multiple Files'});
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
+        const single = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Single Document'});
+        const multi = dialog.locator('.mm-blocks-file-input').filter({hasText: 'Upload Multiple Files'});
 
-            await single.locator('input[type="file"]').setInputFiles(fakeFile(`single-${pw.random.id()}.txt`, 'single'));
-            await expect(single.getByTestId('file-preview-item')).toHaveCount(1);
+        await single.locator('input[type="file"]').setInputFiles(fakeFile(`single-${pw.random.id()}.txt`, 'single'));
+        await expect(single.getByTestId('file-preview-item')).toHaveCount(1);
 
-            await multi.locator('input[type="file"]').setInputFiles([
+        await multi
+            .locator('input[type="file"]')
+            .setInputFiles([
                 fakeFile(`multi-a-${pw.random.id()}.txt`, 'a'),
                 fakeFile(`multi-b-${pw.random.id()}.txt`, 'b'),
             ]);
-            await expect(multi.getByTestId('file-preview-item')).toHaveCount(2);
+        await expect(multi.getByTestId('file-preview-item')).toHaveCount(2);
 
-            await dialog.getByRole('button', {name: 'Submit Files'}).click();
-            await expect(dialog).toBeHidden();
+        await dialog.getByRole('button', {name: 'Submit Files'}).click();
+        await expect(dialog).toBeHidden();
 
-            const ephemeral = await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
-            await expect(ephemeral).toContainText(/single_document=[a-z0-9]{26}/i);
-            await expect(ephemeral).toContainText(/multiple_files=/);
-        },
-    );
+        const ephemeral = await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
+        await expect(ephemeral).toContainText(/single_document=[a-z0-9]{26}/i);
+        await expect(ephemeral).toContainText(/multiple_files=/);
+    });
 
     test(
         'allow_multiple appends; single replaces on second selection',
@@ -115,21 +99,17 @@ test.describe('Interactive mm_blocks (blocks dialog files)', () => {
         },
     );
 
-    test(
-        'required validation when submitting with no files',
-        {tag: [...dialogTags]},
-        async ({pw, request}) => {
-            const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
-                scenario: 'file_upload',
-                buttonText: 'Open file upload required',
-                titleHint: 'mm_blocks file upload required',
-            });
+    test('required validation when submitting with no files', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
+            scenario: 'file_upload',
+            buttonText: 'Open file upload required',
+            titleHint: 'mm_blocks file upload required',
+        });
 
-            const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            await dialog.getByRole('button', {name: 'Submit Files'}).click();
-            await expect(dialog).toBeVisible();
-            await expect(dialog.getByTestId('single_document-error')).toContainText(/required/i);
-            await expect(dialog.getByTestId('multiple_files-error')).toContainText(/required/i);
-        },
-    );
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
+        await dialog.getByRole('button', {name: 'Submit Files'}).click();
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByTestId('single_document-error')).toContainText(/required/i);
+        await expect(dialog.getByTestId('multiple_files-error')).toContainText(/required/i);
+    });
 });

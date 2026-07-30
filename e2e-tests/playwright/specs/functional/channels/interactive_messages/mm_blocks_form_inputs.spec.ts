@@ -180,14 +180,18 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const lockedTitle = lastPost.container.locator('.mm-blocks-text-input').filter({hasText: /^Locked title/});
             await expect(lockedTitle.getByTestId('locked_titleinput')).toBeDisabled();
 
-            const notifyBool = lastPost.container.locator('.mm-blocks-bool-input').filter({hasText: 'Email notifications'});
+            const notifyBool = lastPost.container
+                .locator('.mm-blocks-bool-input')
+                .filter({hasText: 'Email notifications'});
             await expect(notifyBool).toBeVisible();
             await expect(notifyBool.getByText('Notify help')).toBeVisible();
             await expect(notifyBool.getByRole('checkbox', {name: 'Send me status updates by email'})).toBeChecked();
 
             const digestBool = lastPost.container.locator('.mm-blocks-bool-input').filter({hasText: 'Weekly digest'});
             await expect(digestBool.getByText('(optional)')).toBeVisible();
-            await expect(digestBool.getByRole('checkbox', {name: 'Include this ticket in the weekly digest'})).not.toBeChecked();
+            await expect(
+                digestBool.getByRole('checkbox', {name: 'Include this ticket in the weekly digest'}),
+            ).not.toBeChecked();
 
             const lockedBool = lastPost.container.locator('.mm-blocks-bool-input').filter({hasText: 'Locked notify'});
             await expect(lockedBool.getByRole('checkbox', {name: 'Cannot change'})).toBeDisabled();
@@ -409,7 +413,10 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             const rootInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: marker}).last();
             await expect(rootInThread).toBeVisible();
 
-            await rootInThread.locator('.mm-blocks-date-input').getByRole('button', {name: /Pick a due date/i}).click();
+            await rootInThread
+                .locator('.mm-blocks-date-input')
+                .getByRole('button', {name: /Pick a due date/i})
+                .click();
             await expect(channelsPage.page.getByRole('grid')).toBeVisible();
             await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
 
@@ -417,18 +424,18 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             await expect(channelsPage.page.getByRole('grid')).toBeVisible();
             await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
 
-            await rootInThread.
-                locator('.mm-blocks-datetime-input').
-                getByRole('button', {name: /Time|Select a time/i}).
-                first().
-                click();
+            await rootInThread
+                .locator('.mm-blocks-datetime-input')
+                .getByRole('button', {name: /Time|Select a time/i})
+                .first()
+                .click();
             await channelsPage.page.getByRole('menuitem', {name: '3:00 PM'}).click();
 
             await rootInThread.getByRole('button', {name: 'Submit dates'}).click();
 
-            const integrationEphemeral = threadPanel.
-                getByTestId('rhsPostView').
-                filter({hasText: /Playwright mm_blocks form_values OK \(/});
+            const integrationEphemeral = threadPanel
+                .getByTestId('rhsPostView')
+                .filter({hasText: /Playwright mm_blocks form_values OK \(/});
             await expect(integrationEphemeral).toBeVisible();
             await expect(integrationEphemeral).toContainText(`due=${expectedDue}`);
             await expect(integrationEphemeral).toContainText(/meeting=\d{4}-\d{2}-\d{2}T/);
@@ -531,9 +538,9 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
 
             await rootInThread.getByRole('button', {name: 'Submit files'}).click();
 
-            const integrationEphemeral = threadPanel.
-                getByTestId('rhsPostView').
-                filter({hasText: /Playwright mm_blocks form_values OK \(attachments=/});
+            const integrationEphemeral = threadPanel
+                .getByTestId('rhsPostView')
+                .filter({hasText: /Playwright mm_blocks form_values OK \(attachments=/});
             await expect(integrationEphemeral).toBeVisible();
             await expect(integrationEphemeral).toContainText(/attachments=[a-z0-9]{26}/i);
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
@@ -660,9 +667,9 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             await rootInThread.getByRole('radio', {name: 'SEV-1'}).click();
             await rootInThread.getByRole('button', {name: 'Submit form'}).click();
 
-            const integrationEphemeral = threadPanel.
-                getByTestId('rhsPostView').
-                filter({hasText: /Playwright mm_blocks form_values OK \(/});
+            const integrationEphemeral = threadPanel
+                .getByTestId('rhsPostView')
+                .filter({hasText: /Playwright mm_blocks form_values OK \(/});
             await expect(integrationEphemeral).toBeVisible();
             await expect(integrationEphemeral).toContainText(`title=${titleValue}`);
             await expect(integrationEphemeral).toContainText('notify_email=true');
@@ -860,9 +867,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             await prioritySelect.getByRole('combobox').click();
             await channelsPage.page.getByRole('option', {name: 'High'}).click();
 
-            await expect(
-                threadPanel.getByText(/Playwright mm_blocks form_values OK \(.*priority=high/),
-            ).toBeVisible();
+            await expect(threadPanel.getByText(/Playwright mm_blocks form_values OK \(.*priority=high/)).toBeVisible();
             await expect(threadPanel.getByText('(Only visible to you)', {exact: true}).first()).toBeVisible();
         },
     );
@@ -967,9 +972,9 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
 
             await rootInThread.getByRole('button', {name: 'Submit pick'}).click();
 
-            const integrationEphemeral = threadPanel.
-                getByTestId('rhsPostView').
-                filter({hasText: /Playwright mm_blocks form_values OK \(pick=opt_alpha\)/});
+            const integrationEphemeral = threadPanel
+                .getByTestId('rhsPostView')
+                .filter({hasText: /Playwright mm_blocks form_values OK \(pick=opt_alpha\)/});
             await expect(integrationEphemeral).toBeVisible();
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
         },

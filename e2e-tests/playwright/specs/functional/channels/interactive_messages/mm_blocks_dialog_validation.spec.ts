@@ -6,19 +6,9 @@
  * Native email checks are soft (must include '@'), not HTML5 validationMessage.
  */
 
-import {
-    expect,
-    isWebhookTestServerReachable,
-    test,
-    testConfig,
-} from '@mattermost/playwright-lib';
+import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
-import {
-    dialogTags,
-    expectEphemeral,
-    openBlocksDialogFromPost,
-    setupDialogOpenPost,
-} from './mm_blocks_dialog_helpers';
+import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
 
 test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
     test.beforeEach(async ({request}) => {
@@ -31,52 +21,44 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
         );
     });
 
-    test(
-        'required empty submit keeps dialog open with field errors',
-        {tag: [...dialogTags]},
-        async ({pw, request}) => {
-            const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
-                scenario: 'empty_required',
-                buttonText: 'Open required',
-                titleHint: 'mm_blocks required validation',
-            });
+    test('required empty submit keeps dialog open with field errors', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
+            scenario: 'empty_required',
+            buttonText: 'Open required',
+            titleHint: 'mm_blocks required validation',
+        });
 
-            const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            await dialog.getByRole('button', {name: 'Submit'}).click();
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
+        await dialog.getByRole('button', {name: 'Submit'}).click();
 
-            await expect(dialog).toBeVisible();
-            await expect(dialog.getByTestId('realname-error')).toBeVisible();
-            await expect(dialog.getByTestId('someemail-error')).toBeVisible();
-            await expect(dialog.getByTestId('somenumber-error')).toBeVisible();
-            await expect(dialog.getByText('Please fix all field errors')).toBeVisible();
-        },
-    );
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByTestId('realname-error')).toBeVisible();
+        await expect(dialog.getByTestId('someemail-error')).toBeVisible();
+        await expect(dialog.getByTestId('somenumber-error')).toBeVisible();
+        await expect(dialog.getByText('Please fix all field errors')).toBeVisible();
+    });
 
-    test(
-        'email soft validation rejects invalid and accepts valid',
-        {tag: [...dialogTags]},
-        async ({pw, request}) => {
-            const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
-                scenario: 'empty_required',
-                buttonText: 'Open email validation',
-                titleHint: 'mm_blocks email validation',
-            });
+    test('email soft validation rejects invalid and accepts valid', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
+            scenario: 'empty_required',
+            buttonText: 'Open email validation',
+            titleHint: 'mm_blocks email validation',
+        });
 
-            const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            await dialog.getByTestId('realnameinput').fill('Ada');
-            await dialog.getByTestId('someemailemail').fill('not-an-email');
-            await dialog.getByTestId('somenumbernumber').fill('42');
-            await dialog.getByRole('button', {name: 'Submit'}).click();
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
+        await dialog.getByTestId('realnameinput').fill('Ada');
+        await dialog.getByTestId('someemailemail').fill('not-an-email');
+        await dialog.getByTestId('somenumbernumber').fill('42');
+        await dialog.getByRole('button', {name: 'Submit'}).click();
 
-            await expect(dialog).toBeVisible();
-            await expect(dialog.getByTestId('someemail-error')).toContainText(/email/i);
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByTestId('someemail-error')).toContainText(/email/i);
 
-            await dialog.getByTestId('someemailemail').fill('ada@example.com');
-            await dialog.getByRole('button', {name: 'Submit'}).click();
-            await expect(dialog).toBeHidden();
-            await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
-        },
-    );
+        await dialog.getByTestId('someemailemail').fill('ada@example.com');
+        await dialog.getByRole('button', {name: 'Submit'}).click();
+        await expect(dialog).toBeHidden();
+        await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
+    });
 
     test(
         'number validation rejects empty/invalid and accepts numeric',
