@@ -551,6 +551,28 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
+	t.Run("a policy that turned foreign between the two reads is not disclosed", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		// The raw gate sees the caller's own type, so ownership passes.
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+
+		// The normalized read is independent: simulate the row having been
+		// deleted and re-created under a foreign type in between.
+		recreated := validPluginPolicy(p.ID)
+		recreated.Type = "other-plugin:agent"
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(recreated, nil).Once()
+
+		policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, p.ID)
+		require.Nil(t, policy, "a foreign policy must never be returned, even if the raw gate passed")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Equal(t, "app.access_control.plugin.policy_not_found.app_error", appErr.Id)
+		mockACS.AssertExpectations(t)
+	})
+
 	t.Run("absent and foreign-type policy return the same byte-identical 404", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS

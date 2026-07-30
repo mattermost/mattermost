@@ -194,6 +194,11 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 
 	// Existence probe: create-vs-update for the audit trail, plus a guard
 	// against overwriting a policy of a different type sharing the ID.
+	//
+	// Rows are keyed by ID alone, so a foreign type already holding this ID
+	// wins first-writer-wins and this save is rejected. That is accepted under
+	// the trusted-plugin model: the squatting row is attributable by its Type,
+	// and evaluation reports the resource as no_policy rather than denying it.
 	operation := "update"
 	existing, getErr := acs.GetPolicy(rctx, policy.ID)
 	if getErr != nil {
@@ -275,13 +280,24 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 		return nil, pluginPolicyNotFoundError(where)
 	}
 
-	// Ownership is settled, so the normalized read may report its own errors.
+	// The raw gate has approved ownership, so this read may report its own
+	// errors.
 	policy, appErr := acs.GetPolicy(rctx, id)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return nil, pluginPolicyNotFoundError(where)
 		}
 		return nil, appErr
+	}
+	// This is an independent second read, so re-check what it actually
+	// returned: in the same delete/recreate window the delete path documents,
+	// the row could have become foreign between the two reads. Reaching that
+	// needs a cross-plugin resource-ID collision plus an owner or admin
+	// recreating mid-flight, so it is not adversary-reachable by the caller —
+	// but returning a foreign policy would be a disclosure, not just a stale
+	// read.
+	if !model.PluginOwnsAccessControlPolicyType(pluginID, policy.Type) {
+		return nil, pluginPolicyNotFoundError(where)
 	}
 
 	return policy, nil
