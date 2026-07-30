@@ -1896,12 +1896,15 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	if err := a.UpdatePasswordSendEmail(rctx, user, newPassword, T("api.user.reset_password.method")); err != nil {
-		return err
+	// Atomically consume the token as the last step before the password change side
+	// effect, so a concurrent reset with the same token fails here instead of a false
+	// success being returned while the change is silently dropped.
+	if _, cErr := a.ConsumeTokenOnce(token.Type, token.Token); cErr != nil {
+		return model.NewAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(cErr)
 	}
 
-	if err := a.DeleteToken(token); err != nil {
-		rctx.Logger().Warn("Failed to delete token", mlog.Err(err))
+	if err := a.UpdatePasswordSendEmail(rctx, user, newPassword, T("api.user.reset_password.method")); err != nil {
+		return err
 	}
 
 	return nil
