@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // Plugin-owned access control (PDP + PAP proxies for the plugin API). Policy
@@ -230,17 +229,24 @@ func pluginPolicyNotFoundError(where string) *model.AppError {
 	return model.NewAppError(where, "app.access_control.plugin.policy_not_found.app_error", nil, "", http.StatusNotFound)
 }
 
-// readPluginPolicy reads the policy stored under id, collapsing a definitive
-// not-found into the plugin-facing 404 so every caller probes identically.
-func readPluginPolicy(rctx request.CTX, acs einterfaces.AccessControlServiceInterface, where, id string) (*model.AccessControlPolicy, *model.AppError) {
-	policy, appErr := acs.GetPolicy(rctx, id)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			return nil, pluginPolicyNotFoundError(where)
+// readStoredPolicyType returns the Type of the row stored under id, read
+// straight from the store rather than through the enterprise PAP. Reading raw
+// keeps the ownership gate ahead of normalization: a foreign policy that failed
+// to normalize would otherwise surface a 400/500 and become distinguishable
+// from the uniform 404. Absent rows get that same 404.
+//
+// Gating on the stored type is sound because Type is immutable: the store
+// rejects type changes on an existing policy.
+func (a *App) readStoredPolicyType(rctx request.CTX, where, id string) (string, *model.AppError) {
+	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return "", pluginPolicyNotFoundError(where)
 		}
-		return nil, appErr
+		return "", model.NewAppError(where, "app.pap.get_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return policy, nil
+	return policy.Type, nil
 }
 
 // GetPluginAccessControlPolicy returns the policy stored under id when its
@@ -258,14 +264,21 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	policy, appErr := readPluginPolicy(rctx, acs, where, id)
+	storedType, appErr := a.readStoredPolicyType(rctx, where, id)
 	if appErr != nil {
 		return nil, appErr
 	}
-	// Checking the stored type after the read is sound because Type is
-	// immutable: the store rejects type changes on save.
-	if !model.PluginOwnsAccessControlPolicyType(pluginID, policy.Type) {
+	if !model.PluginOwnsAccessControlPolicyType(pluginID, storedType) {
 		return nil, pluginPolicyNotFoundError(where)
+	}
+
+	// Ownership is settled, so the normalized read may report its own errors.
+	policy, appErr := acs.GetPolicy(rctx, id)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil, pluginPolicyNotFoundError(where)
+		}
+		return nil, appErr
 	}
 
 	return policy, nil
@@ -301,16 +314,19 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 		return model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	policy, appErr := readPluginPolicy(rctx, acs, where, id)
+	storedType, appErr := a.readStoredPolicyType(rctx, where, id)
 	if appErr != nil {
 		return appErr
 	}
-	// Checking the stored type before the delete is sound because Type is
-	// immutable: the store rejects type changes on save.
-	if policy.Type != resourceType {
+	if storedType != resourceType {
 		return pluginPolicyNotFoundError(where)
 	}
 
+	// The check and the delete are separate statements, so a row deleted and
+	// re-created under the same ID with a foreign type in between would be
+	// deleted on the caller's behalf. Reaching that needs a cross-plugin
+	// resource-ID collision plus an owner or admin recreating mid-flight, so it
+	// is not adversary-reachable by the calling plugin.
 	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}

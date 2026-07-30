@@ -54,6 +54,17 @@ func validPluginPolicy(id string) *model.AccessControlPolicy {
 	}
 }
 
+// savePluginPolicyRow plants a row directly in the open-core store, which is
+// what the app layer's raw ownership read consults.
+func savePluginPolicyRow(t *testing.T, th *TestHelper, policy *model.AccessControlPolicy) {
+	t.Helper()
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, policy.ID))
+	})
+}
+
 // validForeignTypePolicy is a valid v0.3 channel policy used to plant a
 // foreign-type row under a plugin resource ID.
 func validForeignTypePolicy(id string) *model.AccessControlPolicy {
@@ -82,15 +93,9 @@ func TestEvaluatePluginAccessRequest(t *testing.T) {
 	resourceType := testAgentResourceType
 	action := testAgentAction
 
-	// savePolicyRow plants a row directly in the open-core store, matching
-	// the raw fallback existence read.
 	savePolicyRow := func(t *testing.T, policy *model.AccessControlPolicy) {
 		t.Helper()
-		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, policy.ID))
-		})
+		savePluginPolicyRow(t, th, policy)
 	}
 
 	t.Run("programming errors return AppErrors", func(t *testing.T) {
@@ -532,11 +537,17 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		p := validPluginPolicy(model.NewId())
-		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(p, nil).Once()
+		savePluginPolicyRow(t, th, p)
+
+		// Ownership comes from the raw row; the returned policy comes from the
+		// enterprise read, which is the only one that normalizes.
+		normalized := validPluginPolicy(p.ID)
+		normalized.Rules[0].Expression = `user.attributes.dept == "eng" /* normalized */`
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(normalized, nil).Once()
 
 		policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, p.ID)
 		require.Nil(t, appErr)
-		require.Equal(t, p, policy)
+		require.Equal(t, normalized, policy)
 		mockACS.AssertExpectations(t)
 	})
 
@@ -545,21 +556,18 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		absentID := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, absentID).
-			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "resource: AccessControlPolicy id: "+absentID, http.StatusNotFound)).Once()
 
 		// A channel policy and another plugin's policy both sit outside the
 		// caller's type namespace.
-		channelID := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, channelID).Return(validForeignTypePolicy(channelID), nil).Once()
+		channelPolicy := validForeignTypePolicy(model.NewId())
+		savePluginPolicyRow(t, th, channelPolicy)
 
-		foreignPluginID := model.NewId()
-		foreignPlugin := validPluginPolicy(foreignPluginID)
+		foreignPlugin := validPluginPolicy(model.NewId())
 		foreignPlugin.Type = "other-plugin:agent"
-		mockACS.On("GetPolicy", mock.Anything, foreignPluginID).Return(foreignPlugin, nil).Once()
+		savePluginPolicyRow(t, th, foreignPlugin)
 
 		var errs []*model.AppError
-		for _, id := range []string{absentID, channelID, foreignPluginID} {
+		for _, id := range []string{absentID, channelPolicy.ID, foreignPlugin.ID} {
 			policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, id)
 			require.Nil(t, policy, "a policy outside the caller's namespace must never be returned")
 			require.NotNil(t, appErr)
@@ -567,10 +575,32 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 			assert.Equal(t, "app.access_control.plugin.policy_not_found.app_error", appErr.Id)
 			errs = append(errs, appErr)
 		}
-		// Indistinguishable despite differing enterprise details.
 		assert.Equal(t, errs[0].Error(), errs[1].Error())
 		assert.Equal(t, errs[0].Error(), errs[2].Error())
-		mockACS.AssertExpectations(t)
+		// The ownership gate runs on the raw row, so a foreign policy is never
+		// handed to the normalizer — whose failures would otherwise be
+		// distinguishable from this 404.
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("foreign policy that would fail to normalize still returns the uniform 404", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		foreign := validPluginPolicy(model.NewId())
+		foreign.Type = "other-plugin:agent"
+		savePluginPolicyRow(t, th, foreign)
+
+		// Any call into the normalizer would leak that the row exists.
+		mockACS.On("GetPolicy", mock.Anything, foreign.ID).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.rehydrate_rank.app_error", nil, "cannot normalize", http.StatusInternalServerError)).Maybe()
+
+		policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, foreign.ID)
+		require.Nil(t, policy)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Equal(t, "app.access_control.plugin.policy_not_found.app_error", appErr.Id)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
 	t.Run("non-owner plugin cannot read an owned policy", func(t *testing.T) {
@@ -578,23 +608,26 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockACS
 
 		p := validPluginPolicy(model.NewId())
-		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(p, nil).Once()
+		savePluginPolicyRow(t, th, p)
 
 		policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, "other-plugin", p.ID)
 		require.Nil(t, policy)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.policy_not_found.app_error", appErr.Id)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("infra error propagates", func(t *testing.T) {
+	t.Run("normalized read error propagates once ownership passes", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		id := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, id).
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+
+		mockACS.On("GetPolicy", mock.Anything, p.ID).
 			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
 
-		_, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, id)
+		_, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, p.ID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 		mockACS.AssertExpectations(t)
@@ -641,17 +674,12 @@ func TestDeletePluginAccessControlPolicy(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		// The enterprise 404 carries the ID in its details; the app layer must
-		// collapse it and the type mismatch into one reply.
 		absentID := model.NewId()
-		mismatchID := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, absentID).
-			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "resource: AccessControlPolicy id: "+absentID, http.StatusNotFound)).Once()
-		mockACS.On("GetPolicy", mock.Anything, mismatchID).
-			Return(validForeignTypePolicy(mismatchID), nil).Once()
+		mismatch := validForeignTypePolicy(model.NewId())
+		savePluginPolicyRow(t, th, mismatch)
 
 		absentErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, absentID)
-		mismatchErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, mismatchID)
+		mismatchErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, mismatch.ID)
 
 		require.NotNil(t, absentErr)
 		require.NotNil(t, mismatchErr)
@@ -659,51 +687,60 @@ func TestDeletePluginAccessControlPolicy(t *testing.T) {
 		assert.Equal(t, absentErr.Error(), mismatchErr.Error())
 		// A foreign-type policy must never reach the delete.
 		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
-		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("happy path deletes after the stored-type check", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		id := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
-		mockACS.On("DeletePolicy", mock.Anything, id).Return(nil).Once()
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+		mockACS.On("DeletePolicy", mock.Anything, p.ID).Return(nil).Once()
 
-		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
+		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, p.ID)
 		require.Nil(t, appErr)
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("infra error propagates", func(t *testing.T) {
+	t.Run("delete error propagates", func(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		id := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
-		mockACS.On("DeletePolicy", mock.Anything, id).
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+		mockACS.On("DeletePolicy", mock.Anything, p.ID).
 			Return(model.NewAppError("DeletePolicy", "app.pap.delete_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
 
-		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
+		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, p.ID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 		mockACS.AssertExpectations(t)
 	})
+}
 
-	t.Run("read error propagates without a delete", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
+// TestPluginAccessControlPolicyReadStoreError pins that a failing ownership
+// read propagates as a 500 and never reaches the normalizer. Uses the
+// store-mock helper because a read error cannot be arranged on the real store.
+// The delete path resolves ownership through the same readStoredPolicyType
+// helper, so it inherits this behaviour.
+func TestPluginAccessControlPolicyReadStoreError(t *testing.T) {
+	th := SetupWithStoreMock(t)
 
-		id := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, id).
-			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "db down", http.StatusInternalServerError)).Once()
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockACPStore := &storemocks.AccessControlPolicyStore{}
+	mockACPStore.On("Get", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, errors.New("simulated store failure"))
+	mockStore.On("AccessControlPolicy").Return(mockACPStore)
 
-		appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
-		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
-		mockACS.AssertExpectations(t)
-	})
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+
+	_, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, model.NewId())
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	mockACPStore.AssertExpectations(t)
 }
 
 func TestPluginAccessControlCELProxies(t *testing.T) {
@@ -1026,15 +1063,15 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		id := model.NewId()
-		mockACS.On("GetPolicy", mock.Anything, id).Return(validPluginPolicy(id), nil).Once()
-		mockACS.On("DeletePolicy", mock.Anything, id).Return(nil).Once()
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+		mockACS.On("DeletePolicy", mock.Anything, p.ID).Return(nil).Once()
 
 		rec := assertNextRecord(t, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusSuccess, func() {
-			appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, id)
+			appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, p.ID)
 			require.Nil(t, appErr)
 		})
-		assert.Equal(t, id, auditParam(t, rec, "policy_id"))
+		assert.Equal(t, p.ID, auditParam(t, rec, "policy_id"))
 		assert.Equal(t, "delete", auditParam(t, rec, "operation"))
 		mockACS.AssertExpectations(t)
 	})
