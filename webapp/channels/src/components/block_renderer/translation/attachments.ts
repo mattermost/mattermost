@@ -248,7 +248,7 @@ function parseAttachmentFields(fields: unknown): ParsedAttachmentField[] {
             continue;
         }
         result.push({
-            title: typeof field.title === 'string' ? field.title : '',
+            title: typeof field.title === 'string' && field.title.trim() ? field.title : '',
             value: valueStr,
             short: field.short === true,
         });

@@ -242,6 +242,7 @@ export const ATTACHMENTS_COMPLEX = [
             {title: 'Next update', value: 'In 15 minutes or on status change', short: true},
             {title: 'Commander', value: '@sre-oncall', short: true},
             {title: '', value: 'value without title'},
+            {title: ' ', value: 'value with whitespace-only title'},
             {title: 'Empty value', value: null},
         ],
         image_url: 'https://example.com/error-rate-chart.png',
