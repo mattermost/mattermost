@@ -3,18 +3,45 @@
 
 package markdown
 
-import "slices"
-
-const (
-	// Assuming 64k maxSize of a post which can be stored in DB.
-	// Allow scanning upto twice(arbitrary value) the post size.
-	maxLen = 1024 * 64 * 2
+import (
+	"slices"
+	"sync/atomic"
 )
+
+// defaultMaxPostSize is used only if no function has been registered via SetMaxPostSizeFunc,
+// which should not happen in practice. It assumes a 64k maxSize of a post which can be stored in
+// DB, and allows scanning up to twice (arbitrary value) the post size, expressed here as a post
+// size in runes so it goes through the same four-bytes-per-rune assumption as the real value.
+const defaultMaxPostSize = 1024 * 32
+
+var maxPostSizeFunc atomic.Pointer[func() int]
+
+// SetMaxPostSizeFunc registers a function that MaxLen calls, on every invocation, to obtain the
+// real configured maximum post size, in runes. This lets MaxLen always reflect the real limit
+// regardless of which code path first parses markdown, rather than depending on that path having
+// already pushed the value in. The function is expected to be cheap to call repeatedly (e.g.
+// backed by its own cache), since Parse and Inspect call MaxLen on every invocation. Safe to call
+// concurrently with MaxLen.
+func SetMaxPostSizeFunc(f func() int) {
+	maxPostSizeFunc.Store(&f)
+}
+
+// MaxLen returns the current maximum markdown input length, in bytes, enforced by Parse and
+// Inspect: four times the maximum post size, in runes, returned by the function registered via
+// SetMaxPostSizeFunc, assuming a worst case of four bytes per rune. Falls back to a conservative
+// default if no function has been registered, which should not happen in practice.
+func MaxLen() int {
+	maxPostSize := defaultMaxPostSize
+	if p := maxPostSizeFunc.Load(); p != nil {
+		maxPostSize = (*p)()
+	}
+	return 4 * maxPostSize
+}
 
 // Inspect traverses the markdown tree in depth-first order. If f returns true, Inspect invokes f
 // recursively for each child of the block or inline, followed by a call of f(nil).
 func Inspect(markdown string, f func(any) bool) {
-	if len(markdown) > maxLen {
+	if len(markdown) > MaxLen() {
 		return
 	}
 	document, referenceDefinitions := Parse(markdown)

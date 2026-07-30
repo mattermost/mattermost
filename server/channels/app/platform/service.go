@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
@@ -331,6 +332,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
+
+	// The markdown package needs to know what the maximum post size is, so we
+	// let it know once the store is created.
+	markdown.SetMaxPostSizeFunc(ps.MaxPostSize)
 
 	// Step 7: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could
