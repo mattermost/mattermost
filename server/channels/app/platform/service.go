@@ -573,6 +573,16 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 }
 
 func (ps *PlatformService) Shutdown() error {
+	// Deferred so it still runs even if a later step below returns early
+	// (e.g. cacheProvider.Close failing). Must run last: every other step
+	// below (notably HubStop) is a candidate to still attempt a cluster send
+	// after StopInterNodeCommunication has already run, so the cluster
+	// interface's own shutdown accounting needs everything below to have
+	// already happened, which defer guarantees regardless of the early return.
+	if ps.clusterIFace != nil {
+		defer ps.clusterIFace.Shutdown()
+	}
+
 	ps.HubStop()
 
 	// Shutdown status processor.
