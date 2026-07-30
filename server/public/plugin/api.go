@@ -1708,8 +1708,8 @@ type API interface {
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
 	// EvaluateAccessControl evaluates whether userID may perform action on the
-	// plugin-registered resource (resourceType, resourceID). The calling plugin
-	// must own resourceType. Outcome is one of allow / deny / no_policy /
+	// plugin-owned resource (resourceType, resourceID). resourceType must be
+	// "<callingPluginID>:<type>". Outcome is one of allow / deny / no_policy /
 	// unavailable; failures never map to allow. no_policy means the server
 	// positively determined that no policy exists for the resource — resolved
 	// even when the access control engine is unavailable — so the caller can
@@ -1722,8 +1722,8 @@ type API interface {
 	// Minimum server version: 11.10
 	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError)
 
-	// SaveAccessControlPolicy creates or updates a policy for a resource type
-	// registered to the calling plugin. Version is forced to v0.5 and Active to
+	// SaveAccessControlPolicy creates or updates a policy whose Type is
+	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
 	// true. policy.ID must be the resource's stable 26-char ID.
 	//
 	// @tag AccessControl

@@ -1301,16 +1301,20 @@ func TestInheritTeamType(t *testing.T) {
 	})
 }
 
+// testPluginPolicyType is a well-formed plugin-owned policy type: the owning
+// plugin ID, a colon, then the plugin's own resource-type name.
+const testPluginPolicyType = "mattermost-ai:agent"
+
 func TestAccessPolicyVersionV0_5(t *testing.T) {
 	validPolicy := func(mutate func(p *AccessControlPolicy)) *AccessControlPolicy {
 		p := &AccessControlPolicy{
 			ID:       NewId(),
-			Type:     AccessControlPolicyTypePluginAgent,
+			Type:     testPluginPolicyType,
 			Name:     "Agent policy",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_5,
 			Rules: []AccessControlPolicyRule{{
-				Actions:    []string{AccessControlPolicyActionUse},
+				Actions:    []string{"use"},
 				Expression: "user.attributes.dept == \"eng\"",
 			}},
 		}
@@ -1321,15 +1325,21 @@ func TestAccessPolicyVersionV0_5(t *testing.T) {
 	}
 
 	for _, pluginType := range []string{
-		AccessControlPolicyTypePluginAgent,
-		AccessControlPolicyTypePluginService,
-		AccessControlPolicyTypePluginMCP,
+		"mattermost-ai:agent",
+		"mattermost-ai:service",
+		"mattermost-ai:mcp",
+		"com.example.plugin:widget",
 	} {
 		t.Run("valid policy for "+pluginType, func(t *testing.T) {
 			p := validPolicy(func(p *AccessControlPolicy) { p.Type = pluginType })
 			require.Nil(t, p.IsValid())
 		})
 	}
+
+	t.Run("plugin-defined action accepted", func(t *testing.T) {
+		p := validPolicy(func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"invoke_tool"} })
+		require.Nil(t, p.IsValid())
+	})
 
 	t.Run("optional rule name accepted", func(t *testing.T) {
 		p := validPolicy(func(p *AccessControlPolicy) { p.Rules[0].Name = "Named rule" })
@@ -1345,7 +1355,13 @@ func TestAccessPolicyVersionV0_5(t *testing.T) {
 		{"legacy parent type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypeParent }, "model.access_policy.is_valid.plugin_type.app_error"},
 		{"legacy permission type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypePermission }, "model.access_policy.is_valid.plugin_type.app_error"},
 		{"legacy team type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypeTeam }, "model.access_policy.is_valid.plugin_type.app_error"},
-		{"unregistered type rejected", func(p *AccessControlPolicy) { p.Type = "some-plugin.widget" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"unprefixed type rejected", func(p *AccessControlPolicy) { p.Type = "some-plugin.widget" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"empty resource-type segment rejected", func(p *AccessControlPolicy) { p.Type = "mattermost-ai:" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"empty plugin-ID segment rejected", func(p *AccessControlPolicy) { p.Type = ":agent" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"resource-type segment with a separator rejected", func(p *AccessControlPolicy) { p.Type = "mattermost-ai:agent:v2" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"oversized resource-type segment rejected", func(p *AccessControlPolicy) {
+			p.Type = "mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength+1)
+		}, "model.access_policy.is_valid.plugin_type.app_error"},
 		{"invalid id", func(p *AccessControlPolicy) { p.ID = "short" }, "model.access_policy.is_valid.id.app_error"},
 		{"empty name", func(p *AccessControlPolicy) { p.Name = "" }, "model.access_policy.is_valid.name.app_error"},
 		{"oversized name", func(p *AccessControlPolicy) { p.Name = strings.Repeat("a", MaxPolicyNameLength+1) }, "model.access_policy.is_valid.name.app_error"},
@@ -1354,11 +1370,8 @@ func TestAccessPolicyVersionV0_5(t *testing.T) {
 		{"imports present", func(p *AccessControlPolicy) { p.Imports = []string{NewId()} }, "model.access_policy.is_valid.imports.app_error"},
 		{"roles present", func(p *AccessControlPolicy) { p.Roles = []string{SystemUserRoleId} }, "model.access_policy.is_valid.roles.app_error"},
 		{"empty actions", func(p *AccessControlPolicy) { p.Rules[0].Actions = nil }, "model.access_policy.is_valid.actions.app_error"},
-		{"membership action rejected", func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{AccessControlPolicyActionMembership} }, "model.access_policy.is_valid.actions.app_error"},
 		{"wildcard action rejected", func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"*"} }, "model.access_policy.is_valid.actions.app_error"},
-		{"upload action rejected", func(p *AccessControlPolicy) {
-			p.Rules[0].Actions = []string{AccessControlPolicyActionUploadFileAttachment}
-		}, "model.access_policy.is_valid.actions.app_error"},
+		{"malformed action rejected", func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"Use It"} }, "model.access_policy.is_valid.actions.app_error"},
 		{"rule role rejected", func(p *AccessControlPolicy) { p.Rules[0].Role = ChannelUserRoleId }, "model.access_policy.is_valid.rule_role.app_error"},
 		{"oversized rule name", func(p *AccessControlPolicy) { p.Rules[0].Name = strings.Repeat("a", MaxPolicyNameLength+1) }, "model.access_policy.is_valid.rule_name.app_error"},
 	}
@@ -1401,54 +1414,85 @@ func TestAccessPolicyVersionV0_5(t *testing.T) {
 	})
 }
 
-func TestPluginAccessControlResourceTypeRegistry(t *testing.T) {
-	t.Run("registry hit", func(t *testing.T) {
-		for _, pluginType := range []string{
-			AccessControlPolicyTypePluginAgent,
-			AccessControlPolicyTypePluginService,
-			AccessControlPolicyTypePluginMCP,
-		} {
-			rt, ok := PluginAccessControlResourceTypeFor(pluginType)
-			require.True(t, ok, pluginType)
-			require.Equal(t, pluginType, rt.Type)
-			require.Equal(t, "mattermost-ai", rt.OwnerPluginID)
-			require.Equal(t, []string{AccessControlPolicyActionUse}, rt.AllowedActions)
-			require.True(t, IsPluginAccessControlPolicyType(pluginType))
-		}
-	})
+func TestSplitPluginAccessControlPolicyType(t *testing.T) {
+	valid := []struct {
+		policyType   string
+		pluginID     string
+		resourceType string
+	}{
+		{"mattermost-ai:agent", "mattermost-ai", "agent"},
+		{"com.example.plugin:widget", "com.example.plugin", "widget"},
+		{"my_plugin:some.nested-type", "my_plugin", "some.nested-type"},
+		{"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength), "mattermost-ai", strings.Repeat("a", MaxPluginResourceTypeLength)},
+	}
+	for _, tc := range valid {
+		t.Run("valid "+tc.policyType, func(t *testing.T) {
+			pluginID, resourceType, ok := SplitPluginAccessControlPolicyType(tc.policyType)
+			require.True(t, ok)
+			require.Equal(t, tc.pluginID, pluginID)
+			require.Equal(t, tc.resourceType, resourceType)
+			require.True(t, IsPluginAccessControlPolicyType(tc.policyType))
+		})
+	}
 
-	t.Run("registry miss", func(t *testing.T) {
-		for _, legacyType := range []string{
-			AccessControlPolicyTypeParent,
-			AccessControlPolicyTypeChannel,
-			AccessControlPolicyTypePermission,
-			AccessControlPolicyTypeTeam,
-			"bogus.type",
-			"",
-		} {
-			_, ok := PluginAccessControlResourceTypeFor(legacyType)
-			require.False(t, ok, legacyType)
-			require.False(t, IsPluginAccessControlPolicyType(legacyType), legacyType)
-		}
-	})
+	invalid := []string{
+		AccessControlPolicyTypeParent,
+		AccessControlPolicyTypeChannel,
+		AccessControlPolicyTypePermission,
+		AccessControlPolicyTypeTeam,
+		"mattermost-ai.agent",
+		"mattermost-ai:",
+		":agent",
+		"ab:agent",                 // plugin ID shorter than MinIdLength
+		"mattermost ai:agent",      // space is not a valid plugin-ID character
+		"mattermost-ai:agent:v2",   // separator inside the resource type
+		"mattermost-ai:agent type", // space inside the resource type
+		"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength+1),
+		"",
+	}
+	for _, policyType := range invalid {
+		t.Run("invalid "+policyType, func(t *testing.T) {
+			_, _, ok := SplitPluginAccessControlPolicyType(policyType)
+			require.False(t, ok)
+			require.False(t, IsPluginAccessControlPolicyType(policyType))
+			require.False(t, PluginOwnsAccessControlPolicyType("mattermost-ai", policyType))
+		})
+	}
+}
 
-	t.Run("action allow-list", func(t *testing.T) {
-		rt, ok := PluginAccessControlResourceTypeFor(AccessControlPolicyTypePluginAgent)
-		require.True(t, ok)
-		require.True(t, rt.IsActionAllowed(AccessControlPolicyActionUse))
-		require.False(t, rt.IsActionAllowed(AccessControlPolicyActionMembership))
-		require.False(t, rt.IsActionAllowed("*"))
-		require.False(t, rt.IsActionAllowed(""))
-	})
+func TestPluginOwnsAccessControlPolicyType(t *testing.T) {
+	require.True(t, PluginOwnsAccessControlPolicyType("mattermost-ai", "mattermost-ai:agent"))
+	require.True(t, PluginOwnsAccessControlPolicyType("Mattermost-AI", "mattermost-ai:agent"),
+		"ownership check must be case-insensitive")
+	require.False(t, PluginOwnsAccessControlPolicyType("other-plugin", "mattermost-ai:agent"))
+	require.False(t, PluginOwnsAccessControlPolicyType("", "mattermost-ai:agent"))
+	require.False(t, PluginOwnsAccessControlPolicyType("mattermost-ai", AccessControlPolicyTypeChannel))
+}
 
-	t.Run("ownership", func(t *testing.T) {
-		rt, ok := PluginAccessControlResourceTypeFor(AccessControlPolicyTypePluginAgent)
-		require.True(t, ok)
-		require.True(t, rt.IsOwnedBy("mattermost-ai"))
-		require.True(t, rt.IsOwnedBy("Mattermost-AI"), "ownership check must be case-insensitive")
-		require.False(t, rt.IsOwnedBy("other-plugin"))
-		require.False(t, rt.IsOwnedBy(""))
-	})
+func TestIsValidPolicyAction(t *testing.T) {
+	for _, action := range []string{
+		AccessControlPolicyActionMembership,
+		AccessControlPolicyActionUploadFileAttachment,
+		"use",
+		"invoke_tool",
+		"read2",
+	} {
+		require.True(t, IsValidPolicyAction(action), action)
+	}
+
+	for _, action := range []string{
+		"",
+		"*",
+		"Use",
+		"use it",
+		"use-it",
+		"_use",
+		"use_",
+		"use__it",
+		strings.Repeat("a", MaxPolicyActionLength+1),
+	} {
+		require.False(t, IsValidPolicyAction(action), action)
+	}
 }
 
 func TestInheritV0_5Rejected(t *testing.T) {
@@ -1465,12 +1509,12 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	}
 	child := &AccessControlPolicy{
 		ID:       NewId(),
-		Type:     AccessControlPolicyTypePluginAgent,
+		Type:     testPluginPolicyType,
 		Name:     "Agent policy",
 		Version:  AccessControlPolicyVersionV0_5,
 		Revision: 0,
 		Rules: []AccessControlPolicyRule{{
-			Actions:    []string{AccessControlPolicyActionUse},
+			Actions:    []string{"use"},
 			Expression: "true",
 		}},
 	}

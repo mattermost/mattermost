@@ -14,9 +14,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// Plugin-owned access control (PDP + PAP proxies for the plugin API). Every
-// method is scoped to the calling plugin: the requested (or stored) policy
-// type must be owned by pluginID or the call fails closed.
+// Plugin-owned access control (PDP + PAP proxies for the plugin API). Policy
+// types are keyed "<pluginID>:<resourceType>", so verifying that the type's
+// plugin-ID prefix matches the calling plugin is the entire ownership check.
 
 // Bounds for plugin-supplied paging; max mirrors the api4 autocomplete cap.
 const (
@@ -24,17 +24,16 @@ const (
 	pluginAccessControlQueryLimitMax     = 100
 )
 
-// pluginAccessControlScopeCheck resolves the registry entry for resourceType
-// and verifies ownership by pluginID.
-func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) (model.PluginAccessControlResourceType, *model.AppError) {
-	rt, ok := model.PluginAccessControlResourceTypeFor(resourceType)
-	if !ok {
-		return model.PluginAccessControlResourceType{}, model.NewAppError(where, "app.access_control.plugin.unknown_resource_type.app_error", nil, resourceType, http.StatusBadRequest)
+// pluginAccessControlScopeCheck validates resourceType's format and that its
+// plugin-ID prefix matches pluginID.
+func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) *model.AppError {
+	if !model.IsPluginAccessControlPolicyType(resourceType) {
+		return model.NewAppError(where, "app.access_control.plugin.invalid_resource_type.app_error", nil, resourceType, http.StatusBadRequest)
 	}
-	if !rt.IsOwnedBy(pluginID) {
-		return model.PluginAccessControlResourceType{}, model.NewAppError(where, "app.access_control.plugin.resource_type_forbidden.app_error", nil, "plugin_id="+pluginID, http.StatusForbidden)
+	if !model.PluginOwnsAccessControlPolicyType(pluginID, resourceType) {
+		return model.NewAppError(where, "app.access_control.plugin.resource_type_forbidden.app_error", nil, "plugin_id="+pluginID, http.StatusForbidden)
 	}
-	return rt, nil
+	return nil
 }
 
 // pluginAccessControlAvailable reports whether the enterprise ABAC service is
@@ -95,12 +94,11 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, pluginID, resourceT
 // the resource ID (any type) or existence could not be determined (the caller
 // must fail closed).
 func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, resourceType, resourceID, action string) (*model.PluginAccessControlDecision, *model.AppError) {
-	rt, appErr := a.pluginAccessControlScopeCheck("EvaluatePluginAccessRequest", pluginID, resourceType)
-	if appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("EvaluatePluginAccessRequest", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
-	if !rt.IsActionAllowed(action) {
-		return nil, model.NewAppError("EvaluatePluginAccessRequest", "app.access_control.plugin.action_not_allowed.app_error", nil, "action="+action, http.StatusBadRequest)
+	if !model.IsValidPolicyAction(action) {
+		return nil, model.NewAppError("EvaluatePluginAccessRequest", "app.access_control.plugin.invalid_action.app_error", nil, "action="+action, http.StatusBadRequest)
 	}
 	if !model.IsValidId(userID) || !model.IsValidId(resourceID) {
 		return nil, model.NewAppError("EvaluatePluginAccessRequest", "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
@@ -183,7 +181,7 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, model.NewAppError("SavePluginAccessControlPolicy", "app.access_control.plugin.invalid_id.app_error", nil, "policy ID is required", http.StatusBadRequest)
 	}
 
-	if _, appErr := a.pluginAccessControlScopeCheck("SavePluginAccessControlPolicy", pluginID, policy.Type); appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("SavePluginAccessControlPolicy", pluginID, policy.Type); appErr != nil {
 		return nil, appErr
 	}
 	if appErr := a.validatePluginActingUser("SavePluginAccessControlPolicy", actingUserID); appErr != nil {
@@ -233,9 +231,9 @@ func pluginPolicyNotFoundError(where string) *model.AppError {
 	return model.NewAppError(where, "app.access_control.plugin.policy_not_found.app_error", nil, "", http.StatusNotFound)
 }
 
-// GetPluginAccessControlPolicy returns the policy stored under id, trying
-// each type owned by the calling plugin through the atomic GetPolicyOfType.
-// Absent and foreign-type both collapse into one byte-identical 404.
+// GetPluginAccessControlPolicy returns the policy stored under id when its
+// type is owned by the calling plugin. Absent and foreign-type collapse into
+// one byte-identical 404.
 func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string) (*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -246,18 +244,19 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 		return nil, model.NewAppError("GetPluginAccessControlPolicy", "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	for _, resourceType := range model.PluginAccessControlResourceTypesOwnedBy(pluginID) {
-		policy, appErr := acs.GetPolicyOfType(rctx, id, resourceType)
-		if appErr == nil {
-			return policy, nil
-		}
+	policy, appErr := acs.GetPolicy(rctx, id)
+	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			continue
+			return nil, pluginPolicyNotFoundError("GetPluginAccessControlPolicy")
 		}
 		return nil, appErr
 	}
+	// A policy's Type is immutable: the store rejects type changes on save.
+	if !model.PluginOwnsAccessControlPolicyType(pluginID, policy.Type) {
+		return nil, pluginPolicyNotFoundError("GetPluginAccessControlPolicy")
+	}
 
-	return nil, pluginPolicyNotFoundError("GetPluginAccessControlPolicy")
+	return policy, nil
 }
 
 // DeletePluginAccessControlPolicy deletes the policy stored under id. The
@@ -278,7 +277,7 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 		return model.NewAppError("DeletePluginAccessControlPolicy", "app.pap.delete_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	if _, appErr := a.pluginAccessControlScopeCheck("DeletePluginAccessControlPolicy", pluginID, resourceType); appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("DeletePluginAccessControlPolicy", pluginID, resourceType); appErr != nil {
 		return appErr
 	}
 	if appErr := a.validatePluginActingUser("DeletePluginAccessControlPolicy", actingUserID); appErr != nil {
@@ -303,7 +302,7 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 // CheckPluginAccessControlExpression compiles and lints a CEL expression for
 // a plugin-owned resource type; an empty slice means the expression is valid.
 func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
-	if _, appErr := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
 	if appErr := a.validatePluginActingUser("CheckPluginAccessControlExpression", actingUserID); appErr != nil {
@@ -317,7 +316,7 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 // expression (test-modal support for plugin policy editors). limit is clamped
 // to (0, pluginAccessControlQueryLimitMax].
 func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, pluginID, actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
-	if _, appErr := a.pluginAccessControlScopeCheck("QueryUsersForPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("QueryUsersForPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
 	if appErr := a.validatePluginActingUser("QueryUsersForPluginAccessControlExpression", actingUserID); appErr != nil {
@@ -373,7 +372,7 @@ func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginI
 // GetPluginAccessControlVisualAST converts a CEL expression to the visual
 // (table) AST for plugin policy editors.
 func (a *App) GetPluginAccessControlVisualAST(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
-	if _, appErr := a.pluginAccessControlScopeCheck("GetPluginAccessControlVisualAST", pluginID, resourceType); appErr != nil {
+	if appErr := a.pluginAccessControlScopeCheck("GetPluginAccessControlVisualAST", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
 	if appErr := a.validatePluginActingUser("GetPluginAccessControlVisualAST", actingUserID); appErr != nil {

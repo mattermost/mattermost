@@ -14,6 +14,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// A plugin-owned policy type and one of its plugin-defined actions.
+const (
+	testPluginPolicyType   = "mattermost-ai:agent"
+	testPluginPolicyAction = "use"
+)
+
 func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
 	t.Run("SaveDuplicateName", func(t *testing.T) { testAccessControlPolicyStoreSaveDuplicateName(t, rctx, ss) })
@@ -38,12 +44,12 @@ func testAccessControlPolicyStoreDeleteIfType(t *testing.T, rctx request.CTX, ss
 		return &model.AccessControlPolicy{
 			ID:       model.NewId(),
 			Name:     "Agent Gate " + model.NewId(),
-			Type:     model.AccessControlPolicyTypePluginAgent,
+			Type:     testPluginPolicyType,
 			Active:   true,
 			Revision: 1,
 			Version:  model.AccessControlPolicyVersionV0_5,
 			Rules: []model.AccessControlPolicyRule{{
-				Actions:    []string{model.AccessControlPolicyActionUse},
+				Actions:    []string{testPluginPolicyAction},
 				Expression: "true",
 			}},
 		}
@@ -54,7 +60,7 @@ func testAccessControlPolicyStoreDeleteIfType(t *testing.T, rctx request.CTX, ss
 		_, err := ss.AccessControlPolicy().Save(rctx, policy)
 		require.NoError(t, err)
 
-		require.NoError(t, ss.AccessControlPolicy().DeleteIfType(rctx, policy.ID, model.AccessControlPolicyTypePluginAgent))
+		require.NoError(t, ss.AccessControlPolicy().DeleteIfType(rctx, policy.ID, testPluginPolicyType))
 
 		_, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
 		var nfErr *store.ErrNotFound
@@ -73,7 +79,7 @@ func testAccessControlPolicyStoreDeleteIfType(t *testing.T, rctx request.CTX, ss
 
 		got, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
 		require.NoError(t, err)
-		require.Equal(t, model.AccessControlPolicyTypePluginAgent, got.Type)
+		require.Equal(t, testPluginPolicyType, got.Type)
 	})
 
 	t.Run("absent row and type mismatch are indistinguishable", func(t *testing.T) {
@@ -104,12 +110,12 @@ func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss
 	policy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Name:     "Agent Gate " + model.NewId(),
-		Type:     model.AccessControlPolicyTypePluginAgent,
+		Type:     testPluginPolicyType,
 		Active:   true,
 		Revision: 1,
 		Version:  model.AccessControlPolicyVersionV0_5,
 		Rules: []model.AccessControlPolicyRule{{
-			Actions:    []string{model.AccessControlPolicyActionUse},
+			Actions:    []string{testPluginPolicyAction},
 			Expression: `user.attributes.department == "eng"`,
 		}},
 	}
@@ -117,19 +123,19 @@ func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss
 	saved, err := ss.AccessControlPolicy().Save(rctx, policy)
 	require.NoError(t, err)
 	require.NotNil(t, saved)
-	require.Equal(t, model.AccessControlPolicyTypePluginAgent, saved.Type)
+	require.Equal(t, testPluginPolicyType, saved.Type)
 
 	t.Run("Get round-trips type and rules", func(t *testing.T) {
 		got, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
 		require.NoError(t, err)
-		require.Equal(t, model.AccessControlPolicyTypePluginAgent, got.Type)
+		require.Equal(t, testPluginPolicyType, got.Type)
 		require.Equal(t, model.AccessControlPolicyVersionV0_5, got.Version)
 		require.Equal(t, policy.Rules, got.Rules)
 	})
 
 	t.Run("SearchPolicies by plugin type finds it", func(t *testing.T) {
 		results, total, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			Type:  model.AccessControlPolicyTypePluginAgent,
+			Type:  testPluginPolicyType,
 			Limit: 10,
 		})
 		require.NoError(t, err)

@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -20,10 +21,18 @@ const (
 
 	MaxPolicyNameLength = 128
 
-	// Plugin-registered resource-policy types (namespaced by owning plugin ID).
-	AccessControlPolicyTypePluginAgent   = "mattermost-ai.agent"
-	AccessControlPolicyTypePluginService = "mattermost-ai.service"
-	AccessControlPolicyTypePluginMCP     = "mattermost-ai.mcp"
+	// PluginAccessControlPolicyTypeSeparator separates the owning plugin ID
+	// from the resource-type segment of a plugin-owned policy type, e.g.
+	// "mattermost-ai:agent". Ownership is encoded in the key itself, so core
+	// treats these types opaquely.
+	PluginAccessControlPolicyTypeSeparator = ":"
+
+	// MaxPluginResourceTypeLength bounds the resource-type segment of a
+	// plugin-owned policy type.
+	MaxPluginResourceTypeLength = 64
+
+	// MaxPolicyActionLength bounds an action name.
+	MaxPolicyActionLength = 64
 
 	AccessControlPolicyVersionV0_1 = "v0.1"
 	AccessControlPolicyVersionV0_2 = "v0.2"
@@ -34,11 +43,6 @@ const (
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
-
-	// AccessControlPolicyActionUse is the single action for plugin types,
-	// validated only through the per-type registry (deliberately not added
-	// to allowedActionsV0_3 / allowedPermissionActionsV0_4).
-	AccessControlPolicyActionUse = "use"
 
 	AccessControlPolicyScopeTeam = "team"
 )
@@ -71,57 +75,50 @@ func IsPermissionAction(action string) bool {
 	return allowedPermissionActionsV0_4[action]
 }
 
-// PluginAccessControlResourceType describes a plugin-owned resource-policy type.
-type PluginAccessControlResourceType struct {
-	Type           string   // e.g. "mattermost-ai.agent"
-	OwnerPluginID  string   // plugin that may manage/evaluate this type, e.g. "mattermost-ai"
-	AllowedActions []string // per-type action allow-list, e.g. ["use"]
+// pluginResourceTypeRe constrains the resource-type segment of a plugin-owned
+// policy type to the same charset as a plugin ID.
+var pluginResourceTypeRe = regexp.MustCompile(ValidIdRegex)
+
+// policyActionRe constrains action names to lowercase alphanumeric segments
+// joined by single underscores, matching the shape of the built-in actions
+// (membership, upload_file_attachment). It rejects the "*" wildcard.
+var policyActionRe = regexp.MustCompile(`^[a-z0-9]+(_[a-z0-9]+)*$`)
+
+// SplitPluginAccessControlPolicyType splits a plugin-owned policy type into
+// its owning plugin ID and resource-type segment. ok is false unless both
+// segments are well formed.
+func SplitPluginAccessControlPolicyType(policyType string) (pluginID string, resourceType string, ok bool) {
+	pluginID, resourceType, found := strings.Cut(policyType, PluginAccessControlPolicyTypeSeparator)
+	if !found || !IsValidPluginId(pluginID) {
+		return "", "", false
+	}
+	if resourceType == "" || len(resourceType) > MaxPluginResourceTypeLength || !pluginResourceTypeRe.MatchString(resourceType) {
+		return "", "", false
+	}
+	return pluginID, resourceType, true
 }
 
-// pluginAccessControlResourceTypes is the static registry of plugin-owned
-// resource-policy types.
-var pluginAccessControlResourceTypes = map[string]PluginAccessControlResourceType{
-	AccessControlPolicyTypePluginAgent:   {AccessControlPolicyTypePluginAgent, "mattermost-ai", []string{AccessControlPolicyActionUse}},
-	AccessControlPolicyTypePluginService: {AccessControlPolicyTypePluginService, "mattermost-ai", []string{AccessControlPolicyActionUse}},
-	AccessControlPolicyTypePluginMCP:     {AccessControlPolicyTypePluginMCP, "mattermost-ai", []string{AccessControlPolicyActionUse}},
-}
-
-// PluginAccessControlResourceTypeFor returns the registry entry for the given
-// policy type, if registered.
-func PluginAccessControlResourceTypeFor(t string) (PluginAccessControlResourceType, bool) {
-	rt, ok := pluginAccessControlResourceTypes[t]
-	return rt, ok
-}
-
-// IsPluginAccessControlPolicyType reports whether t is a plugin-registered
-// resource-policy type.
-func IsPluginAccessControlPolicyType(t string) bool {
-	_, ok := pluginAccessControlResourceTypes[t]
+// IsPluginAccessControlPolicyType reports whether policyType is a well-formed
+// plugin-owned resource-policy type ("<pluginID>:<resourceType>").
+func IsPluginAccessControlPolicyType(policyType string) bool {
+	_, _, ok := SplitPluginAccessControlPolicyType(policyType)
 	return ok
 }
 
-// IsActionAllowed reports whether action is in this type's allow-list.
-func (rt PluginAccessControlResourceType) IsActionAllowed(action string) bool {
-	return slices.Contains(rt.AllowedActions, action)
+// PluginOwnsAccessControlPolicyType reports whether policyType is a
+// well-formed plugin policy type whose plugin-ID prefix is pluginID. The
+// prefix is the entire ownership check. Case-insensitive so callers that
+// lowercase plugin IDs (a plugin API convention) still match.
+func PluginOwnsAccessControlPolicyType(pluginID, policyType string) bool {
+	owner, _, ok := SplitPluginAccessControlPolicyType(policyType)
+	return ok && strings.EqualFold(owner, pluginID)
 }
 
-// IsOwnedBy reports whether pluginID owns this resource type. Case-insensitive
-// so callers that lowercase plugin IDs (a plugin API convention) still match.
-func (rt PluginAccessControlResourceType) IsOwnedBy(pluginID string) bool {
-	return strings.EqualFold(rt.OwnerPluginID, pluginID)
-}
-
-// PluginAccessControlResourceTypesOwnedBy returns the registered resource-
-// policy type names owned by pluginID, sorted for deterministic iteration.
-func PluginAccessControlResourceTypesOwnedBy(pluginID string) []string {
-	var types []string
-	for name, rt := range pluginAccessControlResourceTypes {
-		if rt.IsOwnedBy(pluginID) {
-			types = append(types, name)
-		}
-	}
-	slices.Sort(types)
-	return types
+// IsValidPolicyAction reports whether action is a well-formed action name.
+// Plugin policies choose their own action names, so core validates only the
+// format.
+func IsValidPolicyAction(action string) bool {
+	return len(action) <= MaxPolicyActionLength && policyActionRe.MatchString(action)
 }
 
 // HasPermissionRuleAction reports whether ANY rule on this policy
@@ -581,12 +578,14 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 	return nil
 }
 
-// accessPolicyVersionV0_5 validates a v0.5 policy: plugin-registered resource
-// types only, system scope, no imports or roles, and per-rule actions
-// restricted to the type's registry allow-list.
+// accessPolicyVersionV0_5 validates a v0.5 policy. v0.5 is the lane for
+// plugin-owned resource policies, which differ from the core versions in ways
+// that are not expressible there: the type is a "<pluginID>:<resourceType>"
+// key rather than one of the core type constants, and actions are
+// plugin-defined rather than drawn from the core action set. On top of that it
+// pins resource-scoped policies to system scope with no imports or roles.
 func (p *AccessControlPolicy) accessPolicyVersionV0_5() *AppError {
-	rt, ok := PluginAccessControlResourceTypeFor(p.Type)
-	if !ok {
+	if !IsPluginAccessControlPolicyType(p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.plugin_type.app_error", nil, "", 400)
 	}
 
@@ -629,8 +628,8 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_5() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
 		}
 		for _, action := range rule.Actions {
-			if !rt.IsActionAllowed(action) {
-				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("unrecognized action: %s", action), 400)
+			if !IsValidPolicyAction(action) {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("malformed action: %s", action), 400)
 			}
 		}
 		if rule.Role != "" {

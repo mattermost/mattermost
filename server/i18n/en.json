@@ -5431,16 +5431,20 @@
     "translation": "You do not have permission to manage this access control policy."
   },
   {
-    "id": "app.access_control.plugin.action_not_allowed.app_error",
-    "translation": "The action is not allowed for this resource type."
-  },
-  {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
     "translation": "The acting user is invalid or does not exist."
   },
   {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "The action is not a valid access control action."
+  },
+  {
     "id": "app.access_control.plugin.invalid_id.app_error",
     "translation": "Invalid identifier supplied to the access control API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "The resource type is not a valid plugin access control resource type."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
@@ -5453,10 +5457,6 @@
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
     "translation": "An access control policy of a different type already exists for this ID."
-  },
-  {
-    "id": "app.access_control.plugin.unknown_resource_type.app_error",
-    "translation": "The resource type is not a registered plugin access control type."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -11204,7 +11204,7 @@
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": "Invalid access control policy: type is not a registered plugin resource type."
+    "translation": "Invalid access control policy: type is not a valid plugin resource type."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",
