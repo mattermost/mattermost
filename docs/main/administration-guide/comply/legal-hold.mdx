@@ -1,6 +1,8 @@
 ---
 title: "Legal Hold"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="ent-plus" />
 
 A Legal Hold, also known as a litigation hold, is a process that an organization uses to preserve all forms of relevant information when litigation is reasonably anticipated. It's a requirement established by the Federal Rules of Civil Procedure (FRCP) in the United States and similar laws in other jurisdictions.
@@ -74,13 +76,13 @@ While a Legal Hold is in place, you can edit details of the Legal Hold, access t
 
 ##### Edit a Legal Hold
 
-Select the **Edit** <img src="/img/ui/edit-on-github.png" alt="Contribute to Mattermost documentation by selecting the Edit option located in the top right corner of any documentation page." className="theme-icon" /> icon to change the name of the Legal Hold, add or remove users, change the end date, as well as include or exclude public channels.
+Select the **Edit** <img src={useBaseUrl('/img/ui/edit-on-github.png')} alt="Contribute to Mattermost documentation by selecting the Edit option located in the top right corner of any documentation page." className="theme-icon" /> icon to change the name of the Legal Hold, add or remove users, change the end date, as well as include or exclude public channels.
 
 ##### Access a Legal Hold secret
 
 A Legal Hold secret enables you to verify the authenticity of the data for a Legal Hold in Mattermost.
 
-Select the **Show** <img src="/img/ui/eye-outline_F06D0.svg" alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon to display the Legal Hold secret key. Keep a copy of this key in a secure location.
+Select the **Show** <img src={useBaseUrl('/img/ui/eye-outline_F06D0.svg')} alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon to display the Legal Hold secret key. Keep a copy of this key in a secure location.
 
 ![An example of a Legal Hold Secret Key available to Mattermost system admins.](/images/legal-hold-secret.png)
 
@@ -104,7 +106,7 @@ Secret key was provided, verifying legal holds...
 
 ##### Download Legal Hold data
 
-Select the **Download** <img src="/img/ui/download-outline_F0B8F.svg" alt="Use the Download icon to download an attached file to your local system." className="theme-icon" /> icon to download a copy of the preserved data to a location on your local machine. Note, no data will be available to download until at least one scheduled job is completed. This may take up to 24 hours.
+Select the **Download** <img src={useBaseUrl('/img/ui/download-outline_F0B8F.svg')} alt="Use the Download icon to download an attached file to your local system." className="theme-icon" /> icon to download a copy of the preserved data to a location on your local machine. Note, no data will be available to download until at least one scheduled job is completed. This may take up to 24 hours.
 
 ### Step 5: Release a Legal Hold
 
@@ -179,7 +181,7 @@ $ ./processor --legal-hold-data ./legalholddata.zip --output-path ./path/to/wher
 
 - `--legal-hold-data`: Path to the Legal Hold zip file downloaded from Mattermost
 - `--output-path`: Directory where the HTML output will be generated
-- `--legal-hold-secret`: (Optional) Used as a security measure for an operator to ensure the authenticity of a downloaded zip file. The operator can copy the key corresponding to a particular "hold" from the Legal Hold Plugin settings page in the System Console by selecting the **Show** <img src="/img/ui/eye-outline_F06D0.svg" alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon next to the Legal Hold entry.
+- `--legal-hold-secret`: (Optional) Used as a security measure for an operator to ensure the authenticity of a downloaded zip file. The operator can copy the key corresponding to a particular "hold" from the Legal Hold Plugin settings page in the System Console by selecting the **Show** <img src={useBaseUrl('/img/ui/eye-outline_F06D0.svg')} alt="Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar." className="theme-icon" /> icon next to the Legal Hold entry.
 
 ### Is data gathered when a channel has been archived?
 

@@ -1,6 +1,8 @@
 ---
 title: "Install and manage plugins"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 Plugins extend Mattermost with new features and integrations, from pre-built integrations such as GitHub, Jira, and Zoom to custom plugins your team builds in-house. As a system admin, you can install, enable, configure, update, and remove plugins using either the System Console or the [mmctl command line tool](/administration-guide/manage/mmctl-command-line-tool).
 
 This page describes how to manage the plugin lifecycle. For a conceptual overview of pre-built and custom plugins, see the [plugins](/integrations-guide/plugins) documentation. For the complete list of plugin configuration options, see the [plugins configuration settings](/administration-guide/configure/plugins-configuration-settings) documentation. To build your own plugin, see the [Mattermost plugin developer](https://developers.mattermost.com/integrate/plugins/) documentation.
@@ -36,7 +38,7 @@ You can install a plugin from the in-product Marketplace, by uploading a plugin 
 
 Installing from the Marketplace is the recommended method for pre-built plugins. The Marketplace always installs the latest compatible version, and plugins downloaded from the Marketplace are signature-validated.
 
-1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 2.  Search for or scroll to the plugin you want, and then select **Install**.
 3.  Once the plugin is installed, select **Configure** to open its settings in the System Console, or **Enable** to turn it on with the default configuration.
 4.  Confirm the installation succeeded: the plugin appears in the **Installed Plugins** list under **Plugins > Plugin Management**, and its features are available in Mattermost.
