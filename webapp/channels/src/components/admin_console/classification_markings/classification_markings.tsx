@@ -36,6 +36,7 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
@@ -458,7 +459,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 // reappear on reload while enforcement records itself as disabled.
                 const currentClearance = await fetchUserLinkedFields(savedTemplate.id);
                 if (clearanceEnabled && currentClearance.length === 0) {
-                    const savedClearance = await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME);
+                    const savedClearance = await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME, CLEARANCE_FIELD_DISPLAY_NAME);
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedClearance]}});
                 } else if (!clearanceEnabled) {
                     for (const cf of currentClearance) {

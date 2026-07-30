@@ -29,6 +29,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
+    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
@@ -1314,7 +1315,7 @@ describe('Channel classification linked field branches', () => {
                     name: CLEARANCE_FIELD_NAME,
                     type: 'rank',
                     linked_field_id: field.id,
-                    attrs: expect.objectContaining({managed: 'admin'}),
+                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
                 }),
             );
         });

@@ -344,9 +344,13 @@ export async function saveDeleteChannelLinkedField(fieldId: string): Promise<voi
 
 export const CLASSIFICATIONS_USER_OBJECT_TYPE = 'user';
 
-// Default name for the clearance field created from this page. Hardcoded for
-// now; a future change may let admins name/map it.
-export const CLEARANCE_FIELD_NAME = 'Clearance';
+// Default name/label for the clearance field created from this page. Hardcoded
+// for now; a future change may let admins name/map it. The name is the CEL
+// identifier an author writes as user.attributes.clearance, so it is lowercase
+// like CLASSIFICATIONS_CHANNEL_FIELD_NAME; the display name is the label the
+// System Console and profile popovers show.
+export const CLEARANCE_FIELD_NAME = 'clearance';
+export const CLEARANCE_FIELD_DISPLAY_NAME = 'Clearance';
 
 /**
  * Fetches every live user field linked to the given classification template.
@@ -387,7 +391,7 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
     return matches;
 }
 
-export async function saveCreateUserLinkedField(templateFieldId: string, name: string): Promise<PropertyField> {
+export async function saveCreateUserLinkedField(templateFieldId: string, name: string, displayName: string): Promise<PropertyField> {
     return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_USER_OBJECT_TYPE, {
         name,
         type: 'rank' as PropertyField['type'],
@@ -397,7 +401,7 @@ export async function saveCreateUserLinkedField(templateFieldId: string, name: s
 
         // Admin-managed: clearance is assigned by an admin/integration, so users
         // cannot self-edit their own value.
-        attrs: {managed: 'admin'},
+        attrs: {managed: 'admin', display_name: displayName},
         permission_field: 'admin',
         permission_values: 'admin',
         permission_options: 'admin',
