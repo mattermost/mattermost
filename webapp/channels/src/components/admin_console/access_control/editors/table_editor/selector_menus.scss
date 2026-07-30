@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 .select-attribute-mui-menu {
     max-height: 400px;
     overflow-y: auto;
@@ -5,7 +7,11 @@
 
 .field-selector-menu-button {
     width: 100%;
-    height: 40px;
+    // 40px is the floor, not the height: the value trigger wraps its selected-value
+    // chips onto new lines (see &__multi-values-container) and must grow to fit them
+    // rather than clip under overflow: hidden.
+    height: auto;
+    min-height: 40px;
     justify-content: start;
     border: none;
     font-weight: normal;
@@ -21,10 +27,18 @@
         color: inherit;
     }
 
-    &:focus,
+    // Menu-open state: a slightly deeper neutral than the hover wash. Never the
+    // accent tint — the only blue in a row belongs to the channel-attribute
+    // token, and a blue cell background competes with it.
     &[aria-expanded="true"] {
-        background: rgba(var(--button-bg-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
     }
+
+    // Focus gets the standard ring rather than a background fill: clicking a
+    // trigger leaves it focused, so a fill would stick on the cell long after
+    // the menu closed and read as "selected". The mixin suppresses the ring for
+    // pointer focus and keeps it for keyboard.
+    @include mixins.button-focus;
 
     &.disabled {
         cursor: not-allowed;
