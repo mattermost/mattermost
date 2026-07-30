@@ -78,11 +78,18 @@ describe('form_validation', () => {
             )?.id).toBe('interactive_dialog.error.too_long');
         });
 
-        it('validates email subtype', () => {
+        it('allows zero for number subtype fields', () => {
             expect(checkMmBlocksFormFieldForError(
-                {type: 'text_input', name: 'email', label: 'Email', subtype: 'email', optional: true},
-                'not-an-email',
-            )?.id).toBe('interactive_dialog.error.bad_email');
+                {type: 'text_input', name: 'amount', label: 'Amount', subtype: 'number'},
+                0,
+            )).toBeNull();
+        });
+
+        it('requires empty number fields when non-optional', () => {
+            expect(checkMmBlocksFormFieldForError(
+                {type: 'text_input', name: 'amount', label: 'Amount', subtype: 'number'},
+                null,
+            )?.id).toBe('interactive_dialog.error.required');
         });
     });
 

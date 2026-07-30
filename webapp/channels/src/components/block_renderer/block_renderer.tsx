@@ -18,7 +18,7 @@ import type {PostImage} from '@mattermost/types/posts';
 import {MmBlocksHandlersContext, MmBlocksImagesMetadataContext, MmBlocksInlineMarkdownActionsContext, MmBlocksInteractionsDisabledContext} from './context';
 import type {MmBlocksInlineMarkdownActions} from './context';
 import {MmBlocksForm} from './form';
-import type {MmBlocksFormErrors} from './form';
+import type {MmBlocksFormErrors, MmBlocksFormErrorsChange} from './form';
 import {ContainerBlock} from './layout_blocks';
 import type {ActionHandler, LookupHandler} from './types';
 
@@ -47,7 +47,7 @@ type BlockRendererProps = {
 
     /** Field-level integration errors (keys match input `name`). Used when provideForm is true. */
     formErrors: MmBlocksFormErrors;
-    onFormErrorsChange: (errors: MmBlocksFormErrors) => void;
+    onFormErrorsChange: MmBlocksFormErrorsChange;
 };
 
 export const BlockRenderer = ({

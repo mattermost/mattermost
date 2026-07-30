@@ -23,34 +23,8 @@ const DialogRouter: React.FC<Props> = (props) => {
         return null;
     }
 
-    // When MmBlocksEnabled is off, use the pre-Blocks AppsForm path for legacy dialogs.
-    if (!mmBlocksEnabled) {
-        if (!hasUrl) {
-            // eslint-disable-next-line no-console
-            console.error('Interactive dialog missing URL - this is a configuration error');
-            return null;
-        }
-
-        return (
-            <InteractiveDialogAdapter
-                url={props.url}
-                callbackId={props.callbackId}
-                elements={props.elements}
-                title={props.title}
-                introductionText={props.introductionText}
-                iconUrl={props.iconUrl}
-                submitLabel={props.submitLabel}
-                notifyOnCancel={props.notifyOnCancel}
-                state={props.state}
-                sourceUrl={props.sourceUrl}
-                timezone={props.timezone}
-                actions={props.actions}
-                onExited={props.onExited}
-            />
-        );
-    }
-
-    if (hasMmBlocks) {
+    // Native block dialogs do not require a URL.
+    if (mmBlocksEnabled && hasMmBlocks) {
         return (
             <BlocksDialogShell
                 mode='native'
@@ -70,6 +44,27 @@ const DialogRouter: React.FC<Props> = (props) => {
         // eslint-disable-next-line no-console
         console.error('Interactive dialog missing URL - this is a configuration error');
         return null;
+    }
+
+    // When MmBlocksEnabled is off, use the pre-Blocks AppsForm path for legacy dialogs.
+    if (!mmBlocksEnabled) {
+        return (
+            <InteractiveDialogAdapter
+                url={props.url}
+                callbackId={props.callbackId}
+                elements={props.elements}
+                title={props.title}
+                introductionText={props.introductionText}
+                iconUrl={props.iconUrl}
+                submitLabel={props.submitLabel}
+                notifyOnCancel={props.notifyOnCancel}
+                state={props.state}
+                sourceUrl={props.sourceUrl}
+                timezone={props.timezone}
+                actions={props.actions}
+                onExited={props.onExited}
+            />
+        );
     }
 
     return (

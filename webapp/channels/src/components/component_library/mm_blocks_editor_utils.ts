@@ -4,6 +4,7 @@
 import type {
     MmBlock,
     MmButtonStyle,
+    MmButtonSubtype,
     MmColumnBlock,
     MmContainerBackground,
     MmContainerGap,
@@ -507,6 +508,7 @@ export function blockSummary(block: MmBlock | MmColumnBlock): string {
 
 const TEXT_SIZE_OPTIONS: MmTextSize[] = ['small', 'default'];
 const BUTTON_STYLE_OPTIONS: MmButtonStyle[] = ['default', 'primary', 'danger', 'good', 'success', 'warning'];
+const BUTTON_SUBTYPE_OPTIONS: MmButtonSubtype[] = ['execute', 'submit'];
 const IMAGE_SIZE_OPTIONS: MmImageSize[] = ['auto', 'xsmall', 'small', 'medium', 'large', 'stretch'];
 const CONTAINER_GAP_OPTIONS: MmContainerGap[] = ['none', 'small', 'medium', 'large', 'xlarge'];
 const CONTAINER_BACKGROUND_OPTIONS: MmContainerBackground[] = ['none', 'gray'];
@@ -537,6 +539,7 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
         return [
             {key: 'text', label: 'text', type: 'string'},
             {key: 'action_id', label: 'action_id', type: 'string'},
+            {key: 'subtype', label: 'subtype', type: 'enum', options: BUTTON_SUBTYPE_OPTIONS},
             {key: 'style', label: 'style', type: 'enum', options: BUTTON_STYLE_OPTIONS},
             {key: 'tooltip', label: 'tooltip', type: 'string'},
             {key: 'disabled', label: 'disabled', type: 'boolean'},
@@ -629,6 +632,7 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
             ...FORM_FIELD_BASE_PROPERTIES,
             {key: 'placeholder', label: 'placeholder', type: 'string'},
             {key: 'allow_multiple', label: 'allow_multiple', type: 'boolean'},
+            {key: 'initial_value', label: 'initial_value', type: 'string'},
         ];
     default:
         return [];

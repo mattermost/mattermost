@@ -188,7 +188,8 @@ function translateBlockKitFileInput(
     };
     applyBlockKitInputSharedProps(out, b, name);
 
-    if (typeof el.max_files === 'number' && el.max_files > 1) {
+    // Block Kit defaults max_files to 10 when omitted; only an explicit max_files of 1 is single-file.
+    if (el.max_files === undefined || (typeof el.max_files === 'number' && el.max_files > 1)) {
         out.allow_multiple = true;
     }
 
@@ -206,15 +207,7 @@ function translateBlockKitPlainTextInput(
         name,
         label,
     };
-
-    if (b.optional === true) {
-        out.optional = true;
-    }
-
-    const hint = extractBlockKitTextContent(b.hint);
-    if (hint) {
-        out.help_text = hint;
-    }
+    applyBlockKitInputSharedProps(out, b, name);
 
     if (el.multiline === true) {
         out.multiline = true;
@@ -235,11 +228,6 @@ function translateBlockKitPlainTextInput(
     }
     if (typeof el.max_length === 'number' && Number.isFinite(el.max_length)) {
         out.max_length = el.max_length;
-    }
-
-    // Block Kit `dispatch_action` re-fires the element's action_id when the value changes.
-    if (b.dispatch_action === true) {
-        out.onChange = name;
     }
 
     return out;
@@ -265,15 +253,7 @@ function translateBlockKitSelectInput(
         name,
         label,
     };
-
-    if (b.optional === true) {
-        out.optional = true;
-    }
-
-    const hint = extractBlockKitTextContent(b.hint);
-    if (hint) {
-        out.help_text = hint;
-    }
+    applyBlockKitInputSharedProps(out, b, name);
 
     const placeholder = extractBlockKitTextContent(el.placeholder);
     if (placeholder) {
@@ -302,10 +282,6 @@ function translateBlockKitSelectInput(
     const initialOptions = translateBlockKitInitialOptionsValues(el.initial_options);
     if (initialOptions.length > 0) {
         out.initial_options = initialOptions;
-    }
-
-    if (b.dispatch_action === true) {
-        out.onChange = name;
     }
 
     return out;

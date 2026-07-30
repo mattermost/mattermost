@@ -101,6 +101,7 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
         const validationErrors = validateMmBlocksFormValues(blocks, formValues);
         const names = Object.keys(validationErrors);
         if (names.length === 0) {
+            setFieldErrors({});
             return true;
         }
 
@@ -162,6 +163,7 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
                     setActionError(message ?? actionFailedMessage);
                     return;
                 }
+                setFieldErrors({});
                 const goToLocation =
                     typeof result.data === 'object' &&
                     result.data !== null &&
@@ -202,6 +204,8 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
                 setFieldErrors(data.errors);
                 return;
             }
+
+            setFieldErrors({});
 
             if (data?.goto_location) {
                 applyIntegrationGotoLocation(data.goto_location);

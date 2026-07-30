@@ -111,12 +111,13 @@ function isEmptyFormValue(value: MmFormValue | undefined): boolean {
         return false;
     }
 
-    if (Array.isArray(value)) {
-        return value.length === 0;
+    if (typeof value === 'number') {
+        // Match interactive dialogs: 0 is a filled value; only non-finite is empty.
+        return !Number.isFinite(value);
     }
 
-    if (typeof value === 'number') {
-        return value === 0;
+    if (Array.isArray(value)) {
+        return value.length === 0;
     }
 
     return value === '';

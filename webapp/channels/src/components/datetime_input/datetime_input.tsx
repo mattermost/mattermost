@@ -453,6 +453,9 @@ const DateTimeInputContainer: React.FC<Props> = ({
         showOutsideDays: true,
     };
 
+    const timeButtonId = id ? `${id}_time_button` : 'time_button';
+    const expiryTimeMenuId = id ? `${id}_expiryTimeMenu` : 'expiryTimeMenu';
+
     return (
         <div className='dateTime'>
             <div className='dateTime__date'>
@@ -493,7 +496,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 ) : (
                     <Menu.Container
                         menuButton={{
-                            id: 'time_button',
+                            id: timeButtonId,
                             dataTestId: 'time_button',
                             'aria-label': formatMessage({
                                 id: 'datetime.time',
@@ -520,7 +523,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             ),
                         }}
                         menu={{
-                            id: 'expiryTimeMenu',
+                            id: expiryTimeMenuId,
                             'aria-label': formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'}),
                             onToggle: handleTimeMenuToggle,
                             width: menuWidth,

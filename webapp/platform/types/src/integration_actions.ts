@@ -114,6 +114,13 @@ export type DoBlockActionRequest = {
 
     /** Optional for dialog-scoped cookies (empty post_id). Required when resolving from a stored post. */
     post_id?: string;
+
+    /**
+     * Current channel — dialog context only. Used server-side for ephemeral posts;
+     * not forwarded to the upstream integration request.
+     */
+    channel_id?: string;
+
     action_id: string;
     cookie?: string;
     selected_option?: string;

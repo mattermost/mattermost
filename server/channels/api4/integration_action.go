@@ -92,7 +92,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
 	resp.TriggerId, resp.GotoLocation, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
-		actionRequest.SelectedOption, cookie)
+		actionRequest.SelectedOption, cookie, actionRequest.Query)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -152,6 +152,17 @@ func doBlockAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Allow empty post_id on both sides for dialog-scoped mm_blocks cookies.
 		if cookie.PostId != actionRequest.PostId {
 			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+
+		sessionUserID := c.AppContext.Session().UserId
+		if cookie.UserId != "" && cookie.UserId != sessionUserID {
+			c.Err = model.NewAppError("DoBlockAction", "api.context.permissions.app_error", nil, "mm_blocks cookie user mismatch", http.StatusForbidden)
+			return
+		}
+		// Dialog-scoped cookies have no channel/post ACL; require user binding.
+		if cookie.ChannelId == "" && cookie.PostId == "" && cookie.UserId == "" {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "mm_blocks cookie missing user_id", http.StatusBadRequest)
 			return
 		}
 

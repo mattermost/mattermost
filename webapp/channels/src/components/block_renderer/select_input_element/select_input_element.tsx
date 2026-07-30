@@ -95,10 +95,23 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
 
     const [autocompleteDisplay, setAutocompleteDisplay] = useState(() => {
         if (isDynamicSource) {
-            return '';
+            // Seed from stored form value so remounts keep the selection visible.
+            return singleValue;
         }
         return displayTextForValue(flatOptions, initialSingleValue(element));
     });
+
+    // Keep dynamic display in sync when the stored value is cleared or first becomes available.
+    useEffect(() => {
+        if (!isDynamicSource) {
+            return;
+        }
+        if (!singleValue) {
+            setAutocompleteDisplay('');
+            return;
+        }
+        setAutocompleteDisplay((prev) => prev || singleValue);
+    }, [isDynamicSource, singleValue]);
 
     // Multiselect users/channels need AsyncSelect (AutocompleteSelector is single-value only).
     const useAsyncUserChannelSelect = isDynamicSource && multiselect;

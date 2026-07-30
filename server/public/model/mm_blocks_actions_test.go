@@ -245,7 +245,7 @@ func TestEncryptBlockDialogMmBlocksActions(t *testing.T) {
 				},
 			},
 		}
-		enc, err := EncryptBlockDialogMmBlocksActions(d, secret)
+		enc, err := EncryptBlockDialogMmBlocksActions(d, secret, "user-123")
 		require.NoError(t, err)
 		require.NotEmpty(t, enc)
 
@@ -257,6 +257,7 @@ func TestEncryptBlockDialogMmBlocksActions(t *testing.T) {
 		assert.Equal(t, MmBlocksActionCookieKind, mm.Kind)
 		assert.Empty(t, mm.PostId)
 		assert.Empty(t, mm.ChannelId)
+		assert.Equal(t, "user-123", mm.UserId)
 		require.Contains(t, mm.Actions, "submit")
 	})
 
@@ -264,7 +265,7 @@ func TestEncryptBlockDialogMmBlocksActions(t *testing.T) {
 		d := &BlockDialog{
 			Actions: "already-encrypted",
 		}
-		_, err := EncryptBlockDialogMmBlocksActions(d, secret)
+		_, err := EncryptBlockDialogMmBlocksActions(d, secret, "user-123")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "must be a map")
 	})

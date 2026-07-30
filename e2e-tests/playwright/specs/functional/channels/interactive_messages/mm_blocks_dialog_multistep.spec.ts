@@ -109,29 +109,31 @@ test.describe('Interactive mm_blocks (blocks dialog multistep / refresh)', () =>
         },
     );
 
-    test('multistep cancel from step 1 and step 2', {tag: [...dialogTags]}, async ({pw, request}) => {
-        const setup1 = await setupDialogOpenPost(pw, request, {
+    test('multistep cancel from step 1', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
             scenario: 'multistep_1',
             buttonText: 'Open multistep cancel1',
             titleHint: 'mm_blocks multistep cancel1',
         });
-        let dialog = await openBlocksDialogFromPost(setup1.channelsPage, setup1.marker, setup1.openButtonName);
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         await dialog.getByRole('button', {name: 'Cancel'}).click();
         await expect(dialog).toBeHidden();
-        await expectEphemeral(setup1.channelsPage.page, 'Playwright mm_blocks dialog cancelled (reason=cancel)');
+        await expectEphemeral(channelsPage.page, 'Playwright mm_blocks dialog cancelled (reason=cancel)');
+    });
 
-        const setup2 = await setupDialogOpenPost(pw, request, {
+    test('multistep cancel from step 2', {tag: [...dialogTags]}, async ({pw, request}) => {
+        const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {
             scenario: 'multistep_1',
             buttonText: 'Open multistep cancel2',
             titleHint: 'mm_blocks multistep cancel2',
         });
-        dialog = await openBlocksDialogFromPost(setup2.channelsPage, setup2.marker, setup2.openButtonName);
+        const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         await dialog.getByTestId('first_nameinput').fill('Jane');
         await dialog.getByTestId('emailemail').fill('jane@example.com');
         await dialog.getByRole('button', {name: 'Next Step'}).click();
         await expect(dialog.locator('#appsModalLabel')).toContainText('Step 2 - Work Info');
         await dialog.getByRole('button', {name: 'Cancel'}).click();
         await expect(dialog).toBeHidden();
-        await expectEphemeral(setup2.channelsPage.page, 'Playwright mm_blocks dialog cancelled (reason=cancel)');
+        await expectEphemeral(channelsPage.page, 'Playwright mm_blocks dialog cancelled (reason=cancel)');
     });
 });

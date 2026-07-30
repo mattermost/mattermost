@@ -837,7 +837,7 @@ export function convertAppFormValuesToDialogSubmission(
         case DialogElementTypes.FILE:
             // File elements store file IDs as a comma-separated string (Apps Form path).
             if (Array.isArray(value)) {
-                submission[element.name] = value.map(String).filter(Boolean).join(',');
+                submission[element.name] = value.filter(Boolean).map(String).join(',');
             } else {
                 submission[element.name] = String(value || '');
             }

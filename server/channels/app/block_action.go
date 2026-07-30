@@ -19,13 +19,13 @@ import (
 // blockActionUpstreamResponse is the combined shape integrations may return for
 // do-block-action execute (post-action side effects + client proxy fields).
 type blockActionUpstreamResponse struct {
-	Update           *model.Post       `json:"update"`
-	EphemeralText    string            `json:"ephemeral_text"`
-	SkipSlackParsing bool              `json:"skip_slack_parsing"`
-	GotoLocation     string            `json:"goto_location"`
-	Error            string            `json:"error"`
-	Errors           map[string]string `json:"errors"`
-	Type             string            `json:"type"`
+	Update           *model.Post        `json:"update"`
+	EphemeralText    string             `json:"ephemeral_text"`
+	SkipSlackParsing bool               `json:"skip_slack_parsing"`
+	GotoLocation     string             `json:"goto_location"`
+	Error            string             `json:"error"`
+	Errors           map[string]string  `json:"errors"`
+	Type             string             `json:"type"`
 	MmBlocks         []any              `json:"mm_blocks"`
 	MmBlocksActions  json.RawMessage    `json:"mm_blocks_actions"`
 	BlockDialog      *model.BlockDialog `json:"block_dialog"`
@@ -88,6 +88,12 @@ func (a *App) DoBlockAction(
 		return &model.DoBlockActionResponse{
 			GotoLocation: gotoURL,
 		}, nil
+	}
+
+	// Dialog cookies omit channel_id. The client may send the current channel for
+	// ephemeral delivery only — never forward it on the upstream integration request.
+	if actionContext == model.BlockActionContextDialog && req.ChannelId != "" && setup.ephemeralChannelID == "" {
+		setup.ephemeralChannelID = req.ChannelId
 	}
 
 	upstreamRequest := setup.upstreamRequest
@@ -184,19 +190,26 @@ func (a *App) DoBlockAction(
 	}
 
 	if upstream.EphemeralText != "" {
-		ephemeralPost := &model.Post{
-			Message:   upstream.EphemeralText,
-			ChannelId: upstreamRequest.ChannelId,
-			RootId:    setup.rootPostId,
-			UserId:    userID,
+		channelID := upstreamRequest.ChannelId
+		if channelID == "" {
+			channelID = setup.ephemeralChannelID
 		}
-		if !upstream.SkipSlackParsing {
-			ephemeralPost.Message = model.ParseSlackLinksToMarkdown(upstream.EphemeralText)
+		// Skip when no channel is available (e.g. dialog without client channel_id).
+		if channelID != "" {
+			ephemeralPost := &model.Post{
+				Message:   upstream.EphemeralText,
+				ChannelId: channelID,
+				RootId:    setup.rootPostId,
+				UserId:    userID,
+			}
+			if !upstream.SkipSlackParsing {
+				ephemeralPost.Message = model.ParseSlackLinksToMarkdown(upstream.EphemeralText)
+			}
+			for key, value := range setup.retain {
+				ephemeralPost.AddProp(key, value)
+			}
+			a.SendEphemeralPost(rctx, userID, ephemeralPost)
 		}
-		for key, value := range setup.retain {
-			ephemeralPost.AddProp(key, value)
-		}
-		a.SendEphemeralPost(rctx, userID, ephemeralPost)
 	}
 
 	out.GotoLocation = upstream.GotoLocation
@@ -267,7 +280,7 @@ func (a *App) prepareDoBlockActionBlockDialog(setup *postActionSetup, dialog *mo
 		encReq := model.OpenDialogRequest{
 			BlockDialog: dialog,
 		}
-		if encErr := a.encryptOpenDialogMmBlocksActions(&encReq); encErr != nil {
+		if encErr := a.encryptOpenDialogMmBlocksActions(&encReq, setup.upstreamRequest.UserId); encErr != nil {
 			return nil, encErr
 		}
 		dialog = encReq.BlockDialog
@@ -304,6 +317,7 @@ func (a *App) encryptDoBlockActionMmBlocksActions(setup *postActionSetup, postID
 		postID,
 		rootID,
 		channelID,
+		setup.upstreamRequest.UserId,
 		setup.retain,
 		setup.remove,
 		a.PostActionCookieSecret(),
@@ -393,14 +407,14 @@ func (a *App) validateFormValuesFileOwnership(rctx request.CTX, userID string, f
 		// file channel on this endpoint.
 		return model.NewAppError("DoBlockAction", "app.submit_interactive_dialog.get_file_info_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+	if len(submissionFiles) > model.MaxDialogFileIds {
+		return model.NewAppError("DoBlockAction", "app.submit_interactive_dialog.too_many_file_ids",
+			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+	}
 	for _, fileInfo := range submissionFiles {
 		if fileInfo.CreatorId != userID {
 			return model.NewAppError("DoBlockAction", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
 		}
-	}
-	if len(submissionFiles) > model.MaxDialogFileIds {
-		return model.NewAppError("DoBlockAction", "app.submit_interactive_dialog.too_many_file_ids",
-			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
 	}
 	return nil
 }

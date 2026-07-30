@@ -185,9 +185,9 @@ export function convertDialogElementToMmBlock(element: DialogElement): MmBlock |
             action_id: String(element.name),
             subtype: 'execute',
             query: {
+                ...(element.action_button?.context || {}),
                 __dialog_action_button: '1',
                 ...(element.action_button?.url ? {__dialog_action_url: element.action_button.url} : {}),
-                ...(element.action_button?.context || {}),
             },
         };
     default:

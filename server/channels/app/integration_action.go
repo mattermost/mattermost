@@ -38,7 +38,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, clientQuery map[string]string) (string, string, *model.AppError) {
+	// Bound the per-click query at the App boundary so any caller — REST
+	// handler, plugin, future internal trigger — gets the same enforcement.
+	if err := model.ValidateActionQuery(clientQuery); err != nil {
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
 	setup, gotoURL, appErr := a.resolvePostActionSetup(
 		rctx,
 		postID,
@@ -46,7 +52,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		userID,
 		cookie,
 		nil,
-		nil,
+		clientQuery,
 		model.PostActionIntegrationFormatAttachment,
 	)
 	if appErr != nil {
@@ -331,7 +337,7 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 		if !a.Config().FeatureFlags.MmBlocksEnabled {
 			return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "mm_blocks are not enabled", http.StatusBadRequest)
 		}
-		if encErr := a.encryptOpenDialogMmBlocksActions(&request); encErr != nil {
+		if encErr := a.encryptOpenDialogMmBlocksActions(&request, userID); encErr != nil {
 			return encErr
 		}
 	}
@@ -348,12 +354,12 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 	return nil
 }
 
-func (a *App) encryptOpenDialogMmBlocksActions(request *model.OpenDialogRequest) *model.AppError {
+func (a *App) encryptOpenDialogMmBlocksActions(request *model.OpenDialogRequest, userID string) *model.AppError {
 	if request.BlockDialog == nil || request.BlockDialog.Actions == nil {
 		return nil
 	}
 
-	cookie, err := model.EncryptBlockDialogMmBlocksActions(request.BlockDialog, a.PostActionCookieSecret())
+	cookie, err := model.EncryptBlockDialogMmBlocksActions(request.BlockDialog, a.PostActionCookieSecret(), userID)
 	if err != nil {
 		return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "mm_blocks_actions must be an object", http.StatusBadRequest).Wrap(err)
 	}

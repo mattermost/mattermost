@@ -5,10 +5,15 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import type {ReactNode} from 'react';
 
 /** Value stored for a form input field (keyed by field `name`). */
-export type MmFormValue = string | string[] | boolean | null;
+export type MmFormValue = string | string[] | boolean | number | null;
 
 export type MmBlocksFormValues = Record<string, MmFormValue>;
 export type MmBlocksFormErrors = Record<string, string>;
+
+/** Absolute replace or functional update (same shape as React setState). */
+export type MmBlocksFormErrorsChange = (
+    errors: MmBlocksFormErrors | ((prev: MmBlocksFormErrors) => MmBlocksFormErrors),
+) => void;
 
 export type MmBlocksFormContextValue = {
     values: MmBlocksFormValues;
@@ -39,7 +44,7 @@ type MmBlocksFormProps = {
 
     /** Field errors owned by the parent (e.g. from do-block-action `errors`). */
     errors: MmBlocksFormErrors;
-    onErrorsChange: (errors: MmBlocksFormErrors) => void;
+    onErrorsChange: MmBlocksFormErrorsChange;
 };
 
 /**
@@ -55,13 +60,15 @@ export function MmBlocksForm({children, errors, onErrorsChange}: MmBlocksFormPro
     }, [onErrorsChange]);
 
     const clearError = useCallback((name: string) => {
-        if (!Object.prototype.hasOwnProperty.call(errors, name)) {
-            return;
-        }
-        const next = {...errors};
-        delete next[name];
-        onErrorsChange(next);
-    }, [errors, onErrorsChange]);
+        onErrorsChange((prev) => {
+            if (!Object.prototype.hasOwnProperty.call(prev, name)) {
+                return prev;
+            }
+            const next = {...prev};
+            delete next[name];
+            return next;
+        });
+    }, [onErrorsChange]);
 
     const getValue = useCallback((name: string) => values[name], [values]);
 

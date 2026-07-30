@@ -1264,6 +1264,30 @@ describe('dialog_conversion', () => {
             });
         });
 
+        it('should join file IDs and drop falsy array entries', () => {
+            const values = {
+                files: ['file1', null, 'file2', undefined, ''],
+                single: 'file3',
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {name: 'files', type: DialogElementTypes.FILE, display_name: 'Files', optional: true} as DialogElement,
+                {name: 'single', type: DialogElementTypes.FILE, display_name: 'Single', optional: true} as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                files: 'file1,file2',
+                single: 'file3',
+            });
+        });
+
         it('should coerce stringified boolean values correctly', () => {
             const values = {
                 bool_true: 'true',

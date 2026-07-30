@@ -6,7 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {useStackedModal} from '@mattermost/components';
+import {useIsStackedModal, useStackedModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AppFormValues} from '@mattermost/types/apps';
 import type {DoBlockActionResponse} from '@mattermost/types/integration_actions';
 import type {BlockDialog, BlockDialogButton, DialogElement, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
@@ -121,10 +122,10 @@ function NativeDialogFooter({blockSubmit, blockCancel, onSubmit, onCancel, submi
     return (
         <Modal.Footer>
             {blockCancel && (
-                <button
+                <Button
                     id='appsModalCancel'
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={onCancel}
                 >
                     {blockCancel.label || (
@@ -133,13 +134,13 @@ function NativeDialogFooter({blockSubmit, blockCancel, onSubmit, onCancel, submi
                             defaultMessage='Cancel'
                         />
                     )}
-                </button>
+                </Button>
             )}
             {blockSubmit && (
-                <button
+                <Button
                     id='appsModalSubmit'
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     disabled={submitDisabled}
                     onClick={handleSubmitClick}
                 >
@@ -149,7 +150,7 @@ function NativeDialogFooter({blockSubmit, blockCancel, onSubmit, onCancel, submi
                             defaultMessage='Submit'
                         />
                     )}
-                </button>
+                </Button>
             )}
         </Modal.Footer>
     );
@@ -194,9 +195,7 @@ const BlocksDialogShell = ({
 
     // Capture at mount: if a backdrop already exists, this dialog is opening
     // above another modal and must raise its own backdrop above that parent.
-    const isStacked = useRef(
-        typeof document !== 'undefined' && document.querySelectorAll('.modal-backdrop').length > 0,
-    ).current;
+    const isStacked = useIsStackedModal();
     const {shouldRenderBackdrop, modalStyle, backdropStyle} = useStackedModal(isStacked, show);
 
     const [actionError, setActionError] = useState<string | null>(null);

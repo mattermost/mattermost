@@ -61,7 +61,7 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
     });
 
     test(
-        'number validation rejects empty/invalid and accepts numeric',
+        'number validation rejects empty required and accepts numeric',
         {tag: [...dialogTags]},
         async ({pw, request}) => {
             const {channelsPage, marker, openButtonName} = await setupDialogOpenPost(pw, request, {

@@ -143,6 +143,34 @@ describe('translateBlockKit input plain_text_input', () => {
             label: 'Files',
             allow_multiple: true,
         }]);
+
+        expect(translateBlockKit([{
+            type: 'input',
+            label: {type: 'plain_text', text: 'Files'},
+            element: {
+                type: 'file_input',
+                action_id: 'files',
+            },
+        }])).toEqual([{
+            type: 'file_input',
+            name: 'files',
+            label: 'Files',
+            allow_multiple: true,
+        }]);
+
+        expect(translateBlockKit([{
+            type: 'input',
+            label: {type: 'plain_text', text: 'File'},
+            element: {
+                type: 'file_input',
+                action_id: 'file',
+                max_files: 1,
+            },
+        }])).toEqual([{
+            type: 'file_input',
+            name: 'file',
+            label: 'File',
+        }]);
     });
 
     it('should ignore unsupported input element types', () => {

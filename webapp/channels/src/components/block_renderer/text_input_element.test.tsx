@@ -137,4 +137,31 @@ describe('TextInputElement', () => {
 
         expect(screen.getByTestId('mm-blocks-post-1-titleinput')).toBeDisabled();
     });
+
+    it('stores number subtype values as numbers and treats zero as filled', async () => {
+        const user = userEvent.setup();
+        renderInput({
+            type: 'text_input',
+            name: 'amount',
+            label: 'Amount',
+            subtype: 'number',
+            onChange: 'refresh_form',
+            initial_value: '0',
+        });
+
+        const input = screen.getByTestId('mm-blocks-post-1-amountnumber');
+        expect(input).toHaveValue(0);
+
+        await user.clear(input);
+        await user.type(input, '42');
+
+        expect(input).toHaveValue(42);
+        expect(onAction).toHaveBeenLastCalledWith(
+            'refresh_form',
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({amount: 42}),
+        );
+    });
 });

@@ -106,6 +106,14 @@ describe('Interactive Dialog - Apps Form', () => {
                         cy.get('input').first().should('be.visible').click();
 
                         cy.get('#suggestionList').should('be.visible');
+                        if (element.name === 'someoptionselector') {
+                            cy.get('#suggestionList').should('contain', 'Option1');
+                        } else if (element.name === 'somechannelselector') {
+                            cy.get('#suggestionList').should('contain', 'Town Square');
+                        } else {
+                            // Users autocomplete: at least one suggestion is rendered.
+                            cy.get('#suggestionList').children().should('have.length.greaterThan', 0);
+                        }
 
                         // # Click label to close any opened drop-downs
                         cy.get('label').first().click({force: true});

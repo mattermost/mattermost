@@ -134,7 +134,7 @@ describe('translateAdaptiveCards Input.Toggle', () => {
         }])).toEqual([{
             type: 'bool_input',
             name: 'agree',
-            label: 'I agree',
+            label: '',
             placeholder: 'I agree',
             optional: true,
             initial_value: true,

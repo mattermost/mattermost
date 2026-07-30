@@ -856,15 +856,13 @@ function getMmBlocksDialog(triggerId, webhookBaseUrl, options = {}) {
                     ],
                 },
             ],
-            actions: {
-                pw_dialog_submit: {type: 'external', url: `${base}/mm_blocks_dialog_submit`, context: {form: 'blocks_dialog'}},
-                pw_dialog_cancel: {type: 'external', url: `${base}/mm_blocks_dialog_cancel`, context: {reason: 'cancel'}},
+            actions: mmBlocksDialogActions(base, {
                 pw_dialog_refresh: {type: 'external', url: `${base}/mm_blocks_dialog_refresh`, context: {scenario: 'refresh'}},
                 pw_dialog_errors: {type: 'external', url: `${base}/mm_blocks_dialog_errors`, context: {}},
                 pw_dialog_error: {type: 'external', url: `${base}/mm_blocks_dialog_error`, context: {}},
                 pw_dialog_goto: {type: 'external', url: `${base}/mm_blocks_dialog_goto`, context: {}},
                 pw_dialog_lookup: {type: 'external', url: `${base}/mm_blocks_integration_lookup`, context: {}},
-            },
+            }),
         },
     };
 }

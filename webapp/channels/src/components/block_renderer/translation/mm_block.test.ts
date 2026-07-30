@@ -200,6 +200,8 @@ describe('translateMMBlocks interactive blocks', () => {
         expect(translateMMBlocks([
             {type: 'date_input', name: 'due', label: 'Due', datetime_config: 'bad'},
             {type: 'date_input', name: 'due', label: 'Due', datetime_config: {time_interval: 'x'}},
+            {type: 'date_input', name: 'due', label: 'Due', datetime_config: {time_interval: 0}},
+            {type: 'date_input', name: 'due', label: 'Due', datetime_config: {time_interval: -15}},
         ])).toEqual([]);
     });
 

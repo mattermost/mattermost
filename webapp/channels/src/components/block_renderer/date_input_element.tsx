@@ -50,6 +50,9 @@ export const DateInputElement = ({element, postId}: DateInputElementProps) => {
     const fieldDomId = mmBlocksFieldDomId(postId, element.name);
 
     useEffect(() => {
+        if (!element.name) {
+            return;
+        }
         setDefaultValue(element.name, element.initial_value ?? '');
     }, [element.name, element.initial_value, setDefaultValue]);
 

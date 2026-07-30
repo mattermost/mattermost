@@ -39,7 +39,7 @@ export const FileInputElement = ({element, postId}: FileInputElementProps) => {
         setDefaultValue(element.name, normalizeFileIds(element.initial_value));
     }, [element.name, element.initial_value, setDefaultValue]);
 
-    const handleFileSelected = useCallback((fileIds: string[]) => {
+    const handleFileSelected = useCallback(async (fileIds: string[]) => {
         setValue(element.name, fileIds);
 
         if (!element.onChange || interactionsDisabled) {
@@ -47,7 +47,12 @@ export const FileInputElement = ({element, postId}: FileInputElementProps) => {
         }
 
         const formValues = {...values, [element.name]: fileIds};
-        onAction(element.onChange, undefined, undefined, undefined, formValues);
+        try {
+            await onAction(element.onChange, undefined, undefined, undefined, formValues);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('mm_blocks file_input onChange action failed', error);
+        }
     }, [element.name, element.onChange, interactionsDisabled, onAction, setValue, values]);
 
     const handlePendingChange = useCallback((uploading: boolean) => {

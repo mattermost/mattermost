@@ -160,7 +160,7 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
         await input.press('ArrowDown');
         await input.press('Enter');
         // react-select shows the pick in single-value, not the combobox value.
-        await expect(role.locator('.react-select__single-value')).toHaveText(/Alpha|Beta|Gamma/);
+        await expect(role.locator('.react-select__single-value')).toHaveText('Gamma');
     });
 
     test('users and channels selects allow picking options', {tag: [...dialogTags]}, async ({pw, request}) => {

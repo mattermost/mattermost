@@ -225,7 +225,7 @@ describe('Interactive Dialogs', () => {
                             } else {
                                 cy.get(`#${element.name}`).
                                     should('be.visible').
-                                    not('be.checked');
+                                    and('not.be.checked');
                                 checked = false;
                             }
 

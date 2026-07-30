@@ -192,4 +192,31 @@ describe('convertDialogToMmBlocks', () => {
         expect(dialogShouldShowSubmitChrome(actionOnly, undefined)).toBe(false);
         expect(dialogShouldShowSubmitChrome(actionOnly, 'Submit')).toBe(true);
     });
+
+    test('action_button reserved query keys are not overridden by context', () => {
+        const {blocks} = convertDialogToMmBlocks([{
+            ...textElement,
+            name: 'open_details',
+            display_name: 'Open Details',
+            type: 'action_button',
+            action_button: {
+                url: 'https://example.com/action',
+                context: {
+                    source: 'Details',
+                    __dialog_action_button: '0',
+                    __dialog_action_url: 'https://evil.example/override',
+                },
+            },
+        }], undefined, undefined);
+
+        const button = blocks.find((b) => b.type === 'button' && 'action_id' in b && b.action_id === 'open_details');
+        expect(button).toMatchObject({
+            type: 'button',
+            query: {
+                source: 'Details',
+                __dialog_action_button: '1',
+                __dialog_action_url: 'https://example.com/action',
+            },
+        });
+    });
 });

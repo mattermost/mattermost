@@ -3,7 +3,14 @@
 
 import type {Page} from '@playwright/test';
 
-import {expect, setupWebhookTestServer, testConfig} from '@mattermost/playwright-lib';
+import {
+    expect,
+    isWebhookTestServerReachable,
+    setupWebhookTestServer,
+    test,
+    testConfig,
+} from '@mattermost/playwright-lib';
+import type {ChannelsPage, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export async function postIncomingWebhook(webhookId: string, payload: Record<string, unknown>) {
     const hookUrl = `${testConfig.baseURL}/hooks/${webhookId}`;
@@ -18,6 +25,89 @@ export async function postIncomingWebhook(webhookId: string, payload: Record<str
     }
 }
 
+export type SetupExternalMmBlocksInThreadOpts = {
+    displayName: string;
+    /** Used as `E2E ${markerHint} ${randomId}` on the webhook post text. */
+    markerHint: string;
+    mmBlocks: unknown[];
+    mmBlocksActions: Record<string, unknown>;
+};
+
+/**
+ * Shared setup for external mm_blocks form tests: webhook server skip/config,
+ * town-square incoming webhook, login, and opening the post in a reply thread.
+ */
+export async function setupExternalMmBlocksInThread(
+    pw: PlaywrightExtended,
+    request: Parameters<typeof setupWebhookTestServer>[0],
+    opts: SetupExternalMmBlocksInThreadOpts,
+) {
+    test.skip(
+        !(await isWebhookTestServerReachable(request)),
+        [
+            `Webhook test server is not reachable at ${testConfig.webhookBaseUrl}.`,
+            'Start it from the repo: cd e2e-tests/cypress && npm run start:webhook',
+            'Or set PW_WEBHOOK_BASE_URL when it runs elsewhere.',
+        ].join('\n'),
+    );
+
+    await setupWebhookTestServer(request, {
+        mattermostBaseUrl: testConfig.baseURL,
+        adminUsername: testConfig.adminUsername,
+        adminPassword: testConfig.adminPassword,
+    });
+
+    const {team, user, adminClient} = await pw.initSetup();
+    const channels = await adminClient.getMyChannels(team.id);
+    const townSquare = channels.find((ch) => ch.name === 'town-square');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
+
+    const webhook = await adminClient.createIncomingWebhook({
+        channel_id: townSquare.id,
+        display_name: opts.displayName,
+    });
+
+    const marker = `E2E ${opts.markerHint} ${pw.random.id()}`;
+    await postIncomingWebhook(webhook.id, {
+        text: marker,
+        props: {
+            mm_blocks: opts.mmBlocks,
+            mm_blocks_actions: opts.mmBlocksActions,
+        },
+    });
+
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    const lastPost = await channelsPage.getLastPost();
+    await lastPost.toBeVisible();
+    const anchorPost = lastPost.container;
+
+    await anchorPost.hover();
+    await expect(anchorPost.getByRole('button', {name: 'reply'})).toBeVisible();
+    await anchorPost.getByRole('button', {name: 'reply'}).click();
+
+    const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
+    await expect(threadPanel).toBeVisible();
+
+    const rootInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: marker}).last();
+    await expect(rootInThread).toBeVisible();
+
+    return {
+        channelsPage,
+        marker,
+        threadPanel,
+        rootInThread,
+        team,
+        user,
+        adminClient,
+        townSquare,
+    };
+}
+
 export type SetupDialogOpenPostOpts = {
     actionId?: string;
     integrationPath?: string;
@@ -30,7 +120,7 @@ export type SetupDialogOpenPostOpts = {
 };
 
 export async function setupDialogOpenPost(
-    pw: any,
+    pw: PlaywrightExtended,
     request: Parameters<typeof setupWebhookTestServer>[0],
     opts: SetupDialogOpenPostOpts,
 ) {
@@ -42,7 +132,7 @@ export async function setupDialogOpenPost(
 
     const {team, user, adminClient, userClient} = await pw.initSetup();
     const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((ch: {name: string}) => ch.name === 'town-square');
+    const townSquare = channels.find((ch) => ch.name === 'town-square');
     if (!townSquare) {
         throw new Error('Town Square channel not found');
     }
@@ -99,7 +189,7 @@ export async function setupDialogOpenPost(
     };
 }
 
-export async function openBlocksDialogFromPost(channelsPage: any, marker: string, openButtonName: string) {
+export async function openBlocksDialogFromPost(channelsPage: ChannelsPage, marker: string, openButtonName: string) {
     const lastPost = await channelsPage.getLastPost();
     await lastPost.toBeVisible();
     await expect(lastPost.container.getByText(marker)).toBeVisible();
@@ -119,7 +209,10 @@ export async function expectEphemeral(page: Page, text: string | RegExp) {
 /**
  * Create a slash command that opens a legacy Interactive Dialog (action_button parent).
  */
-export async function setupLegacyActionButtonCommand(pw: any, request: Parameters<typeof setupWebhookTestServer>[0]) {
+export async function setupLegacyActionButtonCommand(
+    pw: PlaywrightExtended,
+    request: Parameters<typeof setupWebhookTestServer>[0],
+) {
     await setupWebhookTestServer(request, {
         mattermostBaseUrl: testConfig.baseURL,
         adminUsername: testConfig.adminUsername,

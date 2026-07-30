@@ -298,6 +298,76 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     return out;
 }
 
+function parseOptionalStringField(raw: Record<string, unknown>, key: string): string | undefined | null {
+    if (raw[key] === undefined) {
+        return undefined;
+    }
+    if (typeof raw[key] === 'string') {
+        return raw[key] as string;
+    }
+    return null;
+}
+
+function parseOptionalBooleanField(raw: Record<string, unknown>, key: string): boolean | undefined | null {
+    if (raw[key] === undefined) {
+        return undefined;
+    }
+    if (typeof raw[key] !== 'boolean') {
+        return null;
+    }
+    return raw[key] as boolean;
+}
+
+type CommonInputFields = {
+    optional?: boolean;
+    disabled?: boolean;
+    placeholder?: string;
+    help_text?: string;
+    onChange?: string;
+};
+
+/** Parse shared form-input optional/disabled/placeholder/help_text/onChange. Null if invalid. */
+function parseCommonInputFields(raw: Record<string, unknown>): CommonInputFields | null {
+    const optional = parseOptionalBooleanField(raw, 'optional');
+    if (optional === null) {
+        return null;
+    }
+    const disabled = parseOptionalBooleanField(raw, 'disabled');
+    if (disabled === null) {
+        return null;
+    }
+    const placeholder = parseOptionalStringField(raw, 'placeholder');
+    if (placeholder === null) {
+        return null;
+    }
+    const helpText = parseOptionalStringField(raw, 'help_text');
+    if (helpText === null) {
+        return null;
+    }
+    const onChange = parseOptionalStringField(raw, 'onChange');
+    if (onChange === null) {
+        return null;
+    }
+
+    const out: CommonInputFields = {};
+    if (optional === true) {
+        out.optional = true;
+    }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+    if (placeholder !== undefined) {
+        out.placeholder = placeholder;
+    }
+    if (helpText !== undefined) {
+        out.help_text = helpText;
+    }
+    if (onChange !== undefined) {
+        out.onChange = onChange;
+    }
+    return out;
+}
+
 function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock | null {
     if (!hasRequiredKeys(raw, TEXT_INPUT_REQUIRED_KEYS)) {
         return null;
@@ -317,16 +387,13 @@ function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock
         return null;
     }
 
-    const multiline = asBoolean(raw.multiline);
-    if (raw.multiline !== undefined && multiline === undefined) {
+    const multiline = parseOptionalBooleanField(raw, 'multiline');
+    if (multiline === null) {
         return null;
     }
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
-        return null;
-    }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
+
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
 
@@ -339,39 +406,8 @@ function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock
         return null;
     }
 
-    let placeholder: string | undefined;
-    if (raw.placeholder === undefined) {
-        placeholder = undefined;
-    } else if (typeof raw.placeholder === 'string') {
-        placeholder = raw.placeholder;
-    } else {
-        return null;
-    }
-
-    let helpText: string | undefined;
-    if (raw.help_text === undefined) {
-        helpText = undefined;
-    } else if (typeof raw.help_text === 'string') {
-        helpText = raw.help_text;
-    } else {
-        return null;
-    }
-
-    let initialValue: string | undefined;
-    if (raw.initial_value === undefined) {
-        initialValue = undefined;
-    } else if (typeof raw.initial_value === 'string') {
-        initialValue = raw.initial_value;
-    } else {
-        return null;
-    }
-
-    let onChange: string | undefined;
-    if (raw.onChange === undefined) {
-        onChange = undefined;
-    } else if (typeof raw.onChange === 'string') {
-        onChange = raw.onChange;
-    } else {
+    const initialValue = parseOptionalStringField(raw, 'initial_value');
+    if (initialValue === null) {
         return null;
     }
 
@@ -379,6 +415,7 @@ function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock
         type: 'text_input',
         name,
         label,
+        ...common,
     };
     if (subtype !== undefined && subtype !== 'text') {
         out.subtype = subtype;
@@ -386,41 +423,16 @@ function translateTextInputBlock(raw: Record<string, unknown>): MmTextInputBlock
     if (multiline === true) {
         out.multiline = true;
     }
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
     if (minLength !== undefined) {
         out.min_length = minLength;
     }
     if (maxLength !== undefined) {
         out.max_length = maxLength;
     }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
-    }
     if (initialValue !== undefined) {
         out.initial_value = initialValue;
     }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
-    }
     return out;
-}
-
-function parseOptionalStringField(raw: Record<string, unknown>, key: string): string | undefined | null {
-    if (raw[key] === undefined) {
-        return undefined;
-    }
-    if (typeof raw[key] === 'string') {
-        return raw[key] as string;
-    }
-    return null;
 }
 
 function parseDateTimeConfig(raw: unknown): MmDateTimeConfig | undefined | null {
@@ -445,7 +457,7 @@ function parseDateTimeConfig(raw: unknown): MmDateTimeConfig | undefined | null 
     }
     if (raw.time_interval !== undefined) {
         const n = asFiniteNumber(raw.time_interval);
-        if (n === undefined) {
+        if (n === undefined || n <= 0) {
             return null;
         }
         out.time_interval = n;
@@ -475,29 +487,12 @@ function translateDateInputBlock(raw: Record<string, unknown>): MmDateInputBlock
         return null;
     }
 
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
-        return null;
-    }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
-        return null;
-    }
-
-    const placeholder = parseOptionalStringField(raw, 'placeholder');
-    if (placeholder === null) {
-        return null;
-    }
-    const helpText = parseOptionalStringField(raw, 'help_text');
-    if (helpText === null) {
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
     const initialValue = parseOptionalStringField(raw, 'initial_value');
     if (initialValue === null) {
-        return null;
-    }
-    const onChange = parseOptionalStringField(raw, 'onChange');
-    if (onChange === null) {
         return null;
     }
     const datetimeConfig = parseDateTimeConfig(raw.datetime_config);
@@ -509,24 +504,10 @@ function translateDateInputBlock(raw: Record<string, unknown>): MmDateInputBlock
         type: 'date_input',
         name,
         label,
+        ...common,
     };
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
-    }
     if (initialValue !== undefined) {
         out.initial_value = initialValue;
-    }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
     }
     if (datetimeConfig !== undefined && Object.keys(datetimeConfig).length > 0) {
         out.datetime_config = datetimeConfig;
@@ -544,29 +525,12 @@ function translateDateTimeInputBlock(raw: Record<string, unknown>): MmDateTimeIn
         return null;
     }
 
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
-        return null;
-    }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
-        return null;
-    }
-
-    const placeholder = parseOptionalStringField(raw, 'placeholder');
-    if (placeholder === null) {
-        return null;
-    }
-    const helpText = parseOptionalStringField(raw, 'help_text');
-    if (helpText === null) {
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
     const initialValue = parseOptionalStringField(raw, 'initial_value');
     if (initialValue === null) {
-        return null;
-    }
-    const onChange = parseOptionalStringField(raw, 'onChange');
-    if (onChange === null) {
         return null;
     }
     const datetimeConfig = parseDateTimeConfig(raw.datetime_config);
@@ -578,24 +542,10 @@ function translateDateTimeInputBlock(raw: Record<string, unknown>): MmDateTimeIn
         type: 'datetime_input',
         name,
         label,
+        ...common,
     };
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
-    }
     if (initialValue !== undefined) {
         out.initial_value = initialValue;
-    }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
     }
     if (datetimeConfig !== undefined && Object.keys(datetimeConfig).length > 0) {
         out.datetime_config = datetimeConfig;
@@ -613,29 +563,12 @@ function translateFileInputBlock(raw: Record<string, unknown>): MmFileInputBlock
         return null;
     }
 
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
-        return null;
-    }
-    const allowMultiple = asBoolean(raw.allow_multiple);
-    if (raw.allow_multiple !== undefined && allowMultiple === undefined) {
-        return null;
-    }
-
-    const placeholder = parseOptionalStringField(raw, 'placeholder');
-    if (placeholder === null) {
-        return null;
-    }
-    const helpText = parseOptionalStringField(raw, 'help_text');
-    if (helpText === null) {
-        return null;
-    }
-    const onChange = parseOptionalStringField(raw, 'onChange');
-    if (onChange === null) {
+    const allowMultiple = parseOptionalBooleanField(raw, 'allow_multiple');
+    if (allowMultiple === null) {
         return null;
     }
     const initialValue = parseOptionalStringField(raw, 'initial_value');
@@ -647,24 +580,10 @@ function translateFileInputBlock(raw: Record<string, unknown>): MmFileInputBlock
         type: 'file_input',
         name,
         label,
+        ...common,
     };
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
     if (allowMultiple === true) {
         out.allow_multiple = true;
-    }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
-    }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
     }
     if (initialValue !== undefined) {
         out.initial_value = initialValue;
@@ -682,30 +601,8 @@ function translateBoolInputBlock(raw: Record<string, unknown>): MmBoolInputBlock
         return null;
     }
 
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
-        return null;
-    }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
-        return null;
-    }
-
-    let placeholder: string | undefined;
-    if (raw.placeholder === undefined) {
-        placeholder = undefined;
-    } else if (typeof raw.placeholder === 'string') {
-        placeholder = raw.placeholder;
-    } else {
-        return null;
-    }
-
-    let helpText: string | undefined;
-    if (raw.help_text === undefined) {
-        helpText = undefined;
-    } else if (typeof raw.help_text === 'string') {
-        helpText = raw.help_text;
-    } else {
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
 
@@ -718,37 +615,14 @@ function translateBoolInputBlock(raw: Record<string, unknown>): MmBoolInputBlock
         return null;
     }
 
-    let onChange: string | undefined;
-    if (raw.onChange === undefined) {
-        onChange = undefined;
-    } else if (typeof raw.onChange === 'string') {
-        onChange = raw.onChange;
-    } else {
-        return null;
-    }
-
     const out: MmBoolInputBlock = {
         type: 'bool_input',
         name,
         label,
+        ...common,
     };
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
-    }
     if (initialValue !== undefined) {
         out.initial_value = initialValue;
-    }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
     }
     return out;
 }
@@ -772,34 +646,12 @@ function translateSelectInputBlock(raw: Record<string, unknown>): MmSelectInputB
         return null;
     }
 
-    const optional = asBoolean(raw.optional);
-    if (raw.optional !== undefined && optional === undefined) {
+    const common = parseCommonInputFields(raw);
+    if (!common) {
         return null;
     }
-    const disabled = asBoolean(raw.disabled);
-    if (raw.disabled !== undefined && disabled === undefined) {
-        return null;
-    }
-    const multiselect = asBoolean(raw.multiselect);
-    if (raw.multiselect !== undefined && multiselect === undefined) {
-        return null;
-    }
-
-    let placeholder: string | undefined;
-    if (raw.placeholder === undefined) {
-        placeholder = undefined;
-    } else if (typeof raw.placeholder === 'string') {
-        placeholder = raw.placeholder;
-    } else {
-        return null;
-    }
-
-    let helpText: string | undefined;
-    if (raw.help_text === undefined) {
-        helpText = undefined;
-    } else if (typeof raw.help_text === 'string') {
-        helpText = raw.help_text;
-    } else {
+    const multiselect = parseOptionalBooleanField(raw, 'multiselect');
+    if (multiselect === null) {
         return null;
     }
 
@@ -815,30 +667,16 @@ function translateSelectInputBlock(raw: Record<string, unknown>): MmSelectInputB
         return null;
     }
 
-    let dataSource: string | undefined;
-    if (raw.data_source === undefined) {
-        dataSource = undefined;
-    } else if (typeof raw.data_source === 'string') {
-        dataSource = raw.data_source;
-    } else {
+    const dataSource = parseOptionalStringField(raw, 'data_source');
+    if (dataSource === null) {
         return null;
     }
-
-    let dataSourceAction: string | undefined;
-    if (raw.data_source_action === undefined) {
-        dataSourceAction = undefined;
-    } else if (typeof raw.data_source_action === 'string') {
-        dataSourceAction = raw.data_source_action;
-    } else {
+    const dataSourceAction = parseOptionalStringField(raw, 'data_source_action');
+    if (dataSourceAction === null) {
         return null;
     }
-
-    let initialOption: string | undefined;
-    if (raw.initial_option === undefined) {
-        initialOption = undefined;
-    } else if (typeof raw.initial_option === 'string') {
-        initialOption = raw.initial_option;
-    } else {
+    const initialOption = parseOptionalStringField(raw, 'initial_option');
+    if (initialOption === null) {
         return null;
     }
 
@@ -847,37 +685,17 @@ function translateSelectInputBlock(raw: Record<string, unknown>): MmSelectInputB
         return null;
     }
 
-    let onChange: string | undefined;
-    if (raw.onChange === undefined) {
-        onChange = undefined;
-    } else if (typeof raw.onChange === 'string') {
-        onChange = raw.onChange;
-    } else {
-        return null;
-    }
-
     const out: MmSelectInputBlock = {
         type: 'select',
         name,
         label,
+        ...common,
     };
     if (style === 'expanded') {
         out.style = style;
     }
-    if (optional === true) {
-        out.optional = true;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
     if (multiselect === true) {
         out.multiselect = true;
-    }
-    if (placeholder !== undefined) {
-        out.placeholder = placeholder;
-    }
-    if (helpText !== undefined) {
-        out.help_text = helpText;
     }
     if (options) {
         out.options = options;
@@ -896,9 +714,6 @@ function translateSelectInputBlock(raw: Record<string, unknown>): MmSelectInputB
     }
     if (initialOptions) {
         out.initial_options = initialOptions;
-    }
-    if (onChange !== undefined) {
-        out.onChange = onChange;
     }
     return out;
 }

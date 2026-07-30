@@ -641,7 +641,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 
 	t.Run("missing post_id returns bad request", func(t *testing.T) {
 		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
-			Context:           model.BlockActionContextPost,
+			Context:  model.BlockActionContextPost,
 			ActionId: "x",
 		}, nil)
 		require.NotNil(t, appErr)
@@ -670,7 +670,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 				},
 			},
 		}
-		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret())
+		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret(), th.BasicUser.Id)
 		require.NoError(t, encErr)
 		require.NotEmpty(t, cookie)
 
@@ -682,6 +682,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 		assert.Empty(t, mmCookie.PostId)
 		assert.Empty(t, mmCookie.ChannelId)
 		assert.Empty(t, mmCookie.RootPostId)
+		assert.Equal(t, th.BasicUser.Id, mmCookie.UserId)
 
 		resp, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
 			Context:           model.BlockActionContextDialog,
@@ -711,6 +712,82 @@ func TestDoBlockActionExecute(t *testing.T) {
 		formValues, ok := gotReq.Context[model.PostActionContextFormValuesKey].(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "Ada", formValues["name"])
+	})
+
+	t.Run("dialog-scoped cookie skips ephemeral_text without channel", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"type":"ok","ephemeral_text":"hello from dialog"}`))
+		}))
+		defer ts.Close()
+
+		dialog := &model.BlockDialog{
+			Title: "Dialog",
+			Actions: map[string]any{
+				"dialog_ephem": map[string]any{
+					"type": "external",
+					"url":  ts.URL,
+				},
+			},
+		}
+		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret(), th.BasicUser.Id)
+		require.NoError(t, encErr)
+		cookieStr, decErr := model.DecryptPostActionCookie(cookie, th.App.PostActionCookieSecret())
+		require.NoError(t, decErr)
+		_, mmCookie, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
+		require.NoError(t, parseErr)
+
+		resp, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextDialog,
+			PostId:            "",
+			ActionId:          "dialog_ephem",
+			Cookie:            cookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, mmCookie)
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		assert.Equal(t, model.BlockActionResponseTypeOK, resp.Type)
+	})
+
+	t.Run("dialog channel_id fills ephemeral but not upstream request", func(t *testing.T) {
+		var gotReq model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&gotReq))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"type":"ok","ephemeral_text":"hello from dialog"}`))
+		}))
+		defer ts.Close()
+
+		dialog := &model.BlockDialog{
+			Title: "Dialog",
+			Actions: map[string]any{
+				"dialog_ephem_ch": map[string]any{
+					"type": "external",
+					"url":  ts.URL,
+				},
+			},
+		}
+		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret(), th.BasicUser.Id)
+		require.NoError(t, encErr)
+		cookieStr, decErr := model.DecryptPostActionCookie(cookie, th.App.PostActionCookieSecret())
+		require.NoError(t, decErr)
+		_, mmCookie, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
+		require.NoError(t, parseErr)
+
+		resp, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextDialog,
+			PostId:            "",
+			ChannelId:         th.BasicChannel.Id,
+			ActionId:          "dialog_ephem_ch",
+			Cookie:            cookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, mmCookie)
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		assert.Equal(t, model.BlockActionResponseTypeOK, resp.Type)
+		assert.Empty(t, gotReq.ChannelId)
+		assert.Empty(t, gotReq.ChannelName)
+		assert.Empty(t, gotReq.TeamId)
 	})
 
 	t.Run("empty post_id ignores update from integration", func(t *testing.T) {
@@ -763,7 +840,7 @@ func TestDoBlockActionExecute(t *testing.T) {
 		require.NoError(t, parseErr)
 
 		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
-			Context:           model.BlockActionContextPost,
+			Context:  model.BlockActionContextPost,
 			PostId:   model.NewId(),
 			ActionId: "mismatch_act",
 			Cookie:   cookie,
@@ -774,8 +851,8 @@ func TestDoBlockActionExecute(t *testing.T) {
 
 	t.Run("missing action_id returns bad request", func(t *testing.T) {
 		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
-			Context:           model.BlockActionContextPost,
-			PostId: model.NewId(),
+			Context: model.BlockActionContextPost,
+			PostId:  model.NewId(),
 		}, nil)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)

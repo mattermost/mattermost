@@ -9,6 +9,16 @@ const Z_INDEX_INCREMENT = 10; // Increment for each stacked modal level
 
 // No options needed since delayMs is not used by any consumers
 
+/**
+ * Captures at mount whether a `.modal-backdrop` already exists (another modal
+ * is open beneath this one). SSR-safe: returns false when `document` is unavailable.
+ */
+export function useIsStackedModal(): boolean {
+    return useRef(
+        typeof document !== 'undefined' && document.querySelectorAll('.modal-backdrop').length > 0,
+    ).current;
+}
+
 type StackedModalResult = {
 
     /**

@@ -96,7 +96,13 @@ export function ExpandedChoiceList({
             helpText={helpText}
             inputId={id}
         >
-            <fieldset disabled={disabled}>
+            <fieldset
+                id={id}
+                disabled={disabled}
+            >
+                <legend className='form-legend hidden-label'>
+                    {label}
+                </legend>
                 {optionGroups?.length ? (
                     optionGroups.map((group) => (
                         <div

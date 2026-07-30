@@ -20,6 +20,8 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
     let testTeam;
     let testChannel;
 
+    const DATE_FIELD_SELECTOR = '.mm-blocks-date-input, .mm-blocks-datetime-input';
+
     // Helper functions to reduce code duplication
     const openDateTimeDialog = (command = '') => {
         cy.postMessage(`/${createdCommand.trigger} ${command}`);
@@ -28,7 +30,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
     const openDatePicker = (formGroupName) => {
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', formGroupName).within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, formGroupName).within(() => {
                 cy.get('.date-time-input').click();
             });
         });
@@ -66,7 +68,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
     };
 
     const verifyFormGroup = (groupName, options = {}) => {
-        const selector = options.scrollIntoView ? cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', groupName).scrollIntoView().should('be.visible') : cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', groupName).should('be.visible');
+        const selector = options.scrollIntoView ? cy.contains(DATE_FIELD_SELECTOR, groupName).scrollIntoView().should('be.visible') : cy.contains(DATE_FIELD_SELECTOR, groupName).should('be.visible');
 
         return selector.within(() => {
             if (options.label) {
@@ -139,7 +141,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify the selected date appears in the field
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Event Date').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Event Date').within(() => {
                 cy.get('.date-time-input__value').should('be.visible').and('not.be.empty');
             });
         });
@@ -158,7 +160,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         cy.get('#appsModal').within(() => {
             // * Verify datetime input structure
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.apps-form-datetime-input').within(() => {
                     cy.get('.dateTime').should('be.visible');
                     cy.get('.dateTime__date').should('be.visible');
@@ -167,7 +169,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
             });
 
             // # Open date picker and select date
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__date .date-time-input').click();
             });
         });
@@ -177,12 +179,12 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Open time menu and select time
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__time button[data-testid="time_button"]').click();
             });
         });
 
-        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').first().click();
     });
 
@@ -228,7 +230,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify date selection
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Future Date Only').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Future Date Only').within(() => {
                 cy.get('.date-time-input__value').should('be.visible').and('not.be.empty');
             });
         });
@@ -247,13 +249,13 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Open time menu
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Custom Interval Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Custom Interval Time').within(() => {
                 cy.get('.dateTime__time button[data-testid="time_button"]').click();
             });
         });
 
         // * Verify time menu with custom intervals
-        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').should('have.length.greaterThan', 0);
     });
 
@@ -281,12 +283,12 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify relative date field with 'today' default is pre-populated
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Relative Date Example').scrollIntoView().should('be.visible').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Relative Date Example').scrollIntoView().should('be.visible').within(() => {
                 cy.get('.date-time-input__value').should('be.visible').and('not.be.empty');
             });
 
             // * Verify relative datetime field with '+1d' default is pre-populated
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Relative DateTime Example').scrollIntoView().should('be.visible').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Relative DateTime Example').scrollIntoView().should('be.visible').within(() => {
                 cy.get('.apps-form-datetime-input').should('not.be.empty');
             });
         });
@@ -309,7 +311,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify en-US locale formatting (e.g., "Aug 10, 2025")
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Event Date').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Event Date').within(() => {
                 cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').invoke('text').then((text) => {
                     const match = text.trim().match(/^[A-Z][a-z]{2} (\d{1,2}), \d{4}$/);
                     expect(match, 'date format').to.not.be.null;
@@ -336,7 +338,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Select a date
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__date .date-time-input').click();
             });
         });
@@ -346,13 +348,13 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Open time menu
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__time button[data-testid="time_button"]').click();
             });
         });
 
         // * Verify 24-hour format in dropdown (e.g., "14:00" not "2:00 PM")
-        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             expect(text).to.match(/^\d{2}:\d{2}$/); // 24-hour format: HH:MM
         });
@@ -362,7 +364,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // * Verify selected time shows in 24-hour format
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__time .date-time-input__value').invoke('text').then((text) => {
                     expect(text).to.match(/^\d{2}:\d{2}$/);
                 });
@@ -385,7 +387,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Select date and open time menu
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__date .date-time-input').click();
             });
         });
@@ -394,13 +396,13 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         selectDateFromPicker(getSelectableDay(3));
 
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Meeting Time').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Meeting Time').within(() => {
                 cy.get('.dateTime__time button[data-testid="time_button"]').click();
             });
         });
 
         // * Verify 12-hour format in dropdown (e.g., "2:00 PM" not "14:00")
-        cy.get('[id="expiryTimeMenu"]').should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]').should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             expect(text).to.match(/\d{1,2}:\d{2} [AP]M/); // 12-hour format: H:MM AM/PM
         });
@@ -418,13 +420,13 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Type a time in manual entry field
         cy.get('#appsModal').within(() => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Your Local Time (Manual Entry)').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Your Local Time (Manual Entry)').within(() => {
                 cy.get('input#time_input').should('be.visible').type('3:45pm').blur();
             });
         });
 
         // * Verify time is accepted (no error state)
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Your Local Time (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'Your Local Time (Manual Entry)').within(() => {
             cy.get('input#time_input').should('not.have.class', 'error');
             cy.get('input#time_input').should('have.value', '3:45 PM');
         });
@@ -448,7 +450,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         ];
 
         testFormats.forEach(({input, expected12h}) => {
-            cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Your Local Time (Manual Entry)').within(() => {
+            cy.contains(DATE_FIELD_SELECTOR, 'Your Local Time (Manual Entry)').within(() => {
                 cy.get('input#time_input').clear().type(input).blur();
 
                 // Wait for formatting to apply
@@ -464,7 +466,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         openDateTimeDialog('timezone-manual');
 
         // # Type invalid time
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Your Local Time (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'Your Local Time (Manual Entry)').within(() => {
             cy.get('input#time_input').type('abc').blur();
 
             // * Verify error state
@@ -472,7 +474,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         // # Type valid time
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'Your Local Time (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'Your Local Time (Manual Entry)').within(() => {
             cy.get('input#time_input').clear().type('2:30pm').blur();
 
             // * Verify error clears
@@ -490,12 +492,12 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         openDateTimeDialog('timezone-manual');
 
         // * Verify timezone indicator is shown
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Dropdown)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Dropdown)').within(() => {
             cy.contains('Times in GMT').should('be.visible');
         });
 
         // # Select a date
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Dropdown)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Dropdown)').within(() => {
             cy.get('.dateTime__date .date-time-input').click();
         });
 
@@ -503,12 +505,12 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         selectDateFromPicker(getSelectableDay());
 
         // # Open time dropdown
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Dropdown)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Dropdown)').within(() => {
             cy.get('.dateTime__time button[data-testid="time_button"]').click();
         });
 
         // * Verify dropdown shows times starting at midnight (London time)
-        cy.get('[id="expiryTimeMenu"]').should('be.visible');
+        cy.get('[id$="expiryTimeMenu"]').should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             // Should show midnight in 12h or 24h format
             expect(text).to.match(/^(12:00 AM|00:00)$/);
@@ -536,12 +538,12 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         openDateTimeDialog('timezone-manual');
 
         // * Verify timezone indicator is shown
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Manual Entry)').within(() => {
             cy.contains('Times in GMT').should('be.visible');
         });
 
         // # Select date
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Manual Entry)').within(() => {
             cy.get('.dateTime__date .date-time-input').click();
         });
 
@@ -549,7 +551,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         selectDateFromPicker(getSelectableDay());
 
         // # Type time in manual entry
-        cy.contains('.mm-blocks-date-input, .mm-blocks-datetime-input', 'London Office Hours (Manual Entry)').within(() => {
+        cy.contains(DATE_FIELD_SELECTOR, 'London Office Hours (Manual Entry)').within(() => {
             cy.get('input#time_input').clear().type('2:30pm').blur();
 
             // * Verify time is accepted

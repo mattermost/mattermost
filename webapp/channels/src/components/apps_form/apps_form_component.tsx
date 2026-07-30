@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment-timezone';
-import React, {useRef} from 'react';
+import React from 'react';
 import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {useStackedModal} from '@mattermost/components';
+import {useIsStackedModal, useStackedModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
@@ -46,9 +46,7 @@ type AppsFormModalProps = {
 
 // Wrapper so the class-based AppsForm can use the stacked-modal hook.
 function AppsFormModal({show, onHide, onExited, enforceFocus, children}: AppsFormModalProps) {
-    const isStacked = useRef(
-        typeof document !== 'undefined' && document.querySelectorAll('.modal-backdrop').length > 0,
-    ).current;
+    const isStacked = useIsStackedModal();
     const {shouldRenderBackdrop, modalStyle, backdropStyle} = useStackedModal(isStacked, show);
 
     return (

@@ -207,6 +207,9 @@ describe('SelectInputElement', () => {
         expect(screen.getByText('Berries')).toBeInTheDocument();
         expect(screen.getByRole('radio', {name: 'Orange'})).toBeInTheDocument();
         expect(screen.getByRole('radio', {name: 'Strawberry'})).toBeInTheDocument();
+        const group = screen.getByRole('group', {name: /Fruit/});
+        expect(group).toHaveAttribute('id', 'mm-blocks-post-1-fruit');
+        expect(screen.getByTestId('mm-blocks-post-1-fruitlabel')).toHaveAttribute('for', 'mm-blocks-post-1-fruit');
     });
 
     it('disables controls when interactions are disabled', () => {
@@ -219,6 +222,18 @@ describe('SelectInputElement', () => {
         }, true);
 
         expect(screen.getByRole('radio', {name: 'Red'})).toBeDisabled();
+    });
+
+    it('seeds dynamic user select display from stored form value on mount', () => {
+        renderSelect({
+            type: 'select',
+            name: 'assignee',
+            label: 'Assignee',
+            data_source: 'users',
+            initial_option: 'user-id-42',
+        });
+
+        expect(screen.getByDisplayValue('user-id-42')).toBeInTheDocument();
     });
 
     it('shows lookup option label after selection, not the value', async () => {

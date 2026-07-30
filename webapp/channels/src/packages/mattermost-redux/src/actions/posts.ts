@@ -1258,9 +1258,15 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
 
 export function doBlockAction(request: DoBlockActionRequest): ActionFuncAsync<DoBlockActionResponse> {
     return async (dispatch, getState) => {
+        const payload: DoBlockActionRequest = {...request};
+        if (payload.context === 'dialog') {
+            // Match legacy dialog submit: current channel for ephemeral delivery only.
+            payload.channel_id ||= getCurrentChannelId(getState());
+        }
+
         let data: DoBlockActionResponse;
         try {
-            data = await Client4.doBlockAction(request);
+            data = await Client4.doBlockAction(payload);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

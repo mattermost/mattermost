@@ -19,4 +19,4 @@ export {useElementAvailable} from './common/hooks/useElementAvailable';
 export {useFocusTrap} from './hooks/useFocusTrap';
 export {useFollowElementDimensions} from './common/hooks/useFollowElementDimensions';
 export {useMeasurePunchouts} from './common/hooks/useMeasurePunchouts';
-export {useStackedModal} from './hooks/useStackedModal';
+export {useStackedModal, useIsStackedModal} from './hooks/useStackedModal';

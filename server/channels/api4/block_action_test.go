@@ -55,7 +55,7 @@ func TestDoBlockActionAPI(t *testing.T) {
 
 	t.Run("missing post_id returns bad request", func(t *testing.T) {
 		_, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
-			Context:           model.BlockActionContextPost,
+			Context:  model.BlockActionContextPost,
 			ActionId: actionID,
 		})
 		require.Error(t, err)
@@ -110,26 +110,24 @@ func TestDoBlockActionAPI(t *testing.T) {
 		}))
 		defer dialogServer.Close()
 
-		// Mint a dialog-scoped cookie with no channel binding.
-		post := &model.Post{
-			Props: map[string]any{
-				model.PostPropsMmBlocksActions: map[string]any{
-					"no_channel_act": map[string]any{
-						"type": model.MmBlocksActionTypeExternal,
-						"url":  dialogServer.URL,
-					},
+		dialog := &model.BlockDialog{
+			Actions: map[string]any{
+				"no_channel_act": map[string]any{
+					"type": model.MmBlocksActionTypeExternal,
+					"url":  dialogServer.URL,
 				},
 			},
 		}
-		post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
-		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
-		require.True(t, ok)
+		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret(), th.BasicUser.Id)
+		require.NoError(t, encErr)
+		require.NotEmpty(t, cookie)
 
 		cookieStr, decErr := model.DecryptPostActionCookie(cookie, th.App.PostActionCookieSecret())
 		require.NoError(t, decErr)
 		var parsed model.MmBlocksActionCookie
 		require.NoError(t, json.Unmarshal([]byte(cookieStr), &parsed))
 		assert.Empty(t, parsed.ChannelId)
+		assert.Equal(t, th.BasicUser.Id, parsed.UserId)
 
 		resp, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
 			Context:           model.BlockActionContextDialog,
@@ -144,10 +142,74 @@ func TestDoBlockActionAPI(t *testing.T) {
 		assert.Equal(t, model.BlockActionResponseTypeOK, resp.Type)
 	})
 
+	t.Run("dialog-scoped cookie rejects user mismatch", func(t *testing.T) {
+		dialogServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"type":"ok"}`))
+		}))
+		defer dialogServer.Close()
+
+		dialog := &model.BlockDialog{
+			Actions: map[string]any{
+				"dialog_act": map[string]any{
+					"type": model.MmBlocksActionTypeExternal,
+					"url":  dialogServer.URL,
+				},
+			},
+		}
+		cookie, encErr := model.EncryptBlockDialogMmBlocksActions(dialog, th.App.PostActionCookieSecret(), th.BasicUser.Id)
+		require.NoError(t, encErr)
+
+		client2 := th.CreateClient()
+		th.LoginBasic2WithClient(t, client2)
+		_, apiResp, err := client2.DoBlockAction(context.Background(), model.DoBlockActionRequest{
+			Context:           model.BlockActionContextDialog,
+			PostId:            "",
+			ActionId:          "dialog_act",
+			Cookie:            cookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, apiResp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("dialog-scoped cookie without user_id rejected", func(t *testing.T) {
+		dialogServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"type":"ok"}`))
+		}))
+		defer dialogServer.Close()
+
+		cookie, encErr := model.EncryptMmBlocksActionsCookie(
+			map[string]any{
+				"dialog_act": map[string]any{
+					"type": model.MmBlocksActionTypeExternal,
+					"url":  dialogServer.URL,
+				},
+			},
+			"", "", "", "",
+			map[string]any{},
+			nil,
+			th.App.PostActionCookieSecret(),
+		)
+		require.NoError(t, encErr)
+
+		_, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
+			Context:           model.BlockActionContextDialog,
+			PostId:            "",
+			ActionId:          "dialog_act",
+			Cookie:            cookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, apiResp)
+	})
+
 	t.Run("missing action_id returns bad request", func(t *testing.T) {
 		_, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
-			Context:           model.BlockActionContextPost,
-			PostId: created.Id,
+			Context: model.BlockActionContextPost,
+			PostId:  created.Id,
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, apiResp)
@@ -250,6 +312,7 @@ func TestDoBlockActionAPI(t *testing.T) {
 			missingPostID,
 			missingPostID,
 			th.BasicChannel.Id,
+			"",
 			map[string]any{},
 			nil,
 			th.App.PostActionCookieSecret(),

@@ -10,7 +10,7 @@ import {MmBlocksForm, useMmBlocksForm} from './form';
 import type {MmBlocksFormErrors} from './form';
 
 function FormProbe() {
-    const {values, getValue, setValue, setDefaultValue, errors, setErrors} = useMmBlocksForm();
+    const {values, getValue, setValue, setDefaultValue, errors, setErrors, clearError} = useMmBlocksForm();
 
     return (
         <div>
@@ -40,6 +40,21 @@ function FormProbe() {
                 onClick={() => setErrors({title: 'Required'})}
             >
                 {'set-title-error'}
+            </button>
+            <button
+                type='button'
+                onClick={() => setErrors({title: 'Required', body: 'Too short'})}
+            >
+                {'set-two-errors'}
+            </button>
+            <button
+                type='button'
+                onClick={() => {
+                    clearError('title');
+                    clearError('body');
+                }}
+            >
+                {'clear-both-errors'}
             </button>
         </div>
     );
@@ -105,6 +120,20 @@ describe('MmBlocksForm', () => {
         expect(screen.getByTestId('errors-json')).toHaveTextContent('{"title":"Required"}');
 
         await userEvent.click(screen.getByRole('button', {name: 'set-title'}));
+        expect(screen.getByTestId('errors-json')).toHaveTextContent('{}');
+    });
+
+    it('clears multiple field errors in the same tick without restoring earlier deletions', async () => {
+        renderWithContext(
+            <ControlledMmBlocksForm>
+                <FormProbe/>
+            </ControlledMmBlocksForm>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'set-two-errors'}));
+        expect(screen.getByTestId('errors-json')).toHaveTextContent('{"title":"Required","body":"Too short"}');
+
+        await userEvent.click(screen.getByRole('button', {name: 'clear-both-errors'}));
         expect(screen.getByTestId('errors-json')).toHaveTextContent('{}');
     });
 

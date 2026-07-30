@@ -11,6 +11,7 @@ import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import {MmBlocksInteractionsDisabledContext, useMmBlocksHandlers} from './context';
+import type {MmFormValue} from './form';
 import {MmBlocksFieldError, useMmBlocksForm} from './form';
 import {mmBlocksFieldDomId} from './utils/field_dom_id';
 
@@ -40,11 +41,58 @@ function textInputType(element: MmTextInputBlock): InputTypes {
     }
 }
 
-function normalizeTextValue(value: unknown): string {
+function isNumberInput(element: MmTextInputBlock): boolean {
+    return !element.multiline && element.subtype === 'number';
+}
+
+/** TextSetting emits numbers for type=number (including NaN when cleared). */
+function normalizeTextValue(value: unknown, asNumber: boolean): string | number | null {
+    if (asNumber) {
+        if (typeof value === 'number') {
+            return Number.isFinite(value) ? value : null;
+        }
+        if (value === '' || value === null || value === undefined) {
+            return null;
+        }
+        const parsed = typeof value === 'string' ? Number(value) : NaN;
+        return Number.isFinite(parsed) ? parsed : null;
+    }
     if (value === null || value === undefined) {
         return '';
     }
     return String(value);
+}
+
+function initialTextFormValue(element: MmTextInputBlock): string | number | null {
+    if (isNumberInput(element)) {
+        if (element.initial_value === undefined || element.initial_value === '') {
+            return null;
+        }
+        const parsed = Number(element.initial_value);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+    return element.initial_value ?? '';
+}
+
+function displayTextValue(
+    rawValue: MmFormValue | undefined,
+    element: MmTextInputBlock,
+    inputType: InputTypes,
+): string | number {
+    if (inputType === 'number') {
+        if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+            return rawValue;
+        }
+        if (rawValue === undefined || rawValue === null) {
+            return initialTextFormValue(element) ?? '';
+        }
+        const parsed = typeof rawValue === 'string' ? Number(rawValue) : NaN;
+        return Number.isFinite(parsed) ? parsed : '';
+    }
+    if (rawValue === undefined || rawValue === null) {
+        return element.initial_value ?? '';
+    }
+    return String(rawValue);
 }
 
 export const TextInputElement = ({element, postId}: TextInputElementProps) => {
@@ -52,13 +100,14 @@ export const TextInputElement = ({element, postId}: TextInputElementProps) => {
     const {onAction} = useMmBlocksHandlers();
     const {values, setValue, setDefaultValue} = useMmBlocksForm();
     const fieldDomId = mmBlocksFieldDomId(postId, element.name);
+    const asNumber = isNumberInput(element);
 
     useEffect(() => {
-        setDefaultValue(element.name, element.initial_value ?? '');
-    }, [element.name, element.initial_value, setDefaultValue]);
+        setDefaultValue(element.name, initialTextFormValue(element));
+    }, [element.name, element.initial_value, element.subtype, element.multiline, setDefaultValue]);
 
     const handleChange = useCallback((_id: string, value: unknown) => {
-        const next = normalizeTextValue(value);
+        const next = normalizeTextValue(value, asNumber);
         setValue(element.name, next);
 
         if (!element.onChange || interactionsDisabled) {
@@ -67,7 +116,7 @@ export const TextInputElement = ({element, postId}: TextInputElementProps) => {
 
         const formValues = {...values, [element.name]: next};
         onAction(element.onChange, undefined, undefined, undefined, formValues);
-    }, [element.name, element.onChange, interactionsDisabled, onAction, setValue, values]);
+    }, [asNumber, element.name, element.onChange, interactionsDisabled, onAction, setValue, values]);
 
     const label = useMemo(() => {
         if (!element.label.trim()) {
@@ -105,8 +154,7 @@ export const TextInputElement = ({element, postId}: TextInputElementProps) => {
     const maxLength = element.max_length ?? (
         inputType === 'textarea' ? TEXTAREA_DEFAULT_MAX_LENGTH : TEXT_DEFAULT_MAX_LENGTH
     );
-    const rawValue = values[element.name];
-    const value = rawValue === undefined || rawValue === null ? (element.initial_value ?? '') : String(rawValue);
+    const value = displayTextValue(values[element.name], element, inputType);
 
     return (
         <div className='mm-blocks-text-input'>

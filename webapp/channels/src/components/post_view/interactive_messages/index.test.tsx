@@ -39,6 +39,20 @@ jest.mock('components/block_renderer', () => ({
             </button>
             <button
                 type='button'
+                data-testid='post-submit'
+                onClick={() => props.onAction('submit1', undefined, undefined, undefined, {title: 'ok'})}
+            >
+                {'Submit'}
+            </button>
+            <button
+                type='button'
+                data-testid='post-submit-invalid'
+                onClick={() => props.onAction('submit1', undefined, undefined, undefined, {title: ''})}
+            >
+                {'Submit Invalid'}
+            </button>
+            <button
+                type='button'
                 data-testid='post-lookup'
                 onClick={async () => {
                     mockLookupResult = await props.onLookup?.('lookup_act', 'alp', {title: 't'});
@@ -46,6 +60,9 @@ jest.mock('components/block_renderer', () => ({
             >
                 {'Lookup'}
             </button>
+            {props.formErrors && Object.keys(props.formErrors).length > 0 && (
+                <div data-testid='form-errors'>{JSON.stringify(props.formErrors)}</div>
+            )}
             {props.blocks?.map((b: any, i: number) => (
                 <div
                     key={i}
@@ -60,7 +77,11 @@ jest.mock('components/block_renderer', () => ({
 
 jest.mock('components/block_renderer/translation', () => ({
     getPostInteractiveIntegrationFormat: () => mockIntegrationFormat,
-    translatePostProps: () => [{type: 'button', text: 'Go', action_id: 'btn1'}],
+    translatePostProps: () => [
+        {type: 'text_input', name: 'title', label: 'Title', optional: false},
+        {type: 'button', text: 'Go', action_id: 'btn1'},
+        {type: 'button', text: 'Submit', action_id: 'submit1', subtype: 'submit'},
+    ],
 }));
 
 jest.mock('components/block_renderer/translation/mm_block', () => ({
@@ -249,5 +270,83 @@ describe('InteractiveMessages', () => {
             );
         });
         expect(mockDoBlockAction).not.toHaveBeenCalled();
+    });
+
+    test('client validation failure sets field errors and successful submit clears them', async () => {
+        render(
+            <Provider store={store}>
+                <IntlProvider locale='en'>
+                    <InteractiveMessages post={post}/>
+                </IntlProvider>
+            </Provider>,
+        );
+
+        fireEvent.click(screen.getByTestId('post-submit-invalid'));
+        await waitFor(() => {
+            expect(screen.getByTestId('form-errors')).toBeInTheDocument();
+        });
+        expect(mockDoBlockAction).not.toHaveBeenCalled();
+        expect(screen.getByText('Please fix all field errors')).toBeInTheDocument();
+
+        mockDoBlockAction.mockReturnValueOnce(() => Promise.resolve({data: {type: 'ok'}}));
+        fireEvent.click(screen.getByTestId('post-submit'));
+        await waitFor(() => {
+            expect(mockDoBlockAction).toHaveBeenCalled();
+        });
+        await waitFor(() => {
+            expect(screen.queryByTestId('form-errors')).not.toBeInTheDocument();
+        });
+        expect(screen.queryByText('Please fix all field errors')).not.toBeInTheDocument();
+    });
+
+    test('server field errors are preserved and cleared after a later successful action', async () => {
+        mockDoBlockAction.mockReturnValueOnce(() => Promise.resolve({
+            data: {errors: {title: 'Server says no'}},
+        }));
+
+        render(
+            <Provider store={store}>
+                <IntlProvider locale='en'>
+                    <InteractiveMessages post={post}/>
+                </IntlProvider>
+            </Provider>,
+        );
+
+        fireEvent.click(screen.getByTestId('post-submit'));
+        await waitFor(() => {
+            expect(screen.getByTestId('form-errors')).toHaveTextContent('Server says no');
+        });
+
+        mockDoBlockAction.mockReturnValueOnce(() => Promise.resolve({
+            data: {
+                type: 'refresh',
+                mm_blocks: [{type: 'text', text: 'Refreshed after error'}],
+            },
+        }));
+        fireEvent.click(screen.getByTestId('post-action'));
+        await waitFor(() => {
+            expect(screen.getByText('Refreshed after error')).toBeInTheDocument();
+        });
+        expect(screen.queryByTestId('form-errors')).not.toBeInTheDocument();
+    });
+
+    test('action error is shown for failed submissions', async () => {
+        mockDoBlockAction.mockReturnValueOnce(() => Promise.resolve({
+            error: {message: 'Action exploded'},
+        }));
+
+        render(
+            <Provider store={store}>
+                <IntlProvider locale='en'>
+                    <InteractiveMessages post={post}/>
+                </IntlProvider>
+            </Provider>,
+        );
+
+        fireEvent.click(screen.getByTestId('post-submit'));
+        await waitFor(() => {
+            expect(screen.getByText('Action exploded')).toBeInTheDocument();
+        });
+        expect(screen.queryByTestId('form-errors')).not.toBeInTheDocument();
     });
 });

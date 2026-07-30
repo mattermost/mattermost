@@ -188,7 +188,7 @@ func ParseDecryptedActionCookiePayload(decrypted string) (legacy *PostActionCook
 // an opaque cookie string. Returns ("", nil) when there is nothing to encrypt.
 func EncryptMmBlocksActionsCookie(
 	actions any,
-	postID, rootPostID, channelID string,
+	postID, rootPostID, channelID, userID string,
 	retainProps map[string]any,
 	removeProps []string,
 	secret []byte,
@@ -225,6 +225,7 @@ func EncryptMmBlocksActionsCookie(
 		PostId:      postID,
 		RootPostId:  rootPostID,
 		ChannelId:   channelID,
+		UserId:      userID,
 		RetainProps: retainProps,
 		RemoveProps: removeProps,
 		Actions:     actionsForEnc,
@@ -241,14 +242,14 @@ func EncryptMmBlocksActionsCookie(
 }
 
 // EncryptBlockDialogMmBlocksActions encrypts block_dialog.actions into an opaque
-// cookie string (dialog-scoped: empty post and channel ids).
-func EncryptBlockDialogMmBlocksActions(d *BlockDialog, secret []byte) (string, error) {
+// cookie string (dialog-scoped: empty post and channel ids, bound to userID).
+func EncryptBlockDialogMmBlocksActions(d *BlockDialog, secret []byte, userID string) (string, error) {
 	if d == nil || d.Actions == nil {
 		return "", nil
 	}
 	removeProps := make([]string, len(PostActionRetainPropKeys))
 	copy(removeProps, PostActionRetainPropKeys)
-	return EncryptMmBlocksActionsCookie(d.Actions, "", "", "", map[string]any{}, removeProps, secret)
+	return EncryptMmBlocksActionsCookie(d.Actions, "", "", "", userID, map[string]any{}, removeProps, secret)
 }
 
 // AddMmBlocksActionCookies encrypts the full mm_blocks_actions map into one cookie string stored in PostPropsMmBlocksActions.
@@ -273,7 +274,7 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 	if p.RootId != "" {
 		rootPostID = p.RootId
 	}
-	enc, err := EncryptMmBlocksActionsCookie(raw, p.Id, rootPostID, p.ChannelId, retainProps, removeProps, secret)
+	enc, err := EncryptMmBlocksActionsCookie(raw, p.Id, rootPostID, p.ChannelId, "", retainProps, removeProps, secret)
 	if err != nil || enc == "" {
 		return
 	}

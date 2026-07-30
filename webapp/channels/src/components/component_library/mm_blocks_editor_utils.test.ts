@@ -79,7 +79,25 @@ describe('mm_blocks_editor_utils', () => {
         ]));
 
         const file = createDefaultBlock('file_input');
-        expect(propertyFieldsForBlock(file).some((f) => f.key === 'allow_multiple')).toBe(true);
+        expect(propertyFieldsForBlock(file).map((f) => f.key)).toEqual(expect.arrayContaining([
+            'placeholder', 'allow_multiple', 'initial_value',
+        ]));
+    });
+
+    test('button exposes subtype enum with execute and submit', () => {
+        const button = createDefaultBlock('button');
+        expect(button.type === 'button' && button.subtype).toBeUndefined();
+
+        const subtypeField = propertyFieldsForBlock(button).find((f) => f.key === 'subtype');
+        expect(subtypeField).toEqual({
+            key: 'subtype',
+            label: 'subtype',
+            type: 'enum',
+            options: ['execute', 'submit'],
+        });
+
+        const updated = setPropertyValue(button, 'subtype', 'submit', subtypeField!);
+        expect(updated.type === 'button' && updated.subtype).toBe('submit');
     });
 
     test('column exposes gap in the property editor', () => {

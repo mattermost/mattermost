@@ -36,7 +36,10 @@ type DoBlockActionRequest struct {
 	// Context identifies where the action was triggered: post or dialog.
 	Context string `json:"context"`
 
-	PostId            string            `json:"post_id"`
+	PostId string `json:"post_id"`
+	// ChannelId is client-supplied for dialog context only (current channel).
+	// Used for ephemeral posts; not forwarded on the upstream integration request.
+	ChannelId         string            `json:"channel_id,omitempty"`
 	ActionId          string            `json:"action_id"`
 	Cookie            string            `json:"cookie,omitempty"`
 	SelectedOption    string            `json:"selected_option,omitempty"`

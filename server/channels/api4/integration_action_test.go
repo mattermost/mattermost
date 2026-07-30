@@ -1181,7 +1181,6 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	t.Run("non-member cannot act on the private mm_blocks post without a cookie", func(t *testing.T) {
 		_, apiResp, err := nonMember.DoBlockAction(context.Background(), model.DoBlockActionRequest{
 			Context:           model.BlockActionContextPost,
-			
 			PostId:            privateMmPost.Id,
 			ActionId:          privateMmActionID,
 			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
@@ -1193,7 +1192,6 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	t.Run("an mm_blocks cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
 		_, apiResp, err := nonMember.DoBlockAction(context.Background(), model.DoBlockActionRequest{
 			Context:           model.BlockActionContextPost,
-			
 			PostId:            privateMmPost.Id,
 			ActionId:          privateMmActionID,
 			Cookie:            readableMmCookie,
@@ -1210,7 +1208,6 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 
 		resp, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
 			Context:           model.BlockActionContextPost,
-			
 			PostId:            privateMmPost.Id,
 			ActionId:          privateMmActionID,
 			Cookie:            legitMmCookie,

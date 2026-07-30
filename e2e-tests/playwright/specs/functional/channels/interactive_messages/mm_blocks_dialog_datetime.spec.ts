@@ -5,6 +5,8 @@
  * Date / datetime fields in native block_dialog (datetime_config).
  */
 
+import type {Locator, Page} from '@playwright/test';
+
 import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
 import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
@@ -19,13 +21,13 @@ function getSelectableDay(offsetDays = 5): {day: string; needsNextMonth: boolean
     };
 }
 
-async function openDatePicker(dialog: any, page: any, label: string) {
+async function openDatePicker(dialog: Locator, page: Page, label: string) {
     const field = dialog.locator('.mm-blocks-date-input, .mm-blocks-datetime-input').filter({hasText: label});
     await field.locator('.date-time-input, .dateTime__date .date-time-input').first().click();
     await expect(page.locator('.rdp').first()).toBeVisible();
 }
 
-async function selectDayFromPicker(page: any, day: string, needsNextMonth: boolean) {
+async function selectDayFromPicker(page: Page, day: string, needsNextMonth: boolean) {
     const calendar = page.locator('.rdp').first();
     if (needsNextMonth) {
         await calendar.locator('.rdp-nav_button_next, button[name="next-month"]').first().click();
@@ -112,7 +114,7 @@ test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
         await selectDayFromPicker(channelsPage.page, target.day, target.needsNextMonth);
 
         await field.locator('button[data-testid="time_button"]').click();
-        await expect(channelsPage.page.locator('#expiryTimeMenu')).toBeVisible();
+        await expect(channelsPage.page.locator('[id$="expiryTimeMenu"]')).toBeVisible();
         const options = channelsPage.page.locator('[id^="time_option_"]');
         await expect(options.first()).toBeVisible();
         const count = await options.count();
@@ -181,7 +183,7 @@ test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
         const target = getSelectableDay(3);
         await selectDayFromPicker(channelsPage.page, target.day, target.needsNextMonth);
         await field.locator('button[data-testid="time_button"]').click();
-        await expect(channelsPage.page.locator('#expiryTimeMenu')).toBeVisible();
+        await expect(channelsPage.page.locator('[id$="expiryTimeMenu"]')).toBeVisible();
         const text24 = await channelsPage.page.locator('[id^="time_option_"]').first().innerText();
         expect(text24.trim()).toMatch(/^\d{2}:\d{2}$/);
 
@@ -207,7 +209,7 @@ test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
         const target2 = getSelectableDay(4);
         await selectDayFromPicker(channelsPage.page, target2.day, target2.needsNextMonth);
         await field12.locator('button[data-testid="time_button"]').click();
-        await expect(channelsPage.page.locator('#expiryTimeMenu')).toBeVisible();
+        await expect(channelsPage.page.locator('[id$="expiryTimeMenu"]')).toBeVisible();
         const text12 = await channelsPage.page.locator('[id^="time_option_"]').first().innerText();
         expect(text12.trim()).toMatch(/\d{1,2}:\d{2} [AP]M/);
     });
@@ -262,7 +264,7 @@ test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
             const target = getSelectableDay(3);
             await selectDayFromPicker(channelsPage.page, target.day, target.needsNextMonth);
             await field.locator('button[data-testid="time_button"]').click();
-            await expect(channelsPage.page.locator('#expiryTimeMenu')).toBeVisible();
+            await expect(channelsPage.page.locator('[id$="expiryTimeMenu"]')).toBeVisible();
             const first = (await channelsPage.page.locator('[id^="time_option_"]').first().innerText()).trim();
             expect(first).toMatch(/^(12:00 AM|00:00)$/);
         },

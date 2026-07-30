@@ -258,7 +258,7 @@ function translateAdaptiveCardToggleInput(i: Record<string, unknown>): MmBoolInp
     }
 
     const title = ensureString(i.title);
-    const label = ensureString(i.label) || title || name;
+    const label = ensureString(i.label);
 
     const out: MmBoolInputBlock = {
         type: 'bool_input',

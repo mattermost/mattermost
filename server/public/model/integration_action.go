@@ -382,6 +382,7 @@ type MmBlocksActionCookie struct {
 	PostId      string                    `json:"post_id,omitempty"`
 	RootPostId  string                    `json:"root_post_id,omitempty"`
 	ChannelId   string                    `json:"channel_id,omitempty"`
+	UserId      string                    `json:"user_id,omitempty"`
 	RetainProps map[string]any            `json:"retain_props,omitempty"`
 	RemoveProps []string                  `json:"remove_props,omitempty"`
 	Actions     map[string]map[string]any `json:"actions"`
