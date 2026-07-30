@@ -36,6 +36,68 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
 	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
 	t.Run("PluginPolicy", func(t *testing.T) { testAccessControlPolicyStorePluginPolicy(t, rctx, ss) })
+	t.Run("TypeImmutableOnSave", func(t *testing.T) { testAccessControlPolicyStoreTypeImmutableOnSave(t, rctx, ss) })
+}
+
+// testAccessControlPolicyStoreTypeImmutableOnSave pins the invariant the plugin
+// app layer depends on: a stored policy's Type never changes, so an ownership
+// decision taken from an earlier read cannot be invalidated by a later save.
+func testAccessControlPolicyStoreTypeImmutableOnSave(t *testing.T, rctx request.CTX, ss store.Store) {
+	newPolicy := func(policyType, version, action string) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Type Immutability " + model.NewId(),
+			Type:     policyType,
+			Active:   true,
+			Revision: 1,
+			Version:  version,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{action},
+				Expression: "true",
+			}},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		policy  *model.AccessControlPolicy
+		newType string
+	}{
+		{
+			name:    "plugin type cannot become a core type",
+			policy:  newPolicy(testPluginPolicyType, model.AccessControlPolicyVersionV0_5, testPluginPolicyAction),
+			newType: model.AccessControlPolicyTypeChannel,
+		},
+		{
+			name:    "core type cannot become a plugin type",
+			policy:  newPolicy(model.AccessControlPolicyTypeChannel, model.AccessControlPolicyVersionV0_2, model.AccessControlPolicyActionMembership),
+			newType: testPluginPolicyType,
+		},
+		{
+			name:    "plugin type cannot be taken over by another plugin",
+			policy:  newPolicy(testPluginPolicyType, model.AccessControlPolicyVersionV0_5, testPluginPolicyAction),
+			newType: "other-plugin:agent",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			saved, err := ss.AccessControlPolicy().Save(rctx, tc.policy)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				require.NoError(t, ss.AccessControlPolicy().Delete(rctx, saved.ID))
+			})
+
+			retyped := *saved
+			retyped.Type = tc.newType
+			_, err = ss.AccessControlPolicy().Save(rctx, &retyped)
+			require.Error(t, err, "the store must reject a type change on an existing policy")
+
+			got, err := ss.AccessControlPolicy().Get(rctx, saved.ID)
+			require.NoError(t, err)
+			require.Equal(t, tc.policy.Type, got.Type, "the stored type must survive the rejected save")
+		})
+	}
 }
 
 func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss store.Store) {
