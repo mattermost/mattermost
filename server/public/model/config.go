@@ -4145,6 +4145,16 @@ func (s *AccessControlSettings) SetDefaults() {
 	}
 }
 
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type ConfigFunc func() *Config
 
 const (
@@ -4531,6 +4541,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
