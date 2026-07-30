@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 import {enableMaskingFlag} from '../masking/masking_helpers';
 import {enableUserManagedAttributes} from '../support';
 
-import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
+import {createChannelTextField, expectMaskedTokenRejected} from './helpers';
 
 /**
  * Attribute-value masking on the resource.attributes.* write path.
@@ -42,15 +42,9 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         // The 8-dash sentinel is server-generated and never a real value, so a
         // submitted expression containing it cannot be resolved to a stored
         // value and is rejected.
-        let saveFailed = false;
-        try {
-            await createParentPolicyViaAPI(adminClient, {
-                name: `Masked Sentinel ${pw.random.id()}`,
-                expression: `resource.attributes.${attr} == "--------"`,
-            });
-        } catch {
-            saveFailed = true;
-        }
-        expect(saveFailed).toBe(true);
+        await expectMaskedTokenRejected(adminClient, {
+            name: `Masked Sentinel ${pw.random.id()}`,
+            expression: `resource.attributes.${attr} == "--------"`,
+        });
     });
 });

@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {enableUserManagedAttributes} from '../support';
 import {enableTeamMembershipPolicies} from '../teams/helpers';
 
-import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
+import {createChannelTextField, createParentPolicyViaAPI, expectAssignTeamsDenied} from './helpers';
 
 /**
  * Authoring round-trip for resource.attributes.* over the real HTTP boundary
@@ -78,12 +78,6 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         // A team's resource is a team, which has no CPA attributes, so a parent
         // that references resource.attributes.* must not be importable by a team.
-        let assignFailed = false;
-        try {
-            await adminClient.assignTeamsToAccessControlPolicy(policyId, [team.id]);
-        } catch {
-            assignFailed = true;
-        }
-        expect(assignFailed).toBe(true);
+        await expectAssignTeamsDenied(adminClient, policyId, [team.id]);
     });
 });
