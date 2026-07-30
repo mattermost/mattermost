@@ -231,7 +231,7 @@ export async function selectDayFromPicker(page: Page, day: string, needsNextMont
         await calendar.locator('.rdp-nav_button_next, button[name="next-month"]').first().click();
     }
     await calendar
-        .locator('.rdp-day:not(.rdp-day_outside), .rdp-day_button')
+        .locator('.rdp-day:not(.rdp-day_outside), .rdp-day:not(.rdp-day_outside) .rdp-day_button')
         .filter({hasText: new RegExp(`^${day}$`)})
         .first()
         .click();

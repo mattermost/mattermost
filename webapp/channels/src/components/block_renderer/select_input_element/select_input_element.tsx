@@ -13,8 +13,8 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {MmSelectInputBlock, MmStaticSelectOption} from '@mattermost/types/mm_blocks';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getAllChannels, getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getUser, getUsers} from 'mattermost-redux/selectors/entities/users';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
@@ -133,6 +133,19 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
     // Multiselect users/channels need AsyncSelect (AutocompleteSelector is single-value only).
     const useAsyncUserChannelSelect = isDynamicSource && multiselect;
 
+    const usersById = useSelector(getUsers);
+    const channelsById = useSelector(getAllChannels);
+
+    const labelForDynamicId = useCallback((id: string) => {
+        if (isUserSource) {
+            return usersById[id]?.username || id;
+        }
+        if (isChannelSource) {
+            return channelsById[id]?.display_name || id;
+        }
+        return id;
+    }, [channelsById, isChannelSource, isUserSource, usersById]);
+
     // Async options are not in `flatOptions`; keep the selected {label, value}
     // so AsyncSelect can show the label after selection (form state only stores values).
     const [lookupSelection, setLookupSelection] = useState<OnChangeValue<ReactSelectOption, boolean>>(() => {
@@ -152,6 +165,57 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
     const [asyncDefaultOptions, setAsyncDefaultOptions] = useState<ReactSelectOption[] | false>(false);
     const [loadingDefaultOptions, setLoadingDefaultOptions] = useState(false);
     const loadingDefaultOptionsRef = useRef(false);
+
+    // Prefer loaded async options, then store display names, else keep raw ids / prior labels.
+    useEffect(() => {
+        if (!isLookupSource && !useAsyncUserChannelSelect) {
+            return;
+        }
+        const loaded = asyncDefaultOptions === false ? [] : asyncDefaultOptions;
+
+        if (multiselect) {
+            if (!multiValue.length) {
+                setLookupSelection(null);
+                return;
+            }
+            setLookupSelection((prev) => multiValue.map((id) => {
+                const existing = Array.isArray(prev) ? prev.find((o) => o.value === id) : undefined;
+                if (existing && existing.label !== id) {
+                    return existing;
+                }
+                const fromLoaded = loaded.find((o) => o.value === id);
+                if (fromLoaded) {
+                    return fromLoaded;
+                }
+                return {label: labelForDynamicId(id), value: id};
+            }));
+            return;
+        }
+
+        if (!singleValue) {
+            setLookupSelection(null);
+            return;
+        }
+        setLookupSelection((prev) => {
+            const existing = Array.isArray(prev) ? undefined : prev as ReactSelectOption | null | undefined;
+            if (existing && existing.value === singleValue && existing.label !== singleValue) {
+                return existing;
+            }
+            const fromLoaded = loaded.find((o) => o.value === singleValue);
+            if (fromLoaded) {
+                return fromLoaded;
+            }
+            return {label: labelForDynamicId(singleValue), value: singleValue};
+        });
+    }, [
+        asyncDefaultOptions,
+        isLookupSource,
+        labelForDynamicId,
+        multiValue,
+        multiselect,
+        singleValue,
+        useAsyncUserChannelSelect,
+    ]);
 
     const commitValue = useCallback((name: string, next: string | string[]) => {
         setValue(name, next);

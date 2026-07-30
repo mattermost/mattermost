@@ -16,8 +16,10 @@
 
         ##### Permissions
 
-        Must be authenticated and have the `read_channel` permission for the
-        channel the post is in (or the channel encoded on the cookie).
+        Must be authenticated. For post-backed actions, or cookies that include a
+        `channel_id`, the session must have the `read_channel` permission for that
+        channel. Channel-less dialog cookies are authorized through the cookie's
+        user binding and do not require `read_channel`.
 
 
         __Minimum server version: 11.10__
