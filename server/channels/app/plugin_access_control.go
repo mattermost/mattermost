@@ -59,35 +59,39 @@ func (a *App) validatePluginActingUser(where, actingUserID string) *model.AppErr
 }
 
 // resolvePluginPolicyExistence resolves policy existence via a raw open-core
-// store read when evaluation is impossible. Any stored row under resourceID
-// (any type) makes the resource policy-gated: a definitive not-found yields the
-// vacuous no-policy allow, and every other case is an error the caller must
-// treat as a deny.
+// store read when evaluation is impossible. A row of the requested type makes
+// the resource policy-gated, so the caller gets an error and must fail closed.
+// Absent, or a row of any other type, yields the vacuous no-policy allow: a
+// foreign row can never be the caller's policy, and the caller's own policy can
+// never become foreign (Type is save-immutable and plugins may only save their
+// own types). Treating a colliding foreign row as a deny would instead let any
+// plugin grief another's resource IDs.
 func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, resourceType, resourceID, reason string) (*model.AccessDecision, *model.AppError) {
-	unavailable := func() *model.AppError {
-		return model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+	noPolicy := func() (*model.AccessDecision, *model.AppError) {
+		decision := model.NewNoPolicyAccessDecision()
+		return &decision, nil
 	}
 
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, resourceID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			decision := model.NewNoPolicyAccessDecision()
-			return &decision, nil
+			return noPolicy()
 		}
+		// Existence is genuinely unknown; fail closed.
 		rctx.Logger().Warn("Plugin access evaluation: existence fallback store read failed",
 			mlog.String("plugin_id", pluginID), mlog.String("resource_id", resourceID),
 			mlog.String("reason", reason), mlog.Err(err))
-		return nil, unavailable()
+		return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
 	}
 	if policy.Type != resourceType {
-		// A foreign-type row under a plugin resource ID is an anomaly; fail closed.
-		rctx.Logger().Warn("Plugin access evaluation: existence fallback found a policy of a different type under the resource ID",
+		rctx.Logger().Debug("Plugin access evaluation: existence fallback found only a foreign-type policy under the resource ID",
 			mlog.String("plugin_id", pluginID), mlog.String("resource_id", resourceID),
 			mlog.String("requested_type", resourceType), mlog.String("stored_type", policy.Type),
 			mlog.String("reason", reason))
+		return noPolicy()
 	}
-	return nil, unavailable()
+	return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
 }
 
 // EvaluatePluginAccessRequest evaluates whether userID may perform action on

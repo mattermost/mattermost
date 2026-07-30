@@ -71,9 +71,10 @@ func validForeignTypePolicy(id string) *model.AccessControlPolicy {
 	}
 }
 
-// TestEvaluatePluginAccessRequest pins the fail-closed contract: AppErrors
-// only for caller programming errors, every operational condition an outcome,
-// and failures never mapping to allow.
+// TestEvaluatePluginAccessRequest pins the fail-closed contract: a request is
+// reported as unregulated (no_policy) only when no policy of the requested type
+// exists, and any condition that leaves a governing policy unevaluated is an
+// AppError the caller must treat as a deny — never an allow.
 func TestEvaluatePluginAccessRequest(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -237,12 +238,30 @@ func TestEvaluatePluginAccessRequest(t *testing.T) {
 					}
 				}
 			})
+
+			t.Run(br.name+", foreign-type row → no_policy", func(t *testing.T) {
+				evalUserID, mockACS := br.arrange(t)
+				resourceID := model.NewId()
+				savePolicyRow(t, validForeignTypePolicy(resourceID))
+				decision, appErr := th.App.EvaluatePluginAccessRequest(th.Context, testAgentsPluginID, evalUserID, resourceType, resourceID, action)
+				require.Nil(t, appErr)
+				require.True(t, decision.Decision)
+				require.True(t, decision.IsNoPolicy())
+				if mockACS != nil {
+					if evaluatorNeverCalled[br.name] {
+						mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+					} else {
+						mockACS.AssertExpectations(t)
+					}
+				}
+			})
 		}
 	})
 
-	t.Run("foreign-type row with ABAC off returns an error", func(t *testing.T) {
-		// A foreign-type row is an anomaly: an error, never a no-policy allow
-		// nor a deny fabricated from an unevaluated policy.
+	t.Run("foreign-type row with ABAC off returns no_policy", func(t *testing.T) {
+		// A colliding foreign row can never be this plugin's policy, so the
+		// resource is unregulated and the caller may apply its own default.
+		// Denying instead would let any plugin grief another's resource IDs.
 		enablePluginAccessControl(t, th)
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
@@ -254,9 +273,9 @@ func TestEvaluatePluginAccessRequest(t *testing.T) {
 		savePolicyRow(t, validForeignTypePolicy(resourceID))
 
 		decision, appErr := th.App.EvaluatePluginAccessRequest(th.Context, testAgentsPluginID, userID, resourceType, resourceID, action)
-		require.Nil(t, decision)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.access_control.plugin.evaluation_unavailable.app_error", appErr.Id)
+		require.Nil(t, appErr)
+		require.True(t, decision.Decision)
+		require.True(t, decision.IsNoPolicy())
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
