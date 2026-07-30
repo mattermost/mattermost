@@ -1,6 +1,7 @@
 ---
 title: "User attributes"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -131,13 +132,13 @@ If an attribute is created or updated without explicit visibility or sort order 
 
 <Tip>
 
-Duplicate existing attributes by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Duplicate attribute**. This creates a new attribute with the same name and type as the original attribute. You can then edit the new attribute to change its name, type, and visibility as needed.
+Duplicate existing attributes by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Duplicate attribute**. This creates a new attribute with the same name and type as the original attribute. You can then edit the new attribute to change its name, type, and visibility as needed.
 
 </Tip>
 
 ## Manage attributes
 
-- **Modify**: Select the attribute fields to make inline changes to the attribute's name, type, or values. Select **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> to change a attribute's visibility.
+- **Modify**: Select the attribute fields to make inline changes to the attribute's name, type, or values. Select **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> to change a attribute's visibility.
 
 <Note>
 
@@ -146,7 +147,7 @@ From Mattermost v11.8, existing user attributes are backfilled so the Display Na
 </Note>
 
 - **Order**: Control the order you want attributes to appear in user profiles by dragging and dropping them in the list.
-- **Delete**: Delete attributes you no longer need or want by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Delete property**.
+- **Delete**: Delete attributes you no longer need or want by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Delete property**.
 
 <Note>
 
@@ -154,7 +155,7 @@ When updating user attributes via API or automation, the `attrs` object replaces
 
 </Note>
 
-- **User Edit Permissions**: From Mattermost v11, all user attributes are admin-managed by default for enhanced security. To allow user editing for specific attributes, administrators can enable this through the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu and selecting **Allow user editing**. This should only be enabled for attributes that do not impact security access controls or organizational policies. Attributes used in ABAC policies should remain admin-managed unless there's a specific business need and the security implications are fully understood.
+- **User Edit Permissions**: From Mattermost v11, all user attributes are admin-managed by default for enhanced security. To allow user editing for specific attributes, administrators can enable this through the **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu and selecting **Allow user editing**. This should only be enabled for attributes that do not impact security access controls or organizational policies. Attributes used in ABAC policies should remain admin-managed unless there's a specific business need and the security implications are fully understood.
 - **Edit User Attribute Values**: From Mattermost v11.1, you can view and update user attribute values for individual users through the System Console. See the [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes) documentation for details.
 
 In cases where multiple system admins manage system attributes, refresh your web browser instance to see real-time updates to system attributes made by other admins.
@@ -173,7 +174,7 @@ Masking in the policy editor only applies to attributes with `shared_only` or `s
 
 ## Sync attributes with your identity provider
 
-1.  Synchronize a attribute with AD/LDAP or SAML by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Link attribute to AD/LDAP** or **Link attribute to SAML**. Mattermost takes you directly to the **AD/LDAP** or **SAML 2.0** configuration settings page in the System Console where you can map the attributes you want to synchronize.
+1.  Synchronize a attribute with AD/LDAP or SAML by selecting **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Link attribute to AD/LDAP** or **Link attribute to SAML**. Mattermost takes you directly to the **AD/LDAP** or **SAML 2.0** configuration settings page in the System Console where you can map the attributes you want to synchronize.
 2.  Scroll to the **User attributes sync** section to specify the attribute used to populate the attribute in user profiles.
 3.  Specify the attribute mapping for the attribute by entering the attribute name in the system attribute's **Attribute** field. The attribute name must match the attribute name in your identity provider.
 4.  Save your changes.
