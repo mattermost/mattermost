@@ -171,9 +171,16 @@ const DotMenu = ({
 
     const handleDuplicate = () => {
         const name = `${slugifyForCEL(field.name)}_copy`;
-        const attrs = {...field.attrs};
-        delete attrs.owners;
-        createField({...field, attrs, name});
+        const duplicate = {...field, attrs: {...field.attrs}, name};
+
+        // A copy is a standalone field, not a second holder of the original's
+        // provenance: owners belong to the integration that assigned them, and a
+        // template link would make the copy inherit a type and option set the
+        // create request cannot carry anyway.
+        delete duplicate.attrs.owners;
+        delete duplicate.linked_field_id;
+
+        createField(duplicate);
     };
 
     const handleDelete = () => {
