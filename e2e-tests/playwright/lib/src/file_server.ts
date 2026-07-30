@@ -6,6 +6,8 @@ import path from 'node:path';
 
 import {test} from './test_fixture';
 
+import {testConfig} from '@/test_config';
+
 /**
  * Starts a server that serves files from ./asset. When run from the monorepo, this will serve files from
  * e2e-tests/playwright/asset.
@@ -48,7 +50,7 @@ export function setupFileServer(): Promise<string> {
                 fileServer.once('message', (message: {type?: string; port?: number}) => {
                     if (message?.type === 'listening' && message.port) {
                         clearTimeout(timeout);
-                        resolve(`http://localhost:${message.port}`);
+                        resolve(`http://${fileServerHost()}:${message.port}`);
                     }
                 });
 
@@ -59,4 +61,12 @@ export function setupFileServer(): Promise<string> {
             });
         }
     });
+}
+
+// localhost isn't reachable from inside the Mattermost container in `testcontainers` mode (it resolves to
+// the container's own loopback, not the host's). testcontainersNetworkGatewayIp is reachable
+// from both the container and the host-side browser, so it works as a single URL for both — this
+// server binds to 0.0.0.0, not just loopback, to accept the former.
+function fileServerHost(): string {
+    return testConfig.useTestContainers ? testConfig.testcontainersNetworkGatewayIp : 'localhost';
 }
