@@ -18,7 +18,8 @@ via the relative paths `../main`, `../develop`, `../api` (from `docs/site/`).
 ## Prerequisites
 
 - Node.js ≥ 20 — use `nvm use` inside `docs/site/` to pick up `.nvmrc`
-- Go and `make` (required only for the OpenAPI prebuild step — see below)
+- Go and `make` (required for the OpenAPI prebuild step, and for two of the three plugin SDK
+  reference generators — see below)
 - Vale ≥ 3 (for content linting)
 
 ## Local development
@@ -141,6 +142,24 @@ behavior: it stages `admin_guide.md`/`user_guide.md` as normal (but
 show the full vendored guide content directly, with zero extra clicks,
 instead of just linking out to a separate page.
 
+### Plugin SDK reference generators
+
+Three developer pages render content generated at build time from the plugin SDK's own source
+rather than hand-written prose, each backed by a gitignored JSON file under `data/`:
+
+| Page | Generator | Reads |
+|---|---|---|
+| [Server plugin SDK reference](/developers/integrate/reference/server/server-reference) | `scripts/gen-plugin-godocs` (Go) | `server/public/plugin` |
+| [Web app plugin SDK reference](/developers/integrate/reference/webapp/webapp-reference) | `scripts/gen-plugin-jsdocs.mjs` (Node) | `webapp/channels/src/plugins/registry.ts` |
+| [Manifest reference](/developers/integrate/plugins/manifest-reference) | `scripts/gen-plugin-manifest-docs` (Go) | `server/public/model`'s `Manifest` struct |
+
+They're consumed by the `<PluginGoDocs />`, `<PluginGoExample />`, `<PluginJsDocs />`, and
+`<PluginManifestDocs />` components (registered globally in `src/theme/MDXComponents.tsx`), and run
+via `npm run build:plugin-docs`, wired into `prestart`/`prebuild` like everything else in this
+section. The two Go generators parse their target packages with `go/parser` + `go/doc` rather than
+type-checking them via `golang.org/x/tools/go/packages`, so they have no dependency on the Go
+toolchain version declared in `server/public/go.mod` — only stdlib, no network, no `go.sum`.
+
 The API reference section (`docs/api/reference/`, also gitignored) has the
 same requirement: `docusaurus-plugin-openapi-docs` needs `docusaurus
 gen-api-docs mattermost` run before it has any pages to render. `prestart`
@@ -197,6 +216,7 @@ shell before running `npm start`/`npm run build`.
 | `npm run build:openapi:spec` | Regenerate the OpenAPI spec only (slow — invokes `make -C api build`) |
 | `npm run build:openapi:docs` | Regenerate the API reference MDX pages from the existing spec (fast) |
 | `npm run build:openapi` | Full OpenAPI pipeline: spec then docs |
+| `npm run build:plugin-docs` | Regenerate all three plugin SDK reference data files (see above) |
 | `npm run serve` | Serve the `build/` output locally |
 | `npm run typecheck` | TypeScript type check |
 | `node scripts/gen-active-redirects.mjs` | Regenerate legacy redirect map (committed to git; run manually when it changes) |
