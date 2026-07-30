@@ -1,0 +1,208 @@
+---
+name: E2E Tests - Check Images
+
+# Server images are built and pushed by a separate pipeline, sometimes
+# concurrently with the E2E workflow being dispatched, so a tag can be
+# requested before it's actually published. Runs as its own reusable
+# workflow, called before the Cypress/Playwright template, so a
+# not-yet-published or rate-limited image fails clearly as its own status
+# check instead of surfacing as a mysterious Cypress/Playwright failure once
+# workers start.
+#
+# Also pre-warms every image into the GitHub Actions cache so the Cypress /
+# Playwright workers below load them locally instead of each separately
+# pulling from Docker Hub. The server image (rebuilt every run, sometimes
+# under a mutable tag like `master` that gets overwritten on every build) is
+# cached under its immutable digest rather than its tag, so a stale image can
+# never be silently reused once the tag moves. The fixed service images
+# rarely change, so they're cached under a hash of the pinned list below and
+# persist across runs until a version is bumped.
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        type: string
+        required: true
+      framework:
+        description: "cypress or playwright - selects which image set to verify"
+        type: string
+        required: true
+      server_image_tag:
+        type: string
+        required: true
+      server_edition:
+        type: string
+        required: false
+        description: "Server edition: enterprise (default), fips, or team"
+      server_image_repo:
+        type: string
+        required: false
+        default: mattermostdevelopment
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+      enabled_docker_services:
+        description: "Space-separated docker-compose services (cypress only)"
+        type: string
+        required: false
+        default: "postgres inbucket"
+    outputs:
+      fixed_images_cache_key:
+        description: "Cache key the pre-warmed fixed-service-images tarball was saved under"
+        value: ${{ jobs.cache-fixed-images.outputs.cache_key }}
+
+permissions: {}
+
+env:
+  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+  # Fixed/pinned service images (excludes the server image above, which is
+  # unique per run). Keep in sync by hand with:
+  #   e2e-tests/.ci/server.generate.sh (Cypress docker-compose images)
+  #   e2e-tests/playwright/lib/src/containers/default_images.ts (Playwright)
+  #   server/build/Dockerfile.elasticsearch, server/build/Dockerfile.opensearch
+  PINNED_IMAGES: |
+    mattermostdevelopment/mirrored-postgres:14
+    postgres:14
+    inbucket/inbucket:3.1.1
+    minio/minio:RELEASE.2024-06-22T05-26-45Z
+    osixia/openldap:1.4.0
+    quay.io/keycloak/keycloak:23.0.7
+    docker.elastic.co/elasticsearch/elasticsearch:9.0.0
+    opensearchproject/opensearch:3.0.0
+    mcr.microsoft.com/azure-storage/azurite:3.34.0
+    cypress/browsers:node-24.14.0-chrome-145.0.7632.116-1-ff-148.0-edge-145.0.3800.70-1
+
+jobs:
+  check-images:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+
+      - name: ci/check-images-available-cypress
+        if: inputs.framework == 'cypress'
+        working-directory: e2e-tests/.ci
+        env:
+          SERVER: onprem
+          TEST: cypress
+          ENABLED_DOCKER_SERVICES: ${{ inputs.enabled_docker_services }}
+          BRANCH: image-check
+          BUILD_ID: image-check
+          CI_BASE_URL: image-check
+        run: |
+          bash ./server.generate.sh
+          # NODE_VERSION_REQUIRED is exported inside server.generate.sh's own
+          # subshell, so it doesn't survive here - re-derive it the same way
+          # (.e2erc) before resolving the webhook-interactions image tag.
+          export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+          # elasticsearch/opensearch are `build:` services (Dockerfile on top
+          # of a base image), so `config --images` prints a synthetic local
+          # name (e.g. mmserver-opensearch) instead of a real registry ref.
+          # Swap those for the actual upstream base image from the Dockerfile.
+          ES_VERSION=$(sed -nE "s/^ARG ELASTICSEARCH_VERSION=(.+)/\1/p" ../../server/build/Dockerfile.elasticsearch)
+          OS_VERSION=$(sed -nE "s/^ARG OPENSEARCH_VERSION=(.+)/\1/p" ../../server/build/Dockerfile.opensearch)
+
+          mapfile -t IMAGES < <(docker compose -p mmserver -f server.yml config --images | sort -u)
+          for i in "${!IMAGES[@]}"; do
+            case "${IMAGES[$i]}" in
+              mmserver-elasticsearch) IMAGES[$i]="docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}" ;;
+              mmserver-opensearch) IMAGES[$i]="opensearchproject/opensearch:${OS_VERSION}" ;;
+            esac
+          done
+
+          ./check_images.sh "${IMAGES[@]}"
+
+      - name: ci/check-images-available-playwright
+        if: inputs.framework == 'playwright'
+        working-directory: e2e-tests/playwright/lib/src/containers
+        run: |
+          # default_images.ts is "the single place to check and bump every
+          # image" (see its header comment) for the fixed testcontainers
+          # images, so read the list from there rather than duplicating it -
+          # MATTERMOST_SERVER_IMAGE is excluded since $SERVER_IMAGE (this
+          # run's actual tag) already covers it.
+          mapfile -t FIXED_IMAGES < <(
+            grep -E "^export const [A-Z_]+_IMAGE = '" default_images.ts \
+              | grep -v MATTERMOST_SERVER_IMAGE \
+              | sed -E "s/.*= '([^']+)';?/\1/"
+          )
+          ES_VERSION=$(sed -nE "s/^export const ELASTICSEARCH_VERSION = '([^']+)';?/\1/p" default_images.ts)
+          OS_VERSION=$(sed -nE "s/^export const OPENSEARCH_VERSION = '([^']+)';?/\1/p" default_images.ts)
+
+          ../../../.ci/check_images.sh \
+            "$SERVER_IMAGE" \
+            "${FIXED_IMAGES[@]}" \
+            "docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}" \
+            "opensearchproject/opensearch:${OS_VERSION}"
+
+  # Pre-warms the server image into the cache so workers load it locally
+  # instead of each pulling it from Docker Hub. Cached by immutable digest
+  # (resolved via a manifest inspect, no download) rather than by tag, since
+  # some callers pass a mutable tag like `master`.
+  cache-server-image:
+    needs: check-images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: ci/resolve-server-image-digest
+        id: resolve
+        run: |
+          DIGEST=$(docker manifest inspect -v "$SERVER_IMAGE" | jq -r '
+            if type=="array"
+            then (.[] | select(.Descriptor.platform.architecture=="amd64" and .Descriptor.platform.os=="linux") | .Descriptor.digest)
+            else .Descriptor.digest
+            end' | head -1)
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+      - name: ci/cache-server-image
+        id: cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: /tmp/docker-image-cache/server-image.tar.gz
+          key: docker-image-server-${{ steps.resolve.outputs.digest }}
+      - name: ci/populate-server-image-cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-image-cache
+          docker pull --platform linux/amd64 "$SERVER_IMAGE"
+          docker save "$SERVER_IMAGE" | gzip > /tmp/docker-image-cache/server-image.tar.gz
+
+  # Pre-warms the fixed/pinned service images into the cache, keyed on
+  # PINNED_IMAGES' content so the same cache entry is reused by every future
+  # run until a pin changes - unlike the server image above, these rarely
+  # change so this cache is meant to live for a long time.
+  cache-fixed-images:
+    needs: check-images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      cache_key: ${{ steps.hash.outputs.key }}
+    steps:
+      - name: ci/hash-pinned-images
+        id: hash
+        run: echo "key=docker-images-fixed-$(sha256sum <<<"$PINNED_IMAGES" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: ci/cache-fixed-images
+        id: cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: /tmp/docker-image-cache/fixed-images.tar.gz
+          key: ${{ steps.hash.outputs.key }}
+      - name: ci/populate-fixed-images-cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-image-cache
+          mapfile -t IMAGES <<<"$PINNED_IMAGES"
+          for IMAGE in "${IMAGES[@]}"; do
+            docker pull "$IMAGE"
+          done
+          docker save "${IMAGES[@]}" | gzip > /tmp/docker-image-cache/fixed-images.tar.gz

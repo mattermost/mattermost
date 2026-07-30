@@ -166,9 +166,24 @@ jobs:
             -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "Posted success for ${CONTEXT_NAME}"
 
+  check-images:
+    needs:
+      - generate-build-variables
+    if: inputs.should_run != 'false'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/e2e-tests-check-images.yml
+    with:
+      framework: playwright
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server_edition: ${{ inputs.server_edition }}
+      server_image_repo: ${{ inputs.server_image_repo }}
+
   playwright-full:
     needs:
       - generate-build-variables
+      - check-images
     if: inputs.should_run != 'false'
     permissions:
       contents: read
@@ -186,6 +201,7 @@ jobs:
       server_edition: ${{ inputs.server_edition }}
       server_image_repo: ${{ inputs.server_image_repo }}
       server_image_aliases: ${{ inputs.server_image_aliases }}
+      fixed_images_cache_key: ${{ needs.check-images.outputs.fixed_images_cache_key }}
       server: ${{ inputs.server }}
       enable_reporting: ${{ inputs.enable_reporting }}
       report_type: ${{ inputs.report_type }}
