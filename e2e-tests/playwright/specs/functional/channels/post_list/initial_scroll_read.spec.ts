@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -130,7 +130,7 @@ test.describe('Post list initial scroll in read channel', () => {
                 for (let i = 0; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${userClient.getUrl()}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },

@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -164,7 +164,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 0; i < 60; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${userClient.getUrl()}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -176,7 +176,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 60; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${userClient.getUrl()}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -195,7 +195,7 @@ test.describe('Post list scroll to permalink', () => {
                     channel_id: channel.id,
                     message: 'linked post',
                 });
-                linkedPostUrl = `${userClient.getUrl()}/${team.name}/pl/${linkedPost.id}`;
+                linkedPostUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`;
 
                 await testCase.setupPostsAfter();
             });

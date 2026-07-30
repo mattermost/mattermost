@@ -26,7 +26,7 @@ export async function makeClient(
     opts: {useCache?: boolean; skipLog?: boolean} = {useCache: true, skipLog: false},
 ): Promise<ClientCache> {
     const client = new PlaywrightClient4();
-    client.setUrl(testConfig.internalBaseURL);
+    client.setUrl(testConfig.baseURL);
 
     try {
         if (!userRequest) {
