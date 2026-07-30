@@ -56,8 +56,12 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         // Absence is handled by deny-on-miss, so has() guards on resource
         // attributes are rejected. cel/check surfaces the error to the editor.
+        // Assert the reason, not just that validation failed: a bare count also
+        // passes on an unrelated compile or engine error, and would have kept
+        // passing while the feature flag denied every resource reference.
         const errors = await adminClient.checkAccessControlExpression(`has(resource.attributes.${attr})`);
         expect(errors.length).toBeGreaterThan(0);
+        expect(errors[0].message).toContain('has() is not supported on resource attributes');
     });
 
     test('rejects assigning a resource parent to a team', async ({pw}) => {

@@ -1296,9 +1296,10 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
             mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
-        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeUserLinkedField());
+        const createdClearance = makeUserLinkedField();
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
 
-        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByText('Classification Enforcement');
 
         const user = userEvent.setup();
@@ -1318,6 +1319,10 @@ describe('Channel classification linked field branches', () => {
             );
         });
         await act(async () => {});
+
+        // Pushed into Redux eagerly, like every other field this save touches, so
+        // a consumer reading the properties slice sees it without a reload.
+        expect(store.getState().entities.properties.fields.byId[createdClearance.id]).toEqual(createdClearance);
     });
 
     test('should delete the linked Clearance user field on save when the clearance checkbox is disabled (ABAC on)', async () => {
