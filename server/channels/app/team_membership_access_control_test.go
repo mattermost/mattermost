@@ -483,17 +483,18 @@ func TestAssignAccessControlPolicyToTeams(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	// Auto-add is the team-child's Active flag. Assigning a policy must not turn
-	// it on by itself — the child inherits the parent's Active, so an inactive
-	// parent leaves auto-add off (the sync still enforces removal regardless).
+	// Auto-add lives on the team-child's membership rule. Assigning a policy must
+	// not turn it on by itself — the child is seeded from the parent's setting, so
+	// a parent that doesn't auto-add leaves the child's off (the sync still
+	// enforces removal regardless).
 	for _, tc := range []struct {
-		name         string
-		parentActive bool
+		name          string
+		parentAutoAdd bool
 	}{
-		{"inactive parent leaves auto-add off", false},
-		{"active parent carries through", true},
+		{"parent without auto-add leaves it off", false},
+		{"parent with auto-add carries through", true},
 	} {
-		t.Run("team-child Active mirrors the parent: "+tc.name, func(t *testing.T) {
+		t.Run("team-child auto-add is seeded from the parent: "+tc.name, func(t *testing.T) {
 			team := th.CreateTeam(t)
 
 			activeParent := &model.AccessControlPolicy{
@@ -502,10 +503,12 @@ func TestAssignAccessControlPolicyToTeams(t *testing.T) {
 				Name:     "parentPolicy",
 				Revision: 1,
 				Version:  model.AccessControlPolicyVersionV0_3,
-				Active:   tc.parentActive,
 				Rules: []model.AccessControlPolicyRule{
 					{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
 				},
+			}
+			if tc.parentAutoAdd {
+				activeParent.SetAutoAddMode(model.AccessControlAutoAddAlways)
 			}
 
 			mockACS := &mocks.AccessControlServiceInterface{}
@@ -523,7 +526,7 @@ func TestAssignAccessControlPolicyToTeams(t *testing.T) {
 
 			_, appErr := th.App.AssignAccessControlPolicyToTeams(th.Context, parentID, []string{team.Id})
 			require.Nil(t, appErr)
-			require.Equal(t, tc.parentActive, saved.Active, "team-child Active must equal the parent's, never be force-enabled")
+			require.Equal(t, tc.parentAutoAdd, saved.AutoAddMembers(), "team-child auto-add must equal the parent's, never be force-enabled")
 		})
 	}
 }

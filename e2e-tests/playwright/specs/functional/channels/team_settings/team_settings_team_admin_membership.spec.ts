@@ -349,7 +349,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
 
         const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
 
-        // * Auto-add checkbox is checked (active=true was loaded from API)
+        // * Auto-add checkbox is checked (auto_add was loaded from the API)
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked({timeout: 15000});
 
         // * Table editor is present

@@ -71,8 +71,8 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
 
             // Auto-add is controlled in the assigned-policies list below, not in
             // the selection modal (a checkbox there competes with row-click-to-add).
-            // The modal still reports the parent policy's active flag as the seed
-            // via onPolicySelected, so a newly linked policy defaults to it.
+            // The modal still reports the parent policy's own auto-add value as the
+            // seed via onPolicySelected, so a newly linked policy defaults to it.
             onPolicySelected={handlePolicySelected}
             actions={{searchPolicies: actions.searchPolicies}}
         />

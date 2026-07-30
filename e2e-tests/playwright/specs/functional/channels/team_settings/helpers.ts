@@ -328,16 +328,18 @@ export async function enableTeamMembershipABACConfig(client: Client4) {
     } as any);
 }
 
-export async function createTeamMembershipPolicy(client: Client4, teamId: string, expression: string, active = false) {
+export async function createTeamMembershipPolicy(client: Client4, teamId: string, expression: string, autoAdd = false) {
     return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
         method: 'put',
         body: JSON.stringify({
             id: teamId,
             name: `team-policy-${teamId}`,
             type: 'team',
-            active,
             revision: 0,
-            rules: [{expression, actions: ['membership']}],
+
+            // Auto-add lives on the membership rule as a mode; the policy-level
+            // `active` field no longer drives the sync job's add pass.
+            rules: [{expression, actions: ['membership'], metadata: {auto_add: autoAdd ? 'always' : ''}}],
             imports: [],
         }),
     });

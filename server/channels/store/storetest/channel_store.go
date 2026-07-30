@@ -167,6 +167,141 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
 	t.Run("SaveRejectsBoardTypes", func(t *testing.T) { testChannelStoreSaveRejectsBoardTypes(t, rctx, ss) })
+	t.Run("PolicyAutoAdd", func(t *testing.T) { testChannelStorePolicyAutoAdd(t, rctx, ss) })
+}
+
+// testChannelStorePolicyAutoAdd covers the PolicyAutoAdd column the channel
+// queries derive from the policy's membership rule. Every case stores Active as
+// the opposite of the expected value, so a regression that reads the reserved
+// column instead of the rule fails here.
+func testChannelStorePolicyAutoAdd(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	saveChannel := func() *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Name",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	savePolicy := func(channelID string, rules []model.AccessControlPolicyRule, autoAdd bool) {
+		policy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  !autoAdd,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   rules,
+		}
+		policy.SetAutoAddMode(autoAddMode(autoAdd))
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, channelID) })
+	}
+
+	membershipRules := []model.AccessControlPolicyRule{{
+		Actions:    []string{model.AccessControlPolicyActionMembership},
+		Expression: `user.attributes.program == "engineering"`,
+	}}
+
+	t.Run("no policy", func(t *testing.T) {
+		channel := saveChannel()
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("policy that auto-adds members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.True(t, got.PolicyAutoAdd)
+		require.True(t, got.PolicyIsActive, "the deprecated alias must mirror PolicyAutoAdd")
+	})
+
+	t.Run("policy that does not auto-add members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, false)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	// An expression-less membership rule carries the mode for a policy that only
+	// imports a parent, so it has to hydrate like any other.
+	t.Run("carrier rule alone reports auto-add", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "",
+		}}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+	})
+
+	// The mode lives on the membership rule only, so a permission rule that
+	// happens to sit first must not be read for it.
+	t.Run("only the membership rule carries the mode", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{
+			{
+				Name:       "Uploads",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: `user.attributes.program == "engineering"`,
+			},
+			membershipRules[0],
+		}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+
+		stored, err := ss.AccessControlPolicy().Get(rctx, channel.Id)
+		require.NoError(t, err)
+		require.Nil(t, stored.Rules[0].Metadata, "the permission rule must stay untouched")
+		require.True(t, stored.Rules[1].AutoAdd())
+	})
+
+	// GetChannels feeds the sidebar, which is a different query builder than Get.
+	t.Run("list queries hydrate PolicyAutoAdd", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		userID := model.NewId()
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().GetChannels(teamID, userID, &model.ChannelSearchOpts{})
+		require.NoError(t, err)
+
+		var found bool
+		for _, c := range channels {
+			if c.Id == channel.Id {
+				found = true
+				require.True(t, c.PolicyAutoAdd)
+			}
+		}
+		require.True(t, found, "the channel should be in the user's channel list")
+	})
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {

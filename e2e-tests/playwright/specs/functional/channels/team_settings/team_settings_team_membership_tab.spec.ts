@@ -326,7 +326,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
 
-        // * Auto-add checkbox starts checked (policy.active=true was loaded)
+        // * Auto-add checkbox starts checked (the rule's auto_add was loaded)
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked({timeout: 5000});
 
         // # Uncheck auto-add
@@ -590,7 +590,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
 
-        // * Auto-add is checked (active=true was loaded from API)
+        // * Auto-add is checked (auto_add was loaded from the API)
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked({timeout: 5000});
 
         // * Table editor is present and the panel is NOT shown (nothing is dirty after load)
