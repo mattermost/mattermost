@@ -35,7 +35,9 @@ describe('Interactive Dialog - Apps Form', () => {
     let fullDialog;
 
     // Legacy dialogs render via BlocksDialogShell/mm_blocks.
+    // Field control ids are mmBlocksFieldDomId('', name) → mm-blocks--{name}.
     const FIELD_SELECTOR = '.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input';
+    const fieldDomId = (name) => `#mm-blocks--${name}`;
 
     before(() => {
         cy.requireWebhookServer();
@@ -133,13 +135,13 @@ describe('Interactive Dialog - Apps Form', () => {
                             cy.get('span').should('have.text', element.placeholder);
                         });
                     } else {
-                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
+                        cy.get(fieldDomId(element.name)).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
                     }
 
                     // * Verify that input element are given with the correct type of "input", "email", "number" and "password".
                     // * To take advantage of supported built-in validation.
                     if (inputTypes[element.name]) {
-                        cy.get(`#${element.name}`).should('have.attr', 'type', inputTypes[element.name]);
+                        cy.get(fieldDomId(element.name)).should('have.attr', 'type', inputTypes[element.name]);
                     }
 
                     if (element.help_text) {
@@ -225,12 +227,12 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter invalid and valid email
         // * Verify that error is: shown for invalid email and not shown for valid email.
         const invalidEmail = 'invalid-email';
-        cy.get('#someemail').scrollIntoView().clear().type(invalidEmail);
+        cy.get(fieldDomId('someemail')).scrollIntoView().clear().type(invalidEmail);
 
         cy.get('#appsModalSubmit').click();
 
         cy.get('input:invalid').should('have.length', 1);
-        cy.get('#someemail').then(($input) => {
+        cy.get(fieldDomId('someemail')).then(($input) => {
             expect($input[0].validationMessage).to.eq(`Please include an '@' in the email address. '${invalidEmail}' is missing an '@'.`);
         });
 
@@ -247,7 +249,7 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter valid email
         // * Verify that error is not shown for valid email.
         const validEmail = 'test@mattermost.com';
-        cy.get('#someemail').scrollIntoView().clear().type(validEmail);
+        cy.get(fieldDomId('someemail')).scrollIntoView().clear().type(validEmail);
 
         cy.get('#appsModalSubmit').click();
 
@@ -264,7 +266,7 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter invalid number
         // * Verify that error is shown for invalid number.
         const invalidNumber = 'invalid-number';
-        cy.get('#somenumber').scrollIntoView().clear().type(invalidNumber);
+        cy.get(fieldDomId('somenumber')).scrollIntoView().clear().type(invalidNumber);
 
         cy.get('#appsModalSubmit').click();
 
@@ -283,7 +285,7 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter a valid number
         // * Verify that error is not shown for valid number.
         const validNumber = 12;
-        cy.get('#somenumber').scrollIntoView().clear().type(validNumber);
+        cy.get(fieldDomId('somenumber')).scrollIntoView().clear().type(validNumber);
 
         cy.get('#appsModalSubmit').click();
 
@@ -302,10 +304,10 @@ describe('Interactive Dialog - Apps Form', () => {
         cy.get('#appsModal').should('be.visible');
 
         // * Verify that the password text area is visible
-        cy.get('#somepassword').should('be.visible');
+        cy.get(fieldDomId('somepassword')).should('be.visible');
 
         // * Verify that the password is masked on enter of text
-        cy.get('#somepassword').should('have.attr', 'type', 'password');
+        cy.get(fieldDomId('somepassword')).should('have.attr', 'type', 'password');
 
         closeAppsFormModal();
     });

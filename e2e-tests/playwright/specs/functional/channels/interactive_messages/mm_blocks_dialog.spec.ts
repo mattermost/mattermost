@@ -58,7 +58,7 @@ test.describe('Interactive mm_blocks (blocks dialog)', () => {
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
 
         await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Title'})).toBeVisible();
-        await expect(dialog.getByTestId('titleinput')).toHaveValue('Demo ticket');
+        await expect(dialog.getByRole('textbox', {name: /^Title/})).toHaveValue('Demo ticket');
         await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Email'})).toBeVisible();
         await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Description'})).toBeVisible();
 
@@ -97,8 +97,8 @@ test.describe('Interactive mm_blocks (blocks dialog)', () => {
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         const titleValue = `PW dialog title ${pw.random.id()}`;
 
-        await dialog.getByTestId('titleinput').fill(titleValue);
-        await dialog.getByTestId('emailemail').fill('pw@example.com');
+        await dialog.getByRole('textbox', {name: /^Title/}).fill(titleValue);
+        await dialog.getByRole('textbox', {name: /Email/}).fill('pw@example.com');
         await dialog.getByRole('checkbox', {name: 'Turn this on'}).uncheck();
 
         const prioritySelect = dialog.locator('.mm-blocks-select-input').filter({hasText: 'Priority'});
@@ -223,7 +223,7 @@ test.describe('Interactive mm_blocks (blocks dialog)', () => {
         });
 
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-        await dialog.getByTestId('titleinput').fill('Refresh me');
+        await dialog.getByRole('textbox', {name: /^Title/}).fill('Refresh me');
         await dialog.getByRole('button', {name: 'Next step'}).click();
 
         await expect(dialog).toBeVisible();
@@ -231,10 +231,10 @@ test.describe('Interactive mm_blocks (blocks dialog)', () => {
         await expect(dialog.getByText('Step 2 — refreshed from dialog')).toBeVisible();
         await expect(dialog.getByText(/Previous title:/)).toBeVisible();
         await expect(dialog.locator('code').getByText('Refresh me', {exact: true})).toBeVisible();
-        await expect(dialog.getByTestId('notesinput')).toBeVisible();
+        await expect(dialog.getByRole('textbox', {name: /Follow-up notes/})).toBeVisible();
         await expect(dialog.getByRole('checkbox', {name: 'I confirm this step'})).toBeVisible();
         await expect(dialog.getByRole('button', {name: 'Finish'})).toBeVisible();
-        await expect(dialog.getByTestId('titleinput')).toHaveCount(0);
+        await expect(dialog.getByRole('textbox', {name: /^Title/})).toHaveCount(0);
     });
 
     test('goto_location closes the blocks dialog', {tag: [...dialogTags]}, async ({pw, request}) => {

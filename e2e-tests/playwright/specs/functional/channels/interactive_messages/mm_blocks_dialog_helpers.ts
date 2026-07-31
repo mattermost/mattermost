@@ -145,7 +145,7 @@ export async function setupDialogOpenPost(
     const marker = `E2E ${opts.titleHint} ${pw.random.id()}`;
     const actionId = opts.actionId || 'pw_dialog_return';
     const integrationPath = opts.integrationPath || '/mm_blocks_dialog_return';
-    const integrationUrl = `${testConfig.webhookBaseUrl}${integrationPath}`;
+    const integrationUrl = `${testConfig.webhookInternalUrl}${integrationPath}`;
 
     await postIncomingWebhook(webhook.id, {
         text: marker,
@@ -261,7 +261,7 @@ export async function setupLegacyActionButtonCommand(
         method: 'P',
         team_id: team.id,
         trigger,
-        url: `${testConfig.webhookBaseUrl}/dialog/action_button_request`,
+        url: `${testConfig.webhookInternalUrl}/dialog/action_button_request`,
         username: '',
     } as Parameters<typeof adminClient.addCommand>[0]);
 

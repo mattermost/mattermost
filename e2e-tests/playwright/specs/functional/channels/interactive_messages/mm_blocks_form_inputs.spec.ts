@@ -159,14 +159,14 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             await expect(titleInput).toBeVisible();
             await expect(titleInput.locator('span.error-text')).toBeVisible();
             await expect(titleInput.getByText('Title help')).toBeVisible();
-            await expect(titleInput.getByTestId('titleinput')).toHaveValue('Sample ticket');
+            await expect(titleInput.getByRole('textbox')).toHaveValue('Sample ticket');
 
             const notesInput = lastPost.container.locator('.mm-blocks-text-input').filter({hasText: /^Notes/});
             await expect(notesInput.getByText('(optional)')).toBeVisible();
-            await expect(notesInput.getByTestId('notesinput')).toBeVisible();
+            await expect(notesInput.getByRole('textbox')).toBeVisible();
 
             const lockedTitle = lastPost.container.locator('.mm-blocks-text-input').filter({hasText: /^Locked title/});
-            await expect(lockedTitle.getByTestId('locked_titleinput')).toBeDisabled();
+            await expect(lockedTitle.getByRole('textbox')).toBeDisabled();
 
             const notifyBool = lastPost.container
                 .locator('.mm-blocks-bool-input')
@@ -229,7 +229,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks date_input onChange sends form_values to integration',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
             const dueDay = getSelectableDay(5);
 
             const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
@@ -269,7 +269,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks date and datetime form submit sends form_values to integration',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
             const dueDay = getSelectableDay(5);
             const meetingDay = getSelectableDay(7);
 
@@ -338,7 +338,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks file_input upload and submit sends file id form_values',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
             const uploadName = `pw-mm-blocks-file-${pw.random.id()}.txt`;
 
             const {threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
@@ -394,7 +394,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks text_input, bool_input, and select form submit sends form_values',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
             const titleValue = `PW title ${pw.random.id()}`;
 
             const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
@@ -452,7 +452,11 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
                 },
             });
 
-            await rootInThread.getByTestId('titleinput').fill(titleValue);
+            await rootInThread
+                .locator('.mm-blocks-text-input')
+                .filter({hasText: /^Title/})
+                .getByRole('textbox')
+                .fill(titleValue);
             await rootInThread.getByRole('checkbox', {name: 'Send me status updates by email'}).check();
 
             const prioritySelect = rootInThread.locator('.mm-blocks-select-input').filter({hasText: 'Priority'});
@@ -478,7 +482,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks text_input onChange sends form_values to integration',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
             const titleValue = `PW onChange ${pw.random.id()}`;
 
             const {threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
@@ -503,7 +507,11 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             });
 
             // onChange fires per keystroke; fill once and assert the final value is echoed.
-            await rootInThread.getByTestId('titleinput').fill(titleValue);
+            await rootInThread
+                .locator('.mm-blocks-text-input')
+                .filter({hasText: /^Title/})
+                .getByRole('textbox')
+                .fill(titleValue);
 
             await expect(
                 threadPanel.getByText(`Playwright mm_blocks form_values OK (title=${titleValue})`),
@@ -516,7 +524,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks bool_input and select onChange send form_values to integration',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
 
             const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks bool select onChange',
@@ -575,8 +583,8 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
         'external mm_blocks dynamic select loads options from lookup and submits selected value',
         {tag: ['@interactive_messages', '@mm_blocks', '@incoming_webhook', '@external_service']},
         async ({pw, request}) => {
-            const lookupUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_lookup`;
-            const submitUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_form_values`;
+            const lookupUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_lookup`;
+            const submitUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_form_values`;
 
             const {channelsPage, threadPanel, rootInThread} = await setupExternalMmBlocksInThread(pw, request, {
                 displayName: 'Playwright mm_blocks dynamic select',

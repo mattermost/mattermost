@@ -44,10 +44,11 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
 
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         const multi = dialog.locator('.mm-blocks-select-input').filter({hasText: 'Multi Option Selector'});
+        const multiCombo = multi.getByRole('combobox');
 
-        await multi.locator('#multiselect_options').click();
+        await multiCombo.click();
         await channelsPage.page.getByRole('option', {name: 'Engineering'}).click();
-        await multi.locator('#multiselect_options').click();
+        await multiCombo.click();
         await channelsPage.page.getByRole('option', {name: 'Sales'}).click();
 
         await expect(multi.locator('.react-select__multi-value')).toHaveCount(2);
@@ -63,10 +64,11 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
         await expect(multi.locator('.react-select__multi-value').filter({hasText: 'Sales'})).toBeVisible();
 
         const users = dialog.locator('.mm-blocks-select-input').filter({hasText: 'Multi User Selector'});
-        await users.locator('#multiselect_users').click();
+        const usersCombo = users.getByRole('combobox');
+        await usersCombo.click();
         await expect(channelsPage.page.locator('.react-select__option').first()).toBeVisible();
         await channelsPage.page.locator('.react-select__option').first().click();
-        await users.locator('#multiselect_users').click();
+        await usersCombo.click();
         await expect(channelsPage.page.locator('.react-select__option').nth(1)).toBeVisible();
         await channelsPage.page.locator('.react-select__option').nth(1).click();
 
@@ -99,17 +101,18 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
 
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         const multi = dialog.locator('.mm-blocks-select-input').filter({hasText: 'Multi Option Selector'});
+        const multiCombo = multi.getByRole('combobox');
 
         // React-select focuses first option on open; one ArrowDown → Sales.
-        await multi.locator('#multiselect_options').click();
-        await multi.locator('#multiselect_options').press('ArrowDown');
-        await multi.locator('#multiselect_options').press('Enter');
+        await multiCombo.click();
+        await multiCombo.press('ArrowDown');
+        await multiCombo.press('Enter');
         await expect(multi.locator('.react-select__multi-value')).toHaveCount(1);
         await expect(multi.locator('.react-select__multi-value').filter({hasText: 'Sales'})).toBeVisible();
 
-        await multi.locator('#multiselect_options').click();
-        await multi.locator('#multiselect_options').fill('Prod');
-        await multi.locator('#multiselect_options').press('Enter');
+        await multiCombo.click();
+        await multiCombo.fill('Prod');
+        await multiCombo.press('Enter');
         await expect(multi.locator('.react-select__multi-value').filter({hasText: 'Product'})).toBeVisible();
     });
 

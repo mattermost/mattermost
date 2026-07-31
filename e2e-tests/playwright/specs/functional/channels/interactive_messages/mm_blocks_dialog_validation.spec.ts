@@ -46,15 +46,15 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
         });
 
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-        await dialog.getByTestId('realnameinput').fill('Ada');
-        await dialog.getByTestId('someemailemail').fill('not-an-email');
-        await dialog.getByTestId('somenumbernumber').fill('42');
+        await dialog.getByRole('textbox', {name: /^Name/}).fill('Ada');
+        await dialog.getByRole('textbox', {name: /Email/}).fill('not-an-email');
+        await dialog.getByRole('spinbutton', {name: /Number/}).fill('42');
         await dialog.getByRole('button', {name: 'Submit'}).click();
 
         await expect(dialog).toBeVisible();
         await expect(dialog.getByTestId('someemail-error')).toContainText(/email/i);
 
-        await dialog.getByTestId('someemailemail').fill('ada@example.com');
+        await dialog.getByRole('textbox', {name: /Email/}).fill('ada@example.com');
         await dialog.getByRole('button', {name: 'Submit'}).click();
         await expect(dialog).toBeHidden();
         await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
@@ -71,15 +71,15 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
             });
 
             const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-            await dialog.getByTestId('realnameinput').fill('Ada');
-            await dialog.getByTestId('someemailemail').fill('ada@example.com');
+            await dialog.getByRole('textbox', {name: /^Name/}).fill('Ada');
+            await dialog.getByRole('textbox', {name: /Email/}).fill('ada@example.com');
             // Leave number empty (required) — browser type=number may ignore non-numeric fills.
             await dialog.getByRole('button', {name: 'Submit'}).click();
 
             await expect(dialog).toBeVisible();
             await expect(dialog.getByTestId('somenumber-error')).toBeVisible();
 
-            await dialog.getByTestId('somenumbernumber').fill('99');
+            await dialog.getByRole('spinbutton', {name: /Number/}).fill('99');
             await dialog.getByRole('button', {name: 'Submit'}).click();
             await expect(dialog).toBeHidden();
             await expectEphemeral(channelsPage.page, /somenumber=99/);
@@ -101,7 +101,9 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
             await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Name'})).toBeVisible();
             await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Email'})).toBeVisible();
             await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Number'})).toBeVisible();
-            await expect(dialog.getByTestId('somepasswordpassword')).toHaveAttribute('type', 'password');
+            await expect(
+                dialog.locator('.mm-blocks-text-input').filter({hasText: 'Password'}).locator('input'),
+            ).toHaveAttribute('type', 'password');
             await expect(dialog.locator('.mm-blocks-text-input').filter({hasText: 'Notes'})).toBeVisible();
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'User'})).toBeVisible();
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'Channel'})).toBeVisible();

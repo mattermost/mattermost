@@ -24,9 +24,11 @@ let multiSelectDialogWithDefaults;
 let multiSelectDialogClean;
 
 // Legacy dialogs render via BlocksDialogShell/mm_blocks.
-// Multiselect/static-multi use ReactSelect with inputId = element name (not MultiInput_*).
+// Multiselect/static-multi use ReactSelect with inputId = mm-blocks--{name}.
+// Prefer role locators within .mm-blocks-select-input rather than bare element.name ids.
 // Single static selects use AutocompleteSelector (#suggestionList).
 const FIELD_SELECTOR = '.mm-blocks-select-input';
+const SELECT_COMBOBOX = '[role="combobox"]';
 
 describe('Interactive Dialog - Multiselect', () => {
     before(() => {
@@ -152,16 +154,16 @@ describe('Interactive Dialog - Multiselect', () => {
 
                     if (element.name === 'multiselect_options') {
                         // * Verify multiselect options field starts empty
-                        cy.get(`#${element.name}`).should('be.visible');
+                        cy.get(SELECT_COMBOBOX).should('be.visible');
                         cy.get('.react-select__multi-value').should('not.exist');
 
                         // * Test adding multiple options
-                        cy.get(`#${element.name}`).click();
+                        cy.get(SELECT_COMBOBOX).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
                         });
 
-                        cy.get(`#${element.name}`).click();
+                        cy.get(SELECT_COMBOBOX).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').contains('Sales').click();
                         });
@@ -179,17 +181,17 @@ describe('Interactive Dialog - Multiselect', () => {
                         cy.get('.react-select__multi-value').eq(0).should('contain', 'Sales');
                     } else if (element.name === 'multiselect_users') {
                         // * Verify multiselect users field starts empty
-                        cy.get(`#${element.name}`).should('be.visible');
+                        cy.get(SELECT_COMBOBOX).should('be.visible');
                         cy.get('.react-select__multi-value').should('not.exist');
 
                         // * Test selecting multiple users
-                        cy.get(`#${element.name}`).click();
+                        cy.get(SELECT_COMBOBOX).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').should('have.length.at.least', 1);
                             cy.wrap(doc).find('.react-select__option').first().click();
                         });
 
-                        cy.get(`#${element.name}`).click();
+                        cy.get(SELECT_COMBOBOX).click();
                         cy.document().then((doc) => {
                             cy.wrap(doc).find('.react-select__option').eq(1).click();
                         });
@@ -234,7 +236,7 @@ describe('Interactive Dialog - Multiselect', () => {
             // # Select additional option in the multiselect field (defaults already present)
             cy.get(FIELD_SELECTOR).eq(0).within(() => {
                 // Keep default selections and add one more
-                cy.get('#multiselect_options').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Support').click();
@@ -242,13 +244,13 @@ describe('Interactive Dialog - Multiselect', () => {
 
             // # Select multiple users
             cy.get(FIELD_SELECTOR).eq(1).within(() => {
-                cy.get('#multiselect_users').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').first().click();
             });
             cy.get(FIELD_SELECTOR).eq(1).within(() => {
-                cy.get('#multiselect_users').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').eq(1).click();
@@ -291,13 +293,13 @@ describe('Interactive Dialog - Multiselect', () => {
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Select multiple options in the multiselect field (starting from empty)
             cy.get(FIELD_SELECTOR).eq(0).within(() => {
-                cy.get('#multiselect_options').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
             });
             cy.get(FIELD_SELECTOR).eq(0).within(() => {
-                cy.get('#multiselect_options').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').contains('Sales').click();
@@ -305,13 +307,13 @@ describe('Interactive Dialog - Multiselect', () => {
 
             // # Select multiple users
             cy.get(FIELD_SELECTOR).eq(1).within(() => {
-                cy.get('#multiselect_users').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').first().click();
             });
             cy.get(FIELD_SELECTOR).eq(1).within(() => {
-                cy.get('#multiselect_users').click();
+                cy.get(SELECT_COMBOBOX).click();
             });
             cy.document().then((doc) => {
                 cy.wrap(doc).find('.react-select__option').eq(1).click();
@@ -395,14 +397,14 @@ describe('Interactive Dialog - Multiselect', () => {
             cy.get(FIELD_SELECTOR).eq(0).within(() => {
                 // React-select focuses the first option on open (Engineering).
                 // One downarrow moves to Sales (2nd), then Enter selects it.
-                cy.get('#multiselect_options').click().type('{downarrow}{enter}');
+                cy.get(SELECT_COMBOBOX).click().type('{downarrow}{enter}');
 
                 // * Verify Sales was added
                 cy.get('.react-select__multi-value').should('have.length', 1);
                 cy.get('.react-select__multi-value').should('contain', 'Sales');
 
                 // # Test typing to filter options (dropdown closes after selection, so click again)
-                cy.get('#multiselect_options').click().type('Prod{enter}'); // Type "Prod" to filter and select Product
+                cy.get(SELECT_COMBOBOX).click().type('Prod{enter}'); // Type "Prod" to filter and select Product
 
                 // * Verify Product was added
                 cy.get('.react-select__multi-value').should('have.length', 2);
@@ -442,13 +444,13 @@ describe('Interactive Dialog - Multiselect', () => {
                 cy.get('label').should('be.visible').and('contain', 'Multi Option Selector');
 
                 // * Verify multiselect input is present and accessible
-                cy.get('#multiselect_options').should('be.visible');
+                cy.get(SELECT_COMBOBOX).should('be.visible');
 
                 // * Verify help text exists and is visible
                 cy.get('.help-text').should('be.visible').and('contain', 'You can select multiple options');
 
                 // * Test basic interaction accessibility - click to open/close
-                cy.get('#multiselect_options').click();
+                cy.get(SELECT_COMBOBOX).click();
 
                 // * Verify dropdown opens (options become available)
                 cy.document().then((doc) => {

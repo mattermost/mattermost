@@ -53,17 +53,17 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // 6. Fill required fields
     // Display Name already has default "default text" — overwrite
-    await dialog.getByTestId('realnameinput').fill('Test Input');
+    await dialog.getByRole('textbox', {name: 'Display Name *'}).fill('Test Input');
 
     // Email and Password are required
-    await dialog.getByTestId('someemailemail').fill('test@example.com');
-    await dialog.getByTestId('somepasswordpassword').fill('testpassword123');
+    await dialog.getByRole('textbox', {name: /^Email/}).fill('test@example.com');
+    await dialog.getByRole('textbox', {name: /^Password/}).fill('testpassword123');
 
     // Number is required
-    await dialog.getByTestId('somenumbernumber').fill('42');
+    await dialog.getByRole('spinbutton', {name: /^Number/}).fill('42');
 
-    // Option Selector — required, no default (3rd combobox: User Selector, Channel Selector, Option Selector)
-    await dialog.getByRole('combobox').nth(2).click();
+    // Option Selector — required, no default
+    await dialog.getByRole('combobox', {name: 'Option Selector *'}).click();
     await channelsPage.page.getByRole('option', {name: 'Option1'}).click();
 
     // Required checkboxes
@@ -178,13 +178,13 @@ test('should show validation errors when required fields are submitted empty', a
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Clear the Number field and submit
-    await dialog.getByTestId('somenumbernumber').clear();
+    await dialog.getByRole('spinbutton', {name: /^Number/}).clear();
     await dialog.getByRole('button', {name: 'Submit'}).click();
 
     // 7. Verify dialog stays open with validation errors
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('Please fix all field errors', {exact: true})).toBeVisible();
-    await expect(dialog.getByTestId('somenumber').getByText('This field is required.', {exact: true})).toBeVisible();
+    await expect(dialog.getByTestId('somenumber-error')).toHaveText('This field is required.');
 });
 
 test('should show general error and keep dialog open on /dialog error submit', async ({pw}) => {

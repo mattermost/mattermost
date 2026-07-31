@@ -219,11 +219,11 @@ describe('Interactive Dialogs', () => {
                             // * Verify that if the element default is true, it should be checked, and vice versa.
                             let checked = true;
                             if (element.default === 'true') {
-                                cy.get(`#${element.name}`).
+                                cy.get('input[type="checkbox"]').
                                     should('be.visible').
                                     and('be.checked');
                             } else {
-                                cy.get(`#${element.name}`).
+                                cy.get('input[type="checkbox"]').
                                     should('be.visible').
                                     and('not.be.checked');
                                 checked = false;
@@ -234,15 +234,15 @@ describe('Interactive Dialogs', () => {
 
                             // # Click on the checkbox.
                             if (checked === false) {
-                                cy.get(`#${element.name}`).check();
+                                cy.get('input[type="checkbox"]').check();
                             }
                         });
                     } else if (element.name === 'someemail') {
-                        cy.get(`#${element.name}`).scrollIntoView().clear().type('test@test.com');
+                        cy.get('input').scrollIntoView().clear().type('test@test.com');
                     } else if (element.name === 'somepassword') {
-                        cy.get(`#${element.name}`).scrollIntoView().clear().type('test');
+                        cy.get('input').scrollIntoView().clear().type('test');
                     } else if (element.name === 'somenumber') {
-                        cy.get(`#${element.name}`).scrollIntoView().clear().type('42');
+                        cy.get('input').scrollIntoView().clear().type('42');
                     } else if (element.name === 'someoptionselector') {
                         // Static selects use AutocompleteSelector (not react-select MultiInput_).
                         cy.wrap($elForm).find('input').first().scrollIntoView().click();

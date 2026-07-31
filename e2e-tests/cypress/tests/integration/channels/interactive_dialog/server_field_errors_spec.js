@@ -64,8 +64,8 @@ describe('Interactive Dialog - server field errors', () => {
         // * Verify dialog opens with pre-filled values (client validation will pass)
         cy.get('#appsModal').should('be.visible').within(() => {
             cy.get('#appsModalLabel').should('have.text', serverFieldErrorsDialog.dialog.title);
-            cy.get('#realname').should('have.value', 'Ada');
-            cy.get('#someemail').should('have.value', 'ada@example.com');
+            cy.get('#mm-blocks--realname').should('have.value', 'Ada');
+            cy.get('#mm-blocks--someemail').should('have.value', 'ada@example.com');
 
             // # Submit — integration returns {errors: {...}} with no top-level error
             cy.get('#appsModalSubmit').click();

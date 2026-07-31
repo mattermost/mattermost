@@ -41,20 +41,20 @@ test.describe('Interactive mm_blocks (blocks dialog multistep / refresh)', () =>
             await expect(dialog.locator('#appsModalLabel')).toContainText('Field Refresh Demo');
 
             const projectName = `PW Project ${pw.random.id()}`;
-            await dialog.getByTestId('project_nameinput').fill(projectName);
+            await dialog.getByRole('textbox', {name: /Project Name/}).fill(projectName);
 
             await pickSelectOption(channelsPage.page, dialog, 'Project Type', 'Web Application');
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'Framework'})).toBeVisible();
-            await expect(dialog.getByTestId('project_nameinput')).toHaveValue(projectName);
+            await expect(dialog.getByRole('textbox', {name: /Project Name/})).toHaveValue(projectName);
 
             await pickSelectOption(channelsPage.page, dialog, 'Project Type', 'Mobile App');
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'Platform'})).toBeVisible();
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'Framework'})).toHaveCount(0);
-            await expect(dialog.getByTestId('project_nameinput')).toHaveValue(projectName);
+            await expect(dialog.getByRole('textbox', {name: /Project Name/})).toHaveValue(projectName);
 
             await pickSelectOption(channelsPage.page, dialog, 'Project Type', 'API Service');
             await expect(dialog.locator('.mm-blocks-select-input').filter({hasText: 'Language'})).toBeVisible();
-            await expect(dialog.getByTestId('project_nameinput')).toHaveValue(projectName);
+            await expect(dialog.getByRole('textbox', {name: /Project Name/})).toHaveValue(projectName);
 
             await pickSelectOption(channelsPage.page, dialog, 'Language', 'Go');
             await dialog.getByRole('button', {name: 'Submit'}).click();
@@ -86,8 +86,8 @@ test.describe('Interactive mm_blocks (blocks dialog multistep / refresh)', () =>
             await expect(dialog.getByTestId('first_name-error')).toBeVisible();
             await expect(dialog.locator('#appsModalLabel')).toContainText('Step 1 - Personal Info');
 
-            await dialog.getByTestId('first_nameinput').fill('John');
-            await dialog.getByTestId('emailemail').fill('john@example.com');
+            await dialog.getByRole('textbox', {name: /First Name/}).fill('John');
+            await dialog.getByRole('textbox', {name: /Email/}).fill('john@example.com');
             await dialog.getByRole('button', {name: 'Next Step'}).click();
 
             await expect(dialog.locator('#appsModalLabel')).toContainText('Step 2 - Work Info');
@@ -128,8 +128,8 @@ test.describe('Interactive mm_blocks (blocks dialog multistep / refresh)', () =>
             titleHint: 'mm_blocks multistep cancel2',
         });
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
-        await dialog.getByTestId('first_nameinput').fill('Jane');
-        await dialog.getByTestId('emailemail').fill('jane@example.com');
+        await dialog.getByRole('textbox', {name: /First Name/}).fill('Jane');
+        await dialog.getByRole('textbox', {name: /Email/}).fill('jane@example.com');
         await dialog.getByRole('button', {name: 'Next Step'}).click();
         await expect(dialog.locator('#appsModalLabel')).toContainText('Step 2 - Work Info');
         await dialog.getByRole('button', {name: 'Cancel'}).click();
