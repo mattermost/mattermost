@@ -195,7 +195,7 @@ test.describe('Post list scroll to permalink', () => {
                     channel_id: channel.id,
                     message: 'linked post',
                 });
-                linkedPostUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`;
+                linkedPostUrl = `${testConfig.baseURL}/${team.name}/pl/${linkedPost.id}`;
 
                 await testCase.setupPostsAfter();
 
