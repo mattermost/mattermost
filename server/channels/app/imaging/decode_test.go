@@ -327,10 +327,10 @@ func TestDecoderMaxDecodedResolution(t *testing.T) {
 	})
 }
 
-// TestDecoderDecodeAllGIF verifies that decoding every frame of an animated GIF
-// is bounded by the total number of pixels across all frames and gated by the
-// decoder's concurrency limit.
-func TestDecoderDecodeAllGIF(t *testing.T) {
+// TestDecoderDecodeAllGIFMemBounded verifies that decoding every frame of an
+// animated GIF is bounded by the total number of pixels across all frames and
+// that the concurrency slot is held until the frames are released.
+func TestDecoderDecodeAllGIFMemBounded(t *testing.T) {
 	makeGIF := func(w, h, frames int) []byte {
 		g := &gif.GIF{
 			Image: make([]*image.Paletted, frames),
@@ -348,8 +348,9 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 10, 5)))
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(makeGIF(20, 10, 5)))
 		require.NoError(t, err)
+		defer release()
 		require.Len(t, g.Image, 5)
 		require.Equal(t, 20, g.Config.Width)
 		require.Equal(t, 10, g.Config.Height)
@@ -361,17 +362,19 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 5))) // 2000px > 1000
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(makeGIF(20, 20, 5))) // 2000px > 1000
 		require.ErrorIs(t, err, ErrResolutionExceeded)
 		require.Nil(t, g)
+		require.Nil(t, release)
 	})
 
 	t.Run("allows total resolution within the cap", func(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 2))) // 800px <= 1000
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(makeGIF(20, 20, 2))) // 800px <= 1000
 		require.NoError(t, err)
+		defer release()
 		require.Len(t, g.Image, 2)
 	})
 
@@ -380,17 +383,19 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 		require.NoError(t, err)
 
 		// io.MultiReader is not an io.ReadSeeker.
-		g, err := d.DecodeAllGIF(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 5))))
+		g, release, err := d.DecodeAllGIFMemBounded(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 5))))
 		require.ErrorIs(t, err, ErrResolutionExceeded)
 		require.Nil(t, g)
+		require.Nil(t, release)
 	})
 
 	t.Run("non-seekable reader within the cap decodes from buffer", func(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 2))))
+		g, release, err := d.DecodeAllGIFMemBounded(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 2))))
 		require.NoError(t, err)
+		defer release()
 		require.Len(t, g.Image, 2)
 	})
 
@@ -398,8 +403,9 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 5)))
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(makeGIF(20, 20, 5)))
 		require.NoError(t, err)
+		defer release()
 		require.Len(t, g.Image, 5)
 	})
 
@@ -407,10 +413,31 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000, ConcurrencyLevel: 1})
 		require.NoError(t, err)
 
-		g, err := d.DecodeAllGIF(bytes.NewReader([]byte("garbage data")))
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader([]byte("garbage data")))
 		require.Error(t, err)
 		require.NotErrorIs(t, err, ErrResolutionExceeded)
 		require.Nil(t, g)
+		require.Nil(t, release)
+		require.Empty(t, d.sem)
+	})
+
+	// The concurrency slot must be held for as long as the frames are in use, so
+	// that resizing and re-encoding them is bounded too.
+	t.Run("concurrency slot held until released", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{ConcurrencyLevel: 1})
+		require.NoError(t, err)
+
+		g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(makeGIF(20, 20, 5)))
+		require.NoError(t, err)
+		require.Len(t, g.Image, 5)
+		require.Len(t, d.sem, 1)
+
+		release()
+		require.Empty(t, d.sem)
+		require.Nil(t, g.Image[0].Pix)
+
+		// Releasing more than once must not free another goroutine's slot.
+		release()
 		require.Empty(t, d.sem)
 	})
 
@@ -422,13 +449,12 @@ func TestDecoderDecodeAllGIF(t *testing.T) {
 
 		var wg sync.WaitGroup
 		for range 2 {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				g, err := d.DecodeAllGIF(bytes.NewReader(data))
+			wg.Go(func() {
+				g, release, err := d.DecodeAllGIFMemBounded(bytes.NewReader(data))
 				require.NoError(t, err)
 				require.Len(t, g.Image, 5)
-			}()
+				release()
+			})
 		}
 
 		wg.Wait()

@@ -165,37 +165,55 @@ func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err erro
 	return img, format, nil
 }
 
-// DecodeAllGIF decodes every frame of the given GIF data. Unlike Decode, which
-// materializes only the first frame, the resolution cap is applied to the total
-// number of pixels across all frames, and the decode is gated by the decoder's
-// concurrency limit.
-func (d *Decoder) DecodeAllGIF(rd io.Reader) (*gif.GIF, error) {
+// DecodeAllGIFMemBounded decodes every frame of the given GIF data. Unlike
+// Decode, which materializes only the first frame, the resolution cap is applied
+// to the total number of pixels across all frames.
+//
+// It also returns a release function that must be called once the frames are not
+// needed anymore. The decoder's concurrency slot is held until then, so callers
+// that resize or re-encode the frames keep the whole operation bounded rather
+// than only the decode.
+func (d *Decoder) DecodeAllGIFMemBounded(rd io.Reader) (g *gif.GIF, releaseFunc func(), err error) {
 	rs, ok := rd.(io.ReadSeeker)
 	if !ok {
 		// The frame count and the config have to be read before decoding, so a
 		// non-seekable reader is buffered to allow replaying the data.
-		data, err := io.ReadAll(rd)
-		if err != nil {
-			return nil, fmt.Errorf("imaging: failed to read image data: %w", err)
+		data, readErr := io.ReadAll(rd)
+		if readErr != nil {
+			return nil, nil, fmt.Errorf("imaging: failed to read image data: %w", readErr)
 		}
 		rs = bytes.NewReader(data)
 	}
 
-	if err := d.enforceGIFResolutionLimit(rs); err != nil {
-		return nil, err
+	if limitErr := d.enforceGIFResolutionLimit(rs); limitErr != nil {
+		return nil, nil, limitErr
 	}
 
 	if d.opts.ConcurrencyLevel != 0 {
 		d.sem <- struct{}{}
-		defer func() { <-d.sem }()
+		defer func() {
+			if err != nil {
+				<-d.sem
+			}
+		}()
 	}
 
-	g, err := gif.DecodeAll(rs)
+	g, err = gif.DecodeAll(rs)
 	if err != nil {
-		return nil, fmt.Errorf("imaging: failed to decode gif: %w", err)
+		return nil, nil, fmt.Errorf("imaging: failed to decode gif: %w", err)
 	}
 
-	return g, nil
+	var once sync.Once
+	releaseFunc = func() {
+		once.Do(func() {
+			releaseGIFData(g)
+			if d.opts.ConcurrencyLevel != 0 {
+				<-d.sem
+			}
+		})
+	}
+
+	return g, releaseFunc, nil
 }
 
 // enforceGIFResolutionLimit rejects GIFs whose total decoded resolution
@@ -302,6 +320,18 @@ func GetDimensions(imageData io.Reader) (width int, height int, err error) {
 		}
 	}
 	return
+}
+
+// This is only needed to try and simplify GC work.
+func releaseGIFData(g *gif.GIF) {
+	if g == nil {
+		return
+	}
+	for _, frame := range g.Image {
+		if frame != nil {
+			frame.Pix = nil
+		}
+	}
 }
 
 // This is only needed to try and simplify GC work.
