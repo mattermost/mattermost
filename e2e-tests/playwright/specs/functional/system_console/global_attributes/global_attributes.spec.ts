@@ -2,20 +2,28 @@
 // See LICENSE.txt for license information.
 
 /**
- * System Console — Global Attributes access gate (MM-69845).
- * Covers the hidden "Manage Attributes" shell page: visibility is gated by the
- * GlobalAttributes feature flag AND an Enterprise-tier license. The page has no
- * functional content yet — these tests only cover the access gate itself.
+ * System Console — Global Attributes access gate and attribute listing.
+ * Visibility is gated by the GlobalAttributes feature flag AND an Enterprise-tier license.
+ * Once past the gate, the page lists every access_control/template property field on the server.
  *
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
-import {GLOBAL_ATTRIBUTES_ADMIN_PATH, setGlobalAttributesFeatureFlag} from './global_attributes_helpers';
+import {
+    GLOBAL_ATTRIBUTES_ADMIN_PATH,
+    createGlobalAttributeField,
+    deleteGlobalAttributeFieldIfExists,
+    requireGlobalAttributesEnabled,
+    setGlobalAttributesFeatureFlag,
+} from './global_attributes_helpers';
 
-test.describe('System Console - Global Attributes access gate', {tag: '@system_console'}, () => {
+test.describe('System Console - Global Attributes', {tag: '@system_console'}, () => {
+    // All tests here toggle the same server-wide GlobalAttributes config flag, so the whole
+    // file (both nested describes below) must stay serial — parallelizing across them would
+    // race one test's flag-on against another's flag-off on the shared server.
     test.describe.configure({mode: 'serial'});
 
     let originalFlagValue: boolean | undefined;
@@ -33,75 +41,258 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
         }
     });
 
-    /**
-     * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
-     */
-    test('feature flag off hides Manage Attributes regardless of license', async ({pw}) => {
-        const {adminUser, adminClient} = await getAdminClient();
+    test.describe('access gate', () => {
+        /**
+         * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
+         */
+        test('feature flag off hides Manage Attributes regardless of license', async ({pw}) => {
+            const {adminUser, adminClient} = await getAdminClient();
 
-        if (!adminUser || !adminClient) {
-            throw new Error('Failed to get admin user');
-        }
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
-        // # Turn off GlobalAttributes in server config
-        await setGlobalAttributesFeatureFlag(adminClient, false);
-        const {FeatureFlags} = await adminClient.getConfig();
-        test.skip(
-            FeatureFlags.GlobalAttributes === true,
-            'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
-        );
+            // # Turn off GlobalAttributes in server config
+            await setGlobalAttributesFeatureFlag(adminClient, false);
+            const {FeatureFlags} = await adminClient.getConfig();
+            test.skip(
+                FeatureFlags.GlobalAttributes === true,
+                'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
+            );
 
-        // # Navigate directly to the Manage Attributes path
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            // # Navigate directly to the Manage Attributes path
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-        // * User is redirected away from the hidden route (no Route registered)
-        await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
-        // * Manage Attributes menu entry is not shown in the sidebar
-        await expect(
-            systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
-        ).not.toBeVisible();
+            // * User is redirected away from the hidden route (no Route registered)
+            await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
+            // * Manage Attributes menu entry is not shown in the sidebar
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+            ).not.toBeVisible();
+        });
+
+        /**
+         * @objective Ensure the Manage Attributes page is reachable and shows its page frame
+         * once the feature flag is on and the license meets the Enterprise tier.
+         */
+        test('feature flag on with Enterprise+ license shows the page frame', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            // # Log in and open the Manage Attributes URL
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            // * URL stays on the Manage Attributes section
+            await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
+            // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
+            // renders in both places, so each is asserted within its own scope)
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+            ).toBeVisible();
+            await expect(
+                systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
+            ).toBeVisible();
+            // * Page frame's static subtitle is present (renders regardless of fetch state)
+            await expect(
+                systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
+            ).toBeVisible();
+        });
     });
 
-    /**
-     * @objective Ensure the Manage Attributes page is reachable and shows its placeholder
-     * content once the feature flag is on and the license meets the Enterprise tier.
-     */
-    test('feature flag on with Enterprise+ license shows the empty shell', async ({pw}) => {
-        await pw.skipIfNoLicense();
-        const {adminUser, adminClient} = await getAdminClient();
+    test.describe('listing', () => {
+        /**
+         * @objective Ensure a real access_control/template attribute renders in the table with
+         * its display name, type icon+label, source, and options count — across every field
+         * type the ticket's Type column has a mapping for (Text/Select/Multiselect/Ranked),
+         * plus one unmapped type (date) to prove the fallback also holds end-to-end.
+         */
+        test('renders one seeded field per type with correct Attribute/Type/Source/Options values', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
-        if (!adminUser || !adminClient) {
-            throw new Error('Failed to get admin user');
-        }
+            const timestamp = Date.now();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            licenseTier(license.SkuShortName) < 20,
-            'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
-                'Professional is not sufficient—the admin route is hidden and redirects away.',
-        );
+            // Covers the "Managed here" Source branch (all of these) alongside every Type/Options
+            // combination reachable through the admin API — the plugin+protected Source branch is
+            // unit-test-only since the admin API blocks source_plugin_id/protected from non-plugin
+            // callers, and rank uses type: 'rank' directly (the same type Classification Markings'
+            // own saveCreateField creates), not the select-based seeding some older e2e helpers use.
+            // displayName embeds the same per-run timestamp as name — required so the row locator
+            // below can't collide with another concurrently-running browser project's seeded row
+            // (this suite's projects share one server/worker pool; see playwright.config.ts).
+            const seeds = [
+                {
+                    name: `e2e_global_attribute_text_${timestamp}`,
+                    displayName: `E2E Text Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {},
+                    expectedType: 'Text',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_select_${timestamp}`,
+                    displayName: `E2E Select Attribute ${timestamp}`,
+                    type: 'select',
+                    attrs: {
+                        options: [
+                            {id: '', name: 'Option A'},
+                            {id: '', name: 'Option B'},
+                        ],
+                    },
+                    expectedType: 'Select',
+                    expectedOptions: '2 options',
+                },
+                {
+                    name: `e2e_global_attribute_multiselect_${timestamp}`,
+                    displayName: `E2E Multiselect Attribute ${timestamp}`,
+                    type: 'multiselect',
+                    attrs: {
+                        options: [
+                            {id: '', name: 'Option A'},
+                            {id: '', name: 'Option B'},
+                            {id: '', name: 'Option C'},
+                        ],
+                    },
+                    expectedType: 'Multiselect',
+                    expectedOptions: '3 options',
+                },
+                {
+                    name: `e2e_global_attribute_rank_${timestamp}`,
+                    displayName: `E2E Ranked Attribute ${timestamp}`,
+                    type: 'rank',
+                    attrs: {
+                        options: [
+                            {id: '', name: 'Low', rank: 1},
+                            {id: '', name: 'High', rank: 2},
+                        ],
+                    },
+                    expectedType: 'Ranked',
+                    expectedOptions: '2 options',
+                },
+                {
+                    name: `e2e_global_attribute_date_${timestamp}`,
+                    displayName: `E2E Date Attribute ${timestamp}`,
+                    type: 'date',
+                    attrs: {},
+                    expectedType: 'Other',
+                    expectedOptions: 'Free Text',
+                },
+            ] as const;
 
-        // # Enable the feature flag
-        await setGlobalAttributesFeatureFlag(adminClient, true);
-        const {FeatureFlags} = await adminClient.getConfig();
-        test.skip(
-            FeatureFlags.GlobalAttributes !== true,
-            'GlobalAttributes stays disabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-on in this environment.',
-        );
+            try {
+                // # Seed every field inside the try block — if creation fails partway
+                // through (e.g. field 3 of 5), the finally below still cleans up whatever
+                // was already created instead of leaving it orphaned on the shared server.
+                for (const seed of seeds) {
+                    await createGlobalAttributeField(adminClient, seed.name, {
+                        type: seed.type,
+                        attrs: {display_name: seed.displayName, ...seed.attrs},
+                    });
+                }
 
-        // # Log in and open the Manage Attributes URL
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                // # Log in and open the Manage Attributes page once every field is seeded
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-        // * URL stays on the Manage Attributes section
-        await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
-        // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
-        // renders in both places, so each is asserted within its own scope)
-        await expect(systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes')).toBeVisible();
-        await expect(
-            systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
-        ).toBeVisible();
-        await expect(systemConsolePage.page.getByText('Global attributes will be here.')).toBeVisible();
+                for (const seed of seeds) {
+                    // Re-rooted `has` probe on the name cell's testid+text, mirroring the
+                    // established row-lookup pattern (see board_attributes.ts's rowByName).
+                    const row = systemConsolePage.page.locator('tr', {
+                        has: systemConsolePage.page
+                            .getByTestId('global-attribute-name')
+                            .filter({hasText: seed.displayName}),
+                    });
+
+                    // * Each seeded field's display name, type, source, and options render correctly
+                    await expect(row.getByTestId('global-attribute-name')).toHaveText(seed.displayName);
+                    await expect(row.getByTestId('global-attribute-type')).toContainText(seed.expectedType);
+                    // * A leading icon renders alongside the label, including for the
+                    // unmapped "date" type (fallback icon, not a blank cell)
+                    await expect(row.getByTestId('global-attribute-type').locator('svg')).toBeVisible();
+                    await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+                    // * "Managed here" is the one source kind reachable through the admin
+                    // API (plugin/ldap/saml require server-side attrs the API blocks from
+                    // non-plugin callers — those icon mappings are unit-test-only) and it
+                    // renders with no leading icon, unlike plugin/ldap/saml sources
+                    await expect(row.getByTestId('global-attribute-source').locator('svg')).toHaveCount(0);
+                    await expect(row.getByTestId('global-attribute-options')).toContainText(seed.expectedOptions);
+                }
+            } finally {
+                // # Clean up regardless of assertion outcome, so reruns start from a clean slate
+                for (const seed of seeds) {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, seed.name);
+                }
+            }
+        });
+
+        /**
+         * @objective Ensure the table sorts by the same value shown in the Attribute column
+         * (display_name, falling back to name) rather than by the hidden internal name.
+         */
+        test('sorts rows by the displayed Attribute value, not the internal field name', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+
+            // Internal names sort z-then-a; display names (what the table actually shows and
+            // must sort by) sort a-then-z. If the table sorted by the internal name instead,
+            // these rows would render in the opposite order.
+            const firstName = `zzz_e2e_sort_${timestamp}`;
+            const secondName = `aaa_e2e_sort_${timestamp}`;
+            const firstDisplayName = `Aardvark E2E Sort Attribute ${timestamp}`;
+            const secondDisplayName = `Zebra E2E Sort Attribute ${timestamp}`;
+
+            // No display_name set — the rendered (and sorted-by) value falls back to this
+            // internal name directly. Chosen to alphabetically land between the two display
+            // names above, so its position in the rendered order proves the fallback value
+            // participates in sorting correctly alongside explicit display names, not just
+            // in isolation (the unit tests already cover the fallback alone).
+            const thirdName = `mmm_e2e_sort_fallback_${timestamp}`;
+
+            try {
+                // # Seed all three fields inside the try block — if creation fails
+                // partway through, the finally below still cleans up whatever was
+                // already created instead of leaving it orphaned on the shared server.
+                await createGlobalAttributeField(adminClient, firstName, {
+                    type: 'text',
+                    attrs: {display_name: firstDisplayName},
+                });
+                await createGlobalAttributeField(adminClient, secondName, {
+                    type: 'text',
+                    attrs: {display_name: secondDisplayName},
+                });
+                await createGlobalAttributeField(adminClient, thirdName, {
+                    type: 'text',
+                    attrs: {},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('global-attribute-name').getByText(firstDisplayName).waitFor();
+
+                // * The fallback field renders under its internal name, since no display_name was set
+                await expect(
+                    systemConsolePage.page.getByTestId('global-attribute-name').getByText(thirdName),
+                ).toBeVisible();
+
+                // * Rendered order follows the displayed Attribute value (Aardvark, then the
+                // fallback name, then Zebra) — not the internal name (which would put "aaa_..."
+                // first if sorted that way)
+                const names = await systemConsolePage.page.getByTestId('global-attribute-name').allTextContents();
+                const firstIndex = names.indexOf(firstDisplayName);
+                const thirdIndex = names.indexOf(thirdName);
+                const secondIndex = names.indexOf(secondDisplayName);
+                expect(firstIndex).toBeGreaterThanOrEqual(0);
+                expect(thirdIndex).toBeGreaterThanOrEqual(0);
+                expect(secondIndex).toBeGreaterThanOrEqual(0);
+                expect(firstIndex).toBeLessThan(thirdIndex);
+                expect(thirdIndex).toBeLessThan(secondIndex);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, firstName);
+                await deleteGlobalAttributeFieldIfExists(adminClient, secondName);
+                await deleteGlobalAttributeFieldIfExists(adminClient, thirdName);
+            }
+        });
     });
 });
