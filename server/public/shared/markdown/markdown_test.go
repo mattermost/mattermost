@@ -19,40 +19,19 @@ func TestParse(t *testing.T) {
 		assert.Empty(t, referenceDefinitions)
 	})
 
-	t.Run("SetMaxPostSizeFunc raises the cap so a previously rejected input is parsed", func(t *testing.T) {
-		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+	t.Run("SetMaxPostSize raises the cap so a previously rejected input is parsed", func(t *testing.T) {
+		defer SetMaxPostRunes(defaultMaxPostRunes)
 
-		SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
+		SetMaxPostRunes(defaultMaxPostRunes)
 		markdown := strings.Repeat("a", MaxLen()+1)
 
 		document, _ := Parse(markdown)
 		assert.Empty(t, document.Children)
 
-		SetMaxPostSizeFunc(func() int { return defaultMaxPostSize + 1 })
+		SetMaxPostRunes(defaultMaxPostRunes + 1)
 
 		document, _ = Parse(markdown)
 		assert.NotEmpty(t, document.Children)
-	})
-
-	t.Run("SetMaxPostSizeFunc is called on every MaxLen call", func(t *testing.T) {
-		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
-
-		calls := 0
-		SetMaxPostSizeFunc(func() int {
-			calls++
-			return defaultMaxPostSize + calls
-		})
-
-		assert.Equal(t, 4*(defaultMaxPostSize+1), MaxLen())
-		assert.Equal(t, 4*(defaultMaxPostSize+2), MaxLen())
-	})
-
-	t.Run("MaxLen falls back to the default if the registered function panics", func(t *testing.T) {
-		defer SetMaxPostSizeFunc(func() int { return defaultMaxPostSize })
-
-		SetMaxPostSizeFunc(func() int { panic("boom") })
-
-		assert.Equal(t, 4*defaultMaxPostSize, MaxLen())
 	})
 
 	t.Run("nesting depth is bounded regardless of how deeply a single line nests", func(t *testing.T) {

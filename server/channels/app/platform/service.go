@@ -335,7 +335,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// The markdown package needs to know what the maximum post size is, so we
 	// let it know once the store is created.
-	markdown.SetMaxPostSizeFunc(ps.MaxPostSize)
+	markdown.SetMaxPostRunes(ps.MaxPostSize())
 
 	// Step 7: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could

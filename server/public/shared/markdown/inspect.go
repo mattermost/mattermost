@@ -8,45 +8,32 @@ import (
 	"sync/atomic"
 )
 
-// defaultMaxPostSize is used only if no function has been registered via SetMaxPostSizeFunc,
-// which should not happen in practice. It assumes a 64k maxSize of a post which can be stored in
-// DB, and allows scanning up to twice (arbitrary value) the post size, expressed here as a post
-// size in runes so it goes through the same four-bytes-per-rune assumption as the real value.
-const defaultMaxPostSize = 1024 * 32
+// defaultMaxPostRunes is used only if no value has been registered via
+// SetMaxPostRunes, which should not happen in practice. It assumes a post is at
+// most 64KiB in DB. Assuming four bytes per rune, it gives us 16*1024 runes.
+// If we allow scanning up to twice (arbitrary value) that value, we get:
+const defaultMaxPostRunes = 2 * 16 * 1024
 
-var maxPostSizeFunc atomic.Pointer[func() int]
+var maxPostRunes atomic.Int64
 
-// SetMaxPostSizeFunc registers a function that MaxLen calls, on every invocation, to obtain the
-// real configured maximum post size, in runes. This lets MaxLen always reflect the real limit
-// regardless of which code path first parses markdown, rather than depending on that path having
-// already pushed the value in. The function is expected to be cheap to call repeatedly (e.g.
-// backed by its own cache), since Parse and Inspect call MaxLen on every invocation. Safe to call
-// concurrently with MaxLen.
-func SetMaxPostSizeFunc(f func() int) {
-	maxPostSizeFunc.Store(&f)
+func init() {
+	maxPostRunes.Store(defaultMaxPostRunes)
+}
+
+// SetMaxPostRunes registers the real configured maximum post size, in runes, that MaxLen uses to
+// compute the maximum markdown input length. This lets MaxLen reflect the real limit regardless
+// of which code path first parses markdown, rather than depending on that path having already
+// pushed the value in. Safe to call concurrently with MaxLen.
+func SetMaxPostRunes(size int) {
+	maxPostRunes.Store(int64(size))
 }
 
 // MaxLen returns the current maximum markdown input length, in bytes, enforced by Parse and
-// Inspect: four times the maximum post size, in runes, returned by the function registered via
-// SetMaxPostSizeFunc, assuming a worst case of four bytes per rune. Falls back to a conservative
-// default if no function has been registered, or if calling it panics (e.g. a test double for
-// the store that doesn't expect to be asked for it), since this is only meant to bound resource
-// usage and should never itself be the reason parsing fails.
+// Inspect: four times the maximum post size, in runes, registered via SetMaxPostRunes (or
+// defaultMaxPostRunes if it hasn't been called yet), assuming a worst case of four bytes per
+// rune.
 func MaxLen() int {
-	maxPostSize := defaultMaxPostSize
-	if p := maxPostSizeFunc.Load(); p != nil {
-		maxPostSize = callMaxPostSizeFunc(*p)
-	}
-	return 4 * maxPostSize
-}
-
-func callMaxPostSizeFunc(f func() int) (maxPostSize int) {
-	defer func() {
-		if recover() != nil {
-			maxPostSize = defaultMaxPostSize
-		}
-	}()
-	return f()
+	return 4 * int(maxPostRunes.Load())
 }
 
 // Inspect traverses the markdown tree in depth-first order. If f returns true, Inspect invokes f
