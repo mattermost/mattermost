@@ -117,29 +117,34 @@ test.describe('System Console > Concurrent config saves', () => {
             EmailSettings: {EnableSignUpWithEmail: true},
         } as Partial<AdminConfig>);
 
-        // # Open the Users and Teams settings page
-        const {page} = await pw.testBrowser.login(adminUser);
-        await page.goto('/admin_console/site_config/users_and_teams');
+        try {
+            // # Open the Users and Teams settings page
+            const {page} = await pw.testBrowser.login(adminUser);
+            await page.goto('/admin_console/site_config/users_and_teams');
 
-        const teamSection = page.getByTestId('sysconsole_section_UserAndTeamsSettings');
-        await expect(teamSection).toBeVisible();
-        const saveButton = teamSection.getByRole('button', {name: 'Save'});
+            const teamSection = page.getByTestId('sysconsole_section_UserAndTeamsSettings');
+            await expect(teamSection).toBeVisible();
+            const saveButton = teamSection.getByRole('button', {name: 'Save'});
 
-        // # Simulate another admin saving EmailSettings via API
-        const configRefresh = waitForAdminConfigRefresh(page);
-        await adminClient.patchConfig({EmailSettings: {EnableSignUpWithEmail: false}} as Partial<AdminConfig>);
-        await configRefresh;
-        const joinLeaveToggle = teamSection.getByTestId('TeamSettings.EnableJoinLeaveMessageByDefaulttrue');
-        await expect(joinLeaveToggle).not.toBeChecked();
+            // # Simulate another admin saving EmailSettings via API
+            const configRefresh = waitForAdminConfigRefresh(page);
+            await adminClient.patchConfig({EmailSettings: {EnableSignUpWithEmail: false}} as Partial<AdminConfig>);
+            await configRefresh;
+            const joinLeaveToggle = teamSection.getByTestId('TeamSettings.EnableJoinLeaveMessageByDefaulttrue');
+            await expect(joinLeaveToggle).not.toBeChecked();
 
-        // # Toggle Enable Join/Leave messages on the Users and Teams page and save
-        await joinLeaveToggle.click();
-        await saveButton.click();
-        await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
+            // # Toggle Enable Join/Leave messages on the Users and Teams page and save
+            await joinLeaveToggle.click();
+            await saveButton.click();
+            await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
-        // * Both changes must be present
-        const finalConfig = await adminClient.getConfig();
-        expect(finalConfig.TeamSettings.EnableJoinLeaveMessageByDefault).toBe(true);
-        expect(finalConfig.EmailSettings.EnableSignUpWithEmail).toBe(false);
+            // * Both changes must be present
+            const finalConfig = await adminClient.getConfig();
+            expect(finalConfig.TeamSettings.EnableJoinLeaveMessageByDefault).toBe(true);
+            expect(finalConfig.EmailSettings.EnableSignUpWithEmail).toBe(false);
+        } finally {
+            // Restore so parallel login/signup accessibility specs are not left without the create-account link
+            await adminClient.patchConfig({EmailSettings: {EnableSignUpWithEmail: true}} as Partial<AdminConfig>);
+        }
     });
 });
