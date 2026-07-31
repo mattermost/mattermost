@@ -14,6 +14,7 @@ import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
+    deleteClassificationMarkingsFieldIfExists,
     setClassificationMarkingsFeatureFlag,
 } from '../site_configuration/classification_markings_helpers';
 
@@ -326,11 +327,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 // concurrency-guarded against each other; the tag is this suite's existing
                 // (if informal) convention for grouping tests that share this exact resource.
                 await setClassificationMarkingsFeatureFlag(adminClient, true);
-                const {FeatureFlags} = await adminClient.getConfig();
-                test.skip(
-                    FeatureFlags.ClassificationMarkings !== true && FeatureFlags.ClassificationMarkings !== 'true',
-                    'ClassificationMarkings feature flag is off (probably overridden by env); skipping.',
-                );
+                await pw.skipIfFeatureFlagNotSet('ClassificationMarkings', true);
 
                 const timestamp = Date.now();
                 const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;
@@ -338,6 +335,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 const unrelatedRankDisplayName = `E2E Unrelated Ranked Attribute ${timestamp}`;
 
                 try {
+                    // # Clean slate first via the classification-aware helper (not the generic
+                    // deleteGlobalAttributeFieldIfExists): it also removes any linked system/channel
+                    // field first, avoiding server-side deletion-protection errors that leave a
+                    // stale template field behind if another classification spec ran previously.
+                    await deleteClassificationMarkingsFieldIfExists(adminClient);
+
                     // # Seed the real classification field: name 'classification', type 'rank',
                     // matching classification_markings/utils/index.ts's saveCreateField exactly —
                     // not the select-based shape some older, test-only e2e helpers use.
@@ -410,7 +413,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
                     await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
                 } finally {
-                    await deleteGlobalAttributeFieldIfExists(adminClient, 'classification');
+                    await deleteClassificationMarkingsFieldIfExists(adminClient);
                     await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);
                 }
             },

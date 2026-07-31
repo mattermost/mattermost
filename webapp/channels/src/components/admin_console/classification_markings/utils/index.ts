@@ -41,7 +41,7 @@ export const CLASSIFICATIONS_TEMPLATE_FIELD_NAME = 'classification';
 
 // Admin console path for the Classification Markings page (System Console > Site
 // Configuration). Used by the Manage Attributes listing to link its read-only row here.
-export const CLASSIFICATION_MARKINGS_ADMIN_URL = '/admin_console/site_config/classification_markings';
+export const CLASSIFICATIONS_MARKINGS_ADMIN_URL = '/admin_console/site_config/classification_markings';
 
 // System field — drives the global banner. Property *values* live on the
 // dedicated system endpoint and use the sentinel target_id 'system'.

@@ -11,7 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 
 import {
-    CLASSIFICATION_MARKINGS_ADMIN_URL,
+    CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
@@ -191,6 +191,22 @@ describe('GlobalAttributesTable', () => {
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
         expect(await screen.findByTestId('global-attribute-applies-to')).toBeInTheDocument();
+    });
+
+    it('wraps an ordinary row\'s name in the shared attribute container without the classification modifier or subtitle', async () => {
+        getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        const nameCell = await screen.findByTestId('global-attribute-name');
+
+        // * Every row (not just the classification one) renders through the shared
+        // .GlobalAttributesTable__attribute wrapper introduced alongside the classification
+        // row, but an ordinary row keeps its plain (non-classification) name styling and
+        // never renders a subtitle underneath it.
+        expect(nameCell.closest('.GlobalAttributesTable__attribute')).toBeInTheDocument();
+        expect(nameCell).not.toHaveClass('GlobalAttributesTable__name--classification');
+        expect(screen.queryByTestId(/^global-attribute-classification-subtitle/)).not.toBeInTheDocument();
     });
 
     it('shows the empty-state message when there are no fields', async () => {
@@ -415,10 +431,10 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
 
-            expect(await screen.findByTestId('global-attribute-classification-subtitle')).toHaveTextContent('Read-only');
+            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Read-only');
 
             const link = screen.getByTestId('global-attribute-classification-link-field-1');
-            expect(link).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
+            expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
 
             // * The dot-menu is not rendered for this row
@@ -438,7 +454,7 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
             expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
         });
@@ -451,7 +467,7 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
@@ -463,7 +479,7 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
@@ -473,8 +489,15 @@ describe('GlobalAttributesTable', () => {
             renderWithContext(<GlobalAttributesTable/>, getMobileState());
 
             const link = await screen.findByTestId('global-attribute-classification-link-field-1');
-            expect(link).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_URL);
+            expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
+
+            // * The tooltip never opens on mobile, even after hovering and waiting past its
+            // normal open delay — proves `disabled={isMobileView}` is actually wired up, not
+            // just that the link itself renders (which the assertions above already cover).
+            await userEvent.hover(link);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
         });
 
         it('leaves an unrelated field (not matching name/object_type/group_id) entirely unaffected even when the destination is reachable', async () => {
@@ -485,7 +508,7 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
     });

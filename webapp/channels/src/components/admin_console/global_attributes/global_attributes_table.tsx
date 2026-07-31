@@ -25,7 +25,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {
-    CLASSIFICATION_MARKINGS_ADMIN_URL,
+    CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
@@ -191,7 +191,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
                 <span
                     id={classificationSubtitleId(field.id)}
                     className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
-                    data-testid='global-attribute-classification-subtitle'
+                    data-testid={`global-attribute-classification-subtitle-${field.id}`}
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
                 </span>
@@ -213,7 +213,7 @@ function ActionsCell({field, isClassificationRow, isMobileView}: ClassificationA
                 disabled={isMobileView}
             >
                 <Link
-                    to={CLASSIFICATION_MARKINGS_ADMIN_URL}
+                    to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
                     className='GlobalAttributesTable__link--classification'
                     aria-label={classificationLinkLabel}
                     aria-describedby={classificationSubtitleId(field.id)}
