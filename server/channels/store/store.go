@@ -249,6 +249,14 @@ type ChannelStore interface {
 	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error)
+	// GetMembersWithLastViewedAtSince returns the members of channelID whose LastViewedAt is at
+	// or after since. A NULL LastViewedAt is treated as 0. Results are ordered by UserId ASC;
+	// pass the last returned UserId as afterUserID to fetch the next page. limit is clamped to
+	// model.ChannelMemberLastViewedMaxPerPage.
+	//
+	// Unlike GetMember, this returns other users' read state verbatim rather than running it
+	// through ChannelMember.SanitizeForCurrentUser. Callers must gate access themselves.
+	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)

@@ -233,33 +233,9 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, actorComment, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
-	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
+	byName, appErr := a.getContentFlaggingPropertiesByName(post.Id)
 	if appErr != nil {
 		return out, appErr
-	}
-
-	groupID, gErr := a.ContentFlaggingGroupId()
-	if gErr != nil {
-		return out, gErr
-	}
-	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
-	if appErr != nil {
-		return out, appErr
-	}
-
-	// Index field ID -> field name so we can resolve property values by name.
-	fieldIDToName := make(map[string]string, len(mappedFields))
-	for name, f := range mappedFields {
-		fieldIDToName[f.ID] = name
-	}
-
-	byName := make(map[string]json.RawMessage, len(values))
-	for _, v := range values {
-		name, ok := fieldIDToName[v.FieldID]
-		if !ok {
-			continue
-		}
-		byName[name] = v.Value
 	}
 
 	out.ReporterUserID = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingUserID)
@@ -388,6 +364,42 @@ func writeYAMLEntry(zw *zip.Writer, name string, payload any) error {
 	}
 	_, err = w.Write(b)
 	return err
+}
+
+// getContentFlaggingPropertiesByName returns a post's content flagging property values keyed
+// by field name, ready for decodePropertyString / decodePropertyInt64. Property values are
+// stored against opaque field IDs, so the field definitions are fetched to build the index.
+func (a *App) getContentFlaggingPropertiesByName(postID string) (map[string]json.RawMessage, *model.AppError) {
+	values, appErr := a.GetPostContentFlaggingPropertyValues(postID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	groupID, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return nil, appErr
+	}
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Index field ID -> field name so we can resolve property values by name.
+	fieldIDToName := make(map[string]string, len(mappedFields))
+	for name, f := range mappedFields {
+		fieldIDToName[f.ID] = name
+	}
+
+	byName := make(map[string]json.RawMessage, len(values))
+	for _, v := range values {
+		name, ok := fieldIDToName[v.FieldID]
+		if !ok {
+			continue
+		}
+		byName[name] = v.Value
+	}
+
+	return byName, nil
 }
 
 // decodePropertyString returns the value for fieldName decoded as a JSON string.

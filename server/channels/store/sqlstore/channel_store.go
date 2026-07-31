@@ -2473,6 +2473,42 @@ func (s SqlChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID strin
 	return lastViewedAt, nil
 }
 
+func (s SqlChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+	if limit <= 0 || limit > model.ChannelMemberLastViewedMaxPerPage {
+		limit = model.ChannelMemberLastViewedMaxPerPage
+	}
+
+	// No join against Channels, and so no Channels.DeleteAt = 0 filter: archiving a channel is
+	// soft, the ChannelMembers rows and their read state survive it, and an exposure report for
+	// a post in an archived channel must still list its members.
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.UserId", "COALESCE(ChannelMembers.LastViewedAt, 0) AS LastViewedAt").
+		From("ChannelMembers").
+		Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).
+		Where(sq.GtOrEq{"COALESCE(ChannelMembers.LastViewedAt, 0)": since}).
+		OrderBy("ChannelMembers.UserId ASC").
+		Limit(uint64(limit))
+
+	// Keyset pagination rather than OFFSET: the (ChannelId, UserId) primary key makes this a
+	// pure index range scan, and UserId is immutable so the cursor stays stable even though
+	// LastViewedAt is mutated by every channel read.
+	if afterUserID != "" {
+		query = query.Where(sq.Gt{"ChannelMembers.UserId": afterUserID})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_members_with_last_viewed_at_since_tosql")
+	}
+
+	members := []*model.ChannelMemberLastViewed{}
+	if err := s.DBXFromContext(rctx.Context()).Select(&members, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find channel members with channelId=%s and lastViewedAt>=%d", channelID, since)
+	}
+
+	return members, nil
+}
+
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
