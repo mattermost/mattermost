@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -118,5 +119,33 @@ func TestVerifySignature(t *testing.T) {
 		require.NoError(t, err)
 		defer signatureFileReader.Close()
 		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+	})
+}
+
+func TestVerifySignatureMFIPluginPublicKey(t *testing.T) {
+	mainHelper.Parallel(t)
+	path, _ := fileutils.FindDir("tests")
+	pluginFilename := "testplugin-federal.tar.gz"
+	signatureFilename := "testplugin-federal.tar.gz.sig"
+	armoredSignatureFilename := "testplugin-federal.tar.gz.asc"
+
+	t.Run("verify armored signature against the MFI public key", func(t *testing.T) {
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.NoError(t, err)
+		defer pluginFileReader.Close()
+		signatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
+		require.NoError(t, err)
+		defer signatureFileReader.Close()
+		require.NoError(t, verifySignature(bytes.NewReader(mfiPluginPublicKey), pluginFileReader, signatureFileReader))
+	})
+
+	t.Run("verify non-armored signature against the MFI public key", func(t *testing.T) {
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.NoError(t, err)
+		defer pluginFileReader.Close()
+		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
+		require.NoError(t, err)
+		defer signatureFileReader.Close()
+		require.NoError(t, verifySignature(bytes.NewReader(mfiPluginPublicKey), pluginFileReader, signatureFileReader))
 	})
 }
