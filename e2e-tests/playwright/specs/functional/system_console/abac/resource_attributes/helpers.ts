@@ -71,7 +71,11 @@ type ParentPolicyOptions = {
  * channels under its rules. Returns the created policy id.
  */
 export async function createParentPolicyViaAPI(adminClient: Client4, opts: ParentPolicyOptions): Promise<string> {
-    const body = {
+    // The version sent here is advisory: CreateOrUpdateAccessControlPolicy
+    // overwrites it (v0.3, bumped to v0.4 only for permission-action rules), and
+    // no version gates resource.attributes.* — that's the
+    // ResourceAttributesInPolicies flag plus the "not a team policy" rule.
+    const policy = await adminClient.updateOrCreateAccessControlPolicy({
         id: '',
         name: opts.name,
         type: 'parent',
@@ -79,12 +83,8 @@ export async function createParentPolicyViaAPI(adminClient: Client4, opts: Paren
         revision: 0,
         active: true,
         rules: [{expression: opts.expression, actions: ['membership']}],
-    };
-    const policy = await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/access_control_policies`, {
-        method: 'put',
-        body: JSON.stringify(body),
     });
-    return policy.id as string;
+    return policy.id;
 }
 
 /**
