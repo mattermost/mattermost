@@ -388,6 +388,62 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await teamSettings.close();
     });
 
+    test('MM-70057_1 team admin sees the last-synced timestamp in the sync footer', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # A policy must exist for the sync footer to render at all
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
+
+        // # Run a sync and wait for it to complete, so there is a timestamp to show
+        await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/jobs`, {
+            method: 'POST',
+            body: JSON.stringify({type: 'access_control_team_sync', data: {policy_id: team.id}}),
+        });
+
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.status === 'success');
+                },
+                {
+                    timeout: 30000,
+                    intervals: [500, 1000, 2000, 3000],
+                    message: 'the team sync job should complete before checking the footer',
+                },
+            )
+            .toBe(true);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // * The footer reports the completed sync. Reading the job list used to be
+        // system-admin only, so a team admin always saw "Never synced" (MM-70057).
+        const syncFooterText = tab.locator('.SyncStatusFooter .SyncStatusFooter__text');
+        await expect(syncFooterText).toContainText(/Last synced/i, {timeout: 15000});
+        await expect(syncFooterText).not.toContainText(/Never synced/i);
+
+        await teamSettings.close();
+    });
+
     test('MM-69100_29 team admin existing policy and auto-add state load correctly on tab open', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
