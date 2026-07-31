@@ -2723,7 +2723,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			Message: new(strings.Repeat("a", th.App.MaxPostSize()+1)),
+			Message: model.NewPointer(strings.Repeat("a", th.App.MaxPostSize()+1)),
 		}
 		patchedPost, resp, err := client.PatchPost(context.Background(), post.Id, patch)
 		require.Error(t, err)
