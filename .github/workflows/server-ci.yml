@@ -391,7 +391,9 @@ jobs:
 
   ci-report:
     name: Server CI Report
-    if: always()
+    # Skip cleanly (rather than fail) when no relevant Server CI paths
+    # changed, since none of the test jobs it reports on will have run.
+    if: always() && needs.go.outputs.relevant-changed == 'true'
     permissions:
       contents: read
       actions: read
@@ -399,6 +401,7 @@ jobs:
       pull-requests: write
       issues: write
     needs:
+      - go
       - ci-complete
     uses: ./.github/workflows/server-ci-report.yml
     secrets:
@@ -414,8 +417,11 @@ jobs:
 
   ci-artifacts:
     name: Server CI Artifacts
+    # Skip when no relevant Server CI paths changed, since build-mattermost-server
+    # (and thus server-dist-artifact) will not have run.
     if: >-
       success('ci-complete') &&
+      needs.go.outputs.relevant-changed == 'true' &&
       github.repository_owner == 'mattermost' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -424,6 +430,7 @@ jobs:
       actions: read
       statuses: write
     needs:
+      - go
       - ci-complete
     uses: ./.github/workflows/server-ci-artifacts.yml
     secrets:
