@@ -2782,8 +2782,9 @@ func TestPatchPost(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		oversizedMessage := strings.Repeat("a", th.App.MaxPostSize()+1)
 		patch := &model.PostPatch{
-			Message: new(strings.Repeat("a", th.App.MaxPostSize()+1)),
+			Message: &oversizedMessage,
 		}
 		patchedPost, resp, err := client.PatchPost(context.Background(), post.Id, patch)
 		require.Error(t, err)
