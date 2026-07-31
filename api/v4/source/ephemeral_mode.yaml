@@ -38,6 +38,11 @@
                     time is always recorded separately as server_ts.
                   type: integer
                   format: int64
+                error_reason:
+                  description: >
+                    An optional reason describing why the cleanup run failed. If provided,
+                    the audit event is recorded as a failure with this reason attached.
+                  type: string
         required: true
       responses:
         "200":
@@ -88,6 +93,11 @@
                     always recorded separately as server_ts.
                   type: integer
                   format: int64
+                error_reason:
+                  description: >
+                    An optional reason describing why the offline purge failed. If provided,
+                    the audit event is recorded as a failure with this reason attached.
+                  type: string
               required:
                 - offline_time_minutes
         required: true
@@ -130,9 +140,6 @@
                 user_id:
                   description: The ID of the user whose session was wiped.
                   type: string
-                session_id:
-                  description: The ID of the session that was wiped.
-                  type: string
                 wipe_at:
                   description: >
                     The time in milliseconds the wipe completed. If omitted, no wipe_at
@@ -140,9 +147,13 @@
                     always recorded separately as server_ts.
                   type: integer
                   format: int64
+                error_reason:
+                  description: >
+                    An optional reason describing why the session wipe failed. If provided,
+                    the audit event is recorded as a failure with this reason attached.
+                  type: string
               required:
                 - user_id
-                - session_id
         required: true
       responses:
         "200":

@@ -51,7 +51,12 @@ func logCleanup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
-	auditRec.Success()
+	if report.ErrorReason != nil && *report.ErrorReason != "" {
+		auditRec.AddErrorDesc(*report.ErrorReason)
+		auditRec.Fail()
+	} else {
+		auditRec.Success()
+	}
 
 	ReturnStatusOK(w)
 }
@@ -82,13 +87,18 @@ func logOfflinePurge(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
-	auditRec.Success()
+	if report.ErrorReason != nil && *report.ErrorReason != "" {
+		auditRec.AddErrorDesc(*report.ErrorReason)
+		auditRec.Fail()
+	} else {
+		auditRec.Success()
+	}
 
 	ReturnStatusOK(w)
 }
 
 // logSessionWipe is called by a client confirming a local wipe after its session was revoked, so
-// it runs without a session and the actor is taken from the self-reported user_id/session_id.
+// it runs without a session and the actor is taken from the self-reported user_id.
 func logSessionWipe(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
 		c.Err = model.NewAppError("logSessionWipe", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Ephemeral Mode"}, "", http.StatusNotImplemented)
@@ -108,20 +118,20 @@ func logSessionWipe(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
-	if report.SessionId == "" {
-		c.SetInvalidParam("session_id")
-		return
-	}
 
 	auditRec.Actor.UserId = report.UserId
-	auditRec.Actor.SessionId = report.SessionId
 
 	if report.WipeAt != nil {
 		model.AddEventParameterToAuditRec(auditRec, "wipe_at", *report.WipeAt)
 	}
 	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
 
-	auditRec.Success()
+	if report.ErrorReason != nil && *report.ErrorReason != "" {
+		auditRec.AddErrorDesc(*report.ErrorReason)
+		auditRec.Fail()
+	} else {
+		auditRec.Success()
+	}
 
 	ReturnStatusOK(w)
 }
