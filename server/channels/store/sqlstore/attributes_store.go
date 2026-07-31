@@ -185,8 +185,12 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
-	searchFields := make([]string, 0, len(UserSearchTypeNames))
-	for _, field := range UserSearchTypeNames {
+	termFields := UserSearchTypeNames
+	if opts.ExcludeFullNames {
+		termFields = UserSearchTypeNamesNoFullName
+	}
+	searchFields := make([]string, 0, len(termFields))
+	for _, field := range termFields {
 		searchFields = append(searchFields, strings.Join([]string{"Users", field}, "."))
 	}
 

@@ -92,12 +92,22 @@ const UserPropertyValues = ({
         event.preventDefault();
     };
 
-    // Externally managed fields are read-only here. Render every source in the
-    // same "Synced with" row: LDAP/SAML links (editable from this screen when
-    // allowed) and owner pills (assigned by integrations such as SCIM).
+    // LDAP/SAML sync locks values and forces text — badge only, no options editor.
+    // Owner-managed (e.g. SCIM) locks *values* to the owner but admins may still
+    // edit the field definition (options) when the type supports them.
     const owners = field.attrs?.owners ?? [];
-    const hasSyncedSources = Boolean(field.attrs.ldap || field.attrs.saml || owners.length > 0);
-    if (hasSyncedSources) {
+    const hasLdapSaml = Boolean(field.attrs.ldap || field.attrs.saml);
+    const hasOwners = owners.length > 0;
+    const isProtected = Boolean(field.attrs?.protected);
+    const optionsEditable = supportsOptions(field) && !hasLdapSaml && !isProtected;
+
+    // In the options cell the sync source sits above the value chips, so it reads
+    // as plain text to avoid looking like another value. When it's the standalone
+    // badge (no options below), keep the chip styling.
+    const ownersInOptionsCell = hasOwners && optionsEditable;
+
+    let syncedBadge: React.ReactNode = null;
+    if (hasLdapSaml || hasOwners) {
         const ownerPills = owners.map((owner, idx) => {
             const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
             const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
@@ -117,7 +127,7 @@ const UserPropertyValues = ({
 
             return (
                 <span
-                    className='user-property-field-values__chip'
+                    className={ownersInOptionsCell ? 'user-property-field-values__owner' : 'user-property-field-values__chip'}
                     key={key}
                     data-testid={`user-property-field-values__owner-${field.name}-${owner.id}`}
                 >
@@ -172,8 +182,8 @@ const UserPropertyValues = ({
             ...ownerPills,
         ].filter(Boolean);
 
-        return (
-            <span className='user-property-field-values'>
+        syncedBadge = (
+            <span className='user-property-field-values__sync'>
                 <SyncIcon size={18}/>
                 <FormattedMessage
                     id='admin.system_properties.user_properties.table.values.synced_with'
@@ -184,7 +194,17 @@ const UserPropertyValues = ({
         );
     }
 
-    if (field.attrs?.protected) {
+    // LDAP/SAML always badge-only. Owner-managed text (and other non-option
+    // types) also stay badge-only — there are no options to edit.
+    if (hasLdapSaml || (hasOwners && !optionsEditable)) {
+        return (
+            <span className='user-property-field-values'>
+                {syncedBadge}
+            </span>
+        );
+    }
+
+    if (isProtected) {
         return (
             <>
                 <span className='user-property-field-values'>
@@ -215,25 +235,19 @@ const UserPropertyValues = ({
         );
     }
 
-    // Ranked fields render numbered chips with a per-chip rank/label/remove
-    // popover instead of the plain creatable value list.
-    if (field.type === 'rank') {
-        return (
-            <UserPropertyRankValues
-                field={field}
-                updateField={updateField}
-                autoFocus={autoFocus}
-            />
-        );
-    }
-
-    const isProtected = Boolean(field.attrs?.protected);
-
     // Linked fields inherit their options from the template they link to; the
     // server rejects an options change on them.
     const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field);
 
-    return (
+    // Ranked fields render numbered chips with a per-chip rank/label/remove
+    // popover instead of the plain creatable value list.
+    const optionsEditor = field.type === 'rank' ? (
+        <UserPropertyRankValues
+            field={field}
+            updateField={updateField}
+            autoFocus={autoFocus}
+        />
+    ) : (
         <>
             <CreatableSelect<Option, true, GroupBase<Option>>
                 components={customComponents}
@@ -263,6 +277,20 @@ const UserPropertyValues = ({
             )}
         </>
     );
+
+    // Owner-managed select/multiselect/rank: show provenance and keep options editable.
+    if (syncedBadge) {
+        return (
+            <div className='user-property-field-values user-property-field-values--with-owners'>
+                {syncedBadge}
+                <div className='user-property-field-values__options'>
+                    {optionsEditor}
+                </div>
+            </div>
+        );
+    }
+
+    return optionsEditor;
 };
 
 const checkForDuplicates = (options: PropertyFieldOption[] | undefined, newOptionName: string) => {
