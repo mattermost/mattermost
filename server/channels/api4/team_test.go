@@ -3752,6 +3752,7 @@ func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
 	resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamGuestRoleId+" "+model.TeamAdminRoleId)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.team.update_team_member_roles.guest_and_admin.app_error")
 
 	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.NoError(t, err)
