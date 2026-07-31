@@ -357,6 +357,10 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
 	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
+	// Permalink previews embed the referenced post verbatim, so its channel mentions
+	// need the same treatment as the parent post's.
+	a.sanitizeEmbeddedChannelMentionsForUser(rctx, post, userID)
+
 	// Strip file attachments denied by ABAC — covers both the post and permalink embeds.
 	if post.Metadata != nil {
 		a.sanitizeFileAttachmentsForUser(rctx, post, userID)
@@ -424,6 +428,36 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	}
 
 	return post
+}
+
+// sanitizeEmbeddedChannelMentionsForUser filters the channel mentions of posts embedded as
+// permalink previews, so that a preview cannot disclose channels the viewer may not resolve.
+func (a *App) sanitizeEmbeddedChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) {
+	if post.Metadata == nil {
+		return
+	}
+
+	for _, embed := range post.Metadata.Embeds {
+		if embed == nil || embed.Type != model.PostEmbedPermalink {
+			continue
+		}
+
+		previewPost, ok := embed.Data.(*model.PreviewPost)
+		if !ok || previewPost == nil || previewPost.Post == nil {
+			continue
+		}
+
+		if previewPost.Post.GetProp(model.PostPropsChannelMentions) == nil {
+			continue
+		}
+
+		// Clone both the inner Post and the outer PreviewPost before mutating.
+		// embed.Data points into the global link-metadata cache; writing through the
+		// shared *PreviewPost pointer would corrupt it for concurrent requests.
+		previewPostCopy := *previewPost
+		previewPostCopy.Post = a.sanitizeChannelMentionsForUser(rctx, previewPost.Post.Clone(), userID)
+		embed.Data = &previewPostCopy
+	}
 }
 
 // sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
