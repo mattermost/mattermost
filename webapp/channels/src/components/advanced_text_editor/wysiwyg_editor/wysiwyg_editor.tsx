@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Extensions} from '@tiptap/core';
 import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
@@ -18,8 +19,9 @@ import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import emojiRegex from 'emoji-regex';
+import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {editLatestPost} from 'actions/views/create_comment';
@@ -91,11 +93,15 @@ export type WysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+
+    // True when the initial `value` failed to load in json mode. See
+    // PublishedWysiwygEditorHandle for the autosave-gating contract.
+    hasContentError: () => boolean;
 };
 
 type Props = {
     value: string;
-    onChange: (markdown: string) => void;
+    onChange: (content: string) => void;
     onSubmit: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -107,6 +113,26 @@ type Props = {
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    contentType?: 'markdown' | 'json';
+    extensions?: Extensions;
+    onContentError?: (error: Error) => void;
+};
+
+const EMPTY_JSON_DOC = {type: 'doc', content: [{type: 'paragraph'}]} as const;
+
+const parseJsonModeContent = (value: string): {content: string | Record<string, unknown>; error: Error | null} => {
+    if (!value) {
+        return {content: EMPTY_JSON_DOC, error: null};
+    }
+    try {
+        const parsed = JSON.parse(value);
+        if (isPlainObject(parsed)) {
+            return {content: parsed as Record<string, unknown>, error: null};
+        }
+        return {content: EMPTY_JSON_DOC, error: new Error('Invalid JSON content: expected an object doc')};
+    } catch (err) {
+        return {content: EMPTY_JSON_DOC, error: err instanceof Error ? err : new Error('Invalid JSON content')};
+    }
 };
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
@@ -123,7 +149,13 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
     onKeyDown,
+    contentType = 'markdown',
+    extensions: extraExtensions,
+    onContentError,
 }, ref) => {
+    // Frozen: the Tiptap schema is fixed at construction, so a mid-flight prop
+    // swap would desync the paste and update handlers from the actual editor.
+    const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
@@ -144,6 +176,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     }, SERIALIZE_DEBOUNCE_MS);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
+        if (jsonMode) {
+            debouncedOnChange(JSON.stringify(editor.getJSON()));
+            return;
+        }
+
         // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
         // empty paragraphs at doc start/end.
         const md = editor.getMarkdown().trimEnd().
@@ -151,38 +188,89 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             replace(/\n\n&nbsp;$/g, '').
             replace(/^&nbsp;$/, '');
         debouncedOnChange(md);
-    }, [debouncedOnChange]);
+    }, [debouncedOnChange, jsonMode]);
+
+    const baseExtensions: Extensions = [
+        StarterKit.configure({
+            heading: {levels: [1, 2, 3, 4, 5, 6]},
+            codeBlock: false,
+            link: false,
+        }),
+        CodeBlockLowlight.configure({
+            lowlight,
+        }),
+        Link.configure({
+            openOnClick: false,
+            autolink: true,
+            linkOnPaste: true,
+        }),
+        Placeholder.configure({
+            placeholder: () => placeholderRef.current,
+            showOnlyCurrent: true,
+        }),
+        Table.configure({resizable: false, cellMinWidth: 80}),
+        TableRow,
+        TableCell,
+        TableHeader,
+        EmojiDecorations,
+    ];
+    if (!jsonMode) {
+        baseExtensions.push(Markdown.configure({markedOptions: {gfm: true}}));
+    }
+    if (extraExtensions?.length) {
+        baseExtensions.push(...extraExtensions);
+    }
+
+    const onContentErrorRef = useLatest(onContentError);
+    const mountedRef = useRef(false);
+    const pendingErrorRef = useRef<Error | null>(null);
+
+    // A ref, not state: the handle must report this synchronously, and a
+    // consumer reading it from its own onContentError handler runs before any
+    // re-render would land.
+    const hasContentErrorRef = useRef(false);
+
+    const [initialContent] = useState<string | Record<string, unknown>>(() => {
+        if (!jsonMode) {
+            return value;
+        }
+        const {content, error} = parseJsonModeContent(value);
+        if (error) {
+            hasContentErrorRef.current = true;
+            pendingErrorRef.current = error;
+        }
+        return content;
+    });
+
+    const captureContentError = (error: Error) => {
+        // Post-mount errors come from consumer-driven commands, not the initial
+        // load, so they forward without latching hasContentError.
+        if (mountedRef.current) {
+            onContentErrorRef.current?.(error);
+            return;
+        }
+
+        hasContentErrorRef.current = true;
+        pendingErrorRef.current = error;
+    };
+
+    useEffect(() => {
+        mountedRef.current = true;
+        if (pendingErrorRef.current) {
+            onContentErrorRef.current?.(pendingErrorRef.current);
+            pendingErrorRef.current = null;
+        }
+    }, []);
 
     const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                heading: {levels: [1, 2, 3, 4, 5, 6]},
-                codeBlock: false,
-                link: false,
-            }),
-            CodeBlockLowlight.configure({
-                lowlight,
-            }),
-            Link.configure({
-                openOnClick: false,
-                autolink: true,
-                linkOnPaste: true,
-            }),
-            Placeholder.configure({
-                placeholder: () => placeholderRef.current,
-                showOnlyCurrent: true,
-            }),
-            Table.configure({resizable: false, cellMinWidth: 80}),
-            TableRow,
-            TableCell,
-            TableHeader,
-            Markdown.configure({
-                markedOptions: {gfm: true},
-            }),
-            EmojiDecorations,
-        ],
-        content: value,
-        contentType: 'markdown',
+        extensions: baseExtensions,
+        content: initialContent,
+        contentType: jsonMode ? undefined : 'markdown',
+        enableContentCheck: jsonMode,
+
+        // Tiptap emits this from the Editor constructor, which useEditor runs
+        // during render — hence the buffering in captureContentError.
+        onContentError: ({error}) => captureContentError(error),
         editable: !disabled,
         editorProps: {
             attributes: {
@@ -191,6 +279,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
             },
             handlePaste: (_view, event) => {
+                if (jsonMode) {
+                    return false;
+                }
+
                 const text = event.clipboardData?.getData('text/plain');
                 if (!text) {
                     return false;
@@ -411,6 +503,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             }
             return null;
         },
+        hasContentError: () => hasContentErrorRef.current,
     }), []);
 
     const lastValueRef = useRef(value);
