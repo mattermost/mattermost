@@ -152,8 +152,14 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 	buf := &bytes.Buffer{}
 
 	if isGIF {
-		g, err := gif.DecodeAll(file)
+		// The shared decoder bounds the total number of pixels decoded across
+		// all frames and limits how many decodes can run concurrently, so a
+		// small but heavily amplifying GIF can't exhaust server resources.
+		g, err := a.ch.imgDecoder.DecodeAllGIF(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionExceeded) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.too_much_image_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
@@ -162,8 +168,11 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	} else {
-		img, _, err := image.Decode(file)
+		img, _, err := a.ch.imgDecoder.Decode(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionExceeded) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.too_much_image_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 

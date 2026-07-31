@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	_ "image/gif"
+	"image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
@@ -17,7 +17,14 @@ import (
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
+
+// ErrResolutionExceeded is returned when an image declares more pixels than the
+// decoder is configured to decode. Callers can use it to distinguish an
+// over-sized image from malformed input.
+var ErrResolutionExceeded = errors.New("imaging: image resolution exceeds the maximum allowed")
 
 // DecoderOptions holds configuration options for an image decoder.
 type DecoderOptions struct {
@@ -26,10 +33,12 @@ type DecoderOptions struct {
 	ConcurrencyLevel int
 
 	// MaxDecodedResolution, when greater than zero, is the maximum number of
-	// pixels (width*height) an image may declare before it is decoded. Images
-	// exceeding this limit are rejected up front. This is a defense-in-depth
-	// guard against decompression bombs that bounds server-side memory
-	// allocation regardless of the underlying codec's behavior.
+	// pixels an image may declare before it is decoded. For a single frame that
+	// is width*height; for an animated GIF decoded through DecodeAllGIF it is
+	// width*height*frameCount. Images exceeding this limit are rejected up
+	// front. This is a defense-in-depth guard against decompression bombs that
+	// bounds server-side memory allocation regardless of the underlying codec's
+	// behavior.
 	MaxDecodedResolution int64
 }
 
@@ -108,7 +117,7 @@ func (d *Decoder) checkConfigResolution(cfg image.Config, cfgErr error) error {
 		return nil
 	}
 	if exceedsResolution(int64(cfg.Width), int64(cfg.Height), d.opts.MaxDecodedResolution) {
-		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels", cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
+		return fmt.Errorf("%w: %dx%d exceeds %d pixels", ErrResolutionExceeded, cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
 	}
 	return nil
 }
@@ -121,6 +130,19 @@ func exceedsResolution(width, height, maxRes int64) bool {
 		return false
 	}
 	return width > maxRes/height
+}
+
+// exceedsTotalResolution reports whether width*height*frames exceeds maxRes,
+// dividing instead of multiplying so it can't overflow int64.
+func exceedsTotalResolution(width, height, frames, maxRes int64) bool {
+	if width <= 0 || height <= 0 || frames <= 0 {
+		return false
+	}
+	if exceedsResolution(width, height, maxRes) {
+		return true
+	}
+	// width*height is bounded by maxRes at this point, so it can't overflow.
+	return width*height > maxRes/frames
 }
 
 // Decode decodes the given encoded data and returns the decoded image.
@@ -141,6 +163,84 @@ func (d *Decoder) Decode(rd io.Reader) (img image.Image, format string, err erro
 	}
 
 	return img, format, nil
+}
+
+// DecodeAllGIF decodes every frame of the given GIF data. Unlike Decode, which
+// materializes only the first frame, the resolution cap is applied to the total
+// number of pixels across all frames, and the decode is gated by the decoder's
+// concurrency limit.
+func (d *Decoder) DecodeAllGIF(rd io.Reader) (*gif.GIF, error) {
+	rs, ok := rd.(io.ReadSeeker)
+	if !ok {
+		// The frame count and the config have to be read before decoding, so a
+		// non-seekable reader is buffered to allow replaying the data.
+		data, err := io.ReadAll(rd)
+		if err != nil {
+			return nil, fmt.Errorf("imaging: failed to read image data: %w", err)
+		}
+		rs = bytes.NewReader(data)
+	}
+
+	if err := d.enforceGIFResolutionLimit(rs); err != nil {
+		return nil, err
+	}
+
+	if d.opts.ConcurrencyLevel != 0 {
+		d.sem <- struct{}{}
+		defer func() { <-d.sem }()
+	}
+
+	g, err := gif.DecodeAll(rs)
+	if err != nil {
+		return nil, fmt.Errorf("imaging: failed to decode gif: %w", err)
+	}
+
+	return g, nil
+}
+
+// enforceGIFResolutionLimit rejects GIFs whose total decoded resolution
+// (width*height*frameCount) exceeds the configured MaxDecodedResolution. Both
+// the declared dimensions and the frame count are read without materializing
+// any pixel data. The reader is left at the position it was given at.
+func (d *Decoder) enforceGIFResolutionLimit(rs io.ReadSeeker) error {
+	if d.opts.MaxDecodedResolution <= 0 {
+		return nil
+	}
+
+	start, err := rs.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return fmt.Errorf("imaging: failed to read image position: %w", err)
+	}
+	rewind := func() error {
+		if _, err := rs.Seek(start, io.SeekStart); err != nil {
+			return fmt.Errorf("imaging: failed to seek back to the beginning of the image data: %w", err)
+		}
+		return nil
+	}
+
+	cfg, _, cfgErr := image.DecodeConfig(rs)
+	if err := rewind(); err != nil {
+		return err
+	}
+	// Malformed input is left for gif.DecodeAll to report, which fails without
+	// allocating frame data.
+	if cfgErr != nil {
+		return nil
+	}
+
+	frames, framesErr := imgutils.CountGIFFrames(rs)
+	if err := rewind(); err != nil {
+		return err
+	}
+	if framesErr != nil {
+		return nil
+	}
+
+	if exceedsTotalResolution(int64(cfg.Width), int64(cfg.Height), int64(frames), d.opts.MaxDecodedResolution) {
+		return fmt.Errorf("%w: %dx%d over %d frames exceeds %d pixels", ErrResolutionExceeded, cfg.Width, cfg.Height, frames, d.opts.MaxDecodedResolution)
+	}
+
+	return nil
 }
 
 // DecodeMemBounded works similarly to Decode but also returns a release function that

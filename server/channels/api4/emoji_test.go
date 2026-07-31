@@ -199,6 +199,22 @@ func TestCreateEmoji(t *testing.T) {
 	_, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestAnimatedGif(t, 200, 200, app.MaxEmojiGIFFrames), "image.gif")
 	require.NoError(t, err, "should succeed - gif has exactly the maximum allowed frames")
 
+	// try to create an animated gif that respects the size, dimension and frame
+	// limits individually but decodes to more pixels than the server processes
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	maxRes := *th.App.Config().FileSettings.MaxImageResolution
+	overBudgetFrames := int(maxRes/(app.MaxEmojiOriginalWidth*app.MaxEmojiOriginalHeight)) + 1
+	require.LessOrEqual(t, overBudgetFrames, app.MaxEmojiGIFFrames)
+
+	_, resp, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestAnimatedGif(t, app.MaxEmojiOriginalWidth, app.MaxEmojiOriginalHeight, overBudgetFrames), "image.gif")
+	require.Error(t, err, "should fail - gif decodes to too many pixels")
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.emoji.upload.too_much_image_data.app_error")
+
 	// try to create an emoji with data that isn't an image
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,

@@ -2325,6 +2325,10 @@
     "translation": "Unable to create emoji. Animated GIF must have at most {{.MaxFrames}} frames."
   },
   {
+    "id": "api.emoji.upload.too_much_image_data.app_error",
+    "translation": "Unable to create emoji. The image is too large to process. Reduce its dimensions or its number of frames."
+  },
+  {
     "id": "api.encoding_error",
     "translation": "Encountered an error encoding JSON for the API response"
   },

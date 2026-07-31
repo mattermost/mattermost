@@ -6,6 +6,8 @@ package imaging
 import (
 	"bytes"
 	"image"
+	"image/color"
+	"image/gif"
 	"image/png"
 	"io"
 	"os"
@@ -323,6 +325,138 @@ func TestDecoderMaxDecodedResolution(t *testing.T) {
 		require.NotNil(t, img)
 		require.Equal(t, "png", format)
 	})
+}
+
+// TestDecoderDecodeAllGIF verifies that decoding every frame of an animated GIF
+// is bounded by the total number of pixels across all frames and gated by the
+// decoder's concurrency limit.
+func TestDecoderDecodeAllGIF(t *testing.T) {
+	makeGIF := func(w, h, frames int) []byte {
+		g := &gif.GIF{
+			Image: make([]*image.Paletted, frames),
+			Delay: make([]int, frames),
+		}
+		for i := range frames {
+			g.Image[i] = image.NewPaletted(image.Rect(0, 0, w, h), color.Palette{color.Black})
+		}
+		var buf bytes.Buffer
+		require.NoError(t, gif.EncodeAll(&buf, g))
+		return buf.Bytes()
+	}
+
+	t.Run("decodes every frame", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 10, 5)))
+		require.NoError(t, err)
+		require.Len(t, g.Image, 5)
+		require.Equal(t, 20, g.Config.Width)
+		require.Equal(t, 10, g.Config.Height)
+	})
+
+	// A single frame is within the cap here, so only the combined budget can
+	// reject this GIF.
+	t.Run("rejects total resolution exceeding the cap", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 5))) // 2000px > 1000
+		require.ErrorIs(t, err, ErrResolutionExceeded)
+		require.Nil(t, g)
+	})
+
+	t.Run("allows total resolution within the cap", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 2))) // 800px <= 1000
+		require.NoError(t, err)
+		require.Len(t, g.Image, 2)
+	})
+
+	t.Run("cap enforced on non-seekable reader", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
+		require.NoError(t, err)
+
+		// io.MultiReader is not an io.ReadSeeker.
+		g, err := d.DecodeAllGIF(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 5))))
+		require.ErrorIs(t, err, ErrResolutionExceeded)
+		require.Nil(t, g)
+	})
+
+	t.Run("non-seekable reader within the cap decodes from buffer", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(io.MultiReader(bytes.NewReader(makeGIF(20, 20, 2))))
+		require.NoError(t, err)
+		require.Len(t, g.Image, 2)
+	})
+
+	t.Run("cap disabled by default", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(bytes.NewReader(makeGIF(20, 20, 5)))
+		require.NoError(t, err)
+		require.Len(t, g.Image, 5)
+	})
+
+	t.Run("malformed data", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000, ConcurrencyLevel: 1})
+		require.NoError(t, err)
+
+		g, err := d.DecodeAllGIF(bytes.NewReader([]byte("garbage data")))
+		require.Error(t, err)
+		require.NotErrorIs(t, err, ErrResolutionExceeded)
+		require.Nil(t, g)
+		require.Empty(t, d.sem)
+	})
+
+	t.Run("concurrency bounded", func(t *testing.T) {
+		d, err := NewDecoder(DecoderOptions{ConcurrencyLevel: 1})
+		require.NoError(t, err)
+
+		data := makeGIF(20, 20, 5)
+
+		var wg sync.WaitGroup
+		for range 2 {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				g, err := d.DecodeAllGIF(bytes.NewReader(data))
+				require.NoError(t, err)
+				require.Len(t, g.Image, 5)
+			}()
+		}
+
+		wg.Wait()
+		require.Empty(t, d.sem)
+	})
+}
+
+// TestExceedsTotalResolution verifies the combined frame budget rejects
+// over-limit GIFs, including frame counts and dimensions large enough to
+// overflow a naive int64 multiplication.
+func TestExceedsTotalResolution(t *testing.T) {
+	const maxRes = int64(1000)
+
+	require.False(t, exceedsTotalResolution(10, 10, 10, maxRes)) // exactly at the cap
+	require.True(t, exceedsTotalResolution(10, 10, 11, maxRes))
+
+	// A single frame already over the cap is rejected regardless of the frame
+	// count.
+	require.True(t, exceedsTotalResolution(100, 100, 1, maxRes))
+
+	// width*height*frames here overflows int64; the division-based check must
+	// still reject it rather than wrap to a small/negative value.
+	require.True(t, exceedsTotalResolution(1<<40, 1<<40, 1<<40, maxRes))
+
+	// Non-positive values are treated as not exceeding the cap.
+	require.False(t, exceedsTotalResolution(0, 10, 10, maxRes))
+	require.False(t, exceedsTotalResolution(10, 0, 10, maxRes))
+	require.False(t, exceedsTotalResolution(10, 10, 0, maxRes))
 }
 
 // TestExceedsResolution verifies the resolution comparison rejects over-limit
