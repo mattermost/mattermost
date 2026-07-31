@@ -4,6 +4,8 @@
 package docextractor
 
 import (
+	"context"
+	"errors"
 	"io"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -31,12 +33,17 @@ func (ce *combineExtractor) Match(filename string) bool {
 	return false
 }
 
-func (ce *combineExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+func (ce *combineExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
 	for _, extractor := range ce.SubExtractors {
 		if extractor.Match(filename) {
 			r.Seek(0, io.SeekStart)
-			text, err := extractor.Extract(filename, r, maxFileSize)
+			text, err := extractor.Extract(ctx, filename, r, maxFileSize)
 			if err != nil {
+				// Context errors must not be retried: the caller explicitly
+				// cancelled or timed out, so stop immediately.
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					return "", err
+				}
 				ce.logger.Warn("Unable to extract file content", mlog.String("file_name", filename), mlog.String("extractor", extractor.Name()), mlog.Err(err))
 				continue
 			}

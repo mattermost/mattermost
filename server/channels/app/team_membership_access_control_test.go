@@ -482,6 +482,50 @@ func TestAssignAccessControlPolicyToTeams(t *testing.T) {
 		require.Contains(t, saved.Imports, parentID, "Inherit must set Imports to the parent ID")
 		mockACS.AssertExpectations(t)
 	})
+
+	// Auto-add is the team-child's Active flag. Assigning a policy must not turn
+	// it on by itself — the child inherits the parent's Active, so an inactive
+	// parent leaves auto-add off (the sync still enforces removal regardless).
+	for _, tc := range []struct {
+		name         string
+		parentActive bool
+	}{
+		{"inactive parent leaves auto-add off", false},
+		{"active parent carries through", true},
+	} {
+		t.Run("team-child Active mirrors the parent: "+tc.name, func(t *testing.T) {
+			team := th.CreateTeam(t)
+
+			activeParent := &model.AccessControlPolicy{
+				Type:     model.AccessControlPolicyTypeParent,
+				ID:       parentID,
+				Name:     "parentPolicy",
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Active:   tc.parentActive,
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+				},
+			}
+
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().ch.AccessControl = mockACS
+			t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+			mockACS.On("GetPolicy", th.Context, parentID).Return(activeParent, nil)
+			mockACS.On("GetPolicy", th.Context, team.Id).
+				Return((*model.AccessControlPolicy)(nil), model.NewAppError("GetPolicy", "not_found", nil, "", http.StatusNotFound))
+
+			var saved *model.AccessControlPolicy
+			mockACS.On("SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy")).
+				Run(func(args mock.Arguments) { saved = args.Get(1).(*model.AccessControlPolicy) }).
+				Return(&model.AccessControlPolicy{ID: team.Id, Type: model.AccessControlPolicyTypeTeam}, nil)
+
+			_, appErr := th.App.AssignAccessControlPolicyToTeams(th.Context, parentID, []string{team.Id})
+			require.Nil(t, appErr)
+			require.Equal(t, tc.parentActive, saved.Active, "team-child Active must equal the parent's, never be force-enabled")
+		})
+	}
 }
 
 func TestUnassignPoliciesFromTeams(t *testing.T) {
@@ -620,7 +664,7 @@ func TestGetUsersNotInAbacTeam(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		thMock.App.Srv().ch.AccessControl = nil
 
-		users, appErr := thMock.App.GetUsersNotInAbacTeam(thMock.Context, model.NewId(), "", 50, true)
+		users, appErr := thMock.App.GetUsersNotInAbacTeam(thMock.Context, model.NewId(), "", "", 50, true)
 		require.NotNil(t, appErr)
 		require.Nil(t, users)
 		require.Equal(t, "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error", appErr.Id)
@@ -636,13 +680,68 @@ func TestGetUsersNotInAbacTeam(t *testing.T) {
 
 		want := []*model.User{{Id: model.NewId(), Username: model.NewUsername()}}
 		mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
-			return opts.Limit == 25 && opts.Cursor.TargetID == "cursor-id"
+			return opts.Limit == 25 && opts.Cursor.TargetID == "cursor-id" && opts.Term == ""
 		})).Return(want, int64(1), (*model.AppError)(nil))
 
-		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "cursor-id", 25, true)
+		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "", "cursor-id", 25, true)
 		require.Nil(t, appErr)
 		require.Len(t, users, 1)
 		require.Equal(t, want[0].Id, users[0].Id)
 		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("search term is forwarded to the access control query", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		teamID := model.NewId()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		want := []*model.User{{Id: model.NewId(), Username: model.NewUsername()}}
+		mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.Term == "eng" && opts.Limit == 20
+		})).Return(want, int64(1), (*model.AppError)(nil))
+
+		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "eng", "", 20, true)
+		require.Nil(t, appErr)
+		require.Len(t, users, 1)
+		require.Equal(t, want[0].Id, users[0].Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("full-name term search is gated by ShowFullName for non-admin callers", func(t *testing.T) {
+		testCases := []struct {
+			name             string
+			asAdmin          bool
+			showFullName     bool
+			wantExcludeNames bool
+		}{
+			{"non-admin with ShowFullName off excludes full names", false, false, true},
+			{"non-admin with ShowFullName on allows full names", false, true, false},
+			{"admin always allows full names", true, false, false},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				teamID := model.NewId()
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.PrivacySettings.ShowFullName = model.NewPointer(tc.showFullName)
+				})
+
+				mockACS := &mocks.AccessControlServiceInterface{}
+				th.App.Srv().ch.AccessControl = mockACS
+				t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+				mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+					return opts.ExcludeFullNames == tc.wantExcludeNames
+				})).Return([]*model.User{}, int64(0), (*model.AppError)(nil))
+
+				_, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "smith", "", 20, tc.asAdmin)
+				require.Nil(t, appErr)
+				mockACS.AssertExpectations(t)
+			})
+		}
 	})
 }

@@ -2777,7 +2777,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 
 	t.Run("non-integration edit of bot post reverts mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
-			Message:       "bot post with inline actions",
+			Message:       "bot post with inline actions [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2790,13 +2790,15 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
 		// A non-integration session tries to swap mm_blocks_actions wholesale.
+		// The message keeps referencing "keep" so reconciliation retains the
+		// (reverted) original action; only the guard is under test here.
 		newInline := buildMmBlocksActionsProp(
 			"swap",
 			"http://127.0.0.1/plugins/myplugin/swapped",
 			map[string]any{"k": "attacker"},
 		)
 		edit := created.Clone()
-		edit.Message = "edited message"
+		edit.Message = "edited message [keep](mmaction://keep)"
 		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		// th.Context has an empty/zero session — not an integration.
@@ -2812,7 +2814,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		assert.Nil(t, updated.GetMmBlocksActionSpec("swap"))
 
 		// Message change should still be applied.
-		assert.Equal(t, "edited message", updated.Message)
+		assert.Equal(t, "edited message [keep](mmaction://keep)", updated.Message)
 	})
 
 	t.Run("non-integration edit cannot add mm_blocks_actions when original had none", func(t *testing.T) {
@@ -2845,7 +2847,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		// mm_blocks_actions. A PAT-holding user could otherwise inject
 		// mm_blocks_actions on any post they can edit.
 		botPost := &model.Post{
-			Message:       "bot post for integration edit",
+			Message:       "bot post for integration edit [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2880,7 +2882,7 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 
 	t.Run("AllowMmBlocksActionsUpdate option accepts new mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
-			Message:       "bot post for plugin-path edit",
+			Message:       "bot post for plugin-path edit [keep](mmaction://keep)",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
@@ -2897,6 +2899,8 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 			map[string]any{"k": "plugin"},
 		)
 		edit := created.Clone()
+		// Point the content at the new action so reconciliation keeps it.
+		edit.Message = "plugin-path edit [plugin](mmaction://plugin)"
 		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		// Non-integration session, but AllowMmBlocksActionsUpdate grants write.
@@ -2907,6 +2911,116 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 		integration := updated.GetMmBlocksActionSpec("plugin")
 		require.NotNil(t, integration)
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/plugin", integration.URL)
+	})
+
+	t.Run("integration session can modify mm_blocks_actions on its own post", func(t *testing.T) {
+		// A bot editing its OWN post over REST may change its buttons — this is
+		// the case the freeze previously blocked with no available flag.
+		botPost := &model.Post{
+			Message:       "bot post for own-post edit [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		// Integration session belonging to the post's own bot author.
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+		require.True(t, ownCtx.Session().IsIntegration())
+
+		newInline := buildMmBlocksActionsProp(
+			"refreshed",
+			"http://127.0.0.1/plugins/myplugin/refreshed",
+			map[string]any{"k": "new"},
+		)
+		edit := created.Clone()
+		// New content references the new action; reconciliation keeps it and
+		// drops the now-unreferenced "keep".
+		edit.Message = "refreshed message [refreshed](mmaction://refreshed)"
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		// The new value lands; the old one is gone.
+		refreshed := updated.GetMmBlocksActionSpec("refreshed")
+		require.NotNil(t, refreshed, "bot editing its own post should be able to change mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/refreshed", refreshed.URL)
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"))
+		assert.Equal(t, "refreshed message [refreshed](mmaction://refreshed)", updated.Message)
+	})
+
+	t.Run("message-only edit that keeps the button preserves mm_blocks_actions", func(t *testing.T) {
+		// A message-only edit that still references the action must not wipe
+		// its button — the update carries no mm_blocks_actions, so the original
+		// is preserved, and the content still references it, so reconciliation
+		// keeps it.
+		botPost := &model.Post{
+			Message:       "bot post for message-only edit [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+
+		edit := created.Clone()
+		edit.Message = "message only change [keep](mmaction://keep)"
+		edit.DelProp(model.PostPropsMmBlocksActions)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		keep := updated.GetMmBlocksActionSpec("keep")
+		require.NotNil(t, keep, "message-only edit that keeps the button must not wipe mm_blocks_actions")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", keep.URL)
+		assert.Equal(t, "message only change [keep](mmaction://keep)", updated.Message)
+	})
+
+	t.Run("dropping the button from content revokes the lingering action", func(t *testing.T) {
+		// The reviewer's scenario: a post with an action is edited to remove
+		// the button from its content while the update omits mm_blocks_actions.
+		// The guard preserves the old registry value, but reconciliation prunes
+		// it against the new content — since nothing references the action any
+		// more, it is genuinely revoked rather than left callable-but-invisible.
+		botPost := &model.Post{
+			Message:       "bot post that will lose its button [keep](mmaction://keep)",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: originalInline,
+			},
+		}
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+		require.Nil(t, cErr)
+		require.NotNil(t, created.GetMmBlocksActionSpec("keep"))
+
+		ownSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+		ownCtx := th.Context.WithSession(ownSession)
+
+		// The edit removes the button reference and does not carry the prop.
+		edit := created.Clone()
+		edit.Message = "the button is gone now"
+		edit.DelProp(model.PostPropsMmBlocksActions)
+
+		updated, _, uErr := th.App.UpdatePost(ownCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, uErr)
+
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"), "action unreferenced by content must be pruned")
+		assert.Nil(t, updated.GetAction("keep"), "pruned action must not be dispatchable at click time")
+		assert.Equal(t, "the button is gone now", updated.Message)
 	})
 }
 
@@ -3416,7 +3530,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 		w.WriteHeader(http.StatusOK)
 		resp := `{
 			"update": {
-				"message": "updated via plugin",
+				"message": "updated via plugin [orig](mmaction://orig)",
 				"props": {
 					"mm_blocks_actions": {
 						"broken": {"type": "external", "url": ""}
@@ -3437,7 +3551,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 		nil,
 	)
 	botPost := &model.Post{
-		Message:       "bot post with valid inline actions",
+		Message:       "bot post with valid inline actions [orig](mmaction://orig)",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        botUser.Id,
@@ -3474,7 +3588,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 	// Message update still applied — the invalid mm_blocks_actions were
 	// restored to the original value with a warning, so the rest of the
 	// response.Update is persisted.
-	assert.Equal(t, "updated via plugin", stored.Message)
+	assert.Equal(t, "updated via plugin [orig](mmaction://orig)", stored.Message)
 	// The broken action from the plugin response must never be stored.
 	assert.Nil(t, stored.GetMmBlocksActionSpec("broken"), "invalid mm_blocks action from plugin response must not be persisted")
 	// The original valid mm_blocks_actions must survive — an invalid plugin

@@ -146,6 +146,10 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
+	TeamSettingsLockProfileFieldsNone            = "none"
+	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
+	TeamSettingsLockProfileFieldsAll             = "all"
+
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
@@ -2559,6 +2563,7 @@ type TeamSettings struct {
 	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	LockProfileFieldsForEmailUsers     *string  `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
 	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
@@ -2658,6 +2663,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.LockTeammateNameDisplay == nil {
 		s.LockTeammateNameDisplay = new(false)
+	}
+
+	if s.LockProfileFieldsForEmailUsers == nil {
+		s.LockProfileFieldsForEmailUsers = new(TeamSettingsLockProfileFieldsNone)
 	}
 }
 
@@ -4101,6 +4110,10 @@ type AccessControlSettings struct {
 	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4125,6 +4138,24 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.EnforceDeviceIDConsistency == nil {
 		s.EnforceDeviceIDConsistency = new(false)
 	}
+
+	if s.EnableAccessControlAuditLogging == nil {
+		s.EnableAccessControlAuditLogging = new(false)
+	}
+
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
+	}
+}
+
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ConfigFunc func() *Config
@@ -4222,6 +4253,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	AIRecapSettings             AIRecapSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4342,6 +4374,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.AIRecapSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4502,11 +4535,19 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.AIRecapSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.MobileEphemeralModeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4544,6 +4585,10 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !*s.ExperimentalViewArchivedChannels {
 		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNone || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNameAndUsername || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsAll) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.lock_profile_fields.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

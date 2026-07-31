@@ -21,7 +21,7 @@ export type ActionResult<Data = unknown, Error = unknown> = {
 
 export type WysiwygEditorProps = {
     value: string;
-    onChange: (markdown: string) => void;
+    onChange: (content: string) => void;
     onSubmit: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -33,6 +33,16 @@ export type WysiwygEditorProps = {
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+
+    // 'json' reads and emits stringified ProseMirror JSON. Mount-only.
+    contentType?: 'markdown' | 'json';
+
+    // Mount-only. `any[]` so consumers don't need `@tiptap/core` transitively.
+    extensions?: any[];
+
+    // Any content error in 'json' mode, for the editor's lifetime. See
+    // hasContentError() for the autosave-gating contract.
+    onContentError?: (error: Error) => void;
 };
 
 export type SuggestionListProps = {
@@ -121,6 +131,15 @@ export type PublishedWysiwygEditorHandle = {
     focus: () => void;
     blur: () => void;
     getInputBox: () => HTMLElement | null;
+
+    // Null until the mount effect runs, so a useLayoutEffect can still miss it.
+    // In 'json' mode use getJSON(); getMarkdown() isn't attached.
+    getEditor: () => any;
+
+    // True when the initial `value` failed to load in 'json' mode. Autosaving
+    // consumers must gate the first onChange on this, or the empty fallback
+    // overwrites the source. Load-only, so it can't stall a healthy session.
+    hasContentError: () => boolean;
 };
 
 export type PublishedFormattingBarHandle = {
