@@ -105,7 +105,7 @@
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": "نقش‌های اعضای تیم نامعتبر بیش از {{.Limit}} کاراکتر است."
+    "translation": "نقش‌های عضو تیم نامعتبر است؛ نباید بیش از {{.Limit}} نویسه باشد."
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -277,7 +277,7 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "شناسه افزونه نامعتبر ، باید بیش از {{.Min}} و حداکثر {{.Max}} نویسه باشد."
+    "translation": "شناسهٔ افزونه نامعتبر است؛ باید بیش از {{.Min}} و حداکثر {{.Max}} نویسه باشد."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
@@ -1041,7 +1041,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "مجوزهای نامناسب کانال."
+    "translation": "کاربر {{.user}} مجوزهای مناسب برای کانال {{.channel}} را ندارد"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -1593,7 +1593,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "نوع همگام سازی پشتیبانی نشده '{{.Value}}'."
+    "translation": "نوع همگام‌سازی پشتیبانی‌نشده '{{.Value}}'."
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -2609,7 +2609,7 @@
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "شکلک دریافت نمی شود."
+    "translation": "دریافت ایموجی امکان‌پذیر نیست."
   },
   {
     "id": "app.emoji.get.no_result",
@@ -2877,7 +2877,7 @@
   },
   {
     "id": "app.channel.get_deleted.missing.app_error",
-    "translation": "هیچ کانال حذف شده ای وجود ندارد."
+    "translation": "هیچ کانال حذف‌شده‌ای وجود ندارد."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
@@ -2889,7 +2889,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "حساب های مهمان غیرفعال شده است"
+    "translation": "حساب‌های مهمان غیرفعال هستند"
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -3061,7 +3061,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "جستجوی الاستیک در این سرور فعال نیست"
+    "translation": "جستجوی {{.Backend}} در این سرور فعال نیست"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -3261,7 +3261,7 @@
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "دریافت وب هوک امکان پذیر نیست."
+    "translation": "دریافت وب‌هوک امکان‌پذیر نیست."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
@@ -3277,7 +3277,7 @@
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
-    "translation": "حذف وب هوک امکان پذیر نیست"
+    "translation": "حذف وب‌هوک امکان‌پذیر نیست."
   },
   {
     "id": "app.webhooks.delete_incoming.app_error",
@@ -3553,7 +3553,7 @@
   },
   {
     "id": "app.role.get_by_name.app_error",
-    "translation": "دریافت نقش امکان پذیر نیست."
+    "translation": "دریافت نقش امکان‌پذیر نیست."
   },
   {
     "id": "app.role.get_all.app_error",
@@ -3929,7 +3929,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] اعلان در {{.TeamName}} در {{.Month}} {{.Day}} ، {{.Year}}"
+    "translation": "[{{ .SiteName }}] اعلان در {{ .TeamName}} در {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -4493,7 +4493,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "برای به روزرسانی آدرس ایمیل خود برای{{.TeamDisplayName}} ، لطفاً روی پیوند زیر کلیک کنید تا این آدرس درست را تأیید کنید."
+    "translation": "برای تکمیل به‌روزرسانی نشانی ایمیل خود برای {{.TeamDisplayName}}، لطفاً روی پیوند زیر کلیک کنید تا تأیید شود این نشانی درست است."
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -4585,7 +4585,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "این کانال از%v به این تیم منتقل شده است."
+    "translation": "این کانال از %v به این تیم منتقل شده است."
   },
   {
     "id": "api.team.move_channel.post.error",
@@ -5201,7 +5201,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "اتصال وب سوکت به روز نشد."
+    "translation": "URL به دلیل CORS مسدود شد. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -5786,15 +5786,15 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} تصویر ارسالی: {{.Filenames}}",
-      "other": "{{.Count}} تصاویر ارسالی: {{.Filenames}}"
+      "one": "{{.Count}} تصویر ارسال شد: {{.Filenames}}",
+      "other": "{{.Count}} تصویر ارسال شد: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "one": "{{.Count}} پرونده ارسالی: {{.Filenames}}",
-      "other": "{{.Count}} پرونده های ارسالی: {{.Filenames}}"
+      "one": "{{.Count}} پرونده ارسال شد: {{.Filenames}}",
+      "other": "{{.Count}} پرونده ارسال شد: {{.Filenames}}"
     }
   },
   {
@@ -5903,7 +5903,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
-    "translation": "ثبت نام کاربر غیرفعال است."
+    "translation": "ثبت‌نام کاربر غیرفعال است."
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
@@ -6219,7 +6219,7 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "رمزگشایی نماد تیم امکان پذیر نیست."
+    "translation": "رمزگشایی نماد تیم امکان‌پذیر نیست."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -6465,7 +6465,7 @@
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] اعلان جدید برای {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] اعلانهای جدید برای {{.Month}} {{.Day}}, {{.Year}}"
+      "other": "[{{.SiteName}}] اعلان‌های جدید برای {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
@@ -6702,7 +6702,7 @@
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "برای مدیریت کانال های به اشتراک گذاشته شده به مجوز `{{.Permission}}` نیاز دارید."
+    "translation": "برای مدیریت کانال‌های مشترک به مجوز `{{.Permission}}` نیاز دارید."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -7032,7 +7032,7 @@
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
       "one": "{{.User}} از قبل در کانال است.",
-      "other": ""
+      "other": "{{.User}} از قبل در کانال هستند."
     }
   },
   {
@@ -7041,7 +7041,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "کانال {{.Channel}} پیدا نشد. لطفاً از [شناساگر کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) برای شناسایی کانال‌ها استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. لطفاً از [شناسهٔ کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) برای شناسایی کانال‌ها استفاده کنید."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -7173,7 +7173,7 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "پیام های گروهی حداکثر به {{.MaxUsers}} کاربر محدود می شود."
+    "translation": "پیام‌های گروهی حداکثر به {{.MaxUsers}} کاربر محدود می‌شوند."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -7496,7 +7496,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "دستور '{{.Trigger}}' در ارسال پاسخ ناموفق بود. لطفا با سرپرست سیستم خود تماس بگیرید."
+    "translation": "دستور '{{.Trigger}}' در ارسال پاسخ ناموفق بود. لطفاً با مدیر سیستم خود تماس بگیرید."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -8105,5 +8105,101 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "دعوت از سرور راه دور به کانال امکان‌پذیر نیست: {{.Error}}"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "جابه‌جایی موضوع غیرفعال است"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "حداکثر {{.MaxRecipients}} گیرنده برای پست اعلان مداوم مجاز است."
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "کاربر ربات Integration/Slack با ایمیل {{.Email}} درون‌ریزی شد.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "ارسال ایمیل بازنشانی رمز عبور به {{.Username}} در {{.Email}} امکان‌پذیر نیست.\r\n"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "{{.Count}} فایل از دیسک حذف شد.",
+      "other": "{{.Count}} فایل از دیسک حذف شد."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "{{.Count}} نسخه از {{.Total}} پاک شد.",
+      "other": "{{.Count}} نسخه از {{.Total}} پاک شد."
+    }
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "کاربر مهمانِ سیستم است اما در همهٔ تیم‌ها نقش مهمان تیم را ندارد. تعداد مهمان تیم: {{.TeamGuestCount}}، مجموع تیم‌ها: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "دریافت تعداد کاربران ناموفق بود"
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "فیلد ویژگی {{.FieldID}} یافت نشد."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "علامت‌گذاری جمع‌بندی به‌عنوان خوانده‌شده ناموفق بود."
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} مورد در کانال {{.ChannelName}}. دلیل: {{.ErrorReason}}",
+      "other": "- {{.Count}} مورد در کانال {{.ChannelName}}. دلیل: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "ارسال {{.Count}} پیام زمان‌بندی‌شده ناموفق بود.",
+      "other": "ارسال {{.Count}} پیام زمان‌بندی‌شده ناموفق بود."
+    }
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "دریافت تعداد تیم‌ها امکان‌پذیر نیست"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "post_id نامعتبر است"
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "مقدار expires_at ارائه‌شده از حداکثر طول عمر پیکربندی‌شدهٔ توکن دسترسی شخصی ({{.Days}} روز) بیشتر است."
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} نتوانست نوع کانال را روی پست‌ها به‌روزرسانی کند"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "دریافت کاربر ناموفق بود."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "نقش نامعتبر برای این قاعده."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "حالت احراز هویت Azure نامعتبر است: {{.Value}}. باید 'shared_key' یا 'default_credential' باشد."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "مقدار {{.Value}} برای {{.Setting}} نامعتبر است. باید 'commercial'، 'government' یا 'custom' باشد."
   }
 ]

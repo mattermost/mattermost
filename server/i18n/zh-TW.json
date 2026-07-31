@@ -1743,7 +1743,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "請按下方的連結確認地址正確來完成變更 {{.TeamDisplayName}} 上的電子郵件地址。"
+    "translation": "若要完成 {{.TeamDisplayName}} 的電子郵件地址變更，請點選下方連結，確認此地址正確無誤。"
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -2223,7 +2223,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "URL 因 CORS 被阻止。Url: {{.BlockedOrigin}}"
+    "translation": "URL 因 CORS 被封鎖。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -3003,7 +3003,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch 搜尋在此伺服器上未啟用"
+    "translation": "此伺服器未啟用 {{.Backend}} 搜尋"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -4487,7 +4487,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "不適當的頻道權限。"
+    "translation": "使用者 {{.user}} 沒有頻道 {{.channel}} 的適當權限"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -5975,7 +5975,7 @@
   },
   {
     "id": "app.role.get_by_name.app_error",
-    "translation": "無法取得角色。"
+    "translation": "無法取得地位。"
   },
   {
     "id": "app.role.get.app_error",
@@ -7563,7 +7563,7 @@
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": "團隊成員角色無效，長度超過 {{.Limit}} 個字元。"
+    "translation": "團隊成員地位無效，長度超過 {{.Limit}} 個字元。"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
@@ -9852,5 +9852,73 @@
   {
     "id": "model.scheduled_post.is_valid.empty_post.app_error",
     "translation": "無法排程空白的訊息。排程訊息至少需包含訊息或附件檔案。"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "已匯入電子郵件為 {{.Email}} 的整合／Slack 機器人使用者。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "無法將密碼重設電子郵件寄送給 {{.Username}}（{{.Email}}）。\r\n"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "other": "已從磁碟移除 {{.Count}} 個檔案。"
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "other": "已清除 {{.Total}} 個修訂版本中的 {{.Count}} 個。"
+    }
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "使用者為系統訪客，但並非在所有團隊中都具有團隊訪客地位。團隊訪客數：{{.TeamGuestCount}}，團隊總數：{{.TotalTeams}}。"
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "找不到屬性欄位 {{.FieldID}}。"
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "無法將重點回顧標示為已讀。"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "other": "- 頻道 {{.ChannelName}} 中有 {{.Count}} 則。原因：{{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "other": "無法寄送 {{.Count}} 則排程訊息。"
+    }
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "提供的 expires_at 超過設定的個人存取 Token 最長有效期限（{{.Days}} 天）。"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} 無法更新訊息的頻道類型"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "無法取得使用者。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "此規則的地位無效。"
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Azure 驗證模式 {{.Value}} 無效。必須為 'shared_key' 或 'default_credential'。"
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "{{.Setting}} 的值 {{.Value}} 無效。必須為 'commercial'、'government' 或 'custom'。"
   }
 ]

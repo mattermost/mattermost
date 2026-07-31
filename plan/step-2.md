@@ -51,12 +51,17 @@ coverage would still look "complete" for the overlapping keys.
 - [ ] Confirm `i18n/glossary/` import from Weblate + handbook per
   [glossary.md](./glossary.md).
 
-### 2.2 Pilot (quality tuning only)
+### 2.2 Pilot (quality tuning only) — **DONE**
 
-- [ ] Pilot 200–500 strings spanning JS + Go, short UI, plurals/`select`,
-  RTL (`fa`), and glossary locales.
-- [ ] Measure quality; no cost tracking required (unlimited spend).
-- [ ] Tune prompt, batch size, and allowlists from pilot failures.
+- [x] Piloted 300 strings × 6 locales (de/fr/fa/ja/ru/zh-TW) spanning all
+  six surfaces, plurals/select, RTL, Go templates, and known-bad files.
+- [x] Results: 0 mechanical validation failures; 0.7% drift-flag rate,
+  all fixed; 1,800 translations landed. See
+  [pilot-report.md](./pilot-report.md) for metrics, defects caught in
+  existing translations, and full-pass parameters.
+- [x] Pipeline validated: manifest (description+glossary+existing) →
+  generate (keep/revise/new) → mechanical validation → blind
+  back-translation → calibrated judge → fix → minimal-diff landing.
 
 ### 2.3 Context bundle (cached, batched)
 

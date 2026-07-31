@@ -317,7 +317,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Kommando '{{.Trigger}}' konnte keine Antwort senden. Bitte kontaktiere deinen Systemadministrator."
+    "translation": "Der Befehl '{{.Trigger}}' konnte keine Antwort senden. Bitte kontaktieren Sie Ihren Systemadministrator."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -664,7 +664,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte den [Kanal Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) verwenden, um Kanäle zu identifizieren."
+    "translation": "Der Kanal {{.Channel}} konnte nicht gefunden werden. Bitte verwenden Sie das [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_invite.success",
@@ -1640,7 +1640,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Dieser Kanal wurde durch %v in dieses Team verschoben."
+    "translation": "Dieser Kanal wurde aus %v in dieses Team verschoben."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1748,7 +1748,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Um deine E-Mail-Adresse für {{.TeamDisplayName}} zu ändern, klicke bitte auf den unten stehenden Link, um zu bestätigen, dass dies die richtige Adresse ist."
+    "translation": "Um die Aktualisierung Ihrer E-Mail-Adresse für {{.TeamDisplayName}} abzuschließen, klicken Sie bitte auf den unten stehenden Link, um zu bestätigen, dass dies die richtige Adresse ist."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -2824,7 +2824,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Benachrichtigung in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Benachrichtigung in {{ .TeamName}} am {{.Day}}. {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -4136,7 +4136,7 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Ungültige Plugin-ID. Sie muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
+    "translation": "Ungültige Plugin-ID. Sie muss länger als {{.Min}} und darf höchstens {{.Max}} Zeichen lang sein."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4492,7 +4492,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Der Benutzer {{.user}} hat keine entsprechenden Rechte für den Channel {{.channel}}"
+    "translation": "Der Benutzer {{.user}} hat keine entsprechenden Berechtigungen für den Kanal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -7003,7 +7003,7 @@
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "Du benötigst `{{.Permission}}` Berechtigungen um geteilte Kanäle zu verwalten."
+    "translation": "Sie benötigen die Berechtigung `{{.Permission}}`, um gemeinsame Kanäle zu verwalten."
   },
   {
     "id": "api.command_share.name",
@@ -7179,7 +7179,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": "Teile diesen Link um deine Mitglieder zum {{.WorkSpace}} einzuladen:"
+    "translation": "Teilen Sie diesen Link, um Ihre Mitglieder einzuladen, {{.WorkSpace}} beizutreten:"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
@@ -8255,7 +8255,7 @@
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Kann Team-Zähler nicht abfragen"
+    "translation": "Anzahl der Teams konnte nicht abgerufen werden"
   },
   {
     "id": "app.post.analytics_teams_count.app_error",
@@ -9939,8 +9939,8 @@
   {
     "id": "app.scheduled_post.failed_messages",
     "translation": {
-      "one": "Der Versand von einem geplanten Beitrag ist fehlgeschlagen.",
-      "other": "Der Versand von {{.Count}} geplanten Beiträgen ist fehlgeschlagen."
+      "one": "{{.Count}} geplante Nachricht konnte nicht gesendet werden.",
+      "other": "{{.Count}} geplante Nachrichten konnten nicht gesendet werden."
     }
   },
   {
@@ -11317,7 +11317,7 @@
   },
   {
     "id": "app.recap.mark_read.app_error",
-    "translation": "Die Zusammenfassung konnte nicht als gelesen markiert werden."
+    "translation": "Der Rückblick konnte nicht als gelesen markiert werden."
   },
   {
     "id": "app.recap.permission_denied",
@@ -11537,7 +11537,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
-    "translation": "Der Benutzer ist ein System Gast, hat aber nicht in allen Teams eine Team Gast Rolle. Anzahl der Team-Gäste: {{.TeamGuestCount}}, Teams insgesamt: {{.TotalTeams}}."
+    "translation": "Der Benutzer ist ein Systemgast, hat aber nicht in allen Teams Team-Gastrollen. Anzahl der Team-Gäste: {{.TeamGuestCount}}, Teams insgesamt: {{.TotalTeams}}."
   },
   {
     "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
@@ -11857,7 +11857,7 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "Der Integrations-/Slack-Bot-Benutzer mit der E-Mail {{.Email}} wurde importiert.\n"
+    "translation": "Der Integrations-/Slack-Bot-Benutzer mit der E-Mail {{.Email}} wurde importiert.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email",
@@ -11865,7 +11865,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Mail zum Zurücksetzen des Passworts kann nicht an {{.Username}} mit{{.Email}} gesendet werden.\n"
+    "translation": "E-Mail zum Zurücksetzen des Passworts kann nicht an {{.Username}} unter {{.Email}} gesendet werden.\r\n"
   },
   {
     "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
@@ -11893,7 +11893,7 @@
   },
   {
     "id": "ent.elasticsearch.update_posts_channel_type.error",
-    "translation": "{{.Backend}} Kanal-Typ in Beiträgen nicht aktualisiert"
+    "translation": "{{.Backend}} konnte den Kanaltyp in Nachrichten nicht aktualisieren"
   },
   {
     "id": "model.config.is_valid.native_app_settings.download_link.app_error",
@@ -11906,5 +11906,39 @@
   {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
     "translation": "invalid_grant: Die Token-Gewährung wurde nicht für diesen Kunden ausgestellt."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "{{.Count}} Datei von der Festplatte entfernt.",
+      "other": "{{.Count}} Dateien von der Festplatte entfernt."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "{{.Count}} Überarbeitung von {{.Total}} gelöscht.",
+      "other": "{{.Count}} Überarbeitungen von {{.Total}} gelöscht."
+    }
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Das Eigenschaftsfeld {{.FieldID}} wurde nicht gefunden."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Das angegebene expires_at überschreitet die konfigurierte maximale Lebensdauer für persönliche Zugriffs-Token ({{.Days}} Tage)."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Ungültige Rolle für die Regel."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Ungültiger Azure-Authentifizierungsmodus {{.Value}}. Muss 'shared_key' oder 'default_credential' sein."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Ungültiger Wert {{.Value}} für {{.Setting}}. Muss 'commercial', 'government' oder 'custom' sein."
   }
 ]

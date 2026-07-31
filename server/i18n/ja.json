@@ -594,7 +594,7 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "other": "ユーザーが見付かりませんでした: {{.Users}}"
+      "other": "ユーザーが見つかりませんでした: {{.Users}}"
     }
   },
   {
@@ -663,7 +663,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)を使用してください。"
+    "translation": "チャンネル{{.Channel}}が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)を使用してください。"
   },
   {
     "id": "api.command_invite.success",
@@ -672,7 +672,7 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
-      "other": "{{.User}} は既にチャンネルに追加されています。"
+      "other": "{{.User}}は既にチャンネルに参加しています。"
     }
   },
   {
@@ -970,7 +970,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
+      "other": "[{{.SiteName}}] {{.Year}}年{{.Month}}{{.Day}}日の新着通知"
     }
   },
   {
@@ -1332,13 +1332,13 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "other": "{{.Count}} ファイル送信: {{.Filenames}}{{.Count}} ファイル送信: {{.Filenames}}"
+      "other": "{{.Count}}個のファイルを送信しました: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "other": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}"
+      "other": "{{.Count}}個の画像を送信しました: {{.Filenames}}"
     }
   },
   {
@@ -1635,7 +1635,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "このチャンネルは %v からこのチームへ移動されました。"
+    "translation": "このチャンネルは%vからこのチームへ移動されました。"
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1743,7 +1743,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "{{.TeamDisplayName}}用の電子メールアドレスを更新完了するには、以下のリンクをクリックし、正しい電子メールアドレスであることを確認してください。"
+    "translation": "{{.TeamDisplayName}}の電子メールアドレスの更新を完了するには、以下のリンクをクリックして、正しいアドレスであることを確認してください。"
   },
   {
     "id": "api.templates.email_change_verify_body.title",
@@ -2819,7 +2819,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{ .TeamName}}の通知"
+    "translation": "[{{ .SiteName }}] {{.Year}}年{{.Month}}{{.Day}}日 {{ .TeamName}}の通知"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3003,7 +3003,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "このサーバーでは {{.Backend}} による検索は有効化されていません"
+    "translation": "このサーバーでは{{.Backend}}による検索は有効化されていません"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -4131,7 +4131,7 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "不正なプラグインIDです。{{.Min}}文字以上 {{.Max}}文字以下でなくてはなりません。"
+    "translation": "不正なプラグインIDです。{{.Min}}文字以上{{.Max}}文字以下でなくてはなりません。"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4487,7 +4487,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "ユーザー {{.user}} はチャンネル {{.channel}} に対する適切な権限を持っていません"
+    "translation": "ユーザー{{.user}}はチャンネル{{.channel}}に対する適切な権限を持っていません"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4743,7 +4743,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "サポートされている同期可能タイプ '{{.Value}}'。"
+    "translation": "サポートされていない同期可能タイプ '{{.Value}}' です。"
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -7391,7 +7391,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": "このリンクを共有して、メンバーを {{.WorkSpace}} へ招待してください。"
+    "translation": "このリンクを共有して、メンバーを{{.WorkSpace}}へ招待してください:"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
@@ -8039,7 +8039,7 @@
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}} 文字より長い不正なチームメンバーのロールです。"
+    "translation": "チームメンバーのロールが{{.Limit}}文字を超えており、不正です。"
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
@@ -8575,7 +8575,7 @@
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
-    "translation": "永続的な通知は、最大 {{.MaxRecipients}} 人の受信者への通知が許可されています。"
+    "translation": "永続的な通知の投稿で許可される受信者は最大{{.MaxRecipients}}人です。"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
@@ -9916,7 +9916,7 @@
   {
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
-      "other": "- {{.ChannelName}} チャンネル内の {{.Count}}。 理由: {{.ErrorReason}}"
+      "other": "- {{.ChannelName}}チャンネルで{{.Count}}件。理由: {{.ErrorReason}}"
     }
   },
   {
@@ -9926,7 +9926,7 @@
   {
     "id": "app.scheduled_post.failed_messages",
     "translation": {
-      "other": "スケジュール済みの投稿 {{.Count}} 件を送信できませんでした。"
+      "other": "スケジュール済みの投稿{{.Count}}件を送信できませんでした。"
     }
   },
   {
@@ -10688,5 +10688,57 @@
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "制限されたダイレクトメッセージにファイルをアップロードできません。"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "メールアドレス{{.Email}}の統合機能/Slack Botユーザーがインポートされました。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "{{.Username}}({{.Email}})にパスワードリセットの電子メールを送信できませんでした。\r\n"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "other": "{{.Count}}個のファイルをディスクから削除しました。"
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "other": "{{.Total}}件中{{.Count}}件のリビジョンをクリアしました。"
+    }
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "ユーザーはシステムゲストですが、すべてのチームでチームゲストのロールを持っていません。チームゲスト数: {{.TeamGuestCount}}、チーム総数: {{.TotalTeams}}。"
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "プロパティフィールド{{.FieldID}}が見つかりませんでした。"
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "リキャップを既読にできませんでした。"
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "指定されたexpires_atは、設定されたパーソナルアクセストークンの最大有効期間({{.Days}}日)を超えています。"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}}は投稿のチャンネルタイプを更新できませんでした"
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "ルールに対するロールが不正です。"
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Azure認証モード{{.Value}}は不正です。'shared_key'または'default_credential'でなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "{{.Setting}}の値{{.Value}}は不正です。'commercial'、'government'、'custom'のいずれかでなければなりません。"
   }
 ]

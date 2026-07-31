@@ -594,14 +594,13 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "many": "Impossible de trouver les utilisateurs : {{.Users}}",
-      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
-      "other": ""
+      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
+      "other": "Impossible de trouver les utilisateurs : {{.Users}}"
     }
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Les messages de groupe sont limités à maximum {{.MaxUsers}} utilisateurs."
+    "translation": "Les messages de groupe sont limités à {{.MaxUsers}} utilisateurs maximum."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
@@ -665,7 +664,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Impossible de trouver le canal {{.Canal}}. Veuillez utiliser le [channel handle] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
+    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'[identifiant du canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
     "id": "api.command_invite.success",
@@ -674,9 +673,8 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
-      "many": "{{.User}} sont déjà membres de ce canal.",
       "one": "{{.User}} est déjà membre de ce canal.",
-      "other": ""
+      "other": "{{.User}} sont déjà membres de ce canal."
     }
   },
   {
@@ -974,9 +972,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "many": "[{{.SiteName}}] New Notifications for {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
+      "one": "[{{.SiteName}}] Nouvelle notification du {{.Day}} {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Nouvelles notifications du {{.Day}} {{.Month}} {{.Year}}"
     }
   },
   {
@@ -1338,17 +1335,15 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "many": "{{.Count}} fichiers envoyés : {{.Filenames}}",
-      "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
-      "other": ""
+      "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
+      "other": "{{.Count}} fichiers envoyés : {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "many": "{{.Count}} images envoyées : {{.Filenames}}",
-      "one": "{{.Count}} image envoyée : {{.Filenames}}",
-      "other": ""
+      "one": "{{.Count}} image envoyée : {{.Filenames}}",
+      "other": "{{.Count}} images envoyées : {{.Filenames}}"
     }
   },
   {
@@ -1645,7 +1640,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Ce canal a été déplacé vers cette équipe par %v."
+    "translation": "Ce canal a été déplacé vers cette équipe depuis %v."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -2233,7 +2228,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Échec de la mise à niveau de la connexion WebSocket"
+    "translation": "URL bloquée en raison de CORS. URL : {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2829,7 +2824,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Notification dans {{.TeamName}} le {{.Day}}/{{.Month}}/{{.Year}}"
+    "translation": "[{{ .SiteName }}] Notification dans {{ .TeamName}} le {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3013,7 +3008,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La recherche Elasticsearch est désactivée sur ce serveur"
+    "translation": "La recherche {{.Backend}} n'est pas activée sur ce serveur"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -4497,7 +4492,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Permissions insuffisantes pour ce canal"
+    "translation": "L'utilisateur {{.user}} n'a pas les permissions appropriées pour le canal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -5193,7 +5188,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Les comptes invités sont désactivés"
+    "translation": "Les comptes d'utilisateurs invités sont désactivés"
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
@@ -5817,7 +5812,7 @@
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "Impossible de récupérer le webhook"
+    "translation": "Impossible de récupérer le webhook."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
@@ -5833,7 +5828,7 @@
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
-    "translation": "Impossible de supprimer le webhook"
+    "translation": "Impossible de supprimer le webhook."
   },
   {
     "id": "app.webhooks.delete_incoming.app_error",
@@ -7881,7 +7876,7 @@
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Impossible d'obtenir la taille de l'équipe"
+    "translation": "Impossible d'obtenir le nombre d'équipes"
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -8149,7 +8144,7 @@
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": " "
+    "translation": "Rôles de membre d'équipe invalides : la longueur dépasse {{.Limit}} caractères."
   },
   {
     "id": "import_process.worker.do_job.file_exists",
@@ -8217,7 +8212,7 @@
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
-    "translation": " "
+    "translation": "post_id invalide"
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -8537,7 +8532,7 @@
   },
   {
     "id": "api.command_share.invite_remote_to_channel.error",
-    "translation": "Impossible d'inviter le cluster distant au canal : {{.Error}}"
+    "translation": "Impossible d'inviter l'instance distante dans le canal : {{.Error}}"
   },
   {
     "id": "api.context.ip_filtering.not_available.app_error",
@@ -8782,5 +8777,81 @@
   {
     "id": "api.admin.add_certificate.app_error",
     "translation": "Échec de l’ajout du certificat."
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "L'utilisateur Intégration/Bot Slack avec l'adresse e-mail {{.Email}} a été importé.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Impossible d'envoyer l'e-mail de réinitialisation du mot de passe à {{.Username}} à l'adresse {{.Email}}.\r\n"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "{{.Count}} fichier supprimé du disque.",
+      "other": "{{.Count}} fichiers supprimés du disque."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "{{.Count}} révision sur {{.Total}} effacée.",
+      "other": "{{.Count}} révisions sur {{.Total}} effacées."
+    }
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "L'utilisateur est un utilisateur invité au niveau du système mais ne dispose pas des rôles d'utilisateur invité dans toutes les équipes. Équipes avec rôle d'utilisateur invité : {{.TeamGuestCount}}, nombre total d'équipes : {{.TotalTeams}}."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Échec de la récupération du nombre d'utilisateurs"
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Le champ de propriété {{.FieldID}} est introuvable."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Échec du marquage du récapitulatif comme lu."
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} dans le canal {{.ChannelName}}. Raison : {{.ErrorReason}}",
+      "other": "- {{.Count}} dans le canal {{.ChannelName}}. Raison : {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Échec de l'envoi de {{.Count}} message planifié.",
+      "other": "Échec de l'envoi de {{.Count}} messages planifiés."
+    }
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "La valeur expires_at fournie dépasse la durée de vie maximale configurée pour les jetons d'accès personnels ({{.Days}} jours)."
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} n'a pas pu mettre à jour le type de canal sur les messages"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Échec de la récupération de l'utilisateur."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Rôle invalide pour la règle."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Mode d'authentification Azure {{.Value}} invalide. Doit être 'shared_key' ou 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Valeur {{.Value}} invalide pour {{.Setting}}. Doit être 'commercial', 'government' ou 'custom'."
   }
 ]

@@ -594,9 +594,10 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "one": "Не удалось найти пользователя: {{.Users}}",
       "few": "Не удалось найти пользователей: {{.Users}}",
       "many": "Не удалось найти пользователей: {{.Users}}",
-      "one": "Не удалось найти пользователя: {{.Users}}"
+      "other": "Не удалось найти пользователей: {{.Users}}"
     }
   },
   {
@@ -665,7 +666,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте [управление каналом](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации."
+    "translation": "Не удалось найти канал {{.Channel}}. Пожалуйста, используйте [идентификатор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для указания каналов."
   },
   {
     "id": "api.command_invite.success",
@@ -674,9 +675,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
+      "one": "{{.User}} уже находится в канале.",
       "few": "{{.User}} уже находятся в канале.",
       "many": "{{.User}} уже находятся в канале.",
-      "one": "{{.User}} уже находится в канале."
+      "other": "{{.User}} уже находятся в канале."
     }
   },
   {
@@ -974,9 +976,10 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}",
       "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
       "many": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}"
+      "other": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}"
     }
   },
   {
@@ -1338,17 +1341,19 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "one": "{{.Count}} файл отправлен: {{.Filenames}}",
       "few": "{{.Count}} файла отправлено: {{.Filenames}}",
       "many": "{{.Count}} файлов отправлено: {{.Filenames}}",
-      "one": "{{.Count}} файл отправлен: {{.Filenames}}"
+      "other": "{{.Count}} файла отправлено: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "one": "{{.Count}} изображение отправлено: {{.Filenames}}",
       "few": "{{.Count}} изображения отправлено: {{.Filenames}}",
       "many": "{{.Count}} изображений отправлено: {{.Filenames}}",
-      "one": "{{.Count}} изображение отправлено: {{.Filenames}}"
+      "other": "{{.Count}} изображения отправлено: {{.Filenames}}"
     }
   },
   {
@@ -2829,7 +2834,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Уведомление в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Уведомление в {{ .TeamName}} за {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3017,7 +3022,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "Не удалось проиндексировать запись"
+    "translation": "Не удалось проиндексировать сообщение"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4789,7 +4794,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Поиск не удалось завершить"
+    "translation": "Не удалось завершить поиск"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -5025,7 +5030,7 @@
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Не удалось получить смайлик."
+    "translation": "Не удалось получить эмодзи."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
@@ -7285,7 +7290,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": "Поделитесь этой ссылкой, чтобы пригласить новых участников присоединиться в {{.WorkSpace}}:"
+    "translation": "Поделитесь этой ссылкой, чтобы пригласить участников присоединиться к {{.WorkSpace}}:"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
@@ -9361,7 +9366,7 @@
   },
   {
     "id": "api.command_share.invite_remote_to_channel.error",
-    "translation": "Невозможно приглашение на канал: {{.Error}}"
+    "translation": "Не удалось пригласить удалённый сервер в канал: {{.Error}}"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
@@ -9878,17 +9883,19 @@
   {
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
+      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
       "few": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
       "many": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
-      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
+      "other": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
     }
   },
   {
     "id": "app.scheduled_post.failed_messages",
     "translation": {
+      "one": "Не удалось отправить {{.Count}} запланированное сообщение.",
       "few": "Не удалось отправить {{.Count}} запланированных сообщения.",
       "many": "Не удалось отправить {{.Count}} запланированных сообщений.",
-      "one": "Не удалось отправить {{.Count}} запланированное сообщение."
+      "other": "Не удалось отправить {{.Count}} запланированных сообщения."
     }
   },
   {
@@ -10277,7 +10284,7 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "Пользователь Integration/Slack Bot с электронной почтой {{.Email}} был импортирован.\n"
+    "translation": "Пользователь Integration/Slack Bot с электронной почтой {{.Email}} был импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email",
@@ -10285,7 +10292,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Невозможно отправить письмо со сбросом пароля на {{.Username}} по адресу {{.Email}}.\n"
+    "translation": "Невозможно отправить письмо для сброса пароля пользователю {{.Username}} по адресу {{.Email}}.\r\n"
   },
   {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
@@ -10670,5 +10677,59 @@
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
     "translation": "Этот канал больше не используется совместно с другим рабочим пространством."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "С диска удалён {{.Count}} файл.",
+      "few": "С диска удалено {{.Count}} файла.",
+      "many": "С диска удалено {{.Count}} файлов.",
+      "other": "С диска удалено {{.Count}} файла."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "Очищена {{.Count}} редакция из {{.Total}}.",
+      "few": "Очищены {{.Count}} редакции из {{.Total}}.",
+      "many": "Очищено {{.Count}} редакций из {{.Total}}.",
+      "other": "Очищено {{.Count}} редакции из {{.Total}}."
+    }
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "Пользователь является системным гостем, но не имеет гостевых ролей во всех командах. Количество команд с гостевой ролью: {{.TeamGuestCount}}, всего команд: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Поле свойства {{.FieldID}} не найдено."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Не удалось отметить сводку как прочитанную."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Указанное значение expires_at превышает настроенный максимальный срок действия персонального токена доступа ({{.Days}} дн.)."
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} не удалось обновить тип канала в сообщениях"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не удалось получить пользователя."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Недопустимая роль для правила."
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Недопустимый режим аутентификации Azure {{.Value}}. Должно быть 'shared_key' или 'default_credential'."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Недопустимое значение {{.Value}} для {{.Setting}}. Должно быть 'commercial', 'government' или 'custom'."
   }
 ]
