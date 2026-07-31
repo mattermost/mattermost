@@ -235,11 +235,11 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			break
 		}
 		id := string(chunkHdr[:4])
-		size := int(binary.LittleEndian.Uint32(chunkHdr[4:]))
+		size := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
 
 		if id == "ANMF" && size >= anmfFrameHeaderSize+riffChunkHeaderSize {
-			payload := make([]byte, size)
-			if _, err := io.ReadFull(r, payload); err != nil {
+			payload, err := io.ReadAll(io.LimitReader(r, size))
+			if err != nil || int64(len(payload)) != size {
 				break
 			}
 			container, err := anmfContainer(payload)
@@ -253,7 +253,7 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			return img, nil
 		}
 
-		skip := int64(size)
+		skip := size
 		if size%2 != 0 {
 			skip++
 		}

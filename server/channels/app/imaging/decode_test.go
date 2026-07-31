@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 	"testing/iotest"
@@ -249,6 +250,35 @@ func TestDecodeWebPFirstFrame(t *testing.T) {
 			_, err := d.DecodeWebPFirstFrame(bytes.NewReader(wrapWebP(paddingChunk, malformedANMF)))
 			require.Error(t, err)
 		})
+	})
+
+	t.Run("oversized ANMF declared size does not over-allocate", func(t *testing.T) {
+		// A malicious WebP can claim a huge ANMF payload size while the actual
+		// file is tiny. The io.ReadAll(io.LimitReader(r, int64(size))) only allocates what
+		// the reader actually delivers, so this must stay well under 1 MB.
+		const claimedSize = 500 * 1024 * 1024 // 500 MB declared, 0 bytes present
+
+		buf := make([]byte, riffContainerSize+riffChunkHeaderSize)
+		copy(buf, "RIFF")
+		binary.LittleEndian.PutUint32(buf[4:], uint32(4+riffChunkHeaderSize+claimedSize))
+		copy(buf[8:], "WEBP")
+		copy(buf[riffContainerSize:], "ANMF")
+		binary.LittleEndian.PutUint32(buf[riffContainerSize+4:], uint32(claimedSize))
+
+		runtime.GC()
+		var before runtime.MemStats
+		runtime.ReadMemStats(&before)
+
+		_, err := d.DecodeWebPFirstFrame(bytes.NewReader(buf))
+
+		runtime.GC()
+		var after runtime.MemStats
+		runtime.ReadMemStats(&after)
+
+		require.Error(t, err)
+		allocated := int64(after.TotalAlloc) - int64(before.TotalAlloc)
+		require.Less(t, allocated, int64(1*1024*1024),
+			"allocated %d bytes — must not pre-allocate the declared chunk size", allocated)
 	})
 
 	t.Run("valid animated WebP VP8 frame decoded successfully", func(t *testing.T) {
