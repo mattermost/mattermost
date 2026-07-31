@@ -198,6 +198,8 @@ test.describe('Post list scroll to permalink', () => {
                 linkedPostUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`;
 
                 await testCase.setupPostsAfter();
+
+                test.setTimeout(15000);
             });
 
             test(`${testCase.name} - should stay at the linked post during initial load`, async ({}) => {
