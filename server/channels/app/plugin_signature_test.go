@@ -125,9 +125,9 @@ func TestVerifySignature(t *testing.T) {
 func TestVerifySignatureMFIPluginPublicKey(t *testing.T) {
 	mainHelper.Parallel(t)
 	path, _ := fileutils.FindDir("tests")
-	pluginFilename := "testplugin-federal.tar.gz"
-	signatureFilename := "testplugin-federal.tar.gz.sig"
-	armoredSignatureFilename := "testplugin-federal.tar.gz.asc"
+	pluginFilename := "testplugin-mfi.tar.gz"
+	signatureFilename := "testplugin-mfi.tar.gz.sig"
+	armoredSignatureFilename := "testplugin-mfi.tar.gz.asc"
 
 	t.Run("verify armored signature against the MFI public key", func(t *testing.T) {
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
