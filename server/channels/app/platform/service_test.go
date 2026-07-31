@@ -264,6 +264,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 func TestNewSyncsMarkdownMaxLenWithMaxPostSize(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
+	defer th.TearDown()
 
 	maxPostSize := th.Service.MaxPostSize()
 	assert.Equal(t, 4*maxPostSize, markdown.MaxLen())
