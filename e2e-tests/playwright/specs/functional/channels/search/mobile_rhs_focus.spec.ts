@@ -89,7 +89,7 @@ test.describe('Mobile view RHS auto-focus', () => {
 
         // # Define the mobile menu modal locator
         const menuModal = page.locator('.modal-dialog.menuModal');
-        
+
         // * Verify the menu modal is visible after the click
         await expect(menuModal).toBeVisible();
 
