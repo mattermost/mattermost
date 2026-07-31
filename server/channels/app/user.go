@@ -3286,6 +3286,17 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+
+	// thread_team_id ("" for DM/GM) is what experience-API clients route on;
+	// broadcast.team_id is just the caller's current team, a placeholder for DM/GM.
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		channel, err := a.GetChannel(rctx, post.ChannelId)
+		if err != nil {
+			return nil, err
+		}
+		message.Add("thread_team_id", channel.TeamId)
+	}
+
 	a.Publish(message)
 	return thread, nil
 }

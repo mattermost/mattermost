@@ -55,10 +55,112 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 		}
 	}
 
+	// Remove stale tombstones for re-saved preferences atomically with the upsert.
+	if removeErr := s.removePreferenceDeletionTombstonesTx(transaction, preferences); removeErr != nil {
+		return errors.Wrap(removeErr, "failed to remove stale preference tombstones")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+	return nil
+}
+
+// DeletePreferences deletes each of the given preferences and records a
+// deletion tombstone for the same batch, atomically — mirrors Save()'s shape.
+func (s SqlPreferenceStore) DeletePreferences(preferences model.Preferences) (err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+
+	defer finalizeTransactionX(transaction, &err)
+	for _, preference := range preferences {
+		if deleteErr := s.deleteTx(transaction, preference.UserId, preference.Category, preference.Name); deleteErr != nil {
+			return deleteErr
+		}
+	}
+
+	if recordErr := s.recordDeletionsTx(transaction, preferences, model.GetMillis()); recordErr != nil {
+		return recordErr
+	}
+
 	if err := transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
 		return errors.Wrap(err, "commit_transaction")
 	}
+	return nil
+}
+
+func (s SqlPreferenceStore) deleteTx(tx *sqlxTxWrapper, userId, category, name string) error {
+	sql, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"Category": category}).
+		Where(sq.Eq{"Name": name}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query to get delete preference")
+	}
+
+	if _, err = tx.Exec(sql, args...); err != nil {
+		return errors.Wrapf(err, "failed to delete Preference with userId=%s, category=%s and name=%s", userId, category, name)
+	}
+
+	return nil
+}
+
+func (s SqlPreferenceStore) recordDeletionsTx(tx *sqlxTxWrapper, preferences model.Preferences, deleteAt int64) error {
+	if len(preferences) == 0 {
+		return nil
+	}
+
+	builder := s.getQueryBuilder().
+		Insert("PreferenceDeletions").
+		Columns("UserId", "Category", "Name", "DeleteAt")
+
+	for _, p := range preferences {
+		builder = builder.Values(p.UserId, p.Category, p.Name, deleteAt)
+	}
+
+	// ON CONFLICT DO UPDATE so that re-deleting an already-tombstoned preference refreshes the timestamp.
+	query, args, err := builder.Suffix("ON CONFLICT (UserId, Category, Name) DO UPDATE SET DeleteAt = EXCLUDED.DeleteAt").ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query for recordDeletionsTx")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to record preference deletions")
+	}
+
+	return nil
+}
+
+func (s SqlPreferenceStore) removePreferenceDeletionTombstonesTx(tx *sqlxTxWrapper, preferences model.Preferences) error {
+	if len(preferences) == 0 {
+		return nil
+	}
+
+	var conditions sq.Or
+	for _, p := range preferences {
+		conditions = append(conditions, sq.And{
+			sq.Eq{"UserId": p.UserId},
+			sq.Eq{"Category": p.Category},
+			sq.Eq{"Name": p.Name},
+		})
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Delete("PreferenceDeletions").
+		Where(conditions).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query for removePreferenceDeletionTombstonesTx")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to remove preference deletion tombstones")
+	}
+
 	return nil
 }
 
@@ -184,6 +286,42 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 
 	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete Preference with userId=%s, category=%s and name=%s", userId, category, name)
+	}
+
+	return nil
+}
+
+func (s SqlPreferenceStore) GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("UserId", "Category", "Name", "DeleteAt").
+		From("PreferenceDeletions").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Gt{"DeleteAt": since}).
+		OrderBy("DeleteAt ASC").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query for GetDeletedSince")
+	}
+
+	var tombstones []model.PreferenceTombstone
+	if err = s.GetReplica().Select(&tombstones, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get deleted preferences for userId=%s since=%d", userID, since)
+	}
+
+	return tombstones, nil
+}
+
+func (s SqlPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+	query, args, err := s.getQueryBuilder().
+		Delete("PreferenceDeletions").
+		Where(sq.Lt{"DeleteAt": cutoff}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query for DeletePreferenceDeletionsBefore")
+	}
+
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to delete old preference deletions")
 	}
 
 	return nil

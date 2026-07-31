@@ -1090,6 +1090,16 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// GetDeletedTeamsForUserSince returns teams archived since the given time that the
+// user is still an active member of, so clients can be notified of the archival.
+func (a *App) GetDeletedTeamsForUserSince(userID string, since int64) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store().Team().GetDeletedTeamsByUserIdSince(userID, since)
+	if err != nil {
+		return nil, model.NewAppError("GetDeletedTeamsForUserSince", "app.team.get_deleted.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return teams, nil
+}
+
 func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
@@ -1978,6 +1988,17 @@ func (a *App) FindTeamByName(name string) bool {
 }
 
 func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+	return a.getTeamsUnreadForUser(excludeTeamId, userID, includeCollapsedThreads, false)
+}
+
+// GetTeamsUnreadForUserExperience excludes muted channels from the returned
+// counts. Kept separate from GetTeamsUnreadForUser so its existing callers
+// (REST endpoint, plugin API) are unaffected.
+func (a *App) GetTeamsUnreadForUserExperience(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+	return a.getTeamsUnreadForUser(excludeTeamId, userID, includeCollapsedThreads, true)
+}
+
+func (a *App) getTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool, respectMute bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1987,14 +2008,13 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	membersMap := make(map[string]*model.TeamUnread)
 
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
-		tu.MentionCount += cu.MentionCount
-		tu.MentionCountRoot += cu.MentionCountRoot
-
-		if cu.NotifyProps[model.MarkUnreadNotifyProp] != model.ChannelMarkUnreadMention {
+		isMuted := respectMute && cu.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+		if !isMuted {
+			tu.MentionCount += cu.MentionCount
+			tu.MentionCountRoot += cu.MentionCountRoot
 			tu.MsgCount += cu.MsgCount
 			tu.MsgCountRoot += cu.MsgCountRoot
 		}
-
 		return tu
 	}
 

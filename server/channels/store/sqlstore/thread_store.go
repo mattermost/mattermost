@@ -510,6 +510,73 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 	return res, nil
 }
 
+// GetDMGMThreadCounts returns unread thread stats for DM/GM channels only
+// (i.e. threads where ThreadTeamId is empty or NULL). It returns:
+//   - hasUnreads: true if any such thread has LastReplyAt > LastViewed
+//   - mentionCount: total unread mention count across those threads
+//   - urgentMentionCount: total urgent mention count (0 if postPriorityEnabled=false)
+func (s *SqlThreadStore) GetDMGMThreadCounts(userID string, postPriorityEnabled bool) (hasUnreads bool, mentionCount int64, urgentMentionCount int64, err error) {
+	baseConditions := sq.And{
+		sq.Eq{"ThreadMemberships.UserId": userID},
+		sq.Eq{"ThreadMemberships.Following": true},
+		sq.Expr("COALESCE(Threads.ThreadTeamId, '') = ''"),
+		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
+	}
+
+	var eg errgroup.Group
+
+	var unreadCount int64
+	eg.Go(func() error {
+		q := s.getQueryBuilder().
+			Select("COUNT(Threads.PostId)").
+			From("Threads").
+			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+			Where(baseConditions).
+			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed")
+
+		if queryErr := s.GetReplica().GetBuilder(&unreadCount, q); queryErr != nil {
+			return errors.Wrap(queryErr, "failed to get DM/GM unread thread count")
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		q := s.getQueryBuilder().
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions), 0)").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			Where(baseConditions)
+
+		if queryErr := s.GetReplica().GetBuilder(&mentionCount, q); queryErr != nil {
+			return errors.Wrap(queryErr, "failed to get DM/GM unread mention count")
+		}
+		return nil
+	})
+
+	if postPriorityEnabled {
+		eg.Go(func() error {
+			q := s.getQueryBuilder().
+				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions), 0)").
+				From("ThreadMemberships").
+				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+				Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+				Where(baseConditions).
+				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent})
+
+			if queryErr := s.GetReplica().GetBuilder(&urgentMentionCount, q); queryErr != nil {
+				return errors.Wrap(queryErr, "failed to get DM/GM unread urgent mention count")
+			}
+			return nil
+		})
+	}
+
+	if err = eg.Wait(); err != nil {
+		return false, 0, 0, err
+	}
+
+	return unreadCount > 0, mentionCount, urgentMentionCount, nil
+}
+
 func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	users := []string{}
 

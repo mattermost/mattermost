@@ -542,6 +542,36 @@ func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID stri
 	return r0, r1
 }
 
+// GetDeletedTeamsByUserIdSince provides a mock function with given fields: userID, since
+func (_m *TeamStore) GetDeletedTeamsByUserIdSince(userID string, since int64) ([]*model.Team, error) {
+	ret := _m.Called(userID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeletedTeamsByUserIdSince")
+	}
+
+	var r0 []*model.Team
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) ([]*model.Team, error)); ok {
+		return rf(userID, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.Team); ok {
+		r0 = rf(userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMany provides a mock function with given fields: ids
 func (_m *TeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	ret := _m.Called(ids)
@@ -1417,6 +1447,34 @@ func (_m *TeamStore) UserBelongsToTeams(userID string, teamIds []string) (bool, 
 
 	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(userID, teamIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserCanJoinAnyTeam provides a mock function with given fields: userID, listPublic, listPrivate
+func (_m *TeamStore) UserCanJoinAnyTeam(userID string, listPublic bool, listPrivate bool) (bool, error) {
+	ret := _m.Called(userID, listPublic, listPrivate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserCanJoinAnyTeam")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool, bool) (bool, error)); ok {
+		return rf(userID, listPublic, listPrivate)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool, bool) bool); ok {
+		r0 = rf(userID, listPublic, listPrivate)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
+		r1 = rf(userID, listPublic, listPrivate)
 	} else {
 		r1 = ret.Error(1)
 	}

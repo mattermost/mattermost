@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"sort"
@@ -2229,14 +2230,18 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap, isCRTEnabled bool) (model.ChannelsViewedResult, error) {
 	query := s.getQueryBuilder().Select(
 		"Channels.Id",
+		"Channels.TeamId",
 		"Channels.Type",
 		"Channels.TotalMsgCount",
+		"Channels.TotalMsgCountRoot",
 		"Channels.LastPostAt",
 		"ChannelMembers.MsgCount",
+		"ChannelMembers.MsgCountRoot",
 		"ChannelMembers.MentionCount",
+		"ChannelMembers.MentionCountRoot",
 		"ChannelMembers.NotifyProps",
 		"ChannelMembers.LastViewedAt",
 	).
@@ -2251,56 +2256,132 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, ch
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
+		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
 	var channels []struct {
-		Id            string
-		Type          string
-		TotalMsgCount int
-		LastPostAt    int64
-		MsgCount      int
-		MentionCount  int
-		NotifyProps   model.StringMap
-		LastViewedAt  int64
+		Id                string
+		TeamId            string
+		Type              string
+		TotalMsgCount     int
+		TotalMsgCountRoot int
+		LastPostAt        int64
+		MsgCount          int
+		MsgCountRoot      int
+		MentionCount      int64
+		MentionCountRoot  int64
+		NotifyProps       model.StringMap
+		LastViewedAt      int64
 	}
 
 	err = s.GetReplica().Select(&channels, queryString, args...)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to find channels with unreads and with mentions data")
+		return nil, errors.Wrap(err, "failed to find channels with unreads and with mentions data")
 	}
 
-	channelsWithUnreads := []string{}
-	channelsWithMentions := []string{}
-	readTimes := map[string]int64{}
+	result := make(model.ChannelsViewedResult, len(channels))
 
 	for i := range channels {
 		channel := channels[i]
-		hasMentions := (channel.MentionCount > 0)
-		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
 
-		if hasUnreads {
-			channelsWithUnreads = append(channelsWithUnreads, channel.Id)
+		// CRT-aware selection: when enabled, root-level counters drive
+		// the unread / mention determination.
+		mentionCount := channel.MentionCount
+		msgCount := channel.MsgCount
+		totalMsgCount := channel.TotalMsgCount
+		if isCRTEnabled {
+			mentionCount = channel.MentionCountRoot
+			msgCount = channel.MsgCountRoot
+			totalMsgCount = channel.TotalMsgCountRoot
 		}
+
+		hasMentions := mentionCount > 0
+		hasUnreads := (totalMsgCount-msgCount > 0) || hasMentions
 
 		notify := channel.NotifyProps[model.PushNotifyProp]
 		if notify == model.ChannelNotifyDefault {
 			notify = userNotifyProps[model.PushNotifyProp]
 		}
+		clearPush := false
 		if notify == model.UserNotifyAll || channel.Type == string(model.ChannelTypeDirect) {
-			if hasUnreads {
-				channelsWithMentions = append(channelsWithMentions, channel.Id)
-			}
+			clearPush = hasUnreads
 		} else if notify == model.UserNotifyMention {
-			if hasMentions {
-				channelsWithMentions = append(channelsWithMentions, channel.Id)
-			}
+			clearPush = hasMentions
 		}
 
-		readTimes[channel.Id] = max(channel.LastPostAt, channel.LastViewedAt)
+		// Muted channels (mark_unread = "mention") report 0 cleared mentions.
+		clearedMentions := mentionCount
+		if channel.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
+			clearedMentions = 0
+		}
+
+		result[channel.Id] = &model.ChannelViewedInfo{
+			LastViewed:      max(channel.LastPostAt, channel.LastViewedAt),
+			ClearedMentions: clearedMentions,
+			TeamID:          channel.TeamId,
+			HasUnread:       hasUnreads,
+			ClearPush:       clearPush,
+		}
 	}
 
-	return channelsWithUnreads, channelsWithMentions, readTimes, nil
+	return result, nil
+}
+
+// GetMembersUnreadsAndMentionsForChannel returns each member's unread/mention
+// state for a single channel. Muted channels (mark_unread = "mention") report
+// 0 for both mention counters, matching the filtering applied in
+// GetChannelsWithUnreadsAndWithMentions.
+func (s SqlChannelStore) GetMembersUnreadsAndMentionsForChannel(channelID string) (map[string]*model.ChannelMemberUnreadsAndMentions, error) {
+	query := s.getQueryBuilder().
+		Select(
+			"cm.UserId",
+			"cm.MentionCount",
+			"cm.MentionCountRoot",
+			"cm.MsgCount",
+			"cm.MsgCountRoot",
+			"cm.NotifyProps",
+			"c.TotalMsgCount",
+			"c.TotalMsgCountRoot",
+		).
+		From("ChannelMembers cm").
+		Join("Channels c ON c.Id = cm.ChannelId").
+		Where(sq.Eq{"cm.ChannelId": channelID})
+
+	sqlStr, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetMembersUnreadsAndMentionsForChannel_ToSql")
+	}
+
+	var rows []struct {
+		UserId            string
+		MentionCount      int64
+		MentionCountRoot  int64
+		MsgCount          int64
+		MsgCountRoot      int64
+		NotifyProps       model.StringMap
+		TotalMsgCount     int64
+		TotalMsgCountRoot int64
+	}
+	if err := s.GetReplica().Select(&rows, sqlStr, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch channel member unread state for channelID=%s", channelID)
+	}
+
+	result := make(map[string]*model.ChannelMemberUnreadsAndMentions, len(rows))
+	for _, r := range rows {
+		muted := r.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+		mention := r.MentionCount
+		mentionRoot := r.MentionCountRoot
+		if muted {
+			mention = 0
+			mentionRoot = 0
+		}
+		result[r.UserId] = &model.ChannelMemberUnreadsAndMentions{
+			MentionCount:     mention,
+			MentionCountRoot: mentionRoot,
+			IsUnread:         (r.TotalMsgCount-r.MsgCount > 0) || (r.TotalMsgCountRoot-r.MsgCountRoot > 0),
+		}
+	}
+	return result, nil
 }
 
 func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
@@ -2883,6 +2964,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds})
 
+	now := model.GetMillis()
 	with := query.Prefix("WITH c AS (").Suffix(") ,")
 	update := sq.StatementBuilder.PlaceholderFormat(sq.Question).
 		Update("ChannelMembers cm").
@@ -2892,7 +2974,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
 		Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
 		Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
-		Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+		Set("LastUpdateAt", now).
 		SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
 	updateWrap := update.Prefix("updated AS (").Suffix(")")
 	query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
@@ -4096,6 +4178,95 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 	}
 
 	return userInfo, nil
+}
+
+// GetDMGMProfilesByChannelIds returns compact user profiles for all DM and GM
+// participants of the given channels, keyed by channel ID. Does NOT filter by
+// Channels.DeleteAt, so callers can detect deactivated participants themselves.
+// When since > 0, only profiles with UpdateAt > since OR DeleteAt > since are included.
+func (s SqlChannelStore) GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error) {
+	if len(channelIDs) == 0 {
+		return nil, nil
+	}
+
+	type rawRow struct {
+		ChannelId   string `db:"channelid"`
+		Id          string `db:"id"`
+		CreateAt    int64  `db:"createat"`
+		UpdateAt    int64  `db:"updateat"`
+		DeleteAt    int64  `db:"deleteat"`
+		Username    string `db:"username"`
+		Email       string `db:"email"`
+		Nickname    string `db:"nickname"`
+		FirstName   string `db:"firstname"`
+		LastName    string `db:"lastname"`
+		Position    string `db:"position"`
+		Props       []byte `db:"props"`
+		NotifyProps []byte `db:"notifyprops"`
+		Roles       string `db:"roles"`
+		Locale      string `db:"locale"`
+		Timezone    []byte `db:"timezone"`
+	}
+
+	qb := s.getQueryBuilder().
+		Select(
+			"cm.ChannelId AS ChannelId",
+			"u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt",
+			"u.Username", "u.Email", "u.Nickname",
+			"u.FirstName", "u.LastName", "u.Position",
+			"u.Props", "u.NotifyProps", "u.Roles",
+			"u.Locale", "u.Timezone",
+		).
+		From("ChannelMembers cm").
+		Join("Users u ON cm.UserId = u.Id").
+		Where(sq.Eq{"cm.ChannelId": channelIDs}).
+		Where(sq.NotEq{"u.Id": userID})
+
+	if since > 0 {
+		qb = qb.Where(sq.Or{
+			sq.Gt{"u.UpdateAt": since},
+			sq.Gt{"u.DeleteAt": since},
+		})
+	}
+
+	rawSQL, args, err := qb.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetDMGMProfilesByChannelIds_tosql")
+	}
+
+	var rows []*rawRow
+	if err := s.GetReplica().Select(&rows, rawSQL, args...); err != nil {
+		return nil, errors.Wrap(err, "GetDMGMProfilesByChannelIds_select")
+	}
+
+	result := make(map[string][]*model.User, len(channelIDs))
+	for _, row := range rows {
+		u := &model.User{
+			Id:        row.Id,
+			CreateAt:  row.CreateAt,
+			UpdateAt:  row.UpdateAt,
+			DeleteAt:  row.DeleteAt,
+			Username:  row.Username,
+			Email:     row.Email,
+			Nickname:  row.Nickname,
+			FirstName: row.FirstName,
+			LastName:  row.LastName,
+			Position:  row.Position,
+			Roles:     row.Roles,
+			Locale:    row.Locale,
+		}
+		if len(row.Props) > 0 {
+			_ = json.Unmarshal(row.Props, &u.Props)
+		}
+		if len(row.NotifyProps) > 0 {
+			_ = json.Unmarshal(row.NotifyProps, &u.NotifyProps)
+		}
+		if len(row.Timezone) > 0 {
+			_ = json.Unmarshal(row.Timezone, &u.Timezone)
+		}
+		result[row.ChannelId] = append(result[row.ChannelId], u)
+	}
+	return result, nil
 }
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {

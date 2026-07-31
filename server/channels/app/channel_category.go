@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -102,6 +103,26 @@ func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.Si
 	return category, nil
 }
 
+// writeSidebarVersionTimestamp records a sidebar mutation for (userID, teamID); read
+// back by getSidebarVersion to decide whether a client's cursor needs a fresh sidebar.
+// Best-effort: failures are logged but don't abort the mutation that already succeeded.
+func (a *App) writeSidebarVersionTimestamp(rctx request.CTX, userID, teamID string) {
+	now := model.GetMillis()
+	pref := model.Preference{
+		UserId:   userID,
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     fmt.Sprintf("sidebar_version_%s", teamID),
+		Value:    fmt.Sprintf("%d", now),
+	}
+	if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
+		rctx.Logger().Warn("Failed to write sidebar version timestamp",
+			mlog.String("user_id", userID),
+			mlog.String("team_id", teamID),
+			mlog.Err(err),
+		)
+	}
+}
+
 func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
@@ -113,6 +134,7 @@ func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, new
 			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	a.writeSidebarVersionTimestamp(rctx, userID, teamID)
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryCreated, teamID, "", userID, nil, "")
 	message.Add("category_id", category.Id)
 	a.Publish(message)
@@ -133,6 +155,7 @@ func (a *App) UpdateSidebarCategoryOrder(rctx request.CTX, userID, teamID string
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	a.writeSidebarVersionTimestamp(rctx, userID, teamID)
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryOrderUpdated, teamID, "", userID, nil, "")
 	message.Add("order", categoryOrder)
 	a.Publish(message)
@@ -144,6 +167,8 @@ func (a *App) UpdateSidebarCategories(rctx request.CTX, userID, teamID string, c
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.writeSidebarVersionTimestamp(rctx, userID, teamID)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, teamID, "", userID, nil, "")
 
@@ -278,6 +303,7 @@ func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId
 		}
 	}
 
+	a.writeSidebarVersionTimestamp(rctx, userID, teamID)
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryDeleted, teamID, "", userID, nil, "")
 	message.Add("category_id", categoryId)
 	a.Publish(message)

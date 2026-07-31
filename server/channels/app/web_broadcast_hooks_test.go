@@ -55,6 +55,52 @@ func TestAddMentionsHook_Process(t *testing.T) {
 	})
 }
 
+func TestAddMutedUsersHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &addMutedUsersBroadcastHook{}
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	webConn := &platform.WebConn{
+		UserId: userID,
+	}
+
+	t.Run("should set mute_for_recipient: true when the current user is in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{userID, otherUserID},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, true, msg.Event().GetData()["mute_for_recipient"])
+		assert.NotNil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the current user is not in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{otherUserID},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the muted list is empty", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
+	})
+}
+
 func TestAddFollowersHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &addFollowersBroadcastHook{}
@@ -90,6 +136,60 @@ func TestAddFollowersHook_Process(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Nil(t, msg.Event().GetData()["followers"])
+	})
+}
+
+func TestAddMemberUnreadsMentionsHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &addMemberUnreadsMentionsBroadcastHook{}
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	webConn := &platform.WebConn{
+		UserId: userID,
+	}
+
+	t.Run("should add member_unreads_mentions and timestamp for the current user", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				userID: {MentionCount: 2, MentionCountRoot: 1, IsUnread: true},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.NotNil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.NotNil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should not add member_unreads_mentions or timestamp for another user", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				otherUserID: {MentionCount: 2, MentionCountRoot: 1, IsUnread: true},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Nil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.Nil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should not add member_unreads_mentions or timestamp when the current user's entry is nil", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				userID: nil,
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Nil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.Nil(t, msg.Event().GetData()["timestamp"])
 	})
 }
 

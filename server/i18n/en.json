@@ -7557,6 +7557,34 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "app.initial_load.base_data.error",
+    "translation": "Unable to load the base data for the initial load."
+  },
+  {
+    "id": "app.initial_load.channel_history.error",
+    "translation": "Unable to get the channels the user has left since the given time."
+  },
+  {
+    "id": "app.initial_load.dm_profiles.error",
+    "translation": "Unable to get the profiles for the direct and group message channels."
+  },
+  {
+    "id": "app.initial_load.dm_thread_counts.error",
+    "translation": "Unable to get the unread thread counts for direct and group message channels."
+  },
+  {
+    "id": "app.initial_load.get_roles.app_error",
+    "translation": "Unable to get the roles for the initial load."
+  },
+  {
+    "id": "app.initial_load.profile_role_data.error",
+    "translation": "Unable to load the profile and role data for the initial load."
+  },
+  {
+    "id": "app.initial_load.team_data.error",
+    "translation": "Unable to load the team data for the initial load."
+  },
+  {
     "id": "app.insert_error",
     "translation": "insert error"
   },
@@ -9443,6 +9471,10 @@
     "translation": "Unable to get the common team IDs."
   },
   {
+    "id": "app.team.get_deleted.app_error",
+    "translation": "Unable to get the teams deleted since the given time."
+  },
+  {
     "id": "app.team.get_member.app_error",
     "translation": "Unable to get the team member."
   },
@@ -9557,6 +9589,10 @@
   {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams."
+  },
+  {
+    "id": "app.team.user_can_join_any_team.app_error",
+    "translation": "Unable to determine whether the user can join any team."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",

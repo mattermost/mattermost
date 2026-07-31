@@ -931,9 +931,11 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
+	// Broadcast on channel.Id so GM members not yet in the destination team still receive it.
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, "", channel.Id, "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	messageWs.Add("channel_type", string(channel.Type))
+	a.attachChannelMembersUnreadsMentions(rctx, messageWs, channel)
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -1006,6 +1008,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, "", channel.Id, "", nil, "")
 	}
 	message.Add("channel_id", channel.Id)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
 	a.Publish(message)
 
 	var user *model.User
@@ -1560,6 +1563,18 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 		filteredProps[model.ChannelAutoFollowThreads] = channelAutoFollowThreads
 	}
 
+	// Capture previous mute state when MarkUnread is being changed; used by the
+	// experience-API hook on the channel_member_updated event.
+	_, markUnreadChanged := filteredProps[model.MarkUnreadNotifyProp]
+	attachMuteToggle := markUnreadChanged && a.Config().FeatureFlags.EnableExperienceAPI
+	previousMuted := false
+	if attachMuteToggle {
+		previous, getErr := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+		if getErr == nil && previous != nil {
+			previousMuted = previous.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+		}
+	}
+
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
@@ -1579,6 +1594,15 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(member.UserId)
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+	if attachMuteToggle {
+		if channel, channelErr := a.GetChannel(rctx, channelID); channelErr == nil {
+			if err = a.sendUpdateChannelMemberEventWithMuteCheck(member, channel, previousMuted); err != nil {
+				return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return member, nil
+		}
+	}
 
 	// Notify the clients that the member notify props changed
 	err = a.sendUpdateChannelMemberEvent(member)
@@ -1655,6 +1679,19 @@ func (a *App) sendUpdateChannelMemberEvent(member *model.ChannelMember) error {
 		return jsonErr
 	}
 	evt.Add("channelMember", string(memberJSON))
+	a.Publish(evt)
+
+	return nil
+}
+
+func (a *App) sendUpdateChannelMemberEventWithMuteCheck(member *model.ChannelMember, channel *model.Channel, previousMuted bool) error {
+	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
+	memberJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	evt.Add("channelMember", string(memberJSON))
+	a.attachMuteToggleData(evt, channel, member, previousMuted)
 	a.Publish(evt)
 
 	return nil
@@ -1839,6 +1876,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
 	a.Publish(message)
 
 	return nil
@@ -3098,6 +3136,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
+	a.attachSingleMemberUnreadsMentions(userMsg, channel, cm)
 	a.Publish(userMsg)
 
 	// Synchronize membership change for shared channels
@@ -3373,6 +3412,9 @@ func (a *App) sendWebSocketPostUnreadEvent(rctx request.CTX, channelUnread *mode
 	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		message.Add("timestamp", model.GetMillis())
+	}
 	a.Publish(message)
 }
 
@@ -3683,10 +3725,22 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// We use channelsToView to later only update those, or early return if no channel is to be read
-	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, user.NotifyProps)
+	viewed, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, user.NotifyProps, isCRTEnabled)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.get_channels_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	times := make(map[string]int64, len(viewed))
+	clearedMentions := make(map[string]int64, len(viewed))
+	teamIDs := make(map[string]string, len(viewed))
+	var channelsToView []string
+	for id, info := range viewed {
+		times[id] = info.LastViewed
+		clearedMentions[id] = info.ClearedMentions
+		teamIDs[id] = info.TeamID
+		if info.HasUnread {
+			channelsToView = append(channelsToView, id)
+		}
 	}
 
 	if len(channelsToView) == 0 {
@@ -3715,11 +3769,18 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
 		message.Add("channel_times", times)
+		if a.Config().FeatureFlags.EnableExperienceAPI {
+			message.Add("cleared_mentions", clearedMentions)
+			message.Add("team_ids", teamIDs)
+			message.Add("timestamp", model.GetMillis())
+		}
 		a.Publish(message)
 	}
 
-	for _, channelID := range channelsToClearPushNotifications {
-		a.clearPushNotification(currentSessionID, userID, channelID, "")
+	for id, info := range viewed {
+		if info.ClearPush {
+			a.clearPushNotification(currentSessionID, userID, id, "")
+		}
 	}
 
 	if updateThreads && isCRTEnabled {
@@ -3803,9 +3864,74 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) attachChannelMembersUnreadsMentions(rctx request.CTX, message *model.WebSocketEvent, channel *model.Channel) {
+	if !a.Config().FeatureFlags.EnableExperienceAPI {
+		return
+	}
+
+	message.Add("team_id", channel.TeamId)
+
+	byUser, err := a.Srv().Store().Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch member unread state for channel broadcast", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		return
+	}
+
+	useAddMemberUnreadsMentionsHook(message, byUser)
+}
+
+func (a *App) attachSingleMemberUnreadsMentions(message *model.WebSocketEvent, channel *model.Channel, cm *model.ChannelMember) {
+	if !a.Config().FeatureFlags.EnableExperienceAPI {
+		return
+	}
+
+	message.Add("team_id", channel.TeamId)
+	message.Add("member_unreads_mentions", buildSingleMemberUnreadsAndMentions(channel, cm))
+	message.Add("timestamp", model.GetMillis())
+}
+
+// attachMuteToggleData is a no-op unless the mute state changed. member_unreads_mentions
+// is raw (no mute-zeroing) — the client picks the direction from previous_muted/current_muted.
+func (a *App) attachMuteToggleData(message *model.WebSocketEvent, channel *model.Channel, cm *model.ChannelMember, previousMuted bool) {
+	if !a.Config().FeatureFlags.EnableExperienceAPI {
+		return
+	}
+
+	currentMuted := cm.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+	if previousMuted == currentMuted {
+		return
+	}
+
+	message.Add("team_id", channel.TeamId)
+	message.Add("member_unreads_mentions", &model.ChannelMemberUnreadsAndMentions{
+		MentionCount:     cm.MentionCount,
+		MentionCountRoot: cm.MentionCountRoot,
+		IsUnread:         (channel.TotalMsgCount-cm.MsgCount > 0) || (channel.TotalMsgCountRoot-cm.MsgCountRoot > 0),
+	})
+	message.Add("previous_muted", previousMuted)
+	message.Add("current_muted", currentMuted)
+	message.Add("timestamp", model.GetMillis())
+}
+
+func buildSingleMemberUnreadsAndMentions(channel *model.Channel, cm *model.ChannelMember) *model.ChannelMemberUnreadsAndMentions {
+	muted := cm.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+	mention := cm.MentionCount
+	mentionRoot := cm.MentionCountRoot
+	if muted {
+		mention = 0
+		mentionRoot = 0
+	}
+	return &model.ChannelMemberUnreadsAndMentions{
+		MentionCount:     mention,
+		MentionCountRoot: mentionRoot,
+		IsUnread:         (channel.TotalMsgCount-cm.MsgCount > 0) || (channel.TotalMsgCountRoot-cm.MsgCountRoot > 0),
+	}
 }
 
 func (a *App) RemoveAllDeactivatedMembersFromChannel(rctx request.CTX, channel *model.Channel) *model.AppError {
@@ -4071,6 +4197,26 @@ func (a *App) setChannelsMuted(rctx request.CTX, channelIDs []string, userID str
 		}
 	}
 
+	// When experience API is on, fetch the channels in one shot so attachMuteToggleData
+	// can look up totals/team_id without an N+1 fetch in the loop below.
+	var channelByID map[string]*model.Channel
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		updatedChannelIDs := make([]string, 0, len(updated))
+		seen := make(map[string]bool, len(updated))
+		for _, m := range updated {
+			if !seen[m.ChannelId] {
+				seen[m.ChannelId] = true
+				updatedChannelIDs = append(updatedChannelIDs, m.ChannelId)
+			}
+		}
+		if channels, chErr := a.Srv().Store().Channel().GetMany(updatedChannelIDs, true); chErr == nil {
+			channelByID = make(map[string]*model.Channel, len(channels))
+			for _, c := range channels {
+				channelByID[c.Id] = c
+			}
+		}
+	}
+
 	for _, member := range updated {
 		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
@@ -4082,6 +4228,13 @@ func (a *App) setChannelsMuted(rctx request.CTX, channelIDs []string, userID str
 		}
 
 		evt.Add("channelMember", string(memberJSON))
+
+		if channelByID != nil {
+			if ch, ok := channelByID[member.ChannelId]; ok {
+				a.attachMuteToggleData(evt, ch, member, !muted)
+			}
+		}
+
 		a.Publish(evt)
 	}
 

@@ -56,6 +56,7 @@ require (
 	github.com/mholt/archives v0.1.5
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.3.0
+	github.com/molecule-man/go-brrr v1.0.1
 	github.com/opensearch-project/opensearch-go/v4 v4.7.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.24.1
