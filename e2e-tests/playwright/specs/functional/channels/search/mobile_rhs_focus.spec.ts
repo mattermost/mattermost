@@ -93,8 +93,8 @@ test.describe('Mobile view RHS auto-focus', () => {
         // * Verify the menu modal is visible after the click
         await expect(menuModal).toBeVisible();
 
-        // # Dismiss the modal using Escape (more reliable than clicking backdrop coordinates)
-        await page.keyboard.press('Escape');
+        // # Click the modal's backdrop layer outside the menu content
+        await page.mouse.click(5, 5);
 
         // * Verify the mobile menu modal is now successfully dismissed/hidden
         await expect(menuModal).toBeHidden();
