@@ -3,6 +3,10 @@
 
 package app
 
+// mfiPluginPublicKey is a placeholder for the MFI plugin signing public key.
+// TODO: Replace with the actual PGP public key once it is available.
+var mfiPluginPublicKey = []byte(``)
+
 var mattermostPluginPublicKey = []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBF3YTiEBEACgkhnZ5+xylKZhLVj193b6d/rSQuCU/zwWeZJnqyR8wRsPotXO
