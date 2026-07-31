@@ -100,16 +100,79 @@ const DIALOG_CONFIGS = {
         title: 'Title for Full Dialog Test',
         icon_url: STANDARD_ICON,
         elements: [
-            createElement('text', {display_name: 'Display Name', name: 'realname', default: 'default text', placeholder: 'placeholder', help_text: 'This a regular input in an interactive dialog triggered by a test integration.'}),
-            createElement('text', {display_name: 'Email', name: 'someemail', subtype: 'email', placeholder: 'placeholder@bladekick.com', help_text: 'This a regular email input in an interactive dialog triggered by a test integration.'}),
+            createElement('text', {
+                display_name: 'Display Name',
+                name: 'realname',
+                default: 'default text',
+                placeholder: 'placeholder',
+                help_text: 'This a regular input in an interactive dialog triggered by a test integration.',
+            }),
+            createElement('text', {
+                display_name: 'Email',
+                name: 'someemail',
+                subtype: 'email',
+                placeholder: 'placeholder@bladekick.com',
+                help_text: 'This a regular email input in an interactive dialog triggered by a test integration.',
+            }),
             createElement('text', {display_name: 'Number', name: 'somenumber', subtype: 'number'}),
-            createElement('text', {display_name: 'Password', name: 'somepassword', subtype: 'password', default: 'p@ssW0rd', placeholder: 'placeholder', help_text: 'This a password input in an interactive dialog triggered by a test integration.', optional: true}),
-            createElement('textarea', {display_name: 'Display Name Long Text Area', name: 'realnametextarea', placeholder: 'placeholder', optional: true, min_length: 5, max_length: 100}),
-            createElement('select', {display_name: 'User Selector', name: 'someuserselector', placeholder: 'Select a user...', data_source: 'users'}),
-            createElement('select', {display_name: 'Channel Selector', name: 'somechannelselector', placeholder: 'Select a channel...', help_text: 'Choose a channel from the list.', data_source: 'channels', optional: true}),
-            createElement('select', {display_name: 'Option Selector', name: 'someoptionselector', placeholder: 'Select an option...', options: [{text: 'Option1', value: 'opt1'}, {text: 'Option2', value: 'opt2'}, {text: 'Option3', value: 'opt3'}]}),
-            createElement('radio', {display_name: 'Radio Option Selector', name: 'someradiooptions', help_text: '', options: [{text: 'Engineering', value: 'engineering'}, {text: 'Sales', value: 'sales'}]}),
-            createElement('bool', {display_name: 'Boolean Selector', name: 'boolean_input', placeholder: 'Was this modal helpful?', default: 'True', optional: true, help_text: 'This is the help text'}),
+            createElement('text', {
+                display_name: 'Password',
+                name: 'somepassword',
+                subtype: 'password',
+                default: 'p@ssW0rd',
+                placeholder: 'placeholder',
+                help_text: 'This a password input in an interactive dialog triggered by a test integration.',
+                optional: true,
+            }),
+            createElement('textarea', {
+                display_name: 'Display Name Long Text Area',
+                name: 'realnametextarea',
+                placeholder: 'placeholder',
+                optional: true,
+                min_length: 5,
+                max_length: 100,
+            }),
+            createElement('select', {
+                display_name: 'User Selector',
+                name: 'someuserselector',
+                placeholder: 'Select a user...',
+                data_source: 'users',
+            }),
+            createElement('select', {
+                display_name: 'Channel Selector',
+                name: 'somechannelselector',
+                placeholder: 'Select a channel...',
+                help_text: 'Choose a channel from the list.',
+                data_source: 'channels',
+                optional: true,
+            }),
+            createElement('select', {
+                display_name: 'Option Selector',
+                name: 'someoptionselector',
+                placeholder: 'Select an option...',
+                options: [
+                    {text: 'Option1', value: 'opt1'},
+                    {text: 'Option2', value: 'opt2'},
+                    {text: 'Option3', value: 'opt3'},
+                ],
+            }),
+            createElement('radio', {
+                display_name: 'Radio Option Selector',
+                name: 'someradiooptions',
+                help_text: '',
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Sales', value: 'sales'},
+                ],
+            }),
+            createElement('bool', {
+                display_name: 'Boolean Selector',
+                name: 'boolean_input',
+                placeholder: 'Was this modal helpful?',
+                default: 'True',
+                optional: true,
+                help_text: 'This is the help text',
+            }),
         ],
         dialog_props: {state: 'somestate'},
     },
@@ -128,8 +191,20 @@ const DIALOG_CONFIGS = {
         icon_url: STANDARD_ICON,
         submit_label: 'Submit Test',
         elements: [
-            createElement('select', {display_name: 'User Selector', name: 'someuserselector', placeholder: 'Select a user...', data_source: 'users'}),
-            createElement('select', {display_name: 'Channel Selector', name: 'somechannelselector', placeholder: 'Select a channel...', help_text: 'Choose a channel from the list.', data_source: 'channels', optional: true}),
+            createElement('select', {
+                display_name: 'User Selector',
+                name: 'someuserselector',
+                placeholder: 'Select a user...',
+                data_source: 'users',
+            }),
+            createElement('select', {
+                display_name: 'Channel Selector',
+                name: 'somechannelselector',
+                placeholder: 'Select a channel...',
+                help_text: 'Choose a channel from the list.',
+                data_source: 'channels',
+                optional: true,
+            }),
         ],
         dialog_props: {state: 'somestate'},
     },
@@ -140,7 +215,14 @@ const DIALOG_CONFIGS = {
         icon_url: STANDARD_ICON,
         submit_label: 'Submit Test',
         elements: [
-            createElement('bool', {display_name: 'Boolean Selector', name: 'boolean_input', placeholder: 'Was this modal helpful?', default: 'True', optional: true, help_text: 'This is the help text'}),
+            createElement('bool', {
+                display_name: 'Boolean Selector',
+                name: 'boolean_input',
+                placeholder: 'Was this modal helpful?',
+                default: 'True',
+                optional: true,
+                help_text: 'This is the help text',
+            }),
         ],
         dialog_props: {state: 'somestate'},
     },
@@ -176,8 +258,22 @@ const DIALOG_CONFIGS = {
         title: 'Field Refresh Demo',
         introduction_text: 'Enter project name then select type to see different fields',
         elements: [
-            createElement('text', {display_name: 'Project Name', name: 'project_name', placeholder: 'Enter project name'}),
-            createElement('select', {display_name: 'Project Type', name: 'project_type', refresh: true, placeholder: 'Select project type...', options: [{text: 'Web Application', value: 'web'}, {text: 'Mobile App', value: 'mobile'}, {text: 'API Service', value: 'api'}]}),
+            createElement('text', {
+                display_name: 'Project Name',
+                name: 'project_name',
+                placeholder: 'Enter project name',
+            }),
+            createElement('select', {
+                display_name: 'Project Type',
+                name: 'project_type',
+                refresh: true,
+                placeholder: 'Select project type...',
+                options: [
+                    {text: 'Web Application', value: 'web'},
+                    {text: 'Mobile App', value: 'mobile'},
+                    {text: 'API Service', value: 'api'},
+                ],
+            }),
         ],
     },
 
@@ -187,8 +283,17 @@ const DIALOG_CONFIGS = {
         introduction_text: 'Multi-step registration - Step 1 of 3',
         submit_label: 'Next Step',
         elements: [
-            createElement('text', {display_name: 'First Name', name: 'first_name', placeholder: 'Enter your first name'}),
-            createElement('text', {display_name: 'Email', name: 'email', subtype: 'email', placeholder: 'Enter your email address'}),
+            createElement('text', {
+                display_name: 'First Name',
+                name: 'first_name',
+                placeholder: 'Enter your first name',
+            }),
+            createElement('text', {
+                display_name: 'Email',
+                name: 'email',
+                subtype: 'email',
+                placeholder: 'Enter your email address',
+            }),
         ],
         dialog_props: {state: 'step1'},
     },
@@ -199,8 +304,25 @@ const DIALOG_CONFIGS = {
         introduction_text: 'Multi-step registration - Step 2 of 3',
         submit_label: 'Next Step',
         elements: [
-            createElement('select', {display_name: 'Department', name: 'department', placeholder: 'Select department...', options: [{text: 'Engineering', value: 'engineering'}, {text: 'Marketing', value: 'marketing'}, {text: 'Sales', value: 'sales'}]}),
-            createElement('radio', {display_name: 'Experience Level', name: 'experience_level', options: [{text: 'Junior', value: 'junior'}, {text: 'Mid-level', value: 'mid'}, {text: 'Senior', value: 'senior'}]}),
+            createElement('select', {
+                display_name: 'Department',
+                name: 'department',
+                placeholder: 'Select department...',
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Marketing', value: 'marketing'},
+                    {text: 'Sales', value: 'sales'},
+                ],
+            }),
+            createElement('radio', {
+                display_name: 'Experience Level',
+                name: 'experience_level',
+                options: [
+                    {text: 'Junior', value: 'junior'},
+                    {text: 'Mid-level', value: 'mid'},
+                    {text: 'Senior', value: 'senior'},
+                ],
+            }),
         ],
         form_props: {state: 'step2'},
     },
@@ -211,7 +333,12 @@ const DIALOG_CONFIGS = {
         introduction_text: 'Multi-step registration - Step 3 of 3',
         submit_label: 'Complete Registration',
         elements: [
-            createElement('textarea', {display_name: 'Comments', name: 'comments', placeholder: 'Any additional comments...', optional: true}),
+            createElement('textarea', {
+                display_name: 'Comments',
+                name: 'comments',
+                placeholder: 'Any additional comments...',
+                optional: true,
+            }),
             createElement('bool', {display_name: 'Terms & Conditions', name: 'terms_accepted'}),
         ],
         form_props: {state: 'step3'},
@@ -227,7 +354,12 @@ const DIALOG_CONFIGS = {
         callback_id: 'child_callback',
         title: 'Child Dialog',
         elements: [
-            createElement('text', {display_name: 'Child Input', name: 'child_input', placeholder: 'Enter value', optional: true}),
+            createElement('text', {
+                display_name: 'Child Input',
+                name: 'child_input',
+                placeholder: 'Enter value',
+                optional: true,
+            }),
         ],
     },
 };
@@ -282,8 +414,7 @@ function getMultiSelectDialog(triggerId, webhookBaseUrl, includeDefaults = false
         dialog: {
             callback_id: 'somecallbackid',
             title: 'Title for Dialog Test with multiselect elements',
-            icon_url:
-                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
             submit_label: 'Submit Multiselect Test',
             notify_on_cancel: true,
             state: 'somestate',
@@ -376,8 +507,7 @@ function getDynamicSelectDialog(triggerId, webhookBaseUrl) {
         dialog: {
             callback_id: 'somecallbackid',
             title: 'Title for Dialog Test with dynamic select element',
-            icon_url:
-                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
             submit_label: 'Submit Dynamic Select Test',
             notify_on_cancel: true,
             state: 'somestate',
@@ -578,7 +708,8 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, {
         callback_id: 'timezone_manual',
         title: 'Timezone & Manual Entry Demo',
-        introduction_text: '**Timezone & Manual Entry Demo**\n\n' +
+        introduction_text:
+            '**Timezone & Manual Entry Demo**\n\n' +
             'This dialog demonstrates timezone support and manual time entry features.',
         elements: [
             {
@@ -624,8 +755,7 @@ function getFileUploadDialog(triggerId, webhookBaseUrl) {
         dialog: {
             callback_id: 'somecallbackid',
             title: 'Title for Dialog Test with file upload element',
-            icon_url:
-                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
             submit_label: 'Submit File Upload Test',
             notify_on_cancel: true,
             state: 'somestate',
@@ -670,7 +800,12 @@ function getActionButtonParentDialog(triggerId, webhookBaseUrl) {
     const config = {
         ...DIALOG_CONFIGS.actionButtonParent,
         elements: [
-            createElement('text', {display_name: 'Your Name', name: 'your_name', placeholder: 'Enter your name', optional: true}),
+            createElement('text', {
+                display_name: 'Your Name',
+                name: 'your_name',
+                placeholder: 'Enter your name',
+                optional: true,
+            }),
 
             // Two action buttons on the same dialog. Each carries a distinct
             // context.source so the child dialog can reflect which one was pressed.
@@ -728,9 +863,9 @@ function getMmBlocksDialog(triggerId, webhookBaseUrl, options = {}) {
             blocks: [
                 {
                     type: 'text',
-                    text: marker ?
-                        `Blocks dialog for **${marker}**. Fill fields, then Submit / Next step / Show errors.` :
-                        'Blocks dialog — fill fields, then Submit / Next step / Show errors.',
+                    text: marker
+                        ? `Blocks dialog for **${marker}**. Fill fields, then Submit / Next step / Show errors.`
+                        : 'Blocks dialog — fill fields, then Submit / Next step / Show errors.',
                 },
                 {type: 'divider'},
                 {
@@ -857,7 +992,11 @@ function getMmBlocksDialog(triggerId, webhookBaseUrl, options = {}) {
                 },
             ],
             actions: mmBlocksDialogActions(base, {
-                pw_dialog_refresh: {type: 'external', url: `${base}/mm_blocks_dialog_refresh`, context: {scenario: 'refresh'}},
+                pw_dialog_refresh: {
+                    type: 'external',
+                    url: `${base}/mm_blocks_dialog_refresh`,
+                    context: {scenario: 'refresh'},
+                },
                 pw_dialog_errors: {type: 'external', url: `${base}/mm_blocks_dialog_errors`, context: {}},
                 pw_dialog_error: {type: 'external', url: `${base}/mm_blocks_dialog_error`, context: {}},
                 pw_dialog_goto: {type: 'external', url: `${base}/mm_blocks_dialog_goto`, context: {}},
@@ -925,7 +1064,11 @@ function getMmBlocksDialogStep2(webhookBaseUrl, previousTitle) {
         ],
         actions: {
             pw_dialog_submit: {type: 'external', url: `${base}/mm_blocks_dialog_submit`, context: {step: '2'}},
-            pw_dialog_cancel: {type: 'external', url: `${base}/mm_blocks_dialog_cancel`, context: {reason: 'cancel', step: '2'}},
+            pw_dialog_cancel: {
+                type: 'external',
+                url: `${base}/mm_blocks_dialog_cancel`,
+                context: {reason: 'cancel', step: '2'},
+            },
         },
     };
 }
@@ -937,9 +1080,9 @@ function getMmBlocksSimpleDialog(webhookBaseUrl, options = {}) {
         blocks: [
             {
                 type: 'text',
-                text: options.marker ?
-                    `Simple blocks dialog for **${options.marker}**.` :
-                    'Simple blocks dialog with no form fields.',
+                text: options.marker
+                    ? `Simple blocks dialog for **${options.marker}**.`
+                    : 'Simple blocks dialog with no form fields.',
             },
         ],
     });
@@ -1507,122 +1650,122 @@ function getMmBlocksDatetimeDialog(webhookBaseUrl, scenario, options = {}) {
     let blocks = [];
 
     switch (scenario) {
-    case 'datetime_basic':
-        blocks = [
-            {
-                type: 'date_input',
-                name: 'event_date',
-                label: 'Event Date',
-                placeholder: 'Select a date',
-                help_text: 'Select the date for your event',
-            },
-            {
-                type: 'datetime_input',
-                name: 'meeting_time',
-                label: 'Meeting Time',
-                placeholder: 'Select date and time',
-                help_text: 'Select the date and time for your meeting',
-                optional: true,
-                datetime_config: {time_interval: 60},
-            },
-        ];
-        break;
-    case 'datetime_mindate':
-        blocks = [
-            {
-                type: 'date_input',
-                name: 'future_date',
-                label: 'Future Date Only',
-                placeholder: 'Select a future date',
-                help_text: 'Must be today or later',
-                optional: true,
-                datetime_config: {min_date: 'today'},
-            },
-        ];
-        break;
-    case 'datetime_interval':
-        blocks = [
-            {
-                type: 'datetime_input',
-                name: 'interval_time',
-                label: 'Custom Interval Time',
-                placeholder: 'Select time (30min intervals)',
-                help_text: 'Time picker with 30-minute intervals',
-                optional: true,
-                datetime_config: {time_interval: 30},
-            },
-        ];
-        break;
-    case 'datetime_relative':
-        blocks = [
-            {
-                type: 'date_input',
-                name: 'relative_date',
-                label: 'Relative Date Example',
-                placeholder: 'Today by default',
-                help_text: 'Defaults to today using relative date',
-                optional: true,
-                initial_value: 'today',
-            },
-            {
-                type: 'datetime_input',
-                name: 'relative_datetime',
-                label: 'Relative DateTime Example',
-                placeholder: 'Tomorrow by default',
-                help_text: 'Defaults to tomorrow using relative date',
-                optional: true,
-                initial_value: '+1d',
-            },
-        ];
-        break;
-    case 'datetime_timezone':
-        blocks = [
-            {
-                type: 'datetime_input',
-                name: 'london_dropdown',
-                label: 'London Office Hours',
-                help_text: 'Times shown in GMT - select from 60 min intervals',
-                optional: true,
-                datetime_config: {
-                    location_timezone: 'Europe/London',
-                    time_interval: 60,
+        case 'datetime_basic':
+            blocks = [
+                {
+                    type: 'date_input',
+                    name: 'event_date',
+                    label: 'Event Date',
+                    placeholder: 'Select a date',
+                    help_text: 'Select the date for your event',
                 },
-            },
-        ];
-        break;
-    case 'datetime_manual':
-        blocks = [
-            {
-                type: 'datetime_input',
-                name: 'local_manual',
-                label: 'Your Local Time',
-                help_text: 'Type any time: 9am, 14:30, 3:45pm - no rounding',
-                optional: true,
-                datetime_config: {manual_time_entry: true},
-            },
-            {
-                type: 'datetime_input',
-                name: 'london_manual',
-                label: 'London Manual Entry',
-                help_text: 'Type time in GMT: 9am, 14:30, 3:45pm - no rounding',
-                optional: true,
-                datetime_config: {
-                    location_timezone: 'Europe/London',
-                    manual_time_entry: true,
+                {
+                    type: 'datetime_input',
+                    name: 'meeting_time',
+                    label: 'Meeting Time',
+                    placeholder: 'Select date and time',
+                    help_text: 'Select the date and time for your meeting',
+                    optional: true,
+                    datetime_config: {time_interval: 60},
                 },
-            },
-        ];
-        break;
-    default:
-        blocks = [
-            {
-                type: 'date_input',
-                name: 'event_date',
-                label: 'Event Date',
-                placeholder: 'Select a date',
-                optional: true,
-            },
-        ];
+            ];
+            break;
+        case 'datetime_mindate':
+            blocks = [
+                {
+                    type: 'date_input',
+                    name: 'future_date',
+                    label: 'Future Date Only',
+                    placeholder: 'Select a future date',
+                    help_text: 'Must be today or later',
+                    optional: true,
+                    datetime_config: {min_date: 'today'},
+                },
+            ];
+            break;
+        case 'datetime_interval':
+            blocks = [
+                {
+                    type: 'datetime_input',
+                    name: 'interval_time',
+                    label: 'Custom Interval Time',
+                    placeholder: 'Select time (30min intervals)',
+                    help_text: 'Time picker with 30-minute intervals',
+                    optional: true,
+                    datetime_config: {time_interval: 30},
+                },
+            ];
+            break;
+        case 'datetime_relative':
+            blocks = [
+                {
+                    type: 'date_input',
+                    name: 'relative_date',
+                    label: 'Relative Date Example',
+                    placeholder: 'Today by default',
+                    help_text: 'Defaults to today using relative date',
+                    optional: true,
+                    initial_value: 'today',
+                },
+                {
+                    type: 'datetime_input',
+                    name: 'relative_datetime',
+                    label: 'Relative DateTime Example',
+                    placeholder: 'Tomorrow by default',
+                    help_text: 'Defaults to tomorrow using relative date',
+                    optional: true,
+                    initial_value: '+1d',
+                },
+            ];
+            break;
+        case 'datetime_timezone':
+            blocks = [
+                {
+                    type: 'datetime_input',
+                    name: 'london_dropdown',
+                    label: 'London Office Hours',
+                    help_text: 'Times shown in GMT - select from 60 min intervals',
+                    optional: true,
+                    datetime_config: {
+                        location_timezone: 'Europe/London',
+                        time_interval: 60,
+                    },
+                },
+            ];
+            break;
+        case 'datetime_manual':
+            blocks = [
+                {
+                    type: 'datetime_input',
+                    name: 'local_manual',
+                    label: 'Your Local Time',
+                    help_text: 'Type any time: 9am, 14:30, 3:45pm - no rounding',
+                    optional: true,
+                    datetime_config: {manual_time_entry: true},
+                },
+                {
+                    type: 'datetime_input',
+                    name: 'london_manual',
+                    label: 'London Manual Entry',
+                    help_text: 'Type time in GMT: 9am, 14:30, 3:45pm - no rounding',
+                    optional: true,
+                    datetime_config: {
+                        location_timezone: 'Europe/London',
+                        manual_time_entry: true,
+                    },
+                },
+            ];
+            break;
+        default:
+            blocks = [
+                {
+                    type: 'date_input',
+                    name: 'event_date',
+                    label: 'Event Date',
+                    placeholder: 'Select a date',
+                    optional: true,
+                },
+            ];
     }
 
     return baseBlockDialog(webhookBaseUrl, {
@@ -1640,46 +1783,46 @@ function getMmBlocksDatetimeDialog(webhookBaseUrl, scenario, options = {}) {
  */
 function getMmBlocksDialogByScenario(webhookBaseUrl, scenario, options = {}) {
     switch (scenario) {
-    case 'simple':
-        return getMmBlocksSimpleDialog(webhookBaseUrl, options);
-    case 'full':
-        return getMmBlocksFullDialog(webhookBaseUrl, options);
-    case 'boolean':
-        return getMmBlocksBooleanDialog(webhookBaseUrl, options);
-    case 'users_channels':
-        return getMmBlocksUsersChannelsDialog(webhookBaseUrl, options);
-    case 'multiselect':
-        return getMmBlocksMultiselectDialog(webhookBaseUrl, {...options, includeDefaults: false});
-    case 'multiselect_defaults':
-        return getMmBlocksMultiselectDialog(webhookBaseUrl, {...options, includeDefaults: true});
-    case 'dynamic':
-        return getMmBlocksDynamicDialog(webhookBaseUrl, options);
-    case 'empty_required':
-        return getMmBlocksEmptyRequiredDialog(webhookBaseUrl, options);
-    case 'file_upload':
-        return getMmBlocksFileUploadDialog(webhookBaseUrl, options);
-    case 'field_refresh':
-        return getMmBlocksFieldRefreshDialog(webhookBaseUrl, options);
-    case 'multistep_1':
-        return getMmBlocksMultistep1Dialog(webhookBaseUrl, options);
-    case 'multistep_2':
-        return getMmBlocksMultistep2Dialog(webhookBaseUrl, options);
-    case 'multistep_3':
-        return getMmBlocksMultistep3Dialog(webhookBaseUrl, options);
-    case 'action_parent':
-        return getMmBlocksActionParentDialog(webhookBaseUrl, options);
-    case 'datetime_basic':
-    case 'datetime_mindate':
-    case 'datetime_interval':
-    case 'datetime_relative':
-    case 'datetime_timezone':
-    case 'datetime_manual':
-        return getMmBlocksDatetimeDialog(webhookBaseUrl, scenario, options);
-    case 'default':
-    default: {
-        const openPayload = getMmBlocksDialog('unused', webhookBaseUrl, options);
-        return openPayload.block_dialog;
-    }
+        case 'simple':
+            return getMmBlocksSimpleDialog(webhookBaseUrl, options);
+        case 'full':
+            return getMmBlocksFullDialog(webhookBaseUrl, options);
+        case 'boolean':
+            return getMmBlocksBooleanDialog(webhookBaseUrl, options);
+        case 'users_channels':
+            return getMmBlocksUsersChannelsDialog(webhookBaseUrl, options);
+        case 'multiselect':
+            return getMmBlocksMultiselectDialog(webhookBaseUrl, {...options, includeDefaults: false});
+        case 'multiselect_defaults':
+            return getMmBlocksMultiselectDialog(webhookBaseUrl, {...options, includeDefaults: true});
+        case 'dynamic':
+            return getMmBlocksDynamicDialog(webhookBaseUrl, options);
+        case 'empty_required':
+            return getMmBlocksEmptyRequiredDialog(webhookBaseUrl, options);
+        case 'file_upload':
+            return getMmBlocksFileUploadDialog(webhookBaseUrl, options);
+        case 'field_refresh':
+            return getMmBlocksFieldRefreshDialog(webhookBaseUrl, options);
+        case 'multistep_1':
+            return getMmBlocksMultistep1Dialog(webhookBaseUrl, options);
+        case 'multistep_2':
+            return getMmBlocksMultistep2Dialog(webhookBaseUrl, options);
+        case 'multistep_3':
+            return getMmBlocksMultistep3Dialog(webhookBaseUrl, options);
+        case 'action_parent':
+            return getMmBlocksActionParentDialog(webhookBaseUrl, options);
+        case 'datetime_basic':
+        case 'datetime_mindate':
+        case 'datetime_interval':
+        case 'datetime_relative':
+        case 'datetime_timezone':
+        case 'datetime_manual':
+            return getMmBlocksDatetimeDialog(webhookBaseUrl, scenario, options);
+        case 'default':
+        default: {
+            const openPayload = getMmBlocksDialog('unused', webhookBaseUrl, options);
+            return openPayload.block_dialog;
+        }
     }
 }
 

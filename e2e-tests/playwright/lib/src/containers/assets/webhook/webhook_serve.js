@@ -74,7 +74,7 @@ server.listen(port, (err) => {
 
 function ping(req, res) {
     return res.json({
-        message: 'I\'m alive!',
+        message: "I'm alive!",
         endpoints: [
             'GET /',
             'POST /setup',
@@ -142,10 +142,7 @@ function doSetup(req, res) {
 let client;
 let authedUser;
 function postSendOauthCredentials(req, res) {
-    const {
-        appID,
-        appSecret,
-    } = req.body;
+    const {appID, appSecret} = req.body;
     client = new ClientOAuth2({
         clientId: appID,
         clientSecret: appSecret,
@@ -161,12 +158,15 @@ function getStartOAuth(req, res) {
 }
 
 function getCompleteOauth(req, res) {
-    client.code.getToken(req.originalUrl).then((user) => {
-        authedUser = user;
-        return res.status(200).send('OK');
-    }).catch((reason) => {
-        return res.status(reason.status).send(reason);
-    });
+    client.code
+        .getToken(req.originalUrl)
+        .then((user) => {
+            authedUser = user;
+            return res.status(200).send('OK');
+        })
+        .catch((reason) => {
+            return res.status(reason.status).send(reason);
+        });
 }
 
 async function postOAuthMessage(req, res) {
@@ -247,9 +247,9 @@ function postMmBlocksIntegrationUpdate(req, res) {
 
 /** Echoes URL query parameters Mattermost merged onto the integration request (action query + block query). */
 function postMmBlocksIntegrationEchoQuery(req, res) {
-    const entries = Object.keys(req.query || {}).
-        sort().
-        map((k) => `${k}=${String(req.query[k])}`);
+    const entries = Object.keys(req.query || {})
+        .sort()
+        .map((k) => `${k}=${String(req.query[k])}`);
     const summary = entries.join('&');
 
     res.setHeader('Content-Type', 'application/json');
@@ -262,8 +262,7 @@ function postMmBlocksIntegrationEchoQuery(req, res) {
 /** Echoes `context.test_marker` from the Mattermost integration POST body for mm_blocks external actions. */
 function postMmBlocksIntegrationEchoContext(req, res) {
     const ctx = (req.body && req.body.context) || {};
-    const marker =
-        typeof ctx.test_marker === 'string' ? ctx.test_marker : JSON.stringify(ctx.test_marker ?? null);
+    const marker = typeof ctx.test_marker === 'string' ? ctx.test_marker : JSON.stringify(ctx.test_marker ?? null);
 
     res.setHeader('Content-Type', 'application/json');
     return res.status(200).json({
@@ -290,21 +289,21 @@ function postMmBlocksIntegrationStaticSelect(req, res) {
  * strings, booleans, numbers, or arrays of scalars.
  */
 function formatFormValuesSummary(formValues) {
-    return Object.keys(formValues || {}).
-        sort().
-        map((k) => {
+    return Object.keys(formValues || {})
+        .sort()
+        .map((k) => {
             const v = formValues[k];
             const rendered = Array.isArray(v) ? v.join(',') : String(v);
             return `${k}=${rendered}`;
-        }).
-        join('&');
+        })
+        .join('&');
 }
 
 function getUpstreamFormValues(req) {
     const ctx = (req.body && req.body.context) || {};
-    return (ctx.form_values && typeof ctx.form_values === 'object' && !Array.isArray(ctx.form_values)) ?
-        ctx.form_values :
-        {};
+    return ctx.form_values && typeof ctx.form_values === 'object' && !Array.isArray(ctx.form_values)
+        ? ctx.form_values
+        : {};
 }
 
 function postMmBlocksIntegrationEchoFormValues(req, res) {
@@ -332,11 +331,12 @@ function postMmBlocksIntegrationLookup(req, res) {
         {text: 'Mattermost', value: 'opt_mm'},
     ];
 
-    const items = searchText ?
-        allOptions.filter((option) =>
-            option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) :
-        allOptions;
+    const items = searchText
+        ? allOptions.filter(
+              (option) =>
+                  option.text.toLowerCase().includes(searchText) || option.value.toLowerCase().includes(searchText),
+          )
+        : allOptions;
 
     res.setHeader('Content-Type', 'application/json');
     return res.status(200).json({items});
@@ -559,7 +559,11 @@ async function openDialog(dialog) {
     } catch (err) {
         const status = err.response && err.response.status;
         const body = err.response && err.response.data;
-        console.error('openDialog request failed:', status || err.code || err.message, body ? JSON.stringify(body) : '');
+        console.error(
+            'openDialog request failed:',
+            status || err.code || err.message,
+            body ? JSON.stringify(body) : '',
+        );
     }
 }
 
@@ -675,9 +679,12 @@ function onDynamicSelectSource(req, res) {
     ];
 
     // Filter options based on search text
-    const filteredOptions = searchText ? allOptions.filter((option) =>
-        option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) : allOptions.slice(0, 6); // Limit to first 6 if no search
+    const filteredOptions = searchText
+        ? allOptions.filter(
+              (option) =>
+                  option.text.toLowerCase().includes(searchText) || option.value.toLowerCase().includes(searchText),
+          )
+        : allOptions.slice(0, 6); // Limit to first 6 if no search
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({
@@ -693,25 +700,25 @@ function onDateTimeDialogRequest(req, res) {
 
         // Use focused dialog functions based on command parameter
         switch (command) {
-        case 'basic':
-            dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
-            break;
-        case 'mindate':
-            dialog = webhookUtils.getMinDateConstraintDialog(body.trigger_id, webhookBaseUrl);
-            break;
-        case 'interval':
-            dialog = webhookUtils.getCustomIntervalDialog(body.trigger_id, webhookBaseUrl);
-            break;
-        case 'relative':
-            dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
-            break;
-        case 'timezone-manual':
-            dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
-            break;
-        default:
-            // Default to basic datetime dialog for backward compatibility
-            dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
-            break;
+            case 'basic':
+                dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
+                break;
+            case 'mindate':
+                dialog = webhookUtils.getMinDateConstraintDialog(body.trigger_id, webhookBaseUrl);
+                break;
+            case 'interval':
+                dialog = webhookUtils.getCustomIntervalDialog(body.trigger_id, webhookBaseUrl);
+                break;
+            case 'relative':
+                dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
+                break;
+            case 'timezone-manual':
+                dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
+                break;
+            default:
+                // Default to basic datetime dialog for backward compatibility
+                dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
+                break;
         }
         console.log('Opening DateTime dialog', dialog.dialog.title);
         openDialog(dialog);
@@ -823,9 +830,9 @@ function onDialogSubmit(req, res) {
     // Regular dialog submission
     // Format submission data for the channel message
     const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
-    const submissionData = Object.entries(body.submission || {}).
-        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`).
-        join('\n');
+    const submissionData = Object.entries(body.submission || {})
+        .map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`)
+        .join('\n');
 
     message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;
 
@@ -844,11 +851,13 @@ function postSendMessageToChannel(req, res) {
         response_type: 'in_channel',
         text: 'Extra response 2',
         channel_id: channelId,
-        extra_responses: [{
-            response_type: 'in_channel',
-            text: 'Hello World',
-            channel_id: channelId,
-        }],
+        extra_responses: [
+            {
+                response_type: 'in_channel',
+                text: 'Hello World',
+                channel_id: channelId,
+            },
+        ],
     };
 
     if (req.query.type) {
@@ -874,7 +883,9 @@ function sendSysadminResponse(message, channelId) {
 const responseTypes = ['in_channel', 'comment'];
 
 function getWebhookResponse(body, {responseType, username, iconUrl}) {
-    const payload = Object.entries(body).map(([key, value]) => `- ${key}: "${value}"`).join('\n');
+    const payload = Object.entries(body)
+        .map(([key, value]) => `- ${key}: "${value}"`)
+        .join('\n');
 
     return `
 \`\`\`
