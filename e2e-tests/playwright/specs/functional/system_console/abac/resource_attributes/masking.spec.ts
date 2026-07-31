@@ -3,7 +3,6 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-import {enableMaskingFlag} from '../masking/masking_helpers';
 import {enableUserManagedAttributes} from '../support';
 
 import {createChannelTextField, expectMaskedTokenRejected} from './helpers';
@@ -29,12 +28,17 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
+        // The sentinel rejection under test lives inside the server's
+        // AttributeValueMasking branch, so the flag has to be on. It cannot be
+        // turned on from here (the config store restores feature flags on
+        // write), so guard rather than try to set it.
+        await pw.skipIfFeatureFlagNotSet('AttributeValueMasking', true);
+
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         } as Parameters<typeof adminClient.patchConfig>[0]);
-        await enableMaskingFlag(adminClient);
 
         const attr = `region${pw.random.id()}`;
         await createChannelTextField(adminClient, attr);
