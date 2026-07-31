@@ -114,19 +114,17 @@ sacred outputs.
   RTL/Persian, high-visibility UI, and any locale that fails automated
   gates repeatedly
 
-### 2.6 Land in waves (not one mega-PR)
+### 2.6 Land in waves (not one mega-PR) — **DONE**
 
-Suggested order (adjust with owners):
+Executed in surface waves (small surfaces → Playbooks → mobile → server
+→ webapp), all 21 locales parallel per wave. **The full sweep is
+complete and landed on `ai-i18n` in all five repos** — see
+[sweep-report.md](./sweep-report.md) for metrics (311,514 targets,
+58k revisions, 83k new translations, 27 new locale files, 0.56%
+sampled drift rate, all flags fixed).
 
-1. Desktop + Calls (small)
-2. Playbooks (includes known-bad `zh_Hant`)
-3. Mobile
-4. Server
-5. Webapp (largest)
-
-- [ ] Each wave: report (coverage, identical rates, lint failures,
-  sample review notes) + rollback point.
-- [ ] Feed accepted prompts/checks forward into step 3's author workflow.
+- [x] Waves landed with validation reports.
+- [x] Prompts/checks captured for step 3's author workflow.
 
 ## Challenges (verification pass)
 
