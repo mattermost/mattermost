@@ -42,30 +42,42 @@ only.
 - [ ] Update platform docs that still say only `en.json` should be
       modified (e.g. webapp developer-workflow) — full sweep in step 6.
 
-### 3.3 JS CI: FormatJS verify (corrected)
+### 3.3 JS CI: custom ICU checker (evaluated; supersedes stock verify)
 
-Verified: core webapp `@formatjs/cli` supports `verify` with
-`--missing-keys` and `--structural-equality`. **`--extra-keys` is not a
-real flag** on surveyed CLIs — plan a custom extra-key diff instead.
+**Design done and validated** — see
+[lint-strategy.md](./lint-strategy.md) and the reference implementation
+in [`lint/check_icu.mjs`](./lint/check_icu.mjs). The stock
+`formatjs verify` is rejected: its bundled parser has a `Map`-property
+bug that false-positives on variables named `size` (and corrupts nested
+plural type tracking), it has no extra-keys check, and no exception
+mechanism. The custom checker imports the current
+`@formatjs/icu-messageformat-parser` directly (the exact runtime parser)
+and adds key parity, variable-subset, structural-equality, and
+apostrophe-before-syntax checks with a per-surface exceptions file.
 
-- [ ] Wire webapp `i18n-verify-translations` into CI (today only extract
-  drift runs).
-- [ ] Add `@formatjs/cli` to mobile and desktop; add equivalent scripts.
-- [ ] Upgrade Calls/Playbooks CLI packages if they lack `verify`.
-- [ ] Add custom check for unexpected extra keys vs `en`.
+- [x] Validate the approach against the full corpus (236,838 strings,
+  6 surfaces × 21 locales — all PASS after fixing 34 real defects and
+  removing 5,052 stale keys found by the checker).
+- [ ] Land `check_icu.mjs` + exceptions file in each JS repo; replace
+  webapp `i18n-verify-translations`; wire into each repo's lint CI job.
 
 ### 3.4 Go CI: mmgotool verify
 
 Today `mmgotool` exposes `extract` / `check` / `check-empty-src` /
 `clean-empty` — **no `verify`**.
 
-- [ ] Implement `mmgotool i18n verify`: parse `text/template`, diff
-  `{{.Field}}` tokens vs `en`, validate plural maps.
-- [ ] Publish via the **canonical** module path; bump Calls (`@latest` or
-  pin) and Playbooks (`mattermost-utilities` pin — may need repo
-  alignment).
-- [ ] Until plugins can adopt it, run equivalent checks in-repo or accept
-  temporary platform-only coverage with an explicit gap list.
+**Reference implementation validated** — see
+[`lint/check_go_i18n`](./lint/check_go_i18n/main.go): loads each file
+through the real `mattermost/go-i18n` loader (negative-tested: broken
+templates are rejected at load), checks id parity, `{{.Var}}` token
+subset, and CLDR plural-category exactness per locale. All three Go
+surfaces PASS after fixing pt-BR dead `many` branches and stale ids.
+
+- [ ] Fold these checks into `mmgotool i18n verify` on the **canonical**
+  module path; bump Calls (`@latest` or pin) and Playbooks
+  (`mattermost-utilities` pin — may need repo alignment).
+- [ ] Until plugins can adopt it, run `check_go_i18n` in-repo (it is a
+  standalone module with one dependency).
 
 ### 3.5 Identical-to-source: no gate (decided)
 

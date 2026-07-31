@@ -1,0 +1,9 @@
+{
+  "name": "i18n-lint-reference",
+  "private": true,
+  "type": "module",
+  "description": "Reference deterministic i18n checkers (see ../lint-strategy.md)",
+  "dependencies": {
+    "@formatjs/icu-messageformat-parser": "^3.5.16"
+  }
+}
