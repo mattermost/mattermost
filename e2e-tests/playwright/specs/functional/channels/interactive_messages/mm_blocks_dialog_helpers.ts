@@ -52,7 +52,7 @@ export async function setupExternalMmBlocksInThread(
     );
 
     await setupWebhookTestServer(request, {
-        mattermostBaseUrl: testConfig.baseURL,
+        mattermostBaseUrl: testConfig.internalBaseURL,
         adminUsername: testConfig.adminUsername,
         adminPassword: testConfig.adminPassword,
     });
@@ -125,7 +125,7 @@ export async function setupDialogOpenPost(
     opts: SetupDialogOpenPostOpts,
 ) {
     await setupWebhookTestServer(request, {
-        mattermostBaseUrl: testConfig.baseURL,
+        mattermostBaseUrl: testConfig.internalBaseURL,
         adminUsername: testConfig.adminUsername,
         adminPassword: testConfig.adminPassword,
     });
@@ -245,7 +245,7 @@ export async function setupLegacyActionButtonCommand(
     request: Parameters<typeof setupWebhookTestServer>[0],
 ) {
     await setupWebhookTestServer(request, {
-        mattermostBaseUrl: testConfig.baseURL,
+        mattermostBaseUrl: testConfig.internalBaseURL,
         adminUsername: testConfig.adminUsername,
         adminPassword: testConfig.adminPassword,
     });

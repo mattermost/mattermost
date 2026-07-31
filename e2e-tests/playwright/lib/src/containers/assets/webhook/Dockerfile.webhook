@@ -1,6 +1,6 @@
 # webhook_serve.js, utils/webhook_utils.js, and tests/plugins/post_message_as.js are vendored
 # copies of e2e-tests/cypress's files of the same name (shared sidecar, also used by Cypress) —
-# copied on 2026-07-20. Dependencies match e2e-tests/.ci/server.generate.sh's "playwright" Compose
+# copied on 2026-07-31. Dependencies match e2e-tests/.ci/server.generate.sh's "playwright" Compose
 # service, just installed at build time instead of on every container start.
 FROM node:24-alpine
 
