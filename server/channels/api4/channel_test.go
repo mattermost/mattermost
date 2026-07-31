@@ -5049,6 +5049,7 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 		{name: "system post all with channel user", roles: channelMember + " " + model.SystemPostAllRoleId},
 		{name: "system read only admin with channel user", roles: channelMember + " " + model.SystemReadOnlyAdminRoleId},
 		{name: "custom group user with channel user", roles: channelMember + " " + model.CustomGroupUserRoleId},
+		{name: "channel guest with channel admin", roles: model.ChannelGuestRoleId + " " + model.ChannelAdminRoleId},
 	}
 
 	for _, tc := range invalidRoles {
