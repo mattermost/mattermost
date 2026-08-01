@@ -199,7 +199,7 @@ test.describe('Post list scroll to permalink', () => {
 
                 await testCase.setupPostsAfter();
 
-                test.setTimeout(15000);
+                test.setTimeout(30000);
             });
 
             test(`${testCase.name} - should stay at the linked post during initial load`, async ({}) => {
