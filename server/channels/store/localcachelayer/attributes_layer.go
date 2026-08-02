@@ -30,15 +30,15 @@ func (s *LocalCacheAttributesStore) handleClusterInvalidateUserPropertyValuesEpo
 // GetUserPropertyValuesEpoch caches the per-user property-values epoch (keyed by user ID) so the
 // ABAC-aware post-list ETag does not hit PropertyValues on every post GET. Property-value writes
 // invalidate the affected user's key from the App layer via InvalidateUserPropertyValuesEpoch.
-func (s LocalCacheAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
-	var epoch int64
+func (s LocalCacheAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	var epoch string
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userPropertyValuesEpochCache, userID, &epoch); err == nil {
 		return epoch, nil
 	}
 
 	epoch, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.userPropertyValuesEpochCache, userID, epoch)

@@ -19,20 +19,20 @@ func TestAccessControlPolicyStoreCache(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 	rctx := request.TestContext(t)
 
-	t.Run("GetMaxUpdateAt cached on second call", func(t *testing.T) {
+	t.Run("GetEtagEpoch cached on second call", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
 		require.NoError(t, err)
 
-		epoch, err := cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		epoch, err := cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(100), epoch)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 1)
+		assert.Equal(t, "100-1", epoch)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 1)
 
-		epoch, err = cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		epoch, err = cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(100), epoch)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 1)
+		assert.Equal(t, "100-1", epoch)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 1)
 	})
 
 	t.Run("InvalidateEtagForChannel forces a re-query", func(t *testing.T) {
@@ -40,15 +40,15 @@ func TestAccessControlPolicyStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		_, err = cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 1)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 1)
 
 		cachedStore.AccessControlPolicy().InvalidateEtagForChannel(channelID)
 
-		_, err = cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		_, err = cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 2)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 2)
 	})
 
 	t.Run("ClearEtagCache forces a re-query", func(t *testing.T) {
@@ -56,14 +56,14 @@ func TestAccessControlPolicyStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		_, err = cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 1)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 1)
 
 		cachedStore.AccessControlPolicy().ClearEtagCache()
 
-		_, err = cachedStore.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		_, err = cachedStore.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetMaxUpdateAt", 2)
+		mockStore.AccessControlPolicy().(*mocks.AccessControlPolicyStore).AssertNumberOfCalls(t, "GetEtagEpoch", 2)
 	})
 }

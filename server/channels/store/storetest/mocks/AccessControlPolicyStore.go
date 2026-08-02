@@ -128,23 +128,23 @@ func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policy
 	return r0, r1
 }
 
-// GetMaxUpdateAt provides a mock function with given fields: rctx, channelID
-func (_m *AccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+// GetEtagEpoch provides a mock function with given fields: rctx, channelID
+func (_m *AccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetMaxUpdateAt")
+		panic("no return value specified for GetEtagEpoch")
 	}
 
-	var r0 int64
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
 		return rf(rctx, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) int64); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
 		r0 = rf(rctx, channelID)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {

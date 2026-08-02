@@ -26,12 +26,12 @@ func TestAttributesStoreCache(t *testing.T) {
 
 		epoch, err := cachedStore.Attributes().GetUserPropertyValuesEpoch(rctx, userID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(200), epoch)
+		assert.Equal(t, "200-1", epoch)
 		mockStore.Attributes().(*mocks.AttributesStore).AssertNumberOfCalls(t, "GetUserPropertyValuesEpoch", 1)
 
 		epoch, err = cachedStore.Attributes().GetUserPropertyValuesEpoch(rctx, userID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(200), epoch)
+		assert.Equal(t, "200-1", epoch)
 		mockStore.Attributes().(*mocks.AttributesStore).AssertNumberOfCalls(t, "GetUserPropertyValuesEpoch", 1)
 	})
 

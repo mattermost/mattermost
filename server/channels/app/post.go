@@ -1419,10 +1419,15 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
+// Stand-in for an epoch the store could not produce. It keeps the ETag well-formed without
+// colliding with a real epoch, which always carries a row count.
+const unknownABACEtagEpoch = "unknown"
+
 // AppendABACEtag extends a base ETag with two DB-derived epoch components so that
 // a file-policy change or user attribute change causes an ETag miss — forcing
 // SanitizePostListMetadataForUser to run instead of returning a stale 304.
-// Format: "base.maxPolicyCreateAt.userCPAUpdateAt". No-op when ABAC is inactive.
+// Format: "base.policyEpoch.userCPAEpoch". No-op when ABAC is inactive. Each epoch is opaque and
+// combines a max timestamp with a row count, so deletions move it too.
 //
 // channelID scopes the policy epoch to the permission policies plus that channel's own policy;
 // pass "" when no channel is in scope. Both epochs are cached in the store's local cache layer.
@@ -1435,29 +1440,26 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 
 	rctx := request.EmptyContext(a.Log())
 
-	var maxPolicyAt int64
-	if epoch, err := a.Srv().Store().AccessControlPolicy().GetMaxUpdateAt(rctx, channelID); err == nil {
-		maxPolicyAt = epoch
+	policyEpoch := unknownABACEtagEpoch
+	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
+		policyEpoch = epoch
 	} else {
-		a.Log().Warn("ABAC ETag: failed to get max policy CreateAt; policy component will be 0",
+		a.Log().Warn("ABAC ETag: failed to get access control policy epoch; policy component will be unknown",
 			mlog.Err(err))
 	}
 
-	var userCPAAt int64
+	cpaEpoch := unknownABACEtagEpoch
 	if userID != "" {
 		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
-			userCPAAt = epoch
+			cpaEpoch = epoch
 		} else {
-			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be 0",
+			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be unknown",
 				mlog.String("user_id", userID),
 				mlog.Err(err))
 		}
 	}
 
-	return fmt.Sprintf("%s.%s.%s", base,
-		strconv.FormatInt(maxPolicyAt, 10),
-		strconv.FormatInt(userCPAAt, 10),
-	)
+	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
 }
 
 func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads bool) string {

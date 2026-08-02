@@ -237,22 +237,28 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
-func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+// The row count is folded in alongside the max because values are soft-deleted: dropping a value
+// that is not the most recently updated one leaves MAX(UpdateAt) unchanged, which would keep a
+// stale ETag matching.
+func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
 	query, args, err := s.getQueryBuilder().
-		Select("COALESCE(MAX(UpdateAt), 0)").
+		Select("COALESCE(MAX(UpdateAt), 0) AS MaxUpdateAt", "COUNT(*) AS Total").
 		From("PropertyValues").
 		Where(sq.Eq{"TargetID": userID}).
 		Where("DeleteAt = 0").
 		ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
 	}
 
-	var epoch int64
-	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
-		return 0, errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	var epoch struct {
+		MaxUpdateAt int64
+		Total       int64
 	}
-	return epoch, nil
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxUpdateAt, epoch.Total), nil
 }
 
 // No-op at the SQL layer; the per-user epoch is cached in and invalidated by the local cache layer.

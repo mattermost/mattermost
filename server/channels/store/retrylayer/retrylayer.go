@@ -733,11 +733,11 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+func (s *RetryLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx, channelID)
+		result, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -934,7 +934,7 @@ func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 
 }
 
-func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
 
 	tries := 0
 	for {

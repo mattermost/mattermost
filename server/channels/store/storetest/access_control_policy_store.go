@@ -6,6 +6,7 @@ package storetest
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -29,14 +30,14 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SearchByTeamIDWithScope", func(t *testing.T) { testAccessControlPolicyStoreSearchByTeamIDWithScope(t, rctx, ss) })
 	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
 	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
-	t.Run("GetMaxUpdateAt", func(t *testing.T) { testAccessControlPolicyStoreGetMaxUpdateAt(t, rctx, ss) })
+	t.Run("GetEtagEpoch", func(t *testing.T) { testAccessControlPolicyStoreGetEtagEpoch(t, rctx, ss) })
 }
 
-func testAccessControlPolicyStoreGetMaxUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
+func testAccessControlPolicyStoreGetEtagEpoch(t *testing.T, rctx request.CTX, ss store.Store) {
 	// baseline is the epoch contributed by any system-scoped permission policies already present
 	// (queried against a channel ID that cannot match anything). Every per-channel assertion is
 	// made relative to it, so the test stays deterministic regardless of unrelated policies.
-	baseline, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, model.NewId())
+	baseline, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, model.NewId())
 	require.NoError(t, err)
 
 	channelID := model.NewId()
@@ -63,21 +64,63 @@ func testAccessControlPolicyStoreGetMaxUpdateAt(t *testing.T, rctx request.CTX, 
 	})
 
 	t.Run("includes the target channel's own policy row", func(t *testing.T) {
-		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, channelID)
+		epoch, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, channelID)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, epoch, saved.CreateAt)
+		require.NotEqual(t, baseline, epoch)
+		require.True(t, strings.HasPrefix(epoch, fmt.Sprintf("%d-", saved.CreateAt)))
 	})
 
 	t.Run("a channel policy does not affect a different channel's epoch", func(t *testing.T) {
-		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, model.NewId())
+		epoch, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, model.NewId())
 		require.NoError(t, err)
 		require.Equal(t, baseline, epoch)
 	})
 
 	t.Run("empty channel id is scoped to permission policies only", func(t *testing.T) {
-		epoch, err := ss.AccessControlPolicy().GetMaxUpdateAt(rctx, "")
+		epoch, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, "")
 		require.NoError(t, err)
 		require.Equal(t, baseline, epoch)
+	})
+
+	// The regression this guards: MAX(CreateAt) alone does not move when a policy that is not the
+	// newest is removed, so an ETag built from it keeps matching and clients stay on stale data.
+	// Permission policies are the case that matters — they are system-scoped, so every channel's
+	// epoch aggregates all of them.
+	t.Run("deleting a permission policy that is not the newest still moves the epoch", func(t *testing.T) {
+		permissionPolicy := func() *model.AccessControlPolicy {
+			return &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Name:     "Permission " + model.NewId(),
+				Type:     model.AccessControlPolicyTypePermission,
+				Active:   true,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Imports:  []string{},
+				Rules: []model.AccessControlPolicyRule{
+					{Expression: "user.properties.program == \"engineering\""},
+				},
+			}
+		}
+
+		older, err := ss.AccessControlPolicy().Save(rctx, permissionPolicy())
+		require.NoError(t, err)
+
+		newer, err := ss.AccessControlPolicy().Save(rctx, permissionPolicy())
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, newer.CreateAt, older.CreateAt)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, newer.ID))
+		})
+
+		observerChannelID := model.NewId()
+		before, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, observerChannelID)
+		require.NoError(t, err)
+
+		require.NoError(t, ss.AccessControlPolicy().Delete(rctx, older.ID))
+
+		after, err := ss.AccessControlPolicy().GetEtagEpoch(rctx, observerChannelID)
+		require.NoError(t, err)
+		require.NotEqual(t, before, after)
 	})
 }
 

@@ -710,10 +710,10 @@ func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 	return result, err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+func (s *TimerLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	start := time.Now()
 
-	result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx, channelID)
+	result, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -721,7 +721,7 @@ func (s *TimerLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, ch
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetMaxUpdateAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetEtagEpoch", success, elapsed)
 	}
 	return result, err
 }
@@ -884,7 +884,7 @@ func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 	return result, err
 }
 
-func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
 	start := time.Now()
 
 	result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)

@@ -111,22 +111,22 @@ func (_m *AttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID strin
 }
 
 // GetUserPropertyValuesEpoch provides a mock function with given fields: rctx, userID
-func (_m *AttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+func (_m *AttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
 	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserPropertyValuesEpoch")
 	}
 
-	var r0 int64
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
 		return rf(rctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) int64); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
 		r0 = rf(rctx, userID)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {

@@ -942,17 +942,21 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 	return policies, nil
 }
 
-// GetMaxUpdateAt returns MAX(CreateAt) across the system-scoped permission policies plus the
-// given channel's own policy row (a channel policy's ID equals the channel ID). There is no
-// UpdateAt column — the table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
+// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the given
+// channel's own policy row (a channel policy's ID equals the channel ID). There is no UpdateAt
+// column — the table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
+//
+// The row count is folded in because MAX(CreateAt) alone is not deletion-sensitive: removing a
+// policy that is not the newest leaves the max untouched, so an ETag built from it would still
+// match and clients would be served their cached, differently-sanitized copy.
 //
 // Matching the channel row by primary key rather than scanning every policy's rules JSON scopes
 // the query to the target channel; the cost is a benign false positive where a membership-only
 // change to this channel's policy also advances the epoch. An empty channelID considers only the
 // permission policies.
-func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	query, args, err := s.getQueryBuilder().
-		Select("COALESCE(MAX(CreateAt), 0)").
+		Select("COALESCE(MAX(CreateAt), 0) AS MaxCreateAt", "COUNT(*) AS Total").
 		From("AccessControlPolicies").
 		Where(sq.Or{
 			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
@@ -960,14 +964,17 @@ func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID
 		}).
 		ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "GetMaxUpdateAt: failed to build query")
+		return "", errors.Wrap(err, "GetEtagEpoch: failed to build query")
 	}
 
-	var epoch int64
-	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
-		return 0, errors.Wrap(err, "GetMaxUpdateAt: query failed")
+	var epoch struct {
+		MaxCreateAt int64
+		Total       int64
 	}
-	return epoch, nil
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxCreateAt, epoch.Total), nil
 }
 
 // No-op at the SQL layer; the render-ETag epoch is cached in and invalidated by the local cache layer.

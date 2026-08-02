@@ -27,19 +27,19 @@ func (s *LocalCacheAccessControlPolicyStore) handleClusterInvalidateAccessContro
 	}
 }
 
-// GetMaxUpdateAt caches the per-channel render-ETag epoch. The cache key is the channel ID
+// GetEtagEpoch caches the per-channel render-ETag epoch. The cache key is the channel ID
 // (empty string is the system-scoped-only bucket). Because every channel's epoch also folds in
 // the system-scoped permission policies, a permission-policy change must clear the whole cache
 // via ClearEtagCache, while a single channel's change only invalidates that channel's key.
-func (s LocalCacheAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
-	var epoch int64
+func (s LocalCacheAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	var epoch string
 	if err := s.rootStore.doStandardReadCache(s.rootStore.accessControlPolicyEtagCache, channelID, &epoch); err == nil {
 		return epoch, nil
 	}
 
-	epoch, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx, channelID)
+	epoch, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.accessControlPolicyEtagCache, channelID, epoch)
