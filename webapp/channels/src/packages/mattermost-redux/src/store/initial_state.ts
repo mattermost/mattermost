@@ -251,7 +251,7 @@ const state: GlobalState = {
         },
         renderPermissions: {
             byResource: {},
-            channelsWithStalePosts: {},
+            invalidatedAt: 0,
         },
     },
     errors: [],

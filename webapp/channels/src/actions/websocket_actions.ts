@@ -82,7 +82,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
-import {invalidateRenderDecisionsForChannel, invalidateCurrentUserRenderDecisions, clearRenderDecisions, reconcileChannelPostsForRedaction, markChannelPostsStaleForRedaction} from 'mattermost-redux/actions/render_permissions';
+import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -889,7 +889,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 }
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
-    return (doDispatch, doGetState) => {
+    return (doDispatch) => {
         if (!msg.data.channel) {
             return;
         }
@@ -905,45 +905,24 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
 
-        // Drop cached render-permission decisions for this channel. Mounted
-        // useRenderPermission hooks for the visible channel will refetch lazily;
-        // hidden channels make no request until they become visible again.
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
 
-        if (channel.id === getCurrentChannelId(doGetState())) {
-            doDispatch(reconcileChannelPostsForRedaction(channel.id));
-        } else {
-            doDispatch(markChannelPostsStaleForRedaction(channel.id));
-        }
+        // The channel's posts were sanitized under the old policy, so drop the loaded chunks and
+        // let the normal load path re-fetch them.
+        doDispatch(resetReloadPostsInChannel(channel.id));
     };
 }
 
-// permission_policy_updated is system-scoped and reaches every connected client, so jitter the
-// current-channel reconcile to avoid a synchronized cluster-wide post reload (thundering herd).
-const permissionPolicyReconcileMaxJitterMs = 5000;
-
-// handlePermissionPolicyUpdatedEvent handles a TypePermission policy change.
-// These are system-scoped; no resource ID is carried — all channels are affected.
+// Permission policies are system-scoped: the event carries no resource ID because every channel
+// and every user is potentially affected.
 export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        doDispatch(invalidateCurrentUserRenderDecisions());
-
-        const state = doGetState();
-        const currentChannelId = getCurrentChannelId(state);
-
-        if (currentChannelId) {
-            // A mid-window channel switch is still covered by the stale-marking below.
-            const delay = Math.floor(Math.random() * permissionPolicyReconcileMaxJitterMs);
-            window.setTimeout(() => {
-                doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
-            }, delay);
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
         }
 
-        // Mark all channels stale so syncPostsOrReloadIfStale calls loadUnreads on
-        // the next visit, covering scroll positions beyond page 0 of the current channel.
-        Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
-            doDispatch(markChannelPostsStaleForRedaction(channelId));
-        });
+        doDispatch(clearRenderDecisions());
+        doDispatch(resetReloadPostsInChannel());
     };
 }
 
@@ -1842,18 +1821,8 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
 
         if (msg.data.user_id === getCurrentUserId(store.getState()) &&
                 isPermissionPoliciesEnabled(store.getState())) {
-            store.dispatch(invalidateCurrentUserRenderDecisions());
-
-            const state = store.getState();
-            const currentChannelId = getCurrentChannelId(state);
-
-            if (currentChannelId) {
-                store.dispatch(reconcileChannelPostsForRedaction(currentChannelId));
-            }
-
-            Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
-                store.dispatch(markChannelPostsStaleForRedaction(channelId));
-            });
+            store.dispatch(clearRenderDecisions());
+            store.dispatch(resetReloadPostsInChannel());
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -2424,18 +2393,8 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
         // the current user's own decisions.
         if (msg.data.user_id === getCurrentUserId(doGetState()) &&
                 isPermissionPoliciesEnabled(doGetState())) {
-            doDispatch(invalidateCurrentUserRenderDecisions());
-
-            const state = doGetState();
-            const currentChannelId = getCurrentChannelId(state);
-
-            if (currentChannelId) {
-                doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
-            }
-
-            Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
-                doDispatch(markChannelPostsStaleForRedaction(channelId));
-            });
+            doDispatch(clearRenderDecisions());
+            doDispatch(resetReloadPostsInChannel());
         }
     };
 }

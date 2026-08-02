@@ -71,11 +71,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/actions/render_permissions', () => ({
-    ...jest.requireActual('mattermost-redux/actions/render_permissions'),
-    reconcileChannelPostsForRedaction: jest.fn(() => ({type: 'MOCK_RECONCILE'})),
+    resetReloadPostsInChannel: jest.fn((channelId) => ({type: 'MOCK_RESET_POSTS', channelId})),
 }));
 
 jest.mock('mattermost-redux/actions/channel_categories', () => ({
@@ -1079,9 +1075,9 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
-        // Updates the channel record and invalidates render decisions for that
-        // channel only. Non-current channel is marked stale for lazy reconciliation.
-        // No broad channel/member/team refetch is dispatched.
+        // Updates the channel record, invalidates render decisions for that channel
+        // only, and drops its loaded posts so they are re-fetched with fresh ABAC
+        // sanitization. No broad channel/member/team refetch is dispatched.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
@@ -1089,26 +1085,24 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
             },
             {
                 type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
-                data: {channelId: 'channel-ac-1'},
+                data: {channelId: 'channel-ac-1', generation: expect.any(Number)},
             },
             {
-                type: RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION,
-                data: {channelId: 'channel-ac-1'},
+                type: 'MOCK_RESET_POSTS',
+                channelId: 'channel-ac-1',
             },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
     });
 
-    test('reconciles posts when the updated channel is the one being viewed', () => {
+    test('resets the channel posts when the updated channel is the one being viewed', () => {
         const testStore = configureStore({entities: {channels: {currentChannelId: 'channel-ac-1'}}});
         const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
 
-        const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL);
-        expect(types).toContain('MOCK_RECONCILE');
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RESET_POSTS', channelId: 'channel-ac-1'});
     });
 
     test('returns early when msg.data.channel is missing', () => {
@@ -1683,22 +1677,16 @@ describe('render permission invalidation via existing events', () => {
         };
     }
 
-    test('CPA value update for the current user invalidates current-user render decisions', () => {
-        const testStore = configureStore(stateWithCurrentUser());
-
-        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
-
-        const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
-    });
-
-    test('CPA value update for the current user reconciles the visible channel posts', () => {
+    test('CPA value update for the current user clears render decisions and resets every loaded channel', () => {
         const testStore = configureStore(stateWithCurrentUser('visible-channel'));
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
 
         const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain('MOCK_RECONCILE');
+        expect(types).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+
+        // One bulk reset (no channel id) rather than one dispatch per loaded channel.
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RESET_POSTS', channelId: undefined});
     });
 
     test('CPA value update for another user does NOT invalidate current-user render decisions', () => {
@@ -1707,62 +1695,40 @@ describe('render permission invalidation via existing events', () => {
         testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: 'someoneElse', values: {field1: 'v'}}}));
 
         const types = testStore.getActions().map((a) => a.type);
-        expect(types).not.toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
-        expect(types).not.toContain('MOCK_RECONCILE');
+        expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        expect(types).not.toContain('MOCK_RESET_POSTS');
     });
 });
 
 describe('handlePermissionPolicyUpdatedEvent', () => {
-    beforeEach(() => {
-        jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-        jest.runOnlyPendingTimers();
-        jest.useRealTimers();
-    });
-
-    function stateWith(currentChannelId, channelIds = []) {
+    function stateWith(currentChannelId, channelIds = [], permissionPoliciesEnabled = true) {
         return {
             entities: {
                 channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: permissionPoliciesEnabled ? 'true' : 'false'}},
                 posts: {postsInChannel: channelIds.reduce((acc, id) => ({...acc, [id]: []}), {})},
             },
         };
     }
 
-    test('invalidates current-user decisions and marks channels stale immediately, without an eager reconcile', () => {
+    test('clears render decisions and resets every loaded channel in a single action', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
 
         testStore.dispatch(handlePermissionPolicyUpdatedEvent());
 
-        const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
-        expect(types.filter((t) => t === RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION)).toHaveLength(2);
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
 
-        // Jittered: the reconcile must not fire synchronously with the event.
-        expect(types).not.toContain('MOCK_RECONCILE');
+        const resets = actions.filter((a) => a.type === 'MOCK_RESET_POSTS');
+        expect(resets).toEqual([{type: 'MOCK_RESET_POSTS', channelId: undefined}]);
     });
 
-    test('reconciles the visible channel after the jitter window elapses', () => {
-        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+    test('does nothing when permission policies are disabled', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
 
         testStore.dispatch(handlePermissionPolicyUpdatedEvent());
-        expect(testStore.getActions().map((a) => a.type)).not.toContain('MOCK_RECONCILE');
 
-        // Advance past permissionPolicyReconcileMaxJitterMs (max scheduled delay).
-        jest.advanceTimersByTime(5000);
-
-        expect(testStore.getActions().map((a) => a.type)).toContain('MOCK_RECONCILE');
-    });
-
-    test('does not schedule a reconcile when no channel is being viewed', () => {
-        const testStore = configureStore(stateWith('', []));
-
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
-        jest.advanceTimersByTime(5000);
-
-        expect(testStore.getActions().map((a) => a.type)).not.toContain('MOCK_RECONCILE');
+        expect(testStore.getActions()).toEqual([]);
     });
 });
 

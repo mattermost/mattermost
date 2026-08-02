@@ -141,11 +141,12 @@ export type Props = {
     canUploadFiles: boolean;
 
     /**
-     * When true, the upload affordance is rendered but disabled (with an
-     * explanatory tooltip). Used for ABAC render-time decisions: the control
-     * stays discoverable but cannot be used. Enforcement remains server-side.
+     * When true, an access control policy denies uploads here, so the control is rendered but
+     * disabled with an explanatory tooltip — unlike canUploadFiles, which hides it outright.
+     * Denial is user-specific, so keeping the control visible explains why this user's experience
+     * differs from a colleague's in the same channel. Enforcement remains server-side.
      */
-    forceDisabled?: boolean;
+    disabledByPolicy?: boolean;
 
     /**
      * Plugin file upload methods to be added
@@ -385,6 +386,11 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
+        if (this.props.disabledByPolicy) {
+            this.props.onUploadError(localizeMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+            return;
+        }
+
         this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
@@ -530,6 +536,11 @@ export class FileUpload extends PureComponent<Props, State> {
                 return;
             }
 
+            if (this.props.disabledByPolicy) {
+                this.props.onUploadError(this.props.intl.formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+                return;
+            }
+
             const fileNamePrefixIfNoName = this.props.intl.formatMessage({id: 'file_upload.pasted', defaultMessage: 'Image Pasted at '});
 
             const fileList = fileClipboardItems.
@@ -555,6 +566,12 @@ export class FileUpload extends PureComponent<Props, State> {
                 this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
                 return;
             }
+
+            if (this.props.disabledByPolicy) {
+                this.props.onUploadError(localizeMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+                return;
+            }
+
             const postTextbox = this.props.postType === 'post' && document.activeElement?.id === 'post_textbox';
             const commentTextbox = this.props.postType === 'comment' && document.activeElement?.id === 'reply_textbox';
             const threadTextbox = this.props.postType === 'thread' && document.activeElement?.id === 'reply_textbox';
@@ -615,52 +632,32 @@ export class FileUpload extends PureComponent<Props, State> {
         const buttonAriaLabel = formatMessage({id: 'accessibility.button.attachment', defaultMessage: 'attachment'});
         const iconAriaLabel = formatMessage({id: 'generic_icons.attach', defaultMessage: 'Attachment Icon'});
 
-        // ABAC render-time decision: keep the affordance visible but disabled so
-        // the user understands uploads are restricted here, instead of silently
-        // hiding it or letting them click and hit a server error.
-        if (this.props.forceDisabled) {
-            return (
-                <div className='style--none btn-file__disabled'>
-                    <WithTooltip
-                        title={formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'})}
-                    >
-                        <button
-                            type='button'
-                            id='fileUploadButton'
-                            aria-label={buttonAriaLabel}
-                            aria-disabled={true}
-                            disabled={true}
-                            className='style--none AdvancedTextEditor__action-button disabled'
-                        >
-                            <PaperclipIcon
-                                size={18}
-                                color={'currentColor'}
-                                aria-label={iconAriaLabel}
-                            />
-                        </button>
-                    </WithTooltip>
-                </div>
-            );
-        }
+        const {disabledByPolicy} = this.props;
+
+        // The max-files case only dims the control and lets the click through so it can explain
+        // itself; a policy denial genuinely blocks the upload, so it also disables the button.
+        const dimmed = uploadsRemaining <= 0 || disabledByPolicy;
+
+        const uploadTooltip = disabledByPolicy ? formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}) : (
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                hoistDescription={true}
+                isInsideTooltip={true}
+            />
+        );
 
         if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (
                 <div>
-                    <WithTooltip
-                        title={
-                            <KeyboardShortcutSequence
-                                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                hoistDescription={true}
-                                isInsideTooltip={true}
-                            />
-                        }
-                    >
+                    <WithTooltip title={uploadTooltip}>
                         <button
                             type='button'
                             id='fileUploadButton'
                             aria-label={buttonAriaLabel}
+                            aria-disabled={disabledByPolicy}
+                            disabled={disabledByPolicy}
                             className={classNames('style--none AdvancedTextEditor__action-button', {
-                                disabled: uploadsRemaining <= 0,
+                                disabled: dimmed,
                             })}
                             onClick={this.simulateInputClick}
                             onTouchEnd={this.simulateInputClick}
@@ -718,20 +715,16 @@ export class FileUpload extends PureComponent<Props, State> {
                         multiple={true}
                     />
                     <MenuWrapper>
-                        <WithTooltip
-                            title={
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                    hoistDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            }
-                        >
+                        <WithTooltip title={uploadTooltip}>
                             <button
                                 type='button'
                                 id='fileUploadButton'
                                 aria-label={buttonAriaLabel}
-                                className='style--none AdvancedTextEditor__action-button'
+                                aria-disabled={disabledByPolicy}
+                                disabled={disabledByPolicy}
+                                className={classNames('style--none AdvancedTextEditor__action-button', {
+                                    disabled: dimmed,
+                                })}
                             >
                                 <PaperclipIcon
                                     size={18}
@@ -774,7 +767,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-            <div className={uploadsRemaining <= 0 ? ' style--none btn-file__disabled' : 'style--none'}>
+            <div className={dimmed ? ' style--none btn-file__disabled' : 'style--none'}>
                 {bodyAction}
             </div>
         );

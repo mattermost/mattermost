@@ -2652,14 +2652,10 @@ export default class Client4 {
         );
     };
 
-    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, reload = false) => {
+    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
         return this.doFetch<PostList>(
             `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
-
-            // reload bypasses a stale ETag for this single request so ABAC-driven
-            // file redaction (download_file_attachment) is reflected even when the
-            // post timeline itself is unchanged.
-            {method: 'get', ...(reload ? {cache: 'reload' as const} : {})},
+            {method: 'get'},
         );
     };
 

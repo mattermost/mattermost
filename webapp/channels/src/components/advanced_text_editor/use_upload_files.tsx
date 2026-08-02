@@ -49,12 +49,9 @@ const useUploadFiles = (
     });
     const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
 
-    // ABAC render-time gate: disable the upload affordance (kept visible, with a
-    // tooltip) when a permission policy denies upload_file_attachment for the
-    // current user in this channel. This is a rendering hint only — the upload
-    // endpoint still enforces server-side.
-    const uploadPermission = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'});
-    const uploadDeniedByPolicy = uploadPermission.evaluated && uploadPermission.allowed === false;
+    // Fail open while the decision is in flight: the upload endpoint enforces regardless, and the
+    // alternative flickers the button disabled on every first visit to a channel.
+    const uploadAllowedByPolicy = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'}, true);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
 
@@ -199,7 +196,7 @@ const useUploadFiles = (
             rootId={postId}
             channelId={channelId}
             postType={postType}
-            forceDisabled={uploadDeniedByPolicy}
+            disabledByPolicy={!uploadAllowedByPolicy}
         />
     );
 

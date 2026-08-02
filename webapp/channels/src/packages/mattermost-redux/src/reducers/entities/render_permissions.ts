@@ -13,19 +13,27 @@ const CHANNEL_RESOURCE_TYPE = 'channel';
 
 const initialState: RenderPermissionsState = {
     byResource: {},
-    channelsWithStalePosts: {},
+    invalidatedAt: 0,
 };
 
 export default function renderPermissions(state: RenderPermissionsState = initialState, action: MMReduxAction): RenderPermissionsState {
     switch (action.type) {
     case RenderPermissionTypes.RECEIVED_RENDER_DECISIONS: {
-        const {resourceType, resourceId, actions, generation, receivedAt} = action.data as {
+        const {resourceType, resourceId, actions, generation} = action.data as {
             resourceType: string;
             resourceId: string;
             actions: Record<string, {allowed: boolean; evaluated: boolean; reason?: string}>;
             generation: number;
-            receivedAt: number;
         };
+
+        // A fetch that was already in flight when an invalidation landed carries a decision from
+        // before it, so it must not repopulate the cache. Comparing against the generation stamped
+        // by the invalidation catches that, which the per-entry check below cannot: after an
+        // invalidation there is no entry left to compare with.
+        // Persisted state rehydrated from before this field existed has no invalidatedAt.
+        if (generation <= (state.invalidatedAt ?? 0)) {
+            return state;
+        }
 
         const existingForType = state.byResource[resourceType] ?? {};
         const existingForResource = existingForType[resourceId] ?? {};
@@ -44,7 +52,6 @@ export default function renderPermissions(state: RenderPermissionsState = initia
             nextForResource[actionName] = {
                 ...decision,
                 generation,
-                receivedAt,
             };
             changed = true;
         }
@@ -65,50 +72,28 @@ export default function renderPermissions(state: RenderPermissionsState = initia
         };
     }
     case RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL: {
-        const channelId = action.data.channelId as string;
+        const {channelId, generation} = action.data as {channelId: string; generation: number};
         const channels = state.byResource[CHANNEL_RESOURCE_TYPE];
+        const nextState = {...state, invalidatedAt: generation};
+
         if (!channels || !channels[channelId]) {
-            return state;
+            return nextState;
         }
 
         const nextChannels = {...channels};
         Reflect.deleteProperty(nextChannels, channelId);
         return {
-            ...state,
+            ...nextState,
             byResource: {
                 ...state.byResource,
                 [CHANNEL_RESOURCE_TYPE]: nextChannels,
             },
         };
     }
-    case RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER:
-
-        // Preserve channelsWithStalePosts: persisted Redux state may not have this field.
-        return {...initialState, channelsWithStalePosts: state.channelsWithStalePosts ?? {}};
-    case RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION: {
-        const channelId = action.data.channelId as string;
-        const stalePosts = state.channelsWithStalePosts ?? {};
-        if (stalePosts[channelId]) {
-            return state;
-        }
-        return {
-            ...state,
-            channelsWithStalePosts: {...stalePosts, [channelId]: true},
-        };
-    }
-    case RenderPermissionTypes.CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION: {
-        const channelId = action.data.channelId as string;
-        const stalePosts = state.channelsWithStalePosts ?? {};
-        if (!stalePosts[channelId]) {
-            return state;
-        }
-        const next = {...stalePosts};
-        Reflect.deleteProperty(next, channelId);
-        return {...state, channelsWithStalePosts: next};
-    }
     case RenderPermissionTypes.CLEAR_RENDER_DECISIONS:
+        return {...initialState, invalidatedAt: action.data.generation as number};
     case UserTypes.LOGOUT_SUCCESS:
-        return initialState;
+        return {...initialState, invalidatedAt: state.invalidatedAt ?? 0};
     default:
         return state;
     }

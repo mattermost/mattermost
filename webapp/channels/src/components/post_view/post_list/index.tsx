@@ -17,7 +17,7 @@ import {
     loadPosts,
     loadUnreads,
     loadPostsAround,
-    syncPostsOrReloadIfStale,
+    syncPostsInChannel,
     loadLatestPosts,
 } from 'actions/views/channel';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -114,7 +114,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPosts,
             loadLatestPosts,
             loadPostsAround,
-            syncPostsInChannel: syncPostsOrReloadIfStale,
+            syncPostsInChannel,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
         }, dispatch),
