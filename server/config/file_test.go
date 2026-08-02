@@ -450,6 +450,65 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, fs.Get().SqlSettings.DataSourceReplicas)
 		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 	})
+
+	t.Run("get override for a multi-line string variable - single key", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "", *fs.Get().PluginSettings.SignaturePublicKeys)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		// Unlike DataSourceReplicas above, this value must survive verbatim: PGP-armored key
+		// blocks are multi-line and their header/footer lines contain spaces, so a plain
+		// whitespace-based slice split would corrupt them.
+		key := "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmQENBFake==\n-----END PGP PUBLIC KEY BLOCK-----\n"
+		os.Setenv("MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYS", key)
+		defer os.Unsetenv("MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYS")
+
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, key, *fs.Get().PluginSettings.SignaturePublicKeys)
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"SignaturePublicKeys": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a multi-line string variable - multiple concatenated keys", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "", *fs.Get().PluginSettings.SignaturePublicKeys)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		firstKey := "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmQENBFakeOne==\n-----END PGP PUBLIC KEY BLOCK-----\n"
+		secondKey := "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmQENBFakeTwo==\n-----END PGP PUBLIC KEY BLOCK-----\n"
+		keys := firstKey + secondKey
+		os.Setenv("MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYS", keys)
+		defer os.Unsetenv("MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYS")
+
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, keys, *fs.Get().PluginSettings.SignaturePublicKeys)
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"SignaturePublicKeys": true}}, fs.GetEnvironmentOverrides())
+	})
 }
 
 func TestFileStoreSet(t *testing.T) {
