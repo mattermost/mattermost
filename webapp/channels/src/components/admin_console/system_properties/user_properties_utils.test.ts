@@ -635,9 +635,11 @@ describe('isLinkedField', () => {
 });
 
 describe('newPendingField', () => {
-    // The server accepts linked_field_id on create and only forbids adding it on
-    // a later update, so the generic create path must pass it through. Dropping
-    // the link is specific to duplication and lives in the dot menu's
+    // newPendingField doesn't strip the link, so a pending field keeps whatever
+    // it was handed. That only reaches the collection, not the server: the
+    // commit path sends name/type/attrs, and every linked field is created
+    // directly via Client4.createPropertyField (classification_markings/utils).
+    // Dropping the link is specific to duplication and lives in the dot menu's
     // handleDuplicate — see user_properties_dot_menu.test.tsx.
     it('keeps an explicitly requested template link', () => {
         const pending = newPendingField({
