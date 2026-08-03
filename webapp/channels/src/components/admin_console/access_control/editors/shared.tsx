@@ -6,15 +6,30 @@ import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import Markdown from 'components/markdown';
+
+import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
 
 // Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
 export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+
+// The accessed channel's attributes, the comparison target for a rule about the
+// requesting user (whose own attributes are USER_ATTRIBUTE_CEL_PREFIX, below).
+export const RESOURCE_ATTRIBUTES_PREFIX = 'resource.attributes.';
+
+// value_type on a visual-AST condition. Matches model.ValueType: 0 = literal,
+// 1 = attribute reference (the RHS is another attribute path, e.g. a
+// resource.attributes.* selector rather than a quoted constant).
+export const VISUAL_AST_ATTRIBUTE_VALUE_TYPE = 1;
 
 // CEL operator constants
 export enum CELOperator {
@@ -216,15 +231,23 @@ export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();
 
     // The first pattern accepts ==, != and the ranked ordinal operators
-    // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
-    // alternation so the two-char forms match before the one-char ones.
+    // (>=, <=, >, <) against either a quoted value or a resource.attributes.*
+    // selector (comparing the user attribute to the accessed channel's). >= /
+    // <= precede > / < in the alternation so the two-char forms match before
+    // the one-char ones.
     return Boolean(
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:['"][^'"]*['"]|resource\.attributes\.\w+)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\s+in\s+\[.*?\]$/) ||
         trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.(?:attributes|session)\.\w+$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
+
+        // Multiselect list-vs-list against the accessed channel's attribute,
+        // stored verbatim as a member call: the receiver is the user's
+        // multiselect attribute and the single argument is a resource.attributes.*
+        // selector (never a literal — that form is the in-chain above).
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(resource\.attributes\.\w+\)$/) ||
 
         // Native user attributes (single segment after `user.`). Restricted to
         // the field/operator pairings the table editor can round-trip: boolean
@@ -361,6 +384,66 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     }
 
     return button;
+}
+
+// True when an expression compares against the accessed channel's attributes.
+// Such a rule can only be tested against a concrete channel's values, so the
+// test modal must resolve one — the editor's own scope, or a channel picked in
+// the modal's first step.
+export function referencesResourceAttributes(expression: string): boolean {
+    // Strip quoted string literals first so a value like
+    // "resource.attributes.minClearance" is not mistaken for an actual
+    // attribute reference (which would wrongly force a test channel).
+    // Simple quote stripping; doesn't handle escaped quotes inside a literal,
+    // which these editors never emit — parse the AST if that ever changes.
+    const withoutLiterals = expression.replace(/'[^']*'|"[^"]*"/g, '');
+    return withoutLiterals.includes(RESOURCE_ATTRIBUTES_PREFIX);
+}
+
+interface TestResultsProps {
+    expression: string;
+
+    /** Channel to resolve resource.attributes.* against, when the editor has
+     *  one of its own (channel settings). When absent and the rule references
+     *  resource.attributes.*, the modal opens a channel-picker step first and
+     *  threads the chosen id into the search. */
+    channelId?: string;
+    teamId?: string;
+    isStacked?: boolean;
+    onExited: () => void;
+
+    /** Plugin override for the members search, forwarded from
+     *  CELEditorActions.searchUsers. When provided it replaces the built-in
+     *  searchUsersForExpression thunk. The picker's chosen channel id is
+     *  threaded in as the trailing arg so a resource.attributes.* rule can be
+     *  resolved against it (the override may ignore it if it resolves its own). */
+    searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
+}
+
+// The built-in expression test/simulate results modal.
+export function TestResults({expression, channelId, teamId, isStacked, onExited, searchUsers}: TestResultsProps): JSX.Element {
+    const requireChannel = !channelId && referencesResourceAttributes(expression);
+    return (
+        <TestResultsModal
+            onExited={onExited}
+            isStacked={isStacked}
+            requireChannel={requireChannel}
+            actions={{
+                openModal: () => {},
+                searchUsers: (term: string, after: string, limit: number, pickedChannelId?: string) => {
+                    if (searchUsers) {
+                        // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                        // Thread the picker's channel (falling back to the editor's own
+                        // scope) so a resource.attributes.* rule resolves against it —
+                        // without this, such a rule tested here fails to sqlize server-side.
+                        const search = searchUsers;
+                        return () => search(expression, term, after, limit, pickedChannelId ?? channelId);
+                    }
+                    return searchUsersForExpression(expression, term, after, limit, pickedChannelId ?? channelId, teamId);
+                },
+            }}
+        />
+    );
 }
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {

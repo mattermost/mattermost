@@ -6,9 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult, AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
+import {CHANNEL_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
-import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
@@ -19,8 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -43,11 +41,27 @@ export function rowToCEL(row: TableRow): string {
     // Without this guard the condition would be filtered out by updateExpression,
     // the empty expression would be sent to the server, and buildCELFromConditions
     // would return "true" — making the policy wide-open (security regression).
-    if (row.hasMaskedValues && row.values.length === 0) {
+    if (row.hasMaskedValues && row.values.length === 0 && !row.targetAttribute) {
         return `${attributeExpr} in []`;
     }
 
     const config = OPERATOR_CONFIG[row.operator];
+
+    // Right-hand side is the accessed channel's attribute, not a literal:
+    // user.attributes.X <op> resource.attributes.Y. Only comparison operators
+    // (is / is not / the ranked ordinals) take an attribute target.
+    if (row.targetAttribute && config && config.type === 'comparison') {
+        return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
+    }
+
+    // A multiselect list-vs-list comparison against a channel attribute is stored
+    // verbatim as a member-function call the engine holds as-is:
+    // user.attributes.X.hasAnyOf(resource.attributes.Y). The literal-value
+    // in-chain (below) still applies when the row has no targetAttribute.
+    if (row.targetAttribute && isMultiselectOperator(row.operator)) {
+        const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
+        return `${attributeExpr}.${fn}(resource.attributes.${row.targetAttribute})`;
+    }
 
     // native_method (e.g. youngerThanDays) takes an unquoted integer argument.
     // A valid non-negative integer is normalized (stripping leading zeros);
@@ -123,8 +137,9 @@ export interface TableEditorProps {
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
 
-        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
-        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal.
+         *  Receives the test modal's chosen channel id as the trailing arg. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
@@ -217,7 +232,9 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
 
         // Extracts the attribute name, removing the CEL namespace prefix. The
         // two-segment forms (user.attributes.<name>, user.session.<name>) are
-        // matched before the single-segment native form (user.<name>).
+        // matched before the single-segment native form (user.<name>). The left
+        // side is always the requesting user's attribute; a resource.attributes.*
+        // reference only appears on the right (captured below as targetAttribute).
         if (node.attribute.startsWith(USER_ATTRIBUTE_CEL_PREFIX)) {
             attr = node.attribute.slice(USER_ATTRIBUTE_CEL_PREFIX.length);
         } else if (node.attribute.startsWith(SESSION_ATTRIBUTE_CEL_PREFIX)) {
@@ -244,13 +261,24 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             op = OperatorLabel.IS_EXACTLY;
         }
 
-        // The visual AST carries typed values: native booleans arrive as JS
-        // booleans and youngerThanDays arguments as numbers. Normalize to the
-        // string form the table rows store, and remember booleans so rowToCEL
-        // re-emits them unquoted.
+        // A value_type of "attribute" whose RHS is a resource.attributes.*
+        // selector means the condition compares the user attribute to the
+        // accessed channel's attribute. Capture the target field; values are
+        // unused in that case.
+        //
+        // Otherwise the visual AST carries typed values: native booleans arrive
+        // as JS booleans and youngerThanDays arguments as numbers. Normalize to
+        // the string form the table rows store, and remember booleans so
+        // rowToCEL re-emits them unquoted.
+        let targetAttribute: string | undefined;
         let isBoolean = false;
         let values: string[];
-        if (Array.isArray(node.value)) {
+        if (node.value_type === VISUAL_AST_ATTRIBUTE_VALUE_TYPE &&
+            typeof node.value === 'string' &&
+            node.value.startsWith(RESOURCE_ATTRIBUTES_PREFIX)) {
+            targetAttribute = node.value.slice(RESOURCE_ATTRIBUTES_PREFIX.length);
+            values = [];
+        } else if (Array.isArray(node.value)) {
             values = node.value.map((v) => String(v));
         } else if (typeof node.value === 'boolean') {
             isBoolean = true;
@@ -270,13 +298,16 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             hasMaskedValues: node.has_masked_values === true,
         };
 
-        // Only set the native flags when they apply so custom-profile-attribute
-        // rows keep their original shape.
+        // Only set the native/target flags when they apply so custom-profile-
+        // attribute rows keep their original shape.
         if (isNative) {
             tableRow.isNative = true;
         }
         if (isBoolean) {
             tableRow.isBoolean = true;
+        }
+        if (targetAttribute) {
+            tableRow.targetAttribute = targetAttribute;
         }
 
         tableRows.push(tableRow);
@@ -322,21 +353,68 @@ function TableEditor({
     // Derived state: whether any row has masked values
     const hasMaskedRows = useMemo(() => rows.some((r) => r.hasMaskedValues), [rows]);
 
+    // The autocomplete returns both the requesting user's attributes and the
+    // accessed channel's (resource) attributes, tagged by object_type. The left
+    // picker only ever offers user attributes; channel attributes are offered
+    // as comparison targets on the right side (resource.attributes.*).
+    const {userFields, resourceAttributes} = useMemo(() => {
+        const uf: UserPropertyField[] = [];
+        const ra: UserPropertyField[] = [];
+        for (const f of userAttributes) {
+            if (f.object_type === CHANNEL_ATTRIBUTES_OBJECT_TYPE) {
+                ra.push(f);
+            } else {
+                uf.push(f);
+            }
+        }
+        return {userFields: uf, resourceAttributes: ra};
+    }, [userAttributes]);
+
+    // Channel attributes the given user attribute may be compared against.
+    // Same field type is required; for option-based types (select/multiselect/
+    // rank) the two must also share an option scale, enforced structurally by
+    // linking to the same template field (equal, non-null linked_field_id).
+    // Non-comparable pairs are also rejected server-side at save/check.
+    const comparableChannelFields = useCallback((userField?: UserPropertyField): UserPropertyField[] => {
+        if (!userField) {
+            return [];
+        }
+        const optionBased = userField.type === 'select' || userField.type === 'multiselect' || userField.type === 'rank';
+        return resourceAttributes.filter((cf) => {
+            if (cf.type !== userField.type) {
+                return false;
+            }
+            if (optionBased) {
+                return Boolean(userField.linked_field_id) && userField.linked_field_id === cf.linked_field_id;
+            }
+            return true;
+        });
+    }, [resourceAttributes]);
+
     // Prevents getVisualAST re-parse when expression change is from internal row editing.
     const isInternalChange = React.useRef(false);
 
     useEffect(() => {
         if (isInternalChange.current) {
             isInternalChange.current = false;
-            return;
+            return undefined;
         }
 
         if (!value || value.trim() === '') {
             setRows([]);
-            return;
+            return undefined;
         }
 
+        // Guard against out-of-order resolution: if `value` changes again (or the
+        // component unmounts) before this getVisualAST resolves, ignore the stale
+        // result so a previous parse can't overwrite the current rows (which would
+        // surface as a row showing another attribute's values/operators).
+        let cancelled = false;
+
         actions.getVisualAST(value).then((result) => {
+            if (cancelled) {
+                return;
+            }
             if (result.error) {
                 setRows([]);
 
@@ -349,6 +427,9 @@ function TableEditor({
 
             setRows(parseExpression(result.data));
         }).catch((err) => {
+            if (cancelled) {
+                return;
+            }
             setRows([]);
             if (onValidate) {
                 onValidate(false);
@@ -359,6 +440,10 @@ function TableEditor({
                 onParseError(err.message);
             }
         });
+
+        return () => {
+            cancelled = true;
+        };
     }, [value]);
 
     useEffect(() => {
@@ -386,7 +471,8 @@ function TableEditor({
     const updateExpression = useCallback((newRows: TableRow[]) => {
         // Include masked rows with no visible values: rowToCEL will emit an "in []"
         // placeholder so the backend merge can restore the hidden values on save.
-        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && (row.values.length > 0 || row.hasMaskedValues));
+        // A resource-target row is complete without literal values.
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && (row.values.length > 0 || row.hasMaskedValues || row.targetAttribute));
 
         const expr = rowsThatCanFormExpressions.map((row) => rowToCEL(row)).join(' && ');
 
@@ -403,11 +489,11 @@ function TableEditor({
     }, [onChange, onValidate]);
 
     const findFirstAvailableAttribute = useCallback(() => {
-        return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
-    }, [userAttributes, enableUserManagedAttributes]);
+        return findFirstAvailableAttributeFromList(userFields, enableUserManagedAttributes);
+    }, [userFields, enableUserManagedAttributes]);
 
     const addRow = useCallback(() => {
-        if (userAttributes.length === 0) {
+        if (userFields.length === 0) {
             onParseError('No user attributes available. Please ensure ABAC is properly configured and you have the necessary permissions.');
             return;
         }
@@ -418,6 +504,11 @@ function TableEditor({
             return;
         }
 
+        // Every mutator below computes the next rows from `rows` and runs its side
+        // effects (updateExpression, which calls onChange/onValidate and flips the
+        // isInternalChange ref) outside setRows. React may invoke a state updater
+        // more than once, so a side effect inside one can fire onChange twice and
+        // desync that ref into a spurious getVisualAST reparse.
         const newRow: TableRow = {
             attribute: firstAvailableAttribute.name,
             attribute_object_type: firstAvailableAttribute.object_type,
@@ -430,9 +521,9 @@ function TableEditor({
         };
         const newRows = [...rows, newRow];
         setRows(newRows);
-        setAutoOpenAttributeMenuForRow(newRows.length - 1);
-        updateExpression(newRows);
-    }, [userAttributes, updateExpression, findFirstAvailableAttribute, rows]);
+        setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
+        updateExpression(newRows); // Ensure expression is updated immediately
+    }, [userFields, updateExpression, findFirstAvailableAttribute, rows]);
 
     const removeRow = useCallback((index: number) => {
         const newRows = rows.toSpliced(index, 1);
@@ -462,6 +553,9 @@ function TableEditor({
 
         if (attributeChanged) {
             newRows[index].values = [];
+
+            // A resource target is type-specific to the old attribute; drop it.
+            newRows[index].targetAttribute = undefined;
 
             const newType = newAttributeObj?.type || '';
             newRows[index].attribute_type = newType;
@@ -517,13 +611,34 @@ function TableEditor({
             values: newValues,
         };
 
+        // A resource target is valid only for comparison operators and the
+        // multiselect list operators (has any of / has all of); drop it when
+        // moving to any other operator (e.g. "in", "starts with").
+        if (OPERATOR_CONFIG[newOperator]?.type !== 'comparison' && !isMultiselectOperator(newOperator)) {
+            newRows[index].targetAttribute = undefined;
+        }
+
         setRows(newRows);
         updateExpression(newRows);
     }, [updateExpression, rows]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
         const newRows = [...rows];
-        newRows[index] = {...newRows[index], values};
+
+        // Literal value(s) and a channel-attribute target are mutually
+        // exclusive: picking a value in the consolidated dropdown drops any
+        // target the row was comparing against.
+        newRows[index] = {...newRows[index], values, targetAttribute: undefined};
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
+
+    // Switch the row's right-hand side to the accessed channel's attribute
+    // (resource.attributes.*). Literal values are cleared — the two are
+    // mutually exclusive.
+    const updateRowTarget = useCallback((index: number, targetAttribute: string) => {
+        const newRows = [...rows];
+        newRows[index] = {...newRows[index], targetAttribute, values: []};
         setRows(newRows);
         updateExpression(newRows);
     }, [updateExpression, rows]);
@@ -578,10 +693,26 @@ function TableEditor({
                         rows.map((row, index) => {
                             // Resolve by name AND namespace: a CPA and a session
                             // attribute can share a name, so object_type disambiguates.
-                            const field = userAttributes.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
+                            // The left picker only offers user attributes, so resolve
+                            // against userFields (channel fields are RHS targets only).
+                            const field = userFields.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
                             const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
                             const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
+
+                            // Channel attributes this row's user attribute may be
+                            // compared against (offered as the right-hand side
+                            // alongside literal values).
+                            const targets = comparableChannelFields(field);
+
+                            // Comparison operators target any comparable channel
+                            // field; the multiselect list operators (has any of /
+                            // has all of) target a multiselect channel field
+                            // (list-vs-list). comparableChannelFields already
+                            // enforces the shared option scale.
+                            const supportsTarget = targets.length > 0 &&
+                                (OPERATOR_CONFIG[row.operator]?.type === 'comparison' || isMultiselectOperator(row.operator));
+                            const cellDisabled = disabled || row.hasMaskedValues;
                             return (
                                 <tr
                                     key={index}
@@ -591,8 +722,8 @@ function TableEditor({
                                         <AttributeSelectorMenu
                                             currentAttribute={row.attribute}
                                             currentAttributeObjectType={row.attribute_object_type}
-                                            availableAttributes={userAttributes}
-                                            disabled={disabled || row.hasMaskedValues}
+                                            availableAttributes={userFields}
+                                            disabled={cellDisabled}
                                             onChange={(attributeId) => updateRowAttribute(index, attributeId)}
                                             menuId={`attribute-selector-menu-${index}`}
                                             buttonId={`attribute-selector-button-${index}`}
@@ -604,40 +735,50 @@ function TableEditor({
                                     <td className='table-editor__cell'>
                                         <OperatorSelectorMenu
                                             currentOperator={row.operator}
-                                            disabled={disabled || row.hasMaskedValues}
+                                            disabled={cellDisabled}
                                             onChange={(operator) => updateRowOperator(index, operator)}
 
-                                            // Use the row's own type, kept in sync by
-                                            // addRow/updateRowAttribute/parseExpression. A name-only
-                                            // lookup could resolve the wrong namespace when a user and
-                                            // a session attribute share a name.
-                                            attributeType={row.attribute_type || undefined}
+                                            // Prefer the resolved field's live type over the
+                                            // row's stored attribute_type. The stored value is a
+                                            // snapshot — from the server visual AST at parse time,
+                                            // or the field type when the row was added — and can
+                                            // drift from the current attribute definition: a saved
+                                            // rank rule whose server AST labeled the attribute
+                                            // 'select' would otherwise show the default operator set
+                                            // instead of the ranked one. `field` is resolved by name
+                                            // AND object_type, so this keeps the namespace
+                                            // disambiguation the stored type was introduced for.
+                                            attributeType={field?.type || row.attribute_type || undefined}
                                             allowedOperators={allowedOperatorLabelsForField(field)}
                                         />
                                     </td>
                                     <td className='table-editor__cell'>
-                                        <ValueSelectorMenu
-                                            row={row}
-                                            disabled={disabled || row.hasMaskedValues}
-                                            updateValues={(values: string[]) => updateRowValues(index, values)}
-                                            options={row.attribute ? field?.attrs?.options || [] : []}
-                                            placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
-                                        />
-                                        {youngerThanInvalid && (
-                                            <div className='table-editor__value-error'>
-                                                <FormattedMessage
-                                                    id='admin.access_control.table_editor.value.days_invalid'
-                                                    defaultMessage='Enter a whole number of days (e.g. 30).'
-                                                />
-                                            </div>
-                                        )}
+                                        <div className='table-editor__value-cell'>
+                                            <ValueSelectorMenu
+                                                row={row}
+                                                disabled={cellDisabled}
+                                                updateValues={(values: string[]) => updateRowValues(index, values)}
+                                                options={row.attribute ? field?.attrs?.options || [] : []}
+                                                placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                                channelFields={supportsTarget ? targets : undefined}
+                                                onSelectTarget={(name: string) => updateRowTarget(index, name)}
+                                            />
+                                            {youngerThanInvalid && (
+                                                <div className='table-editor__value-error'>
+                                                    <FormattedMessage
+                                                        id='admin.access_control.table_editor.value.days_invalid'
+                                                        defaultMessage='Enter a whole number of days (e.g. 30).'
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className='table-editor__cell-actions'>
                                         <button
                                             type='button'
                                             className='table-editor__row-remove'
                                             onClick={() => requestRemoveRow(index)}
-                                            disabled={disabled || row.hasMaskedValues}
+                                            disabled={cellDisabled}
                                             aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
                                         >
                                             <i className='icon icon-trash-can-outline'/>
@@ -656,7 +797,7 @@ function TableEditor({
                         >
                             <AddAttributeButton
                                 onClick={addRow}
-                                disabled={disabled || userAttributes.length === 0}
+                                disabled={disabled || userFields.length === 0}
                             />
                         </td>
                     </tr>
@@ -670,52 +811,45 @@ function TableEditor({
                         defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                     })}
                 />
-                <TestButton
-                    onClick={onTestClick ?? (() => setShowTestResults(true))}
-                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
-                    disabledTooltip={
+                <div className='access-control-test-controls'>
+                    <TestButton
+                        onClick={onTestClick ?? (() => setShowTestResults(true))}
+                        disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
+                        disabledTooltip={
 
-                        // Precedence: an explicit parent-supplied
-                        // tooltip paired with `testButtonDisabled`
-                        // wins (the parent already chose what the
-                        // user should see and why), then the
-                        // user-excluded message, then any other
-                        // testButtonTooltip the parent passed
-                        // alongside other disable reasons. The
-                        // earlier `userWouldBeExcluded ? … : tooltip`
-                        // ternary silenced parent hints whenever the
-                        // self-exclusion check happened to also
-                        // be true.
-                        (testButtonDisabled && testButtonTooltip) ||
-                        (userWouldBeExcluded ? formatMessage({
-                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                        }) : testButtonTooltip)
-                    }
-                    label={testButtonLabel}
-                />
+                            // Precedence: an explicit parent-supplied tooltip
+                            // paired with `testButtonDisabled` (the parent
+                            // already chose what the user should see and why),
+                            // then the user-excluded message, then any other
+                            // testButtonTooltip the parent passed alongside
+                            // other disable reasons. The earlier
+                            // `userWouldBeExcluded ? … : tooltip` ternary
+                            // silenced parent hints whenever the self-exclusion
+                            // check happened to also be true.
+                            (testButtonDisabled && testButtonTooltip) ||
+                            (userWouldBeExcluded ? formatMessage({
+                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                            }) : testButtonTooltip)
+                        }
+                        label={testButtonLabel}
+                    />
+                </div>
             </div>
 
             {/* Built-in expression-only modal. Suppressed when the parent
               * provided an `onTestClick` override (used by the permission-rule
-              * editor, which renders its own dual-lane simulation modal). */}
+              * editor, which renders its own dual-lane simulation modal). With
+              * no channelId, a resource.attributes.* rule gets a channel-picker
+              * step inside the modal before the members list. */}
             {!onTestClick && showTestResults && (
-                <TestResultsModal
-                    onExited={() => setShowTestResults(false)}
+                <TestResults
+                    expression={value}
+                    channelId={channelId}
+                    teamId={teamId}
                     isStacked={true}
-                    actions={{
-                        openModal: () => {},
-                        searchUsers: (term: string, after: string, limit: number) => {
-                            if (actions.searchUsers) {
-                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
-                                const search = actions.searchUsers;
-                                return () => search(value, term, after, limit);
-                            }
-
-                            // Return the action for the modal to dispatch
-                            return searchUsersForExpression(value, term, after, limit, channelId, teamId);
-                        },
-                    }}
+                    onExited={() => setShowTestResults(false)}
+                    searchUsers={actions.searchUsers}
                 />
             )}
             {showHelpModal && (

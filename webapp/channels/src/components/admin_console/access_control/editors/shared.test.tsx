@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -740,5 +740,24 @@ describe('isNativeMethodOperator', () => {
 
     test('false for an unknown operator token', () => {
         expect(isNativeMethodOperator('not an operator')).toBe(false);
+    });
+});
+
+describe('referencesResourceAttributes', () => {
+    test('true for an actual resource attribute reference', () => {
+        expect(referencesResourceAttributes('user.attributes.clearance >= resource.attributes.minClearance')).toBe(true);
+    });
+
+    test('false when the prefix only appears inside a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.minClearance"')).toBe(false);
+        expect(referencesResourceAttributes("user.attributes.note == 'resource.attributes.minClearance'")).toBe(false);
+    });
+
+    test('true when a real reference coexists with a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.x" && user.attributes.c >= resource.attributes.min')).toBe(true);
+    });
+
+    test('false for a resource-free expression', () => {
+        expect(referencesResourceAttributes('user.attributes.team == "Sales"')).toBe(false);
     });
 });

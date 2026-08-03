@@ -48,7 +48,7 @@ const AttributeLabel = ({displayName, name}: AttributeLabelProps) => (
 );
 
 // Define AttributeIcon outside the main component
-const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
+export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
     const {attribute, ...iconProps} = props;
     if (attribute) {
         const valueType = attribute.attrs?.value_type;
