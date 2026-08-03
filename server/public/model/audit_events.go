@@ -539,4 +539,5 @@ const (
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
+	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
 )

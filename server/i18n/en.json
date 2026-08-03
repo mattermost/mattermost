@@ -2190,6 +2190,10 @@
     "translation": "The user is not a content reviewer."
   },
   {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Failed to write the post exposure report."
+  },
+  {
     "id": "api.data_spillage.report.open.app_error",
     "translation": "Failed to open the generated flagged post report file."
   },
@@ -6244,7 +6248,7 @@
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": "Last viewed channel at"
+    "translation": "Last viewed channel at (UTC)"
   },
   {
     "id": "app.data_spillage.exposure.column.likely_received_post",
@@ -6575,6 +6579,10 @@
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
     "translation": "Failed to write edit history entry to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Failed to write the exposure report to the flagged post report."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
