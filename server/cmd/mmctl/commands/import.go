@@ -125,7 +125,7 @@ func init() {
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
-	ImportProcessCmd.Flags().String("destination-team", "", "Map the source team in the export to a differently-named team on the destination server. Only applies to channel-scoped imports.")
+	ImportProcessCmd.Flags().String("destination-team", "", "Map the source team in the export to a differently-named team on the destination server. Works with both channel-scoped and full-team exports.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
