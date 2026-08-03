@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -932,6 +933,55 @@ func TestSlackAddUsersNonAdminImportDoesNotMergeExistingUser(t *testing.T) {
 		"api.slackimport.slack_add_users.merge_existing_skipped_non_admin" +
 		"api.slackimport.slack_add_users.email"
 	assert.Equal(t, expectedLog, importerLog.String())
+}
+
+// TestSlackAddUsersNonAdminImportSaveFailsOnEmailConflict tests that when a non-admin import
+// falls through to account creation for a Slack profile whose email matches an existing
+// account, and the store rejects the save (as a real database would for a duplicate email),
+// no account is added and no creation message is logged.
+func TestSlackAddUsersNonAdminImportSaveFailsOnEmailConflict(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	teamStore := &mocks.TeamStore{}
+	userStore := &mocks.UserStore{}
+	store.On("Team").Return(teamStore)
+	store.On("User").Return(userStore)
+
+	team := &model.Team{Id: "test-team-id", Name: "test-team"}
+	teamStore.On("Get", "test-team-id").Return(team, nil)
+
+	existingUser := &model.User{Id: "existing-user-id", Username: "existinguser", Email: "shared@example.com"}
+	userStore.On("GetByEmail", "shared@example.com").Return(existingUser, nil)
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).
+		Return(nil, model.NewAppError("Save", "app.user.save.email_exists", nil, "", http.StatusBadRequest))
+
+	var joinedUserIDs []string
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinedUserIDs = append(joinedUserIDs, user.Id)
+			return &model.TeamMember{}, nil
+		},
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			return true, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+	importer := NewWithAdminFlag(store, actions, config, false)
+
+	slackUsers := []slackUser{
+		{Id: "U001", Username: "slackuser", Profile: slackProfile{FirstName: "Slack", LastName: "User", Email: "shared@example.com"}},
+	}
+
+	importerLog := new(bytes.Buffer)
+	addedUsers := importer.slackAddUsers(rctx, "test-team-id", slackUsers, importerLog)
+
+	assert.NotContains(t, addedUsers, "U001", "no account should be added when the save fails")
+	assert.Empty(t, joinedUserIDs, "no account should be joined to the team when the save fails")
+	assert.NotContains(t, importerLog.String(), "api.slackimport.slack_add_users.email", "no creation message should be logged when the save fails")
+	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.unable_import")
 }
 
 // TestSlackAddUsersAdminImportMergesExistingUser tests that an admin import preserves the
