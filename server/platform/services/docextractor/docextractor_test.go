@@ -10,6 +10,7 @@ import (
 	"io"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -20,6 +21,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
+
+// extractConcurrencyTestMu serializes tests that reset or depend on the global
+// extraction slot semaphore so parallel package tests cannot steal slots.
+var extractConcurrencyTestMu sync.Mutex
 
 func TestExtract(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -362,20 +367,26 @@ func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.Re
 func waitForExtractionSlotsIdle(t *testing.T, limit int) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		acquired := 0
-		ok := true
-		for range limit {
-			if !tryAcquireExtractionSlot() {
-				ok = false
-				break
+		for i := 0; i < 5; i++ {
+			acquired := 0
+			for range limit {
+				if !tryAcquireExtractionSlot() {
+					for range acquired {
+						releaseExtractionSlot()
+					}
+					return false
+				}
+				acquired++
 			}
-			acquired++
+			for range acquired {
+				releaseExtractionSlot()
+			}
+			if i < 4 {
+				time.Sleep(5 * time.Millisecond)
+			}
 		}
-		for range acquired {
-			releaseExtractionSlot()
-		}
-		return ok
-	}, 2*time.Second, 10*time.Millisecond, "extraction slots did not become idle")
+		return true
+	}, 10*time.Second, 10*time.Millisecond, "extraction slots did not become idle")
 }
 
 func TestExtractReaderCloserOwnership(t *testing.T) {
@@ -523,6 +534,9 @@ func TestArchiveMaxFileSize(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			extractConcurrencyTestMu.Lock()
+			defer extractConcurrencyTestMu.Unlock()
+
 			data, err := testutils.ReadTestFile(tc.file)
 			require.NoError(t, err)
 
@@ -541,7 +555,11 @@ func TestArchiveMaxFileSize(t *testing.T) {
 }
 
 func TestExtractConcurrency(t *testing.T) {
+	extractConcurrencyTestMu.Lock()
+	defer extractConcurrencyTestMu.Unlock()
+
 	logger := mlog.CreateConsoleTestLogger(t)
+	waitForExtractionSlotsIdle(t, runtime.NumCPU())
 	resetExtractionConcurrencyForTest(1)
 	t.Cleanup(func() {
 		waitForExtractionSlotsIdle(t, 1)
