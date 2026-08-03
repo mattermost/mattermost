@@ -252,6 +252,7 @@ const state: GlobalState = {
         renderPermissions: {
             byResource: {},
             invalidatedAt: 0,
+            invalidatedAtByResource: {},
         },
     },
     errors: [],

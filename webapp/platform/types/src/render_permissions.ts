@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// RenderPermissionDecision is a non-authoritative, render-time ABAC decision for a single action.
-// It decides whether to show a control; it must never authorize one — enforcement re-evaluates the
-// PDP server-side on every request, so the worst a stale decision can cause is a wrong affordance.
+// Decides whether to show a control, never whether to allow one: the server re-evaluates the PDP
+// on every request, so a stale decision costs a wrong affordance and nothing more.
 //
-// "Render-time" means cached per resource and refreshed on invalidation, not evaluated live.
-// Decisions are fetched lazily on a cache miss (so a channel switch costs one request for that
-// channel, and revisiting it costs none) and are never polled. They are dropped only when a
-// websocket event says an input changed: channel_access_control_updated for one channel, and
-// permission_policy_updated, a current-user attribute or role change, or a config/license change
-// that flips the feature for the whole cache.
+// "Render-time" means cached per resource, not evaluated live. Fetched lazily on a miss — a
+// channel switch costs one request, revisiting it costs none — and never polled. Dropped only on
+// the websocket events that change an input: channel_access_control_updated for one channel;
+// permission_policy_updated, a current-user attribute or role change, or a config/license flip
+// for the whole cache.
 export type RenderPermissionDecision = {
     allowed: boolean;
     evaluated: boolean;
@@ -46,20 +44,18 @@ export type ActionSearchResponse = {
     page?: ActionSearchPage;
 };
 
-// Entries carry the monotonic generation assigned to their fetch by the action creator, which is
-// what lets the reducer ignore stale completions.
 export type RenderPermissionEntry = RenderPermissionDecision & {
     generation: number;
 };
 
-// Identifies a single cached decision. Doubles as the batching key for the decision data loader.
+// Also the batching key for the decision data loader.
 export type RenderDecisionIdentifier = {
     resourceType: string;
     resourceId: string;
     action: string;
 };
 
-// The client-only cache of the current user's render decisions.
+// Client-only; always the current user's decisions.
 export type RenderPermissionsState = {
     byResource: {
         [resourceType: string]: {
@@ -69,7 +65,13 @@ export type RenderPermissionsState = {
         };
     };
 
-    // Generation of the most recent invalidation. Completions at or below it predate it and are
-    // discarded, so an in-flight fetch cannot repopulate a cache that was just cleared.
+    // Completions at or below these predate the invalidation and are discarded, so an in-flight
+    // fetch can't repopulate a cache that was just cleared. Scoped separately from the cache-wide
+    // stamp so dropping one channel doesn't discard another channel's in-flight fetch.
     invalidatedAt: number;
+    invalidatedAtByResource: {
+        [resourceType: string]: {
+            [resourceId: string]: number;
+        };
+    };
 };

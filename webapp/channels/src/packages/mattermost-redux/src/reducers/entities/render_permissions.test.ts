@@ -51,6 +51,7 @@ describe('reducers.entities.renderPermissions', () => {
         const seeded: RenderPermissionsState = {
             byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1}}}},
             invalidatedAt: 0,
+            invalidatedAtByResource: {},
         };
 
         expect(reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: 1}}).byResource).toEqual({});
@@ -80,11 +81,23 @@ describe('reducers.entities.renderPermissions', () => {
             expect(state.byResource.channel.chan1.upload_file_attachment.allowed).toBe(false);
         });
 
-        test('tolerating state rehydrated from before invalidatedAt existed', () => {
+        test('but a channel invalidation does not discard another channel in flight', () => {
+            let state = reducer(undefined, {type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL, data: {channelId: 'chan1', generation: 5}});
+
+            // chan2's fetch was issued before the invalidation of chan1 but is unaffected by it.
+            state = reducer(state, received('chan2', {upload_file_attachment: {allowed: true, evaluated: true}}, 5));
+            expect(state.byResource.channel.chan2.upload_file_attachment.allowed).toBe(true);
+            expect(state.byResource.channel.chan1).toBeUndefined();
+        });
+
+        test('tolerating state rehydrated from before the invalidation stamps existed', () => {
             const rehydrated = {byResource: {}} as RenderPermissionsState;
 
-            const state = reducer(rehydrated, received('chan1', {upload_file_attachment: {allowed: true, evaluated: true}}, 1));
-            expect(state.byResource.channel.chan1.upload_file_attachment.allowed).toBe(true);
+            const received1 = reducer(rehydrated, received('chan1', {upload_file_attachment: {allowed: true, evaluated: true}}, 1));
+            expect(received1.byResource.channel.chan1.upload_file_attachment.allowed).toBe(true);
+
+            const invalidated = reducer(rehydrated, {type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL, data: {channelId: 'chan1', generation: 1}});
+            expect(invalidated.invalidatedAtByResource.channel.chan1).toBe(1);
         });
     });
 });
