@@ -308,19 +308,19 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
         /**
          * @objective Ensure a real Classification Markings field (name/object_type/group_id
-         * matching production's saveCreateField) renders the read-only subtitle and a chevron
-         * link to its own admin page instead of the ordinary dot-menu, and that an unrelated
-         * field — including one that shares the same 'rank' type — is entirely unaffected.
+         * matching production's saveCreateField) renders the read-only subtitle and an
+         * open-in-new link to its own admin page instead of the ordinary dot-menu, and that an
+         * unrelated field — including one that shares the same 'rank' type — is entirely unaffected.
          */
         test(
-            'renders the Classification Markings row as a read-only chevron link, leaving an unrelated rank field unaffected',
+            'renders the Classification Markings row as a read-only open-in-new link, leaving an unrelated rank field unaffected',
             {tag: ['@system_console', '@classification_markings']},
             async ({pw}) => {
                 const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
-                // # The chevron's destination page is gated by its own independent feature flag
+                // # The link's destination page is gated by its own independent feature flag
                 // (ClassificationMarkings), separate from the GlobalAttributes flag gating this
-                // listing page — both must be on for the chevron to render.
+                // listing page — both must be on for the link to render.
                 // Tagged @classification_markings like every other spec that touches this same
                 // shared server-wide field/flag (classification_markings.spec.ts,
                 // global_classification_banner.spec.ts) — those specs are NOT otherwise
@@ -387,15 +387,15 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                         'Classification Markings',
                     );
 
-                    // * The rightmost cell is a chevron link to the Classification Markings admin
-                    // page, not the dot-menu action trigger
-                    const chevronLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
-                    await expect(chevronLink).toBeVisible();
-                    await expect(chevronLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
+                    // * The rightmost cell is an open-in-new link to the Classification Markings
+                    // admin page, not the dot-menu action trigger
+                    const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
+                    await expect(openInNewLink).toBeVisible();
+                    await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
                     await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
 
-                    // # Clicking the chevron actually navigates to the Classification Markings page
-                    await chevronLink.click();
+                    // # Clicking the link actually navigates to the Classification Markings page
+                    await openInNewLink.click();
                     // * Navigation lands on the Classification Markings admin page
                     await expect(systemConsolePage.page).toHaveURL(new RegExp(CLASSIFICATION_MARKINGS_ADMIN_PATH));
 

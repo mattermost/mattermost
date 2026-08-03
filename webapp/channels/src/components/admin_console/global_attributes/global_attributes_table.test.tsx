@@ -426,7 +426,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle and a chevron link (not the dot-menu) when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle and an open-in-new link (not the dot-menu) when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
@@ -483,7 +483,7 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the chevron link on mobile with its tooltip disabled', async () => {
+        it('renders the open-in-new link on mobile with its tooltip disabled', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getMobileState());

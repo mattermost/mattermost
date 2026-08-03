@@ -10,7 +10,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import {ChevronDownCircleOutlineIcon, ChevronRightIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -219,7 +219,7 @@ function ActionsCell({field, isClassificationRow, isMobileView}: ClassificationA
                     aria-describedby={classificationSubtitleId(field.id)}
                     data-testid={`global-attribute-classification-link-${field.id}`}
                 >
-                    <ChevronRightIcon
+                    <OpenInNewIcon
                         size={18}
                         aria-hidden={true}
                     />
