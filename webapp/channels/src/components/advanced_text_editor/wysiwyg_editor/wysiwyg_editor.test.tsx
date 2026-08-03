@@ -14,6 +14,7 @@ const mockConstructorError: {current: Error | null} = {current: null};
 
 const mockChainCalls: {current: string[]} = {current: []};
 const mockSetNodeThrows: {current: boolean} = {current: false};
+const mockRunReturnsFalse: {current: boolean} = {current: false};
 
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
@@ -48,7 +49,7 @@ jest.mock('@tiptap/react', () => {
                         setNode: link('setNode'),
                         run: () => {
                             mockChainCalls.current.push('run');
-                            return true;
+                            return !mockRunReturnsFalse.current;
                         },
                     };
                     return chainStub;
@@ -98,6 +99,7 @@ describe('WysiwygEditor', () => {
         mockConstructorError.current = null;
         mockChainCalls.current = [];
         mockSetNodeThrows.current = false;
+        mockRunReturnsFalse.current = false;
         jest.clearAllMocks();
     });
 
@@ -532,6 +534,15 @@ describe('WysiwygEditor', () => {
                 'focus', 'splitBlock', 'setNode',
                 'focus', 'splitBlock', 'run',
             ]);
+        });
+
+        test('does not split a second time when run() reports failure', () => {
+            mockRunReturnsFalse.current = true;
+
+            const {handled} = pressEnter();
+
+            expect(handled).toBe(true);
+            expect(mockChainCalls.current).toEqual(['focus', 'splitBlock', 'setNode', 'run']);
         });
     });
 });
