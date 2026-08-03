@@ -80,6 +80,18 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 		return nil
 	}
 
+	// Next, if enabled, try verifying using the hard-coded MFI public key.
+	if ch.srv.Config().FeatureFlags.EnableMFIPluginSignaturePublicKey {
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in plugin reader for MFI public key")
+		} else if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in signature reader for MFI public key")
+		} else if err := verifySignature(bytes.NewReader(mfiPluginPublicKey), plugin, signature); err == nil {
+			logger.Debug("Plugin signature verified using hard-coded MFI public key")
+			return nil
+		}
+	}
+
 	// If that fails, try any of the admin-configured public keys.
 	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
