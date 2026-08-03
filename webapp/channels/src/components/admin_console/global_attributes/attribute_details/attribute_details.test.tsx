@@ -242,6 +242,19 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
     });
 
+    it('typing an option without pressing Enter or Tab leaves Save disabled', async () => {
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering');
+
+        expect(screen.getByTestId('attributeOptionsRequiredError')).toBeInTheDocument();
+        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.queryAllByTestId('attributeOptionsValues__chip')).toHaveLength(0);
+    });
+
     it('a duplicate option name shows the inline uniqueness error and does not add a second chip', async () => {
         renderComponent();
 
