@@ -5,6 +5,27 @@ package model
 
 import "github.com/pkg/errors"
 
+// The limits a graph field's option hierarchy is held within. All four are
+// fixed rather than configurable: they bound what the traversals, the write-path
+// checks, and the access rules compiled against a hierarchy have to cope with,
+// and a deployment raising one would be changing the shape of the data every one
+// of those handles rather than expressing a preference.
+//
+// Depth counts the options on a chain rather than the links between them, so a
+// root and one option below it are a depth of two. The parent limit is per
+// option: an option with a hundred options directly above it is already an
+// overlay of several dimensions at once.
+//
+// Every path that creates options or links them enforces the relevant one.
+// PropertyField.IsValid checks the option count of a field written with its
+// option list inline, which is the only way options are created today.
+const (
+	PropertyGraphMaxOptions          = 100000
+	PropertyGraphMaxEdges            = 1000000
+	PropertyGraphMaxDepth            = 100
+	PropertyGraphMaxParentsPerOption = 100
+)
+
 // PropertyOptionEdge is one parent link between two options of the same
 // property field: ChildOptionID sits directly below ParentOptionID in that
 // field's option hierarchy.

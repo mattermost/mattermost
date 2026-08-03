@@ -156,6 +156,34 @@ func (_m *PropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
 	return r0, r1
 }
 
+// CountOptionEdges provides a mock function with given fields: fieldID
+func (_m *PropertyFieldStore) CountOptionEdges(fieldID string) (int, error) {
+	ret := _m.Called(fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountOptionEdges")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int, error)); ok {
+		return rf(fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(fieldID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: field
 func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	ret := _m.Called(field)
@@ -186,24 +214,6 @@ func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.Propert
 	return r0, r1
 }
 
-// CreateOptionEdges provides a mock function with given fields: edges
-func (_m *PropertyFieldStore) CreateOptionEdges(edges []*model.PropertyOptionEdge) error {
-	ret := _m.Called(edges)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateOptionEdges")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]*model.PropertyOptionEdge) error); ok {
-		r0 = rf(edges)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Delete provides a mock function with given fields: groupID, id
 func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	ret := _m.Called(groupID, id)
@@ -215,24 +225,6 @@ func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(groupID, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteOptionEdges provides a mock function with given fields: edges
-func (_m *PropertyFieldStore) DeleteOptionEdges(edges []*model.PropertyOptionEdge) error {
-	ret := _m.Called(edges)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteOptionEdges")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]*model.PropertyOptionEdge) error); ok {
-		r0 = rf(edges)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -568,6 +560,54 @@ func (_m *PropertyFieldStore) GetOptionEdges(fieldID string) ([]*model.PropertyO
 	}
 
 	return r0, r1
+}
+
+// GetOptionParentEdges provides a mock function with given fields: fieldID, childOptionIDs
+func (_m *PropertyFieldStore) GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
+	ret := _m.Called(fieldID, childOptionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionParentEdges")
+	}
+
+	var r0 []*model.PropertyOptionEdge
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.PropertyOptionEdge, error)); ok {
+		return rf(fieldID, childOptionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.PropertyOptionEdge); ok {
+		r0 = rf(fieldID, childOptionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyOptionEdge)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(fieldID, childOptionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MutateOptionEdges provides a mock function with given fields: groupID, fieldID, expectedUpdateAt, add, remove
+func (_m *PropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, expectedUpdateAt int64, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
+	ret := _m.Called(groupID, fieldID, expectedUpdateAt, add, remove)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MutateOptionEdges")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64, []*model.PropertyOptionEdge, []*model.PropertyOptionEdge) error); ok {
+		r0 = rf(groupID, fieldID, expectedUpdateAt, add, remove)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SearchPropertyFields provides a mock function with given fields: opts

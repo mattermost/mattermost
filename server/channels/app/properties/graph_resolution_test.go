@@ -72,7 +72,7 @@ func setupGraph(t *testing.T, th *TestHelper, names []string, parents map[string
 			})
 		}
 	}
-	require.NoError(t, th.dbStore.PropertyField().CreateOptionEdges(edges))
+	require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(fixture.field.GroupID, fixture.field.ID, fixture.field.UpdateAt, edges, nil))
 
 	return fixture
 }
@@ -416,14 +416,14 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 		// away.
 		cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Air", "F-18"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.True(t, cycle)
 
 		// A second parent for the lowest option does not.
 		cycle, err = th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "F-18", "Air"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.False(t, cycle)
 	})
@@ -441,7 +441,7 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 			edge(graph, "Sea", "Fighter Jet"),
 			edge(graph, "Air", "Frigate"),
 		} {
-			cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{single})
+			cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{single}, nil)
 			require.NoError(t, err)
 			require.False(t, cycle)
 		}
@@ -449,7 +449,7 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 		cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Sea", "Fighter Jet"),
 			edge(graph, "Air", "Frigate"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.True(t, cycle, "the two edges close a circle through both existing chains")
 	})
@@ -459,7 +459,7 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 
 		cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Air", "Air"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.True(t, cycle)
 	})
@@ -475,7 +475,7 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 		cycle, err := th.service.WouldCreateCycle(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "F-18", "Fighter Jet"),
 			edge(graph, "F-18", "Secret"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.False(t, cycle)
 	})
@@ -483,7 +483,25 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 	t.Run("nothing to add cannot create anything", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air"}, nil)
 
-		cycle, err := th.service.WouldCreateCycle(graph.field, nil)
+		cycle, err := th.service.WouldCreateCycle(graph.field, nil, nil)
+		require.NoError(t, err)
+		require.False(t, cycle)
+	})
+
+	t.Run("a link the same change removes is not in the way", func(t *testing.T) {
+		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, map[string][]string{"Fighter Jet": {"Air"}})
+
+		// Turning a relationship round: Air below Fighter Jet is a cycle while the
+		// link it reverses is still there, and is the ordinary act of re-parenting an
+		// option once the change removes that link too.
+		inverted := []*model.PropertyOptionEdge{edge(graph, "Air", "Fighter Jet")}
+		cycle, err := th.service.WouldCreateCycle(graph.field, inverted, nil)
+		require.NoError(t, err)
+		require.True(t, cycle)
+
+		cycle, err = th.service.WouldCreateCycle(graph.field, inverted, []*model.PropertyOptionEdge{
+			edge(graph, "Fighter Jet", "Air"),
+		})
 		require.NoError(t, err)
 		require.False(t, cycle)
 	})
@@ -499,7 +517,7 @@ func TestGraphWouldCreateCycle(t *testing.T) {
 
 		cycle, err := th.service.WouldCreateCycle(multiselect, []*model.PropertyOptionEdge{
 			{FieldID: multiselect.ID, ChildOptionID: model.NewId(), ParentOptionID: model.NewId()},
-		})
+		}, nil)
 		require.Error(t, err)
 		require.True(t, cycle, "a caller that drops the error must still reject the mutation")
 	})
@@ -526,7 +544,7 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 		// Two unattached options make a chain of two.
 		depth, err := th.service.DepthAfterAdding(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Bomber", "Air"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 3, depth, "Air, Bomber, B-2")
 
@@ -534,7 +552,7 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 		// both chains.
 		depth, err = th.service.DepthAfterAdding(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Bomber", "Fighter Jet"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 4, depth, "Air, Fighter Jet, Bomber, B-2")
 	})
@@ -548,7 +566,7 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 			edge(graph, "F-18C", "F-18"),
 			edge(graph, "Fighter Jet", "Air"),
 			edge(graph, "F-18", "Fighter Jet"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 4, depth)
 	})
@@ -566,21 +584,41 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 
 		depth, err := th.service.DepthAfterAdding(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Trainer", "Sea"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 3, depth, "Air, Sea, Trainer -- the branch the edge is on")
 
 		depth, err = th.service.DepthAfterAdding(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Trainer", "F-18"),
-		})
+		}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 4, depth)
+	})
+
+	t.Run("a chain the change shortens is measured as it will be", func(t *testing.T) {
+		// Air ── Fighter Jet ── F-18, with Trainer about to be hung under F-18 in the
+		// same change that lifts F-18 out of the chain and makes it a root.
+		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18", "Trainer"}, map[string][]string{
+			"Fighter Jet": {"Air"},
+			"F-18":        {"Fighter Jet"},
+		})
+
+		add := []*model.PropertyOptionEdge{edge(graph, "Trainer", "F-18")}
+		depth, err := th.service.DepthAfterAdding(graph.field, add, nil)
+		require.NoError(t, err)
+		require.Equal(t, 4, depth, "Air, Fighter Jet, F-18, Trainer")
+
+		depth, err = th.service.DepthAfterAdding(graph.field, add, []*model.PropertyOptionEdge{
+			edge(graph, "F-18", "Fighter Jet"),
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, depth, "F-18, Trainer -- all that is left of the chain once F-18 is a root")
 	})
 
 	t.Run("nothing to add adds no depth", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air"}, nil)
 
-		depth, err := th.service.DepthAfterAdding(graph.field, nil)
+		depth, err := th.service.DepthAfterAdding(graph.field, nil, nil)
 		require.NoError(t, err)
 		require.Zero(t, depth)
 	})
@@ -588,16 +626,16 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 	t.Run("a hierarchy with a cycle has no longest chain", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, map[string][]string{"Fighter Jet": {"Air"}})
 
-		// Nothing refuses a cycle at write time yet, so one can be stored. Asked
-		// for a depth over it, this reports the cycle rather than walking it
-		// forever or picking a number.
-		require.NoError(t, th.dbStore.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		// The store enforces nothing about the shape of a hierarchy -- the checks
+		// that do sit above it -- so a cycle can be stored. Asked for a depth over
+		// one, this reports it rather than walking it forever or picking a number.
+		require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(graph.field.GroupID, graph.field.ID, 0, []*model.PropertyOptionEdge{
 			edge(graph, "Air", "Fighter Jet"),
-		}))
+		}, nil))
 
 		_, err := th.service.DepthAfterAdding(graph.field, []*model.PropertyOptionEdge{
 			edge(graph, "Fighter Jet", "Air"),
-		})
+		}, nil)
 		require.Error(t, err)
 	})
 }

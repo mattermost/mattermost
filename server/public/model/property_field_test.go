@@ -890,6 +890,26 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.Type = PropertyFieldTypeRank
 			require.NoError(t, pf.IsValid())
 		})
+
+		t.Run("a field may carry as many options as the limit and no more", func(t *testing.T) {
+			// The options themselves do not matter here, only how many there are:
+			// what bounds a hierarchy is the number of options in it.
+			pf := graphField(make([]any, PropertyGraphMaxOptions)...)
+			require.NoError(t, pf.IsValid())
+
+			pf = graphField(make([]any, PropertyGraphMaxOptions+1)...)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			require.Equal(t, "attrs.options", appErr.params["FieldName"])
+
+			// A type whose options are a flat list has no such limit: its options are
+			// bounded by the response size rules alone.
+			pf.Type = PropertyFieldTypeMultiselect
+			require.NoError(t, pf.IsValid())
+		})
 	})
 }
 

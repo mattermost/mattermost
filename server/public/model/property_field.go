@@ -299,6 +299,13 @@ func (pf *PropertyField) IsValid() error {
 		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
 		}
+
+		// The list a field is written with is the whole of its option set, so its
+		// length is the count the limit is about. A field grown past the limit one
+		// option at a time is refused where those options are created instead.
+		if count := propertyFieldOptionCount(pf.Attrs); count > PropertyGraphMaxOptions {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "attrs.options", "Reason": fmt.Sprintf("a graph field cannot have more than %d options", PropertyGraphMaxOptions)}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	// LinkedFieldID validation: if set, must be a valid 26-char ID.
@@ -654,21 +661,27 @@ func (pf *PropertyField) HideOptions() {
 // PropertyFieldSuppliesOptions reports whether these attrs carry a non-empty
 // option list — a caller asserting what the field's options should be, as
 // opposed to one that left the key out or echoed back an empty list because the
-// list it read was withheld. Written against reflection rather than a type
-// switch because the key legitimately holds any slice shape: []any from JSON,
-// []map[string]any from Go callers, or a typed PropertyOptions.
+// list it read was withheld.
 func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
+	return propertyFieldOptionCount(attrs) > 0
+}
+
+// propertyFieldOptionCount reports how many options an option list carries.
+// Counted through reflection rather than a type switch because the key
+// legitimately holds any slice shape: []any from JSON, []map[string]any from Go
+// callers, or a typed PropertyOptions. Anything that is not a list carries no
+// options.
+func propertyFieldOptionCount(attrs StringInterface) int {
 	options, ok := attrs[PropertyFieldAttributeOptions]
 	if !ok || options == nil {
-		return false
+		return 0
 	}
 	v := reflect.ValueOf(options)
 	switch v.Kind() {
 	case reflect.Slice, reflect.Array:
-		return v.Len() > 0
+		return v.Len()
 	default:
-		// Not a list at all, so not a set of options either.
-		return false
+		return 0
 	}
 }
 

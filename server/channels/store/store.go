@@ -1198,10 +1198,11 @@ type PropertyFieldStore interface {
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
 	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
-	CreateOptionEdges(edges []*model.PropertyOptionEdge) error
-	DeleteOptionEdges(edges []*model.PropertyOptionEdge) error
+	MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error
 	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
 	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	CountOptionEdges(fieldID string) (int, error)
 	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)

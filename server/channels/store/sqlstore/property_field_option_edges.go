@@ -45,107 +45,182 @@ var propertyOptionEdgeColumns = []string{"FieldID", "ChildOptionID", "ParentOpti
 // worth avoiding on its own account.
 const maxOptionIDsPerQuery = 10000
 
-// CreateOptionEdges records parent links between options of a graph field. An
-// edge that already exists is left alone, so a caller asserting an option's
-// parents does not have to work out which of them are new.
+// MutateOptionEdges changes one graph field's hierarchy: the parent links to
+// remove and the parent links to add, applied together. A caller that gets an
+// error changed nothing.
 //
-// Two structural invariants are enforced, both of which an edge is meaningless
-// without: the edge's field is a live graph field -- no other type's options
-// have a hierarchy for an edge to be part of -- and both endpoints are live
-// options that field owns itself. An option inherited from a link source
-// belongs to the template that owns it, and its parents are recorded there.
+// An edge that is already there is not added again and an edge that is not there
+// is not removed, so a caller asserting what an option's parents should be does
+// not have to work out which of them are new. An edge in both lists ends up
+// present: the removals are applied first.
 //
-// Nothing here checks the shape of the resulting graph. Adding an edge can still
-// produce a cycle or a hierarchy deeper than anything can usefully walk; those
-// are properties of the whole edge set rather than of one row, and a caller has
-// to put its payload through the checks on the property service --
-// WouldCreateCycle and DepthAfterAdding -- before calling this. No caller creates
-// edges yet.
-func (s *SqlPropertyFieldStore) CreateOptionEdges(edges []*model.PropertyOptionEdge) (err error) {
-	if len(edges) == 0 {
+// groupID scopes the change to the property group the field is expected to be
+// in, as it does on Update and Delete, and an empty one leaves it unscoped.
+//
+// expectedUpdateAt is the field's UpdateAt as the caller read it before deciding
+// what the change should be, and the write only lands on a row still carrying
+// that value. Two changes that are each fine and jointly form a cycle therefore
+// cannot both land: the second was decided against a hierarchy the first has
+// moved, and it is refused as a conflict instead. Passing zero asserts nothing
+// and is for a caller that has no earlier read to compare against.
+//
+// The field's UpdateAt is bumped either way, because a hierarchy change alters
+// what the field serves without altering a single column of it, and clients
+// syncing on UpdateAt would otherwise never hear about it.
+//
+// The ceiling of this scheme is that the loser of a race discards the work it did
+// deciding what to write. Hierarchy changes are rare enough for that to be the
+// right trade; a per-group advisory lock taken before the caller validates is the
+// upgrade if concurrent hierarchy editing ever becomes ordinary.
+//
+// Two structural invariants are enforced here, both of which an edge is
+// meaningless without: the edge's field is a live graph field -- no other type's
+// options have a hierarchy for an edge to be part of -- and both endpoints of an
+// added edge are live options that field owns itself. An option inherited from a
+// link source belongs to the template that owns it, and its parents are recorded
+// there.
+//
+// The shape of the resulting hierarchy -- no cycles, bounded depth, bounded
+// numbers of parents and edges -- is not checked here and cannot be: every one of
+// those is a property of the whole hierarchy rather than of the rows in front of
+// it. A caller puts its change through PropertyService.ValidateOptionEdges first,
+// which is what ApplyOptionEdges does. No caller changes edges yet.
+func (s *SqlPropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) (err error) {
+	if len(add) == 0 && len(remove) == 0 {
 		return nil
 	}
 
-	// fieldOrder keeps the fields in the order they first appear in the payload,
-	// so which failure a caller is told about does not depend on map iteration
-	// order: the error names the earliest offending edge, run after run.
-	var fieldOrder []string
-	endpointsByField := map[string][]string{}
-	for i, edge := range edges {
-		if vErr := edge.IsValid(); vErr != nil {
-			return store.NewErrInvalidInput("PropertyOptionEdge", fmt.Sprintf("edges[%d]", i), vErr.Error()).Wrap(vErr)
+	// Both lists are walked in payload order, and the additions before the
+	// removals, so which failure a caller is told about is the same run after run.
+	for _, group := range []struct {
+		what  string
+		edges []*model.PropertyOptionEdge
+	}{{"add", add}, {"remove", remove}} {
+		for i, edge := range group.edges {
+			at := fmt.Sprintf("%s[%d]", group.what, i)
+			if vErr := edge.IsValid(); vErr != nil {
+				return store.NewErrInvalidInput("PropertyOptionEdge", at, vErr.Error()).Wrap(vErr)
+			}
+			// One field per change: a cycle is confined to one field's options, so
+			// the compare-and-swap below only closes the race it exists for if
+			// everything being changed belongs to the field it swaps on.
+			if edge.FieldID != fieldID {
+				return store.NewErrInvalidInput("PropertyOptionEdge", at, edge.FieldID).
+					Wrap(errors.Errorf("edge belongs to field %s, not to %s", edge.FieldID, fieldID))
+			}
 		}
-		if _, seen := endpointsByField[edge.FieldID]; !seen {
-			fieldOrder = append(fieldOrder, edge.FieldID)
-		}
+	}
+
+	// Only an added edge's endpoints have to be options the field still has. A
+	// removal names a link that is either there, in which case its endpoints are,
+	// or already gone.
+	var addEndpoints []string
+	for _, edge := range add {
 		for _, endpoint := range []string{edge.ChildOptionID, edge.ParentOptionID} {
-			if !slices.Contains(endpointsByField[edge.FieldID], endpoint) {
-				endpointsByField[edge.FieldID] = append(endpointsByField[edge.FieldID], endpoint)
+			if !slices.Contains(addEndpoints, endpoint) {
+				addEndpoints = append(addEndpoints, endpoint)
 			}
 		}
 	}
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "property_option_edges_create_begin_transaction")
+		return errors.Wrap(err, "property_option_edges_mutate_begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	for _, fieldID := range fieldOrder {
-		if err = s.requireOwnedGraphOptions(transaction, fieldID, endpointsByField[fieldID]); err != nil {
-			return err
+	// Before the swap, so a caller removing links from a field that is gone or was
+	// never a graph field is told that rather than being told it lost a race.
+	if err = s.requireOwnedGraphOptions(transaction, fieldID, addEndpoints); err != nil {
+		return err
+	}
+
+	if err = s.bumpFieldForOptionChange(transaction, groupID, fieldID, expectedUpdateAt); err != nil {
+		return err
+	}
+
+	if len(remove) > 0 {
+		matches := sq.Or{}
+		for _, edge := range remove {
+			matches = append(matches, sq.Eq{
+				"ChildOptionID":  edge.ChildOptionID,
+				"ParentOptionID": edge.ParentOptionID,
+			})
+		}
+		builder := s.getQueryBuilder().
+			Delete("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(matches)
+
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_delete_exec")
 		}
 	}
 
-	now := model.GetMillis()
-	builder := s.getQueryBuilder().
-		Insert("PropertyOptionEdges").
-		Columns(propertyOptionEdgeColumns...)
-	for _, edge := range edges {
-		builder = builder.Values(edge.FieldID, edge.ChildOptionID, edge.ParentOptionID, now)
-	}
-	// DO NOTHING rather than DO UPDATE: an edge has nothing to update, and the
-	// same edge listed twice in one payload conflicts with itself, which only
-	// DO NOTHING tolerates. The edges the caller passed in are left as they are
-	// -- stamping CreateAt onto them would be wrong for one that already existed.
-	builder = builder.Suffix("ON CONFLICT (FieldID, ChildOptionID, ParentOptionID) DO NOTHING")
+	if len(add) > 0 {
+		now := model.GetMillis()
+		builder := s.getQueryBuilder().
+			Insert("PropertyOptionEdges").
+			Columns(propertyOptionEdgeColumns...)
+		for _, edge := range add {
+			builder = builder.Values(edge.FieldID, edge.ChildOptionID, edge.ParentOptionID, now)
+		}
+		// DO NOTHING rather than DO UPDATE: an edge has nothing to update, and the
+		// same edge listed twice in one payload conflicts with itself, which only
+		// DO NOTHING tolerates. The edges the caller passed in are left as they are
+		// -- stamping CreateAt onto them would be wrong for one that already existed.
+		builder = builder.Suffix("ON CONFLICT (FieldID, ChildOptionID, ParentOptionID) DO NOTHING")
 
-	if _, err = transaction.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_option_edges_create_insert")
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_insert_exec")
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
-		return errors.Wrap(err, "property_option_edges_create_commit_transaction")
+		return errors.Wrap(err, "property_option_edges_mutate_commit_transaction")
 	}
 
 	return nil
 }
 
-// DeleteOptionEdges removes the given parent links. An edge that is not there is
-// not an error: the caller is asking for a state the field already holds.
+// bumpFieldForOptionChange marks a field as changed because something about its
+// options changed, and refuses to do so if the row no longer carries the UpdateAt
+// the caller read.
 //
-// The options themselves are untouched. An option left with no parents is a root
-// of its field's hierarchy, which is a legitimate position for one to be in.
-func (s *SqlPropertyFieldStore) DeleteOptionEdges(edges []*model.PropertyOptionEdge) error {
-	if len(edges) == 0 {
-		return nil
-	}
-
-	matches := sq.Or{}
-	for _, edge := range edges {
-		matches = append(matches, sq.Eq{
-			"FieldID":        edge.FieldID,
-			"ChildOptionID":  edge.ChildOptionID,
-			"ParentOptionID": edge.ParentOptionID,
-		})
-	}
-
+// UpdateAt is moved to at least one past what the row held rather than simply to
+// the current time. Two changes in the same millisecond would otherwise both
+// swap successfully -- the second would compare against a value the first had
+// rewritten to the same number -- and each having been checked against a
+// hierarchy without the other is exactly the case the swap exists to refuse. The
+// value stays a timestamp that only moves forwards, which is all the clients
+// paging on it need.
+func (s *SqlPropertyFieldStore) bumpFieldForOptionChange(transaction *sqlxTxWrapper, groupID, fieldID string, expectedUpdateAt int64) error {
 	builder := s.getQueryBuilder().
-		Delete("PropertyOptionEdges").
-		Where(matches)
+		Update("PropertyFields").
+		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", model.GetMillis())).
+		Where(sq.Eq{"ID": fieldID})
 
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_option_edges_delete_exec")
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	if expectedUpdateAt != 0 {
+		builder = builder.Where(sq.Eq{"UpdateAt": expectedUpdateAt})
+	}
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrap(err, "property_option_edges_bump_field_exec")
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "property_option_edges_bump_field_rowsaffected")
+	}
+	if count == 0 {
+		if expectedUpdateAt != 0 {
+			return store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the change")
+		}
+		return store.NewErrNotFound("PropertyField", fieldID)
 	}
 	return nil
 }
@@ -198,6 +273,53 @@ func (s *SqlPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOption
 		return nil, errors.Wrap(err, "property_option_child_edges_select_query")
 	}
 	return edges, nil
+}
+
+// GetOptionParentEdges returns every edge whose child is one of the given
+// options: the parents each of them currently has. The mirror of
+// GetOptionChildEdges, and scoped the same way -- to the field it is given rather
+// than to the field that owns the hierarchy -- because its caller is deciding
+// what may become of that field's own rows.
+//
+// Served by the primary key, which leads with FieldID and ChildOptionID. It
+// batches, like the walks below: a caller may hold as many options as a whole
+// change touches (see maxOptionIDsPerQuery).
+func (s *SqlPropertyFieldStore) GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
+	if len(childOptionIDs) == 0 {
+		return nil, nil
+	}
+
+	edges := []*model.PropertyOptionEdge{}
+	for batch := range slices.Chunk(childOptionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select(propertyOptionEdgeColumns...).
+			From("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(sq.Eq{"ChildOptionID": batch})
+
+		found := []*model.PropertyOptionEdge{}
+		if err := s.GetMaster().SelectBuilder(&found, builder); err != nil {
+			return nil, errors.Wrap(err, "property_option_parent_edges_select_query")
+		}
+		edges = append(edges, found...)
+	}
+	return edges, nil
+}
+
+// CountOptionEdges returns how many parent links a field's hierarchy is made of.
+// A count rather than the rows: its caller checks the total against a limit, and
+// a hierarchy at that limit is a million rows to load in order to count them.
+func (s *SqlPropertyFieldStore) CountOptionEdges(fieldID string) (int, error) {
+	builder := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("PropertyOptionEdges").
+		Where(sq.Eq{"FieldID": fieldID})
+
+	var count int
+	if err := s.GetMaster().GetBuilder(&count, builder); err != nil {
+		return 0, errors.Wrap(err, "property_option_edges_count_query")
+	}
+	return count, nil
 }
 
 // GetOptionAncestorsOrSelf returns, for each of the given options, that option

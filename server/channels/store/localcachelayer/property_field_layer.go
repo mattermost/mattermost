@@ -42,6 +42,23 @@ func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.Pro
 	return updated, nil
 }
 
+func (s LocalCachePropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
+	if err := s.PropertyFieldStore.MutateOptionEdges(groupID, fieldID, expectedUpdateAt, add, remove); err != nil {
+		return err
+	}
+
+	// A change to the hierarchy between a field's options moves the field's
+	// UpdateAt, which is how clients hear about it, so a cached copy of the group
+	// would go on reporting that nothing had changed.
+	//
+	// Only this field's group. A field linking to this one derives the hierarchy
+	// rather than holding a copy, so nothing about the row a cache holds for it
+	// changed -- neither its UpdateAt nor its option list, which carries no parent
+	// information.
+	s.InvalidateFieldsForGroup(groupID)
+	return nil
+}
+
 func (s LocalCachePropertyFieldStore) Delete(groupID string, id string) error {
 	if err := s.PropertyFieldStore.Delete(groupID, id); err != nil {
 		return err

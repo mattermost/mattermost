@@ -257,25 +257,29 @@ func coveredByEvery(above []string, heldPerParticipant [][]string) bool {
 	return true
 }
 
-// WouldCreateCycle reports whether any of the given edges would put an option
-// above itself. A hierarchy with a cycle has no roots and no meaningful ordering,
-// so this is the check a mutation has to pass before any other.
+// WouldCreateCycle reports whether the edges in add would put an option above
+// itself, given that the edges in remove go at the same time. A hierarchy with a
+// cycle has no roots and no meaningful ordering, so this is the check a change has
+// to pass before any other.
 //
-// It asks about the edges given, not about the whole hierarchy: a cycle that is
-// somehow already stored elsewhere in the field is not one these edges create, and
-// is not reported here.
+// It asks about the edges being added, not about the whole hierarchy: a cycle that
+// is somehow already stored elsewhere in the field is not one this change creates,
+// and is not reported here. Removals are taken out of the stored hierarchy before
+// the question is asked, so a change that re-parents an option -- dropping a link
+// and adding one that would have closed a cycle against the link it drops -- is
+// judged against what it actually leaves behind.
 //
 // Refusing is the answer on any failure: the returned bool is true whenever the
-// error is non-nil, so a caller that drops the error rejects the mutation.
-func (ps *PropertyService) WouldCreateCycle(field *model.PropertyField, edges []*model.PropertyOptionEdge) (bool, error) {
+// error is non-nil, so a caller that drops the error rejects the change.
+func (ps *PropertyService) WouldCreateCycle(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) (bool, error) {
 	if err := requireGraphField(field); err != nil {
 		return true, err
 	}
-	if len(edges) == 0 {
+	if len(add) == 0 {
 		return false, nil
 	}
 
-	hierarchy, err := ps.loadGraphNeighbourhood(field, edges)
+	hierarchy, err := ps.loadGraphNeighbourhood(field, add, remove)
 	if err != nil {
 		return true, err
 	}
@@ -284,7 +288,7 @@ func (ps *PropertyService) WouldCreateCycle(field *model.PropertyField, edges []
 	// the child is already at-or-above the parent -- whether through stored edges,
 	// through other edges in this payload, or through a mixture of the two.
 	reachedUp := map[string]map[string]bool{}
-	for _, edge := range edges {
+	for _, edge := range add {
 		above, resolved := reachedUp[edge.ParentOptionID]
 		if !resolved {
 			above = hierarchy.reachable(edge.ParentOptionID, hierarchy.parents)
@@ -297,33 +301,33 @@ func (ps *PropertyService) WouldCreateCycle(field *model.PropertyField, edges []
 	return false, nil
 }
 
-// DepthAfterAdding returns how many options lie on the longest chain the given
-// edges create, counted from a root: an edge between two options that had none
-// makes a chain of two. Existing chains are not lengthened by an insert, so a
-// caller enforcing a maximum depth compares this against it and needs no separate
-// figure for the rest of the hierarchy.
+// DepthAfterAdding returns how many options lie on the longest chain the edges in
+// add create, counted from a root: an edge between two options that had none makes
+// a chain of two. Existing chains are not lengthened by an insert, so a caller
+// enforcing a maximum depth compares this against it and needs no separate figure
+// for the rest of the hierarchy.
 //
-// It reads the hierarchy as stored, plus the given edges. A caller restructuring
-// a subtree by removing edges and adding others gets an answer that still counts
-// the removed ones, so it has to remove them first.
+// It reads the hierarchy as stored, minus the edges in remove, plus the edges in
+// add -- so a change that lifts a subtree to a shallower parent is measured
+// against the chains it leaves, not against the ones it is taking away.
 //
 // Run WouldCreateCycle first: a hierarchy with a cycle has no longest chain, and
 // this reports that as an error rather than choosing a number.
-func (ps *PropertyService) DepthAfterAdding(field *model.PropertyField, edges []*model.PropertyOptionEdge) (int, error) {
+func (ps *PropertyService) DepthAfterAdding(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) (int, error) {
 	if err := requireGraphField(field); err != nil {
 		return 0, err
 	}
-	if len(edges) == 0 {
+	if len(add) == 0 {
 		return 0, nil
 	}
 
-	hierarchy, err := ps.loadGraphNeighbourhood(field, edges)
+	hierarchy, err := ps.loadGraphNeighbourhood(field, add, remove)
 	if err != nil {
 		return 0, err
 	}
 
 	deepest := 0
-	for _, edge := range edges {
+	for _, edge := range add {
 		// The longest chain through an edge is everything above its parent, the
 		// parent, the child, and everything below the child. Neither half can
 		// contain an option from the other unless the edge closes a cycle, which
@@ -352,11 +356,16 @@ type graphNeighbourhood struct {
 	longestDown map[string]int
 }
 
-// loadGraphNeighbourhood reads the part of the hierarchy the given edges can
+// loadGraphNeighbourhood reads the part of the hierarchy the edges in add can
 // change: everything at-or-above the options they name as parents, everything
 // at-or-below the options they name as children, and the stored edges among
-// those. A new edge joins those two regions, so it can only lengthen or close a
-// chain inside their union.
+// those, less the edges in remove. A new edge joins those two regions, so it can
+// only lengthen or close a chain inside their union.
+//
+// The removals are left out here rather than in each check, because both checks
+// are about the hierarchy the change produces and the store applies the removals
+// before the additions. Leaving them in would report a chain, or a cycle, through
+// a link the change is taking away.
 //
 // Three queries, whatever the payload, and no second round even though the
 // proposed edges reach past what is stored: leaving the upper region on the way
@@ -374,9 +383,9 @@ type graphNeighbourhood struct {
 // Endpoints the field does not have are not reported here. The store refuses to
 // write an edge whose endpoints are not live options of the field, so this can
 // treat them as options with nothing around them and let that refusal stand.
-func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, edges []*model.PropertyOptionEdge) (*graphNeighbourhood, error) {
+func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) (*graphNeighbourhood, error) {
 	var childIDs, parentIDs []string
-	for _, edge := range edges {
+	for _, edge := range add {
 		if !slices.Contains(childIDs, edge.ChildOptionID) {
 			childIDs = append(childIDs, edge.ChildOptionID)
 		}
@@ -419,6 +428,15 @@ func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, ed
 		return nil, errors.Wrap(err, "failed to read the options below a graph property field's options")
 	}
 
+	// A link is identified here by the two options it joins. Option IDs are unique
+	// within the field whose hierarchy is being read, so a pair names one link in
+	// it; that every edge passed in belongs to that field is the caller's to
+	// establish, and ValidateOptionEdges is where it is established.
+	removed := make(map[[2]string]bool, len(remove))
+	for _, edge := range remove {
+		removed[[2]string{edge.ChildOptionID, edge.ParentOptionID}] = true
+	}
+
 	hierarchy := &graphNeighbourhood{
 		parents:     map[string][]string{},
 		children:    map[string][]string{},
@@ -427,10 +445,15 @@ func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, ed
 	}
 	for parentID, storedChildren := range stored {
 		for _, childID := range storedChildren {
+			if removed[[2]string{childID, parentID}] {
+				continue
+			}
 			hierarchy.link(childID, parentID)
 		}
 	}
-	for _, edge := range edges {
+	// After the removals, so an edge the change both removes and adds is present:
+	// that is the order the store applies them in.
+	for _, edge := range add {
 		hierarchy.link(edge.ChildOptionID, edge.ParentOptionID)
 	}
 	return hierarchy, nil

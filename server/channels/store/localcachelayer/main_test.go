@@ -214,6 +214,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
 	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
+	mockPropertyFieldStore.On("MutateOptionEdges", "group-id", "field-id", int64(0), []*model.PropertyOptionEdge(nil), []*model.PropertyOptionEdge(nil)).Return(nil)
 	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}

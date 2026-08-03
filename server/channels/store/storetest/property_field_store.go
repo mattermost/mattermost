@@ -3818,6 +3818,17 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		return pairs
 	}
 
+	// mutate changes a field's hierarchy the way a caller that has just read the
+	// field does: under the UpdateAt the read saw. Re-reading here rather than
+	// using the field the test holds keeps a fixture built in several calls from
+	// tripping the check that exists for concurrent writers.
+	mutate := func(t *testing.T, field *model.PropertyField, add, remove []*model.PropertyOptionEdge) error {
+		t.Helper()
+		current, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		return ss.PropertyField().MutateOptionEdges(groupID, field.ID, current.UpdateAt, add, remove)
+	}
+
 	t.Run("edges are stored, read back, and deleted", func(t *testing.T) {
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
@@ -3826,7 +3837,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
 		}
-		require.NoError(t, ss.PropertyField().CreateOptionEdges(edges))
+		require.NoError(t, mutate(t, field, edges, nil))
 
 		read, err := ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
@@ -3838,14 +3849,14 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		// Re-asserting an edge that is already there is not an error, and does not
 		// duplicate it: a caller stating an option's parents does not have to work
 		// out which of them are new.
-		require.NoError(t, ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
-		}))
+		}, nil))
 		read, err = ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Len(t, read, 2)
 
-		require.NoError(t, ss.PropertyField().DeleteOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, field, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
 		}))
 		read, err = ss.PropertyField().GetOptionEdges(field.ID)
@@ -3853,12 +3864,45 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
 
 		// And deleting an edge that is not there leaves the rest alone.
-		require.NoError(t, ss.PropertyField().DeleteOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, field, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
 		}))
 		read, err = ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Len(t, read, 1)
+	})
+
+	t.Run("one change removes and adds together", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeGraph, ids)
+
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
+			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
+		}, nil))
+
+		// Re-parenting the lowest option straight onto the top one: a single change
+		// that drops one link and makes another, which is what asserting an option's
+		// parents amounts to.
+		require.NoError(t, mutate(t,
+			field,
+			[]*model.PropertyOptionEdge{edge(field.ID, ids["F-18 Program"], ids["Air Program"])},
+			[]*model.PropertyOptionEdge{edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"])},
+		))
+
+		read, err := ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, [][2]string{
+			{ids["Fighter Jet Program"], ids["Air Program"]},
+			{ids["F-18 Program"], ids["Air Program"]},
+		}, asPairs(read))
+
+		// An edge in both lists ends up present: the removals go first.
+		both := []*model.PropertyOptionEdge{edge(field.ID, ids["F-18 Program"], ids["Air Program"])}
+		require.NoError(t, mutate(t, field, both, both))
+		read, err = ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Len(t, read, 2)
 	})
 
 	t.Run("both endpoints must be options the edge's own field owns", func(t *testing.T) {
@@ -3878,7 +3922,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 			"child belongs to another field":  edge(field.ID, otherIDs["Sea Program"], ids["Air Program"]),
 			"parent does not exist":           edge(field.ID, ids["F-18 Program"], model.NewId()),
 		} {
-			err := ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{e})
+			err := mutate(t, field, []*model.PropertyOptionEdge{e}, nil)
 			require.Error(t, err, name)
 			var invalidErr *store.ErrInvalidInput
 			require.ErrorAs(t, err, &invalidErr, name)
@@ -3893,9 +3937,9 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		_, err := ss.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
 		require.NoError(t, err)
 
-		err = ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		err = mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Air Program"]),
-		})
+		}, nil)
 		require.Error(t, err)
 
 		// Nothing was written by any of the rejected calls.
@@ -3904,41 +3948,135 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.Empty(t, read)
 	})
 
-	t.Run("one rejected edge writes none of them", func(t *testing.T) {
+	t.Run("a rejected change leaves the hierarchy it started with", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeGraph, ids)
+
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
+		}, nil))
+		before, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+
+		// A change is one thing: this one would have removed a link and added two,
+		// the second of which names an option that does not exist. None of it lands
+		// -- not the removal, not the first addition, and not the record on the
+		// field that its options changed.
+		err = mutate(t,
+			field,
+			[]*model.PropertyOptionEdge{
+				edge(field.ID, ids["F-18 Program"], ids["Air Program"]),
+				edge(field.ID, ids["F-18 Program"], model.NewId()),
+			},
+			[]*model.PropertyOptionEdge{edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"])},
+		)
+		require.Error(t, err)
+
+		read, err := ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
+
+		after, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.Equal(t, before.UpdateAt, after.UpdateAt)
+	})
+
+	t.Run("a hierarchy change records itself on the field it belongs to", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeGraph, ids)
+
+		// Nothing on the field's own row changes when its options' hierarchy does,
+		// so without this a client syncing on UpdateAt would never hear about it.
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
+		}, nil))
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.Greater(t, read.UpdateAt, field.UpdateAt)
+
+		// And it only ever moves forwards. A row already at or past the current
+		// millisecond is what two changes inside one millisecond look like, and
+		// leaving UpdateAt where it was would let the second of them compare against
+		// a value the first had rewritten to the same number -- so both would be
+		// applied, each having been checked without the other.
+		ahead := model.GetMillis() + 60000
+		_, err = s.GetMaster().Exec("UPDATE PropertyFields SET UpdateAt = $1 WHERE ID = $2", ahead, field.ID)
+		require.NoError(t, err)
+
+		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, ahead, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
+		}, nil))
+		read, err = ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		require.Greater(t, read.UpdateAt, ahead)
+	})
+
+	t.Run("a change decided against a hierarchy that has since moved is refused", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeGraph, ids)
+
+		// Two writers reading the same field, each deciding on a link that is fine
+		// against what it read and that together with the other's puts an option
+		// below itself. The first lands; the second is checking a hierarchy that no
+		// longer exists, and gets a conflict rather than writing the cycle.
+		stale := field.UpdateAt
+		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, stale, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
+		}, nil))
+
+		err := ss.PropertyField().MutateOptionEdges(groupID, field.ID, stale, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Air Program"], ids["Fighter Jet Program"]),
+		}, nil)
+		require.Error(t, err)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+
+		read, err := ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
+	})
+
+	t.Run("every edge in a change belongs to the field being changed", func(t *testing.T) {
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
 		otherIDs := programIDs()
 		other := newField(t, model.PropertyFieldTypeGraph, otherIDs)
 
-		// A payload spanning two fields, valid for the first and not for the
-		// second. The first field's edges must not survive the second's rejection.
-		err := ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		// A change is applied to one field, because it is written under that field's
+		// UpdateAt: an edge belonging to another field is refused rather than
+		// written outside the check that serializes the change.
+		err := mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
-			edge(other.ID, otherIDs["F-18 Program"], model.NewId()),
-		})
+			edge(other.ID, otherIDs["F-18 Program"], otherIDs["Air Program"]),
+		}, nil)
 		require.Error(t, err)
+		var invalidErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invalidErr)
 
-		read, err := ss.PropertyField().GetOptionEdges(field.ID)
-		require.NoError(t, err)
-		require.Empty(t, read)
+		for _, fieldID := range []string{field.ID, other.ID} {
+			read, rErr := ss.PropertyField().GetOptionEdges(fieldID)
+			require.NoError(t, rErr)
+			require.Empty(t, read)
+		}
 	})
 
 	t.Run("only a graph field's options have a hierarchy", func(t *testing.T) {
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeMultiselect, ids)
 
-		err := ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		err := mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Air Program"]),
-		})
+		}, nil)
 		require.Error(t, err)
 		var invalidErr *store.ErrInvalidInput
 		require.ErrorAs(t, err, &invalidErr)
 
 		// A field that does not exist is a different failure, and neither is a
 		// silent no-op.
-		err = ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
-			edge(model.NewId(), ids["F-18 Program"], ids["Air Program"]),
-		})
+		missingID := model.NewId()
+		err = ss.PropertyField().MutateOptionEdges(groupID, missingID, 0, []*model.PropertyOptionEdge{
+			edge(missingID, ids["F-18 Program"], ids["Air Program"]),
+		}, nil)
 		require.Error(t, err)
 		var notFoundErr *store.ErrNotFound
 		require.ErrorAs(t, err, &notFoundErr)
@@ -3948,9 +4086,9 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
 
-		err := ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		err := mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Air Program"], ids["Air Program"]),
-		})
+		}, nil)
 		require.Error(t, err)
 		var invalidErr *store.ErrInvalidInput
 		require.ErrorAs(t, err, &invalidErr)
@@ -3960,10 +4098,10 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
 
-		require.NoError(t, ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
-		}))
+		}, nil))
 
 		// Dropping the middle option from the field's option list soft-deletes it.
 		// It is a child in one edge and a parent in the other, and both go: an
@@ -3990,9 +4128,9 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		withEdges := newField(t, model.PropertyFieldTypeGraph, shared)
 		withoutEdges := newField(t, model.PropertyFieldTypeGraph, shared)
 
-		require.NoError(t, ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, withEdges, []*model.PropertyOptionEdge{
 			edge(withEdges.ID, shared["Fighter Jet Program"], shared["Air Program"]),
-		}))
+		}, nil))
 
 		read, err := ss.PropertyField().GetOptionEdges(withoutEdges.ID)
 		require.NoError(t, err)
@@ -4011,10 +4149,10 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
 
-		require.NoError(t, ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
-		}))
+		}, nil))
 
 		// The lowest option has nothing below it.
 		children, err := ss.PropertyField().GetOptionChildEdges(field.ID, []string{ids["F-18 Program"]})
@@ -4039,15 +4177,50 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(children))
 	})
 
+	t.Run("parent edges and the edge total report what a change would become", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeGraph, ids)
+		otherIDs := programIDs()
+		other := newField(t, model.PropertyFieldTypeGraph, otherIDs)
+
+		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
+			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
+			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
+			edge(field.ID, ids["F-18 Program"], ids["Air Program"]),
+		}, nil))
+		require.NoError(t, mutate(t, other, []*model.PropertyOptionEdge{
+			edge(other.ID, otherIDs["F-18 Program"], otherIDs["Air Program"]),
+		}, nil))
+
+		// Asked about several options at once, because the caller is checking a
+		// whole change: what each option it names sits below, and nothing else.
+		parents, err := ss.PropertyField().GetOptionParentEdges(field.ID, []string{
+			ids["F-18 Program"], ids["Air Program"],
+		})
+		require.NoError(t, err)
+		require.ElementsMatch(t, [][2]string{
+			{ids["F-18 Program"], ids["Fighter Jet Program"]},
+			{ids["F-18 Program"], ids["Air Program"]},
+		}, asPairs(parents), "the top option has no parents, and the other field's edges are not this field's")
+
+		count, err := ss.PropertyField().CountOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Equal(t, 3, count)
+
+		count, err = ss.PropertyField().CountOptionEdges(other.ID)
+		require.NoError(t, err)
+		require.Equal(t, 1, count, "an identically-identified option in another field brings none of that field's edges")
+	})
+
 	t.Run("unlinking a graph field keeps the hierarchy it was deriving", func(t *testing.T) {
 		ids := programIDs()
 		template := newField(t, model.PropertyFieldTypeGraph, ids)
 		templateOptions := template.Attrs["options"].([]any)
 
-		require.NoError(t, ss.PropertyField().CreateOptionEdges([]*model.PropertyOptionEdge{
+		require.NoError(t, mutate(t, template, []*model.PropertyOptionEdge{
 			edge(template.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 			edge(template.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
-		}))
+		}, nil))
 
 		linked, err := ss.PropertyField().Create(&model.PropertyField{
 			GroupID:       groupID,
@@ -4143,7 +4316,7 @@ func testPropertyFieldOptionHierarchy(t *testing.T, _ request.CTX, ss store.Stor
 				ParentOptionID: ids[pair[1]],
 			})
 		}
-		require.NoError(t, ss.PropertyField().CreateOptionEdges(edges))
+		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, field.UpdateAt, edges, nil))
 	}
 
 	// named turns a walk's result back into option names, so a failure reads as
