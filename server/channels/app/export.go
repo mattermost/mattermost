@@ -162,10 +162,8 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 		return appErr
 	}
 
-	// Bots are exported for both full and single-team exports because bots can
-	// author posts in team channels; omitting them would leave post authors unresolvable on import.
 	rctx.Logger().Info("Bulk export: exporting bots")
-	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures)
+	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures, opts.TeamName, opts.ChannelName)
 	if appErr != nil {
 		return appErr
 	}
@@ -295,7 +293,7 @@ func (a *App) exportVersion(writer io.Writer, opts model.BulkExportOpts) *model.
 		Created:   time.Now().Format(time.RFC3339Nano),
 	}
 
-	if opts.ChannelName != "" {
+	if opts.TeamName != "" {
 		scope := imports.ExportScopeAdditional{
 			TeamName:    opts.TeamName,
 			ChannelName: opts.ChannelName,
@@ -578,6 +576,17 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 				continue
 			}
 
+			// Fast-path: for channel-scoped exports skip the expensive per-user
+			// queries (preferences, team/channel memberships) for users that are
+			// not channel members and never posted in the channel.  Without this
+			// check every user in the instance pays the full query cost even if
+			// only a fraction are in the target channel.
+			if destinationChannel != "" &&
+				!channelMemberIDs[user.Id] &&
+				!channelPostAuthorIDs[user.Id] {
+				continue
+			}
+
 			// Gathering here the exportable preferences to pass them on to importLineFromUser
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(rctx, user.Id)
@@ -645,14 +654,33 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 			}
 
 			// Skip users outside the export scope.
-			// For channel-scoped exports, include current members and users who posted in the channel.
-			// For team-scoped exports, include team members and users who posted in the team.
-			if destinationChannel != "" {
-				if !channelMemberIDs[user.Id] && !channelPostAuthorIDs[user.Id] {
-					continue
-				}
-			} else if teamNameFilter != "" && len(*members) == 0 && !postAuthorIDs[user.Id] {
+			// For team-scoped exports (no channel filter), exclude users who have
+			// no team memberships and never posted in the team.
+			// Channel-scoped exports are already filtered above before the per-user
+			// queries, so no check is needed here for that case.
+			if destinationChannel == "" && teamNameFilter != "" && len(*members) == 0 && !postAuthorIDs[user.Id] {
 				continue
+			}
+
+			// Post authors who left the team/channel have empty memberships from
+			// buildUserTeamAndChannelMemberships. Synthesize a default membership so
+			// the importer adds them to the team and channel and their posts remain
+			// accessible.
+			if teamNameFilter != "" && len(*members) == 0 {
+				role := "team_user"
+				synth := imports.UserTeamImportData{
+					Name:  &teamNameFilter,
+					Roles: &role,
+				}
+				if destinationChannel != "" {
+					chanRole := "channel_user"
+					synth.Channels = &[]imports.UserChannelImportData{{
+						Name:  &destinationChannel,
+						Roles: &chanRole,
+					}}
+				}
+				m := []imports.UserTeamImportData{synth}
+				members = &m
 			}
 
 			userLine.User.Teams = members
@@ -666,10 +694,32 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 	return profilePictures, nil
 }
 
-func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool) ([]string, *model.AppError) {
+func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool, teamNameFilter string, channelNameFilter string) ([]string, *model.AppError) {
 	afterId := ""
 	cnt := 0
 	profilePictures := []string{}
+
+	// For scoped exports, only include bots that authored posts in the target scope.
+	var botAuthorIDs map[string]bool
+	if channelNameFilter != "" {
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForChannel(teamNameFilter, channelNameFilter)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllBots", "app.post.get_author_ids_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		botAuthorIDs = make(map[string]bool, len(ids))
+		for _, id := range ids {
+			botAuthorIDs[id] = true
+		}
+	} else if teamNameFilter != "" {
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllBots", "app.post.get_author_ids_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		botAuthorIDs = make(map[string]bool, len(ids))
+		for _, id := range ids {
+			botAuthorIDs[id] = true
+		}
+	}
 
 	const pageSize = 1000
 
@@ -684,6 +734,10 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 
 		for _, bot := range bots {
 			afterId = bot.UserId
+
+			if botAuthorIDs != nil && !botAuthorIDs[bot.UserId] {
+				continue
+			}
 
 			var ownerUsername string
 			owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)

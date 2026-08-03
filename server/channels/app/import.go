@@ -171,7 +171,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent); err != nil {
+				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
@@ -182,7 +182,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
@@ -200,12 +200,12 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent); err != nil {
+		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
@@ -235,6 +235,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	lineNumber := 0
 	existingUsersOnly := false
 	sourceTeamName := ""
+
 
 	a.Srv().Store().LockToMaster()
 	defer a.Srv().Store().UnlockFromMaster()
@@ -279,9 +280,11 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 
 			if line.Info != nil && len(line.Info.Additional) > 0 {
 				var scope imports.ExportScopeAdditional
-				if err := json.Unmarshal(line.Info.Additional, &scope); err == nil && scope.ChannelName != "" {
-					existingUsersOnly = true
+				if err := json.Unmarshal(line.Info.Additional, &scope); err == nil {
 					sourceTeamName = scope.TeamName
+					if scope.ChannelName != "" {
+						existingUsersOnly = true
+					}
 				}
 			}
 
@@ -327,6 +330,14 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			}
 		}
 
+		// When ExportScopeAdditional is absent (e.g. full-team export from older binaries),
+		// infer sourceTeamName from the first team line so --destination-team still works.
+		// When ExportScopeAdditional is absent (e.g. full-team export from older binaries),
+		// infer sourceTeamName from the first team line so --destination-team still works.
+		if destinationTeam != "" && sourceTeamName == "" && line.Type == "team" && line.Team != nil && line.Team.Name != nil {
+			sourceTeamName = *line.Team.Name
+		}
+
 		if destinationTeam != "" && sourceTeamName != "" {
 			rewriteTeamName(&line, sourceTeamName, destinationTeam)
 		}
@@ -370,6 +381,7 @@ func rewriteTeamName(line *imports.LineImportData, sourceTeam, destTeam string) 
 	case "team":
 		if line.Team != nil && line.Team.Name != nil && *line.Team.Name == sourceTeam {
 			*line.Team.Name = destTeam
+			line.Team.DisplayName = &destTeam
 		}
 	case "channel":
 		if line.Channel != nil && line.Channel.Team != nil && *line.Channel.Team == sourceTeam {

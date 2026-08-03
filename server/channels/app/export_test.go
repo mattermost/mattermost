@@ -2198,6 +2198,43 @@ func TestBulkExportSingleTeam(t *testing.T) {
 		assert.Empty(t, lines["bot"], "bots should be excluded in single-team export")
 	})
 
+	t.Run("bot that posted in team is included", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "postingbot_" + model.NewId()[:8],
+			DisplayName: "Posting Bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		th.AddUserToChannel(t, botUser, th.BasicChannel)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    bot.UserId,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "bot post",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		var botUsernames []string
+		for _, bl := range lines["bot"] {
+			if bm, ok := bl["bot"].(map[string]any); ok {
+				botUsernames = append(botUsernames, bm["username"].(string))
+			}
+		}
+		assert.Contains(t, botUsernames, bot.Username, "bot that posted in team should be included in export")
+	})
+
 	t.Run("returns error for nonexistent team", func(t *testing.T) {
 		th := Setup(t)
 
