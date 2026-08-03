@@ -141,10 +141,9 @@ export type Props = {
     canUploadFiles: boolean;
 
     /**
-     * When true, an access control policy denies uploads here, so the control is rendered but
-     * disabled with an explanatory tooltip — unlike canUploadFiles, which hides it outright.
-     * Denial is user-specific, so keeping the control visible explains why this user's experience
-     * differs from a colleague's in the same channel. Enforcement remains server-side.
+     * An access control policy denies uploads here. Renders the control disabled with an
+     * explanation, unlike canUploadFiles which hides it: policy denial is user-specific, so the
+     * user needs to know why their experience differs from a colleague's in the same channel.
      */
     disabledByPolicy?: boolean;
 
@@ -620,6 +619,11 @@ export class FileUpload extends PureComponent<Props, State> {
     simulateInputClick = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (this.props.disabledByPolicy) {
+            return;
+        }
+
         this.fileInput.current?.click();
     };
 
@@ -634,8 +638,6 @@ export class FileUpload extends PureComponent<Props, State> {
 
         const {disabledByPolicy} = this.props;
 
-        // The max-files case only dims the control and lets the click through so it can explain
-        // itself; a policy denial genuinely blocks the upload, so it also disables the button.
         const dimmed = uploadsRemaining <= 0 || disabledByPolicy;
 
         const uploadTooltip = disabledByPolicy ? formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}) : (
@@ -646,29 +648,39 @@ export class FileUpload extends PureComponent<Props, State> {
             />
         );
 
-        if (this.props.pluginFileUploadMethods.length === 0) {
+        // aria-disabled, not the disabled attribute: a disabled button emits no pointer or focus
+        // events, so WithTooltip could never show the tooltip explaining the denial — the whole
+        // reason the control stays visible. Every upload entry point checks disabledByPolicy.
+        const attachmentButton = (onActivate?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => void) => (
+            <WithTooltip title={uploadTooltip}>
+                <button
+                    type='button'
+                    id='fileUploadButton'
+                    aria-label={buttonAriaLabel}
+                    aria-disabled={disabledByPolicy}
+                    className={classNames('style--none AdvancedTextEditor__action-button', {
+                        disabled: dimmed,
+                    })}
+                    onClick={onActivate}
+                    onTouchEnd={onActivate}
+                >
+                    <PaperclipIcon
+                        size={18}
+                        color={'currentColor'}
+                        aria-label={iconAriaLabel}
+                    />
+                </button>
+            </WithTooltip>
+        );
+
+        // No entry points for a denied user: a menu of plugin sources that would each be rejected
+        // is worse than one control that says why.
+        if (disabledByPolicy) {
+            bodyAction = <div>{attachmentButton()}</div>;
+        } else if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (
                 <div>
-                    <WithTooltip title={uploadTooltip}>
-                        <button
-                            type='button'
-                            id='fileUploadButton'
-                            aria-label={buttonAriaLabel}
-                            aria-disabled={disabledByPolicy}
-                            disabled={disabledByPolicy}
-                            className={classNames('style--none AdvancedTextEditor__action-button', {
-                                disabled: dimmed,
-                            })}
-                            onClick={this.simulateInputClick}
-                            onTouchEnd={this.simulateInputClick}
-                        >
-                            <PaperclipIcon
-                                size={18}
-                                color={'currentColor'}
-                                aria-label={iconAriaLabel}
-                            />
-                        </button>
-                    </WithTooltip>
+                    {attachmentButton(this.simulateInputClick)}
                     <input
                         id='fileUploadInput'
                         tabIndex={-1}
@@ -715,24 +727,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         multiple={true}
                     />
                     <MenuWrapper>
-                        <WithTooltip title={uploadTooltip}>
-                            <button
-                                type='button'
-                                id='fileUploadButton'
-                                aria-label={buttonAriaLabel}
-                                aria-disabled={disabledByPolicy}
-                                disabled={disabledByPolicy}
-                                className={classNames('style--none AdvancedTextEditor__action-button', {
-                                    disabled: dimmed,
-                                })}
-                            >
-                                <PaperclipIcon
-                                    size={18}
-                                    color={'currentColor'}
-                                    aria-label={iconAriaLabel}
-                                />
-                            </button>
-                        </WithTooltip>
+                        {attachmentButton()}
                         <Menu
                             id='fileUploadOptions'
                             openLeft={true}

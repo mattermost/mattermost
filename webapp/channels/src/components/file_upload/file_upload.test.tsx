@@ -439,6 +439,8 @@ describe('components/FileUpload', () => {
     });
 
     describe('disabledByPolicy', () => {
+        // jest-dom's toBeDisabled() only recognises the native attribute, and the button uses
+        // aria-disabled so the tooltip still opens. Playwright's accepts either, so e2e is fine.
         test('renders the button visible but disabled, and keeps its id', () => {
             const {container} = renderWithContext(
                 <FileUpload
@@ -449,7 +451,25 @@ describe('components/FileUpload', () => {
 
             const button = container.querySelector('#fileUploadButton');
             expect(button).toBeVisible();
-            expect(button).toBeDisabled();
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('does not open the file picker when the disabled button is clicked', () => {
+            const ref = React.createRef<FileUploadClass>();
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    disabledByPolicy={true}
+                    ref={ref}
+                />,
+            );
+
+            const click = jest.fn();
+            (ref.current!.fileInput as any).current = {click};
+
+            (container.querySelector('#fileUploadButton') as HTMLButtonElement).click();
+
+            expect(click).not.toHaveBeenCalled();
         });
 
         test('renders nothing when RBAC also denies uploads', () => {
@@ -464,7 +484,7 @@ describe('components/FileUpload', () => {
             expect(container.querySelector('#fileUploadButton')).toBeNull();
         });
 
-        test('keeps plugin upload methods rendered, disabled', () => {
+        test('keeps the attachment control rendered and disabled when plugins register upload methods', () => {
             const pluginMethod = {
                 id: 'pluginmethodid',
                 pluginId: 'pluginid',
@@ -483,7 +503,7 @@ describe('components/FileUpload', () => {
 
             const button = container.querySelector('#fileUploadButton');
             expect(button).toBeVisible();
-            expect(button).toBeDisabled();
+            expect(button).toHaveAttribute('aria-disabled', 'true');
         });
 
         test('blocks the drop path, not only the button', () => {
