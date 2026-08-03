@@ -159,19 +159,99 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
-    it('opens the Type menu showing Text selected and Select/Multiselect/Rank disabled with "Coming soon"', async () => {
+    it('opens the Type menu showing all four types selectable, Text checked by default', async () => {
         renderComponent();
 
         await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
 
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
-        expect(screen.getByRole('menuitemradio', {name: 'Text'})).not.toHaveAttribute('aria-disabled', 'true');
 
-        for (const label of ['Select', 'Multiselect', 'Ranked']) {
+        for (const label of ['Text', 'Select', 'Multiselect', 'Ranked']) {
             const item = screen.getByRole('menuitemradio', {name: new RegExp(label)});
-            expect(item).toHaveAttribute('aria-disabled', 'true');
-            expect(item).toHaveTextContent('Coming soon');
+            expect(item).not.toHaveAttribute('aria-disabled', 'true');
+            expect(item).not.toHaveTextContent('Coming soon');
         }
+    });
+
+    it('selecting Select from the Type menu updates the button label and swaps in the options chip editor', async () => {
+        renderComponent();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+
+        expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+        expect(screen.getByTestId('attributeOptionsValues')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+    });
+
+    it('selecting Rank from the Type menu swaps in the rank chip editor', async () => {
+        renderComponent();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
+
+        expect(screen.getByTestId('attributeOptionsRankValues')).toBeInTheDocument();
+    });
+
+    it('preserves already-entered options across a Select -> Text -> Select round-trip', async () => {
+        renderComponent();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Text'}));
+        expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
+    });
+
+    it('assigns rank = index + 1 to every existing option when switching into Rank', async () => {
+        renderComponent();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Low{Enter}');
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'High{Enter}');
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
+
+        const chips = screen.getAllByTestId('attributeOptionsRankValues__chipLabel');
+        expect(chips.map((chip) => chip.textContent)).toEqual(['Low', 'High']);
+        expect(screen.getAllByTestId('rank-badge').map((badge) => badge.textContent)).toEqual(['1', '2']);
+    });
+
+    it('disables Save with an inline "at least one option is required" message for an option-bearing type with no options', async () => {
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+
+        expect(screen.getByTestId('attributeOptionsRequiredError')).toHaveTextContent('At least one option is required');
+        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+    });
+
+    it('a duplicate option name shows the inline uniqueness error and does not add a second chip', async () => {
+        renderComponent();
+
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+
+        expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
+        expect(screen.getAllByTestId('attributeOptionsValues__chip')).toHaveLength(1);
     });
 
     it('calls createAttributeField with the expected shape and navigates to the list on success', async () => {
@@ -209,11 +289,58 @@ describe('AttributeDetails', () => {
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
     });
 
+    it('saves a Select attribute with the expected attrs.options shape', async () => {
+        const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Department');
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+            type: 'select',
+            attrs: expect.objectContaining({
+                options: [
+                    {id: '', name: 'Engineering'},
+                    {id: '', name: 'Sales'},
+                ],
+            }),
+        }));
+    });
+
+    it('saves a Rank attribute with rank always explicitly present', async () => {
+        const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
+        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'Low{Enter}');
+        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'High{Enter}');
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+            type: 'rank',
+            attrs: expect.objectContaining({
+                options: [
+                    {id: '', name: 'Low', rank: 1},
+                    {id: '', name: 'High', rank: 2},
+                ],
+            }),
+        }));
+    });
+
     it.each([
         ['app.property_field.create.name_conflict.app_error', 'already exists'],
         ['model.cpa_field.name.invalid_charset.app_error', 'must start with a letter'],
         ['model.cpa_field.name.reserved_word.app_error', 'reserved word'],
         ['app.property_field.create.limit_reached.app_error', 'maximum number'],
+        ['app.property_field.invalid_attrs.app_error', 'problem with one or more options'],
     ])('renders specific inline copy for %s', async (serverErrorId, expectedText) => {
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError(serverErrorId));
 

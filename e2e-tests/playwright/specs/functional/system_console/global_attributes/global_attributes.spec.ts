@@ -509,5 +509,144 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // * No navigation occurred
             await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
         });
+
+        /**
+         * @objective Ensure a Select attribute can be created end-to-end with a real options
+         * editor: type switch, add two options via Enter, Save is blocked until an option exists,
+         * and the saved attribute shows the correct type/option count back in the list.
+         */
+        test('creates a Select attribute with two options via the options editor', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Select Attribute ${timestamp}`;
+            const expectedName = `playwright_select_attribute_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Switch type to Select
+                await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+                await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+
+                // * Save is disabled with zero options, with an inline reason shown
+                await expect(systemConsolePage.page.getByTestId('attributeOptionsRequiredError')).toContainText(
+                    'At least one option is required',
+                );
+                await expect(systemConsolePage.page.getByTestId('saveSetting')).toBeDisabled();
+
+                // # Add two options via Enter
+                const optionsInput = systemConsolePage.page.getByTestId('attributeOptionsValues__addInput');
+                await optionsInput.fill('Engineering');
+                await optionsInput.press('Enter');
+                await optionsInput.fill('Sales');
+                await optionsInput.press('Enter');
+
+                // * Save is now enabled
+                await expect(systemConsolePage.page.getByTestId('saveSetting')).toBeEnabled();
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * Redirected back to the list, showing the correct type and option count
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Select');
+                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a Rank attribute can be created end-to-end, including reordering an
+         * option via the keyboard-accessible "Rank" popover before Save, and that the saved
+         * attribute shows the correct type/option count in the list.
+         */
+        test('creates a Rank attribute, reorders an option via the Rank popover, and saves', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Ranked Attribute ${timestamp}`;
+            const expectedName = `playwright_ranked_attribute_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+                await systemConsolePage.page.getByRole('menuitemradio', {name: /Ranked/}).click();
+
+                const optionsInput = systemConsolePage.page.getByTestId('attributeOptionsRankValues__addInput');
+                await optionsInput.fill('Low');
+                await optionsInput.press('Enter');
+                await optionsInput.fill('High');
+                await optionsInput.press('Enter');
+
+                // * Chips render in ascending rank order
+                const chipLabels = systemConsolePage.page.getByTestId('attributeOptionsRankValues__chipLabel');
+                await expect(chipLabels).toHaveText(['Low', 'High']);
+
+                // # Reorder "High" to position 1 via its popover's Rank submenu
+                await chipLabels.filter({hasText: 'High'}).click();
+                await systemConsolePage.page.getByText('Rank', {exact: true}).click();
+                await systemConsolePage.page.getByRole('menuitemradio', {name: '1'}).click();
+
+                // * Reordered — "High" now renders first
+                await expect(chipLabels).toHaveText(['High', 'Low']);
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Ranked');
+                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure switching type mid-form preserves already-entered options rather than
+         * discarding them, per the ticket's "freely switch types" requirement.
+         */
+        test('preserves already-entered options when switching type away and back', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            const optionsInput = systemConsolePage.page.getByTestId('attributeOptionsValues__addInput');
+            await optionsInput.fill('Engineering');
+            await optionsInput.press('Enter');
+
+            // # Switch to Text (options editor unmounts) and back to Select
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Text'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeOptionsValues')).toHaveCount(0);
+
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+
+            // * The previously-entered option is still there, not discarded
+            await expect(systemConsolePage.page.getByTestId('attributeOptionsValues__chipLabel')).toHaveText(
+                'Engineering',
+            );
+        });
     });
 });

@@ -9,10 +9,13 @@ import {useDispatch} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
@@ -24,13 +27,39 @@ import {getHistory} from 'utils/browser_history';
 import {filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
-import {actionsLabels, getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
+import AttributeOptionsRankValues from './attribute_options_rank_values';
+import AttributeOptionsValues from './attribute_options_values';
+
+import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
+import type {AttributeFieldType} from '../utils';
 import {createAttributeField} from '../utils';
 
 import './attribute_details.scss';
 
-const ALL_TYPES: Array<'text' | 'select' | 'multiselect' | 'rank'> = ['text', 'select', 'multiselect', 'rank'];
+const ALL_TYPES: AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank'];
 const LIST_ROUTE = '/admin_console/system_attributes/manage_attributes';
+
+// Whether any option in `options` has a name equal to another option's name.
+// Used defensively by canSave -- both options editors already block this
+// interactively at add/rename time, but canSave re-derives it rather than
+// trusting "the UI wouldn't let this happen" (matches the same defensive
+// pattern used for rank validity below).
+function hasDuplicateOptionNames(options: PropertyFieldOption[]): boolean {
+    const seen = new Set<string>();
+    for (const option of options) {
+        if (seen.has(option.name)) {
+            return true;
+        }
+        seen.add(option.name);
+    }
+    return false;
+}
+
+// Whether every option in `options` has a valid (positive, unique) rank.
+// Only meaningful when the current type is 'rank'.
+function hasValidRanks(options: PropertyFieldOption[]): boolean {
+    return options.every((option, index) => isValidRank(option.rank) && !findRankCollision(options, option.rank as number, index));
+}
 
 // Single source of truth for this page's own route, so the "New attribute"
 // button in global_attributes.tsx doesn't hardcode a second copy of this path.
@@ -49,7 +78,7 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
-type ErrorKind = 'name_conflict' | 'invalid_charset' | 'reserved_word' | 'limit_reached' | 'generic';
+type ErrorKind = 'name_conflict' | 'invalid_charset' | 'reserved_word' | 'limit_reached' | 'invalid_options' | 'generic';
 
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
@@ -63,6 +92,8 @@ function errorKindFromError(error: unknown): ErrorKind {
     case 'app.property_field.create.limit_reached.app_error':
     case 'app.property_field.create.group_limit_reached.app_error':
         return 'limit_reached';
+    case 'app.property_field.invalid_attrs.app_error':
+        return 'invalid_options';
     default:
         return 'generic';
     }
@@ -105,6 +136,12 @@ function AttributeDetails(): JSX.Element {
     // committed override (see handleDoneClick).
     const previousManualNameRef = useRef('');
 
+    // Type and Options are independent state -- switching type never clears
+    // options (see Design Decision 3 in the plan): a Text -> Select -> Text ->
+    // Select round-trip must restore whatever the admin already entered.
+    const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
+    const [options, setOptions] = useState<PropertyFieldOption[]>([]);
+
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
 
@@ -142,6 +179,27 @@ function AttributeDetails(): JSX.Element {
         dispatch(setNavigationBlocked(true));
         setErrorKind(null);
     }, [dispatch]);
+
+    // Switching into Rank from any other type (re)assigns rank = index + 1 to
+    // every current option, overwriting any stale rank values -- mirrors CPA's
+    // own handleTypeChange (user_properties_type_menu.tsx) exactly, and is
+    // idempotent. Switching away from Rank leaves rank values sitting inert in
+    // state (not stripped) -- harmless, since Select/Multiselect ignore it.
+    const handleTypeChange = useCallback((newType: AttributeFieldType) => {
+        if (newType === fieldType) {
+            return;
+        }
+        markDirty();
+        if (newType === 'rank' && fieldType !== 'rank') {
+            setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
+        }
+        setFieldType(newType);
+    }, [fieldType, markDirty]);
+
+    const handleOptionsChange = useCallback((newOptions: PropertyFieldOption[]) => {
+        markDirty();
+        setOptions(newOptions);
+    }, [markDirty]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.target.value);
@@ -190,7 +248,34 @@ function AttributeDetails(): JSX.Element {
         }
     }, [handleDoneClick, handleCancelEdit]);
 
-    const canSave = Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving;
+    const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
+
+    // Defensive re-check, not the primary guard: both options editors already
+    // block duplicate names and invalid/duplicate ranks interactively at
+    // add/rename time (see attribute_options_values.tsx /
+    // attribute_options_rank_values.tsx), so 'duplicate'/'invalid_rank' should
+    // never actually be the reason Save is disabled in normal use -- computed
+    // here (and memoized against [typeSupportsOptions, options, fieldType], so
+    // an unrelated re-render like a display-name keystroke doesn't re-walk the
+    // options array) so there's still a specific inline reason to show if they
+    // ever are.
+    const optionsIssue = useMemo(() => {
+        if (!typeSupportsOptions) {
+            return null;
+        }
+        if (options.length === 0) {
+            return 'required' as const;
+        }
+        if (hasDuplicateOptionNames(options)) {
+            return 'duplicate' as const;
+        }
+        if (fieldType === 'rank' && !hasValidRanks(options)) {
+            return 'invalid_rank' as const;
+        }
+        return null;
+    }, [typeSupportsOptions, options, fieldType]);
+
+    const canSave = Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null;
 
     const handleSave = useCallback(async () => {
         if (!canSave) {
@@ -199,7 +284,7 @@ function AttributeDetails(): JSX.Element {
         setSaving(true);
         setErrorKind(null);
         try {
-            await createAttributeField(displayName, currentName);
+            await createAttributeField(displayName, currentName, fieldType, options);
             if (!isMountedRef.current) {
                 return;
             }
@@ -214,9 +299,9 @@ function AttributeDetails(): JSX.Element {
                 setSaving(false);
             }
         }
-    }, [canSave, displayName, currentName, dispatch]);
+    }, [canSave, displayName, currentName, fieldType, options, dispatch]);
 
-    const TypeIcon = getTypeIcon('text');
+    const TypeIcon = getTypeIcon(fieldType);
 
     return (
         <div
@@ -370,12 +455,12 @@ function AttributeDetails(): JSX.Element {
                                             id: 'attribute-type-menu-button',
                                             class: 'AttributeDetails__typeButton',
                                             disabled: saving,
-                                            'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel('text'))}),
+                                            'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
                                             children: (
                                                 <>
                                                     <span className='AttributeDetails__typeButtonInner'>
                                                         <TypeIcon size={18}/>
-                                                        <FormattedMessage {...getTypeLabel('text')}/>
+                                                        <FormattedMessage {...getTypeLabel(fieldType)}/>
                                                     </span>
                                                     <i className='icon icon-chevron-down'/>
                                                 </>
@@ -387,27 +472,20 @@ function AttributeDetails(): JSX.Element {
                                             'aria-label': formatMessage(messages.typeMenuAriaLabel),
                                         }}
                                     >
-                                        {ALL_TYPES.map((fieldType) => {
-                                            const ItemIcon = getTypeIcon(fieldType);
-                                            const isCurrentType = fieldType === 'text';
+                                        {ALL_TYPES.map((optionFieldType) => {
+                                            const ItemIcon = getTypeIcon(optionFieldType);
+                                            const isCurrentType = optionFieldType === fieldType;
 
                                             return (
                                                 <Menu.Item
-                                                    id={`attribute-type-${fieldType}`}
-                                                    key={fieldType}
+                                                    id={`attribute-type-${optionFieldType}`}
+                                                    key={optionFieldType}
                                                     role='menuitemradio'
                                                     forceCloseOnSelect={true}
-                                                    disabled={!isCurrentType}
                                                     aria-checked={isCurrentType}
+                                                    onClick={() => handleTypeChange(optionFieldType)}
                                                     leadingElement={<ItemIcon size={18}/>}
-                                                    labels={isCurrentType ? (
-                                                        <FormattedMessage {...typeLabels[fieldType]}/>
-                                                    ) : (
-                                                        <>
-                                                            <span><FormattedMessage {...typeLabels[fieldType]}/></span>
-                                                            <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
-                                                        </>
-                                                    )}
+                                                    labels={<FormattedMessage {...typeLabels[optionFieldType]}/>}
                                                 />
                                             );
                                         })}
@@ -422,12 +500,37 @@ function AttributeDetails(): JSX.Element {
                                     <FormattedMessage {...messages.optionsLabel}/>
                                 </span>
                                 <div className='AttributeDetails__fieldControl'>
-                                    <p
-                                        className='AttributeDetails__optionsHelp'
-                                        data-testid='attributeOptionsHelp'
-                                    >
-                                        <FormattedMessage {...messages.optionsHelp}/>
-                                    </p>
+                                    {typeSupportsOptions ? (
+                                        <>
+                                            {fieldType === 'rank' ? (
+                                                <AttributeOptionsRankValues
+                                                    options={options}
+                                                    onOptionsChange={handleOptionsChange}
+                                                />
+                                            ) : (
+                                                <AttributeOptionsValues
+                                                    options={options}
+                                                    onOptionsChange={handleOptionsChange}
+                                                />
+                                            )}
+                                            {optionsIssue && (
+                                                <div
+                                                    className='AttributeDetails__uniqueNameError'
+                                                    role='alert'
+                                                    data-testid='attributeOptionsRequiredError'
+                                                >
+                                                    <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p
+                                            className='AttributeDetails__optionsHelp'
+                                            data-testid='attributeOptionsHelp'
+                                        >
+                                            <FormattedMessage {...messages.optionsHelp}/>
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </Card.Body>
@@ -498,6 +601,14 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.help',
         defaultMessage: 'Text attributes have no preset values — a value is typed in per resource.',
     },
+    optionsRequired: {
+        id: 'admin.global_attributes.attribute_details.options.required',
+        defaultMessage: 'At least one option is required.',
+    },
+    optionsInvalid: {
+        id: 'admin.global_attributes.attribute_details.options.invalid',
+        defaultMessage: "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank.",
+    },
     save: {id: 'admin.global_attributes.attribute_details.save', defaultMessage: 'Save'},
     cancel: {id: 'admin.global_attributes.attribute_details.cancel', defaultMessage: 'Cancel'},
     saveErrorTitle: {id: 'admin.global_attributes.attribute_details.save_error.title', defaultMessage: 'Unable to save attribute'},
@@ -534,6 +645,10 @@ const errorMessages = defineMessages({
     limit_reached: {
         id: 'admin.global_attributes.attribute_details.save_error.limit_reached',
         defaultMessage: 'You have reached the maximum number of attributes for this server. Delete an existing attribute before creating a new one.',
+    },
+    invalid_options: {
+        id: 'admin.global_attributes.attribute_details.save_error.invalid_options',
+        defaultMessage: "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank, then try again.",
     },
     generic: {
         id: 'admin.global_attributes.attribute_details.save_error.generic',
