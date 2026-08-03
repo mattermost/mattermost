@@ -889,7 +889,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 }
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
         }
@@ -905,16 +905,21 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
 
+        // Nothing sanitizes posts or gates affordances without the feature, so no stale render
+        // state to drop. Matches the CPA and role handlers.
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
 
-        // The channel's posts were sanitized under the old policy, so drop the loaded chunks and
-        // let the normal load path re-fetch them.
+        // Loaded posts were sanitized under the old policy; drop the chunks and let the normal
+        // load path re-fetch them.
         doDispatch(resetReloadPostsInChannel(channel.id));
     };
 }
 
-// Permission policies are system-scoped: the event carries no resource ID because every channel
-// and every user is potentially affected.
+// Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
 export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (!isPermissionPoliciesEnabled(doGetState())) {

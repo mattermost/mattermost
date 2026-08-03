@@ -1055,13 +1055,20 @@ describe('handleChannelUpdatedEvent', () => {
 });
 
 describe('handleChannelAccessControlUpdatedEvent', () => {
+    const withPermissionPolicies = (entities = {}) => ({
+        entities: {
+            general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            ...entities,
+        },
+    });
+
     beforeEach(() => {
         invalidateAccessControlAttributesCache.mockClear();
     });
 
     test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
         // Current channel differs from the updated channel, so no post reconciliation.
-        const testStore = configureStore({entities: {channels: {currentChannelId: 'other-channel'}}});
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'other-channel'}}));
         const channel = {
             id: 'channel-ac-1',
             team_id: 'team-1',
@@ -1075,9 +1082,7 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
-        // Updates the channel record, invalidates render decisions for that channel
-        // only, and drops its loaded posts so they are re-fetched with fresh ABAC
-        // sanitization. No broad channel/member/team refetch is dispatched.
+        // Scoped to the one channel: no broad channel/member/team refetch.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
@@ -1097,12 +1102,27 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
     });
 
     test('resets the channel posts when the updated channel is the one being viewed', () => {
-        const testStore = configureStore({entities: {channels: {currentChannelId: 'channel-ac-1'}}});
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
         const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
 
         expect(testStore.getActions()).toContainEqual({type: 'MOCK_RESET_POSTS', channelId: 'channel-ac-1'});
+    });
+
+    test('updates the channel but drops no render state when permission policies are disabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'false'}},
+                channels: {currentChannelId: 'channel-ac-1'},
+            },
+        });
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toEqual([ChannelTypes.RECEIVED_CHANNEL]);
     });
 
     test('returns early when msg.data.channel is missing', () => {
