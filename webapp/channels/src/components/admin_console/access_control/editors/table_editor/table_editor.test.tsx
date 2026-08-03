@@ -486,6 +486,12 @@ describe('celStringLiteral', () => {
         expect(celStringLiteral('say "hi"')).toBe('"say \\"hi\\""');
     });
 
+    test('leaves apostrophes unescaped inside the double-quoted literal', () => {
+        // Regression for MM-64357: an apostrophe is valid inside a CEL
+        // double-quoted string and must not be escaped.
+        expect(celStringLiteral('Matt\'s Department')).toBe('"Matt\'s Department"');
+    });
+
     test('escapes backslashes before double quotes', () => {
         expect(celStringLiteral('path\\to\\"file')).toBe('"path\\\\to\\\\\\"file"');
     });
@@ -1054,5 +1060,74 @@ describe('isSimpleCondition', () => {
 
         // Unknown native names do not round-trip through the table editor.
         expect(isSimpleCondition('user.id == "abc"')).toBe(false);
+    });
+});
+
+// MM-64357: a value containing a quote character (e.g. the apostrophe in
+// "Matt's Department") must still be recognized as a simple expression so the
+// editor stays switchable back to the table editor. Previously the quoted-value
+// matcher forbade any quote inside the value, trapping the user in advanced mode.
+describe('simple-expression detection with quote characters in values', () => {
+    test('equality against a double-quoted value containing an apostrophe is simple', () => {
+        expect(isSimpleCondition('user.attributes.department == "Matt\'s Department"')).toBe(true);
+        expect(isSimpleExpression('user.attributes.department == "Matt\'s Department"')).toBe(true);
+    });
+
+    test('the CEL emitted for an apostrophe value round-trips as a simple expression', () => {
+        // Ties serialization (rowToCEL/celStringLiteral) to detection: whatever
+        // the table editor produces for a value must be classified as simple so
+        // "Switch to Simple Mode" is not disabled for a value it just created.
+        const cel = rowToCEL({
+            attribute: 'department',
+            operator: 'is',
+            values: ['Matt\'s Department'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.department == "Matt\'s Department"');
+        expect(isSimpleExpression(cel)).toBe(true);
+    });
+
+    test('a value mixing apostrophes and escaped double quotes round-trips as simple', () => {
+        const cel = rowToCEL({
+            attribute: 'team',
+            operator: 'is',
+            values: ['O\'Brien\'s "Team"'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.team == "O\'Brien\'s \\"Team\\""');
+        expect(isSimpleExpression(cel)).toBe(true);
+    });
+
+    test('string operators accept apostrophes in their argument', () => {
+        expect(isSimpleCondition('user.attributes.name.startsWith("O\'B")')).toBe(true);
+        expect(isSimpleCondition('user.attributes.desc.contains("Matt\'s")')).toBe(true);
+        expect(isSimpleCondition('user.attributes.name.endsWith("s\'")')).toBe(true);
+    });
+
+    test('in-list and scalar-in conditions accept apostrophes', () => {
+        expect(isSimpleCondition('user.attributes.dept in ["Matt\'s", "Eng"]')).toBe(true);
+        expect(isSimpleCondition('"O\'Brien" in user.attributes.names')).toBe(true);
+    });
+
+    test('native email equality accepts an apostrophe in the value', () => {
+        expect(isSimpleCondition('user.email == "o\'brien@example.com"')).toBe(true);
+    });
+
+    test('a single-quoted value containing a double quote is simple', () => {
+        expect(isSimpleCondition('user.attributes.dept == \'say "hi"\'')).toBe(true);
+    });
+
+    test('a multiselect OR group with apostrophe values is simple', () => {
+        const expr = '("Matt\'s" in user.attributes.dept || "Eng" in user.attributes.dept)';
+        expect(isMultiselectOrGroup(expr)).toBe(true);
+        expect(isSimpleExpression(expr)).toBe(true);
+    });
+
+    test('an unterminated quoted value is still not simple', () => {
+        // Guards against over-broadening: the matcher must require a balanced
+        // closing quote rather than accepting any run of characters.
+        expect(isSimpleCondition('user.attributes.dept == "Matt\'s')).toBe(false);
     });
 });
