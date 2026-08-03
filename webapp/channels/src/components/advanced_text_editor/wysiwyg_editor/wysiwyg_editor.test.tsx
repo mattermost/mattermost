@@ -12,6 +12,9 @@ const mockCapturedConfig: {current: any} = {current: null};
 // matching Tiptap's render-phase emit.
 const mockConstructorError: {current: Error | null} = {current: null};
 
+const mockChainCalls: {current: string[]} = {current: []};
+const mockSetNodeThrows: {current: boolean} = {current: false};
+
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
     return {
@@ -30,6 +33,26 @@ jest.mock('@tiptap/react', () => {
                 setEditable: () => undefined,
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 view: {dom: globalThis.document.createElement('div')},
+
+                chain: () => {
+                    const link = (name: string) => () => {
+                        mockChainCalls.current.push(name);
+                        if (name === 'setNode' && mockSetNodeThrows.current) {
+                            throw new RangeError('Invalid content for node type paragraph');
+                        }
+                        return chainStub;
+                    };
+                    const chainStub: any = {
+                        focus: link('focus'),
+                        splitBlock: link('splitBlock'),
+                        setNode: link('setNode'),
+                        run: () => {
+                            mockChainCalls.current.push('run');
+                            return true;
+                        },
+                    };
+                    return chainStub;
+                },
             };
 
             // Mirrors the real library: getMarkdown is attached by the Markdown
@@ -73,6 +96,8 @@ describe('WysiwygEditor', () => {
     beforeEach(() => {
         mockCapturedConfig.current = null;
         mockConstructorError.current = null;
+        mockChainCalls.current = [];
+        mockSetNodeThrows.current = false;
         jest.clearAllMocks();
     });
 
@@ -450,5 +475,63 @@ describe('WysiwygEditor', () => {
         );
 
         expect(ref.current!.hasContentError()).toBe(false);
+    });
+
+    describe('Enter inside a heading', () => {
+        const headingView = () => ({
+            state: {
+                selection: {
+                    $from: {
+                        depth: 1,
+                        node: () => ({type: {name: 'heading'}}),
+                    },
+                },
+                schema: {nodes: {listItem: {}}},
+            },
+            dom: globalThis.document.createElement('div'),
+            dispatch: jest.fn(),
+        });
+
+        const enterEvent = () => ({
+            key: 'Enter',
+            shiftKey: false,
+            metaKey: false,
+            ctrlKey: false,
+            altKey: false,
+            preventDefault: jest.fn(),
+        });
+
+        const pressEnter = () => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+
+            const event = enterEvent();
+            const handled = mockCapturedConfig.current.editorProps.handleKeyDown(
+                headingView() as any,
+                event as unknown as KeyboardEvent,
+            );
+
+            return {handled, event};
+        };
+
+        test('exits the heading into a paragraph', () => {
+            const {handled, event} = pressEnter();
+
+            expect(handled).toBe(true);
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(mockChainCalls.current).toEqual(['focus', 'splitBlock', 'setNode', 'run']);
+        });
+
+        test('falls back to a plain split when the paragraph conversion throws', () => {
+            mockSetNodeThrows.current = true;
+
+            const {handled, event} = pressEnter();
+
+            expect(handled).toBe(true);
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(mockChainCalls.current).toEqual([
+                'focus', 'splitBlock', 'setNode',
+                'focus', 'splitBlock', 'run',
+            ]);
+        });
     });
 });
