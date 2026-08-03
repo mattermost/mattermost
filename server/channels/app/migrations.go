@@ -426,7 +426,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 
-	for _, roleID := range model.SpaceCapabilityRoleIDs {
+	for _, roleID := range model.SpaceCapabilityRoles {
 		canonical := roles[roleID]
 		existing, err := s.Store().Role().GetByName(context.Background(), roleID)
 		if err == nil {

@@ -1291,7 +1291,7 @@ func customSchemes(schemes []*model.Scheme) []*model.Scheme {
 // server: the atomic capability roles, plus the three generated channel roles
 // each preset scheme carries.
 func seededSpaceRoles() int {
-	return len(model.SpaceCapabilityRoleIDs) + len(model.SpaceSchemeNames)*3
+	return len(model.SpaceCapabilityRoles) + len(model.SpaceSchemeNames)*3
 }
 
 func TestExportSchemes(t *testing.T) {

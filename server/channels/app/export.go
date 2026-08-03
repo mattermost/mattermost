@@ -333,7 +333,7 @@ func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, sc
 		// Every server seeds the atomic space capability roles by migration, so
 		// a server importing this file already has its own; an exported copy
 		// would only compete with them.
-		if model.IsSpaceCapabilityRoleID(role.Name) {
+		if model.IsSpaceCapabilityRole(role.Name) {
 			continue
 		}
 		// We skip any roles that will be included as part of custom schemes.

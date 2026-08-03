@@ -1104,6 +1104,48 @@ func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSchemeByName(name)
+	api.recordTime(startTime, "GetSchemeByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateScheme(scheme)
+	api.recordTime(startTime, "CreateScheme", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.DeleteScheme(schemeID)
+	api.recordTime(startTime, "DeleteScheme", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsC, _returnsD := api.apiImpl.GetSchemeRolesForChannel(channelID)
+	api.recordTime(startTime, "GetSchemeRolesForChannel", _returnsD == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD
+}
+
+func (api *apiTimerLayer) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetRoleByName(name)
+	api.recordTime(startTime, "GetRoleByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.PatchRole(role, patch)
+	api.recordTime(startTime, "PatchRole", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)

@@ -210,24 +210,24 @@ func TestSpaceCapabilitySlicesMatchCanonicalSet(t *testing.T) {
 		"SpaceAdminRolePermissions must cover every channel-scoped space permission")
 }
 
-func TestIsSpaceCapabilityRoleID(t *testing.T) {
-	require.Len(t, SpaceCapabilityRoleIDs, 4)
-	for _, name := range SpaceCapabilityRoleIDs {
-		assert.True(t, IsSpaceCapabilityRoleID(name), "role %q", name)
+func TestIsSpaceCapabilityRole(t *testing.T) {
+	require.Len(t, SpaceCapabilityRoles, 4)
+	for _, name := range SpaceCapabilityRoles {
+		assert.True(t, IsSpaceCapabilityRole(name), "role %q", name)
 		// The capability roles are deliberately absent from
 		// BuiltInSchemeManagedRoleIDs so they stay assignable via ExplicitRoles.
 		assert.False(t, IsBuiltInRole(name), "role %q", name)
 	}
 
-	assert.False(t, IsSpaceCapabilityRoleID(ChannelUserRoleId))
-	assert.False(t, IsSpaceCapabilityRoleID(SystemAdminRoleId))
-	assert.False(t, IsSpaceCapabilityRoleID(""))
-	assert.False(t, IsSpaceCapabilityRoleID(NewId()))
+	assert.False(t, IsSpaceCapabilityRole(ChannelUserRoleId))
+	assert.False(t, IsSpaceCapabilityRole(SystemAdminRoleId))
+	assert.False(t, IsSpaceCapabilityRole(""))
+	assert.False(t, IsSpaceCapabilityRole(NewId()))
 
 	// The registry and MakeDefaultRoles must not drift apart: the seeding
 	// migration reads the canonical definition for every id listed here.
 	roles := MakeDefaultRoles()
-	for _, name := range SpaceCapabilityRoleIDs {
+	for _, name := range SpaceCapabilityRoles {
 		_, ok := roles[name]
 		assert.True(t, ok, "MakeDefaultRoles must define %q", name)
 	}

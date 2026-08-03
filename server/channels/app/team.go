@@ -464,7 +464,7 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 			// channel in the team, so accepting one here would grant space
 			// authority across all of them; they are only ever meaningful on a
 			// single space.
-			if model.IsSpaceCapabilityRoleID(roleName) {
+			if model.IsSpaceCapabilityRole(roleName) {
 				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.

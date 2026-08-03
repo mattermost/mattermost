@@ -1264,6 +1264,39 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 	return api.app.RolesGrantPermission(roleNames, permissionId)
 }
 
+func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	return api.app.GetSchemeByName(name)
+}
+
+func (api *PluginAPI) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	return api.app.CreateScheme(scheme)
+}
+
+func (api *PluginAPI) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
+	return api.app.DeleteScheme(schemeID)
+}
+
+func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
+}
+
+func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	return api.app.GetRoleByName(api.ctx, name)
+}
+
+// The role is re-read before patching so the scope guard below judges the
+// stored scheme rather than the one the caller passed in: the guard resolves
+// the space proof from role.SchemeId, and the store writes that same field
+// back, so a caller-supplied id would both decide and outlive the check.
+func (api *PluginAPI) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	stored, appErr := api.app.GetRole(role.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return api.app.PatchRole(stored, patch)
+}
+
 func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
 	return api.app.UpdateUserRoles(api.ctx, userID, newRoles, true)
 }

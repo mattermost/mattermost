@@ -901,13 +901,18 @@ func (a *App) DeleteChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 }
 
 // rejectSpaceSchemeOnOrdinaryChannel refuses to put a space preset scheme on a
-// channel that is not a space. The preset carries the page permissions and has
-// the moderated ones stripped from its generated user and guest roles, so
-// attaching it to an ordinary channel would both grant page authority there and
-// take create_post away from every member below admin. An id that resolves to
-// no scheme is left alone: scheme ids are assigned at save time, so an id
-// matching no row cannot later become a preset, and validating that a channel's
-// scheme exists is not this guard's job.
+// channel that is not a space. The preset has the moderated permissions
+// stripped from its generated user and guest roles, so attaching it to an
+// ordinary channel would take create_post away from every member below admin.
+// An id that resolves to no scheme is left alone: scheme ids are assigned at
+// save time, so an id matching no row cannot later become a preset, and
+// validating that a channel's scheme exists is not this guard's job.
+//
+// Only the presets are refused. A custom channel scheme is a separate
+// population from the per-space schemes and is not this guard's concern: the
+// page permissions one might carry are inert outside a space, since nothing in
+// the server enforces them and the plugin that does resolves them against a
+// space.
 func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil
@@ -1528,7 +1533,7 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			// per-member capability grants on a space's backing channel; on any
 			// other channel they would smuggle space authority onto a member,
 			// so they are refused unless the channel is a space.
-			if model.IsSpaceCapabilityRoleID(roleName) {
+			if model.IsSpaceCapabilityRole(roleName) {
 				if !spaceResolved {
 					_, chErr := a.Srv().Store().Channel().GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
 					if chErr != nil {

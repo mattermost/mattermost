@@ -62,8 +62,8 @@ func init() {
 		builtInRoleSet[id] = true
 	}
 
-	spaceCapabilityRoleSet = make(map[string]bool, len(SpaceCapabilityRoleIDs))
-	for _, id := range SpaceCapabilityRoleIDs {
+	spaceCapabilityRoleSet = make(map[string]bool, len(SpaceCapabilityRoles))
+	for _, id := range SpaceCapabilityRoles {
 		spaceCapabilityRoleSet[id] = true
 	}
 
@@ -937,10 +937,10 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
 }
 
-// SpaceCapabilityRoleIDs is the canonical list of the atomic space capability
+// SpaceCapabilityRoles is the canonical list of the atomic space capability
 // roles. It is the single source of truth for the seeding migration, the
 // role-write scope guard, and the channel-member assignment guard.
-var SpaceCapabilityRoleIDs = []string{
+var SpaceCapabilityRoles = []string{
 	SpacePageCreatorRoleId,
 	SpacePageCommenterRoleId,
 	SpacePageEditorRoleId,
@@ -949,10 +949,10 @@ var SpaceCapabilityRoleIDs = []string{
 
 var spaceCapabilityRoleSet map[string]bool
 
-// IsSpaceCapabilityRoleID reports whether roleName is one of the atomic space
-// capability roles in SpaceCapabilityRoleIDs. These carry space authority, so
+// IsSpaceCapabilityRole reports whether roleName is one of the atomic space
+// capability roles in SpaceCapabilityRoles. These carry space authority, so
 // they are only meaningful on a space's backing channel.
-func IsSpaceCapabilityRoleID(roleName string) bool {
+func IsSpaceCapabilityRole(roleName string) bool {
 	return spaceCapabilityRoleSet[roleName]
 }
 

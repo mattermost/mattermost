@@ -111,6 +111,67 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
+	// A per-space custom scheme carries no reserved name — the caller picks it — so a space
+	// backing channel already pointing at the scheme is what proves space scope instead.
+	t.Run("custom scheme a space references allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+	})
+
+	// Scope is half the proof: only a channel-scoped scheme can govern a space,
+	// so a scheme of another scope is refused without asking the count.
+	t.Run("scheme at the wrong scope rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeTeam,
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+		require.NotNil(t, th.App.checkSpacePermissionScope(role, nil))
+		mockChannelStore.AssertNotCalled(t, "CountSpaceChannelsByScheme", mock.Anything)
+	})
+
+	// An unreadable count cannot prove space scope, and reporting it as a scope
+	// violation would blame the caller for an unreachable database.
+	t.Run("count store error is a server error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+		appErr := th.App.checkSpacePermissionScope(role, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
 	t.Run("ordinary channel-scheme generated role rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -120,14 +181,17 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		require.NotNil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
 	// Channel scope alone proves nothing: an ordinary customer channel scheme is
-	// channel-scoped too. Only the three seeded names, which the boot migration
-	// takes on every server, count.
+	// channel-scoped too. Only a seeded preset name, or a space actually
+	// pointing at the scheme, counts.
 	t.Run("ordinary channel scheme does not prove space scope", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -139,6 +203,9 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		appErr := th.App.checkSpacePermissionScope(role, nil)
@@ -377,7 +444,7 @@ func TestSpaceSeedingSurvivesPermissionsReset(t *testing.T) {
 		permissionIDSet(model.SpaceDefaultReadOnlyPermissions),
 		storedRolePermissionSet(t, th, getSeededSpaceScheme(t, th, model.SchemeNameSpaceReadOnly).DefaultChannelUserRole))
 
-	for _, roleID := range model.SpaceCapabilityRoleIDs {
+	for _, roleID := range model.SpaceCapabilityRoles {
 		_, err := th.App.Srv().Store().Role().GetByName(th.Context.Context(), roleID)
 		require.NoError(t, err, "capability role %q must survive the reset", roleID)
 	}
@@ -641,7 +708,7 @@ func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	for _, roleName := range model.SpaceCapabilityRoleIDs {
+	for _, roleName := range model.SpaceCapabilityRoles {
 		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
 			model.ChannelUserRoleId+" "+roleName)
 		require.NotNil(t, appErr, "role %q", roleName)
@@ -677,7 +744,7 @@ func TestSpaceCapabilityRoleConfinedToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	for _, roleName := range model.SpaceCapabilityRoleIDs {
+	for _, roleName := range model.SpaceCapabilityRoles {
 		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
 			model.TeamUserRoleId+" "+roleName)
 		require.NotNil(t, appErr, "role %q", roleName)
@@ -916,6 +983,23 @@ func TestCreateSchemeSpaceNameGuard(t *testing.T) {
 		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id)
 	}
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// A custom scheme is not a preset, so the ordinary-channel guard leaves it
+// alone: only the presets carry the moderated-permission stripping that would
+// silently take create_post away from an ordinary channel's members.
+func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	schemeID := model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).
+		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+
+	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
 }
 
 // The guards below fail closed on a store error rather than letting a write or

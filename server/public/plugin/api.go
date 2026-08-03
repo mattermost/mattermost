@@ -1040,6 +1040,56 @@ type API interface {
 	// Minimum server version: 6.3
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 
+	// GetSchemeByName gets a scheme by its unique name.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.10
+	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
+
+	// CreateScheme creates a scheme and its generated roles. The scheme's role
+	// fields are server-assigned and any caller-supplied values are ignored.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.10
+	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
+
+	// DeleteScheme soft-deletes a scheme and its generated roles, reverting any
+	// teams or channels using it to the system-default roles. A scheme a space
+	// backing channel still references is refused — detach the space first.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.10
+	DeleteScheme(schemeID string) (*model.Scheme, *model.AppError)
+
+	// GetSchemeRolesForChannel returns the generated role names of the scheme
+	// governing the given channel, in guest, user, admin order.
+	//
+	// @tag Scheme
+	// @tag Channel
+	// Minimum server version: 11.10
+	GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
+
+	// GetRoleByName gets a role by its unique name.
+	//
+	// @tag Role
+	// Minimum server version: 11.10
+	GetRoleByName(name string) (*model.Role, *model.AppError)
+
+	// PatchRole partially updates a role. Only the fields set on the patch are
+	// changed.
+	//
+	// Adding a space permission is refused unless the role's scheme already
+	// governs a space, so attach the scheme to the space's channel before
+	// patching its roles, not after. Removing one is always allowed. A scheme
+	// is attached by setting SchemeId on the channel and calling UpdateChannel.
+	//
+	// The role is read back by id before the patch is applied, so only Id is
+	// read from the passed role.
+	//
+	// @tag Role
+	// Minimum server version: 11.10
+	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
+
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.

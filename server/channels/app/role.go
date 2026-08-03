@@ -200,10 +200,11 @@ func spacePermissionAddDiff(incoming, stored []string) []string {
 }
 
 // checkSpacePermissionScope rejects a role write that adds any channel-scoped
-// space permission (the six page operations and admin_space) to a role outside
-// the seeded space presets' own generated roles; system_admin is the single
-// exception. The guard governs the App sinks only; migration seeding writes
-// store-direct, below it.
+// space permission (the six page operations and admin_space) to a role whose
+// scheme does not govern a space, which a seeded preset name or a space backing
+// channel pointing at the scheme proves; system_admin is the single exception.
+// The guard governs the App sinks only; migration seeding writes store-direct,
+// below it.
 //
 // Deliberately not gated on the docs feature flag. The permissions, roles and
 // preset schemes are seeded unconditionally at boot, so a grant planted while
@@ -226,7 +227,7 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		return nil
 	}
 
-	if model.IsSpaceCapabilityRoleID(role.Name) {
+	if model.IsSpaceCapabilityRole(role.Name) {
 		// Widening an atomic capability role is a code+migration change, never
 		// a runtime role write.
 		return reject()
@@ -251,11 +252,29 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 			return reject()
 		}
 		// Channel scope alone is too wide: an ordinary customer channel scheme
-		// is channel-scoped too, so accepting it would let a delegated admin
-		// inject space authority into channels that are not spaces. Only a
-		// seeded preset's own generated roles may carry these permissions.
-		if scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
-			return nil
+		// is channel-scoped too, so accepting it would let anyone who can write
+		// a channel scheme hand its roles space authority. The scheme has to
+		// prove it governs a space.
+		//
+		// Two proofs, both unforgeable. A seeded preset name is one: the names
+		// are reserved, so no caller can mint or rename into them. A space
+		// backing channel already pointing at the scheme is the other, and it
+		// is what a per-space custom scheme presents — a name cannot be that
+		// proof, because the caller chooses it. A scheme must therefore already
+		// be attached to a space before its roles can take space permissions; a
+		// role write that arrives first is rejected.
+		if scheme.Scope == model.SchemeScopeChannel {
+			if model.IsSpaceSchemeName(scheme.Name) {
+				return nil
+			}
+
+			count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(*role.SchemeId)
+			if cErr != nil {
+				return model.NewAppError("checkSpacePermissionScope", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+			}
+			if count > 0 {
+				return nil
+			}
 		}
 		return reject()
 	}

@@ -5647,6 +5647,10 @@
     "translation": "Unable to count messages since given date."
   },
   {
+    "id": "app.channel.count_space_channels_by_scheme.app_error",
+    "translation": "Unable to count the spaces using this scheme."
+  },
+  {
     "id": "app.channel.count_urgent_posts_since.app_error",
     "translation": "Unable to count urgent posts since given date."
   },
@@ -8982,7 +8986,7 @@
   },
   {
     "id": "app.role.save.space_permission_scope.app_error",
-    "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by space scheme roles."
+    "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by the roles of a scheme that governs a space. If this scheme is meant to govern one, attach it to the space before patching its roles."
   },
   {
     "id": "app.role.send_updated_role_event.app_error",
