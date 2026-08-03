@@ -75,6 +75,7 @@
     &__target-label {
         display: inline-flex;
         overflow: hidden;
+        min-width: 0; // shrink inside the button's flex row instead of clipping
         align-items: center;
         padding: 2px 8px;
         border: 1px solid rgba(var(--button-bg-rgb), 0.32);
@@ -86,6 +87,15 @@
         font-weight: 600;
         gap: 4px;
         white-space: nowrap;
+
+        > svg {
+            flex-shrink: 0;
+        }
+    }
+
+    &__target-label-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

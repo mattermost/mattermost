@@ -23,8 +23,9 @@ export interface TableRow {
 
     // When set, the right-hand side of the condition is the accessed channel's
     // attribute (resource.attributes.<targetAttribute>) rather than a literal
-    // value; `values` is then ignored. Only meaningful for comparison
-    // operators. The left side stays the requesting user's attribute.
+    // value; `values` is then ignored. Only meaningful for comparison operators
+    // and the multiselect list operators (has any of / has all of). The left
+    // side stays the requesting user's attribute.
     targetAttribute?: string;
 
     // Native user attributes are referenced as `user.<name>` (vs `user.attributes.<name>`).
