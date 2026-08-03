@@ -159,6 +159,10 @@ type FeatureFlags struct {
 
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
+
+	// Enable verifying plugin signatures against the MFI public key, in addition to the
+	// existing hard-coded Mattermost public key and any admin-configured public keys.
+	EnableMFIPluginSignaturePublicKey bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -225,6 +229,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.EnableMFIPluginSignaturePublicKey = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
