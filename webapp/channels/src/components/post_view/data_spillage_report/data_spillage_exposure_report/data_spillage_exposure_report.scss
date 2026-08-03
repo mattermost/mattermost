@@ -1,0 +1,37 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.DataSpillageExposureReport {
+    display: flex;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .LoadingSpinner {
+        line-height: 0;
+    }
+
+    .DataSpillageExposureReport__unavailable {
+        display: inline-flex;
+        align-items: flex-start;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        gap: 4px;
+        line-height: 16px;
+
+        .icon {
+            font-size: 14px;
+            line-height: 16px;
+        }
+    }
+}
+
+// The value column is otherwise sized to its content, which prevents the longer
+// "no longer available" copy from wrapping inside the card.
+.PropertyCardView_fields > .row > .value:has(> .DataSpillageExposureReport) {
+    min-width: 0;
+    flex: 1;
+}

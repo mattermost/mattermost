@@ -456,6 +456,30 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         // action rows are gated on mode === 'full', so they must not render here
         expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
         expect(screen.queryByTestId('data-spillage-action-download-report')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('data-spillage-exposure-report')).not.toBeInTheDocument();
+    });
+
+    it('renders the exposure report row above the report row in RHS mode', async () => {
+        renderWithContext(
+            <DataSpillageReport
+                post={post}
+                isRHS={true}
+            />,
+            baseState,
+        );
+
+        await act(async () => {});
+
+        const exposureRow = screen.getByTestId('data-spillage-exposure-report-row');
+        expect(exposureRow).toBeVisible();
+        expect(exposureRow).toHaveTextContent('Exposure report');
+
+        const exposureButton = screen.getByTestId('data-spillage-action-download-exposure-report');
+        expect(exposureButton).toHaveTextContent('Download exposure report');
+
+        // eslint-disable-next-line no-bitwise
+        const reportFollowsExposure = exposureButton.compareDocumentPosition(screen.getByTestId('data-spillage-action-download-report')) & Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(reportFollowsExposure).toBeTruthy();
     });
 
     describe.each([
@@ -483,10 +507,17 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
             expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
 
+            // the exposure report row is always present, but only actionable while the review is open
+            expect(screen.getByTestId('data-spillage-exposure-report-row')).toBeVisible();
+
             if (expectActions) {
                 expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
+                expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeVisible();
+                expect(screen.queryByTestId('data-spillage-exposure-report-unavailable')).not.toBeInTheDocument();
             } else {
                 expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('data-spillage-action-download-exposure-report')).not.toBeInTheDocument();
+                expect(screen.getByTestId('data-spillage-exposure-report-unavailable')).toHaveTextContent('Exposure report is no longer available for this message.');
             }
         });
     });

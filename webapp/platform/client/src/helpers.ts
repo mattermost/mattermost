@@ -15,3 +15,16 @@ export function buildQueryString(parameters: Record<string, any>): string {
 
     return queryParams.length > 0 ? `?${queryParams}` : '';
 }
+
+// extractFilenameFromContentDisposition returns the filename advertised by a Content-Disposition
+// response header, falling back to the given name when the header is missing or unparsable.
+export function extractFilenameFromContentDisposition(header: string | null | undefined, fallback: string): string {
+    if (!header) {
+        return fallback;
+    }
+
+    const regex = /filename\*?=["']?((?:\\.|[^"'\s])+)(?=["']?)/g;
+    const matches = regex.exec(header);
+
+    return matches ? matches[1] : fallback;
+}
