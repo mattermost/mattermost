@@ -982,6 +982,7 @@ func TestSlackAddUsersNonAdminImportSaveFailsOnEmailConflict(t *testing.T) {
 	assert.Empty(t, joinedUserIDs, "no account should be joined to the team when the save fails")
 	assert.NotContains(t, importerLog.String(), "api.slackimport.slack_add_users.email", "no creation message should be logged when the save fails")
 	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.unable_import")
+	userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User"))
 }
 
 // TestSlackAddUsersAdminImportMergesExistingUser tests that an admin import preserves the
