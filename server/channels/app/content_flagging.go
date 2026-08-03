@@ -299,10 +299,6 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	return model.NewAppError("canFlagPost", reason, nil, "", http.StatusBadRequest)
 }
 
-// CheckFlaggedPostActionable errors unless the post is flagged and its review is still open, i.e.
-// Pending or Assigned rather than Removed or Retained. An unflagged post surfaces as the 404 from
-// GetPostContentFlaggingPropertyValue. The status property value is returned so callers that go on
-// to update it do not have to fetch it again.
 func (a *App) CheckFlaggedPostActionable(where, postId string) (*model.PropertyValue, *model.AppError) {
 	status, appErr := a.GetPostContentFlaggingPropertyValue(postId, ContentFlaggingPropertyNameStatus)
 	if appErr != nil {

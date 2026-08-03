@@ -6,6 +6,7 @@ package app
 import (
 	"cmp"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,33 +18,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// exposureProfileBatchSize bounds each user profile lookup so a very large channel does not
-// produce a single enormous IN clause.
 const exposureProfileBatchSize = 1000
 
-// ComputePostExposure derives the set of users who may have been exposed to a flagged post.
-//
-// Two data sources are combined, both from data Mattermost already stores:
-//
-//  1. Channel membership between the post's creation and it being flagged, from
-//     ChannelMemberHistory. This is the row set of the report.
-//  2. Channel read state (ChannelMembers.LastViewedAt) at or after the post's creation,
-//     which suggests the post may have been delivered to the user.
-//
-// Source 2 is intersected with source 1 rather than being an independent list: without that,
-// anyone who opened the channel long after the post was flagged would keep being added, and
-// two runs of the report would disagree.
-//
-// This performs no permission checks. Callers must establish that the requester is a content
-// reviewer for the post's team.
 func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostExposureReport, *model.AppError) {
 	post, appErr := a.GetSinglePost(rctx, postID, true)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	// A non-empty OriginalId means this is an edit-history revision, not the live post.
-	// Reporting against one would silently scope the window to a superseded revision.
 	if post.OriginalId != "" {
 		return nil, model.NewAppError("ComputePostExposure", "app.data_spillage.exposure.edit_history_post.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -56,7 +38,7 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 		return nil, model.NewAppError("ComputePostExposure", "app.data_spillage.exposure.unsupported_channel_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	windowEnd, appErr := a.getPostFlagTime(rctx, post.Id)
+	windowEnd, appErr := a.getPostFlagTime(post.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -75,11 +57,6 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	}
 
 	// Data source 1: who was in the channel while the post was live.
-	//
-	// Note that GetUsersInChannelDuring silently falls back to current channel membership,
-	// with synthesised join and leave times, when ChannelMemberHistory has no rows at or
-	// before the window start (for instance after a retention purge). Those users are
-	// reported as members, which over-reports rather than under-reports.
 	histories, err := a.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(post.CreateAt, windowEnd, []string{channel.Id})
 	if err != nil {
 		return nil, model.NewAppError("ComputePostExposure", "app.data_spillage.exposure.get_channel_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -90,7 +67,7 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	memberUserIDs := make([]string, 0, len(histories))
 	seen := make(map[string]bool, len(histories))
 	for _, h := range histories {
-		if h.IsBot || seen[h.UserId] {
+		if seen[h.UserId] {
 			continue
 		}
 		seen[h.UserId] = true
@@ -101,15 +78,13 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 		return report, nil
 	}
 
-	// Data source 2: channel read state. Fetched unfiltered (since 0) rather than filtered
-	// to the window start, so that a member who simply never viewed the channel can be told
-	// apart from a user who has left it and for whom no read state survives at all.
+	// Data source 2: channel read state.
 	lastViewedByUser, appErr := a.getChannelLastViewedAt(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	users, appErr := a.getExposureUserProfiles(rctx, memberUserIDs)
+	users, appErr := a.getUsersProfiles(rctx, memberUserIDs)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -117,8 +92,6 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	for _, userID := range memberUserIDs {
 		user, ok := users[userID]
 		if !ok {
-			// The user row has been hard deleted since the history row was written. Skip
-			// rather than emit a row with no identifying information.
 			rctx.Logger().Warn("Skipping exposure report entry for a user that no longer exists", mlog.String("user_id", userID), mlog.String("post_id", post.Id))
 			continue
 		}
@@ -141,9 +114,6 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 		report.Entries = append(report.Entries, entry)
 	}
 
-	// Sort in Go rather than in SQL: the store orders by JoinTime, which leaves ties
-	// nondeterministic, and Postgres and MySQL disagree on string collation. A stable order
-	// keeps two downloads of the same report byte-identical.
 	slices.SortFunc(report.Entries, func(x, y *model.PostExposureReportEntry) int {
 		return cmp.Or(cmp.Compare(x.Username, y.Username), cmp.Compare(x.UserID, y.UserID))
 	})
@@ -151,16 +121,20 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	return report, nil
 }
 
-// getPostFlagTime returns the time a post was flagged, from the reporting_time content
-// flagging property. A flagged post always has one; its absence means the flagging data is
-// incomplete, and guessing a window end would silently change which users are reported.
-func (a *App) getPostFlagTime(rctx request.CTX, postID string) (int64, *model.AppError) {
-	byName, appErr := a.getContentFlaggingPropertiesByName(postID)
+func (a *App) getPostFlagTime(postID string) (int64, *model.AppError) {
+	value, appErr := a.GetPostContentFlaggingPropertyValue(postID, contentFlaggingPropertyNameReportingTime)
 	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return 0, model.NewAppError("getPostFlagTime", "app.data_spillage.exposure.missing_reporting_time.app_error", nil, "", http.StatusInternalServerError)
+		}
 		return 0, appErr
 	}
 
-	reportingTime := decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameReportingTime)
+	var reportingTime int64
+	if err := json.Unmarshal(value.Value, &reportingTime); err != nil {
+		return 0, model.NewAppError("getPostFlagTime", "app.data_spillage.exposure.missing_reporting_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if reportingTime <= 0 {
 		return 0, model.NewAppError("getPostFlagTime", "app.data_spillage.exposure.missing_reporting_time.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -168,8 +142,6 @@ func (a *App) getPostFlagTime(rctx request.CTX, postID string) (int64, *model.Ap
 	return reportingTime, nil
 }
 
-// getChannelLastViewedAt returns every current channel member's LastViewedAt, keyed by user
-// ID. Absence from the map means the user is no longer a member of the channel.
 func (a *App) getChannelLastViewedAt(rctx request.CTX, channelID string) (map[string]int64, *model.AppError) {
 	lastViewedByUser := map[string]int64{}
 
@@ -188,6 +160,7 @@ func (a *App) getChannelLastViewedAt(rctx request.CTX, channelID string) (map[st
 		}
 
 		afterUserID = members[len(members)-1].UserId
+
 		if len(members) < model.ChannelMemberLastViewedMaxPerPage {
 			break
 		}
@@ -196,8 +169,7 @@ func (a *App) getChannelLastViewedAt(rctx request.CTX, channelID string) (map[st
 	return lastViewedByUser, nil
 }
 
-// getExposureUserProfiles resolves user profiles in batches, keyed by user ID.
-func (a *App) getExposureUserProfiles(rctx request.CTX, userIDs []string) (map[string]*model.User, *model.AppError) {
+func (a *App) getUsersProfiles(rctx request.CTX, userIDs []string) (map[string]*model.User, *model.AppError) {
 	profiles := make(map[string]*model.User, len(userIDs))
 
 	for batch := range slices.Chunk(userIDs, exposureProfileBatchSize) {
@@ -213,8 +185,6 @@ func (a *App) getExposureUserProfiles(rctx request.CTX, userIDs []string) (map[s
 	return profiles, nil
 }
 
-// WritePostExposureCSV serialises a computed exposure report to w: a "#"-prefixed metadata
-// preamble, a header row, then one row per user.
 func WritePostExposureCSV(w io.Writer, report *model.PostExposureReport, T i18n.TranslateFunc) error {
 	if err := writePostExposurePreamble(w, report, T); err != nil {
 		return err

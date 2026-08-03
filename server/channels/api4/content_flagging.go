@@ -94,8 +94,6 @@ func requireFlaggedPost(c *Context, postId string) {
 	}
 }
 
-// requireActionableFlaggedPost subsumes requireFlaggedPost: an unflagged post surfaces as a 404
-// from the underlying property lookup, and a post whose review is already closed as a 400.
 func requireActionableFlaggedPost(c *Context, postId string) {
 	if postId == "" {
 		c.SetInvalidParam("flagged_post_id")

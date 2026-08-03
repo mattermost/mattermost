@@ -155,7 +155,6 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Must run before the response body is written.
 	c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId)
 
 	filename := fmt.Sprintf("post-exposure-%s-%d.csv", postId, model.GetMillis())

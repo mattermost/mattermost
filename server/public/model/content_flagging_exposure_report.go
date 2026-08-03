@@ -11,8 +11,6 @@ import (
 
 const PostExposureReportVersion = "1.0"
 
-// PostExposureReportEntry is one user who may have been exposed to a flagged post.
-// It maps 1:1 to a CSV row.
 type PostExposureReportEntry struct {
 	UserID    string `json:"user_id"`
 	Username  string `json:"username"`
@@ -23,8 +21,9 @@ type PostExposureReportEntry struct {
 	IsDeactivated bool `json:"is_deactivated"`
 
 	// WasChannelMember records that the user was a member of the channel between the post's
-	// creation and it being flagged, per ChannelMemberHistory.
+	// creation time and it being flagged, per ChannelMemberHistory.
 	WasChannelMember bool `json:"was_channel_member"`
+
 	// LikelyReceivedPost records that the user's channel read state advanced to at or past
 	// the post's creation time, so the post may have been delivered to them.
 	LikelyReceivedPost bool `json:"likely_received_post"`
@@ -34,27 +33,19 @@ type PostExposureReportEntry struct {
 	LastViewedAt *int64 `json:"last_viewed_at,omitempty"`
 }
 
-// PostExposureReport is the computed exposure of a single flagged post.
 type PostExposureReport struct {
-	Version     string      `json:"version"`
-	PostID      string      `json:"post_id"`
-	ChannelID   string      `json:"channel_id"`
-	ChannelName string      `json:"channel_name"`
-	ChannelType ChannelType `json:"channel_type"`
-	TeamID      string      `json:"team_id,omitempty"`
-
-	// WindowStart is the post's CreateAt and WindowEnd the time it was flagged. Channel
-	// membership is evaluated over that window.
-	WindowStart int64 `json:"window_start"`
-	WindowEnd   int64 `json:"window_end"`
-
-	GeneratedAt int64 `json:"generated_at"`
-
-	Entries []*PostExposureReportEntry `json:"entries"`
+	Version     string                     `json:"version"`
+	PostID      string                     `json:"post_id"`
+	ChannelID   string                     `json:"channel_id"`
+	ChannelName string                     `json:"channel_name"`
+	ChannelType ChannelType                `json:"channel_type"`
+	TeamID      string                     `json:"team_id,omitempty"`
+	WindowStart int64                      `json:"window_start"`
+	WindowEnd   int64                      `json:"window_end"`
+	GeneratedAt int64                      `json:"generated_at"`
+	Entries     []*PostExposureReportEntry `json:"entries"`
 }
 
-// PostExposureReportCSVHeader returns the localized CSV header row. The column order is
-// fixed and must stay in step with PostExposureReportEntry.ToCSVRow.
 func PostExposureReportCSVHeader(T i18n.TranslateFunc) []string {
 	return []string{
 		T("app.data_spillage.exposure.column.user_id"),
@@ -69,8 +60,6 @@ func PostExposureReportCSVHeader(T i18n.TranslateFunc) []string {
 	}
 }
 
-// ToCSVRow renders the entry as a CSV record, in the same column order as
-// PostExposureReportCSVHeader.
 func (e *PostExposureReportEntry) ToCSVRow(T i18n.TranslateFunc) []string {
 	return []string{
 		e.UserID,
@@ -104,9 +93,6 @@ func exposureBool(T i18n.TranslateFunc, v bool) string {
 	return T("app.data_spillage.exposure.value.no")
 }
 
-// FormatExposureTime renders an epoch-milliseconds timestamp as ISO-8601 in UTC. A
-// non-positive timestamp renders as the empty string rather than as the Unix epoch, so a
-// missing value is never mistaken for a real one.
 func FormatExposureTime(millis int64) string {
 	if millis <= 0 {
 		return ""

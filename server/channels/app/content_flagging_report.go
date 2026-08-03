@@ -102,13 +102,6 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 func (a *App) writeExposureReportEntry(rctx request.CTX, zw *zip.Writer, postID string) *model.AppError {
 	report, appErr := a.ComputePostExposure(rctx, postID)
 	if appErr != nil {
-		// Content flagging allows DM and GM posts to be flagged, but exposure is only defined
-		// for channels that have a membership history. Omit the entry for those rather than
-		// failing the whole archive; any other failure is a genuine error.
-		if appErr.Id == "app.data_spillage.exposure.unsupported_channel_type.app_error" {
-			rctx.Logger().Warn("Omitting exposure report from flagged post report for an unsupported channel type", mlog.String("post_id", postID))
-			return nil
-		}
 		return appErr
 	}
 
@@ -117,8 +110,8 @@ func (a *App) writeExposureReportEntry(rctx request.CTX, zw *zip.Writer, postID 
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := WritePostExposureCSV(w, report, rctx.GetT()); err != nil {
-		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_exposure_csv.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if csvWriteErr := WritePostExposureCSV(w, report, rctx.GetT()); csvWriteErr != nil {
+		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_exposure_csv.app_error", nil, "", http.StatusInternalServerError).Wrap(csvWriteErr)
 	}
 
 	return nil
@@ -262,9 +255,33 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, actorComment, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
-	byName, appErr := a.getContentFlaggingPropertiesByName(post.Id)
+	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
 	if appErr != nil {
 		return out, appErr
+	}
+
+	groupID, gErr := a.ContentFlaggingGroupId()
+	if gErr != nil {
+		return out, gErr
+	}
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
+	if appErr != nil {
+		return out, appErr
+	}
+
+	// Index field ID -> field name so we can resolve property values by name.
+	fieldIDToName := make(map[string]string, len(mappedFields))
+	for name, f := range mappedFields {
+		fieldIDToName[f.ID] = name
+	}
+
+	byName := make(map[string]json.RawMessage, len(values))
+	for _, v := range values {
+		name, ok := fieldIDToName[v.FieldID]
+		if !ok {
+			continue
+		}
+		byName[name] = v.Value
 	}
 
 	out.ReporterUserID = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingUserID)
@@ -393,42 +410,6 @@ func writeYAMLEntry(zw *zip.Writer, name string, payload any) error {
 	}
 	_, err = w.Write(b)
 	return err
-}
-
-// getContentFlaggingPropertiesByName returns a post's content flagging property values keyed
-// by field name, ready for decodePropertyString / decodePropertyInt64. Property values are
-// stored against opaque field IDs, so the field definitions are fetched to build the index.
-func (a *App) getContentFlaggingPropertiesByName(postID string) (map[string]json.RawMessage, *model.AppError) {
-	values, appErr := a.GetPostContentFlaggingPropertyValues(postID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	groupID, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return nil, appErr
-	}
-	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	// Index field ID -> field name so we can resolve property values by name.
-	fieldIDToName := make(map[string]string, len(mappedFields))
-	for name, f := range mappedFields {
-		fieldIDToName[f.ID] = name
-	}
-
-	byName := make(map[string]json.RawMessage, len(values))
-	for _, v := range values {
-		name, ok := fieldIDToName[v.FieldID]
-		if !ok {
-			continue
-		}
-		byName[name] = v.Value
-	}
-
-	return byName, nil
 }
 
 // decodePropertyString returns the value for fieldName decoded as a JSON string.

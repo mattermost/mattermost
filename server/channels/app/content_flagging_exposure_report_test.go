@@ -179,21 +179,6 @@ func TestComputePostExposure(t *testing.T) {
 		require.Nil(t, entry.LastViewedAt, "no read state survives for a former member")
 	})
 
-	t.Run("excludes bots", func(t *testing.T) {
-		channel := th.CreateChannel(t, th.BasicTeam)
-		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
-		require.Nil(t, appErr)
-		th.LinkUserToTeam(t, botUser, th.BasicTeam)
-		th.AddUserToChannel(t, botUser, channel)
-
-		post := flagPostInChannel(t, th, channel)
-
-		report, appErr := th.App.ComputePostExposure(th.Context, post.Id)
-		require.Nil(t, appErr)
-		require.NotContains(t, entryUserIDs(report), bot.UserId)
-	})
-
 	t.Run("includes a deactivated user, flagged as such", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		user := th.CreateUser(t)

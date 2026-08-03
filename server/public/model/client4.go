@@ -4070,8 +4070,6 @@ func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, 
 	return ReadBytesFromResponse(r)
 }
 
-// GeneratePostExposureReport generates and downloads a CSV report of the users who may have
-// been exposed to the given flagged post.
 func (c *Client4) GeneratePostExposureReport(ctx context.Context, postId string) ([]byte, *Response, error) {
 	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "exposure_report"), "")
 	if err != nil {

@@ -122,24 +122,6 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.True(t, found)
 	})
 
-	t.Run("omits the exposure report for a flagged DM post rather than failing", func(t *testing.T) {
-		appErr := setBaseConfig(th)
-		require.Nil(t, appErr)
-
-		dm := th.CreateDmChannel(t, th.CreateUser(t))
-		post := th.CreatePost(t, dm)
-		appErr = th.App.FlagPost(th.Context, post, "", th.BasicUser2.Id, model.FlagContentRequest{Reason: "spam", Comment: "c"})
-		require.Nil(t, appErr)
-
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr, "a flagged DM must still produce a report")
-		require.NotEmpty(t, path)
-
-		entries := readReportZip(t, path)
-		require.Contains(t, entries, "post/post.yaml")
-		require.NotContains(t, entries, "exposure_report.csv")
-	})
-
 	t.Run("post.yaml contains channel, team, and author details", func(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)

@@ -2478,9 +2478,6 @@ func (s SqlChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, chann
 		limit = model.ChannelMemberLastViewedMaxPerPage
 	}
 
-	// No join against Channels, and so no Channels.DeleteAt = 0 filter: archiving a channel is
-	// soft, the ChannelMembers rows and their read state survive it, and an exposure report for
-	// a post in an archived channel must still list its members.
 	query := s.getQueryBuilder().
 		Select("ChannelMembers.UserId", "COALESCE(ChannelMembers.LastViewedAt, 0) AS LastViewedAt").
 		From("ChannelMembers").
@@ -2489,9 +2486,6 @@ func (s SqlChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, chann
 		OrderBy("ChannelMembers.UserId ASC").
 		Limit(uint64(limit))
 
-	// Keyset pagination rather than OFFSET: the (ChannelId, UserId) primary key makes this a
-	// pure index range scan, and UserId is immutable so the cursor stays stable even though
-	// LastViewedAt is mutated by every channel read.
 	if afterUserID != "" {
 		query = query.Where(sq.Gt{"ChannelMembers.UserId": afterUserID})
 	}
