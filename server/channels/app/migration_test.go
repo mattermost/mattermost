@@ -1658,3 +1658,264 @@ func TestDestinationTeamInferredWhenAdditionalFieldAbsent(t *testing.T) {
 	assert.Equal(t, destTeamName, team.DisplayName,
 		"display name should be the dest slug verbatim even when export lacks ExportScopeAdditional")
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// ATT-02: Emoji reactions survive a channel migration round-trip (two instances)
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestChannelMigrationReactionsPreserved(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	// SOURCE: post with two reactions from different users.
+	post := th1.CreatePost(t, th1.BasicChannel)
+	th1.AddReactionToPost(t, post, th1.BasicUser, "thumbsup")
+	th1.AddReactionToPost(t, post, th1.BasicUser2, "heart")
+
+	srcTeamName := th1.BasicTeam.Name
+	srcChanName := th1.BasicChannel.Name
+
+	var buf bytes.Buffer
+	appErr := th1.App.BulkExport(th1.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:    srcTeamName,
+		ChannelName: srcChanName,
+	})
+	require.Nil(t, appErr)
+
+	// Verify reactions are serialised in the JSONL before sending to dest.
+	exportBytes := buf.Bytes()
+	exportedReactions := 0
+	scanner := bufio.NewScanner(bytes.NewReader(exportBytes))
+	for scanner.Scan() {
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type == "post" && line.Post != nil && line.Post.Reactions != nil {
+			exportedReactions += len(*line.Post.Reactions)
+		}
+	}
+	require.NoError(t, scanner.Err())
+	assert.Equal(t, 2, exportedReactions, "both reactions must appear in the JSONL export")
+
+	// DESTINATION: fresh instance — let the import create deactivated shells for
+	// users that don't exist yet (channel-scoped import behaviour).
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+	}
+
+	_, appErr = th2.App.BulkImport(th2.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	require.Nil(t, appErr)
+
+	destTeam, appErr := th2.App.GetTeamByName(srcTeamName)
+	require.Nil(t, appErr)
+	destChan, appErr := th2.App.GetChannelByName(th2.Context, srcChanName, destTeam.Id, false)
+	require.Nil(t, appErr)
+
+	pl, err := th2.App.Srv().Store().Post().GetPosts(th2.Context, model.GetPostsOptions{
+		ChannelId: destChan.Id, Page: 0, PerPage: 100,
+	}, false, map[string]bool{})
+	require.NoError(t, err)
+
+	totalReactions := 0
+	for _, p := range pl.Posts {
+		if p.Type == "" {
+			reactions, err := th2.App.Srv().Store().Reaction().GetForPost(p.Id, false)
+			require.NoError(t, err)
+			totalReactions += len(reactions)
+		}
+	}
+	assert.Equal(t, 2, totalReactions, "both reactions must survive the channel migration round-trip")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// EXP-07a: Archived channels appear in export when IncludeArchivedChannels=true
+//          and land on the destination after import.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestArchivedChannelIncludedWhenFlagSet(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	// SOURCE: create a channel, post to it, then archive it.
+	archivedChan, appErr := th1.App.CreateChannel(th1.Context, &model.Channel{
+		TeamId:      th1.BasicTeam.Id,
+		Name:        "archived-chan-" + model.NewId()[:8],
+		DisplayName: "Archived Channel",
+		Type:        model.ChannelTypeOpen,
+	}, false)
+	require.Nil(t, appErr)
+	_, appErr = th1.App.AddChannelMember(th1.Context, th1.BasicUser.Id, archivedChan, ChannelMemberOpts{})
+	require.Nil(t, appErr)
+	th1.CreatePost(t, archivedChan)
+	appErr = th1.App.DeleteChannel(th1.Context, archivedChan, th1.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	srcTeamName := th1.BasicTeam.Name
+
+	var buf bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:                srcTeamName,
+		IncludeArchivedChannels: true,
+	})
+	require.Nil(t, appErr)
+
+	// Verify the archived channel line is present in the JSONL.
+	exportBytes := buf.Bytes()
+	channelNames := map[string]bool{}
+	scanner := bufio.NewScanner(bytes.NewReader(exportBytes))
+	for scanner.Scan() {
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type == "channel" && line.Channel != nil {
+			channelNames[*line.Channel.Name] = true
+		}
+	}
+	require.NoError(t, scanner.Err())
+	assert.True(t, channelNames[archivedChan.Name],
+		"archived channel must appear in export when IncludeArchivedChannels is set")
+
+	// DESTINATION: import must succeed and channel must exist on dest.
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+	}
+
+	_, appErr = th2.App.BulkImport(th2.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	require.Nil(t, appErr, "import of export containing an archived channel must succeed")
+
+	destTeam, appErr := th2.App.GetTeamByName(srcTeamName)
+	require.Nil(t, appErr)
+	_, appErr = th2.App.GetChannelByName(th2.Context, archivedChan.Name, destTeam.Id, true)
+	assert.Nil(t, appErr, "archived channel must exist on dest after import")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// EXP-07b: Archived channels are excluded from export by default; dest only sees
+//          active channels.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestArchivedChannelExcludedByDefault(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	// SOURCE: create a channel, post, archive it.
+	archivedChan, appErr := th1.App.CreateChannel(th1.Context, &model.Channel{
+		TeamId:      th1.BasicTeam.Id,
+		Name:        "archived-def-" + model.NewId()[:8],
+		DisplayName: "Archived Default",
+		Type:        model.ChannelTypeOpen,
+	}, false)
+	require.Nil(t, appErr)
+	_, appErr = th1.App.AddChannelMember(th1.Context, th1.BasicUser.Id, archivedChan, ChannelMemberOpts{})
+	require.Nil(t, appErr)
+	th1.CreatePost(t, archivedChan)
+	appErr = th1.App.DeleteChannel(th1.Context, archivedChan, th1.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	srcTeamName := th1.BasicTeam.Name
+
+	var buf bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:                srcTeamName,
+		IncludeArchivedChannels: false,
+	})
+	require.Nil(t, appErr)
+
+	// Verify archived channel is absent from the JSONL.
+	exportBytes := buf.Bytes()
+	scanner := bufio.NewScanner(bytes.NewReader(exportBytes))
+	for scanner.Scan() {
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type == "channel" && line.Channel != nil {
+			assert.NotEqual(t, archivedChan.Name, *line.Channel.Name,
+				"archived channel must not appear in export when IncludeArchivedChannels is false")
+		}
+	}
+	require.NoError(t, scanner.Err())
+
+	// DESTINATION: import must succeed; archived channel must NOT exist on dest.
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+	}
+
+	_, appErr = th2.App.BulkImport(th2.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	require.Nil(t, appErr, "import of export without archived channels must succeed")
+
+	destTeam, appErr := th2.App.GetTeamByName(srcTeamName)
+	require.Nil(t, appErr)
+	_, appErr = th2.App.GetChannelByName(th2.Context, archivedChan.Name, destTeam.Id, false)
+	assert.NotNil(t, appErr, "archived channel must not exist on dest when excluded from export")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// IMP-06: Team-only export (two instances) — all channels and their posts land
+//         on the destination with exact post counts.
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestTeamMigrationMultipleChannelsRoundTrip(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	// SOURCE: three channels with posts in each.
+	chan2 := th1.CreateChannel(t, th1.BasicTeam)
+	chan3 := th1.CreateChannel(t, th1.BasicTeam)
+	th1.AddUserToChannel(t, th1.BasicUser, chan2)
+	th1.AddUserToChannel(t, th1.BasicUser, chan3)
+
+	const postsPerChannel = 3
+	for range postsPerChannel {
+		th1.CreatePost(t, th1.BasicChannel)
+		th1.CreatePost(t, chan2)
+		th1.CreatePost(t, chan3)
+	}
+
+	srcTeamName := th1.BasicTeam.Name
+
+	srcCounts := map[string]int{
+		th1.BasicChannel.Name: postCountInChannel(t, th1, th1.Context, srcTeamName, th1.BasicChannel.Name),
+		chan2.Name:             postCountInChannel(t, th1, th1.Context, srcTeamName, chan2.Name),
+		chan3.Name:             postCountInChannel(t, th1, th1.Context, srcTeamName, chan3.Name),
+	}
+
+	var buf bytes.Buffer
+	appErr := th1.App.BulkExport(th1.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName: srcTeamName,
+	})
+	require.Nil(t, appErr)
+
+	// DESTINATION: fresh instance — import creates all team members from the export.
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+	}
+
+	_, appErr = th2.App.BulkImport(th2.Context, &buf, nil, false, 1)
+	require.Nil(t, appErr)
+
+	for chanName, srcCount := range srcCounts {
+		destCount := postCountInChannel(t, th2, th2.Context, srcTeamName, chanName)
+		assert.Equal(t, srcCount, destCount,
+			"post count mismatch in channel %q after team migration: src=%d dest=%d",
+			chanName, srcCount, destCount)
+	}
+}
