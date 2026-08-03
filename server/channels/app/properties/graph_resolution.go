@@ -1,0 +1,527 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package properties
+
+import (
+	"slices"
+
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+// The options of a graph property field form a hierarchy, and this is where
+// questions about it are answered: which options sit above or below which, what
+// several holders of options have in common, and whether a proposed change to
+// the hierarchy leaves it usable. Everything here reads the edge rows through the
+// store on every call, with nothing held between them, so every server in a
+// cluster answers from the same rows and there is no per-node state to keep in
+// step.
+//
+// The one relation underneath all of it is "at or above": option a is at-or-above
+// option b when a is b, or a is reachable by following parent links upwards from
+// b. It is reflexive on purpose -- an option covers itself -- and it is partial:
+// two options on separate branches are simply unrelated, which is an ordinary
+// "no" and not a failure.
+//
+// Two rules hold throughout, because this is an access-control input:
+//
+//   - Nothing to compare means no. An option set that is empty, or that names
+//     options the field does not have, answers every question below with "no"
+//     rather than with "everything". Anything else would turn missing data into
+//     a grant.
+//   - Every answer that could not be computed is the negative one, and the error
+//     is returned alongside it. A caller that drops the error still denies.
+
+// AncestorsOrSelf returns, for each of the given options, that option together
+// with every option at-or-above it. An option the field does not have is left
+// out of the result rather than mapped to an empty set.
+func (ps *PropertyService) AncestorsOrSelf(rctx request.CTX, field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	if err := requireGraphField(field); err != nil {
+		return nil, err
+	}
+
+	resolved, err := ps.fieldStore.GetOptionAncestorsOrSelf(field, optionIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to resolve the options above a graph property field's options")
+	}
+	logUnresolvedOptions(rctx, field, optionIDs, resolved)
+	return resolved, nil
+}
+
+// DescendantsOrSelf returns, for each of the given options, that option together
+// with every option at-or-below it.
+func (ps *PropertyService) DescendantsOrSelf(rctx request.CTX, field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	if err := requireGraphField(field); err != nil {
+		return nil, err
+	}
+
+	resolved, err := ps.fieldStore.GetOptionDescendantsOrSelf(field, optionIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to resolve the options below a graph property field's options")
+	}
+	logUnresolvedOptions(rctx, field, optionIDs, resolved)
+	return resolved, nil
+}
+
+// CoversAll reports whether every option in targets has some option in held
+// at-or-above it: the holder reaches all of them. This is the shape an access
+// rule takes when a subject must account for everything its target is marked
+// with.
+func (ps *PropertyService) CoversAll(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
+	all, _, err := ps.coverage(rctx, field, targets, held)
+	return all, err
+}
+
+// CoversAny reports whether some option in targets has an option in held
+// at-or-above it.
+func (ps *PropertyService) CoversAny(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
+	_, some, err := ps.coverage(rctx, field, targets, held)
+	return some, err
+}
+
+// WithinAll reports whether every option in held has some option in targets
+// at-or-above it: the holder sits entirely inside what the targets reach. A
+// holder of one option inside a target's subtree and one outside it fails, which
+// is the point of the direction -- it is the only way to write a rule that
+// excludes the options above the target rather than including them.
+func (ps *PropertyService) WithinAll(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
+	all, _, err := ps.coverage(rctx, field, held, targets)
+	return all, err
+}
+
+// WithinAny reports whether some option in held has an option in targets
+// at-or-above it.
+func (ps *PropertyService) WithinAny(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
+	_, some, err := ps.coverage(rctx, field, held, targets)
+	return some, err
+}
+
+// coverage walks up from each anchor and reports whether every anchor and
+// whether any anchor has one of the holders at-or-above it.
+//
+// All four predicates are this one question: covering asks it of the target
+// options, being within asks it of the held options, and each reads off one of
+// the two quantifiers. Keeping it as one walk is what makes the four agree with
+// each other by construction rather than by four sets of tests.
+func (ps *PropertyService) coverage(rctx request.CTX, field *model.PropertyField, anchors, holders []string) (all, some bool, err error) {
+	// Neither side may be empty. A subject holding no options is not thereby
+	// cleared for everything, and an option set that resolved to nothing is not
+	// thereby open to everyone: there is no vacuous truth here.
+	if len(anchors) == 0 || len(holders) == 0 {
+		return false, false, nil
+	}
+
+	above, err := ps.AncestorsOrSelf(rctx, field, anchors)
+	if err != nil {
+		return false, false, err
+	}
+
+	// As a set, because the options above one anchor are bounded only by the size
+	// of the hierarchy while the holders are one object's values.
+	holderSet := make(map[string]bool, len(holders))
+	for _, optionID := range holders {
+		holderSet[optionID] = true
+	}
+
+	all = true
+	for _, anchor := range anchors {
+		// An anchor the field does not have reaches nothing, including itself, so
+		// it is uncovered and drops the "all" answer.
+		covered := slices.ContainsFunc(above[anchor], func(optionID string) bool {
+			return holderSet[optionID]
+		})
+		if covered {
+			some = true
+		} else {
+			all = false
+		}
+	}
+	return all, some, nil
+}
+
+// CommonGround returns the most specific options every participant covers, given
+// each participant's held options: the maximal elements of the intersection of
+// what the participants reach downwards. It is a set and not a single option --
+// two participants can share two unrelated branches and neither is more specific
+// than the other.
+//
+// A participant holding nothing reaches nothing, so there is nothing in common
+// and the result is empty.
+func (ps *PropertyService) CommonGround(rctx request.CTX, field *model.PropertyField, heldPerParticipant [][]string) ([]string, error) {
+	if err := requireGraphField(field); err != nil {
+		return nil, err
+	}
+	if len(heldPerParticipant) == 0 {
+		return nil, nil
+	}
+	for _, held := range heldPerParticipant {
+		if len(held) == 0 {
+			return nil, nil
+		}
+	}
+
+	// Descend from the first participant's options, stopping each branch at the
+	// first option every other participant covers. Everything below such an
+	// option is shared too but less specific, so there is no reason to look. The
+	// other way round -- collecting everything each participant reaches downwards
+	// and intersecting the sets -- walks the entire hierarchy for a participant
+	// holding a root, where this walk stops at their first option and coverage is
+	// a single query per level.
+	others := heldPerParticipant[1:]
+
+	var frontier []string
+	seen := map[string]bool{}
+	for _, optionID := range heldPerParticipant[0] {
+		if !seen[optionID] {
+			seen[optionID] = true
+			frontier = append(frontier, optionID)
+		}
+	}
+
+	var shared []string
+	sharedAncestors := map[string][]string{}
+	for len(frontier) > 0 {
+		above, err := ps.AncestorsOrSelf(rctx, field, frontier)
+		if err != nil {
+			return nil, err
+		}
+
+		var descend []string
+		for _, optionID := range frontier {
+			// An option the field does not have reaches nothing, itself included,
+			// so there is neither anything to share nor anywhere to descend to.
+			if len(above[optionID]) == 0 {
+				continue
+			}
+			if coveredByEvery(above[optionID], others) {
+				shared = append(shared, optionID)
+				sharedAncestors[optionID] = above[optionID]
+				continue
+			}
+			descend = append(descend, optionID)
+		}
+
+		children, err := ps.fieldStore.GetOptionChildren(field, descend)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read the options below a graph property field's options")
+		}
+
+		frontier = nil
+		for _, optionID := range descend {
+			for _, childID := range children[optionID] {
+				if seen[childID] {
+					continue
+				}
+				seen[childID] = true
+				frontier = append(frontier, childID)
+			}
+		}
+	}
+
+	// Separate branches can stop at options that turn out to be related, since a
+	// branch that stopped never looked below itself. An option with another
+	// shared option above it is not one of the most specific ones.
+	sharedSet := make(map[string]bool, len(shared))
+	for _, optionID := range shared {
+		sharedSet[optionID] = true
+	}
+
+	maximal := make([]string, 0, len(shared))
+	for _, optionID := range shared {
+		if slices.ContainsFunc(sharedAncestors[optionID], func(ancestorID string) bool {
+			return ancestorID != optionID && sharedSet[ancestorID]
+		}) {
+			continue
+		}
+		maximal = append(maximal, optionID)
+	}
+	return maximal, nil
+}
+
+// coveredByEvery reports whether every participant holds one of the given
+// options, which are the options at-or-above the one being asked about. A
+// participant holding an option that no longer exists never matches, because the
+// options above anything are read from live rows.
+func coveredByEvery(above []string, heldPerParticipant [][]string) bool {
+	for _, held := range heldPerParticipant {
+		if !slices.ContainsFunc(held, func(optionID string) bool {
+			return slices.Contains(above, optionID)
+		}) {
+			return false
+		}
+	}
+	return true
+}
+
+// WouldCreateCycle reports whether any of the given edges would put an option
+// above itself. A hierarchy with a cycle has no roots and no meaningful ordering,
+// so this is the check a mutation has to pass before any other.
+//
+// It asks about the edges given, not about the whole hierarchy: a cycle that is
+// somehow already stored elsewhere in the field is not one these edges create, and
+// is not reported here.
+//
+// Refusing is the answer on any failure: the returned bool is true whenever the
+// error is non-nil, so a caller that drops the error rejects the mutation.
+func (ps *PropertyService) WouldCreateCycle(field *model.PropertyField, edges []*model.PropertyOptionEdge) (bool, error) {
+	if err := requireGraphField(field); err != nil {
+		return true, err
+	}
+	if len(edges) == 0 {
+		return false, nil
+	}
+
+	hierarchy, err := ps.loadGraphNeighbourhood(field, edges)
+	if err != nil {
+		return true, err
+	}
+
+	// An edge puts its child below its parent, so it closes a cycle exactly when
+	// the child is already at-or-above the parent -- whether through stored edges,
+	// through other edges in this payload, or through a mixture of the two.
+	reachedUp := map[string]map[string]bool{}
+	for _, edge := range edges {
+		above, resolved := reachedUp[edge.ParentOptionID]
+		if !resolved {
+			above = hierarchy.reachable(edge.ParentOptionID, hierarchy.parents)
+			reachedUp[edge.ParentOptionID] = above
+		}
+		if above[edge.ChildOptionID] {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// DepthAfterAdding returns how many options lie on the longest chain the given
+// edges create, counted from a root: an edge between two options that had none
+// makes a chain of two. Existing chains are not lengthened by an insert, so a
+// caller enforcing a maximum depth compares this against it and needs no separate
+// figure for the rest of the hierarchy.
+//
+// It reads the hierarchy as stored, plus the given edges. A caller restructuring
+// a subtree by removing edges and adding others gets an answer that still counts
+// the removed ones, so it has to remove them first.
+//
+// Run WouldCreateCycle first: a hierarchy with a cycle has no longest chain, and
+// this reports that as an error rather than choosing a number.
+func (ps *PropertyService) DepthAfterAdding(field *model.PropertyField, edges []*model.PropertyOptionEdge) (int, error) {
+	if err := requireGraphField(field); err != nil {
+		return 0, err
+	}
+	if len(edges) == 0 {
+		return 0, nil
+	}
+
+	hierarchy, err := ps.loadGraphNeighbourhood(field, edges)
+	if err != nil {
+		return 0, err
+	}
+
+	deepest := 0
+	for _, edge := range edges {
+		// The longest chain through an edge is everything above its parent, the
+		// parent, the child, and everything below the child. Neither half can
+		// contain an option from the other unless the edge closes a cycle, which
+		// is the caller's earlier check.
+		above, err := hierarchy.longestChain(edge.ParentOptionID, hierarchy.parents, hierarchy.longestUp)
+		if err != nil {
+			return 0, err
+		}
+		below, err := hierarchy.longestChain(edge.ChildOptionID, hierarchy.children, hierarchy.longestDown)
+		if err != nil {
+			return 0, err
+		}
+		deepest = max(deepest, above+below)
+	}
+	return deepest, nil
+}
+
+// graphNeighbourhood is the part of a field's hierarchy that a set of proposed
+// edges can change, as adjacency in both directions with those edges already
+// folded in, so the checks over it run without going back to the database.
+type graphNeighbourhood struct {
+	parents  map[string][]string
+	children map[string][]string
+
+	longestUp   map[string]int
+	longestDown map[string]int
+}
+
+// loadGraphNeighbourhood reads the part of the hierarchy the given edges can
+// change: everything at-or-above the options they name as parents, everything
+// at-or-below the options they name as children, and the stored edges among
+// those. A new edge joins those two regions, so it can only lengthen or close a
+// chain inside their union.
+//
+// Three queries, whatever the payload, and no second round even though the
+// proposed edges reach past what is stored: leaving the upper region on the way
+// up means crossing a proposed edge, and that edge's parent is already one of the
+// options the upper region was collected from, so everything above it is in hand
+// -- and the same downwards.
+//
+// The cost is that the region's edges are held in memory, and re-parenting
+// something near a root makes the region the whole hierarchy. That is the trade
+// against walking a level at a time, which would hold one number per option
+// instead of every edge but would need a round trip per level and could not see
+// the proposed edges. If the memory ever matters, the level walk is the upgrade,
+// and only these two checks would change.
+//
+// Endpoints the field does not have are not reported here. The store refuses to
+// write an edge whose endpoints are not live options of the field, so this can
+// treat them as options with nothing around them and let that refusal stand.
+func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, edges []*model.PropertyOptionEdge) (*graphNeighbourhood, error) {
+	var childIDs, parentIDs []string
+	for _, edge := range edges {
+		if !slices.Contains(childIDs, edge.ChildOptionID) {
+			childIDs = append(childIDs, edge.ChildOptionID)
+		}
+		if !slices.Contains(parentIDs, edge.ParentOptionID) {
+			parentIDs = append(parentIDs, edge.ParentOptionID)
+		}
+	}
+
+	// Read through the store rather than through AncestorsOrSelf: an endpoint the
+	// field does not have is the write path's error to report, and logging it here
+	// as an unresolvable option would describe it as a stale reference.
+	above, err := ps.fieldStore.GetOptionAncestorsOrSelf(field, parentIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to resolve the options above a graph property field's options")
+	}
+	below, err := ps.fieldStore.GetOptionDescendantsOrSelf(field, childIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to resolve the options below a graph property field's options")
+	}
+
+	var region []string
+	inRegion := map[string]bool{}
+	for _, reached := range []map[string][]string{above, below} {
+		for _, optionIDs := range reached {
+			for _, optionID := range optionIDs {
+				if !inRegion[optionID] {
+					inRegion[optionID] = true
+					region = append(region, optionID)
+				}
+			}
+		}
+	}
+
+	// Every edge inside the upper region has its parent there, since the region
+	// holds everything above the options it was collected from, and the same is
+	// true of the lower region -- so asking by parent reaches every edge either
+	// region contains.
+	stored, err := ps.fieldStore.GetOptionChildren(field, region)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the options below a graph property field's options")
+	}
+
+	hierarchy := &graphNeighbourhood{
+		parents:     map[string][]string{},
+		children:    map[string][]string{},
+		longestUp:   map[string]int{},
+		longestDown: map[string]int{},
+	}
+	for parentID, storedChildren := range stored {
+		for _, childID := range storedChildren {
+			hierarchy.link(childID, parentID)
+		}
+	}
+	for _, edge := range edges {
+		hierarchy.link(edge.ChildOptionID, edge.ParentOptionID)
+	}
+	return hierarchy, nil
+}
+
+func (n *graphNeighbourhood) link(childID, parentID string) {
+	n.parents[childID] = append(n.parents[childID], parentID)
+	n.children[parentID] = append(n.children[parentID], childID)
+}
+
+// reachable returns every option reachable from the given one by following the
+// given adjacency, excluding the option itself unless something leads back to it.
+// It tolerates a cycle: an option already reached is not followed again.
+func (n *graphNeighbourhood) reachable(from string, adjacency map[string][]string) map[string]bool {
+	reached := map[string]bool{}
+	pending := slices.Clone(adjacency[from])
+	for len(pending) > 0 {
+		optionID := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if reached[optionID] {
+			continue
+		}
+		reached[optionID] = true
+		pending = append(pending, adjacency[optionID]...)
+	}
+	return reached
+}
+
+// longestChain returns how many options lie on the longest chain that starts at
+// the given one and follows the given adjacency. An option with nothing in that
+// direction is a chain of one. Results are memoized because a hierarchy where
+// branches rejoin would otherwise be walked once per route into it.
+//
+// A cycle has no longest chain, so one is reported as an error instead of being
+// counted; the memo doubles as the record of what is currently being walked.
+func (n *graphNeighbourhood) longestChain(from string, adjacency map[string][]string, memo map[string]int) (int, error) {
+	const walking = -1
+
+	if length := memo[from]; length == walking {
+		return 0, errors.Errorf("option %s sits above itself", from)
+	} else if length > 0 {
+		return length, nil
+	}
+
+	memo[from] = walking
+	longest := 1
+	for _, nextID := range adjacency[from] {
+		reached, err := n.longestChain(nextID, adjacency, memo)
+		if err != nil {
+			return 0, err
+		}
+		longest = max(longest, reached+1)
+	}
+	memo[from] = longest
+	return longest, nil
+}
+
+// requireGraphField refuses a field whose options are not meant to form a
+// hierarchy. Nothing links the options of a select or multiselect field, so a
+// walk over one would find every option alone and answer by exact equality
+// instead -- a plausible-looking answer to a question that does not apply to the
+// field, which is worse than a refusal.
+func requireGraphField(field *model.PropertyField) error {
+	if field == nil {
+		return errors.New("no property field to resolve options against")
+	}
+	if field.Type != model.PropertyFieldTypeGraph {
+		return errors.Errorf("property field %s is of type %s, whose options form no hierarchy", field.ID, field.Type)
+	}
+	return nil
+}
+
+// logUnresolvedOptions reports the options a walk found nothing for. They are not
+// an error -- a value pointing at an option that has since been deleted is
+// tolerated throughout the property system -- but they answer every question
+// about themselves with "no", so a decision that turned on one otherwise leaves
+// no trace of why it went the way it did.
+func logUnresolvedOptions(rctx request.CTX, field *model.PropertyField, requested []string, resolved map[string][]string) {
+	var unresolved []string
+	for _, optionID := range requested {
+		if _, ok := resolved[optionID]; !ok && !slices.Contains(unresolved, optionID) {
+			unresolved = append(unresolved, optionID)
+		}
+	}
+	if len(unresolved) == 0 {
+		return
+	}
+
+	rctx.Logger().Error(
+		"Property field options could not be resolved in the field's hierarchy; every question asked about them is answered no",
+		mlog.String("field_id", field.ID),
+		mlog.Array("option_ids", unresolved),
+	)
+}

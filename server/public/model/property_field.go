@@ -36,9 +36,10 @@ const (
 	// object holds several options at once, as it does for multiselect; there is
 	// no single-value variant, which is why the name is unqualified.
 	//
-	// The type carries no hierarchy yet. A graph field's options are stored and
-	// served exactly like a multiselect field's, and the parent links between
-	// them are a follow-up.
+	// The hierarchy is held as parent links between options, in
+	// PropertyOptionEdges, and is read through the store rather than being part
+	// of the field: a graph field's options are still served inline like a
+	// multiselect field's and carry no parent information.
 	PropertyFieldTypeGraph PropertyFieldType = "graph"
 
 	PropertyFieldNameMaxRunes       = 255

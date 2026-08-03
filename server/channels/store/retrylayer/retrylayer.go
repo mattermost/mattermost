@@ -10750,11 +10750,74 @@ func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID stri
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionAncestorsOrSelf(field, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 
 	tries := 0
 	for {
 		result, err := s.PropertyFieldStore.GetOptionChildEdges(fieldID, parentOptionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionChildren(field, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionDescendantsOrSelf(field, optionIDs)
 		if err == nil {
 			return result, nil
 		}

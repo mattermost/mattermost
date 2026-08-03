@@ -8564,6 +8564,22 @@ func (s *TimerLayerPropertyFieldStore) GetMany(ctx context.Context, groupID stri
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionAncestorsOrSelf(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionAncestorsOrSelf", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	start := time.Now()
 
@@ -8576,6 +8592,38 @@ func (s *TimerLayerPropertyFieldStore) GetOptionChildEdges(fieldID string, paren
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionChildEdges", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionChildren(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionChildren", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionDescendantsOrSelf(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionDescendantsOrSelf", success, elapsed)
 	}
 	return result, err
 }

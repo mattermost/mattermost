@@ -31,6 +31,20 @@ import (
 
 var propertyOptionEdgeColumns = []string{"FieldID", "ChildOptionID", "ParentOptionID", "CreateAt"}
 
+// maxOptionIDsPerQuery bounds how many option identifiers one statement carries.
+//
+// Postgres accepts at most 65,535 bind parameters per statement -- the wire
+// protocol counts them in an int16 -- and exceeding it is a hard failure, not a
+// slow query: `pq: got 65536 parameters but PostgreSQL only supports 65535
+// parameters`. A field may hold far more options than that, so a query given one
+// parameter per option of a large field cannot execute at all. The queries below
+// that can be handed an unbounded number of identifiers batch them instead.
+//
+// The batch is well under the ceiling because those statements carry other
+// parameters too, and because a statement with tens of thousands of parameters is
+// worth avoiding on its own account.
+const maxOptionIDsPerQuery = 10000
+
 // CreateOptionEdges records parent links between options of a graph field. An
 // edge that already exists is left alone, so a caller asserting an option's
 // parents does not have to work out which of them are new.
@@ -43,8 +57,10 @@ var propertyOptionEdgeColumns = []string{"FieldID", "ChildOptionID", "ParentOpti
 //
 // Nothing here checks the shape of the resulting graph. Adding an edge can still
 // produce a cycle or a hierarchy deeper than anything can usefully walk; those
-// are properties of the whole edge set rather than of one row, and no caller
-// creates edges yet.
+// are properties of the whole edge set rather than of one row, and a caller has
+// to put its payload through the checks on the property service --
+// WouldCreateCycle and DepthAfterAdding -- before calling this. No caller creates
+// edges yet.
 func (s *SqlPropertyFieldStore) CreateOptionEdges(edges []*model.PropertyOptionEdge) (err error) {
 	if len(edges) == 0 {
 		return nil
@@ -161,6 +177,11 @@ func (s *SqlPropertyFieldStore) GetOptionEdges(fieldID string) ([]*model.Propert
 // is legitimate even though every option in it above the lowest has children, so
 // what matters is whether each reported child is itself in the set. Served by
 // idx_propertyoptionedges_fieldid_parent_child.
+//
+// Scoped to the field it is given, not to the field that owns the hierarchy. That
+// is the point of it: the question is about the rows this field may delete.
+// GetOptionChildren is the same step taken for the other reason -- to walk the
+// hierarchy a field serves, wherever it is owned.
 func (s *SqlPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	if len(parentOptionIDs) == 0 {
 		return nil, nil
@@ -177,6 +198,169 @@ func (s *SqlPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOption
 		return nil, errors.Wrap(err, "property_option_child_edges_select_query")
 	}
 	return edges, nil
+}
+
+// GetOptionAncestorsOrSelf returns, for each of the given options, that option
+// together with every option above it: its parents, their parents, and so on.
+// GetOptionDescendantsOrSelf is the same question downwards.
+//
+// Both are keyed by the option asked about rather than returning one merged set,
+// because the callers ask about a set of options at once -- masking one object's
+// values, deciding one policy -- and a per-option answer is what those questions
+// need. Seeding one walk with the whole set costs no more than seeding it with a
+// single option.
+//
+// An option with nothing above it maps to just itself, and an option that is not
+// a live option of the field is **absent from the result** rather than present
+// and empty. Callers can tell those apart, and every question asked about an
+// absent option is answered "no".
+func (s *SqlPropertyFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	return s.walkOptionHierarchy(field, optionIDs, towardsParents)
+}
+
+func (s *SqlPropertyFieldStore) GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	return s.walkOptionHierarchy(field, optionIDs, towardsChildren)
+}
+
+// hierarchyDirection is the way a walk moves through the edges. A walk matches
+// the option it is standing on against one endpoint column and steps to the
+// other, so walking up and walking down are one query with the columns swapped.
+type hierarchyDirection struct {
+	standingOn string
+	stepTo     string
+}
+
+var (
+	towardsParents  = hierarchyDirection{standingOn: "ChildOptionID", stepTo: "ParentOptionID"}
+	towardsChildren = hierarchyDirection{standingOn: "ParentOptionID", stepTo: "ChildOptionID"}
+)
+
+// walkOptionHierarchy follows the edges from each of the given options as far as
+// they go in one direction, and reports which options each one reached.
+//
+// Three things about the query are load-bearing, and none of them are visible
+// from reading it:
+//
+//  1. It is scoped to the field that owns the hierarchy -- for a linked field its
+//     template, see graphOptionOwnerID -- and to that field alone. Option IDs are
+//     unique within a field and not across fields, so an unscoped walk steps into
+//     another field's hierarchy the moment two fields use the same identifier,
+//     which the unlink takeover deliberately makes them do.
+//
+//  2. The seeds come from PropertyOptions rather than straight from the given
+//     IDs, so an ID naming nothing live reaches nothing. The seeds are the only
+//     place a deleted option could enter a walk: every edge touching an option is
+//     deleted with it, so no step can land on one, and the recursive term needs
+//     no join to PropertyOptions to keep them out.
+//
+//  3. UNION, not UNION ALL. UNION drops a row the walk has already produced, so
+//     the walk enumerates the options each seed reaches; UNION ALL would
+//     enumerate the paths to them, and where paths recombine there are
+//     combinatorially many. On a grid of 121 options and 220 edges -- the shape
+//     an overlay dimension produces, every option gaining a second parent -- one
+//     seed reaches 121 options along 705,431 distinct paths. That dedup is also
+//     what stops the walk if the edges ever do form a cycle: the options in it
+//     are produced once and then repeat, so the walk ends instead of running
+//     forever, though what it reports of a cyclic hierarchy is not meaningful.
+//     For the same reason nothing may be added to the recursive term that varies
+//     along a path -- a depth counter is the tempting one -- because the dedup
+//     compares whole rows, and an option reached at two depths would become two
+//     rows and bring the explosion back. SeedID is safe precisely because it does
+//     not vary: it is carried unchanged from the seed to every option reached.
+//
+// Reads from the master, like every other query in this file. A walk decides
+// either what a mutation may do to a hierarchy or whether somebody may see
+// something, and replication lag would answer both from a hierarchy that is no
+// longer there.
+func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, optionIDs []string, direction hierarchyDirection) (map[string][]string, error) {
+	if field == nil || len(optionIDs) == 0 {
+		return nil, nil
+	}
+	ownerID := graphOptionOwnerID(field)
+
+	step := fmt.Sprintf(
+		`SELECT walk.SeedID, edge.%s
+		FROM PropertyOptionEdges edge
+		JOIN hierarchy walk ON walk.OptionID = edge.%s
+		WHERE edge.FieldID = ?`,
+		direction.stepTo, direction.standingOn)
+
+	type reached struct {
+		SeedID   string
+		OptionID string
+	}
+
+	// One statement per batch of seeds. Seeds are independent of each other -- what
+	// one reaches does not depend on what another was asked about -- so the results
+	// merge by concatenation.
+	resolved := map[string][]string{}
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		seeds := s.getSubQueryBuilder().
+			Select("opt.ID", "opt.ID").
+			From("PropertyOptions opt").
+			Where(sq.Eq{"opt.FieldID": ownerID}).
+			Where(sq.Eq{"opt.ID": batch}).
+			Where(sq.Eq{"opt.DeleteAt": 0})
+
+		builder := s.getQueryBuilder().
+			Select("SeedID", "OptionID").
+			From("hierarchy").
+			Prefix("WITH RECURSIVE hierarchy (SeedID, OptionID) AS (? UNION "+step+")", seeds, ownerID)
+
+		rows := []*reached{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_option_hierarchy_select_query")
+		}
+		for _, row := range rows {
+			resolved[row.SeedID] = append(resolved[row.SeedID], row.OptionID)
+		}
+	}
+	return resolved, nil
+}
+
+// GetOptionChildren returns the options directly below each of the given ones,
+// in the hierarchy the field exposes -- the template's when the field links to
+// one. An option with nothing below it is absent from the result.
+//
+// This is one step, not the whole subtree below: a caller descending a hierarchy
+// with a reason to stop early asks for a level at a time, and asking for the
+// subtree instead would load the part it was going to stop before. Use
+// GetOptionDescendantsOrSelf when the whole subtree is what is wanted.
+//
+// Not to be confused with GetOptionChildEdges, which asks the ownership
+// question -- are these options leaves among the rows this field owns -- and so
+// stays on the field it was given rather than following it to its template.
+//
+// Unlike the other queries here it is asked about however many options a caller
+// has in hand, which can be a whole level of a hierarchy rather than one object's
+// values, so it batches (see maxOptionIDsPerQuery).
+func (s *SqlPropertyFieldStore) GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	if field == nil || len(optionIDs) == 0 {
+		return nil, nil
+	}
+
+	type link struct {
+		ParentOptionID string
+		ChildOptionID  string
+	}
+
+	children := map[string][]string{}
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ParentOptionID", "ChildOptionID").
+			From("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": graphOptionOwnerID(field)}).
+			Where(sq.Eq{"ParentOptionID": batch})
+
+		rows := []*link{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_option_children_select_query")
+		}
+		for _, row := range rows {
+			children[row.ParentOptionID] = append(children[row.ParentOptionID], row.ChildOptionID)
+		}
+	}
+	return children, nil
 }
 
 // requireOwnedGraphOptions checks that fieldID names a live graph field and that

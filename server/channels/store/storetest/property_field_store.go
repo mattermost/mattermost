@@ -35,6 +35,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
+	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
 }
 
 func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -4106,4 +4107,299 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, err)
 		require.Empty(t, edges)
 	})
+}
+
+func testPropertyFieldOptionHierarchy(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	// newGraphField creates a graph field owning one option per name, under the
+	// identifiers the caller supplies: two fields may hold options under the same
+	// identifiers, since an option is named by its field and its ID together.
+	newGraphField := func(t *testing.T, optionIDsByName map[string]string) *model.PropertyField {
+		t.Helper()
+		options := make([]any, 0, len(optionIDsByName))
+		for name, id := range optionIDsByName {
+			options = append(options, map[string]any{"id": id, "name": name})
+		}
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Hierarchy-" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{"options": options},
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	link := func(t *testing.T, field *model.PropertyField, ids map[string]string, pairs ...[2]string) {
+		t.Helper()
+		edges := make([]*model.PropertyOptionEdge, 0, len(pairs))
+		for _, pair := range pairs {
+			edges = append(edges, &model.PropertyOptionEdge{
+				FieldID:        field.ID,
+				ChildOptionID:  ids[pair[0]],
+				ParentOptionID: ids[pair[1]],
+			})
+		}
+		require.NoError(t, ss.PropertyField().CreateOptionEdges(edges))
+	}
+
+	// named turns a walk's result back into option names, so a failure reads as
+	// the hierarchy the test wrote rather than as two lists of identifiers.
+	named := func(ids map[string]string, reached []string) []string {
+		byID := make(map[string]string, len(ids))
+		for name, id := range ids {
+			byID[id] = name
+		}
+		out := make([]string, 0, len(reached))
+		for _, id := range reached {
+			out = append(out, byID[id])
+		}
+		return out
+	}
+
+	t.Run("a walk reports every option above and below each of its seeds", func(t *testing.T) {
+		// A ─┬─ B ── C
+		//    └─ D
+		ids := map[string]string{"A": model.NewId(), "B": model.NewId(), "C": model.NewId(), "D": model.NewId()}
+		field := newGraphField(t, ids)
+		link(t, field, ids, [2]string{"B", "A"}, [2]string{"C", "B"}, [2]string{"D", "A"})
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{ids["C"], ids["D"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"C", "B", "A"}, named(ids, above[ids["C"]]))
+		require.ElementsMatch(t, []string{"D", "A"}, named(ids, above[ids["D"]]))
+		require.Len(t, above, 2, "only the options asked about are keys")
+
+		below, err := ss.PropertyField().GetOptionDescendantsOrSelf(field, []string{ids["A"], ids["B"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"A", "B", "C", "D"}, named(ids, below[ids["A"]]))
+		require.ElementsMatch(t, []string{"B", "C"}, named(ids, below[ids["B"]]))
+
+		// A root reaches only itself upwards, and a leaf only itself downwards:
+		// the relation is reflexive, so neither is absent from the result.
+		above, err = ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{ids["A"]})
+		require.NoError(t, err)
+		require.Equal(t, []string{"A"}, named(ids, above[ids["A"]]))
+
+		below, err = ss.PropertyField().GetOptionDescendantsOrSelf(field, []string{ids["C"]})
+		require.NoError(t, err)
+		require.Equal(t, []string{"C"}, named(ids, below[ids["C"]]))
+
+		children, err := ss.PropertyField().GetOptionChildren(field, []string{ids["A"], ids["C"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"B", "D"}, named(ids, children[ids["A"]]))
+		require.NotContains(t, children, ids["C"], "an option with nothing below it is absent")
+	})
+
+	t.Run("an option reached by several routes is reported once", func(t *testing.T) {
+		// Two roots over one option, which is the shape an overlay dimension
+		// produces: F-18 is both a program and a clearance level.
+		ids := map[string]string{"Air": model.NewId(), "Secret": model.NewId(), "F-18": model.NewId()}
+		field := newGraphField(t, ids)
+		link(t, field, ids, [2]string{"F-18", "Air"}, [2]string{"F-18", "Secret"})
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{ids["F-18"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Air", "Secret"}, named(ids, above[ids["F-18"]]))
+
+		below, err := ss.PropertyField().GetOptionDescendantsOrSelf(field, []string{ids["Air"], ids["Secret"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Air", "F-18"}, named(ids, below[ids["Air"]]))
+		require.ElementsMatch(t, []string{"Secret", "F-18"}, named(ids, below[ids["Secret"]]))
+	})
+
+	t.Run("a walk over a grid returns options, not routes to them", func(t *testing.T) {
+		// An 11x11 grid: every option below the top row and right of the first
+		// column has two parents, which is what representing a second dimension as
+		// extra parents produces. Everything above the far corner is 121 options,
+		// reachable along 705,431 distinct routes -- so a walk that enumerated
+		// routes rather than options would return five thousand times as many rows
+		// here, and worse on anything larger.
+		const side = 11
+		ids := map[string]string{}
+		for row := range side {
+			for column := range side {
+				ids[fmt.Sprintf("%d-%d", row, column)] = model.NewId()
+			}
+		}
+		field := newGraphField(t, ids)
+
+		var pairs [][2]string
+		for row := range side {
+			for column := range side {
+				if row > 0 {
+					pairs = append(pairs, [2]string{fmt.Sprintf("%d-%d", row, column), fmt.Sprintf("%d-%d", row-1, column)})
+				}
+				if column > 0 {
+					pairs = append(pairs, [2]string{fmt.Sprintf("%d-%d", row, column), fmt.Sprintf("%d-%d", row, column-1)})
+				}
+			}
+		}
+		require.Len(t, pairs, 2*side*(side-1))
+		link(t, field, ids, pairs...)
+
+		corner := ids[fmt.Sprintf("%d-%d", side-1, side-1)]
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{corner})
+		require.NoError(t, err)
+		require.Len(t, above[corner], side*side)
+
+		// And seeding the walk with a whole row costs one query and one row per
+		// option reached from each seed, which is what makes the interface take a
+		// set: the middle option of the row reaches its own quarter of the grid.
+		var lastRow []string
+		for column := range side {
+			lastRow = append(lastRow, ids[fmt.Sprintf("%d-%d", side-1, column)])
+		}
+		above, err = ss.PropertyField().GetOptionAncestorsOrSelf(field, lastRow)
+		require.NoError(t, err)
+		require.Len(t, above, side)
+		require.Len(t, above[ids[fmt.Sprintf("%d-%d", side-1, 5)]], side*6)
+	})
+
+	t.Run("a deleted option is not a seed, and nothing reaches one", func(t *testing.T) {
+		ids := map[string]string{"Air": model.NewId(), "Fighter Jet": model.NewId(), "F-18": model.NewId()}
+		field := newGraphField(t, ids)
+		link(t, field, ids, [2]string{"Fighter Jet", "Air"}, [2]string{"F-18", "Fighter Jet"})
+
+		// Dropping the middle option from the option list soft-deletes it, which
+		// deletes both of its edges: the two options left are unrelated.
+		field.Attrs["options"] = []any{
+			map[string]any{"id": ids["Air"], "name": "Air"},
+			map[string]any{"id": ids["F-18"], "name": "F-18"},
+		}
+		_, err := ss.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{ids["F-18"], ids["Fighter Jet"]})
+		require.NoError(t, err)
+		require.Equal(t, []string{"F-18"}, named(ids, above[ids["F-18"]]))
+		require.NotContains(t, above, ids["Fighter Jet"], "a deleted option is absent, not present and alone")
+	})
+
+	t.Run("an option the field does not have reaches nothing", func(t *testing.T) {
+		ids := map[string]string{"Air": model.NewId()}
+		field := newGraphField(t, ids)
+
+		absent := model.NewId()
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, []string{ids["Air"], absent})
+		require.NoError(t, err)
+		require.Contains(t, above, ids["Air"])
+		require.NotContains(t, above, absent)
+
+		below, err := ss.PropertyField().GetOptionDescendantsOrSelf(field, []string{absent})
+		require.NoError(t, err)
+		require.Empty(t, below)
+	})
+
+	t.Run("a walk stays inside its field when two fields use the same option IDs", func(t *testing.T) {
+		// Unlinking a field from its template deliberately leaves two fields whose
+		// options carry the same identifiers. A walk that read one field's edges
+		// while resolving the other would report a hierarchy the field has not got.
+		shared := map[string]string{"Air": model.NewId(), "Fighter Jet": model.NewId()}
+		withEdges := newGraphField(t, shared)
+		withoutEdges := newGraphField(t, shared)
+		link(t, withEdges, shared, [2]string{"Fighter Jet", "Air"})
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(withoutEdges, []string{shared["Fighter Jet"]})
+		require.NoError(t, err)
+		require.Equal(t, []string{"Fighter Jet"}, named(shared, above[shared["Fighter Jet"]]))
+
+		children, err := ss.PropertyField().GetOptionChildren(withoutEdges, []string{shared["Air"]})
+		require.NoError(t, err)
+		require.Empty(t, children)
+
+		above, err = ss.PropertyField().GetOptionAncestorsOrSelf(withEdges, []string{shared["Fighter Jet"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet", "Air"}, named(shared, above[shared["Fighter Jet"]]))
+	})
+
+	t.Run("a linked field resolves the hierarchy of the template it derives", func(t *testing.T) {
+		// The load-bearing case for the driving use case: the graph is on a
+		// template and the fields users and channels carry are linked to it. A
+		// linked field owns no options and no edges, so a walk scoped to its own ID
+		// would find nothing above anything and answer every coverage question
+		// with "no" -- denying access with nothing to show for it.
+		ids := map[string]string{"Air": model.NewId(), "Fighter Jet": model.NewId(), "F-18": model.NewId()}
+		template := newGraphField(t, ids)
+		link(t, template, ids, [2]string{"Fighter Jet", "Air"}, [2]string{"F-18", "Fighter Jet"})
+
+		linked, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "HierarchyLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         model.StringInterface{"options": template.Attrs["options"]},
+		})
+		require.NoError(t, err)
+		require.Empty(t, mustGetOptionEdges(t, ss, linked.ID), "a linked field owns no edges of its own")
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(linked, []string{ids["F-18"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Fighter Jet", "Air"}, named(ids, above[ids["F-18"]]))
+
+		children, err := ss.PropertyField().GetOptionChildren(linked, []string{ids["Air"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet"}, named(ids, children[ids["Air"]]))
+
+		// And once it stops linking it resolves its own copy, which the unlink
+		// takeover has by then given it.
+		linked.LinkedFieldID = nil
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{linked}, nil)
+		require.NoError(t, err)
+
+		above, err = ss.PropertyField().GetOptionAncestorsOrSelf(linked, []string{ids["F-18"]})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Fighter Jet", "Air"}, named(ids, above[ids["F-18"]]))
+	})
+
+	t.Run("more options than one statement can carry parameters for", func(t *testing.T) {
+		// Postgres accepts 65,535 bind parameters per statement and refuses the
+		// statement outright past that, while a field may hold far more options
+		// than that -- so both queries batch their identifiers. The made-up
+		// identifiers need not exist for this: what is being checked is that a
+		// caller holding more options than one statement can name gets an answer
+		// rather than an error.
+		ids := map[string]string{"Air": model.NewId(), "Fighter Jet": model.NewId()}
+		field := newGraphField(t, ids)
+		link(t, field, ids, [2]string{"Fighter Jet", "Air"})
+
+		asked := []string{ids["Fighter Jet"], ids["Air"]}
+		for len(asked) <= 70000 {
+			asked = append(asked, model.NewId())
+		}
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, asked)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet", "Air"}, named(ids, above[ids["Fighter Jet"]]))
+		require.Len(t, above, 2, "the options that do not exist reach nothing")
+
+		children, err := ss.PropertyField().GetOptionChildren(field, asked)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet"}, named(ids, children[ids["Air"]]))
+		require.Len(t, children, 1)
+	})
+
+	t.Run("no seeds is no walk", func(t *testing.T) {
+		field := newGraphField(t, map[string]string{"Air": model.NewId()})
+
+		above, err := ss.PropertyField().GetOptionAncestorsOrSelf(field, nil)
+		require.NoError(t, err)
+		require.Empty(t, above)
+
+		children, err := ss.PropertyField().GetOptionChildren(field, nil)
+		require.NoError(t, err)
+		require.Empty(t, children)
+	})
+}
+
+func mustGetOptionEdges(t *testing.T, ss store.Store, fieldID string) []*model.PropertyOptionEdge {
+	t.Helper()
+	edges, err := ss.PropertyField().GetOptionEdges(fieldID)
+	require.NoError(t, err)
+	return edges
 }

@@ -420,6 +420,36 @@ func (_m *PropertyFieldStore) GetMany(ctx context.Context, groupID string, ids [
 	return r0, r1
 }
 
+// GetOptionAncestorsOrSelf provides a mock function with given fields: field, optionIDs
+func (_m *PropertyFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	ret := _m.Called(field, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionAncestorsOrSelf")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) (map[string][]string, error)); ok {
+		return rf(field, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) map[string][]string); ok {
+		r0 = rf(field, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, optionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOptionChildEdges provides a mock function with given fields: fieldID, parentOptionIDs
 func (_m *PropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	ret := _m.Called(fieldID, parentOptionIDs)
@@ -443,6 +473,66 @@ func (_m *PropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionID
 
 	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(fieldID, parentOptionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOptionChildren provides a mock function with given fields: field, optionIDs
+func (_m *PropertyFieldStore) GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	ret := _m.Called(field, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionChildren")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) (map[string][]string, error)); ok {
+		return rf(field, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) map[string][]string); ok {
+		r0 = rf(field, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, optionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOptionDescendantsOrSelf provides a mock function with given fields: field, optionIDs
+func (_m *PropertyFieldStore) GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	ret := _m.Called(field, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionDescendantsOrSelf")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) (map[string][]string, error)); ok {
+		return rf(field, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) map[string][]string); ok {
+		r0 = rf(field, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, optionIDs)
 	} else {
 		r1 = ret.Error(1)
 	}

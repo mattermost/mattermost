@@ -1202,6 +1202,9 @@ type PropertyFieldStore interface {
 	DeleteOptionEdges(edges []*model.PropertyOptionEdge) error
 	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
 	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error

@@ -187,6 +187,29 @@ func optionOwnerIDs(field *model.PropertyField) []string {
 	return []string{field.ID}
 }
 
+// graphOptionOwnerID returns the single field whose rows carry the hierarchy a
+// graph field exposes: the template it links to, or itself when it links to
+// nothing.
+//
+// One field rather than both, because an edge never crosses fields: a linked
+// field owns no copy of its template's options and so no copy of the edges
+// between them, and the parent links it serves are the template's rows,
+// carrying the template's FieldID. Scoping a walk to a linked field's own ID
+// would find no edges at all and report every option as unrelated to every
+// other -- which reads as "covers nothing", so it denies access rather than
+// granting it, and leaves no trace.
+//
+// A linked field may still own local options of its own, and this deliberately
+// does not walk them: with no cross-field edges they could only form a second
+// hierarchy disconnected from the template's, and the option a caller means when
+// it names a linked field's hierarchy is the inherited one.
+func graphOptionOwnerID(field *model.PropertyField) string {
+	if sourceID := optionSourceID(field); sourceID != "" {
+		return sourceID
+	}
+	return field.ID
+}
+
 // wireOptions reads a field's inline option array. It runs after
 // PropertyField.EnsureOptionIDs, which normalizes any option list to []any of
 // map[string]any, so anything else is a caller that bypassed it.
