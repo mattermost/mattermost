@@ -108,10 +108,10 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 //
 // Two operations are blocked and no others: creating a graph field, and
 // converting a field of another type to graph. A graph field that already exists
-// stays fully operable with the flag off — this gate is the only thing keyed on
-// the flag, and it is consulted only when a field is created or updated, so an
-// existing graph field's definition and options stay editable and every path
-// that merely reads it is untouched.
+// stays fully operable with the flag off — nothing but this gate acts on the
+// flag, and it runs only on field create and field update, so an existing graph
+// field's definition and options stay editable and every path that merely reads
+// one is untouched.
 //
 // That half is the one a reader will not assume, and it is deliberate: the flag
 // exists to stop new graph fields appearing, not to freeze the ones already in
@@ -159,6 +159,27 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 
 	if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, field); appErr != nil {
 		return nil, appErr
+	}
+
+	// A field created with a linked_field_id takes its type from the template it
+	// links to — the property service copies the source's type over whatever the
+	// request said — so the check above cannot see what is about to be created.
+	// Gate on the source's type as well, or a graph template hands out new graph
+	// fields while the flag is off. Skipped entirely when the flag is on, so the
+	// usual path pays no extra read.
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && !a.Config().FeatureFlags.PropertyFieldGraph {
+		source, appErr := a.GetPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
+		switch {
+		case appErr != nil && appErr.StatusCode == http.StatusNotFound:
+			// No such source in this group. Nothing to gate, and the service has
+			// the specific errors for an unusable link target.
+		case appErr != nil:
+			return nil, appErr
+		default:
+			if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, source); appErr != nil {
+				return nil, appErr
+			}
+		}
 	}
 
 	if !bypassProtectedCheck && field.Protected {

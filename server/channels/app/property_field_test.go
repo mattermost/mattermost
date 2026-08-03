@@ -1461,6 +1461,65 @@ func TestPropertyFieldGraphGate(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldTypeGraph, created.Type)
 	})
 
+	// linkedTo builds a user field that inherits its type from a template, which
+	// is how the intended shape reaches a user or channel: one template holds the
+	// hierarchy and the object-scoped fields link to it.
+	linkedTo := func(templateID string) *model.PropertyField {
+		field := textField()
+		field.LinkedFieldID = &templateID
+		return field
+	}
+
+	t.Run("rejects linking a new field to a graph template when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		template, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		// The request says "text"; the service would copy the template's type
+		// over it, so the gate has to look at the template.
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("allows linking a new field to a graph template when the flag is on", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		template, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, created.Type, "the linked field inherits the template's type")
+	})
+
+	t.Run("leaves a link to a non-graph template alone when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		templateField := textField()
+		templateField.ObjectType = model.PropertyFieldObjectTypeTemplate
+		template, appErr := th.App.CreatePropertyField(th.Context, templateField, false, "")
+		require.Nil(t, appErr)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeText, created.Type)
+	})
+
+	t.Run("a link to a missing template still reports the link error", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(model.NewId()), false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "app.property_field.create.linked_source_not_found.app_error", appErr.Id)
+	})
+
 	t.Run("an existing graph field stays editable when the flag is off", func(t *testing.T) {
 		setGraphFlag(t, true)
 
