@@ -232,23 +232,13 @@ test.describe(
             const allowed = await pw.testBrowser.login(allowedUser as any);
             await allowed.channelsPage.goto(team.name, channelName);
             await allowed.channelsPage.toBeVisible();
-            await expect
-                .poll(() => allowed.channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(allowed.channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({timeout: 30000});
 
             const denied = await pw.testBrowser.login(deniedUser as any);
             await denied.channelsPage.goto(team.name, channelName);
             await denied.channelsPage.toBeVisible();
             await expect(denied.channelsPage.centerView.postCreate.attachmentButton).toBeVisible({timeout: 30000});
-            await expect
-                .poll(() => denied.channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(denied.channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({timeout: 30000});
         });
 
         // (D) Render-allow corresponds to a real, server-accepted upload — proving
@@ -261,14 +251,7 @@ test.describe(
             await channelsPage.goto(team.name, channelName);
             await channelsPage.toBeVisible();
 
-            // Wait for the ABAC render decision to resolve before uploading.
-            // The button starts disabled while the action-search response is in-flight.
-            await expect
-                .poll(() => channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({timeout: 30000});
 
             const attachments = page.locator('[data-testid="fileAttachmentList"]');
             const beforeCount = await attachments.count();
@@ -295,12 +278,7 @@ test.describe(
             await channelsPage.toBeVisible();
 
             // Initially allowed (Engineering) → control enabled.
-            await expect
-                .poll(() => channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({timeout: 30000});
 
             // Admin revokes by changing the attribute; the CPA update event drives a
             // re-fetch of the render decision on the still-open page.
@@ -311,12 +289,7 @@ test.describe(
                 liveUser.id,
             );
 
-            await expect
-                .poll(() => channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({timeout: 30000});
         });
 
         // (B) File visibility is gated correctly by attribute:
@@ -347,6 +320,38 @@ test.describe(
             await expect(deniedBrowser.locator('[data-testid="fileAttachmentList"]')).toHaveCount(0);
         });
 
+        // (E) Revoking access while the channel is open redacts already-loaded posts without a
+        // reload: the CPA change drops the loaded chunks, and the refetch comes back sanitized.
+        test('files already on screen are redacted without a reload when access is revoked', async ({pw}) => {
+            test.setTimeout(90000);
+            test.skip(!licensed, 'No ABAC license');
+
+            const liveUser = await createUserForABAC(sharedAdminClient, attributeFieldsMap, [
+                {name: 'Department', type: 'text', value: 'Engineering'},
+            ]);
+            await sharedAdminClient.addToTeam(team.id, liveUser.id);
+            await sharedAdminClient.addToChannel(liveUser.id, channelId);
+
+            const {channelsPage, page} = await pw.testBrowser.login(liveUser as any);
+            await channelsPage.goto(team.name, channelName);
+            await channelsPage.toBeVisible();
+
+            await expect(page.locator('[data-testid="fileAttachmentList"]').first()).toBeVisible({timeout: 30000});
+            await expect(page.getByTestId('redactedFilesPlaceholder')).toHaveCount(0);
+
+            await setupCustomProfileAttributeValuesForUser(
+                sharedAdminClient,
+                [{name: 'Department', type: 'text', value: 'Sales'}],
+                attributeFieldsMap,
+                liveUser.id,
+            );
+
+            // No page.reload() — this is the point of the test.
+            await expect(page.getByTestId('redactedFilesPlaceholder').first()).toBeVisible({timeout: 30000});
+            await expect(page.locator('[data-testid="fileAttachmentList"]')).toHaveCount(0);
+            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({timeout: 30000});
+        });
+
         // (C) After access is revoked and the page is reloaded, upload is blocked and
         // files are replaced by the redacted placeholder. Validates both the ETag
         // (fresh post-list response bypasses any cached data) and server sanitization
@@ -366,12 +371,7 @@ test.describe(
             await channelsPage.toBeVisible();
 
             // Engineering → allowed: upload enabled and files visible.
-            await expect
-                .poll(() => channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
-                    timeout: 30000,
-                    intervals: [500, 1500, 3000],
-                })
-                .toBe(true);
+            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({timeout: 30000});
             await expect(page.locator('[data-testid="fileAttachmentList"]').first()).toBeVisible({timeout: 10000});
 
             // Revoke access via attribute change.
