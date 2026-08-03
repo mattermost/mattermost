@@ -1446,6 +1446,7 @@
   "admin.global_attributes.attribute_details.options.add_placeholder": "Add values… (required)",
   "admin.global_attributes.attribute_details.options.edit_option": "Edit option",
   "admin.global_attributes.attribute_details.options.help": "Text attributes have no preset values — a value is typed in per resource.",
+  "admin.global_attributes.attribute_details.options.invalid": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank.",
   "admin.global_attributes.attribute_details.options.label": "Options",
   "admin.global_attributes.attribute_details.options.label_placeholder": "Option label",
   "admin.global_attributes.attribute_details.options.position_menu_label": "Move to position",
