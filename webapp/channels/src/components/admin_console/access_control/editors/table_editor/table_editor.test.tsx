@@ -1140,9 +1140,8 @@ describe('simple-expression detection with quote characters in values', () => {
     });
 
     test('an in-list with apostrophe values is simple', () => {
-        // The `in [...]` matcher is quote-agnostic by design; this asserts the
-        // apostrophe case remains covered rather than guarding the fix.
         expect(isSimpleCondition('user.attributes.dept in ["Matt\'s", "Eng"]')).toBe(true);
+        expect(isSimpleCondition('user.email in ["o\'brien@example.com", "a@b.com"]')).toBe(true);
     });
 
     test('a single-quoted value containing a double quote is simple', () => {
@@ -1161,5 +1160,19 @@ describe('simple-expression detection with quote characters in values', () => {
         // A double-quoted literal with an unescaped inner double quote is invalid
         // CEL and must not be misclassified as a simple equality.
         expect(isSimpleCondition('user.attributes.dept == "say "hi""')).toBe(false);
+    });
+
+    test('an unterminated string in an in-list is still not simple', () => {
+        // Previously `\[.*?\]` accepted any content between brackets, so an
+        // unterminated list literal was misclassified as simple.
+        expect(isSimpleCondition('user.attributes.dept in ["Matt\'s]')).toBe(false);
+        expect(isSimpleCondition('user.email in ["foo]')).toBe(false);
+        expect(isSimpleCondition('["Matt\'s] in user.attributes.dept')).toBe(false);
+    });
+
+    test('an unescaped embedded double quote in an in-list is still not simple', () => {
+        expect(isSimpleCondition('user.attributes.dept in ["say "hi""]')).toBe(false);
+        expect(isSimpleCondition('user.email in ["say "hi""]')).toBe(false);
+        expect(isSimpleCondition('["say "hi""] in user.attributes.dept')).toBe(false);
     });
 });

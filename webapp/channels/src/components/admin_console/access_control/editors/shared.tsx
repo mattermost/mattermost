@@ -219,13 +219,17 @@ export function toCELEditorAttributes(
 // "Matt's Department" is still recognized as a simple expression.
 const CEL_STRING = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
 
+// Empty list or comma-separated CEL string literals. Rejects unterminated /
+// unescaped quotes that the previous `\[.*?\]` matcher would accept.
+const CEL_STRING_LIST = String.raw`\[\s*(?:${CEL_STRING}(?:\s*,\s*${CEL_STRING})*)?\s*\]`;
+
 // The first pattern accepts ==, != and the ranked ordinal operators
 // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
 // alternation so the two-char forms match before the one-char ones.
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*${CEL_STRING}$`),
-    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+\[.*?\]$`),
-    new RegExp(String.raw`^((\[.*?\])|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
+    new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.startsWith\(${CEL_STRING}.*?\)$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.endsWith\(${CEL_STRING}.*?\)$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.contains\(${CEL_STRING}.*?\)$`),
@@ -237,8 +241,8 @@ const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     // two-segment custom-profile-attribute forms above.
     new RegExp(String.raw`^user\.(verified|isbot)\s*(==|!=)\s*(true|false)$`),
     new RegExp(String.raw`^user\.email\s*(==|!=)\s*${CEL_STRING}$`),
-    new RegExp(String.raw`^user\.email\s+in\s+\[.*?\]$`),
-    new RegExp(String.raw`^((\[.*?\])|${CEL_STRING})\s+in\s+user\.email$`),
+    new RegExp(String.raw`^user\.email\s+in\s+${CEL_STRING_LIST}$`),
+    new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.email$`),
     new RegExp(String.raw`^user\.email\.(startsWith|endsWith|contains)\(${CEL_STRING}.*?\)$`),
     new RegExp(String.raw`^user\.createat\.youngerThanDays\(\d+\)$`),
 ];
