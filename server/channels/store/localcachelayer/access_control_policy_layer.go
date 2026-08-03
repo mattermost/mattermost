@@ -27,10 +27,9 @@ func (s *LocalCacheAccessControlPolicyStore) handleClusterInvalidateAccessContro
 	}
 }
 
-// GetEtagEpoch caches the per-channel render-ETag epoch. The cache key is the channel ID
-// (empty string is the system-scoped-only bucket). Because every channel's epoch also folds in
-// the system-scoped permission policies, a permission-policy change must clear the whole cache
-// via ClearEtagCache, while a single channel's change only invalidates that channel's key.
+// Keyed by channel ID, with the empty string as the system-scoped-only bucket. Every channel's
+// epoch folds in the permission policies, so a permission-policy change has to clear the whole
+// cache; a single channel's change only invalidates its own key.
 func (s LocalCacheAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	var epoch string
 	if err := s.rootStore.doStandardReadCache(s.rootStore.accessControlPolicyEtagCache, channelID, &epoch); err == nil {

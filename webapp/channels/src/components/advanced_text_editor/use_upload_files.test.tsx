@@ -30,7 +30,7 @@ describe('useUploadFiles ABAC upload gate', () => {
                     byResource: decision ? {
                         channel: {
                             [channelId]: {
-                                upload_file_attachment: {...decision, generation: 1, receivedAt: 1},
+                                upload_file_attachment: {...decision, generation: 1},
                             },
                         },
                     } : {},

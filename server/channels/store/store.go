@@ -1240,10 +1240,8 @@ type AccessControlPolicyStore interface {
 	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
 
 	// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the
-	// given channel's own policy row (channel policy IDs equal the channel ID). It combines
-	// MAX(CreateAt) — the table has no UpdateAt column; it uses delete-and-reinsert, so CreateAt
-	// is "last saved" — with the row count, so that deleting a policy that is not the newest
-	// still moves the epoch. An empty channelID limits the result to the permission policies.
+	// given channel's own policy row; an empty channelID covers only the former. Deletion-
+	// sensitive, so it moves even when the newest policy is not the one that changed.
 	GetEtagEpoch(rctx request.CTX, channelID string) (string, error)
 
 	// InvalidateEtagForChannel drops the cached render-ETag epoch for a single channel's policy.
@@ -1261,9 +1259,8 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
-	// GetUserPropertyValuesEpoch returns an opaque epoch over the user's active PropertyValues
-	// rows, combining MAX(UpdateAt) with the row count so soft-deleting a value that is not the
-	// most recent one still moves it. Used as the per-user epoch in ABAC-aware post-list ETags.
+	// GetUserPropertyValuesEpoch returns the per-user epoch for ABAC-aware post-list ETags.
+	// Deletion-sensitive, so soft-deleting any value moves it.
 	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
 

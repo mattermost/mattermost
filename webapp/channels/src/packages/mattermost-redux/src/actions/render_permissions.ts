@@ -9,9 +9,8 @@ import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
-// Strictly-increasing token stamped on each fetch and on each invalidation. It is the ordering
-// identity the reducer uses to discard completions that a newer fetch or an invalidation has
-// already superseded. A counter rather than Date.now(), which can collide within a millisecond.
+// Ordering identity for fetches and invalidations, so the reducer can drop superseded completions.
+// A counter rather than Date.now(), which collides within a millisecond.
 let generationCounter = 0;
 
 export function fetchRenderActionsForResource(resourceType: string, resourceId: string, actions: string[]): ActionFuncAsync<ActionSearchResponse> {
@@ -40,10 +39,8 @@ export function fetchRenderActionsForResource(resourceType: string, resourceId: 
     };
 }
 
-// The Action Search endpoint takes one resource per request, so a batch is grouped by resource and
-// issued as one request per group carrying that group's actions. Capping the batch at the server's
-// per-request action limit keeps any single group within it, since a group can never hold more
-// identifiers than the batch itself.
+// Matches the server's per-request action cap. Safe for the grouping below, since a group can
+// never hold more identifiers than the batch itself.
 const maxRenderDecisionsPerBatch = 16;
 const renderDecisionsBatchWaitMs = 100;
 
@@ -51,13 +48,14 @@ function sameRenderDecisionIdentifier(a: RenderDecisionIdentifier, b: RenderDeci
     return a.resourceType === b.resourceType && a.resourceId === b.resourceId && a.action === b.action;
 }
 
-// fetchRenderActionsForResourceBatched coalesces the decision fetches of components that are
-// unaware of each other — the centre channel and RHS editors, and eventually one hook per post or
-// attachment — into a single request per resource.
+// Coalesces the fetches of components unaware of each other — centre channel and RHS editors
+// today, one hook per post or attachment once downloads land.
 export function fetchRenderActionsForResourceBatched(identifier: RenderDecisionIdentifier): ActionFuncAsync {
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.renderDecisionsLoader) {
             loaders.renderDecisionsLoader = new DelayedDataLoader<RenderDecisionIdentifier>({
+                // Action Search takes one resource per request, so a batch becomes one request per
+                // resource carrying that resource's actions.
                 fetchBatch: (identifiers) => {
                     const byResource = new Map<string, {resourceType: string; resourceId: string; actions: string[]}>();
 
@@ -87,8 +85,7 @@ export function fetchRenderActionsForResourceBatched(identifier: RenderDecisionI
     };
 }
 
-// Invalidations carry the current generation so the reducer can discard the completion of a fetch
-// that was already in flight when they landed.
+// Stamped with the current generation so the reducer can discard fetches already in flight.
 export function invalidateRenderDecisionsForChannel(channelId: string) {
     return {type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL, data: {channelId, generation: generationCounter}};
 }

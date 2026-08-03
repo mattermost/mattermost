@@ -237,9 +237,8 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
-// The row count is folded in alongside the max because values are soft-deleted: dropping a value
-// that is not the most recently updated one leaves MAX(UpdateAt) unchanged, which would keep a
-// stale ETag matching.
+// Count folded in alongside the max to catch soft deletes: dropping a value that isn't the most
+// recently updated leaves MAX(UpdateAt) unchanged, and the stale ETag would keep matching.
 func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("COALESCE(MAX(UpdateAt), 0) AS MaxUpdateAt", "COUNT(*) AS Total").

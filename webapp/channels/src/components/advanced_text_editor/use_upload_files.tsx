@@ -49,8 +49,8 @@ const useUploadFiles = (
     });
     const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
 
-    // Fail open while the decision is in flight: the upload endpoint enforces regardless, and the
-    // alternative flickers the button disabled on every first visit to a channel.
+    // Fail open while in flight: the endpoint enforces regardless, and failing closed flickers the
+    // button disabled on every first visit to a channel.
     const uploadAllowedByPolicy = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'}, true);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});

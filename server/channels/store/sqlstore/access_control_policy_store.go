@@ -942,18 +942,15 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 	return policies, nil
 }
 
-// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the given
-// channel's own policy row (a channel policy's ID equals the channel ID). There is no UpdateAt
-// column — the table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
+// GetEtagEpoch covers the system-scoped permission policies plus the given channel's own policy
+// row (a channel policy's ID equals the channel ID); an empty channelID covers only the former.
 //
-// The row count is folded in because MAX(CreateAt) alone is not deletion-sensitive: removing a
-// policy that is not the newest leaves the max untouched, so an ETag built from it would still
-// match and clients would be served their cached, differently-sanitized copy.
+// MAX(CreateAt), because the table has no UpdateAt and saves are delete-and-reinsert. The count is
+// folded in to catch deletes: dropping a policy that isn't the newest leaves the max untouched, so
+// the ETag would still match and clients would keep a differently-sanitized cached copy.
 //
-// Matching the channel row by primary key rather than scanning every policy's rules JSON scopes
-// the query to the target channel; the cost is a benign false positive where a membership-only
-// change to this channel's policy also advances the epoch. An empty channelID considers only the
-// permission policies.
+// Matching the channel by primary key instead of scanning every policy's rules JSON costs a benign
+// false positive: a membership-only change to this channel's policy also advances the epoch.
 func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("COALESCE(MAX(CreateAt), 0) AS MaxCreateAt", "COUNT(*) AS Total").

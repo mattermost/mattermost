@@ -1419,18 +1419,15 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-// Stand-in for an epoch the store could not produce. It keeps the ETag well-formed without
-// colliding with a real epoch, which always carries a row count.
+// Cannot collide with a real epoch, which always carries a row count.
 const unknownABACEtagEpoch = "unknown"
 
-// AppendABACEtag extends a base ETag with two DB-derived epoch components so that
-// a file-policy change or user attribute change causes an ETag miss — forcing
-// SanitizePostListMetadataForUser to run instead of returning a stale 304.
-// Format: "base.policyEpoch.userCPAEpoch". No-op when ABAC is inactive. Each epoch is opaque and
-// combines a max timestamp with a row count, so deletions move it too.
+// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
+// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
+// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
 //
-// channelID scopes the policy epoch to the permission policies plus that channel's own policy;
-// pass "" when no channel is in scope. Both epochs are cached in the store's local cache layer.
+// Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
+// system-scoped permission policies.
 func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
 	if !a.Config().FeatureFlags.PermissionPolicies ||
 		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||

@@ -76,7 +76,7 @@ describe('useRenderPermission', () => {
         const byResource = {
             channel: {
                 [channelId]: {
-                    upload_file_attachment: {allowed: false, evaluated: true, reason: 'restricted_by_policy', generation: 1, receivedAt: 1},
+                    upload_file_attachment: {allowed: false, evaluated: true, reason: 'restricted_by_policy', generation: 1},
                 },
             },
         };
@@ -91,7 +91,7 @@ describe('useRenderPermission', () => {
         const byResource = {
             channel: {
                 [channelId]: {
-                    upload_file_attachment: {allowed: false, evaluated: true, generation: 1, receivedAt: 1},
+                    upload_file_attachment: {allowed: false, evaluated: true, generation: 1},
                 },
             },
         };

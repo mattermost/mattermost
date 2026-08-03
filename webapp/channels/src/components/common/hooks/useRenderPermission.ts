@@ -12,35 +12,29 @@ import {getRenderDecision} from 'mattermost-redux/selectors/entities/render_perm
 
 import {makeUseEntity} from './useEntity';
 
-// This layer must return the decision entry, never its boolean: useEntity treats a falsy entity as
-// not-loaded, so a legitimate deny would refetch on every render forever.
+// Returns the entry, never its boolean: useEntity reads a falsy entity as not-loaded, so a deny
+// would refetch on every render forever.
 const useRenderDecision = makeUseEntity<RenderPermissionEntry, RenderDecisionIdentifier>({
     name: 'useRenderDecision',
     fetch: fetchRenderActionsForResourceBatched,
     selector: getRenderDecision,
 });
 
-// useRenderPermission returns a non-authoritative, render-time ABAC decision for the current user
-// on a resource/action, falling back to defaultAllowed while no decision is cached. Fetches are
-// batched per resource and race-safe: each carries a monotonic generation and the reducer ignores
-// stale completions (see actions/render_permissions). Server enforcement remains the source of
-// truth — never gate a real action on this.
+// Advisory only — the server re-evaluates on every request, so never gate a real action on this.
 //
 // defaultAllowed is required rather than defaulted: silently failing open on a permissions
-// affordance is exactly the mistake worth making impossible.
+// affordance is the mistake worth making impossible.
 export function useRenderPermission({resourceType, resourceId, action}: RenderDecisionIdentifier, defaultAllowed: boolean): boolean {
     const enabled = useSelector(isPermissionPoliciesEnabled);
 
-    // A surface with no channel — the editor is exported to plugins, which can render it without
-    // one — has no channel policy to apply, so there is nothing to fetch or to decide. useEntity
-    // keys its fetch effect on the identifier, so it also has to be stable across renders.
+    // Undefined identifier means nothing to decide, and useEntity then neither selects nor fetches.
+    // A channel-less surface is real: the editor is exported to plugins, which can render it
+    // without one. Memoized because useEntity keys its fetch effect on the identifier.
     const identifier = useMemo(
         () => (enabled && resourceId ? {resourceType, resourceId, action} : undefined),
         [enabled, resourceType, resourceId, action],
     );
 
-    // useEntity neither selects nor fetches for a falsy identifier, which is how the
-    // nothing-to-decide case above stays a no-op.
     const decision = useRenderDecision(identifier as RenderDecisionIdentifier);
 
     if (!identifier || !decision?.evaluated) {
