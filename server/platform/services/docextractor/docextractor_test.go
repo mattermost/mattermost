@@ -367,7 +367,7 @@ func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.Re
 func waitForExtractionSlotsIdle(t *testing.T, limit int) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			acquired := 0
 			for range limit {
 				if !tryAcquireExtractionSlot() {
