@@ -133,6 +133,13 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field and converting an existing field to graph.
+	// It does not restrict a graph field that already exists — see
+	// App.graphPropertyFieldGate for what that means and why.
+	PropertyFieldGraph bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable the new mm_blocks Interactive Messages framework
@@ -204,6 +211,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.PropertyFieldGraph = false
 
 	f.MmBlocksEnabled = true
 

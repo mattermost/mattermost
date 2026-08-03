@@ -831,6 +831,66 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 	})
+
+	t.Run("graph options", func(t *testing.T) {
+		graphField := func(options ...any) *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "programs",
+				Type:       PropertyFieldTypeGraph,
+				ObjectType: PropertyFieldObjectTypeTemplate,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+				Attrs:      StringInterface{PropertyFieldAttributeOptions: options},
+			}
+		}
+
+		t.Run("graph is an accepted type", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program"})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("no options at all is valid", func(t *testing.T) {
+			pf := graphField()
+			pf.Attrs = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects an option carrying a rank", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "Fighter Jet Program", "rank": 2},
+			)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			// The offending option's position is reported, so a caller sending a
+			// long list knows which entry to fix.
+			require.Equal(t, "attrs.options[1].rank", appErr.params["FieldName"])
+		})
+
+		t.Run("a null rank is treated as absent", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": nil})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects a rank whatever shape it arrives in", func(t *testing.T) {
+			for _, rank := range []any{1, int64(1), 1.0, "1"} {
+				pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": rank})
+				require.Error(t, pf.IsValid(), "rank %#v should be rejected", rank)
+			}
+		})
+
+		t.Run("other option-bearing types keep their ranks", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "LOW", "rank": 1})
+			pf.Type = PropertyFieldTypeRank
+			require.NoError(t, pf.IsValid())
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
@@ -863,6 +923,14 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		patch := &PropertyFieldPatch{
 			Name: nil,
 			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("graph is an accepted type", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: new("programs"),
+			Type: new(PropertyFieldTypeGraph),
 		}
 		require.NoError(t, patch.IsValid())
 	})
@@ -1682,6 +1750,7 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeSelect:      true,
 		PropertyFieldTypeMultiselect: true,
 		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
 		PropertyFieldTypeText:        false,
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,

@@ -30,6 +30,16 @@ const (
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
 	PropertyFieldTypeRank        PropertyFieldType = "rank"
+	// PropertyFieldTypeGraph is a multi-value select whose options are meant to
+	// form a hierarchy: one option can stand above another, and access rules are
+	// to reason over that relation rather than over exact option equality. An
+	// object holds several options at once, as it does for multiselect; there is
+	// no single-value variant, which is why the name is unqualified.
+	//
+	// The type carries no hierarchy yet. A graph field's options are stored and
+	// served exactly like a multiselect field's, and the parent links between
+	// them are a follow-up.
+	PropertyFieldTypeGraph PropertyFieldType = "graph"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -91,10 +101,12 @@ var optionFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeSelect,
 	PropertyFieldTypeMultiselect,
 	PropertyFieldTypeRank,
+	PropertyFieldTypeGraph,
 }
 
 // SupportsOptions reports whether the field type carries a list of options
-// (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
+// (select, multiselect, rank, graph). Mirrors the webapp's supportsOptions
+// helper, which does not list graph: the webapp has no graph authoring UI.
 func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
 }
@@ -277,8 +289,15 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
 		pf.Type != PropertyFieldTypeMultiuser &&
-		pf.Type != PropertyFieldTypeRank {
+		pf.Type != PropertyFieldTypeRank &&
+		pf.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.Type == PropertyFieldTypeGraph {
+		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	// LinkedFieldID validation: if set, must be a valid 26-char ID.
@@ -375,7 +394,8 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
 		*pfp.Type != PropertyFieldTypeMultiuser &&
-		*pfp.Type != PropertyFieldTypeRank {
+		*pfp.Type != PropertyFieldTypeRank &&
+		*pfp.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 
@@ -649,6 +669,41 @@ func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
 		// Not a list at all, so not a set of options either.
 		return false
 	}
+}
+
+// optionIndexCarryingRank returns the position of the first inline option that
+// carries a non-null "rank", or -1 if none does. Used to keep ranks off the
+// types they mean nothing for: the option store promotes the key into a column
+// of its own for every option-bearing type, so an unwanted rank does not stay
+// inert — it is persisted, served back, and reads as an ordering the field does
+// not have.
+//
+// Decoded through JSON because the options key legitimately holds several
+// shapes (see PropertyFieldSuppliesOptions). A list that will not decode is
+// reported as carrying no rank rather than as an error: the field-level callers
+// run EnsureOptionIDs first, which rejects an undecodable list with a message
+// about the real problem.
+func optionIndexCarryingRank(attrs StringInterface) int {
+	raw, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return -1
+	}
+
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return -1
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return -1
+	}
+
+	for i, option := range options {
+		if rank, ok := option["rank"]; ok && rank != nil {
+			return i
+		}
+	}
+	return -1
 }
 
 type PropertyOption interface {

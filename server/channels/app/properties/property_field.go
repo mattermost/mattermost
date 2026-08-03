@@ -306,6 +306,28 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
+		// The graph type is not interchangeable with any other, in either
+		// direction. Its option set is meant to carry a hierarchy that no other
+		// type has a notion of, so a conversion either way changes what the
+		// field's values mean without saying so: out of graph, options authored
+		// as a hierarchy become a flat list; into graph, a flat list becomes a
+		// hierarchy nobody wrote. Neither is worth supporting when creating a
+		// field of the type actually wanted and moving the values across is
+		// always available.
+		//
+		// Checked before the PSAv1 skip below: the type means the same thing
+		// whichever property generation the field belongs to.
+		if field.Type != existing.Type &&
+			(field.Type == model.PropertyFieldTypeGraph || existing.Type == model.PropertyFieldTypeGraph) {
+			return nil, nil, nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.graph_type_change.app_error",
+				map[string]any{"FieldID": existing.ID},
+				"cannot convert a field to or from the graph type",
+				http.StatusBadRequest,
+			)
+		}
+
 		// Legacy properties (PSAv1) skip the conflict check.
 		if field.IsPSAv1() {
 			continue

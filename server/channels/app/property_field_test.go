@@ -1359,3 +1359,228 @@ func TestPropertyFieldRankGate(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldTypeRank, updated.Type)
 	})
 }
+
+// TestPropertyFieldGraphGate covers the PropertyFieldGraph feature flag gate in
+// CreatePropertyField / UpdatePropertyFields. The flag blocks creating a graph
+// field and converting a field to graph; it must not restrict a graph field that
+// already exists, which is what the "options stay editable with the flag off"
+// case pins down.
+func TestPropertyFieldGraphGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// Feature flags are read-only at runtime by default; allow this test to
+	// toggle PropertyFieldGraph on and off.
+	th.ConfigStore.SetReadOnlyFF(false)
+
+	setGraphFlag := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldGraph = enabled
+		})
+	}
+
+	// The hierarchy lives on a template field in the intended shape, so that is
+	// what the gate is exercised against; a user-object graph field is covered
+	// too, since the gate is not scoped by object type.
+	graphField := func(objectType string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "programs_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program"},
+				},
+			},
+		}
+	}
+
+	textField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+	}
+
+	t.Run("rejects creating a graph field when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypeTemplate,
+			model.PropertyFieldObjectTypeUser,
+			model.PropertyFieldObjectTypeChannel,
+		} {
+			created, appErr := th.App.CreatePropertyField(th.Context, graphField(objectType), false, "")
+			require.NotNil(t, appErr, "object type %q", objectType)
+			assert.Nil(t, created)
+			assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		}
+	})
+
+	t.Run("rejects converting an existing field to graph when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Type = model.PropertyFieldTypeGraph
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("allows non-graph field create and update when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "renamed_" + model.NewId()
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeText, updated.Type)
+	})
+
+	t.Run("allows creating a graph field when the flag is on", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, created.Type)
+	})
+
+	t.Run("an existing graph field stays editable when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		// The flag goes off underneath a field that already exists, as it would
+		// on a rollback. Its definition and its options must both still be
+		// editable — a flag flip that stranded a half-built hierarchy would be
+		// worse than the type having no flag at all.
+		setGraphFlag(t, false)
+
+		created.Name = "renamed_" + model.NewId()
+		created.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "Air Program"},
+				map[string]any{"name": "Fighter Jet Program"},
+				map[string]any{"name": "F-18 Program"},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, updated.Type)
+
+		options, ok := updated.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "expected an inline option list, got %#v", updated.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Len(t, options, 3, "a third option must be addable with the flag off")
+	})
+}
+
+// TestPropertyFieldGraphConversion covers the rule that the graph type is not
+// interchangeable with any other: no field converts into it and no graph field
+// converts out of it, whatever the feature flag says. Other types keep their
+// existing freedom to convert between each other.
+func TestPropertyFieldGraphConversion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// Creating the graph fields below needs the gate open. The conversion rule
+	// itself is independent of the flag.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldGraph = true
+	})
+
+	newField := func(t *testing.T, fieldType model.PropertyFieldType) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       string(fieldType) + "_" + model.NewId(),
+			Type:       fieldType,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		if fieldType.SupportsOptions() {
+			options := []any{map[string]any{"name": "Air Program"}}
+			if fieldType == model.PropertyFieldTypeRank {
+				options = []any{map[string]any{"name": "Air Program", "rank": 1}}
+			}
+			field.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: options}
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	otherTypes := []model.PropertyFieldType{
+		model.PropertyFieldTypeText,
+		model.PropertyFieldTypeSelect,
+		model.PropertyFieldTypeMultiselect,
+		model.PropertyFieldTypeDate,
+		model.PropertyFieldTypeUser,
+		model.PropertyFieldTypeMultiuser,
+		model.PropertyFieldTypeRank,
+	}
+
+	for _, other := range otherTypes {
+		t.Run("rejects "+string(other)+" converted to graph", func(t *testing.T) {
+			field := newField(t, other)
+			field.Type = model.PropertyFieldTypeGraph
+			field.Attrs = model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Air Program"}},
+			}
+
+			updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+			require.NotNil(t, appErr)
+			assert.Nil(t, updated)
+			assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+
+		t.Run("rejects graph converted to "+string(other), func(t *testing.T) {
+			field := newField(t, model.PropertyFieldTypeGraph)
+			field.Type = other
+
+			updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+			require.NotNil(t, appErr)
+			assert.Nil(t, updated)
+			assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+
+	t.Run("allows a graph field to be updated without a type change", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldTypeGraph)
+		field.Name = "renamed_" + model.NewId()
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, updated.Type)
+	})
+
+	t.Run("leaves conversions between other types alone", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldTypeSelect)
+		field.Type = model.PropertyFieldTypeMultiselect
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeMultiselect, updated.Type)
+	})
+}
