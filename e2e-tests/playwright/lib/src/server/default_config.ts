@@ -758,6 +758,7 @@ const defaultServerConfig: AdminConfig = {
                 Enable: true,
             },
         },
+        PluginAccessControl: {},
         EnableMarketplace: true,
         EnableRemoteMarketplace: true,
         AutomaticPrepackagedPlugins: true,

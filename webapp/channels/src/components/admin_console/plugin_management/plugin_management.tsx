@@ -503,6 +503,7 @@ type State = BaseState & {
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
 
@@ -539,8 +540,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return config;
     };
 
-    getStateFromConfig(config: Props['config']) {
-        const state = {
+    getStateFromConfig(config: Props['config']): Partial<State> {
+        return {
             enable: config?.PluginSettings?.Enable,
             enableUploads: config?.PluginSettings?.EnableUploads,
             allowInsecureDownloadUrl: config?.PluginSettings?.AllowInsecureDownloadURL,
@@ -550,13 +551,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
         };
-
-        return state;
     }
 
     componentDidMount() {
         if (this.state.enable) {
-            this.props.actions.getPluginStatuses().then(
+            Promise.all([
+                this.props.actions.getPluginStatuses(),
+                this.props.actions.getPlugins(),
+            ]).then(
                 () => this.setState({loading: false}),
             );
         }
@@ -997,7 +999,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             });
             pluginsList = plugins.map((pluginStatus: PluginStatus) => {
                 const p = this.props.plugins[pluginStatus.id];
-                const hasSettings = Boolean(p && p.settings_schema && (p.settings_schema.header || p.settings_schema.footer || (p.settings_schema.settings && p.settings_schema.settings.length > 0)));
+
+                // Always offer Settings — enable + UI access control live on the per-plugin page.
+                const hasSettings = Boolean(p);
                 return (
                     <PluginItem
                         key={pluginStatus.id}

@@ -254,6 +254,13 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		WithLogFields(mlog.String("user_id", session.UserId)).
 		WithSession(session)
 
+	// Enforce allow-list for any resolved session before MFA/CSRF fallthrough paths
+	// that would otherwise treat the request as unauthenticated and skip the check.
+	if !app.IsPluginVisibleToUser(rctx, session.UserId, pluginID) {
+		http.NotFound(w, r)
+		return
+	}
+
 	// If MFA is required and user has not activated it, treat it as unauthenticated
 	if appErr := app.MFARequired(rctx); appErr != nil {
 		if appErr.StatusCode == http.StatusInternalServerError {

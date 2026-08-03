@@ -667,3 +667,131 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		assert.False(t, result)
 	})
 }
+
+func TestServePluginRequestAccessControl(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	pluginID := "testplugin"
+
+	allowedSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	deniedSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser2.Id,
+	})
+	require.Nil(t, err)
+
+	require.Nil(t, th.App.SetPluginAccessControl(th.Context, pluginID, &model.PluginAccessControlSettings{
+		Enable:         true,
+		AllowedUserIds: []string{th.BasicUser.Id},
+	}))
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.PluginAccessControl, pluginID)
+		})
+		_ = th.App.Srv().Store().PluginAccessControl().DeleteByPlugin(th.Context, pluginID)
+	})
+
+	t.Run("denied authenticated user gets 404", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+deniedSession.Token)
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		assert.False(t, handlerCalled)
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("allowed authenticated user reaches handler", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+allowedSession.Token)
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
+	t.Run("unauthenticated request is not gated", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
+	t.Run("denied user still 404s when CSRF fails on cookie auth", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		req.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: deniedSession.Token})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		assert.False(t, handlerCalled)
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("opted-out plugin always allowed", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+
+		path, _ := fileutils.FindDir("tests")
+		fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		defer fileReader.Close()
+
+		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath(pluginID))
+		require.Nil(t, appErr)
+		appErr = th.App.SyncPlugins()
+		require.Nil(t, appErr)
+		appErr = th.App.EnablePlugin(pluginID)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_ = th.App.ch.RemovePlugin(pluginID)
+		})
+
+		manifest := th.App.getPluginManifestByID(pluginID)
+		require.NotNil(t, manifest)
+		manifest.UserFiltering = model.NewPointer(false)
+
+		req := httptest.NewRequest(http.MethodGet, "/plugins/"+pluginID+"/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": pluginID})
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+deniedSession.Token)
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+}

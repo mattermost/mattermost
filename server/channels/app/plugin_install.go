@@ -85,6 +85,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -525,6 +526,15 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	if err := ch.removePluginLocally(id); err != nil {
 		return err
 	}
+
+	// Clear ACL users and config before any early return so a reinstall of the same
+	// plugin ID cannot retain enabled filtering with an empty allow-list.
+	if err := ch.srv.Store().PluginAccessControl().DeleteByPlugin(request.EmptyContext(ch.srv.Log()), id); err != nil {
+		logger.Warn("Failed to delete plugin access control users", mlog.Err(err))
+	}
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+		delete(cfg.PluginSettings.PluginAccessControl, id)
+	})
 
 	// Remove bundle from the file store.
 	bundlePath := getBundleStorePath(id)

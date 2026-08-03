@@ -834,6 +834,26 @@ func (_m *Store) Plugin() store.PluginStore {
 	return r0
 }
 
+// PluginAccessControl provides a mock function with no fields
+func (_m *Store) PluginAccessControl() store.PluginAccessControlStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PluginAccessControl")
+	}
+
+	var r0 store.PluginAccessControlStore
+	if rf, ok := ret.Get(0).(func() store.PluginAccessControlStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PluginAccessControlStore)
+		}
+	}
+
+	return r0
+}
+
 // Post provides a mock function with no fields
 func (_m *Store) Post() store.PostStore {
 	ret := _m.Called()

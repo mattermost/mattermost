@@ -34,6 +34,8 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods(http.MethodGet)
 	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods(http.MethodPost)
 	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("/access_control", api.APISessionRequired(getPluginAccessControl)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugin.Handle("/access_control", api.APISessionRequired(setPluginAccessControl)).Methods(http.MethodPut)
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods(http.MethodGet)
 
@@ -247,6 +249,70 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func getPluginAccessControl(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getPluginAccessControl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
+		return
+	}
+
+	settings, appErr := c.App.GetPluginAccessControl(c.AppContext, c.Params.PluginId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(settings); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func setPluginAccessControl(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("setPluginAccessControl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetPluginAccessControl, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "plugin_id", c.Params.PluginId)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
+		return
+	}
+
+	var settings model.PluginAccessControlSettings
+	if jsonErr := json.NewDecoder(r.Body).Decode(&settings); jsonErr != nil {
+		c.SetInvalidParamWithErr("plugin_access_control", jsonErr)
+		return
+	}
+	model.AddEventParameterToAuditRec(auditRec, "enable", settings.Enable)
+	model.AddEventParameterToAuditRec(auditRec, "allowed_user_count", len(settings.AllowedUserIds))
+
+	if appErr := c.App.SetPluginAccessControl(c.AppContext, c.Params.PluginId, &settings); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
 func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -259,15 +325,24 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := c.AppContext.Session().UserId
+
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
-		if m.HasClient() {
-			manifest := m.ClientManifest()
-
-			// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
-			manifest.SettingsSchema = nil
-			clientManifests = append(clientManifests, manifest)
+		if !m.HasClient() {
+			continue
 		}
+		// Empty session (unauthenticated): preserve historical behavior and return all
+		// client manifests. Authenticated users are filtered by the allow-list.
+		if userID != "" && !c.App.IsPluginVisibleToUser(c.AppContext, userID, m.Id) {
+			continue
+		}
+
+		manifest := m.ClientManifest()
+
+		// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
+		manifest.SettingsSchema = nil
+		clientManifests = append(clientManifests, manifest)
 	}
 
 	js, err := json.Marshal(clientManifests)

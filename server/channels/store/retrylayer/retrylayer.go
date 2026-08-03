@@ -47,6 +47,7 @@ type RetryLayer struct {
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PluginStore                     store.PluginStore
+	PluginAccessControlStore        store.PluginAccessControlStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
 	PostPersistentNotificationStore store.PostPersistentNotificationStore
@@ -189,6 +190,10 @@ func (s *RetryLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStor
 
 func (s *RetryLayer) Plugin() store.PluginStore {
 	return s.PluginStore
+}
+
+func (s *RetryLayer) PluginAccessControl() store.PluginAccessControlStore {
+	return s.PluginAccessControlStore
 }
 
 func (s *RetryLayer) Post() store.PostStore {
@@ -459,6 +464,11 @@ type RetryLayerOutgoingOAuthConnectionStore struct {
 
 type RetryLayerPluginStore struct {
 	store.PluginStore
+	Root *RetryLayer
+}
+
+type RetryLayerPluginAccessControlStore struct {
+	store.PluginAccessControlStore
 	Root *RetryLayer
 }
 
@@ -8515,6 +8525,111 @@ func (s *RetryLayerPluginStore) SetWithOptions(pluginID string, key string, valu
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginAccessControlStore) DeleteByPlugin(rctx request.CTX, pluginID string) error {
+
+	tries := 0
+	for {
+		err := s.PluginAccessControlStore.DeleteByPlugin(rctx, pluginID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginAccessControlStore) DeleteByUser(rctx request.CTX, userID string) error {
+
+	tries := 0
+	for {
+		err := s.PluginAccessControlStore.DeleteByUser(rctx, userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginAccessControlStore) GetUserIDs(rctx request.CTX, pluginID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginAccessControlStore.GetUserIDs(rctx, pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginAccessControlStore) IsUserAllowed(rctx request.CTX, pluginID string, userID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginAccessControlStore.IsUserAllowed(rctx, pluginID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginAccessControlStore) SetUserIDs(rctx request.CTX, pluginID string, userIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.PluginAccessControlStore.SetUserIDs(rctx, pluginID, userIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -19661,6 +19776,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.OAuthStore = &RetryLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &RetryLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PluginStore = &RetryLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
+	newStore.PluginAccessControlStore = &RetryLayerPluginAccessControlStore{PluginAccessControlStore: childStore.PluginAccessControl(), Root: &newStore}
 	newStore.PostStore = &RetryLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &RetryLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPersistentNotificationStore = &RetryLayerPostPersistentNotificationStore{PostPersistentNotificationStore: childStore.PostPersistentNotification(), Root: &newStore}

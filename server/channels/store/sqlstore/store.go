@@ -106,6 +106,7 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	channelGuard               store.ChannelGuardStore
+	pluginAccessControl        store.PluginAccessControlStore
 	scheduledPost              store.ScheduledPostStore
 	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
@@ -301,6 +302,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.channelGuard = newSqlChannelGuardStore(store)
+	store.stores.pluginAccessControl = newSqlPluginAccessControlStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
 	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
@@ -925,6 +927,10 @@ func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 
 func (ss *SqlStore) ChannelGuard() store.ChannelGuardStore {
 	return ss.stores.channelGuard
+}
+
+func (ss *SqlStore) PluginAccessControl() store.PluginAccessControlStore {
+	return ss.stores.pluginAccessControl
 }
 
 func (ss *SqlStore) View() store.ViewStore {

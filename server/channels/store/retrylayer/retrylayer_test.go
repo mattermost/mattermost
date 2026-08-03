@@ -38,6 +38,7 @@ func genStore() *mocks.Store {
 	mock.On("OAuth").Return(&mocks.OAuthStore{})
 	mock.On("OutgoingOAuthConnection").Return(&mocks.OutgoingOAuthConnectionStore{})
 	mock.On("Plugin").Return(&mocks.PluginStore{})
+	mock.On("PluginAccessControl").Return(&mocks.PluginAccessControlStore{})
 	mock.On("Post").Return(&mocks.PostStore{})
 	mock.On("Thread").Return(&mocks.ThreadStore{})
 	mock.On("Preference").Return(&mocks.PreferenceStore{})

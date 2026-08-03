@@ -521,6 +521,9 @@ export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginS
     plugin_statuses: never[];
 }>;
 
+// Broadcast when plugin UI access control changes so clients can re-sync loaded plugins.
+export type PluginAccessControlChanged = BaseWebSocketMessage<WebSocketEvents.PluginAccessControlChanged, Record<string, never>>;
+
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
     dialog: JsonEncodedValue<OpenDialogRequest>;
 }>;

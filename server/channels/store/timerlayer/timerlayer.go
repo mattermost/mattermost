@@ -46,6 +46,7 @@ type TimerLayer struct {
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PluginStore                     store.PluginStore
+	PluginAccessControlStore        store.PluginAccessControlStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
 	PostPersistentNotificationStore store.PostPersistentNotificationStore
@@ -188,6 +189,10 @@ func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStor
 
 func (s *TimerLayer) Plugin() store.PluginStore {
 	return s.PluginStore
+}
+
+func (s *TimerLayer) PluginAccessControl() store.PluginAccessControlStore {
+	return s.PluginAccessControlStore
 }
 
 func (s *TimerLayer) Post() store.PostStore {
@@ -458,6 +463,11 @@ type TimerLayerOutgoingOAuthConnectionStore struct {
 
 type TimerLayerPluginStore struct {
 	store.PluginStore
+	Root *TimerLayer
+}
+
+type TimerLayerPluginAccessControlStore struct {
+	store.PluginAccessControlStore
 	Root *TimerLayer
 }
 
@@ -6820,6 +6830,86 @@ func (s *TimerLayerPluginStore) SetWithOptions(pluginID string, key string, valu
 		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.SetWithOptions", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPluginAccessControlStore) DeleteByPlugin(rctx request.CTX, pluginID string) error {
+	start := time.Now()
+
+	err := s.PluginAccessControlStore.DeleteByPlugin(rctx, pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.DeleteByPlugin", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPluginAccessControlStore) DeleteByUser(rctx request.CTX, userID string) error {
+	start := time.Now()
+
+	err := s.PluginAccessControlStore.DeleteByUser(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.DeleteByUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPluginAccessControlStore) GetUserIDs(rctx request.CTX, pluginID string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PluginAccessControlStore.GetUserIDs(rctx, pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.GetUserIDs", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPluginAccessControlStore) IsUserAllowed(rctx request.CTX, pluginID string, userID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.PluginAccessControlStore.IsUserAllowed(rctx, pluginID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.IsUserAllowed", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPluginAccessControlStore) SetUserIDs(rctx request.CTX, pluginID string, userIDs []string) error {
+	start := time.Now()
+
+	err := s.PluginAccessControlStore.SetUserIDs(rctx, pluginID, userIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginAccessControlStore.SetUserIDs", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
@@ -15530,6 +15620,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
+	newStore.PluginAccessControlStore = &TimerLayerPluginAccessControlStore{PluginAccessControlStore: childStore.PluginAccessControl(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPersistentNotificationStore = &TimerLayerPostPersistentNotificationStore{PostPersistentNotificationStore: childStore.PostPersistentNotification(), Root: &newStore}

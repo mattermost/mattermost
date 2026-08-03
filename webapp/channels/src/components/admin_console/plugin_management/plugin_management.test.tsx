@@ -284,7 +284,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
+    test('should match snapshot, with installed plugins and empty settings schema still shows settings link', () => {
         const props = {
             ...defaultProps,
             config: {

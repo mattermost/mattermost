@@ -24,8 +24,18 @@ import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition_helpers';
+import PluginAccessControlSetting from '../plugin_access_control/plugin_access_control_setting';
 import {escapePathPart} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
+
+// Stable setting definition — an inline component wrapper remounts on schema rebuild and resets local ACL state.
+// ACL Enable + allowed users are persisted via the access_control API, not config PATCH.
+const pluginAccessControlSetting: AdminDefinitionSetting = {
+    type: 'custom',
+    key: 'PluginAccessControlSetting',
+    component: PluginAccessControlSetting,
+    onConfigSave: (_value, previousValue) => previousValue,
+};
 
 type OwnProps = {match: {params: {plugin_id: string}}};
 
@@ -152,18 +162,19 @@ function makeGetPluginSchema() {
                         key: pluginEnabledConfigKey + '.Section',
                         header: plugin.settings_schema?.header,
                         footer: plugin.settings_schema?.footer,
-                        settings: [pluginEnableSetting, warningBanner],
+                        settings: [pluginEnableSetting, pluginAccessControlSetting, warningBanner],
                     }];
                 } else if (sections.length > 0) {
-                    // Have a separate section on top with the plugin enable/disable setting.
+                    // Have a separate section on top with the plugin enable/disable setting and UI access control.
                     sections.unshift({
                         key: pluginEnabledConfigKey + '.Section',
                         header: plugin.settings_schema?.header,
                         footer: plugin.settings_schema?.footer,
-                        settings: [pluginEnableSetting],
+                        settings: [pluginEnableSetting, pluginAccessControlSetting],
                     });
                 } else {
-                    // Otherwise we retain existing behaviour and add the setting in front.
+                    // Otherwise we retain existing behaviour and add the settings in front.
+                    settings.unshift(pluginAccessControlSetting);
                     settings.unshift(pluginEnableSetting);
                 }
             }

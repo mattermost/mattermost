@@ -558,6 +558,13 @@ func TestManifestHasClient(t *testing.T) {
 	assert.False(t, manifest.HasClient())
 }
 
+func TestManifestAllowsUserFiltering(t *testing.T) {
+	assert.True(t, (*Manifest)(nil).AllowsUserFiltering())
+	assert.True(t, (&Manifest{}).AllowsUserFiltering())
+	assert.True(t, (&Manifest{UserFiltering: NewPointer(true)}).AllowsUserFiltering())
+	assert.False(t, (&Manifest{UserFiltering: NewPointer(false)}).AllowsUserFiltering())
+}
+
 func TestManifestClientManifest(t *testing.T) {
 	manifest := &Manifest{
 		Id:               "theid",

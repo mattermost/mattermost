@@ -110,6 +110,7 @@ export type WebSocketMessage = (
 
     Messages.Plugin |
     Messages.PluginStatusesChanged |
+    Messages.PluginAccessControlChanged |
     Messages.OpenDialog |
 
     BaseWebSocketMessage<WebSocketEvents.PresenceIndicator, unknown> |

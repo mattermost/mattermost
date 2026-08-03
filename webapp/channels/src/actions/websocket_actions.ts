@@ -628,6 +628,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handlePluginDisabled(msg);
         break;
 
+    case WebSocketEvents.PluginAccessControlChanged:
+        handlePluginAccessControlChanged();
+        break;
+
     case WebSocketEvents.UserRoleUpdated:
         handleUserRoleUpdated(msg);
         break;
@@ -1782,6 +1786,10 @@ export function handlePluginEnabled(msg: WebSocketMessages.Plugin) {
 export function handlePluginDisabled(msg: WebSocketMessages.Plugin) {
     const manifest = msg.data.manifest;
     removePlugin(manifest);
+}
+
+export function handlePluginAccessControlChanged() {
+    loadPluginsIfNecessary();
 }
 
 function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {

@@ -54,6 +54,7 @@ const (
 	WebsocketEventPluginStatusesChanged               WebsocketEventType = "plugin_statuses_changed"
 	WebsocketEventPluginEnabled                       WebsocketEventType = "plugin_enabled"
 	WebsocketEventPluginDisabled                      WebsocketEventType = "plugin_disabled"
+	WebsocketEventPluginAccessControlChanged          WebsocketEventType = "plugin_access_control_changed"
 	WebsocketEventRoleUpdated                         WebsocketEventType = "role_updated"
 	WebsocketEventLicenseChanged                      WebsocketEventType = "license_changed"
 	WebsocketEventConfigChanged                       WebsocketEventType = "config_changed"

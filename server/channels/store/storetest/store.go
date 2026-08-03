@@ -65,6 +65,7 @@ type Store struct {
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 	ChannelGuardStore               mocks.ChannelGuardStore
+	PluginAccessControlStore        mocks.PluginAccessControlStore
 	ScheduledPostStore              mocks.ScheduledPostStore
 	PropertyGroupStore              mocks.PropertyGroupStore
 	PropertyFieldStore              mocks.PropertyFieldStore
@@ -125,16 +126,19 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 }
 func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
 func (s *Store) ChannelGuard() store.ChannelGuardStore       { return &s.ChannelGuardStore }
-func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
-func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
-func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore       { return &s.LinkMetadataStore }
-func (s *Store) SharedChannel() store.SharedChannelStore     { return &s.SharedChannelStore }
-func (s *Store) PostPriority() store.PostPriorityStore       { return &s.PostPriorityStore }
-func (s *Store) ScheduledPost() store.ScheduledPostStore     { return &s.ScheduledPostStore }
-func (s *Store) PropertyGroup() store.PropertyGroupStore     { return &s.PropertyGroupStore }
-func (s *Store) PropertyField() store.PropertyFieldStore     { return &s.PropertyFieldStore }
-func (s *Store) PropertyValue() store.PropertyValueStore     { return &s.PropertyValueStore }
+func (s *Store) PluginAccessControl() store.PluginAccessControlStore {
+	return &s.PluginAccessControlStore
+}
+func (s *Store) DesktopTokens() store.DesktopTokensStore { return &s.DesktopTokensStore }
+func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
+func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
+func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
+func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
+func (s *Store) ScheduledPost() store.ScheduledPostStore { return &s.ScheduledPostStore }
+func (s *Store) PropertyGroup() store.PropertyGroupStore { return &s.PropertyGroupStore }
+func (s *Store) PropertyField() store.PropertyFieldStore { return &s.PropertyFieldStore }
+func (s *Store) PropertyValue() store.PropertyValueStore { return &s.PropertyValueStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
@@ -250,6 +254,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
 		&s.ChannelGuardStore,
+		&s.PluginAccessControlStore,
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
