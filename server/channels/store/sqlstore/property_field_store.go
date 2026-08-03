@@ -434,6 +434,14 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 	}
 
+	// Read before the UPDATE overwrites it: a field that stops linking has to take
+	// over the options it was deriving, and the row is the only place the template
+	// it was deriving them from is still recorded.
+	clearedSources, err := s.linkSourcesBeingCleared(transaction, fields)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_link_sources")
+	}
+
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("Name", nameCase).
@@ -486,6 +494,19 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
 		}
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+	}
+
+	// Before the option lists are reconciled: a field that has just stopped
+	// linking owns the options it was deriving from now on, and its property
+	// values already point at them.
+	for _, field := range fields {
+		sourceID, ok := clearedSources[field.ID]
+		if !ok {
+			continue
+		}
+		if err = s.takeOverLinkSourceOptions(transaction, field, sourceID, updateTime); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_take_over_options")
+		}
 	}
 
 	// Bring each field's option rows in line with the option list it was
@@ -751,6 +772,19 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	}
 
 	return conflictLevel, nil
+}
+
+// GetExistingOptionIDs returns which of the given option IDs exist, and are not
+// deleted, in the field's effective option set: the options it owns plus those
+// owned by the template it links to.
+//
+// This is how a caller holding option identifiers checks them. The option list
+// inlined into a field on read is absent above
+// model.PropertyFieldMaxHydratedOptions options, so checking against that list
+// rejects every identifier once a field grows past the cap. Reads from the master
+// because it gates writes, matching CountLinkedFields.
+func (s *SqlPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
+	return s.getExistingOptionIDs(s.GetMaster(), field, optionIDs)
 }
 
 func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {

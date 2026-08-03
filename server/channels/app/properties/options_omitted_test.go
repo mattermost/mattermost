@@ -187,9 +187,10 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 	})
 }
 
-// TestOptionsOmitted_ValueValidation pins that a value assignment to a field
-// whose option list was withheld is refused, and refused with a message naming
-// the actual reason rather than blaming the option the caller sent.
+// TestOptionsOmitted_ValueValidation covers value assignment to a field whose
+// option list was withheld. The options are checked against the option rows, not
+// against the list left out of the read, so the size of the field makes no
+// difference to which values are accepted.
 func TestOptionsOmitted_ValueValidation(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
@@ -209,18 +210,34 @@ func TestOptionsOmitted_ValueValidation(t *testing.T) {
 	require.NoError(t, err)
 	requireStoredOptionsWithheld(t, th, group.ID, field.ID)
 
-	encoded, err := json.Marshal(optionIDAt(t, options, 0))
-	require.NoError(t, err)
+	t.Run("an option the field really has is accepted", func(t *testing.T) {
+		encoded, mErr := json.Marshal(optionIDAt(t, options, 0))
+		require.NoError(t, mErr)
 
-	_, err = th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
-		GroupID:    group.ID,
-		FieldID:    field.ID,
-		TargetType: "user",
-		TargetID:   model.NewId(),
-		Value:      encoded,
+		_, err = th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      encoded,
+		})
+		require.NoError(t, err, "the option exists, so the size of the field must not block the value")
 	})
-	require.Error(t, err, "a value that cannot be checked against the field's options must not be stored")
-	assert.Contains(t, err.Error(), "option list was not loaded")
+
+	t.Run("an option the field does not have is refused", func(t *testing.T) {
+		encoded, mErr := json.Marshal(model.NewId())
+		require.NoError(t, mErr)
+
+		_, err = th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      encoded,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not exist")
+	})
 }
 
 // TestOptionsOmitted_LinkedFieldGuard pins the guard that refuses option edits

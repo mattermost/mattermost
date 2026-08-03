@@ -3697,6 +3697,52 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		require.Equal(t, []string{optA["id"].(string), optB["id"].(string)}, readIDs)
 	})
 
+	t.Run("unlinking a field whose options were withheld keeps them too", func(t *testing.T) {
+		// The takeover cannot be driven from the option list on the submitted
+		// field: above the cap a read leaves that list out, so a caller unlinking
+		// such a field has nothing to send. The rows have to be copied from the
+		// link source instead, or the field unlinks into a field with no options
+		// at all while its property values still point at the template's.
+		total := model.PropertyFieldMaxHydratedOptions + 1
+		options := make([]any, 0, total)
+		for i := range total {
+			options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Unlink %d", i)})
+		}
+		template := newSelectField(t, "UnlinkOversizedTemplate", options)
+
+		linked, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "UnlinkOversizedLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         model.StringInterface{"options": options},
+		})
+		require.NoError(t, err)
+		require.Zero(t, countOwnedOptions(t, linked.ID))
+
+		// Unlink the way a caller has to: read the field, which comes back with
+		// its option list withheld, then clear the link on what was read.
+		read, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		require.NoError(t, err)
+		require.Equal(t, true, read.Attrs["options_omitted"], "the field has to be over the cap for this to be the interesting case")
+
+		read.LinkedFieldID = nil
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)
+		require.NoError(t, err)
+
+		require.Equal(t, total, countOwnedOptions(t, linked.ID), "the unlinked field must own every option it was deriving")
+		require.Equal(t, total, countOwnedOptions(t, template.ID), "the template must keep its own")
+
+		// Same identifiers, because the field's property values point at them.
+		var carried int
+		require.NoError(t, s.GetMaster().Get(&carried, `SELECT COUNT(*) FROM PropertyOptions own
+			JOIN PropertyOptions src ON src.ID = own.ID AND src.FieldID = $1
+			WHERE own.FieldID = $2 AND own.DeleteAt = 0 AND src.DeleteAt = 0`, template.ID, linked.ID))
+		require.Equal(t, total, carried, "the taken-over options must keep their identifiers")
+	})
+
 	t.Run("a type that carries no options keeps its attrs untouched", func(t *testing.T) {
 		// Nothing ever read "options" on a text field, so whatever sits there is
 		// not an option list and must not be moved or dropped.

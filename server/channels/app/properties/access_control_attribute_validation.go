@@ -548,48 +548,30 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	return fields, nil
 }
 
-// extractOptionIDs extracts the set of valid option IDs from a
-// select or multiselect PropertyField's attrs. Returns nil if the
-// field has no options.
-func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
-	if field.Attrs == nil {
-		return nil, nil
+// requireOptionsExist checks that every given option ID is an option of the
+// field: one it owns, or one it inherits from the template it links to.
+//
+// The check queries the option rows rather than the option list inlined into
+// field.Attrs. A field with more than model.PropertyFieldMaxHydratedOptions
+// options reads back without that list, and a check against the list cannot tell
+// the absent list from a field that has no options — so it would reject every
+// value assigned to a field once the field grew past the cap.
+func (h *AccessControlAttributeValidationHook) requireOptionsExist(field *model.PropertyField, optionIDs []string) error {
+	if len(optionIDs) == 0 {
+		return nil
 	}
 
-	// The read left this field's option list out because it has more than
-	// model.PropertyFieldMaxHydratedOptions of them, so no value can be checked
-	// against it. Every value assignment to the field is refused until it is
-	// checkable, which is the safe direction on a validation path but is a real
-	// dead end for the field: making it work needs an existence check against the
-	// option rows instead of against the inlined list.
-	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		return nil, fmt.Errorf("field %s has more than %d options, so its option list was not loaded and no value can be validated against it", field.ID, model.PropertyFieldMaxHydratedOptions)
-	}
-
-	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok || rawOptions == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(rawOptions)
+	existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(field, optionIDs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal options: %w", err)
+		return fmt.Errorf("failed to look up the options of field %s: %w", field.ID, err)
 	}
 
-	var options []struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &options); err != nil {
-		return nil, fmt.Errorf("invalid options format: %w", err)
-	}
-
-	ids := make(map[string]struct{}, len(options))
-	for _, opt := range options {
-		if opt.ID != "" {
-			ids[opt.ID] = struct{}{}
+	for _, id := range optionIDs {
+		if !slices.Contains(existing, id) {
+			return fmt.Errorf("option %q does not exist", id)
 		}
 	}
-	return ids, nil
+	return nil
 }
 
 // validateValueAgainstField checks a property value against field-type
@@ -624,28 +606,14 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 		if str == "" {
 			return nil
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
-		}
-		if _, ok := optionIDs[str]; !ok {
-			return fmt.Errorf("option %q does not exist", str)
-		}
+		return h.requireOptionsExist(field, []string{str})
 
 	case model.PropertyFieldTypeMultiselect:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
 			return fmt.Errorf("expected string array value for multiselect field: %w", err)
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
-		}
-		for _, v := range values {
-			if _, ok := optionIDs[v]; !ok {
-				return fmt.Errorf("option %q does not exist", v)
-			}
-		}
+		return h.requireOptionsExist(field, values)
 
 	case model.PropertyFieldTypeUser:
 		var str string

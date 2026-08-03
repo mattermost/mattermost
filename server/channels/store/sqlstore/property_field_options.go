@@ -395,6 +395,101 @@ func (s *SqlPropertyFieldStore) countPropertyOptions(db sqlxExecutor, fieldIDs [
 	return counts, nil
 }
 
+// linkSourcesBeingCleared returns, for each submitted field that is no longer
+// linked, the template it was linked to before this write. Only fields that were
+// linked appear, so an empty result means no field is being unlinked.
+func (s *SqlPropertyFieldStore) linkSourcesBeingCleared(db sqlxExecutor, fields []*model.PropertyField) (map[string]string, error) {
+	var clearing []string
+	for _, field := range fields {
+		if optionSourceID(field) == "" && field.Type.SupportsOptions() {
+			clearing = append(clearing, field.ID)
+		}
+	}
+	if len(clearing) == 0 {
+		return nil, nil
+	}
+
+	type link struct {
+		ID            string
+		LinkedFieldID *string
+	}
+
+	builder := s.getQueryBuilder().
+		Select("ID", "LinkedFieldID").
+		From("PropertyFields").
+		Where(sq.Eq{"ID": clearing}).
+		Where(sq.NotEq{"LinkedFieldID": nil})
+
+	rows := []*link{}
+	if err := db.SelectBuilder(&rows, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_link_sources_query")
+	}
+
+	sources := make(map[string]string, len(rows))
+	for _, row := range rows {
+		if row.LinkedFieldID != nil && *row.LinkedFieldID != "" {
+			sources[row.ID] = *row.LinkedFieldID
+		}
+	}
+	return sources, nil
+}
+
+// getExistingOptionIDs returns which of the given option IDs exist, and are not
+// deleted, in a field's effective option set.
+//
+// This is the option check for a caller holding identifiers rather than a field:
+// the inlined list a field reads back with is absent above
+// model.PropertyFieldMaxHydratedOptions options, so a caller that validates
+// against the list refuses every identifier once a field grows past the cap.
+// Asking the rows costs one indexed query and has no such ceiling.
+func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, field *model.PropertyField, optionIDs []string) ([]string, error) {
+	if len(optionIDs) == 0 {
+		return nil, nil
+	}
+
+	builder := s.getQueryBuilder().
+		Select("ID").
+		From("PropertyOptions").
+		Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+		Where(sq.Eq{"ID": optionIDs}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	ids := []string{}
+	if err := db.SelectBuilder(&ids, builder); err != nil {
+		return nil, errors.Wrap(err, "property_options_exist_query")
+	}
+	return ids, nil
+}
+
+// takeOverLinkSourceOptions copies the options a field was deriving into rows of
+// its own. It runs for a field that has just stopped linking to a template: the
+// field's property values point at those option IDs, so it has to keep serving
+// them under the same identifiers once it no longer derives them.
+//
+// The rows are copied from the link source rather than rebuilt from the option
+// list on the submitted field. A field with more than
+// model.PropertyFieldMaxHydratedOptions options reads back without its list, so
+// a caller unlinking such a field has no list to send and the takeover would
+// otherwise leave the field owning nothing at all while its values still pointed
+// at the template's options.
+//
+// An option the field somehow already owns under the same ID is left alone: its
+// own row is the more specific one.
+func (s *SqlPropertyFieldStore) takeOverLinkSourceOptions(transaction *sqlxTxWrapper, field *model.PropertyField, sourceID string, now int64) error {
+	// CreateAt is carried over so the options keep the display order they had.
+	const query = `INSERT INTO PropertyOptions
+		(ID, GroupID, FieldID, Name, Color, Rank, SortOrder, Attrs, CreateAt, UpdateAt, DeleteAt)
+		SELECT ID, ?, ?, Name, Color, Rank, SortOrder, Attrs, CreateAt, ?, 0
+		FROM PropertyOptions
+		WHERE FieldID = ? AND DeleteAt = 0
+		ON CONFLICT (FieldID, ID) DO NOTHING`
+
+	if _, err := transaction.Exec(query, field.GroupID, field.ID, now, sourceID); err != nil {
+		return errors.Wrap(err, "property_options_take_over_exec")
+	}
+	return nil
+}
+
 // getPropertyOptions loads the options owned by the given fields. Soft-deleted
 // rows are included only for the write path, which has to see them to tell a
 // re-added option from a new one.
