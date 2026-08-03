@@ -149,19 +149,52 @@ describe('TextInputElement', () => {
             initial_value: '0',
         });
 
-        const input = screen.getByTestId('mm-blocks-post-1-amountnumber');
-        expect(input).toHaveValue(0);
+        const input = screen.getByTestId('mm-blocks-post-1-amountinput');
+        expect(input).toHaveValue('0');
 
         await user.clear(input);
         await user.type(input, '42');
 
-        expect(input).toHaveValue(42);
+        expect(input).toHaveValue('42');
         expect(onAction).toHaveBeenLastCalledWith(
             'refresh_form',
             undefined,
             undefined,
             undefined,
             expect.objectContaining({amount: 42}),
+        );
+    });
+
+    it('preserves intermediate number text while editing', async () => {
+        const user = userEvent.setup();
+        renderInput({
+            type: 'text_input',
+            name: 'amount',
+            label: 'Amount',
+            subtype: 'number',
+            onChange: 'refresh_form',
+        });
+
+        const input = screen.getByTestId('mm-blocks-post-1-amountinput');
+        await user.clear(input);
+        await user.type(input, '-');
+        expect(input).toHaveValue('-');
+        expect(onAction).toHaveBeenLastCalledWith(
+            'refresh_form',
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({amount: '-'}),
+        );
+
+        await user.type(input, '5');
+        expect(input).toHaveValue('-5');
+        expect(onAction).toHaveBeenLastCalledWith(
+            'refresh_form',
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({amount: -5}),
         );
     });
 });

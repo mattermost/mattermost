@@ -718,6 +718,11 @@ function getMmBlocksDialog(triggerId, webhookBaseUrl, options = {}) {
     const title = options.title || 'PW Blocks Dialog';
     const marker = options.marker || '';
 
+    let introText = 'Blocks dialog — fill fields, then Submit / Next step / Show errors.';
+    if (marker) {
+        introText = `Blocks dialog for **${marker}**. Fill fields, then Submit / Next step / Show errors.`;
+    }
+
     return {
         trigger_id: triggerId,
         block_dialog: {
@@ -728,9 +733,7 @@ function getMmBlocksDialog(triggerId, webhookBaseUrl, options = {}) {
             blocks: [
                 {
                     type: 'text',
-                    text: marker ?
-                        `Blocks dialog for **${marker}**. Fill fields, then Submit / Next step / Show errors.` :
-                        'Blocks dialog — fill fields, then Submit / Next step / Show errors.',
+                    text: introText,
                 },
                 {type: 'divider'},
                 {
@@ -931,15 +934,18 @@ function getMmBlocksDialogStep2(webhookBaseUrl, previousTitle) {
 }
 
 function getMmBlocksSimpleDialog(webhookBaseUrl, options = {}) {
+    let introText = 'Simple blocks dialog with no form fields.';
+    if (options.marker) {
+        introText = `Simple blocks dialog for **${options.marker}**.`;
+    }
+
     return baseBlockDialog(webhookBaseUrl, {
         title: options.title || 'PW Simple Dialog',
         state: 'pw-simple',
         blocks: [
             {
                 type: 'text',
-                text: options.marker ?
-                    `Simple blocks dialog for **${options.marker}**.` :
-                    'Simple blocks dialog with no form fields.',
+                text: introText,
             },
         ],
     });

@@ -94,6 +94,17 @@ describe('DateInputElement', () => {
         expect(screen.getByText('Helpful')).toBeInTheDocument();
     });
 
+    it('renders placeholder when no initial value', () => {
+        renderInput({
+            type: 'date_input',
+            name: 'due',
+            label: 'Due date',
+            placeholder: 'Pick a date',
+        });
+
+        expect(screen.getByText('Pick a date')).toBeInTheDocument();
+    });
+
     it('marks optional fields without required asterisk', () => {
         renderInput({
             type: 'date_input',

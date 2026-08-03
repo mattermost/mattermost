@@ -35,7 +35,7 @@ export async function setupWebhookTestServer(
         mattermostBaseUrl: string;
         adminUsername: string;
         adminPassword: string;
-        /** Host URL Playwright uses to reach the sidecar. Defaults to webhookBaseUrl. */
+        /** Host URL Playwright uses to reach the sidecar. Defaults to testConfig.webhookBaseUrl. */
         webhookSetupUrl?: string;
         /** URL Mattermost uses in dialog/action callbacks. Defaults to webhookInternalUrl. */
         webhookBaseUrl?: string;

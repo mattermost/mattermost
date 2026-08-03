@@ -257,6 +257,8 @@ func (a *App) DoBlockAction(
 				return nil, encErr
 			}
 			out.MmBlocksActions = encrypted
+		} else if err := model.ValidateMmBlocksActionsForWebhook(upstream.MmBlocks, nil); err != nil {
+			return nil, model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 		out.Type = model.BlockActionResponseTypeRefresh
 		return out, nil

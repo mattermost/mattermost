@@ -77,9 +77,7 @@ export const BoolInputElement = ({element, postId}: BoolInputElementProps) => {
     }
 
     const rawValue = values[element.name];
-    const value = rawValue === undefined || rawValue === null ?
-        (element.initial_value ?? false) :
-        normalizeBoolValue(rawValue);
+    const value = rawValue === undefined || rawValue === null ? (element.initial_value ?? false) : normalizeBoolValue(rawValue);
 
     return (
         <div className='mm-blocks-bool-input'>
@@ -92,7 +90,10 @@ export const BoolInputElement = ({element, postId}: BoolInputElementProps) => {
                 disabled={interactionsDisabled || element.disabled === true}
                 onChange={handleChange}
             />
-            <MmBlocksFieldError name={element.name}/>
+            <MmBlocksFieldError
+                name={element.name}
+                postId={postId}
+            />
         </div>
     );
 };

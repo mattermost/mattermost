@@ -209,8 +209,9 @@ describe('Interactive Dialog - Dynamic Select', () => {
 
                 // * Verify empty results (menu is portaled to body)
                 cy.document().then((doc) => {
-                    const text = doc.body.innerText || '';
-                    expect(text).to.match(/no options|no results/i);
+                    cy.wrap(doc.body).find('[role="listbox"]').should(($listbox) => {
+                        expect($listbox.text()).to.match(/no options|no results/i);
+                    });
                 });
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for default options to load
 

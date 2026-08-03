@@ -13,7 +13,7 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 import {MmBlocksInteractionsDisabledContext, useMmBlocksHandlers} from './context';
 import type {MmFormValue} from './form';
 import {MmBlocksFieldError, useMmBlocksForm} from './form';
-import {mmBlocksFieldDomId} from './utils/field_dom_id';
+import {mmBlocksFieldDomId, mmBlocksFieldErrorId} from './utils/field_dom_id';
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -30,12 +30,16 @@ function textInputType(element: MmTextInputBlock): InputTypes {
     const subtype = element.subtype || 'text';
     switch (subtype) {
     case 'email':
-    case 'number':
     case 'password':
     case 'tel':
     case 'url':
     case 'text':
         return subtype;
+
+    // Keep as text so intermediate edits ("-", "1.") survive controlled updates.
+    // Values are still normalized as numbers via isNumberInput / normalizeTextValue.
+    case 'number':
+        return 'text';
     default:
         return 'text';
     }
@@ -45,7 +49,7 @@ function isNumberInput(element: MmTextInputBlock): boolean {
     return !element.multiline && element.subtype === 'number';
 }
 
-/** TextSetting emits numbers for type=number (including NaN when cleared). */
+/** TextSetting emits raw strings for type=number; keep intermediate edit text intact. */
 function normalizeTextValue(value: unknown, asNumber: boolean): string | number | null {
     if (asNumber) {
         if (typeof value === 'number') {
@@ -54,7 +58,13 @@ function normalizeTextValue(value: unknown, asNumber: boolean): string | number 
         if (value === '' || value === null || value === undefined) {
             return null;
         }
-        const parsed = typeof value === 'string' ? Number(value) : NaN;
+        const text = String(value);
+
+        // Preserve in-progress edits such as "-", ".", "1.", "-."
+        if (text === '-' || text === '.' || text === '-.' || (/^-?\d+\.$/).test(text)) {
+            return text;
+        }
+        const parsed = Number(text);
         return Number.isFinite(parsed) ? parsed : null;
     }
     if (value === null || value === undefined) {
@@ -77,17 +87,19 @@ function initialTextFormValue(element: MmTextInputBlock): string | number | null
 function displayTextValue(
     rawValue: MmFormValue | undefined,
     element: MmTextInputBlock,
-    inputType: InputTypes,
+    asNumber: boolean,
 ): string | number {
-    if (inputType === 'number') {
+    if (asNumber) {
+        if (typeof rawValue === 'string') {
+            return rawValue;
+        }
         if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
             return rawValue;
         }
         if (rawValue === undefined || rawValue === null) {
             return initialTextFormValue(element) ?? '';
         }
-        const parsed = typeof rawValue === 'string' ? Number(rawValue) : NaN;
-        return Number.isFinite(parsed) ? parsed : '';
+        return '';
     }
     if (rawValue === undefined || rawValue === null) {
         return element.initial_value ?? '';
@@ -98,7 +110,7 @@ function displayTextValue(
 export const TextInputElement = ({element, postId}: TextInputElementProps) => {
     const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const {onAction} = useMmBlocksHandlers();
-    const {values, setValue, setDefaultValue} = useMmBlocksForm();
+    const {values, setValue, setDefaultValue, errors} = useMmBlocksForm();
     const fieldDomId = mmBlocksFieldDomId(postId, element.name);
     const asNumber = isNumberInput(element);
 
@@ -154,7 +166,7 @@ export const TextInputElement = ({element, postId}: TextInputElementProps) => {
     const maxLength = element.max_length ?? (
         inputType === 'textarea' ? TEXTAREA_DEFAULT_MAX_LENGTH : TEXT_DEFAULT_MAX_LENGTH
     );
-    const value = displayTextValue(values[element.name], element, inputType);
+    const value = displayTextValue(values[element.name], element, asNumber);
 
     return (
         <div className='mm-blocks-text-input'>
@@ -169,7 +181,13 @@ export const TextInputElement = ({element, postId}: TextInputElementProps) => {
                 disabled={interactionsDisabled || element.disabled === true}
                 onChange={handleChange}
                 resizable={false}
-                footer={<MmBlocksFieldError name={element.name}/>}
+                aria-describedby={errors[element.name] ? mmBlocksFieldErrorId(postId, element.name) : undefined}
+                footer={
+                    <MmBlocksFieldError
+                        name={element.name}
+                        postId={postId}
+                    />
+                }
             />
         </div>
     );

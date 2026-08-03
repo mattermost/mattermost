@@ -377,7 +377,7 @@ test.describe('Interactive mm_blocks (form inputs)', () => {
             });
 
             await expect(fileBlock.getByTestId('file-preview-item')).toBeVisible();
-            await expect(fileBlock.getByLabel(new RegExp(`file thumbnail ${uploadName}`, 'i'))).toBeVisible();
+            await expect(fileBlock.getByLabel(`file thumbnail ${uploadName.toLowerCase()}`)).toBeVisible();
 
             await rootInThread.getByRole('button', {name: 'Submit files'}).click();
 

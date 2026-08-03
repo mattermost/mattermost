@@ -6,11 +6,13 @@
  * Stacked Details/Summary action buttons live in mm_blocks_dialog_stacking.spec.ts.
  */
 
+import type {Locator, Page} from '@playwright/test';
+
 import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
 import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
 
-async function pickSelectOption(page: any, dialog: any, label: string, optionName: string) {
+async function pickSelectOption(page: Page, dialog: Locator, label: string, optionName: string) {
     const field = dialog.locator('.mm-blocks-select-input').filter({hasText: label});
     await field.getByRole('combobox').click();
     await page.getByRole('option', {name: optionName}).click();

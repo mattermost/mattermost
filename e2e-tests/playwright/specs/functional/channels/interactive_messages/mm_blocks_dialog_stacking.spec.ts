@@ -7,6 +7,8 @@
  * - Native blocks: button action → dialogs/open + keep_dialog_open (parent stays open)
  */
 
+import type {Page} from '@playwright/test';
+
 import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
 import {
@@ -17,7 +19,7 @@ import {
 } from './mm_blocks_dialog_helpers';
 
 /** All interactive dialogs share id=appsModal; use attribute selector to count stacks. */
-function appsModals(page: any) {
+function appsModals(page: Page) {
     return page.locator('[id="appsModal"]');
 }
 

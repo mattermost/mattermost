@@ -388,6 +388,13 @@ const BlocksDialogShell = ({
                 ...(fileIds.length > 0 && {file_ids: fileIds}),
             };
             const result = await actions.submitInteractiveDialog(submission);
+            if (cancelled) {
+                // Cancel notifications always dismiss the dialog; ignore response body / errors.
+                setActionError(null);
+                setFieldErrors({});
+                closeModal();
+                return;
+            }
             if (result.error) {
                 setActionError(result.error.message || intl.formatMessage({
                     id: 'interactive_dialog.submit_failed',
@@ -755,7 +762,10 @@ const BlocksDialogShell = ({
                 } : undefined}
             />
             {actionError && (
-                <div className='has-error'>
+                <div
+                    className='has-error'
+                    data-testid='mm-blocks-dialog-error'
+                >
                     <label className='control-label'>{actionError}</label>
                 </div>
             )}
@@ -791,7 +801,6 @@ const BlocksDialogShell = ({
                 </Modal.Title>
             </Modal.Header>
             <MmBlocksForm
-                key={`dialog-form-${blocksEpoch}`}
                 errors={fieldErrors}
                 onErrorsChange={setFieldErrors}
             >

@@ -66,7 +66,7 @@ test.describe('Interactive mm_blocks (blocks dialog datetime)', () => {
             await calendar.locator('.rdp-nav_button_previous, button[name="previous-month"]').first().click();
         }
         const pastDay = calendar
-            .locator('.rdp-day:not(.rdp-day_outside), .rdp-day_button')
+            .locator('.rdp-day:not(.rdp-day_outside) .rdp-day_button')
             .filter({hasText: new RegExp(`^${twoDaysAgo.getDate()}$`)})
             .first();
         await expect(pastDay).toBeVisible();

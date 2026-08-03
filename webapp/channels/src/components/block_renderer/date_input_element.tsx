@@ -105,9 +105,7 @@ export const DateInputElement = ({element, postId}: DateInputElementProps) => {
     }
 
     const rawValue = values[element.name];
-    const value = rawValue === undefined || rawValue === null ?
-        normalizeDateValue(element.initial_value) :
-        normalizeDateValue(rawValue);
+    const value = rawValue === undefined || rawValue === null ? normalizeDateValue(element.initial_value) : normalizeDateValue(rawValue);
 
     return (
         <div className='mm-blocks-date-input form-group'>
@@ -130,7 +128,10 @@ export const DateInputElement = ({element, postId}: DateInputElementProps) => {
                     {helpText}
                 </div>
             )}
-            <MmBlocksFieldError name={element.name}/>
+            <MmBlocksFieldError
+                name={element.name}
+                postId={postId}
+            />
         </div>
     );
 };

@@ -167,15 +167,11 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
     });
 
     test('users and channels selects allow picking options', {tag: [...dialogTags]}, async ({pw, request}) => {
-        const {channelsPage, marker, openButtonName, adminClient, team, townSquare} = await setupDialogOpenPost(
-            pw,
-            request,
-            {
-                scenario: 'users_channels',
-                buttonText: 'Open users channels',
-                titleHint: 'mm_blocks users channels',
-            },
-        );
+        const {channelsPage, marker, openButtonName, adminClient, team} = await setupDialogOpenPost(pw, request, {
+            scenario: 'users_channels',
+            buttonText: 'Open users channels',
+            titleHint: 'mm_blocks users channels',
+        });
 
         // Seed extra channels so the channel list is non-trivial.
         for (let i = 0; i < 5; i++) {
@@ -199,7 +195,5 @@ test.describe('Interactive mm_blocks (blocks dialog selects)', () => {
         await dialog.getByRole('button', {name: 'Submit'}).click();
         await expect(dialog).toBeHidden();
         await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
-
-        expect(townSquare.id).toBeTruthy();
     });
 });

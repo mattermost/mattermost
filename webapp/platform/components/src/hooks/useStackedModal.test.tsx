@@ -20,6 +20,10 @@ function ProbeIsStacked({onResult}: {onResult: (value: boolean) => void}) {
 }
 
 describe('useIsStackedModal', () => {
+    afterEach(() => {
+        document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+    });
+
     test('returns false when no backdrop exists at mount', () => {
         let result: boolean | undefined;
         render(
@@ -46,8 +50,6 @@ describe('useIsStackedModal', () => {
             />,
         );
         expect(result).toBe(true);
-
-        document.body.removeChild(backdrop);
     });
 });
 

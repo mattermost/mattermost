@@ -50,6 +50,9 @@ export const DateTimeInputElement = ({element, postId}: DateTimeInputElementProp
     const fieldDomId = mmBlocksFieldDomId(postId, element.name);
 
     useEffect(() => {
+        if (!element.name) {
+            return;
+        }
         setDefaultValue(element.name, element.initial_value ?? '');
     }, [element.name, element.initial_value, setDefaultValue]);
 
@@ -102,9 +105,7 @@ export const DateTimeInputElement = ({element, postId}: DateTimeInputElementProp
     }
 
     const rawValue = values[element.name];
-    const value = rawValue === undefined || rawValue === null ?
-        normalizeDateTimeValue(element.initial_value) :
-        normalizeDateTimeValue(rawValue);
+    const value = rawValue === undefined || rawValue === null ? normalizeDateTimeValue(element.initial_value) : normalizeDateTimeValue(rawValue);
 
     return (
         <div className='mm-blocks-datetime-input form-group'>
@@ -127,7 +128,10 @@ export const DateTimeInputElement = ({element, postId}: DateTimeInputElementProp
                     {helpText}
                 </div>
             )}
-            <MmBlocksFieldError name={element.name}/>
+            <MmBlocksFieldError
+                name={element.name}
+                postId={postId}
+            />
         </div>
     );
 };

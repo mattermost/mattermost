@@ -216,6 +216,54 @@ func TestCollectBlockKitActionIDs(t *testing.T) {
 		ids := CollectBlockKitActionIDs(blocks)
 		assert.Equal(t, map[string]struct{}{"due": {}, "when": {}, "files": {}}, ids)
 	})
+
+	t.Run("actions row collects all supported interactive element types", func(t *testing.T) {
+		types := []string{
+			"radio_buttons",
+			"checkboxes",
+			"overflow",
+			"users_select",
+			"multi_users_select",
+			"channels_select",
+			"multi_channels_select",
+			"conversations_select",
+			"multi_conversations_select",
+			"external_select",
+			"multi_external_select",
+			"static_select",
+			"multi_static_select",
+		}
+		elements := make([]any, 0, len(types))
+		want := map[string]struct{}{}
+		for _, typ := range types {
+			id := typ + "_id"
+			elements = append(elements, map[string]any{
+				"type":      typ,
+				"action_id": id,
+			})
+			want[id] = struct{}{}
+		}
+		blocks := []any{
+			map[string]any{
+				"type":     "actions",
+				"elements": elements,
+			},
+		}
+		ids := CollectBlockKitActionIDs(blocks)
+		assert.Equal(t, want, ids)
+
+		actions := make(map[string]any, len(want))
+		for id := range want {
+			actions[id] = map[string]any{"type": "external", "url": "http://example.com/" + id}
+		}
+		post := &Post{
+			Props: map[string]any{
+				PostPropsBlockKitBlocks:  blocks,
+				PostPropsMmBlocksActions: actions,
+			},
+		}
+		require.NoError(t, ValidateInteractiveActionsForWebhook(post))
+	})
 }
 
 func TestCollectAdaptiveCardActionIDs(t *testing.T) {

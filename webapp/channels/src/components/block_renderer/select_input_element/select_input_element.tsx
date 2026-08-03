@@ -401,7 +401,10 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
                             onChange={handleExpandedChange}
                         />
                     </fieldset>
-                    <MmBlocksFieldError name={element.name}/>
+                    <MmBlocksFieldError
+                        name={element.name}
+                        postId={postId}
+                    />
                 </div>
             );
         }
@@ -419,7 +422,10 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
                     disabled={disabled}
                     onChange={handleExpandedChange}
                 />
-                <MmBlocksFieldError name={element.name}/>
+                <MmBlocksFieldError
+                    name={element.name}
+                    postId={postId}
+                />
             </div>
         );
     }
@@ -451,7 +457,12 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
                     label={label}
                     helpText={helpText}
                     inputId={fieldDomId}
-                    footer={<MmBlocksFieldError name={element.name}/>}
+                    footer={
+                        <MmBlocksFieldError
+                            name={element.name}
+                            postId={postId}
+                        />
+                    }
                 >
                     <div className='react-select'>
                         <AsyncSelect
@@ -490,7 +501,12 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
                     label={label}
                     helpText={helpText}
                     inputId={fieldDomId}
-                    footer={<MmBlocksFieldError name={element.name}/>}
+                    footer={
+                        <MmBlocksFieldError
+                            name={element.name}
+                            postId={postId}
+                        />
+                    }
                 >
                     <PostContext.Consumer>
                         {({handlePopupOpened}) => (
@@ -534,7 +550,12 @@ export const SelectInputElement = ({element, postId}: SelectInputElementProps) =
                 label={label}
                 helpText={helpText}
                 inputId={fieldDomId}
-                footer={<MmBlocksFieldError name={element.name}/>}
+                footer={
+                    <MmBlocksFieldError
+                        name={element.name}
+                        postId={postId}
+                    />
+                }
             >
                 <div className='react-select'>
                     <ReactSelect

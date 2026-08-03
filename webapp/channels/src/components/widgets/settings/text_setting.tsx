@@ -27,6 +27,7 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
+    'aria-describedby'?: string;
 };
 
 function TextSetting(props: Props) {
@@ -34,7 +35,8 @@ function TextSetting(props: Props) {
 
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
-            props.onChange(props.id, parseInt(event.target.value, 10));
+            // Pass raw text so callers can preserve intermediate values ("-", "1.") while editing.
+            props.onChange(props.id, event.target.value);
         } else if (props.type === 'text' && props.multiple) {
             if (event.target.value === '') {
                 props.onChange(props.id, []);
@@ -62,6 +64,7 @@ function TextSetting(props: Props) {
                 maxLength={maxLength}
                 onChange={handleChange}
                 disabled={props.disabled}
+                aria-describedby={props['aria-describedby']}
             />
         );
     } else {
@@ -82,6 +85,7 @@ function TextSetting(props: Props) {
                 maxLength={maxLength}
                 onChange={handleChange}
                 disabled={props.disabled}
+                aria-describedby={props['aria-describedby']}
             />
         );
     }

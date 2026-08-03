@@ -3,7 +3,13 @@
 
 import {expect, isWebhookTestServerReachable, test, testConfig} from '@mattermost/playwright-lib';
 
-import {dialogTags, expectEphemeral, openBlocksDialogFromPost, setupDialogOpenPost} from './mm_blocks_dialog_helpers';
+import {
+    dialogTags,
+    expectEphemeral,
+    openBlocksDialogFromPost,
+    selectDayFromPicker,
+    setupDialogOpenPost,
+} from './mm_blocks_dialog_helpers';
 
 test.describe('Interactive mm_blocks (blocks dialog)', () => {
     test.beforeEach(async ({request}) => {
@@ -118,7 +124,7 @@ test.describe('Interactive mm_blocks (blocks dialog)', () => {
             .getByRole('button', {name: /Jan 10, 2025|Pick a due date/i})
             .click();
         await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-        await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
+        await selectDayFromPicker(channelsPage.page, '20', false);
 
         const uploadName = `pw-dialog-file-${pw.random.id()}.txt`;
         await dialog.locator('.mm-blocks-file-input input[type="file"]').setInputFiles({

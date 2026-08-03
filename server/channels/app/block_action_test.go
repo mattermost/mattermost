@@ -500,6 +500,28 @@ func TestDoBlockActionExecute(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
+	t.Run("unknown subtype returns bad request", func(t *testing.T) {
+		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:  model.BlockActionContextPost,
+			Subtype:  "delete",
+			PostId:   model.NewId(),
+			ActionId: "x",
+		}, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("unknown context returns bad request", func(t *testing.T) {
+		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:  "sidebar",
+			Subtype:  model.BlockActionSubtypeExecute,
+			PostId:   model.NewId(),
+			ActionId: "x",
+		}, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
 	t.Run("execute type refresh in dialog context encrypts block_dialog", func(t *testing.T) {
 		submitURL := "https://example.com/plugins/dialog/submit"
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

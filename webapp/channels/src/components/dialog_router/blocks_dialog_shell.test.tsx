@@ -502,7 +502,7 @@ describe('BlocksDialogShell', () => {
             expect(screen.getByTestId('title-error')).toHaveTextContent('Title looks wrong');
             expect(screen.getByTestId('email-error')).toHaveTextContent('Email is invalid');
         });
-        expect(screen.queryByText('Title looks wrong\nEmail is invalid')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('mm-blocks-dialog-error')).not.toBeInTheDocument();
     });
 
     test('native top-level error is shown with field errors', async () => {

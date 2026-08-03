@@ -39,6 +39,9 @@ const createMockContainer = (containsFn) => ({
 });
 
 describe('components/SuggestionBox', () => {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
     const baseProps = {
         listComponent: SuggestionList,
         value: 'value',

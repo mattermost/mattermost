@@ -30,9 +30,23 @@ describe('form_validation', () => {
                         },
                     ],
                 },
+                {
+                    type: 'collapsible',
+                    header: [
+                        {type: 'text_input', name: 'header_note', label: 'Header note', optional: true},
+                    ],
+                    content: [
+                        {type: 'text_input', name: 'details', label: 'Details', optional: true},
+                    ],
+                },
             ];
 
-            expect(collectMmBlocksFormFields(blocks).map((f) => f.name)).toEqual(['title', 'notify']);
+            expect(collectMmBlocksFormFields(blocks).map((f) => f.name)).toEqual([
+                'title',
+                'notify',
+                'header_note',
+                'details',
+            ]);
         });
     });
 

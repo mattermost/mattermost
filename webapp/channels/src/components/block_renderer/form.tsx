@@ -4,6 +4,8 @@
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 
+import {mmBlocksFieldErrorId} from './utils/field_dom_id';
+
 /** Value stored for a form input field (keyed by field `name`). */
 export type MmFormValue = string | string[] | boolean | number | null;
 
@@ -114,7 +116,7 @@ export function MmBlocksForm({children, errors, onErrorsChange}: MmBlocksFormPro
 }
 
 /** Renders a field-level integration error under an input, if present. */
-export function MmBlocksFieldError({name}: {name: string}) {
+export function MmBlocksFieldError({name, postId}: {name: string; postId: string}) {
     const {errors} = useMmBlocksForm();
     const message = errors[name];
     if (!message) {
@@ -122,8 +124,10 @@ export function MmBlocksFieldError({name}: {name: string}) {
     }
     return (
         <div
+            id={mmBlocksFieldErrorId(postId, name)}
             className='has-error'
             data-testid={`${name}-error`}
+            role='alert'
         >
             <label className='control-label'>{message}</label>
         </div>

@@ -5,3 +5,8 @@
 export function mmBlocksFieldDomId(postId: string, fieldName: string): string {
     return `mm-blocks-${postId}-${fieldName}`;
 }
+
+/** DOM id for a field error region; scoped by post like {@link mmBlocksFieldDomId}. */
+export function mmBlocksFieldErrorId(postId: string, fieldName: string): string {
+    return `mm-blocks-${postId}-${fieldName}-error`;
+}

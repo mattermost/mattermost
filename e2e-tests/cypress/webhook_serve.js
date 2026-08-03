@@ -302,9 +302,10 @@ function formatFormValuesSummary(formValues) {
 
 function getUpstreamFormValues(req) {
     const ctx = (req.body && req.body.context) || {};
-    return (ctx.form_values && typeof ctx.form_values === 'object' && !Array.isArray(ctx.form_values)) ?
-        ctx.form_values :
-        {};
+    if (ctx.form_values && typeof ctx.form_values === 'object' && !Array.isArray(ctx.form_values)) {
+        return ctx.form_values;
+    }
+    return {};
 }
 
 function postMmBlocksIntegrationEchoFormValues(req, res) {
@@ -332,11 +333,12 @@ function postMmBlocksIntegrationLookup(req, res) {
         {text: 'Mattermost', value: 'opt_mm'},
     ];
 
-    const items = searchText ?
-        allOptions.filter((option) =>
+    let items = allOptions;
+    if (searchText) {
+        items = allOptions.filter((option) =>
             option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) :
-        allOptions;
+            option.value.toLowerCase().includes(searchText));
+    }
 
     res.setHeader('Content-Type', 'application/json');
     return res.status(200).json({items});
@@ -607,11 +609,11 @@ function onBooleanDialogRequest(req, res) {
     return res.json({text: 'Simple dialog triggered via slash command!'});
 }
 
-function onServerFieldErrorsDialogRequest(req, res) {
+async function onServerFieldErrorsDialogRequest(req, res) {
     const {body} = req;
     if (body.trigger_id) {
         const dialog = webhookUtils.getServerFieldErrorsDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
+        await openDialog(dialog);
     }
 
     res.setHeader('Content-Type', 'application/json');
@@ -675,9 +677,12 @@ function onDynamicSelectSource(req, res) {
     ];
 
     // Filter options based on search text
-    const filteredOptions = searchText ? allOptions.filter((option) =>
-        option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) : allOptions.slice(0, 6); // Limit to first 6 if no search
+    let filteredOptions = allOptions.slice(0, 6); // Limit to first 6 if no search
+    if (searchText) {
+        filteredOptions = allOptions.filter((option) =>
+            option.text.toLowerCase().includes(searchText) ||
+            option.value.toLowerCase().includes(searchText));
+    }
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({

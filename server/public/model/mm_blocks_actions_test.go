@@ -269,6 +269,18 @@ func TestEncryptBlockDialogMmBlocksActions(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "must be a map")
 	})
+
+	t.Run("nil dialog is a no-op", func(t *testing.T) {
+		enc, err := EncryptBlockDialogMmBlocksActions(nil, secret, "user-123")
+		require.NoError(t, err)
+		assert.Empty(t, enc)
+	})
+
+	t.Run("nil actions is a no-op", func(t *testing.T) {
+		enc, err := EncryptBlockDialogMmBlocksActions(&BlockDialog{}, secret, "user-123")
+		require.NoError(t, err)
+		assert.Empty(t, enc)
+	})
 }
 
 func TestAddMmBlocksActionCookies(t *testing.T) {

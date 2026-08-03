@@ -364,6 +364,7 @@ func (a *App) encryptOpenDialogMmBlocksActions(request *model.OpenDialogRequest,
 		return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "mm_blocks_actions must be an object", http.StatusBadRequest).Wrap(err)
 	}
 	if cookie == "" {
+		request.BlockDialog.Actions = nil
 		return nil
 	}
 	request.BlockDialog.Actions = cookie

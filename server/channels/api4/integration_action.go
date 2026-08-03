@@ -60,12 +60,16 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
 			return
 		}
-		var parsed model.PostActionCookie
-		if parseErr := json.Unmarshal([]byte(cookieStr), &parsed); parseErr != nil {
+		legacy, mmBlocks, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
+		if parseErr != nil {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
-		cookie = &parsed
+		if mmBlocks != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "mm_blocks cookie is not valid for this endpoint", http.StatusBadRequest)
+			return
+		}
+		cookie = legacy
 
 		if cookie.PostId != c.Params.PostId {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -154,12 +158,16 @@ func doBlockAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
 			return
 		}
-		var parsed model.MmBlocksActionCookie
-		if parseErr := json.Unmarshal([]byte(cookieStr), &parsed); parseErr != nil {
+		legacy, mmBlocks, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
+		if parseErr != nil {
 			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
-		cookie = &parsed
+		if legacy != nil {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "legacy cookie is not valid for this endpoint", http.StatusBadRequest)
+			return
+		}
+		cookie = mmBlocks
 
 		// Allow empty post_id on both sides for dialog-scoped mm_blocks cookies.
 		if cookie.PostId != actionRequest.PostId {

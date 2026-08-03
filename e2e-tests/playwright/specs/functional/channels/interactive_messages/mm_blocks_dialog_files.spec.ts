@@ -69,7 +69,7 @@ test.describe('Interactive mm_blocks (blocks dialog files)', () => {
 
         const ephemeral = await expectEphemeral(channelsPage.page, /Playwright mm_blocks dialog submit OK/);
         await expect(ephemeral).toContainText(/single_document=[a-z0-9]{26}/i);
-        await expect(ephemeral).toContainText(/multiple_files=/);
+        await expect(ephemeral).toContainText(/multiple_files=[a-z0-9]{26},[a-z0-9]{26}/i);
     });
 
     test(

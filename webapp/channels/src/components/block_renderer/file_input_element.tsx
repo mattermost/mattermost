@@ -92,9 +92,7 @@ export const FileInputElement = ({element, postId}: FileInputElementProps) => {
     }
 
     const rawValue = values[element.name];
-    const value = rawValue === undefined || rawValue === null ?
-        normalizeFileIds(element.initial_value) :
-        normalizeFileIds(rawValue);
+    const value = rawValue === undefined || rawValue === null ? normalizeFileIds(element.initial_value) : normalizeFileIds(rawValue);
 
     return (
         <div className='mm-blocks-file-input'>
@@ -109,7 +107,10 @@ export const FileInputElement = ({element, postId}: FileInputElementProps) => {
                 onFileSelected={handleFileSelected}
                 onPendingChange={handlePendingChange}
             />
-            <MmBlocksFieldError name={element.name}/>
+            <MmBlocksFieldError
+                name={element.name}
+                postId={postId}
+            />
         </div>
     );
 };
