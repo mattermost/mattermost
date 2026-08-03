@@ -82,10 +82,8 @@ func testAccessControlPolicyStoreGetEtagEpoch(t *testing.T, rctx request.CTX, ss
 		require.Equal(t, baseline, epoch)
 	})
 
-	// The regression this guards: MAX(CreateAt) alone does not move when a policy that is not the
-	// newest is removed, so an ETag built from it keeps matching and clients stay on stale data.
-	// Permission policies are the case that matters — they are system-scoped, so every channel's
-	// epoch aggregates all of them.
+	// Guards the case MAX(CreateAt) alone misses. Permission policies matter most here: they are
+	// system-scoped, so every channel's epoch aggregates all of them.
 	t.Run("deleting a permission policy that is not the newest still moves the epoch", func(t *testing.T) {
 		permissionPolicy := func() *model.AccessControlPolicy {
 			return &model.AccessControlPolicy{
@@ -96,8 +94,12 @@ func testAccessControlPolicyStoreGetEtagEpoch(t *testing.T, rctx request.CTX, ss
 				Revision: 1,
 				Version:  model.AccessControlPolicyVersionV0_3,
 				Imports:  []string{},
+				Roles:    []string{model.SystemUserRoleId},
 				Rules: []model.AccessControlPolicyRule{
-					{Expression: "user.properties.program == \"engineering\""},
+					{
+						Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+						Expression: "user.properties.program == \"engineering\"",
+					},
 				},
 			}
 		}
