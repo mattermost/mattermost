@@ -3870,6 +3870,41 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelRequiresTeamPermission ensures that combining
+// not_in_channel with in_team still validates the caller's permission on
+// the team, not just on the channel.
+func TestGetUsersNotInChannelRequiresTeamPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+
+	attacker := th.CreateUser(t)
+	th.LinkUserToTeam(t, attacker, th.BasicTeam)
+	th.AddUserToChannel(t, attacker, th.BasicChannel)
+
+	_, _, err := th.Client.Login(context.Background(), attacker.Email, attacker.Password)
+	require.NoError(t, err)
+
+	query := url.Values{}
+	query.Set("in_team", otherTeam.Id)
+	query.Set("not_in_channel", th.BasicChannel.Id)
+	resp, err := th.Client.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+	require.Error(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+	th.LinkUserToTeam(t, attacker, otherTeam)
+
+	resp, err = th.Client.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	defer resp.Body.Close()
+
+	var users []*model.User
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+}
+
 // TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
 // getUsers that decides whether to apply ABAC filtering based on the
 // channel type and the abac_match_only query parameter. The underlying
