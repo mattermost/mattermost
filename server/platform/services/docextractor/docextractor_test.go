@@ -556,7 +556,8 @@ func TestArchiveMaxFileSize(t *testing.T) {
 
 func TestExtractConcurrency(t *testing.T) {
 	extractConcurrencyTestMu.Lock()
-	defer extractConcurrencyTestMu.Unlock()
+	// Unlock via Cleanup (LIFO) so wait/reset below still run while the mutex is held.
+	t.Cleanup(extractConcurrencyTestMu.Unlock)
 
 	logger := mlog.CreateConsoleTestLogger(t)
 	waitForExtractionSlotsIdle(t, runtime.NumCPU())
