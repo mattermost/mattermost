@@ -10561,11 +10561,53 @@ func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*mode
 
 }
 
+func (s *RetryLayerPropertyFieldStore) CreateOptionEdges(edges []*model.PropertyOptionEdge) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.CreateOptionEdges(edges)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 
 	tries := 0
 	for {
 		err := s.PropertyFieldStore.Delete(groupID, id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) DeleteOptionEdges(edges []*model.PropertyOptionEdge) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.DeleteOptionEdges(edges)
 		if err == nil {
 			return nil
 		}
@@ -10692,6 +10734,48 @@ func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID stri
 	tries := 0
 	for {
 		result, err := s.PropertyFieldStore.GetMany(ctx, groupID, ids)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionChildEdges(fieldID, parentOptionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionEdges(fieldID)
 		if err == nil {
 			return result, nil
 		}

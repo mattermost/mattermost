@@ -497,8 +497,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	}
 
 	// Before the option lists are reconciled: a field that has just stopped
-	// linking owns the options it was deriving from now on, and its property
-	// values already point at them.
+	// linking owns the options it was deriving from now on -- and, on a graph
+	// field, the hierarchy between them -- and its property values already point
+	// at them.
 	for _, field := range fields {
 		sourceID, ok := clearedSources[field.ID]
 		if !ok {
@@ -506,6 +507,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 		if err = s.takeOverLinkSourceOptions(transaction, field, sourceID, updateTime); err != nil {
 			return nil, errors.Wrap(err, "property_field_update_take_over_options")
+		}
+		if err = s.takeOverLinkSourceOptionEdges(transaction, field, sourceID); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_take_over_option_edges")
 		}
 	}
 
@@ -784,7 +788,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 // rejects every identifier once a field grows past the cap. Reads from the master
 // because it gates writes, matching CountLinkedFields.
 func (s *SqlPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
-	return s.getExistingOptionIDs(s.GetMaster(), field, optionIDs)
+	return s.getExistingOptionIDs(s.GetMaster(), optionOwnerIDs(field), optionIDs)
 }
 
 func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {

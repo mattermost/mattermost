@@ -435,14 +435,19 @@ func (s *SqlPropertyFieldStore) linkSourcesBeingCleared(db sqlxExecutor, fields 
 }
 
 // getExistingOptionIDs returns which of the given option IDs exist, and are not
-// deleted, in a field's effective option set.
+// deleted, among the options owned by ownerIDs.
 //
 // This is the option check for a caller holding identifiers rather than a field:
 // the inlined list a field reads back with is absent above
 // model.PropertyFieldMaxHydratedOptions options, so a caller that validates
 // against the list refuses every identifier once a field grows past the cap.
 // Asking the rows costs one indexed query and has no such ceiling.
-func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, field *model.PropertyField, optionIDs []string) ([]string, error) {
+//
+// The owners are passed in rather than derived from a field because the two
+// callers want different sets of them: validating a value asks about the field's
+// whole effective set, while linking two options asks only about the options one
+// field owns itself.
+func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, ownerIDs []string, optionIDs []string) ([]string, error) {
 	if len(optionIDs) == 0 {
 		return nil, nil
 	}
@@ -450,7 +455,7 @@ func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, field *mod
 	builder := s.getQueryBuilder().
 		Select("ID").
 		From("PropertyOptions").
-		Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+		Where(sq.Eq{"FieldID": ownerIDs}).
 		Where(sq.Eq{"ID": optionIDs}).
 		Where(sq.Eq{"DeleteAt": 0})
 
@@ -622,6 +627,12 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 			Where(sq.Eq{"ID": ids})
 		if _, err := transaction.ExecBuilder(builder); err != nil {
 			return nil, errors.Wrap(err, "property_options_delete_exec")
+		}
+
+		// An option that is gone cannot be part of a hierarchy, and an edge has
+		// no delete marker of its own to carry that with.
+		if err := s.deletePropertyOptionEdgesForOptions(transaction, fieldID, ids); err != nil {
+			return nil, err
 		}
 	}
 

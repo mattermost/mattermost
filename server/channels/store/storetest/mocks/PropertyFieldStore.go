@@ -186,6 +186,24 @@ func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.Propert
 	return r0, r1
 }
 
+// CreateOptionEdges provides a mock function with given fields: edges
+func (_m *PropertyFieldStore) CreateOptionEdges(edges []*model.PropertyOptionEdge) error {
+	ret := _m.Called(edges)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateOptionEdges")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*model.PropertyOptionEdge) error); ok {
+		r0 = rf(edges)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: groupID, id
 func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	ret := _m.Called(groupID, id)
@@ -197,6 +215,24 @@ func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(groupID, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteOptionEdges provides a mock function with given fields: edges
+func (_m *PropertyFieldStore) DeleteOptionEdges(edges []*model.PropertyOptionEdge) error {
+	ret := _m.Called(edges)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteOptionEdges")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*model.PropertyOptionEdge) error); ok {
+		r0 = rf(edges)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -377,6 +413,66 @@ func (_m *PropertyFieldStore) GetMany(ctx context.Context, groupID string, ids [
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
 		r1 = rf(ctx, groupID, ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOptionChildEdges provides a mock function with given fields: fieldID, parentOptionIDs
+func (_m *PropertyFieldStore) GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
+	ret := _m.Called(fieldID, parentOptionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionChildEdges")
+	}
+
+	var r0 []*model.PropertyOptionEdge
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.PropertyOptionEdge, error)); ok {
+		return rf(fieldID, parentOptionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.PropertyOptionEdge); ok {
+		r0 = rf(fieldID, parentOptionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyOptionEdge)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(fieldID, parentOptionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOptionEdges provides a mock function with given fields: fieldID
+func (_m *PropertyFieldStore) GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error) {
+	ret := _m.Called(fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionEdges")
+	}
+
+	var r0 []*model.PropertyOptionEdge
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PropertyOptionEdge, error)); ok {
+		return rf(fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PropertyOptionEdge); ok {
+		r0 = rf(fieldID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyOptionEdge)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(fieldID)
 	} else {
 		r1 = ret.Error(1)
 	}
