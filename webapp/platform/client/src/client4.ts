@@ -5096,7 +5096,7 @@ export default class Client4 {
     };
 
     getTeamAccessControlPolicy = (teamId: string) => {
-        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean}>(
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]}>(
             `${this.getTeamRoute(teamId)}/access_control/policy`,
             {method: 'get'},
         );
