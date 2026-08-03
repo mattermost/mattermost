@@ -63,9 +63,9 @@ export function getDisplayName(field: PropertyField): string {
     return (field.attrs?.display_name as string | undefined) || field.name;
 }
 
-// Identifies the single Classification Markings template field per the ticket's literal
-// name + object_type + group_id combo (not a data-driven ownership flag — see plan
-// Design Decision 1 for why attrs.protected/top-level `protected` don't apply here).
+// Identifies the single Classification Markings template field by its literal
+// name + object_type + group_id combo. There is no data-driven ownership flag
+// (attrs.protected/top-level `protected`) for this template field.
 export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
     return (
         field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
@@ -78,9 +78,9 @@ export function isClassificationMarkingsField(field: PropertyField, groupId: str
 // (isHidden: it.any(it.not(it.minLicenseTier(Enterprise)), it.not(it.configIsTrue('FeatureFlags',
 // 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/`it.configIsTrue`
 // helpers the route rule itself calls — not a re-implementation of their bodies, so the two can
-// never drift — reading from the same entities/admin config tree the route rule itself reads
-// (see plan Design Decision 6). Without this, the chevron/subtitle could point at a route that's
-// actually hidden (independent flag from the one gating this listing page).
+// never drift — reading from the same entities/admin config tree the route rule itself reads.
+// Without this, the chevron/subtitle could point at a route that's actually hidden (independent
+// flag from the one gating this listing page).
 function useClassificationMarkingsReachable(): boolean {
     return useSelector((state: GlobalState) => {
         const config = getAdminConfig(state);

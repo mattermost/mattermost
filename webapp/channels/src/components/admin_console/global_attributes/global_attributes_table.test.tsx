@@ -66,9 +66,9 @@ type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
 // State where the Classification Markings admin page is actually reachable: Enterprise-tier
 // license (matching admin_definition.tsx's minLicenseTier(Enterprise) check) and the
 // ClassificationMarkings feature flag on, read from the same entities/admin config tree the
-// route rule itself reads (see plan Design Decision 6). Both conditions default to "reachable"
-// but can be independently overridden to exercise the AND logic off the all-true/all-false
-// diagonal (e.g. license ok but flag off, or vice versa).
+// route rule itself reads. Both conditions default to "reachable" but can be independently
+// overridden to exercise the AND logic off the all-true/all-false diagonal (e.g. license ok
+// but flag off, or vice versa).
 function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
     const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true} = overrides;
     const state = getBaseState();

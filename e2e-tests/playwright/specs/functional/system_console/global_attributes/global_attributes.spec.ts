@@ -320,7 +320,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 // # The chevron's destination page is gated by its own independent feature flag
                 // (ClassificationMarkings), separate from the GlobalAttributes flag gating this
-                // listing page — both must be on for the chevron to render (see Design Decision 6).
+                // listing page — both must be on for the chevron to render.
                 // Tagged @classification_markings like every other spec that touches this same
                 // shared server-wide field/flag (classification_markings.spec.ts,
                 // global_classification_banner.spec.ts) — those specs are NOT otherwise
