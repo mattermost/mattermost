@@ -31,7 +31,7 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(); model.IsMHPNSEndpoint(pushServer) && (license == nil || !*license.Features.MHPNS) {
+	if model.IsMHPNSEndpoint(pushServer) && !a.Srv().License().HasMHPNS() {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),

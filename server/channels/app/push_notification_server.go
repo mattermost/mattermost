@@ -43,7 +43,7 @@ func (s *Server) syncPushNotificationServerWithLicense() {
 		}
 	}
 
-	entitled := license != nil && license.Features != nil && license.Features.MHPNS != nil && *license.Features.MHPNS
+	entitled := license.HasMHPNS()
 
 	// Decide and mutate on the same snapshot so a concurrent config write between the
 	// decision and the save can't be stomped with a stale value. The residual race between

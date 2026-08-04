@@ -118,6 +118,25 @@ func TestSyncPushNotificationServerWithLicense(t *testing.T) {
 		assert.Equal(t, model.MHPNSGlobal, *th.App.Config().EmailSettings.PushNotificationServer)
 	})
 
+	t.Run("license with nil MHPNS feature is unentitled and reverts Global to TPNS", func(t *testing.T) {
+		license := model.NewTestLicense()
+		th.App.Srv().SetLicense(license)
+		// SetLicense normalizes feature defaults, back-filling any nil pointer, so a license
+		// with a nil MHPNS can only reach the sync through the direct path. Clear the field
+		// on the stored license to prove the entitlement check is nil-safe and treats the
+		// license as unentitled. Restore it afterwards: license logging during teardown
+		// dereferences every feature pointer via Features.ToMap.
+		license.Features.MHPNS = nil
+		t.Cleanup(func() { license.Features.MHPNS = model.NewPointer(false) })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.PushNotificationServer = model.MHPNSGlobal
+		})
+
+		th.Server.syncPushNotificationServerWithLicense()
+
+		assert.Equal(t, model.GenericNotificationServer, *th.App.Config().EmailSettings.PushNotificationServer)
+	})
+
 	t.Run("environment override leaves setting untouched", func(t *testing.T) {
 		t.Setenv("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", model.GenericNotificationServer)
 
