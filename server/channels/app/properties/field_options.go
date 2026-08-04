@@ -128,8 +128,8 @@ func requireWritableOptions(field *model.PropertyField) error {
 	if field == nil || field.UpdateAt == 0 {
 		return optionsChangeRefused("a field's options can only be changed through a field read from the store")
 	}
-	if !field.Type.SupportsOptions() {
-		return optionsChangeRefused("a %s field has no options", field.Type)
+	if err := requireOptionsAddressable(field); err != nil {
+		return err
 	}
 
 	// A deleted field takes its options with it and there is no undeleting one, so
@@ -172,6 +172,36 @@ func requireWritableOptions(field *model.PropertyField) error {
 	return nil
 }
 
+// requireOptionsAddressable refuses a field whose options cannot be reached one
+// at a time at all, for reading or for writing.
+//
+// A legacy field is refused because it predates everything the rest of this path
+// decides with: it carries no object type, no permission levels, and none of the
+// access attributes the hooks read, so there is nothing to gate its options by.
+// Its options are reachable as the field's own list, which is how they were
+// written.
+func requireOptionsAddressable(field *model.PropertyField) error {
+	if field.IsPSAv1() {
+		return optionsChangeRefused("field %s predates addressable options; its option list is part of the field", field.ID)
+	}
+	if !field.Type.SupportsOptions() {
+		return optionsChangeRefused("a %s field has no options", field.Type)
+	}
+	return nil
+}
+
+// requireOptionCount refuses a payload naming no options or more of them than one
+// call may carry.
+func requireOptionCount(count int, verb string) error {
+	if count == 0 {
+		return optionsChangeRefused("no options to %s", verb)
+	}
+	if count > model.PropertyFieldOptionsMaxPerRequest {
+		return optionsChangeRefused("names %d options to %s, and no more than %d may be named in one call", count, verb, model.PropertyFieldOptionsMaxPerRequest)
+	}
+	return nil
+}
+
 // optionSourceID returns the template a field inherits options from, or an empty
 // string when it inherits none.
 func optionSourceID(field *model.PropertyField) string {
@@ -196,11 +226,21 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if perPage <= 0 {
 		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
 	}
+	if perPage > model.PropertyFieldOptionsMaxPerRequest {
+		return nil, optionsChangeRefused("asks for %d options, and no page may be larger than %d", perPage, model.PropertyFieldOptionsMaxPerRequest)
+	}
+	// Both halves of the cursor or neither: a page continues after one particular
+	// option, and an option's place in the order is its creation time as well as
+	// its identifier. Half a cursor would quietly start from the beginning again,
+	// which for a caller paging until a short page is a loop that never ends.
+	if (cursorID == "") != (cursorCreateAt == 0) {
+		return nil, optionsChangeRefused("a cursor names the option a page continues after, by its identifier and its creation time together")
+	}
 	if field == nil {
 		return nil, optionsChangeRefused("no property field to list the options of")
 	}
-	if !field.Type.SupportsOptions() {
-		return nil, optionsChangeRefused("a %s field has no options", field.Type)
+	if err := requireOptionsAddressable(field); err != nil {
+		return nil, err
 	}
 
 	options, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
@@ -386,8 +426,8 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 	if err != nil {
 		return nil, err
 	}
-	if len(optionIDs) == 0 {
-		return nil, optionsChangeRefused("no options to delete")
+	if err := requireOptionCount(len(optionIDs), "delete"); err != nil {
+		return nil, err
 	}
 
 	seen := make(map[string]bool, len(optionIDs))
@@ -478,6 +518,10 @@ func (ps *PropertyService) FieldWithDependents(field *model.PropertyField) (*mod
 // requireID separates the two verbs -- creating an option assigns its identifier,
 // changing one names it.
 func prepareOptionPayload(field *model.PropertyField, options []*model.PropertyFieldOption, requireID bool) error {
+	if err := requireOptionCount(len(options), "write"); err != nil {
+		return err
+	}
+
 	seen := make(map[string]bool, len(options))
 	for i, option := range options {
 		if option == nil {
@@ -509,8 +553,9 @@ func prepareOptionPayload(field *model.PropertyField, options []*model.PropertyF
 		}
 	}
 
-	// An empty payload and two options sharing a name are both refused here, as
-	// they are for the option list a field is written with.
+	// Two options sharing a name are refused here, as they are for the option list
+	// a field is written with. Its empty-payload check is reached only through the
+	// count above, which answers first and says which verb was asked for.
 	if err := model.PropertyOptions[*model.PropertyFieldOption](options).IsValid(); err != nil {
 		return optionsChangeRefused("%s", err.Error())
 	}

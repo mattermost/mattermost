@@ -12,16 +12,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 // maxPropertyFieldOptionItems bounds how many options one request may create,
-// change, or delete. It matches the largest page the listing will serve, so a
-// page a caller read is a page it can write back, and it keeps a single request
-// from carrying a whole hierarchy: nothing about the write path degrades at that
-// size, but an unbounded payload is an unbounded amount of work to validate
-// before anything is written.
-const maxPropertyFieldOptionItems = web.PerPageMaximum
+// change, or delete. The bound belongs to the property service, which holds every
+// caller to it; this is where going over it is answered as a request-level
+// refusal naming the limit, rather than as a rejected payload.
+const maxPropertyFieldOptionItems = model.PropertyFieldOptionsMaxPerRequest
 
 // propertyFieldForOptions resolves the field the URL addresses and checks the
 // three things every options request needs of it. It sets c.Err and returns nil

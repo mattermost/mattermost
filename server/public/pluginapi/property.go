@@ -77,6 +77,44 @@ func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targ
 	return p.api.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
 }
 
+// GetPropertyFieldOptions returns one page of a property field's options,
+// ordered by creation time and continuing after the option the cursor names.
+// The page includes options inherited from a linked template, flagged
+// read_only, and each option carries the names of the options directly above it
+// where the field's options form a hierarchy.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	return p.api.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits under, by name, in parents. Every option is created
+// or none is.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return p.api.CreatePropertyFieldOptions(groupID, fieldID, options)
+}
+
+// UpdatePropertyFieldOptions rewrites options a property field owns, each named
+// by id. A part the payload leaves out is left as it was; parents, when given,
+// replaces that option's parent set. Every option is updated or none is.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return p.api.UpdatePropertyFieldOptions(groupID, fieldID, options)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns, named by id.
+// The set is judged as a whole, so a whole branch of a hierarchy can be removed
+// in one call.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	return p.api.DeletePropertyFieldOptions(groupID, fieldID, optionIDs)
+}
+
 // CreatePropertyValue creates a new property value.
 //
 // Minimum server version: 10.10

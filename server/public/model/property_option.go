@@ -27,6 +27,18 @@ const (
 	PropertyGraphMaxParentsPerOption = 100
 )
 
+// PropertyFieldOptionsMaxPerRequest bounds how many of a field's options one
+// call may read, create, change, or delete. It is the largest page the HTTP
+// layer will serve, so a page a caller read is a page it can write back, and it
+// keeps one call from carrying a whole hierarchy: nothing about the write path
+// degrades at that size, but an unbounded payload is an unbounded amount of work
+// to validate before anything is written.
+//
+// It bounds the page size as well as the payload because a caller that is not
+// the HTTP layer chooses its own, and a listing has the same property: the page
+// is held in memory and its parents are looked up together.
+const PropertyFieldOptionsMaxPerRequest = 200
+
 // propertyOptionReservedAttrs are the keys an option's Attrs may not carry.
 // Each of them names something PropertyFieldOption models directly or leaves
 // out on purpose, and the option list a field serves projects all four from
