@@ -7,11 +7,11 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 
-import {expect, getFileFromAsset, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
-    let userClient: Client4;
+    let userClient: PlaywrightClient4;
     let user: UserProfile;
     let team: Team;
     let channel: ServerChannel;
@@ -36,12 +36,15 @@ test.describe('Post height', () => {
             type: 'O',
         });
 
-        // # Enable SVG rendering and let the server fetch metadata from the local mock file server
+        // # Enable SVG rendering and let the server fetch metadata from the mock file server.
+        // AllowedUntrustedInternalConnections only takes effect in `external` mode here — in
+        // `testcontainers` mode it's fixed at boot via an env var, and a PatchConfig on an env-controlled
+        // field is accepted but has no real effect.
         await adminClient.patchConfig({
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
+                AllowedUntrustedInternalConnections: `localhost 127.0.0.1 ${new URL(fileServerUrl).hostname}`,
             },
         });
 
@@ -118,7 +121,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single large image',
-            // TODO skip this on iPad because images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Skip this on iPad because images that are too wide but above the minimum height cause layout shift
             skipProjects: ['ipad'],
             seedOptions: {
                 message: 'post with a single large image',
@@ -242,7 +245,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large Markdown image',
-            // TODO images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `![large image](${baseUrl}/huge-image.jpg)`,
@@ -277,7 +280,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // TODO Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
+            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
             skipProjects: ['firefox'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
@@ -312,7 +315,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
-            // TODO images that are too wide but above the minimum height cause layout shift
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/huge-image.jpg`,
@@ -465,7 +468,7 @@ test.describe('Post height', () => {
         await postComponent.toContainText('edited post');
 
         // * Verify that the post height didn't change
-        // TODO The post height shouldn't increase when it's edited, but it increases by 1px
+        // MM-69980 The post height shouldn't increase when it's edited, but it increases by 1px
         expect(await sizeWatcher.getObservations()).toHaveLength(2);
 
         // # Edit the post to be multiple linesfrom another client
@@ -508,20 +511,6 @@ test.describe('Post height', () => {
         return {sizeWatcher, postComponent};
     }
 
-    let uploadCounter = 0;
-
-    /** Upload an asset to a channel and return its file id. */
-    async function uploadAsset(filename: string): Promise<string> {
-        const formData = new FormData();
-        // Order matters: channel_id, then client_ids, then files.
-        formData.set('channel_id', channel.id);
-        formData.set('client_ids', `pw-post-list-${uploadCounter++}`);
-        formData.set('files', getFileFromAsset(filename), filename);
-
-        const data = await userClient.uploadFile(formData);
-        return data.file_infos[0].id;
-    }
-
     type SeedOptions = {
         message: string;
         /** Asset filenames to upload and attach to the post. */
@@ -536,17 +525,14 @@ test.describe('Post height', () => {
 
     /** Create a post (with optional attachments, reactions, replies) and return its root post. */
     async function seedPost(opts: SeedOptions) {
-        const fileIds: string[] = [];
-        for (const filename of opts.files ?? []) {
-            fileIds.push(await uploadAsset(filename));
-        }
-
-        const root = await userClient.createPost({
-            channel_id: channel.id,
-            message: opts.message,
-            file_ids: fileIds,
-            props: opts.props,
-        });
+        const root = await userClient.createTestPost(
+            {
+                channel_id: channel.id,
+                message: opts.message,
+                props: opts.props,
+            },
+            opts.files,
+        );
 
         for (const emoji of opts.reactions ?? []) {
             await userClient.addReaction(user.id, root.id, emoji);
