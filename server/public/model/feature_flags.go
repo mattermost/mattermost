@@ -34,8 +34,6 @@ type FeatureFlags struct {
 
 	MoveThreadsEnabled bool
 
-	CloudDedicatedExportUI bool
-
 	NotificationMonitoring bool
 
 	CustomProfileAttributes bool
@@ -165,7 +163,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
 	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
