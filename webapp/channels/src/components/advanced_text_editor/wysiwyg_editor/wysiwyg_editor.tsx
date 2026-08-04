@@ -387,7 +387,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     const ed = editorRef.current;
                     if (ed && !ed.isDestroyed) {
                         event.preventDefault();
-                        ed.chain().focus().splitBlock().setNode('paragraph').run();
+
+                        try {
+                            ed.chain().focus().splitBlock().setNode('paragraph').run();
+                        } catch {
+                            ed.chain().focus().splitBlock().run();
+                        }
                         return true;
                     }
                 }
