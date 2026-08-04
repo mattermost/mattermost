@@ -654,6 +654,73 @@ func TestFlagPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
+
+	t.Run("Should not allow flagging a post in a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		post := th.CreatePostWithClient(t, client, dmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should not allow flagging a post in a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		post := th.CreatePostWithClient(t, client, gmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
+
+	t.Run("Should reject DM posts by channel type before the team enabled check", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		// With per team reviewers, ContentFlaggingEnabledForTeam("") returns false for a DM, so
+		// without the channel type check running first this would surface the misleading
+		// "not_available_on_team" error instead.
+		appErr := setNonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		post := th.CreatePostWithClient(t, client, dmChannel)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive data",
+		}
+
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {

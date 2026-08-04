@@ -2162,6 +2162,10 @@
     "translation": "Data Spillage Handling feature is disabled."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Quarantining posts in direct and group message channels is not allowed."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Quarantining a post of type '{{.PostType}}' is not allowed."
   },

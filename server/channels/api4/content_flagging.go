@@ -196,6 +196,11 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(channel.TeamId)
 	if appErr != nil {
 		c.Err = appErr
@@ -619,5 +624,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 func checkPostTypeFlaggable(c *Context, post *model.Post) {
 	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.data_spillage.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
+}
+
+func checkChannelFlaggable(c *Context, channel *model.Channel) {
+	if channel.IsGroupOrDirect() {
+		c.Err = model.NewAppError("checkChannelFlaggable", "api.data_spillage.error.invalid_channel_type", nil, "", http.StatusBadRequest)
 	}
 }
