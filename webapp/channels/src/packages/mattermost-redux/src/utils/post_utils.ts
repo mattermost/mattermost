@@ -250,9 +250,12 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
-        if ((storedPost.metadata?.redacted_file_count ?? 0) !== (receivedPost.metadata?.redacted_file_count ?? 0)) {
-            // An access control policy change alters what the server sends for a post — file
-            // metadata stripped, or restored — without touching update_at.
+        // A policy change strips or restores file metadata without touching update_at. Both sides
+        // must carry metadata: a response that omits it entirely (some endpoints do) must not
+        // clobber what's stored, which is what the check above guards in the other direction.
+        if (storedPost.metadata && receivedPost.metadata &&
+            (storedPost.metadata.redacted_file_count ?? 0) !== (receivedPost.metadata.redacted_file_count ?? 0)
+        ) {
             return true;
         }
 

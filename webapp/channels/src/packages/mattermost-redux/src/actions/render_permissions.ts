@@ -54,6 +54,7 @@ export function fetchRenderActionsForResourceBatched(identifier: RenderDecisionI
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.renderDecisionsLoader) {
             loaders.renderDecisionsLoader = new DelayedDataLoader<RenderDecisionIdentifier>({
+
                 // Action Search takes one resource per request, so a batch becomes one request per
                 // resource carrying that resource's actions.
                 fetchBatch: (identifiers) => {

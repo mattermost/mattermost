@@ -916,13 +916,12 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
     };
 }
 
-// Posts already loaded were sanitized under the old policy. The channel in view is refetched
-// through the unread endpoint, which carries no ETag and so cannot 304 onto stale metadata;
-// everything else just loses its chunks and reloads on the next visit.
+// Posts already loaded were sanitized under the old policy. Off-screen channels just lose their
+// chunks and reload on next visit; the channel in view is refetched explicitly, rather than via
+// resetReloadPostsInChannel's deselect/reselect, which does not reliably remount PostList.
 //
-// Dropping the visible channel's chunks and leaving the refetch to resetReloadPostsInChannel's
-// deselect/reselect is not enough: both dispatches land in one React batch, so PostList never sees
-// the channel change and never re-runs postsOnLoad.
+// loadUnreads and not loadLatestPosts: the unread endpoint carries no ETag, so it cannot 304 onto
+// the metadata the old policy produced.
 function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         doDispatch({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId});
