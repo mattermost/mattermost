@@ -268,7 +268,8 @@ describe('Upload Files', () => {
                 // on the version, so use a regex instead of splitting on quotes.
                 const bgImage = imageDiv.css('background-image');
                 const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-                const imageURL = match?.[1];
+                expect(match, `unexpected background-image: ${bgImage}`).to.not.be.null;
+                const imageURL = match[1];
 
                 downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
             });
