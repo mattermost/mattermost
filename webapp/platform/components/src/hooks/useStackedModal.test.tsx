@@ -61,8 +61,13 @@ const MOCK_STACK_DEPTH = 2;
 const TestComponent = ({
     isStacked = false,
     isOpen = true,
+    container,
+}: {
+    isStacked?: boolean;
+    isOpen?: boolean;
+    container?: HTMLElement | null;
 }) => {
-    const {shouldRenderBackdrop, modalStyle, backdropStyle} = useStackedModal(isStacked, isOpen);
+    const {shouldRenderBackdrop, modalStyle, backdropStyle} = useStackedModal(isStacked, isOpen, container);
 
     return (
         <div data-testid='test-component'>
@@ -410,5 +415,80 @@ describe('useStackedModal - multi-level stacking (integration)', () => {
         // The dimming layer is actually visible (not the transparent
         // backdrop the close-flash fix parks the covered modal at).
         expect(deepestBackdrop.style.opacity).not.toBe('0');
+    });
+});
+
+// A document-wide `.modal-backdrop` query can't tell two independent
+// modal stacks apart: a second stack's backdrops would inflate this
+// stack's computed depth (pushing its z-index too high) and its most
+// recent backdrop could be grabbed as this stack's parent and wrongly
+// dimmed. Passing each modal's own portal container scopes discovery to
+// that stack so the two never interfere. (CodeRabbit review: scope
+// backdrop discovery to the current stack/container.)
+describe('useStackedModal - independent simultaneous stacks (scoped discovery)', () => {
+    const BACKDROP_Z_INDEX = 1040;
+
+    const addBackdrops = (container: HTMLElement, count: number): HTMLElement[] => {
+        const created: HTMLElement[] = [];
+        for (let i = 0; i < count; i++) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.style.zIndex = String(BACKDROP_Z_INDEX);
+            backdrop.style.opacity = '0.5';
+            container.appendChild(backdrop);
+            created.push(backdrop);
+        }
+        return created;
+    };
+
+    let containerA: HTMLElement;
+    let containerB: HTMLElement;
+    let backdropsA: HTMLElement[];
+    let backdropsB: HTMLElement[];
+
+    beforeEach(() => {
+        containerA = document.createElement('div');
+        containerB = document.createElement('div');
+        document.body.appendChild(containerA);
+        document.body.appendChild(containerB);
+
+        // Stack A has one modal beneath it (depth 1); stack B has two
+        // (depth 2). If discovery were document-wide, BOTH stacked modals
+        // would see all three backdrops and wrongly compute depth 3.
+        backdropsA = addBackdrops(containerA, 1);
+        backdropsB = addBackdrops(containerB, 2);
+    });
+
+    afterEach(() => {
+        containerA.remove();
+        containerB.remove();
+    });
+
+    test('each stack derives its depth from only its own container backdrops', () => {
+        const {rerender} = render(<TestComponent isStacked={true} container={containerA}/>);
+
+        // Depth 1 from container A's single backdrop → not depth 3.
+        expect(screen.getByTestId('modal-z-index')).toHaveTextContent(
+            (BASE_MODAL_Z_INDEX + Z_INDEX_INCREMENT).toString(),
+        );
+
+        rerender(<TestComponent isStacked={true} container={containerB}/>);
+
+        // Depth 2 from container B's two backdrops → still isolated from A.
+        expect(screen.getByTestId('modal-z-index')).toHaveTextContent(
+            (BASE_MODAL_Z_INDEX + (2 * Z_INDEX_INCREMENT)).toString(),
+        );
+    });
+
+    test('a stacked modal only dims the parent backdrop in its own container', () => {
+        render(<TestComponent isStacked={true} container={containerA}/>);
+
+        // Stack A's most recent backdrop is dimmed...
+        expect(backdropsA[backdropsA.length - 1].style.opacity).toBe('0');
+
+        // ...while the unrelated stack B's backdrops are left untouched.
+        for (const backdrop of backdropsB) {
+            expect(backdrop.style.opacity).toBe('0.5');
+        }
     });
 });

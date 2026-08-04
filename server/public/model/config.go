@@ -4111,6 +4111,9 @@ type AccessControlSettings struct {
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
 	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4139,6 +4142,20 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAccessControlAuditLogging == nil {
 		s.EnableAccessControlAuditLogging = new(false)
 	}
+
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
+	}
+}
+
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ConfigFunc func() *Config
@@ -4527,6 +4544,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

@@ -49,11 +49,18 @@ type StackedModalResult = {
  *
  * @param isStacked Whether this modal is stacked on top of another modal
  * @param isOpen Whether the modal is currently open
+ * @param container The DOM element the modal is portaled into. Backdrop
+ *  discovery is scoped to this element so an independent modal stack in a
+ *  different container can't inflate this modal's stacking depth or have
+ *  its backdrop mistaken for this stack's parent. Defaults to the whole
+ *  document, which is the single shared stack for the common case where
+ *  modals render into `document.body`.
  * @returns An object with properties to control modal and backdrop rendering
  */
 export function useStackedModal(
     isStacked: boolean,
     isOpen: boolean,
+    container?: HTMLElement | null,
 ): StackedModalResult {
     // State to track whether this modal should render its own backdrop
     const [shouldRenderBackdrop, setShouldRenderBackdrop] = useState(!isStacked);
@@ -106,9 +113,14 @@ export function useStackedModal(
             // Settings → Simulate access → Decision details), where the
             // deepest modal shared the middle modal's z-index and its
             // backdrop landed *below* that modal, leaving it undimmed.
-            const backdrops = typeof document === 'undefined' ?
+            // Scope the lookup to this modal's own container so a second,
+            // independent stack rendered elsewhere in the document can't
+            // be counted as part of this stack (which would over-count the
+            // depth) or have its backdrop picked as this stack's parent.
+            const root: ParentNode | null = container ?? (typeof document === 'undefined' ? null : document);
+            const backdrops = root === null ?
                 [] :
-                Array.from(document.querySelectorAll<HTMLElement>('.modal-backdrop'));
+                Array.from(root.querySelectorAll<HTMLElement>('.modal-backdrop'));
             const depth = Math.max(backdrops.length, 1);
 
             // The backdrop sits one below the modal so it dims the modal
@@ -178,7 +190,7 @@ export function useStackedModal(
                 originalBackdropOpacityRef.current = null;
             }
         };
-    }, [isOpen, isStacked]);
+    }, [isOpen, isStacked, container]);
 
     const modalStyle = useMemo(() => {
         return isStacked ? {
