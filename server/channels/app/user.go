@@ -2067,6 +2067,17 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		return nil, err
 	}
 
+	// The atomic space capability roles are excluded from
+	// BuiltInSchemeManagedRoleIDs so they can ride in ExplicitRoles on a space's
+	// backing channel, which also means CheckRolesExist accepts them here. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one assigned here would resolve its page permissions everywhere.
+	for roleName := range strings.FieldsSeq(newRoles) {
+		if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateUserRoles", roleName, false) {
+			return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+		}
+	}
+
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
 		// if user being updated is SysAdmin, make sure its not the last one.
 		options := model.UserCountOptions{

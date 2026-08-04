@@ -20,9 +20,9 @@ const (
 	SchemeScopeRun             = "run"
 
 	// Seeded space default-capability preset schemes. Channel-scoped schemes
-	// attached to space backing channels; the namespaced names guarantee the
-	// seeding migration's get-or-create can never adopt a pre-existing customer
-	// scheme carrying a generic name.
+	// attached to space backing channels; the namespaced names make a collision
+	// with a pre-existing customer scheme unlikely, and the seeding migration
+	// refuses to adopt one that governs ordinary channels.
 	SchemeNameSpaceContribute = "docs_space_contribute"
 	SchemeNameSpaceComment    = "docs_space_comment"
 	SchemeNameSpaceReadOnly   = "docs_space_readonly"
@@ -53,9 +53,9 @@ func init() {
 // IsSpaceSchemeName reports whether name is one of the three seeded space preset
 // scheme names. It serves both as the reservation predicate — these names may
 // not be created or renamed into — and as proof that a scheme is a preset: the
-// boot seeding creates all three unconditionally and the Schemes.Name column is
-// unique, so by the time any request runs, a match proves the scheme is the
-// seeded row rather than merely carrying its name.
+// boot seeding runs unconditionally and the Schemes.Name column is unique, so by
+// the time any request runs the name resolves to exactly one row, and that row
+// either was created by the seeding or passed its adoption checks.
 //
 // The answer comes from a set frozen at init rather than from SpaceSchemeNames
 // itself: three security guards read this as proof of space authority, so the

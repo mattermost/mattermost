@@ -29,6 +29,7 @@ func TestSpaceChannelScopedPermissions(t *testing.T) {
 		SpacePageCommenterRolePermissions,
 		SpacePageEditorRolePermissions,
 		SpacePageDeleterOwnRolePermissions,
+		SpacePageDeleterRolePermissions,
 		SpaceAdminRolePermissions,
 		SpaceDefaultContributePermissions,
 		SpaceDefaultCommentPermissions,

@@ -399,7 +399,7 @@ func validateCanonicalSpaceRole(existing, canonical *model.Role) error {
 // that scheme's generated role permission sets on every boot, and a row without
 // a full set of generated channel roles would fail the closure with a
 // not-found on an empty role name.
-func validateAdoptableSpaceScheme(existing *model.Scheme) error {
+func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	// The scheme select carries no DeleteAt filter, so a soft-deleted row comes
 	// back like any other; adopting one would mark the migration complete while
 	// leaving no live preset behind.
@@ -411,6 +411,18 @@ func validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	}
 	if existing.DefaultChannelUserRole == "" || existing.DefaultChannelAdminRole == "" || existing.DefaultChannelGuestRole == "" {
 		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
+	}
+	// The three checks above are all satisfied by an ordinary channel scheme, so
+	// on a server that already had one under a reserved name they would adopt it
+	// — and the permission closure below would then strip the moderated
+	// permissions from every channel it governs. GetChannelsByScheme excludes
+	// spaces, so a single row here proves the scheme is a customer's.
+	governed, err := s.Store().Channel().GetChannelsByScheme(existing.Id, 0, 1)
+	if err != nil {
+		return fmt.Errorf("could not check scheme %q for non-space channels: %w", existing.Name, err)
+	}
+	if len(governed) > 0 {
+		return fmt.Errorf("scheme %q already exists and governs non-space channels; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
 	}
 	return nil
 }
@@ -559,7 +571,7 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 			}
 		}
 
-		if vErr := validateAdoptableSpaceScheme(scheme); vErr != nil {
+		if vErr := s.validateAdoptableSpaceScheme(scheme); vErr != nil {
 			return vErr
 		}
 

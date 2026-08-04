@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -386,6 +387,7 @@ func TestUpdateRoleBaselineIsKeyedById(t *testing.T) {
 
 func TestValidateAdoptableSpaceScheme(t *testing.T) {
 	canonical := &model.Scheme{
+		Id:                      model.NewId(),
 		Name:                    model.SchemeNameSpaceContribute,
 		Scope:                   model.SchemeScopeChannel,
 		DefaultChannelUserRole:  model.NewId(),
@@ -393,24 +395,39 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 		DefaultChannelGuestRole: model.NewId(),
 	}
 
+	// governs is what GetChannelsByScheme returns; it excludes spaces, so a
+	// non-empty list means the scheme belongs to a customer's channels.
+	setup := func(t *testing.T, governs model.ChannelList) *TestHelper {
+		th := setupSpaceRBACMock(t)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetChannelsByScheme", mock.AnythingOfType("string"), 0, 1).Return(governs, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		return th
+	}
+
 	t.Run("canonical row accepted", func(t *testing.T) {
-		require.NoError(t, validateAdoptableSpaceScheme(canonical))
+		th := setup(t, model.ChannelList{})
+		require.NoError(t, th.App.Srv().validateAdoptableSpaceScheme(canonical))
 	})
 
 	t.Run("soft-deleted row rejected", func(t *testing.T) {
 		// GetByName has no DeleteAt filter, so a deleted row reaches the check.
+		th := setup(t, model.ChannelList{})
 		foreign := *canonical
 		foreign.DeleteAt = 1
-		require.Error(t, validateAdoptableSpaceScheme(&foreign))
+		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(&foreign))
 	})
 
 	t.Run("wrong scope rejected", func(t *testing.T) {
+		th := setup(t, model.ChannelList{})
 		foreign := *canonical
 		foreign.Scope = model.SchemeScopeTeam
-		require.Error(t, validateAdoptableSpaceScheme(&foreign))
+		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(&foreign))
 	})
 
 	t.Run("incomplete generated roles rejected", func(t *testing.T) {
+		th := setup(t, model.ChannelList{})
 		for _, blank := range []func(*model.Scheme){
 			func(s *model.Scheme) { s.DefaultChannelUserRole = "" },
 			func(s *model.Scheme) { s.DefaultChannelAdminRole = "" },
@@ -418,8 +435,16 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 		} {
 			foreign := *canonical
 			blank(&foreign)
-			require.Error(t, validateAdoptableSpaceScheme(&foreign))
+			require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(&foreign))
 		}
+	})
+
+	t.Run("row governing ordinary channels rejected", func(t *testing.T) {
+		// A customer scheme that predates the name reservation satisfies every
+		// shape check above; adopting it would strip the moderated permissions
+		// from the channels it governs.
+		th := setup(t, model.ChannelList{{Id: model.NewId(), Type: model.ChannelTypeOpen}})
+		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(canonical))
 	})
 }
 
@@ -815,6 +840,59 @@ func TestSpaceCapabilityRoleConfinedToChannels(t *testing.T) {
 	member, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
 	require.Nil(t, appErr)
 	assert.Equal(t, "", member.ExplicitRoles)
+}
+
+// TestSpaceCapabilityRoleConfinedToSystemRoles pins the third role-assignment
+// sink. A system role is the fallback consulted for every channel on the
+// server, so a capability role accepted here would be wider still than the team
+// sink refuses — and CheckRolesExist alone would accept it, since the capability
+// roles are deliberately absent from BuiltInSchemeManagedRoleIDs.
+func TestSpaceCapabilityRoleConfinedToSystemRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	for _, roleName := range model.SpaceCapabilityRoles {
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id,
+			model.SystemUserRoleId+" "+roleName, false)
+		require.NotNil(t, appErr, "role %q", roleName)
+		assert.Equal(t, "api.user.update_user_roles.space_role.app_error", appErr.Id, "role %q", roleName)
+	}
+
+	// An ordinary system role on the same sink still works.
+	user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.SystemUserRoleId, user.Roles)
+}
+
+// TestImportSchemeRejectsSpacePresetNames pins that bulk import cannot write
+// through a seeded preset. A reserved name resolves to the seeded scheme, which
+// takes the update branch, and the role writes that follow would land on the
+// roles every space on that preset resolves through — the scope guard waves them
+// past because the scheme's name is its own proof of space authority.
+func TestImportSchemeRejectsSpacePresetNames(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	for _, name := range model.SpaceSchemeNames {
+		data := &imports.SchemeImportData{
+			Name:                    model.NewPointer(name),
+			DisplayName:             model.NewPointer("Hijacked"),
+			Scope:                   model.NewPointer(model.SchemeScopeChannel),
+			DefaultChannelAdminRole: &imports.RoleImportData{Name: model.NewPointer(model.NewId()), DisplayName: model.NewPointer("a")},
+			DefaultChannelUserRole:  &imports.RoleImportData{Name: model.NewPointer(model.NewId()), DisplayName: model.NewPointer("u")},
+			DefaultChannelGuestRole: &imports.RoleImportData{Name: model.NewPointer(model.NewId()), DisplayName: model.NewPointer("g")},
+		}
+
+		// Refused on the dry run too, so an operator finds out before the real pass.
+		appErr := th.App.importScheme(th.Context, data, true)
+		require.NotNil(t, appErr, "scheme %q", name)
+		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id, "scheme %q", name)
+
+		appErr = th.App.importScheme(th.Context, data, false)
+		require.NotNil(t, appErr, "scheme %q", name)
+		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id, "scheme %q", name)
+	}
 }
 
 // TestCreateChannelRejectsSpaceScheme pins that the create path cannot be used
@@ -1293,6 +1371,14 @@ func spaceSchemesMigrationStore(t *testing.T, reread func(name string) (*model.S
 	mockRoleStore.On("Save", mock.Anything).Return(
 		func(role *model.Role) (*model.Role, error) { return role, nil })
 	mockStore.On("Role").Return(&mockRoleStore)
+
+	// The adoption check asks whether the scheme governs any ordinary channel.
+	// A scheme reached through the insert race is one another node just created,
+	// so it governs none.
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("GetChannelsByScheme", mock.AnythingOfType("string"), 0, 1).
+		Return(model.ChannelList{}, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockStore.On("Close").Return(nil)
 	return &mockStore

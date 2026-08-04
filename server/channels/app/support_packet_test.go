@@ -626,13 +626,15 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		return &permissions
 	}
 
+	// Every server seeds the space capability roles and the three preset
+	// schemes, which generate an admin/user/guest role each, on top of the
+	// historical built-in count.
+	builtInRoles := 24 + seededSpaceRoles()
+
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		// Every server seeds the three space preset schemes, which generate an
-		// admin/user/guest role each, alongside the four atomic space
-		// capability roles: 24 + 9 + 4.
-		assert.Len(t, permissions.Roles, 37)
+		assert.Len(t, permissions.Roles, builtInRoles)
 		assert.Len(t, permissions.Schemes, 3)
 	})
 
@@ -646,8 +648,8 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 47)   // 37 default roles + 10 custom roles from the scheme
-		require.Len(t, permissions.Schemes, 4) // 3 seeded space preset schemes + the custom one
+		assert.Len(t, permissions.Roles, builtInRoles+10) // built-in roles + 10 custom roles from the scheme
+		require.Len(t, permissions.Schemes, 4)           // 3 seeded space preset schemes + the custom one
 
 		var custom *model.Scheme
 		for _, s := range permissions.Schemes {
@@ -676,7 +678,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		require.Len(t, permissions.Schemes, 4)
-		require.Len(t, permissions.Roles, 48) // 37 default roles + 10 custom roles from the scheme + 1 custom role
+		require.Len(t, permissions.Roles, builtInRoles+10+1) // built-in roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {
 			// Confirm that sensitive fields are obfuscated
