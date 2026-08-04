@@ -8,6 +8,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -25,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -1727,4 +1731,113 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		"Non-threaded reply from deactivated user should be imported")
 	require.True(t, foundThreadedReplyInImport,
 		"Threaded reply from deactivated user should be imported")
+}
+
+func TestGeneratePresignURLForExport(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("blocked when not running in Cloud", func(t *testing.T) {
+		th := Setup(t)
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.FileSettings.EnableCloudExportDirectDownload = true
+		})
+
+		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
+		assert.Nil(t, resp)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.eport.generate_presigned_url.direct_download.app_error", appErr.Id)
+	})
+
+	t.Run("blocked when disabled", func(t *testing.T) {
+		th := Setup(t)
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.FileSettings.EnableCloudExportDirectDownload = false
+		})
+
+		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
+		assert.Nil(t, resp)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.eport.generate_presigned_url.direct_download.app_error", appErr.Id)
+	})
+
+	t.Run("passes gate when Cloud and enabled, then requires a dedicated export store", func(t *testing.T) {
+		th := Setup(t)
+		// The direct-download gate is checked before the dedicated export store
+		// requirement, so a Cloud license with the setting enabled advances past
+		// it and fails on the (disabled) dedicated export store instead.
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.FileSettings.EnableCloudExportDirectDownload = true
+			*cfg.FileSettings.DedicatedExportStore = false
+		})
+
+		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
+		assert.Nil(t, resp)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.eport.generate_presigned_url.config.app_error", appErr.Id)
+	})
+
+	// The full happy path against a real presign-capable (S3/minio) export store: a
+	// Cloud server with the setting enabled and a dedicated export store returns a
+	// working presigned URL. Skipped when minio isn't reachable.
+	t.Run("succeeds against a presign-capable export store", func(t *testing.T) {
+		s3Host := os.Getenv("CI_MINIO_HOST")
+		if s3Host == "" {
+			s3Host = "localhost"
+		}
+		s3Port := os.Getenv("CI_MINIO_PORT")
+		if s3Port == "" {
+			s3Port = "9000"
+		}
+		s3Endpoint := net.JoinHostPort(s3Host, s3Port)
+
+		conn, err := net.DialTimeout("tcp", s3Endpoint, 2*time.Second)
+		if err != nil {
+			t.Skipf("minio not available at %s: %v", s3Endpoint, err)
+		}
+		conn.Close()
+
+		// Use a fresh bucket per run so MakeBucket is unambiguous.
+		bucket := model.NewId()
+
+		// The dedicated export filestore is built once at startup, so the export-store
+		// configuration must be applied before the server starts, not via UpdateConfig.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.FileSettings.EnableCloudExportDirectDownload = true
+			*cfg.FileSettings.DedicatedExportStore = true
+			*cfg.FileSettings.ExportDriverName = model.ImageDriverS3
+			*cfg.FileSettings.ExportAmazonS3AccessKeyId = model.MinioAccessKey
+			*cfg.FileSettings.ExportAmazonS3SecretAccessKey = model.MinioSecretKey
+			*cfg.FileSettings.ExportAmazonS3Bucket = bucket
+			*cfg.FileSettings.ExportAmazonS3Endpoint = s3Endpoint
+			*cfg.FileSettings.ExportAmazonS3Region = ""
+			*cfg.FileSettings.ExportAmazonS3SSL = false
+		})
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		backend, ok := th.App.ExportFileBackend().(*filestore.S3FileBackend)
+		require.True(t, ok, "expected a dedicated S3 export backend")
+		require.NoError(t, backend.MakeBucket())
+
+		exportName := "job_export.zip"
+		payload := []byte("export-payload")
+		_, appErr := th.App.WriteExportFile(bytes.NewReader(payload), filepath.Join(*th.App.Config().ExportSettings.Directory, exportName))
+		require.Nil(t, appErr)
+
+		resp, appErr := th.App.GeneratePresignURLForExport(exportName)
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		require.NotEmpty(t, resp.URL)
+
+		// The presigned URL should serve the exported file directly.
+		httpResp, err := http.Get(resp.URL)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		body, err := io.ReadAll(httpResp.Body)
+		require.NoError(t, err)
+		assert.Equal(t, payload, body)
+	})
 }
