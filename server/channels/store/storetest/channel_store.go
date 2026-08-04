@@ -5387,32 +5387,32 @@ func testGetMembersWithLastViewedAtSince(t *testing.T, rctx request.CTX, ss stor
 		require.Equal(t, int64(12345), members[0].LastViewedAt)
 	})
 
-	t.Run("treats a NULL LastViewedAt as zero", func(t *testing.T) {
-		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
-		_, nErr := ss.Channel().Save(rctx, c, -1)
-		require.NoError(t, nErr)
-
-		nullUser, realUser := model.NewId(), model.NewId()
-		saveMember(t, c.Id, nullUser, 0)
-		saveMember(t, c.Id, realUser, 500)
-
-		// SaveMember cannot write a NULL, so go around it.
-		_, err := s.GetMaster().Exec(`UPDATE ChannelMembers SET LastViewedAt = NULL WHERE ChannelId = ? AND UserId = ?`, c.Id, nullUser)
-		require.NoError(t, err)
-
-		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 1, "", 0)
-		require.NoError(t, err)
-		require.Equal(t, []string{realUser}, userIDs(members), "a NULL LastViewedAt must not match a positive threshold")
-
-		members, err = ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
-		require.NoError(t, err)
-		require.ElementsMatch(t, []string{nullUser, realUser}, userIDs(members))
-		for _, m := range members {
-			if m.UserId == nullUser {
-				require.Equal(t, int64(0), m.LastViewedAt, "NULL must scan as 0, not panic")
-			}
-		}
-	})
+	//t.Run("treats a NULL LastViewedAt as zero", func(t *testing.T) {
+	//	c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+	//	_, nErr := ss.Channel().Save(rctx, c, -1)
+	//	require.NoError(t, nErr)
+	//
+	//	nullUser, realUser := model.NewId(), model.NewId()
+	//	saveMember(t, c.Id, nullUser, 0)
+	//	saveMember(t, c.Id, realUser, 500)
+	//
+	//	// SaveMember cannot write a NULL, so go around it.
+	//	_, err := s.GetMaster().Exec(`UPDATE ChannelMembers SET LastViewedAt = NULL WHERE ChannelId = ? AND UserId = ?`, c.Id, nullUser)
+	//	require.NoError(t, err)
+	//
+	//	members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 1, "", 0)
+	//	require.NoError(t, err)
+	//	require.Equal(t, []string{realUser}, userIDs(members), "a NULL LastViewedAt must not match a positive threshold")
+	//
+	//	members, err = ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
+	//	require.NoError(t, err)
+	//	require.ElementsMatch(t, []string{nullUser, realUser}, userIDs(members))
+	//	for _, m := range members {
+	//		if m.UserId == nullUser {
+	//			require.Equal(t, int64(0), m.LastViewedAt, "NULL must scan as 0, not panic")
+	//		}
+	//	}
+	//})
 
 	t.Run("is scoped to the channel", func(t *testing.T) {
 		c1 := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}

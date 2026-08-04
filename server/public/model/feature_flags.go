@@ -148,6 +148,10 @@ type FeatureFlags struct {
 
 	// Enable React concurrent rendering
 	EnableConcurrentReact bool
+
+	// Enable verifying plugin signatures against the MFI public key, in addition to the
+	// existing hard-coded Mattermost public key and any admin-configured public keys.
+	EnableMFIPluginSignaturePublicKey bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -210,6 +214,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 
 	f.EnableConcurrentReact = false
+
+	f.EnableMFIPluginSignaturePublicKey = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
