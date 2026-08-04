@@ -368,6 +368,22 @@ func TestIsAtUserLimit(t *testing.T) {
 		t.Run("at hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 
+			mockUserStore := storemocks.UserStore{}
+			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At hard limit of 6 (5 + 1)
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
+			mockStore.On("User").Return(&mockUserStore)
+
+			// Setting an MHPNS-featured license below saves a config change, whose
+			// listeners regenerate the client config from the store.
+			mockPostStore := storemocks.PostStore{}
+			mockPostStore.On("GetMaxPostSize").Return(65535)
+			mockStore.On("Post").Return(&mockPostStore)
+			mockSystemStore := storemocks.SystemStore{}
+			mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+			mockStore.On("System").Return(&mockSystemStore)
+			mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 			userLimit := 5
 			extraUsers := 1
 			license := model.NewTestLicense("")
@@ -375,12 +391,6 @@ func TestIsAtUserLimit(t *testing.T) {
 			license.Features.Users = &userLimit
 			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
-
-			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At hard limit of 6 (5 + 1)
-			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
-			mockStore := th.App.Srv().Store().(*storemocks.Store)
-			mockStore.On("User").Return(&mockUserStore)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -390,6 +400,22 @@ func TestIsAtUserLimit(t *testing.T) {
 		t.Run("above hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 
+			mockUserStore := storemocks.UserStore{}
+			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above hard limit of 6
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
+			mockStore.On("User").Return(&mockUserStore)
+
+			// Setting an MHPNS-featured license below saves a config change, whose
+			// listeners regenerate the client config from the store.
+			mockPostStore := storemocks.PostStore{}
+			mockPostStore.On("GetMaxPostSize").Return(65535)
+			mockStore.On("Post").Return(&mockPostStore)
+			mockSystemStore := storemocks.SystemStore{}
+			mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+			mockStore.On("System").Return(&mockSystemStore)
+			mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 			userLimit := 5
 			extraUsers := 1
 			license := model.NewTestLicense("")
@@ -397,12 +423,6 @@ func TestIsAtUserLimit(t *testing.T) {
 			license.Features.Users = &userLimit
 			license.ExtraUsers = &extraUsers
 			th.App.Srv().SetLicense(license)
-
-			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above hard limit of 6
-			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
-			mockStore := th.App.Srv().Store().(*storemocks.Store)
-			mockStore.On("User").Return(&mockUserStore)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -619,6 +639,14 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		}, nil)
 		mockStore.On("System").Return(&mockSystemStore)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		// Create Entry license with post history limit
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 		license.Limits = &model.LicenseLimits{
@@ -650,6 +678,14 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(nil, errors.New("database error"))
 		mockStore.On("System").Return(&mockSystemStore)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		// Create Entry license with post history limit
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 		license.Limits = &model.LicenseLimits{
@@ -676,6 +712,14 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockSystemStore := storemocks.SystemStore{}
 		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(nil, store.NewErrNotFound("", ""))
 		mockStore.On("System").Return(&mockSystemStore)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		// Create Entry license with post history limit
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)

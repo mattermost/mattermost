@@ -538,6 +538,15 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platform.EnableLoggingMetrics()
 	})
 
+	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
+	// newly-elected cluster leader repair any transition missed while another node was leader.
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.syncPushNotificationServerWithLicense()
+	})
+	s.AddClusterLeaderChangedListener(func() {
+		s.syncPushNotificationServerWithLicense()
+	})
+
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
 		s.platform.Go(func() {
@@ -1007,6 +1016,8 @@ func (s *Server) Start() error {
 			mlog.Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
+
+	s.syncPushNotificationServerWithLicense()
 
 	s.checkPushNotificationServerURL()
 
