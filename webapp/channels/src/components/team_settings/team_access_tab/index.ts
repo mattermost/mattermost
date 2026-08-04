@@ -10,7 +10,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {
     createAccessControlTeamSyncJob,
-    getAccessControlPolicy,
     getTeamAccessControlPolicy,
     searchUsersForExpression,
     validateExpressionAgainstRequester,
@@ -44,7 +43,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             regenerateTeamInviteId,
             getTeamStats,
             getTeamAccessControlPolicy,
-            getAccessControlPolicy,
             searchUsersForExpression,
             validateExpressionAgainstRequester,
             createAccessControlTeamSyncJob,
