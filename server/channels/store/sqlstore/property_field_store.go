@@ -540,17 +540,38 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	return append(fields, dependents...), nil
 }
 
-func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
+// Delete soft-deletes a field and takes the options it owns with it, in one
+// transaction: the options are soft-deleted alongside it and the hierarchy
+// between them is deleted outright.
+//
+// The options have to go with the field rather than being left behind: every
+// query about an option filters on the option's own DeleteAt and none of them
+// joins to the field's, so an option row left live under a deleted field goes on
+// answering as a live option -- to a value being validated against it, and to a
+// hierarchy walk seeded from it.
+//
+// Nothing checks the field's type first: a field with no options runs two
+// statements that match nothing, which is cheaper than the read it would take to
+// find out, and both are served by a primary key leading with FieldID.
+func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
+	now := model.GetMillis()
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "property_field_delete_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
-		Set("DeleteAt", model.GetMillis()).
+		Set("DeleteAt", now).
 		Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	result, err := s.GetMaster().ExecBuilder(builder)
+	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete property field with id: %s", id)
 	}
@@ -560,7 +581,17 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 		return errors.Wrap(err, "property_field_delete_rowsaffected")
 	}
 	if count == 0 {
+		// Either no such field or one in another group. Nothing has been written yet
+		// beyond this statement, which the rollback undoes with it.
 		return store.NewErrNotFound("PropertyField", id)
+	}
+
+	if err = s.deleteOwnedOptions(transaction, id, now); err != nil {
+		return err
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "property_field_delete_commit_transaction")
 	}
 
 	return nil

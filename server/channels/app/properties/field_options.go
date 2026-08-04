@@ -412,6 +412,13 @@ func (ps *PropertyService) DeleteFieldOptions(field *model.PropertyField, option
 	// by nothing but itself, so every rule that reached it through an option above
 	// stops matching. Removing the whole branch at once is the supported way, which
 	// is why this asks about the set rather than about each option.
+	//
+	// This rule is also what keeps a deleted option out of the middle of a hierarchy
+	// permanently: an option can only be deleted once nothing is below it, and
+	// nothing can be put below it afterwards, because both endpoints of a new parent
+	// link have to be live options. So no walk of the hierarchy ever has to decide
+	// whether a deleted option passes reachability from what is above it to what is
+	// below -- there is never anything below one.
 	if field.Type == model.PropertyFieldTypeGraph {
 		edges, cErr := ps.fieldStore.GetOptionChildEdges(field.ID, optionIDs)
 		if cErr != nil {

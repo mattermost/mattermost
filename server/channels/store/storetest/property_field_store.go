@@ -26,7 +26,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
-	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss) })
+	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
@@ -1000,7 +1000,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		err := ss.PropertyField().Delete("", model.NewId())
 		var enf *store.ErrNotFound
@@ -1075,6 +1075,92 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		nonDeletedField, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
 		require.NoError(t, err)
 		require.Zero(t, nonDeletedField.DeleteAt)
+	})
+
+	t.Run("deleting a field takes the options it owns and the hierarchy between them", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Two fields of the same shape, so that what the delete leaves alone is
+		// checked as well as what it removes: an option is identified by its field and
+		// its ID together, and every statement behind the delete is scoped by field.
+		newGraphField := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			field, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:    groupID,
+				Name:       "Programs-" + model.NewId(),
+				Type:       model.PropertyFieldTypeGraph,
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Attrs: model.StringInterface{"options": []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+				}},
+			})
+			require.NoError(t, err)
+			return field
+		}
+
+		countOptions := func(t *testing.T, fieldID, where string) int {
+			t.Helper()
+			var count int
+			require.NoError(t, s.GetMaster().Get(&count,
+				"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND "+where, fieldID))
+			return count
+		}
+
+		deleted := newGraphField(t)
+		kept := newGraphField(t)
+		require.Equal(t, 3, countOptions(t, deleted.ID, "DeleteAt = 0"))
+
+		require.NoError(t, ss.PropertyField().Delete(groupID, deleted.ID))
+
+		// Soft-deleted like the field itself, not removed: nothing in the property
+		// system hard-deletes an option row, and a cascade is not the place to become
+		// the exception.
+		require.Zero(t, countOptions(t, deleted.ID, "DeleteAt = 0"))
+		require.Equal(t, 3, countOptions(t, deleted.ID, "DeleteAt <> 0"))
+
+		// The hierarchy goes outright -- an edge has no delete marker of its own.
+		edges, err := ss.PropertyField().GetOptionEdges(deleted.ID)
+		require.NoError(t, err)
+		require.Empty(t, edges)
+
+		require.Equal(t, 3, countOptions(t, kept.ID, "DeleteAt = 0"))
+		edges, err = ss.PropertyField().GetOptionEdges(kept.ID)
+		require.NoError(t, err)
+		require.Len(t, edges, 2)
+	})
+
+	t.Run("a delete that finds no field writes nothing", func(t *testing.T) {
+		groupID := model.NewId()
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Programs-" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"name": "Air Program"},
+				map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+			}},
+		})
+		require.NoError(t, err)
+
+		// The field row is matched by ID and group together, and the option statements
+		// only by field ID -- so a delete naming the wrong group has to be refused
+		// before they run, not after.
+		err = ss.PropertyField().Delete(model.NewId(), field.ID)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+
+		var live int
+		require.NoError(t, s.GetMaster().Get(&live,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID))
+		require.Equal(t, 2, live)
+		edges, err := ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Len(t, edges, 1)
 	})
 }
 

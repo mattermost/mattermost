@@ -764,6 +764,44 @@ func (s *SqlPropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedU
 	return nil
 }
 
+// deleteOwnedOptions soft-deletes every live option a field owns and deletes the
+// whole hierarchy between them. It runs when the field itself is being deleted,
+// which is why it is told the field rather than a list of options: all of them
+// are going, so none of the questions DeleteOptions' caller has to answer -- is
+// this one inherited, is anything still below it -- arise.
+//
+// Only the field's own rows. The options a field derives from a template belong
+// to the template and outlive any number of fields linking to it, and an edge
+// never crosses fields, so scoping both statements to this field's ID is what
+// keeps a dependent's deletion from emptying the template.
+//
+// The edges are deleted rather than marked, because an edge has no delete marker:
+// it is a link between two options, and an option that is gone is not in the
+// hierarchy for it to link. Deleting the field is therefore not reversible for
+// the hierarchy even though the options keep their rows -- which matches
+// PropertyService.requireWritableOptions, where a deleted field is refused
+// outright rather than treated as something that could come back.
+func (s *SqlPropertyFieldStore) deleteOwnedOptions(transaction *sqlxTxWrapper, fieldID string, now int64) error {
+	builder := s.getQueryBuilder().
+		Update("PropertyOptions").
+		Set("DeleteAt", now).
+		Set("UpdateAt", now).
+		Where(sq.Eq{"FieldID": fieldID}).
+		Where(sq.Eq{"DeleteAt": 0})
+	if _, err := transaction.ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "property_options_delete_owned_exec")
+	}
+
+	edges := s.getQueryBuilder().
+		Delete("PropertyOptionEdges").
+		Where(sq.Eq{"FieldID": fieldID})
+	if _, err := transaction.ExecBuilder(edges); err != nil {
+		return errors.Wrap(err, "property_option_edges_delete_owned_exec")
+	}
+
+	return nil
+}
+
 // upsertFieldOptions writes the given options as rows of the field, creating the
 // ones it does not have and replacing the ones it does.
 //
