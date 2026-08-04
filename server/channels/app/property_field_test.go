@@ -1229,6 +1229,74 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
+	t.Run("every verb that changes options signals, including a change to nothing but the parent links", func(t *testing.T) {
+		// A graph field is the only shape where the hierarchy can change without
+		// any option changing, and it has no mutation path of its own: a parent
+		// link is added and dropped by writing the option that sits under it. So
+		// the three option verbs are the whole of what has to announce a change,
+		// and this pins each of them to it -- an option change and an edge change
+		// alike, and for the field linking to the template as well as the
+		// template itself.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldGraph = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.PropertyFieldGraph = false
+			})
+		})
+
+		memberLevel := model.PermissionLevelMember
+		tmpl, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "graph_template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeGraph,
+			TargetType:        "system",
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		linked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "graph_linked_" + model.NewId(),
+			TargetType:    "system",
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &tmpl.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return()
+
+		created, appErr := th.App.CreatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+			{Name: "Air"}, {Name: "Fighter"},
+		}, "")
+		require.Nil(t, appErr)
+		require.Len(t, created, 2)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 2)
+
+		// Nothing about either option changes here except where Fighter sits, and
+		// its parent is named rather than identified because that is what the
+		// option payload carries.
+		fighter := created[1]
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+			{ID: fighter.ID, Name: fighter.Name, Parents: &[]string{"Air"}},
+		}, "")
+		require.Nil(t, appErr)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 4)
+
+		_, appErr = th.App.DeletePropertyFieldOptions(th.Context, tmpl, []string{fighter.ID}, "")
+		require.Nil(t, appErr)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 6)
+
+		mockACS.AssertExpectations(t)
+	})
+
 	t.Run("mutations succeed (no panic) when access control is unavailable", func(t *testing.T) {
 		// The signalling is guarded by `if acs != nil`; with no enterprise
 		// service installed the field CRUD must still succeed.

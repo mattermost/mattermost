@@ -247,7 +247,21 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read a property field's options")
 	}
-	return ps.runPostGetPropertyFieldOptions(rctx, field, options)
+
+	options, err = ps.runPostGetPropertyFieldOptions(rctx, field, options)
+	if err != nil {
+		return nil, err
+	}
+	// A page nothing is left in is an empty page, never nothing at all. The store
+	// answers a field with no options with an empty page, and a hook that filtered
+	// every option out of one is saying the same thing -- but a hook building its
+	// result by appending has an empty result that is nil, which is a different
+	// answer once it is serialized: null rather than [], which a caller looping
+	// over the page cannot read.
+	if options == nil {
+		options = []*model.PropertyFieldOption{}
+	}
+	return options, nil
 }
 
 // CreateFieldOptions adds options to a field, optionally placing each of them

@@ -224,12 +224,18 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 
 		// The field read hands these two an option list that has been emptied, so
 		// the rows behind it cannot answer in full either.
+		//
+		// An emptied page, not a missing one: a nil page serializes as null rather
+		// than [], which a caller looping over the page cannot read, and it is what
+		// a filter that builds its result by appending returns.
 		options, err = th.service.GetFieldOptions(other, field, 0, "", 100)
 		require.NoError(t, err)
+		require.NotNil(t, options)
 		require.Empty(t, options)
 
 		options, err = th.service.GetFieldOptions(admin, field, 0, "", 100)
 		require.NoError(t, err)
+		require.NotNil(t, options)
 		require.Empty(t, options)
 	})
 

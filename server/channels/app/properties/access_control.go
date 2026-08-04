@@ -336,7 +336,7 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 	if h.hasUnrestrictedFieldReadAccess(field, h.extractCallerID(rctx)) {
 		return options, nil
 	}
-	return nil, nil
+	return []*model.PropertyFieldOption{}, nil
 }
 
 // PostGetPropertyField applies read access control to a single field.
