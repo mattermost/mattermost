@@ -602,3 +602,59 @@ func TestGraphSharedOnly_FieldOptionList(t *testing.T) {
 		assert.ElementsMatch(t, programNames, inlineOptionNames(t, read))
 	})
 }
+
+// TestGraphSharedOnly_OptionListLinkedField covers the listing on the shape the
+// feature ships in: the hierarchy is defined once on a template, and the fields
+// users are marked through link to it. The options a linked field lists are the
+// template's rows, flagged read-only, while the caller's own options are values on
+// the linked field — so a filter that resolved the hierarchy against the field
+// holding the values would find every option unrelated to every other and show
+// nothing.
+func TestGraphSharedOnly_OptionListLinkedField(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+
+	template, err := h.th.service.CreatePropertyField(h.rctxSource, &model.PropertyField{
+		GroupID:    h.th.CPAGroupID,
+		Name:       "programs-options-template",
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsProtected:  true,
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "Air Program"},
+				map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+				map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+				map[string]any{"name": "Sea Program"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	ids := optionIDsByName(t, template)
+
+	linked, err := h.th.service.CreatePropertyField(h.rctxSource, &model.PropertyField{
+		GroupID:       h.th.CPAGroupID,
+		Name:          "programs-options-linked",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, model.PropertyFieldTypeGraph, linked.Type)
+
+	caller := model.NewId()
+	h.assign(t, linked.ID, caller, ids["Fighter Jet Program"])
+
+	shown := h.listedOptions(t, caller, linked, 0, "", 100)
+	assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"}, listedNames(shown))
+	for _, option := range shown {
+		assert.True(t, option.ReadOnly, "the options belong to the template, so this field may not change them")
+	}
+
+	// Addressing the template itself shows nothing: the values that say what a
+	// caller holds are the linked field's, and nobody holds a template's values.
+	// Fail-closed, and the same answer the value masking gives.
+	assert.Empty(t, h.listedOptions(t, caller, template, 0, "", 100))
+}
