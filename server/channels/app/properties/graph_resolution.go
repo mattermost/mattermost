@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // The options of a graph property field form a hierarchy, and this is where
@@ -384,15 +385,17 @@ type graphNeighbourhood struct {
 // write an edge whose endpoints are not live options of the field, so this can
 // treat them as options with nothing around them and let that refusal stand.
 func (ps *PropertyService) loadGraphNeighbourhood(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) (*graphNeighbourhood, error) {
-	var childIDs, parentIDs []string
+	// Both lists are deduplicated through a map rather than by scanning what is
+	// already collected: a whole hierarchy can arrive in one change, and at tens of
+	// thousands of edges the scan costs more than every query below put together.
+	children := make([]string, 0, len(add))
+	parents := make([]string, 0, len(add))
 	for _, edge := range add {
-		if !slices.Contains(childIDs, edge.ChildOptionID) {
-			childIDs = append(childIDs, edge.ChildOptionID)
-		}
-		if !slices.Contains(parentIDs, edge.ParentOptionID) {
-			parentIDs = append(parentIDs, edge.ParentOptionID)
-		}
+		children = append(children, edge.ChildOptionID)
+		parents = append(parents, edge.ParentOptionID)
 	}
+	childIDs := utils.RemoveDuplicatesFromStringArray(children)
+	parentIDs := utils.RemoveDuplicatesFromStringArray(parents)
 
 	// Read through the store rather than through AncestorsOrSelf: an endpoint the
 	// field does not have is the write path's error to report, and logging it here

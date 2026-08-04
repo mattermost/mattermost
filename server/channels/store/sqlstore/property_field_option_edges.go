@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // The options of a graph field form a hierarchy: each PropertyOptionEdges row
@@ -114,14 +115,15 @@ func (s *SqlPropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expec
 	// Only an added edge's endpoints have to be options the field still has. A
 	// removal names a link that is either there, in which case its endpoints are,
 	// or already gone.
-	var addEndpoints []string
+	//
+	// Deduplicated through a map rather than by scanning what is already collected:
+	// a whole hierarchy can arrive in one change, and at tens of thousands of edges
+	// the scan is the slowest thing in the request by orders of magnitude.
+	endpoints := make([]string, 0, len(add)*2)
 	for _, edge := range add {
-		for _, endpoint := range []string{edge.ChildOptionID, edge.ParentOptionID} {
-			if !slices.Contains(addEndpoints, endpoint) {
-				addEndpoints = append(addEndpoints, endpoint)
-			}
-		}
+		endpoints = append(endpoints, edge.ChildOptionID, edge.ParentOptionID)
 	}
+	addEndpoints := utils.RemoveDuplicatesFromStringArray(endpoints)
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {

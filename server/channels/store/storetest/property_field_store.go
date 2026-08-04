@@ -4143,6 +4143,27 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		children, err = ss.PropertyField().GetOptionChildEdges(withEdges.ID, []string{shared["Air Program"]})
 		require.NoError(t, err)
 		require.Len(t, children, 1)
+
+		// Removing links is scoped the same way, and with more than one removal in
+		// the change: the field is one condition and the pairs of options are
+		// another, so a change asking for two of them must not reach past its field
+		// to a link between options carrying the same two identifiers.
+		require.NoError(t, mutate(t, withoutEdges, []*model.PropertyOptionEdge{
+			edge(withoutEdges.ID, shared["Fighter Jet Program"], shared["Air Program"]),
+			edge(withoutEdges.ID, shared["F-18 Program"], shared["Air Program"]),
+		}, nil))
+		require.NoError(t, mutate(t, withoutEdges, nil, []*model.PropertyOptionEdge{
+			edge(withoutEdges.ID, shared["Fighter Jet Program"], shared["Air Program"]),
+			edge(withoutEdges.ID, shared["F-18 Program"], shared["Air Program"]),
+		}))
+
+		read, err = ss.PropertyField().GetOptionEdges(withoutEdges.ID)
+		require.NoError(t, err)
+		require.Empty(t, read)
+
+		read, err = ss.PropertyField().GetOptionEdges(withEdges.ID)
+		require.NoError(t, err)
+		require.Len(t, read, 1, "the other field's identically-identified link is untouched")
 	})
 
 	t.Run("child edges report which options are not leaves", func(t *testing.T) {

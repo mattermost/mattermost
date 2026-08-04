@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // A change to a graph field's option hierarchy is checked as a whole and written
@@ -71,12 +72,11 @@ func (ps *PropertyService) ValidateOptionEdges(field *model.PropertyField, add, 
 	// option the change touches say what each of those options ends up with, and
 	// the difference between what they have and what they end up with is how far
 	// the field's total moves.
-	var touched []string
+	children := make([]string, 0, len(add)+len(remove))
 	for _, edge := range slices.Concat(add, remove) {
-		if !slices.Contains(touched, edge.ChildOptionID) {
-			touched = append(touched, edge.ChildOptionID)
-		}
+		children = append(children, edge.ChildOptionID)
 	}
+	touched := utils.RemoveDuplicatesFromStringArray(children)
 	stored, err := ps.fieldStore.GetOptionParentEdges(field.ID, touched)
 	if err != nil {
 		return errors.Wrap(err, "failed to read the parents of a graph property field's options")
