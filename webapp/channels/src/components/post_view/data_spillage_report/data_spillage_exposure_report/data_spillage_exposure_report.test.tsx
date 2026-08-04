@@ -21,21 +21,26 @@ describe('DataSpillageExposureReport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        Client4.generatePostExposureReport = jest.fn().mockResolvedValue({
+        jest.spyOn(Client4, 'generatePostExposureReport').mockResolvedValue({
             blob: new Blob(['user_id,username\n'], {type: 'text/csv'}),
             filename,
         });
 
+        // jsdom does not implement the object URL APIs, so these cannot be spied on and are
+        // saved and restored by hand instead.
         originalCreateObjectURL = URL.createObjectURL;
         originalRevokeObjectURL = URL.revokeObjectURL;
         URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url');
         URL.revokeObjectURL = jest.fn();
 
-        // eslint-disable-next-line no-console
-        console.error = jest.fn();
+        jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {
+        // Restores every jest.spyOn above, including the ones installed inside individual
+        // tests, so cleanup still happens when an assertion fails partway through.
+        jest.restoreAllMocks();
+
         URL.createObjectURL = originalCreateObjectURL;
         URL.revokeObjectURL = originalRevokeObjectURL;
     });
@@ -82,10 +87,10 @@ describe('DataSpillageExposureReport', () => {
     });
 
     test('uses the filename returned by the server', async () => {
-        const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+        jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
         const anchors: HTMLAnchorElement[] = [];
         const originalCreateElement = document.createElement.bind(document);
-        const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string, options?: ElementCreationOptions) => {
+        jest.spyOn(document, 'createElement').mockImplementation((tagName: string, options?: ElementCreationOptions) => {
             const element = originalCreateElement(tagName, options);
             if (tagName === 'a') {
                 anchors.push(element as HTMLAnchorElement);
@@ -107,13 +112,10 @@ describe('DataSpillageExposureReport', () => {
         });
         expect(anchors[0].download).toBe(filename);
         expect(anchors[0].href).toContain('blob:mock-url');
-
-        clickSpy.mockRestore();
-        createElementSpy.mockRestore();
     });
 
     test('shows error state when request rejects', async () => {
-        Client4.generatePostExposureReport = jest.fn().mockRejectedValue(new Error('boom'));
+        jest.spyOn(Client4, 'generatePostExposureReport').mockRejectedValue(new Error('boom'));
 
         renderWithContext(
             <DataSpillageExposureReport
@@ -136,7 +138,7 @@ describe('DataSpillageExposureReport', () => {
         const requestPromise = new Promise<{blob: Blob; filename: string}>((resolve) => {
             resolveRequest = resolve;
         });
-        Client4.generatePostExposureReport = jest.fn().mockReturnValue(requestPromise);
+        jest.spyOn(Client4, 'generatePostExposureReport').mockReturnValue(requestPromise);
 
         const {unmount} = renderWithContext(
             <DataSpillageExposureReport
