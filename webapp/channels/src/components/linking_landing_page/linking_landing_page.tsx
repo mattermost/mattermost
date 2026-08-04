@@ -14,6 +14,7 @@ import ExternalLink from 'components/external_link';
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
+import {navigateTo} from 'utils/browser_utils';
 import {LandingPreferenceTypes} from 'utils/constants';
 
 type Props = {
@@ -165,12 +166,12 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     openMattermostApp = () => {
         this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP);
         this.setState({redirectPage: true});
-        window.location.href = this.state.nativeLocation;
+        navigateTo(this.state.nativeLocation);
     };
 
     openInBrowser = () => {
         this.setPreference(LandingPreferenceTypes.BROWSER);
-        window.location.href = this.state.location;
+        navigateTo(this.state.location);
     };
 
     renderSystemDialogMessage = () => {
