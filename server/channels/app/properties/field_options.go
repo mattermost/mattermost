@@ -407,38 +407,12 @@ func (ps *PropertyService) DeleteFieldOptions(field *model.PropertyField, option
 		}
 	}
 
-	// An option with something still below it cannot go: whatever is under it would
-	// be left hanging off nothing, which turns it into a root -- an option covered
-	// by nothing but itself, so every rule that reached it through an option above
-	// stops matching. Removing the whole branch at once is the supported way, which
-	// is why this asks about the set rather than about each option.
-	//
-	// What this does not do is keep a deleted option out of the middle of a
-	// hierarchy. A field write whose inline option list omits an option deletes that
-	// option with no leaf check at all, so a subtree can still be orphaned that way.
-	//
-	// Two things do hold on every path an option can be deleted by, and they are
-	// what the hierarchy walks rely on: every edge touching an option is deleted in
-	// the same transaction as the option, and both endpoints of a new link have to be
-	// live options. So a deleted option has no links on either side of it, and no
-	// walk needs a rule for whether a deleted option conducts reachability from what
-	// is above it to what is below.
-	if field.Type == model.PropertyFieldTypeGraph {
-		edges, cErr := ps.fieldStore.GetOptionChildEdges(field.ID, optionIDs)
-		if cErr != nil {
-			return nil, errors.Wrap(cErr, "failed to read the options below a graph property field's options")
-		}
-		staying := make(map[string]string, len(edges))
-		for _, edge := range edges {
-			if !seen[edge.ChildOptionID] {
-				staying[edge.ParentOptionID] = edge.ChildOptionID
-			}
-		}
-		for i, optionID := range optionIDs {
-			if childID, ok := staying[optionID]; ok {
-				return nil, optionsChangeError(i, "names option %q, which option %q is still below; remove that one too or move it first", optionID, childID)
-			}
-		}
+	at, childID, cErr := ps.blockingChildBelow(field, optionIDs)
+	if cErr != nil {
+		return nil, cErr
+	}
+	if at >= 0 {
+		return nil, optionsChangeError(at, "names option %q, which option %q is still below; remove that one too or move it first", optionIDs[at], childID)
 	}
 
 	if err := ps.fieldStore.DeleteOptions(field.GroupID, field.ID, field.UpdateAt, optionIDs); err != nil {
@@ -684,6 +658,118 @@ func inPayloadOrder(payload, stored []*model.PropertyFieldOption) []*model.Prope
 // UpdateAt of a master read taken before any of this, and every change to a
 // field's options or hierarchy moves that UpdateAt. A field being created has
 // nothing to race with.
+
+// blockingChildBelow reports the first of the given options that cannot be
+// removed, as its position in the list and the identifier of the option still
+// below it. The position is -1 when the whole set can go.
+//
+// An option with something still below it cannot go, because whatever is under it
+// would be left hanging off nothing: that turns it into a root -- an option covered
+// by nothing but itself -- so every rule that reached it through an option above
+// stops matching. Removing the whole branch at once is the supported way, which is
+// why this is asked of the set rather than of each option: every option in a branch
+// above the lowest has something below it, and what settles the question is whether
+// each of those is itself on the way out.
+//
+// Both ways of deleting an option come through here -- naming it on the options
+// endpoint, and leaving it out of the field's option list -- so the rule cannot
+// answer differently depending on which was used.
+//
+// Scoped to the field's own hierarchy, so an option the field merely inherits from
+// a template never blocks: it is not this field's to remove, and its children are
+// the template's rows.
+//
+// This is not what keeps a deleted option out of the middle of a hierarchy, and
+// nothing relies on it for that. What does, on every path, is that every edge
+// touching an option is deleted in the same transaction as the option and that both
+// endpoints of a new link have to be live options. So a deleted option has no links
+// on either side of it, and no hierarchy walk needs a rule for whether a deleted
+// option conducts reachability from what is above it to what is below.
+func (ps *PropertyService) blockingChildBelow(field *model.PropertyField, optionIDs []string) (int, string, error) {
+	if field.Type != model.PropertyFieldTypeGraph || len(optionIDs) == 0 {
+		return -1, "", nil
+	}
+
+	edges, err := ps.fieldStore.GetOptionChildEdges(field.ID, optionIDs)
+	if err != nil {
+		return -1, "", errors.Wrap(err, "failed to read the options below a graph property field's options")
+	}
+
+	going := make(map[string]bool, len(optionIDs))
+	for _, optionID := range optionIDs {
+		going[optionID] = true
+	}
+	staying := make(map[string]string, len(edges))
+	for _, edge := range edges {
+		if !going[edge.ChildOptionID] {
+			staying[edge.ParentOptionID] = edge.ChildOptionID
+		}
+	}
+
+	// Walked in the order given, so which refusal a caller is told about is the same
+	// run after run.
+	for i, optionID := range optionIDs {
+		if childID, ok := staying[optionID]; ok {
+			return i, childID, nil
+		}
+	}
+	return -1, "", nil
+}
+
+// requireDroppedOptionsAreLeaves refuses a field update whose option list leaves
+// out an option that still has options below it.
+//
+// A field write states the field's option list in full, so an option missing from
+// the list is an option being deleted: the store soft-deletes every option of the
+// field's own that the list no longer carries, and deletes that option's parent
+// links with it. Asking for that is asking for the removal the options endpoint
+// refuses, by omission rather than by name, and it gets the same answer.
+//
+// Only for a field that already exists. A field being created has no options to
+// leave out.
+func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *model.PropertyField) error {
+	if submitted == nil || stored == nil || stored.Type != model.PropertyFieldTypeGraph {
+		return nil
+	}
+
+	// A field with more options than are inlined reads back without its option list,
+	// and writing that copy back is not a request to drop every option. The store
+	// skips the option reconciliation entirely for one, so nothing is dropped and
+	// there is nothing to check.
+	if model.PropertyFieldOptionsOmitted(submitted.Attrs) {
+		return nil
+	}
+
+	keeping := make(map[string]bool)
+	for _, option := range asOptionSlice(submitted.Attrs) {
+		if id, _ := option["id"].(string); id != "" {
+			keeping[id] = true
+		}
+	}
+
+	// The stored list is the field's effective option set, so it includes options
+	// owned by a template this field links to. Those are left in: blockingChildBelow
+	// asks only about the field's own hierarchy, where an inherited option has no
+	// children, so they cannot block -- and a write to this field cannot delete them
+	// either.
+	var dropped []string
+	for _, option := range asOptionSlice(stored.Attrs) {
+		if id, _ := option["id"].(string); id != "" && !keeping[id] {
+			dropped = append(dropped, id)
+		}
+	}
+
+	at, childID, err := ps.blockingChildBelow(stored, dropped)
+	if err != nil {
+		return err
+	}
+	if at >= 0 {
+		return optionsChangeRefused(
+			"the option list leaves out option %q, which option %q is still below; leave that one out as well or move it first",
+			dropped[at], childID)
+	}
+	return nil
+}
 
 // validateOptionBlobLinks checks the hierarchy a field's inline option list asks
 // for. stored is the field as the store has it, and is nil for a field being

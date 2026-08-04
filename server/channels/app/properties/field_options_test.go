@@ -226,6 +226,66 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		require.ErrorContains(t, err, "form no hierarchy")
 	})
 
+	t.Run("a list that leaves out an option with something below it is refused", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Air"),
+			inlineOption("F-18", "Fighter Jet"),
+		))
+		require.NoError(t, err)
+		graph := asFixture(t, created)
+
+		// Omitting an option from the list is how a field write deletes it, so leaving
+		// out the middle of a chain asks for the removal the options endpoint refuses
+		// by name. Refused the same way here, or F-18 would silently be left a root.
+		without := func(names ...string) *model.PropertyField {
+			list := make([]any, 0, len(names))
+			for _, name := range names {
+				list = append(list, map[string]any{"id": graph.ids[name], "name": name})
+			}
+			edited := *created
+			edited.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: list}
+			return &edited
+		}
+
+		_, _, err = th.service.UpdatePropertyField(th.Context, group.ID, without("Air", "F-18"))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "leaves out option")
+		require.ErrorContains(t, err, graph.ids["Fighter Jet"])
+		require.ErrorContains(t, err, graph.ids["F-18"])
+
+		// Nothing moved: the refusal happens before the write.
+		above, err := th.service.AncestorsOrSelf(th.Context, created, graph.of("F-18"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Fighter Jet", "Air"}, graph.named(above[graph.ids["F-18"]]))
+
+		// The whole branch in one write is the supported way, exactly as it is through
+		// the options endpoint.
+		updated, _, err := th.service.UpdatePropertyField(th.Context, group.ID, without("Air"))
+		require.NoError(t, err)
+		require.Len(t, asOptionSlice(updated.Attrs), 1)
+
+		// Leaving out a leaf was never in question: put one back under Air, then write
+		// a list without it, which is the read-modify-write a client actually performs.
+		seaParents := []string{"Air"}
+		_, err = th.service.CreateFieldOptions(updated, []*model.PropertyFieldOption{
+			{Name: "Sea", Parents: &seaParents},
+		})
+		require.NoError(t, err)
+
+		reread, err := th.service.GetPropertyField(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		require.Len(t, asOptionSlice(reread.Attrs), 2)
+
+		edited := *reread
+		edited.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": graph.ids["Air"], "name": "Air"},
+		}}
+		final, _, err := th.service.UpdatePropertyField(th.Context, group.ID, &edited)
+		require.NoError(t, err, "leaving out the leaf Sea is allowed")
+		require.Len(t, asOptionSlice(final.Attrs), 1)
+	})
+
 	t.Run("a list that states no parents leaves the hierarchy alone, and one that does replaces them", func(t *testing.T) {
 		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
 			inlineOption("Air"),

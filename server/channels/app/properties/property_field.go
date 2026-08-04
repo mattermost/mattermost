@@ -370,11 +370,15 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
-		// The hierarchy the submitted option list asks for, and the names that list
-		// introduces. Both are checked before the PSAv1 skip below, for the same
-		// reason the two checks above are: what an option list says is decided by the
-		// field's type, not by which property generation the field belongs to.
+		// What the submitted option list asks for: the hierarchy it states, the
+		// options it leaves out, and the names it introduces. All three are checked
+		// before the PSAv1 skip below, for the same reason the two checks above are:
+		// what an option list says is decided by the field's type, not by which
+		// property generation the field belongs to.
 		if err := ps.validateOptionBlobLinks(field, existing); err != nil {
+			return nil, nil, nil, err
+		}
+		if err := ps.requireDroppedOptionsAreLeaves(field, existing); err != nil {
 			return nil, nil, nil, err
 		}
 		if err := ps.requireNamesFreeOfDependents(existing, optionNamesAddedBy(field.Attrs, existing.Attrs)); err != nil {
