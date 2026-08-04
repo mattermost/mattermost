@@ -128,6 +128,9 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
+	pushNotificationServerLicenseListenerId       string
+	pushNotificationServerClusterLeaderListenerId string
+
 	platform         *platform.PlatformService
 	platformOptions  []platform.Option
 	telemetryService *telemetry.TelemetryService
@@ -540,10 +543,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
 	// newly-elected cluster leader repair any transition missed while another node was leader.
-	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+	s.pushNotificationServerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.syncPushNotificationServerWithLicense()
 	})
-	s.AddClusterLeaderChangedListener(func() {
+	s.pushNotificationServerClusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		s.syncPushNotificationServerWithLicense()
 	})
 
@@ -776,6 +779,8 @@ func (s *Server) Shutdown() {
 
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
+	s.RemoveLicenseListener(s.pushNotificationServerLicenseListenerId)
+	s.RemoveClusterLeaderChangedListener(s.pushNotificationServerClusterLeaderListenerId)
 
 	var err error
 	s.serviceMux.RLock()

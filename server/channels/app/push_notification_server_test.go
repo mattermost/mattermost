@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	clustermocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestSyncPushNotificationServerWithLicense(t *testing.T) {
@@ -107,15 +109,34 @@ func TestSyncPushNotificationServerWithLicense(t *testing.T) {
 	t.Run("environment override leaves setting untouched", func(t *testing.T) {
 		t.Setenv("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", model.GenericNotificationServer)
 
-		th.App.Srv().SetLicense(licenseWithMHPNS)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		// The config value alone can't prove the env-override guard fired: a save of this
+		// config would be a no-op anyway, because the store re-applies env overrides and
+		// skips config listeners when the effective config is unchanged. The one side
+		// effect a futile save cannot avoid is cluster propagation — SaveConfig calls
+		// ConfigChanged on the cluster interface unconditionally — so probe that to prove
+		// the guard returned before saving.
+		clusterMock := &clustermocks.ClusterInterface{}
+		clusterMock.On("IsLeader").Return(true).Maybe()
+		clusterMock.On("GetClusterId").Return("").Maybe()
+		clusterMock.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		clusterMock.On("RegisterClusterMessageHandler", mock.Anything, mock.Anything).Return().Maybe()
+		clusterMock.On("StopInterNodeCommunication").Return().Maybe()
+		clusterMock.On("Shutdown").Return().Maybe()
+		clusterMock.On("ConfigChanged", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+
+		// The subtest needs its own harness so the mock is installed before the platform
+		// starts; swapping the cluster interface mid-test races with platform goroutines
+		// that read it. Setup also isolates the env var set above.
+		envTh := SetupWithClusterMock(t, clusterMock)
+
+		envTh.App.Srv().SetLicense(licenseWithMHPNS)
+		envTh.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.PushNotificationServer = model.GenericNotificationServer
 		})
 
-		th.Server.syncPushNotificationServerWithLicense()
+		envTh.Server.syncPushNotificationServerWithLicense()
 
-		// The config store also re-applies env overrides on save, so this assertion alone
-		// doesn't prove the guard fired; it documents the contract.
-		assert.Equal(t, model.GenericNotificationServer, *th.App.Config().EmailSettings.PushNotificationServer)
+		clusterMock.AssertNotCalled(t, "ConfigChanged", mock.Anything, mock.Anything, mock.Anything)
+		assert.Equal(t, model.GenericNotificationServer, *envTh.App.Config().EmailSettings.PushNotificationServer)
 	})
 }
