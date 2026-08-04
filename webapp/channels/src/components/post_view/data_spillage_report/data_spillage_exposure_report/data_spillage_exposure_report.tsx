@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
@@ -11,17 +11,12 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './data_spillage_exposure_report.scss';
 
+type Status = 'idle' | 'generating' | 'error';
+
 type Props = {
     flaggedPostId: string;
-
-    /**
-     * The server refuses to generate an exposure report once the post's review is closed,
-     * so the action is replaced with an explanation in that case.
-     */
     isActionable: boolean;
 };
-
-type Status = 'idle' | 'generating' | 'error';
 
 export default function DataSpillageExposureReport({flaggedPostId, isActionable}: Props) {
     const [status, setStatus] = useState<Status>('idle');
@@ -79,6 +74,48 @@ export default function DataSpillageExposureReport({flaggedPostId, isActionable}
         setStatus('idle');
     }, [flaggedPostId, status]);
 
+    const {icon, label, buttonClass} = useMemo(() => {
+        let icon;
+        let label;
+        let buttonClass;
+
+        switch (status) {
+        case 'generating':
+            icon = <LoadingSpinner/>;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.exposure_report.generating.button_text'
+                    defaultMessage='Generating…'
+                />
+            );
+            buttonClass = 'btn-tertiary';
+            break;
+        case 'error':
+            icon = <i className='icon icon-alert-outline'/>;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.exposure_report.failed.button_text'
+                    defaultMessage='Generation failed. Try again.'
+                />
+            );
+            buttonClass = 'btn-danger';
+            break;
+        case 'idle':
+        default:
+            icon = null;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.exposure_report.button_text'
+                    defaultMessage='Download exposure report'
+                />
+            );
+            buttonClass = 'btn-tertiary';
+            break;
+        }
+
+        return {icon, label, buttonClass};
+    }, [status]);
+
     if (!isActionable) {
         return (
             <div
@@ -97,44 +134,6 @@ export default function DataSpillageExposureReport({flaggedPostId, isActionable}
                 </span>
             </div>
         );
-    }
-
-    let icon;
-    let label;
-    let buttonClass;
-
-    switch (status) {
-    case 'generating':
-        icon = <LoadingSpinner/>;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.exposure_report.generating.button_text'
-                defaultMessage='Generating…'
-            />
-        );
-        buttonClass = 'btn-tertiary';
-        break;
-    case 'error':
-        icon = <i className='icon icon-alert-outline'/>;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.exposure_report.failed.button_text'
-                defaultMessage='Generation failed. Try again.'
-            />
-        );
-        buttonClass = 'btn-danger';
-        break;
-    case 'idle':
-    default:
-        icon = null;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.exposure_report.button_text'
-                defaultMessage='Download exposure report'
-            />
-        );
-        buttonClass = 'btn-tertiary';
-        break;
     }
 
     return (

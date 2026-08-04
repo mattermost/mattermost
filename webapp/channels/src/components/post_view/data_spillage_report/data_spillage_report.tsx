@@ -172,9 +172,6 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
         const statusFieldId = propertyFields.status?.id;
         const status = statusFieldId ? (propertyValues.find((value) => value.field_id === statusFieldId)?.value as string | undefined) : undefined;
-
-        // Mirrors the server's own check: an exposure report can only be generated while the
-        // post's review is still open.
         const reviewIsOpen = status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned;
 
         rows.push({
