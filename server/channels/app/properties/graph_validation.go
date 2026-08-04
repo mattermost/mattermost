@@ -130,6 +130,14 @@ func (ps *PropertyService) ValidateOptionEdges(field *model.PropertyField, add, 
 // against the hierarchy as of that read, so a change somebody else committed in
 // the meantime makes this a conflict rather than a write -- which is what stops
 // two changes that are each acyclic and jointly cyclic from both landing.
+//
+// Nothing outside tests calls this: a hierarchy change arrives as part of an
+// option change, and CreateFieldOptions and UpdateFieldOptions write the option
+// rows and their links in one transaction. **Anything that does start calling it
+// has to run runPreChangePropertyFieldOptions first** -- those two do, through
+// writableField, and a hierarchy is as much a part of what a field's options are
+// as their names. This checks the shape of a change and not the authority behind
+// it.
 func (ps *PropertyService) ApplyOptionEdges(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) error {
 	if field == nil || field.UpdateAt == 0 {
 		return fmt.Errorf("a property field's option hierarchy can only be changed through a field read from the store: %w", ErrInvalidFieldAttrs)
