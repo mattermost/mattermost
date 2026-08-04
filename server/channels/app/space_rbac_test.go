@@ -525,6 +525,7 @@ func TestSpaceSeedingMigrations(t *testing.T) {
 			model.SpacePageCommenterRoleId,
 			model.SpacePageEditorRoleId,
 			model.SpacePageDeleterOwnRoleId,
+			model.SpacePageDeleterRoleId,
 		} {
 			role, err := th.App.Srv().Store().Role().GetByName(th.Context.Context(), roleID)
 			require.NoError(t, err, "role %q must be seeded", roleID)

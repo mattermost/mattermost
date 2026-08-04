@@ -45,13 +45,14 @@ func TestSpaceChannelScopedPermissions(t *testing.T) {
 // TestSpacePermissionsNotOnTeamOrSystemRoles mechanizes the scope invariant:
 // no channel-scoped space permission may appear on any team- or system-scoped
 // built-in role (system_admin excepted) nor on the global channel roles. The
-// four atomic capability roles are excluded by name — they must carry them.
+// atomic capability roles are excluded by name — they must carry them.
 func TestSpacePermissionsNotOnTeamOrSystemRoles(t *testing.T) {
 	atomicRoleNames := map[string]bool{
 		SpacePageCreatorRoleId:    true,
 		SpacePageCommenterRoleId:  true,
 		SpacePageEditorRoleId:     true,
 		SpacePageDeleterOwnRoleId: true,
+		SpacePageDeleterRoleId:    true,
 	}
 
 	// Role has no scope field, so classify by name.
@@ -141,6 +142,7 @@ func TestMakeDefaultRolesSpaceEntries(t *testing.T) {
 		SpacePageCommenterRoleId:  SpacePageCommenterRolePermissions,
 		SpacePageEditorRoleId:     SpacePageEditorRolePermissions,
 		SpacePageDeleterOwnRoleId: SpacePageDeleterOwnRolePermissions,
+		SpacePageDeleterRoleId:    SpacePageDeleterRolePermissions,
 	}
 	for name, perms := range expected {
 		role, ok := roles[name]
@@ -193,6 +195,7 @@ func TestSpaceCapabilitySlicesMatchCanonicalSet(t *testing.T) {
 		"SpacePageCommenterRolePermissions":  SpacePageCommenterRolePermissions,
 		"SpacePageEditorRolePermissions":     SpacePageEditorRolePermissions,
 		"SpacePageDeleterOwnRolePermissions": SpacePageDeleterOwnRolePermissions,
+		"SpacePageDeleterRolePermissions":    SpacePageDeleterRolePermissions,
 		"SpaceDefaultContributePermissions":  SpaceDefaultContributePermissions,
 		"SpaceDefaultCommentPermissions":     SpaceDefaultCommentPermissions,
 		"SpaceDefaultReadOnlyPermissions":    SpaceDefaultReadOnlyPermissions,
@@ -211,7 +214,7 @@ func TestSpaceCapabilitySlicesMatchCanonicalSet(t *testing.T) {
 }
 
 func TestIsSpaceCapabilityRole(t *testing.T) {
-	require.Len(t, SpaceCapabilityRoles, 4)
+	require.Len(t, SpaceCapabilityRoles, 5)
 	for _, name := range SpaceCapabilityRoles {
 		assert.True(t, IsSpaceCapabilityRole(name), "role %q", name)
 		// The capability roles are deliberately absent from

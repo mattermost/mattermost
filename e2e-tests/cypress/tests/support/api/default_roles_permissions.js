@@ -10,6 +10,7 @@ export const defaultRolesPermissions = {
     custom_group_user: '',
     docs_space_page_commenter: 'comment_page read_page',
     docs_space_page_creator: 'create_page read_page',
+    docs_space_page_deleter: 'delete_page read_page',
     docs_space_page_deleter_own: 'delete_own_page read_page',
     docs_space_page_editor: 'edit_page read_page',
     playbook_admin: 'playbook_private_manage_members playbook_private_manage_properties playbook_private_manage_roles playbook_public_make_private playbook_public_manage_members playbook_public_manage_properties playbook_public_manage_roles',

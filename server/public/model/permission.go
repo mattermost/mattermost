@@ -478,6 +478,7 @@ var SpacePageCreatorRolePermissions []*Permission
 var SpacePageCommenterRolePermissions []*Permission
 var SpacePageEditorRolePermissions []*Permission
 var SpacePageDeleterOwnRolePermissions []*Permission
+var SpacePageDeleterRolePermissions []*Permission
 var SpaceAdminRolePermissions []*Permission
 var SpaceDefaultContributePermissions []*Permission
 var SpaceDefaultCommentPermissions []*Permission
@@ -2541,6 +2542,10 @@ func initializePermissions() {
 	SpacePageDeleterOwnRolePermissions = []*Permission{
 		PermissionReadPage,
 		PermissionDeleteOwnPage,
+	}
+	SpacePageDeleterRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionDeletePage,
 	}
 	SpaceAdminRolePermissions = []*Permission{
 		PermissionReadPage,

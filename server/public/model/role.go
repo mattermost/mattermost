@@ -413,6 +413,7 @@ const (
 	SpacePageCommenterRoleId  = "docs_space_page_commenter"
 	SpacePageEditorRoleId     = "docs_space_page_editor"
 	SpacePageDeleterOwnRoleId = "docs_space_page_deleter_own"
+	SpacePageDeleterRoleId    = "docs_space_page_deleter"
 
 	CustomGroupUserRoleId = "custom_group_user"
 
@@ -945,6 +946,7 @@ var SpaceCapabilityRoles = []string{
 	SpacePageCommenterRoleId,
 	SpacePageEditorRoleId,
 	SpacePageDeleterOwnRoleId,
+	SpacePageDeleterRoleId,
 }
 
 var spaceCapabilityRoleSet map[string]bool
@@ -1096,6 +1098,15 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageDeleterOwnRoleId),
 		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageDeleterOwnRoleId),
 		Permissions:   PermissionIDs(SpacePageDeleterOwnRolePermissions),
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SpacePageDeleterRoleId] = &Role{
+		Name:          SpacePageDeleterRoleId,
+		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageDeleterRoleId),
+		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageDeleterRoleId),
+		Permissions:   PermissionIDs(SpacePageDeleterRolePermissions),
 		SchemeManaged: false,
 		BuiltIn:       true,
 	}
