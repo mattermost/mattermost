@@ -1578,6 +1578,12 @@ type API interface {
 	// hierarchy each option carries the names of the options directly above it.
 	// A page size is required, and at most 200 options are served at a time.
 	//
+	// A page holds the options this caller may see, which on a field whose
+	// options are access-controlled is fewer than the field has -- and on one
+	// whose options form a hierarchy the options above the caller's own are
+	// withheld along with their names, so those options carry no parents. A page
+	// shorter than the size asked for is the end of what the caller may see.
+	//
 	// @tag PropertyField
 	// Minimum server version: 11.10
 	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error)

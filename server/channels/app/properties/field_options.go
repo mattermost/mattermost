@@ -221,7 +221,10 @@ func optionSourceID(field *model.PropertyField) string {
 // the mistake the option rows exist to stop being possible.
 //
 // What comes back is what this caller may see, which on a field whose options are
-// access-controlled is less than the page held.
+// access-controlled is less than the rows hold — so filling one page can take
+// several pages of rows. A page shorter than the size asked for is therefore the
+// end of what the caller may see, which is what a caller paging until a short page
+// needs it to be.
 func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
 	if perPage <= 0 {
 		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
@@ -243,23 +246,55 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 		return nil, err
 	}
 
-	options, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read a property field's options")
+	// A page a caller may see only part of is filled from the rows behind it, not
+	// answered short. A caller pages until a page comes back shorter than the size
+	// it asked for, so a page that lost most of its options to the hooks would end
+	// the listing early and one that lost all of them would end it immediately --
+	// and the options the caller may see further down would never be reached. Read
+	// on until the page is full or the rows run out, so a short page means what a
+	// caller reads it as.
+	//
+	// The cost of that is a scan: a caller who may see a handful of a large field's
+	// options pays for the rows in between to find them, and so does a caller who
+	// may see none of them at all -- the answer a source_only field gives everyone
+	// but its source plugin, which used to cost one page. Telling those two apart
+	// would need a hook able to say "nothing here, ever" as distinct from "nothing
+	// on this page", which none of them can express. The scan goes away entirely by
+	// asking the rows for the options the caller may see rather than filtering them
+	// afterwards, which for a hierarchy means paging the options below the ones the
+	// caller holds.
+	//
+	// An empty page and no page are not the same answer: a hook building its result
+	// by appending returns nil when it keeps nothing, and nil serializes as null
+	// rather than [], which a caller looping over the page cannot read. Starting
+	// from an empty slice settles it for every path out of here.
+	options := []*model.PropertyFieldOption{}
+	for {
+		page, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read a property field's options")
+		}
+
+		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, page)
+		if err != nil {
+			return nil, err
+		}
+		options = append(options, visible...)
+
+		// A page the store answered short is the end of the field's options.
+		// Anything else, and the answer is full once perPage of them survived.
+		if len(page) < perPage || len(options) >= perPage {
+			break
+		}
+		last := page[len(page)-1]
+		cursorCreateAt, cursorID = last.CreateAt, last.ID
 	}
 
-	options, err = ps.runPostGetPropertyFieldOptions(rctx, field, options)
-	if err != nil {
-		return nil, err
-	}
-	// A page nothing is left in is an empty page, never nothing at all. The store
-	// answers a field with no options with an empty page, and a hook that filtered
-	// every option out of one is saying the same thing -- but a hook building its
-	// result by appending has an empty result that is nil, which is a different
-	// answer once it is serialized: null rather than [], which a caller looping
-	// over the page cannot read.
-	if options == nil {
-		options = []*model.PropertyFieldOption{}
+	// The last read can carry the answer past the size asked for. The surplus is
+	// dropped rather than kept, because the caller continues from the option they
+	// were last shown and will be given it on the next page.
+	if len(options) > perPage {
+		options = options[:perPage]
 	}
 	return options, nil
 }

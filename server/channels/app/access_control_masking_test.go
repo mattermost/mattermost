@@ -1555,3 +1555,112 @@ func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
 	assert.True(t, info.IsValueHidden("A"), "protected channel field with a public sibling must fail closed, not leak option names")
 	assert.True(t, info.IsValueHidden("B"), "protected channel field with a public sibling must fail closed, not leak option names")
 }
+
+// TestAppMaskingResolver_HierarchyAndLadderUseOptionNames covers the two field
+// types whose values name an option but which are not select or multiselect. Both
+// were sent down the text path, which unmarshals the caller's stored value as a
+// string — a graph value is an array and fails outright, and a rank value is an
+// option identifier where a name is wanted. Either way nothing came back visible,
+// so every value in a policy condition against such a field masked, and a policy
+// written on a hierarchy rendered blank to the administrator reading it.
+func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	sharedOnly := func(options []any) model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		}
+	}
+
+	// Store-level writes throughout: a protected field cannot be created through
+	// the app layer by anything but its source plugin, and the value on it likewise.
+	// Reads still run the masking the test is about.
+	t.Run("a graph field reports the option names the caller covers", func(t *testing.T) {
+		air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: sharedOnly([]any{
+				map[string]any{"id": air, "name": "Air Program"},
+				map[string]any{"id": jet, "name": "Fighter Jet Program"},
+				map[string]any{"id": f18, "name": "F-18 Program"},
+			}),
+		})
+		require.NoError(t, sErr)
+
+		//	Air Program ── Fighter Jet Program ── F-18 Program
+		require.NoError(t, th.Store.PropertyField().MutateOptionEdges(groupID, field.ID, field.UpdateAt, []*model.PropertyOptionEdge{
+			{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+			{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+		}, nil))
+
+		callerID := model.NewId()
+		_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   callerID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`["` + jet + `"]`),
+		})
+		require.NoError(t, vErr)
+
+		resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+		require.Nil(t, rErr)
+
+		info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.False(t, info.IsValueHidden("Fighter Jet Program"), "the option the caller holds")
+		assert.False(t, info.IsValueHidden("F-18 Program"), "an option below the one the caller holds")
+		assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
+	})
+
+	t.Run("a rank field reports the option names at or below the caller's rank", func(t *testing.T) {
+		secret, confidential, public := model.NewId(), model.NewId(), model.NewId()
+		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: sharedOnly([]any{
+				map[string]any{"id": public, "name": "Public", "rank": 1},
+				map[string]any{"id": confidential, "name": "Confidential", "rank": 2},
+				map[string]any{"id": secret, "name": "Secret", "rank": 3},
+			}),
+		})
+		require.NoError(t, sErr)
+
+		callerID := model.NewId()
+		_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   callerID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"` + confidential + `"`),
+		})
+		require.NoError(t, vErr)
+
+		resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+		require.Nil(t, rErr)
+
+		info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.False(t, info.IsValueHidden("Confidential"), "the caller's own rank")
+		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
+		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
+	})
+}

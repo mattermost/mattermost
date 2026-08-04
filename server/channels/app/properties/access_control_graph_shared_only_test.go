@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -111,6 +112,47 @@ func (h *graphSharedOnlyHelper) visibleOptions(t *testing.T, callerID string, va
 	var optionIDs []string
 	require.NoError(t, json.Unmarshal(retrieved.Value, &optionIDs))
 	return optionIDs
+}
+
+// listedOptions lists one page of a field's options as the given caller, from the
+// option rows rather than from the list a field read carries inline.
+func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
+	t.Helper()
+
+	options, err := h.th.service.GetFieldOptions(RequestContextWithCallerID(h.th.Context, callerID), field, cursorCreateAt, cursorID, perPage)
+	require.NoError(t, err)
+	require.NotNil(t, options, "a page nothing is left in is an empty page, never nothing at all")
+	return options
+}
+
+// listedNames reduces a page of options to the names it reported.
+func listedNames(options []*model.PropertyFieldOption) []string {
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.Name)
+	}
+	return names
+}
+
+// inlineOptionNames reports the option names a field read carried inline, which is
+// empty for a field whose list was hidden or withheld.
+func inlineOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+
+	inline, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return nil
+	}
+	options, ok := inline.([]any)
+	require.True(t, ok)
+
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		option, ok := option.(map[string]any)
+		require.True(t, ok)
+		names = append(names, option["name"].(string))
+	}
+	return names
 }
 
 // namesOf turns identifiers back into option names, so a failed assertion reads
@@ -359,4 +401,204 @@ func TestGraphSharedOnly_ValueOptionsOmitted(t *testing.T) {
 
 	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, h.visibleOptions(t, caller, target)),
 		"the hierarchy comes from the option rows, so the size of the field changes nothing")
+}
+
+// TestGraphSharedOnly_OptionList covers what a caller is shown when they list a
+// shared_only graph field's options: the options they cover, which is the rule the
+// same field's values are masked by. This is the surface a large hierarchy is read
+// through, so it is the one that has to answer rather than hide.
+func TestGraphSharedOnly_OptionList(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options", programHierarchy, programNames...)
+
+	t.Run("a caller is shown the option they hold and everything it is made of", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+
+		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
+			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
+			"neither what sits above the caller's own option nor a branch beside it")
+	})
+
+	t.Run("a caller holding the root is shown its whole branch", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Air Program"])
+
+		assert.ElementsMatch(t, []string{"Air Program", "Fighter Jet Program", "F-18 Program"},
+			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
+			"the unrelated Sea Program is not below the root the caller holds")
+	})
+
+	t.Run("a caller holding a leaf is shown that option alone", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["F-18 Program"])
+
+		assert.Equal(t, []string{"F-18 Program"}, listedNames(h.listedOptions(t, caller, field, 0, "", 100)))
+	})
+
+	t.Run("a caller holding nothing for the field is shown an empty list", func(t *testing.T) {
+		assert.Empty(t, h.listedOptions(t, model.NewId(), field, 0, "", 100))
+	})
+
+	t.Run("an option is not shown what sits above it", func(t *testing.T) {
+		// The parent is reported by name, and a caller holding an option exactly
+		// covers nothing above it — so naming its parent would hand over the option
+		// name the value masking is there to withhold.
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["F-18 Program"])
+
+		masked := h.listedOptions(t, caller, field, 0, "", 100)
+		require.Len(t, masked, 1)
+		assert.Nil(t, masked[0].Parents)
+
+		// The source plugin is told, which is what makes this masking rather than the
+		// endpoint simply never reporting a hierarchy.
+		for _, option := range h.listedOptions(t, "test-plugin", field, 0, "", 100) {
+			if option.ID == ids["F-18 Program"] {
+				require.NotNil(t, option.Parents)
+				assert.Equal(t, []string{"Fighter Jet Program"}, *option.Parents)
+			}
+		}
+	})
+
+	t.Run("a caller with unrestricted read access is not masked at all", func(t *testing.T) {
+		assert.ElementsMatch(t, programNames, listedNames(h.listedOptions(t, "test-plugin", field, 0, "", 100)))
+	})
+}
+
+// TestGraphSharedOnly_OptionListPaged covers the listing across a page boundary. A
+// caller pages until a page comes back short, so a page that came back short only
+// because the caller may not see most of it would end the listing early — and every
+// option they cover after that point would be unreachable.
+func TestGraphSharedOnly_OptionListPaged(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-paged", programHierarchy, programNames...)
+
+	// A listing is ordered by creation time and then identifier, and these options
+	// were all written in one call — so which one leads is decided by identifier and
+	// is not the order they were given in. Hold an option that does not account for
+	// whichever one leads, so that the first page of one option has to look past
+	// something the caller may not see in order to find anything at all.
+	order := listedNames(h.listedOptions(t, "test-plugin", field, 0, "", 100))
+	require.Len(t, order, len(programNames))
+
+	holding := "Fighter Jet Program"
+	if order[0] == "Fighter Jet Program" || order[0] == "F-18 Program" {
+		holding = "Sea Program"
+	}
+	covers := map[string][]string{
+		"Fighter Jet Program": {"Fighter Jet Program", "F-18 Program"},
+		"Sea Program":         {"Sea Program"},
+	}[holding]
+
+	var expected []string
+	for _, name := range order {
+		if slices.Contains(covers, name) {
+			expected = append(expected, name)
+		}
+	}
+
+	caller := model.NewId()
+	h.assign(t, field.ID, caller, ids[holding])
+
+	var names []string
+	var cursorCreateAt int64
+	var cursorID string
+	for {
+		page := h.listedOptions(t, caller, field, cursorCreateAt, cursorID, 1)
+		if len(page) == 0 {
+			break
+		}
+		require.Len(t, page, 1, "a page never holds more than the size asked for")
+		names = append(names, page[0].Name)
+		cursorCreateAt, cursorID = page[0].CreateAt, page[0].ID
+		require.LessOrEqual(t, len(names), len(programNames), "the listing has to end")
+	}
+
+	assert.Equal(t, expected, names,
+		"paging one option at a time reaches every option the caller covers, in the field's own order")
+}
+
+// TestGraphSharedOnly_OptionListOptionsOmitted covers the size this field type
+// exists for: a hierarchy with more options than a field read inlines. The listing
+// comes from the option rows, so it is unaffected — which matters because for such
+// a field the listing is the only way to see the hierarchy at all.
+func TestGraphSharedOnly_OptionListOptionsOmitted(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+
+	// One chain of three at the front, and filler past the cap behind it.
+	options := make([]any, 0, model.PropertyFieldMaxHydratedOptions+1)
+	options = append(options,
+		map[string]any{"name": "Air Program"},
+		map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+		map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+	)
+	for i := len(options); i <= model.PropertyFieldMaxHydratedOptions; i++ {
+		options = append(options, map[string]any{"name": fmt.Sprintf("Program %04d", i)})
+	}
+
+	field, err := h.th.service.CreatePropertyField(h.rctxSource, &model.PropertyField{
+		GroupID:    h.th.CPAGroupID,
+		Name:       "programs-options-oversized",
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyFieldAttributeOptions: options,
+		},
+	})
+	require.NoError(t, err)
+	ids := optionIDsByName(t, field)
+
+	stored, err := h.th.service.GetPropertyField(h.rctxSource, h.th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	requireOptionsWithheld(t, stored)
+
+	caller := model.NewId()
+	h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+
+	assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
+		listedNames(h.listedOptions(t, caller, field, 0, "", 200)),
+		"the hierarchy comes from the option rows, so the size of the field changes nothing")
+
+	// The field read has no list to filter at this size, and inventing one would put
+	// the whole hierarchy on a field read. Hiding is the answer there; the listing
+	// above is what answers instead.
+	read, err := h.th.service.GetPropertyField(RequestContextWithCallerID(h.th.Context, caller), h.th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	requireOptionsHidden(t, read)
+}
+
+// TestGraphSharedOnly_FieldOptionList covers the option list a field read carries
+// inline, which for a graph field small enough to have one is filtered by the same
+// coverage rule as the listing and as the field's values.
+func TestGraphSharedOnly_FieldOptionList(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-inline", programHierarchy, programNames...)
+
+	inline := func(t *testing.T, callerID string) []string {
+		t.Helper()
+		read, err := h.th.service.GetPropertyField(RequestContextWithCallerID(h.th.Context, callerID), h.th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		return inlineOptionNames(t, read)
+	}
+
+	t.Run("a caller sees the options they cover, not only the ones they hold", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+
+		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"}, inline(t, caller))
+	})
+
+	t.Run("a caller holding nothing for the field sees no options", func(t *testing.T) {
+		assert.Empty(t, inline(t, model.NewId()))
+	})
+
+	t.Run("a caller with unrestricted read access sees the whole list", func(t *testing.T) {
+		read, err := h.th.service.GetPropertyField(h.rctxSource, h.th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, programNames, inlineOptionNames(t, read))
+	})
 }

@@ -83,6 +83,10 @@ func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targ
 // read_only, and each option carries the names of the options directly above it
 // where the field's options form a hierarchy.
 //
+// A page holds the options this caller may see, which on a field whose options
+// are access-controlled is fewer than the field has; a page shorter than the size
+// asked for is the end of them.
+//
 // Minimum server version: 11.10
 func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
 	return p.api.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
