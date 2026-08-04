@@ -3335,6 +3335,26 @@
     "translation": "Property field object type does not match URL."
   },
   {
+    "id": "api.property_field.options.empty_body.app_error",
+    "translation": "No property field options were provided."
+  },
+  {
+    "id": "api.property_field.options.invalid_cursor.app_error",
+    "translation": "A property field option cursor must give both cursor_id and cursor_create_at."
+  },
+  {
+    "id": "api.property_field.options.legacy_field.app_error",
+    "translation": "The options of this property field cannot be managed individually."
+  },
+  {
+    "id": "api.property_field.options.no_permission.app_error",
+    "translation": "You do not have permission to manage options for this property field."
+  },
+  {
+    "id": "api.property_field.options.too_many_items.request_error",
+    "translation": "Unable to change that many property field options. Only {{.Max}} options can be changed at once."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
   },
@@ -8481,6 +8501,10 @@
     "translation": "The access_mode attribute is invalid."
   },
   {
+    "id": "app.property.invalid_input.app_error",
+    "translation": "The property change was rejected."
+  },
+  {
     "id": "app.property.license_error",
     "translation": "Your license does not support this property group."
   },
@@ -8607,6 +8631,30 @@
   {
     "id": "app.property_field.not_found.app_error",
     "translation": "The specified property field does not exist."
+  },
+  {
+    "id": "app.property_field.options.create.app_error",
+    "translation": "Unable to add the property field options."
+  },
+  {
+    "id": "app.property_field.options.delete.app_error",
+    "translation": "Unable to delete the property field options."
+  },
+  {
+    "id": "app.property_field.options.get.app_error",
+    "translation": "Unable to get the property field options."
+  },
+  {
+    "id": "app.property_field.options.invalid.app_error",
+    "translation": "The property field options were rejected: {{.Reason}}."
+  },
+  {
+    "id": "app.property_field.options.invalid_item.app_error",
+    "translation": "The property field option at index {{.Index}} {{.Reason}}."
+  },
+  {
+    "id": "app.property_field.options.update.app_error",
+    "translation": "Unable to update the property field options."
   },
   {
     "id": "app.property_field.rank_disabled.app_error",

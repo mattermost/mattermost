@@ -184,6 +184,34 @@ func (_m *PropertyFieldStore) CountOptionEdges(fieldID string) (int, error) {
 	return r0, r1
 }
 
+// CountOptions provides a mock function with given fields: fieldID
+func (_m *PropertyFieldStore) CountOptions(fieldID string) (int, error) {
+	ret := _m.Called(fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountOptions")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int, error)); ok {
+		return rf(fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(fieldID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: field
 func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	ret := _m.Called(field)
@@ -225,6 +253,24 @@ func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(groupID, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteOptions provides a mock function with given fields: groupID, fieldID, expectedUpdateAt, optionIDs
+func (_m *PropertyFieldStore) DeleteOptions(groupID string, fieldID string, expectedUpdateAt int64, optionIDs []string) error {
+	ret := _m.Called(groupID, fieldID, expectedUpdateAt, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64, []string) error); ok {
+		r0 = rf(groupID, fieldID, expectedUpdateAt, optionIDs)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -345,6 +391,36 @@ func (_m *PropertyFieldStore) GetFieldByNameForObjectType(ctx context.Context, g
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
 		r1 = rf(ctx, groupID, targetID, objectType, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFieldOptions provides a mock function with given fields: field, cursorCreateAt, cursorID, perPage
+func (_m *PropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	ret := _m.Called(field, cursorCreateAt, cursorID, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFieldOptions")
+	}
+
+	var r0 []*model.PropertyFieldOption
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int) ([]*model.PropertyFieldOption, error)); ok {
+		return rf(field, cursorCreateAt, cursorID, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int) []*model.PropertyFieldOption); ok {
+		r0 = rf(field, cursorCreateAt, cursorID, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, int64, string, int) error); ok {
+		r1 = rf(field, cursorCreateAt, cursorID, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -592,6 +668,66 @@ func (_m *PropertyFieldStore) GetOptionParentEdges(fieldID string, childOptionID
 	return r0, r1
 }
 
+// GetOptionsByID provides a mock function with given fields: field, optionIDs
+func (_m *PropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	ret := _m.Called(field, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionsByID")
+	}
+
+	var r0 []*model.PropertyFieldOption
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) ([]*model.PropertyFieldOption, error)); ok {
+		return rf(field, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) []*model.PropertyFieldOption); ok {
+		r0 = rf(field, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, optionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOptionsByName provides a mock function with given fields: field, names
+func (_m *PropertyFieldStore) GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error) {
+	ret := _m.Called(field, names)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionsByName")
+	}
+
+	var r0 []*model.PropertyFieldOption
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) ([]*model.PropertyFieldOption, error)); ok {
+		return rf(field, names)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) []*model.PropertyFieldOption); ok {
+		r0 = rf(field, names)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, names)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MutateOptionEdges provides a mock function with given fields: groupID, fieldID, expectedUpdateAt, add, remove
 func (_m *PropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, expectedUpdateAt int64, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 	ret := _m.Called(groupID, fieldID, expectedUpdateAt, add, remove)
@@ -603,6 +739,24 @@ func (_m *PropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, int64, []*model.PropertyOptionEdge, []*model.PropertyOptionEdge) error); ok {
 		r0 = rf(groupID, fieldID, expectedUpdateAt, add, remove)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MutateOptions provides a mock function with given fields: groupID, fieldID, expectedUpdateAt, upsert, add, remove
+func (_m *PropertyFieldStore) MutateOptions(groupID string, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
+	ret := _m.Called(groupID, fieldID, expectedUpdateAt, upsert, add, remove)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MutateOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64, []*model.PropertyFieldOption, []*model.PropertyOptionEdge, []*model.PropertyOptionEdge) error); ok {
+		r0 = rf(groupID, fieldID, expectedUpdateAt, upsert, add, remove)
 	} else {
 		r0 = ret.Error(0)
 	}

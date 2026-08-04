@@ -41,7 +41,10 @@ import (
 // to still be true when it lands.
 //
 // Failures wrap ErrInvalidFieldAttrs, so a caller mapping them to a response
-// reports a bad request with the reason.
+// reports a bad request. The reason is in the error's text, which that mapping
+// carries as a detail -- and a detail is stripped from the response unless the
+// server is in developer mode. A caller that wants the reason answered has to
+// restate it; see optionsChangeFromValidation.
 func (ps *PropertyService) ValidateOptionEdges(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) error {
 	if err := requireGraphField(field); err != nil {
 		return fmt.Errorf("%s: %w", err, ErrInvalidFieldAttrs)

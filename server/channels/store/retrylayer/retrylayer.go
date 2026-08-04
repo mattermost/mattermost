@@ -10561,6 +10561,27 @@ func (s *RetryLayerPropertyFieldStore) CountOptionEdges(fieldID string) (int, er
 
 }
 
+func (s *RetryLayerPropertyFieldStore) CountOptions(fieldID string) (int, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.CountOptions(fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 
 	tries := 0
@@ -10587,6 +10608,27 @@ func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 	tries := 0
 	for {
 		err := s.PropertyFieldStore.Delete(groupID, id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) DeleteOptions(groupID string, fieldID string, expectedUpdateAt int64, optionIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.DeleteOptions(groupID, fieldID, expectedUpdateAt, optionIDs)
 		if err == nil {
 			return nil
 		}
@@ -10671,6 +10713,27 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(ctx context.C
 	tries := 0
 	for {
 		result, err := s.PropertyFieldStore.GetFieldByNameForObjectType(ctx, groupID, targetID, objectType, name)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -10855,11 +10918,74 @@ func (s *RetryLayerPropertyFieldStore) GetOptionParentEdges(fieldID string, chil
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionsByID(field, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetOptionsByName(field, names)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, expectedUpdateAt int64, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 
 	tries := 0
 	for {
 		err := s.PropertyFieldStore.MutateOptionEdges(groupID, fieldID, expectedUpdateAt, add, remove)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) MutateOptions(groupID string, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.MutateOptions(groupID, fieldID, expectedUpdateAt, upsert, add, remove)
 		if err == nil {
 			return nil
 		}

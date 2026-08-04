@@ -1,0 +1,566 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package properties
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
+// A field's options can be read and changed one at a time here, addressed
+// individually, rather than only as the whole list the field carries inline. That
+// is what a graph field needs: its hierarchy is meant to reach thousands of
+// options, far past the point where the field serves the list at all, so every
+// change after the first has to name the options it touches.
+//
+// Three rules run through all of it:
+//
+//   - A field's *effective* option set is what it owns plus what it inherits from
+//     the template it links to. Reads cover the whole of it; writes only ever
+//     touch the options the field owns itself, and an inherited option is
+//     reported read-only. Changing one means changing it on the template, which
+//     every field linking to that template then serves.
+//   - An option name identifies an option. Parents are named rather than
+//     identified because a name is the only reference available where options are
+//     written as part of the field, and names are unique across the effective set,
+//     which is what makes the reference unambiguous.
+//   - A change is checked as a whole and written as a whole, under the field's
+//     UpdateAt as the caller read it. The first thing wrong with it is reported
+//     with the position it was in, and nothing is written.
+
+// A rejected change answers with the reason in the message rather than in the
+// detail. An option payload is refused for one reason at a time and the caller
+// has to be able to act on which one -- there is no fixing a payload from "the
+// options are not valid" -- and a detail is only ever written to the server log:
+// the HTTP layer strips it from the response unless the server is in developer
+// mode. The reason is therefore built here as an already-shaped bad request,
+// with the position and the reason as message parameters.
+//
+// It follows that these do not wrap ErrInvalidFieldAttrs, whose mapping puts the
+// reason in the detail. Anything reaching here from code that does -- the shared
+// graph validation -- goes through optionsChangeFromValidation.
+const optionsChangeWhere = "PropertyFieldOptions"
+
+// optionsChangeError reports something wrong with the item at the given position
+// of an options payload.
+func optionsChangeError(index int, format string, args ...any) error {
+	return model.NewAppError(optionsChangeWhere, "app.property_field.options.invalid_item.app_error",
+		map[string]any{"Index": index, "Reason": fmt.Sprintf(format, args...)}, "", http.StatusBadRequest)
+}
+
+// optionsChangeRefused reports something wrong with an options payload as a
+// whole, or with the field it is aimed at.
+func optionsChangeRefused(format string, args ...any) error {
+	return model.NewAppError(optionsChangeWhere, "app.property_field.options.invalid.app_error",
+		map[string]any{"Reason": fmt.Sprintf(format, args...)}, "", http.StatusBadRequest)
+}
+
+// optionsChangeFromValidation restates a rejection from the shared graph
+// validation so that its reason reaches the caller. That validation reports why
+// it refused in the error text, wrapped in ErrInvalidFieldAttrs, which the error
+// mapping carries as a detail -- and a detail is not in the response. The
+// sentinel is what identifies a rejection, so it is also what is trimmed off the
+// end of the reason.
+//
+// Anything that is not a rejection -- a hierarchy that could not be read -- is
+// passed through unchanged, to become a server error as it should.
+func optionsChangeFromValidation(err error) error {
+	if err == nil || !errors.Is(err, ErrInvalidFieldAttrs) {
+		return err
+	}
+	return optionsChangeRefused("%s", strings.TrimSuffix(err.Error(), ": "+ErrInvalidFieldAttrs.Error()))
+}
+
+// requireWritableOptions refuses a field whose options cannot be changed one at a
+// time through this seam.
+func requireWritableOptions(field *model.PropertyField) error {
+	if field == nil || field.UpdateAt == 0 {
+		return optionsChangeRefused("a field's options can only be changed through a field read from the store")
+	}
+	if !field.Type.SupportsOptions() {
+		return optionsChangeRefused("a %s field has no options", field.Type)
+	}
+
+	// A graph field's option set is owned by exactly one field, and this is one of
+	// the two checks that make it so -- the other being that an edge never crosses
+	// fields. A local option on a field linking to a graph template could never be
+	// given a parent from the template's hierarchy, so it could only form a second
+	// hierarchy permanently disconnected from the one the field exists to serve:
+	// covered by nothing but itself, and therefore granting nothing.
+	//
+	// field.Type is read from the field as stored, which matters: a field created
+	// with a link to a graph template arrives with no mention of the graph type
+	// anywhere in the request, because its type is copied from the template later.
+	// A check reading the type from a request would not see this case at all.
+	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
+		return optionsChangeRefused(
+			"field %s serves the option hierarchy of the template it links to and cannot own options of its own; change them on field %s instead",
+			field.ID, optionSourceID(field))
+	}
+	return nil
+}
+
+// optionSourceID returns the template a field inherits options from, or an empty
+// string when it inherits none.
+func optionSourceID(field *model.PropertyField) string {
+	if field.LinkedFieldID == nil {
+		return ""
+	}
+	return *field.LinkedFieldID
+}
+
+// GetFieldOptions returns one page of a field's effective option set, ordered by
+// creation and continuing after the option the cursor names. Options inherited
+// from a template come back flagged read-only, and a graph field's options carry
+// the names of the options directly above them.
+func (ps *PropertyService) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	if field == nil {
+		return nil, optionsChangeRefused("no property field to list the options of")
+	}
+	if !field.Type.SupportsOptions() {
+		return nil, optionsChangeRefused("a %s field has no options", field.Type)
+	}
+
+	options, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read a property field's options")
+	}
+	return options, nil
+}
+
+// CreateFieldOptions adds options to a field, optionally placing each of them
+// under options already there or under others in the same payload. Every option
+// is created or none is.
+func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	if err := requireWritableOptions(field); err != nil {
+		return nil, err
+	}
+	if err := prepareOptionPayload(field, options, false); err != nil {
+		return nil, err
+	}
+
+	// The option limit is enforced where options are created, not once per field,
+	// because a field grown one option at a time never has a list for
+	// PropertyField.IsValid to measure. Only a graph field has a limit: it is the
+	// only type whose options something has to traverse.
+	if field.Type == model.PropertyFieldTypeGraph {
+		held, err := ps.fieldStore.CountOptions(field.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to count a property field's options")
+		}
+		if held+len(options) > model.PropertyGraphMaxOptions {
+			return nil, optionsChangeRefused("the field would hold %d options, and no field may hold more than %d", held+len(options), model.PropertyGraphMaxOptions)
+		}
+	}
+
+	// Every name in the payload is new, so any option already carrying one is a
+	// collision. Checked against the effective set: a name that an inherited option
+	// already has would make the two indistinguishable as a reference.
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.Name)
+	}
+	taken, err := ps.fieldStore.GetOptionsByName(field, names)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up a property field's options by name")
+	}
+	byName := optionsByName(taken)
+	for i, option := range options {
+		if existing := byName[option.Name]; existing != nil {
+			return nil, optionsChangeError(i, "names option %q, which field %s already has", option.Name, ownerOf(field, existing))
+		}
+		option.SetID(model.NewId())
+	}
+
+	add, err := ps.resolveOptionParents(field, options, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(add) > 0 {
+		if err := ps.ValidateOptionEdges(field, add, nil); err != nil {
+			return nil, optionsChangeFromValidation(err)
+		}
+	}
+
+	if err := ps.fieldStore.MutateOptions(field.GroupID, field.ID, field.UpdateAt, options, add, nil); err != nil {
+		return nil, err
+	}
+
+	return ps.readBackOptions(field, options)
+}
+
+// UpdateFieldOptions rewrites options a field owns. Each option is replaced by
+// what the payload says about it, except that a part the payload leaves out is
+// left as it was -- so changing one option's name does not discard its colour, or
+// silently detach it from the options above it.
+//
+// The options as they stood before the change are returned alongside the result.
+// A parent link is deleted outright rather than marked, so unless a caller records
+// what a change replaced there is nothing left to say the link was ever there.
+func (ps *PropertyService) UpdateFieldOptions(field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
+	if err := requireWritableOptions(field); err != nil {
+		return nil, nil, err
+	}
+	if err := prepareOptionPayload(field, options, true); err != nil {
+		return nil, nil, err
+	}
+
+	optionIDs := make([]string, 0, len(options))
+	for _, option := range options {
+		optionIDs = append(optionIDs, option.ID)
+	}
+	stored, err := ps.fieldStore.GetOptionsByID(field, optionIDs)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to read a property field's options")
+	}
+	byID := make(map[string]*model.PropertyFieldOption, len(stored))
+	for _, option := range stored {
+		byID[option.ID] = option
+	}
+
+	for i, option := range options {
+		current := byID[option.ID]
+		if current == nil {
+			return nil, nil, optionsChangeError(i, "names option %q, which field %s does not have", option.ID, field.ID)
+		}
+		if current.ReadOnly {
+			return nil, nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; change it there instead", option.ID, field.ID, optionSourceID(field))
+		}
+		if option.Color == nil {
+			option.Color = current.Color
+		}
+		if option.Attrs == nil {
+			option.Attrs = current.Attrs
+		}
+	}
+
+	// Only a name that is actually changing can collide -- an option keeping its
+	// own name would otherwise collide with itself.
+	renamed := make([]string, 0, len(options))
+	for _, option := range options {
+		if byID[option.ID].Name != option.Name {
+			renamed = append(renamed, option.Name)
+		}
+	}
+	if len(renamed) > 0 {
+		taken, tErr := ps.fieldStore.GetOptionsByName(field, renamed)
+		if tErr != nil {
+			return nil, nil, errors.Wrap(tErr, "failed to look up a property field's options by name")
+		}
+		byName := optionsByName(taken)
+		for i, option := range options {
+			existing := byName[option.Name]
+			if existing != nil && existing.ID != option.ID {
+				return nil, nil, optionsChangeError(i, "renames option %q to %q, which field %s already has", option.ID, option.Name, ownerOf(field, existing))
+			}
+		}
+	}
+
+	add, err := ps.resolveOptionParents(field, options, byID)
+	if err != nil {
+		return nil, nil, err
+	}
+	remove, err := ps.parentsToDetach(field, options, add)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(add) > 0 || len(remove) > 0 {
+		if err := ps.ValidateOptionEdges(field, add, remove); err != nil {
+			return nil, nil, optionsChangeFromValidation(err)
+		}
+	}
+
+	if err := ps.fieldStore.MutateOptions(field.GroupID, field.ID, field.UpdateAt, options, add, remove); err != nil {
+		return nil, nil, err
+	}
+
+	updated, uErr := ps.readBackOptions(field, options)
+	if uErr != nil {
+		return nil, nil, uErr
+	}
+	return updated, inPayloadOrder(options, stored), nil
+}
+
+// DeleteFieldOptions removes options a field owns, together with every parent
+// link they were part of. The set is judged as a whole, so removing a whole
+// branch of a hierarchy is one call even though every option in it but the
+// lowest has options below it.
+//
+// Values pointing at a removed option are left alone. A value naming an option
+// that no longer exists is ignored everywhere it is read, which is how the
+// property system has always treated one.
+func (ps *PropertyService) DeleteFieldOptions(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	if err := requireWritableOptions(field); err != nil {
+		return nil, err
+	}
+	if len(optionIDs) == 0 {
+		return nil, optionsChangeRefused("no options to delete")
+	}
+
+	seen := make(map[string]bool, len(optionIDs))
+	for i, optionID := range optionIDs {
+		if optionID == "" {
+			return nil, optionsChangeError(i, "names no option")
+		}
+		if seen[optionID] {
+			return nil, optionsChangeError(i, "names option %q, which is already in the list", optionID)
+		}
+		seen[optionID] = true
+	}
+
+	stored, err := ps.fieldStore.GetOptionsByID(field, optionIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read a property field's options")
+	}
+	byID := make(map[string]*model.PropertyFieldOption, len(stored))
+	for _, option := range stored {
+		byID[option.ID] = option
+	}
+	for i, optionID := range optionIDs {
+		option := byID[optionID]
+		if option == nil {
+			return nil, optionsChangeError(i, "names option %q, which field %s does not have", optionID, field.ID)
+		}
+		if option.ReadOnly {
+			return nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; delete it there instead", optionID, field.ID, optionSourceID(field))
+		}
+	}
+
+	// An option with something still below it cannot go: whatever is under it would
+	// be left hanging off nothing, which turns it into a root -- an option covered
+	// by nothing but itself, so every rule that reached it through an option above
+	// stops matching. Removing the whole branch at once is the supported way, which
+	// is why this asks about the set rather than about each option.
+	if field.Type == model.PropertyFieldTypeGraph {
+		edges, cErr := ps.fieldStore.GetOptionChildEdges(field.ID, optionIDs)
+		if cErr != nil {
+			return nil, errors.Wrap(cErr, "failed to read the options below a graph property field's options")
+		}
+		staying := make(map[string]string, len(edges))
+		for _, edge := range edges {
+			if !seen[edge.ChildOptionID] {
+				staying[edge.ParentOptionID] = edge.ChildOptionID
+			}
+		}
+		for i, optionID := range optionIDs {
+			if childID, ok := staying[optionID]; ok {
+				return nil, optionsChangeError(i, "names option %q, which option %q is still below; remove that one too or move it first", optionID, childID)
+			}
+		}
+	}
+
+	if err := ps.fieldStore.DeleteOptions(field.GroupID, field.ID, field.UpdateAt, optionIDs); err != nil {
+		return nil, err
+	}
+
+	// What was removed, as it stood: an option is soft-deleted and can be read
+	// again, but the links it was part of are gone without a trace.
+	deleted := make([]*model.PropertyFieldOption, 0, len(optionIDs))
+	for _, optionID := range optionIDs {
+		deleted = append(deleted, byID[optionID])
+	}
+	return deleted, nil
+}
+
+// prepareOptionPayload normalizes and checks an options payload on its own terms:
+// everything that can be judged without asking what the field already holds.
+// requireID separates the two verbs -- creating an option assigns its identifier,
+// changing one names it.
+func prepareOptionPayload(field *model.PropertyField, options []*model.PropertyFieldOption, requireID bool) error {
+	seen := make(map[string]bool, len(options))
+	for i, option := range options {
+		if option == nil {
+			return optionsChangeError(i, "is not an option")
+		}
+		option.Name = strings.TrimSpace(option.Name)
+
+		switch {
+		case requireID && option.ID == "":
+			return optionsChangeError(i, "names no option")
+		case !requireID && option.ID != "":
+			return optionsChangeError(i, "carries the id %q; an option's identifier is assigned when it is created", option.ID)
+		}
+		if requireID {
+			if seen[option.ID] {
+				return optionsChangeError(i, "names option %q, which is already in the list", option.ID)
+			}
+			seen[option.ID] = true
+		}
+
+		if option.Parents != nil && field.Type != model.PropertyFieldTypeGraph {
+			return optionsChangeError(i, "carries parents, and the options of a %s field form no hierarchy", field.Type)
+		}
+
+		// Reported here rather than by the shape check below so the answer carries
+		// the position, which is the whole point of failing on one item.
+		if err := option.IsValid(); err != nil {
+			return optionsChangeError(i, "is not a valid option: %s", err.Error())
+		}
+	}
+
+	// An empty payload and two options sharing a name are both refused here, as
+	// they are for the option list a field is written with.
+	if err := model.PropertyOptions[*model.PropertyFieldOption](options).IsValid(); err != nil {
+		return optionsChangeRefused("%s", err.Error())
+	}
+	return nil
+}
+
+// resolveOptionParents turns the parent names in a payload into the parent links
+// they stand for. Only the options that named parents at all are represented: a
+// payload that says nothing about an option's parents leaves them alone.
+//
+// A name resolves against the options the field owns, plus the names the payload
+// itself gives its options -- so a hierarchy can be built in one call, and an
+// option can be moved under one that is being renamed in the same call. stored
+// carries what the payload's options currently look like, and is nil when they
+// are being created.
+func (ps *PropertyService) resolveOptionParents(field *model.PropertyField, options []*model.PropertyFieldOption, stored map[string]*model.PropertyFieldOption) ([]*model.PropertyOptionEdge, error) {
+	var names []string
+	for _, option := range options {
+		if option.Parents != nil {
+			names = append(names, *option.Parents...)
+		}
+	}
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	existing, err := ps.fieldStore.GetOptionsByName(field, names)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up a property field's options by name")
+	}
+	byName := optionsByName(existing)
+	// The payload's own names win, because they are what the options will be called
+	// once the change lands. An option renamed here is no longer findable under the
+	// name it had.
+	for _, option := range options {
+		byName[option.Name] = option
+	}
+	for _, option := range options {
+		if current := stored[option.ID]; current != nil && current.Name != option.Name {
+			delete(byName, current.Name)
+		}
+	}
+
+	var add []*model.PropertyOptionEdge
+	for i, option := range options {
+		if option.Parents == nil {
+			continue
+		}
+		for _, name := range *option.Parents {
+			parent := byName[name]
+			switch {
+			case parent == nil:
+				return nil, optionsChangeError(i, "puts option %q under %q, which field %s has no option called", option.Name, name, field.ID)
+			case parent.ReadOnly:
+				return nil, optionsChangeError(i, "puts option %q under %q, which field %s inherits from field %s; an option can only sit under one of the same field's options", option.Name, name, field.ID, optionSourceID(field))
+			case parent.ID == option.ID:
+				return nil, optionsChangeError(i, "puts option %q under itself", option.Name)
+			}
+			add = append(add, &model.PropertyOptionEdge{
+				FieldID:        field.ID,
+				ChildOptionID:  option.ID,
+				ParentOptionID: parent.ID,
+			})
+		}
+	}
+	return add, nil
+}
+
+// parentsToDetach returns the parent links to remove so that each option the
+// payload gave a parent list ends up with exactly that list. add is what the same
+// payload resolved to, so a link named in both places stays put rather than being
+// dropped and recreated.
+func (ps *PropertyService) parentsToDetach(field *model.PropertyField, options []*model.PropertyFieldOption, add []*model.PropertyOptionEdge) ([]*model.PropertyOptionEdge, error) {
+	var replacing []string
+	for _, option := range options {
+		if option.Parents != nil {
+			replacing = append(replacing, option.ID)
+		}
+	}
+	if len(replacing) == 0 {
+		return nil, nil
+	}
+
+	// Scoped to the field's own rows: these are the links it may change, and for a
+	// field owning its options that is the whole of its hierarchy.
+	current, err := ps.fieldStore.GetOptionParentEdges(field.ID, replacing)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the parents of a graph property field's options")
+	}
+
+	keep := make(map[[2]string]bool, len(add))
+	for _, edge := range add {
+		keep[[2]string{edge.ChildOptionID, edge.ParentOptionID}] = true
+	}
+
+	var remove []*model.PropertyOptionEdge
+	for _, edge := range current {
+		if !keep[[2]string{edge.ChildOptionID, edge.ParentOptionID}] {
+			remove = append(remove, edge)
+		}
+	}
+	return remove, nil
+}
+
+// readBackOptions returns the options a change wrote as they now stand, rather
+// than as the payload described them: the identifiers assigned, the parts left
+// untouched, and for a graph field the options each one ended up under.
+func (ps *PropertyService) readBackOptions(field *model.PropertyField, written []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	optionIDs := make([]string, 0, len(written))
+	for _, option := range written {
+		optionIDs = append(optionIDs, option.ID)
+	}
+
+	// The field's UpdateAt has moved, and GetOptionsByID reads options through the
+	// field only to work out which of them are inherited -- which has not changed.
+	options, err := ps.fieldStore.GetOptionsByID(field, optionIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read back a property field's options")
+	}
+	return inPayloadOrder(written, options), nil
+}
+
+// inPayloadOrder returns the stored options in the order the payload named them,
+// so a record of what a change replaced lines up with the change itself.
+func inPayloadOrder(payload, stored []*model.PropertyFieldOption) []*model.PropertyFieldOption {
+	byID := make(map[string]*model.PropertyFieldOption, len(stored))
+	for _, option := range stored {
+		byID[option.ID] = option
+	}
+	ordered := make([]*model.PropertyFieldOption, 0, len(payload))
+	for _, option := range payload {
+		if found := byID[option.ID]; found != nil {
+			ordered = append(ordered, found)
+		}
+	}
+	return ordered
+}
+
+// optionsByName indexes options by name. A name is unique across a field's
+// effective option set, so at most one option answers to each.
+func optionsByName(options []*model.PropertyFieldOption) map[string]*model.PropertyFieldOption {
+	byName := make(map[string]*model.PropertyFieldOption, len(options))
+	for _, option := range options {
+		byName[option.Name] = option
+	}
+	return byName
+}
+
+// ownerOf names the field an option belongs to, for a message that has to
+// distinguish the field asked about from the template it inherits from.
+func ownerOf(field *model.PropertyField, option *model.PropertyFieldOption) string {
+	if option.ReadOnly {
+		return optionSourceID(field)
+	}
+	return field.ID
+}

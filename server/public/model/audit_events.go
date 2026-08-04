@@ -171,6 +171,14 @@ const (
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
 )
 
+// Property Field Options
+const (
+	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
+	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
+	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
+	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
+)
+
 // Property Values
 const (
 	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target

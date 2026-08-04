@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"fmt"
+	"maps"
 	"math"
 	"slices"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // The options of a select-style property field are rows in PropertyOptions, but
@@ -208,6 +212,547 @@ func graphOptionOwnerID(field *model.PropertyField) string {
 		return sourceID
 	}
 	return field.ID
+}
+
+// fieldOption projects a row into the option the options endpoints carry. The
+// field asked about decides which options are read-only: one belonging to
+// another field is inherited from a template, and only the template may change
+// it.
+//
+// Rank has no counterpart on PropertyFieldOption and is dropped here -- see the
+// type for why. Nothing else about the row is lost.
+func (r *propertyOptionRow) fieldOption(askedAboutFieldID string) *model.PropertyFieldOption {
+	option := &model.PropertyFieldOption{
+		ID:       r.ID,
+		ReadOnly: r.FieldID != askedAboutFieldID,
+		CreateAt: r.CreateAt,
+	}
+	if r.Name != nil {
+		option.Name = *r.Name
+	}
+	if r.Color != nil {
+		color := *r.Color
+		option.Color = &color
+	}
+	if len(r.Attrs) > 0 {
+		attrs := r.Attrs
+		option.Attrs = &attrs
+	}
+	return option
+}
+
+// flatOption renders an option the options endpoints carry into the open-shaped
+// object a field's inline option list holds, which newPropertyOptionRow takes
+// apart. Going through that one function is deliberate: the promotion rule
+// between an option and its row is stated and implemented once, so the two ways
+// of writing an option cannot drift into storing the same option differently.
+//
+// The named parts are written after the attrs rather than before, so an attrs
+// map that carries one of their keys anyway cannot shadow them. Nothing should
+// send that -- PropertyFieldOption.IsValid refuses it -- but which value wins
+// should not depend on it.
+func flatOption(option *model.PropertyFieldOption) map[string]any {
+	flat := make(map[string]any, 3)
+	if option.Attrs != nil {
+		maps.Copy(flat, *option.Attrs)
+	}
+	flat[optionKeyID] = option.ID
+	flat[optionKeyName] = option.Name
+	if option.Color != nil {
+		flat[optionKeyColor] = *option.Color
+	}
+	return flat
+}
+
+// GetFieldOptions returns one page of a field's effective option set -- the
+// options it owns plus the ones it inherits from the template it links to --
+// ordered by creation and keyed off the last option of the previous page.
+//
+// The page is ordered by (CreateAt, ID) rather than by the order the field's
+// inline option list uses, which additionally leads with the position an option
+// held in the list it was written with. The two therefore disagree for a field
+// whose options were written out of creation order, and deliberately so: this
+// order is the one the (FieldID, CreateAt, ID) index serves, which is what makes
+// paging a hierarchy of a hundred thousand options possible at all, and it is
+// stable under an option being added -- a keyset including the position would
+// move every later option when one is inserted in the middle. A caller
+// rendering options for a person to choose from wants the field's list; this
+// endpoint is for reconstructing a hierarchy.
+//
+// Parents are reported by name, and only for a field whose options form a
+// hierarchy. A name is the only reference the write side accepts, and an option
+// name is unique across a field's effective set, so a page of options carries
+// enough to rebuild the part of the hierarchy it covers.
+func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	if field == nil || perPage <= 0 {
+		return nil, nil
+	}
+
+	builder := s.getQueryBuilder().
+		Select(propertyOptionColumns...).
+		From("PropertyOptions").
+		Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("CreateAt ASC", "ID ASC").
+		Limit(uint64(perPage))
+
+	if cursorID != "" {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": cursorCreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": cursorCreateAt},
+				sq.Gt{"ID": cursorID},
+			},
+		})
+	}
+
+	rows := []*propertyOptionRow{}
+	if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+		return nil, errors.Wrap(err, "property_options_page_query")
+	}
+
+	options := make([]*model.PropertyFieldOption, 0, len(rows))
+	for _, row := range rows {
+		options = append(options, row.fieldOption(field.ID))
+	}
+
+	if field.Type != model.PropertyFieldTypeGraph {
+		return options, nil
+	}
+	if err := s.attachOptionParentNames(field, options); err != nil {
+		return nil, err
+	}
+	return options, nil
+}
+
+// attachOptionParentNames fills in the parents of each of the given options, by
+// name. Every option comes back with a parent list even when it is empty: a
+// root option having nothing above it is the answer, and a caller writing the
+// option back has to be able to tell that from having left the key out.
+func (s *SqlPropertyFieldStore) attachOptionParentNames(field *model.PropertyField, options []*model.PropertyFieldOption) error {
+	optionIDs := make([]string, 0, len(options))
+	for _, option := range options {
+		optionIDs = append(optionIDs, option.ID)
+	}
+
+	ownerID := graphOptionOwnerID(field)
+	edges, err := s.GetOptionParentEdges(ownerID, optionIDs)
+	if err != nil {
+		return err
+	}
+
+	parentIDs := make([]string, 0, len(edges))
+	for _, edge := range edges {
+		parentIDs = append(parentIDs, edge.ParentOptionID)
+	}
+	names, err := s.getOptionNames(s.GetMaster(), ownerID, utils.RemoveDuplicatesFromStringArray(parentIDs))
+	if err != nil {
+		return err
+	}
+
+	parentsByChild := make(map[string][]string, len(options))
+	for _, edge := range edges {
+		// An edge whose parent has no name is not skipped silently: the name is
+		// what a caller would have to send to keep the link, so reporting the
+		// option without it would make a write-back drop the parent. Options
+		// predating the options table can be nameless, and one of those cannot be
+		// part of a hierarchy authored through these endpoints anyway.
+		name, ok := names[edge.ParentOptionID]
+		if !ok || name == "" {
+			return errors.Errorf("option %s of field %s is above option %s but has no name to report it by", edge.ParentOptionID, ownerID, edge.ChildOptionID)
+		}
+		parentsByChild[edge.ChildOptionID] = append(parentsByChild[edge.ChildOptionID], name)
+	}
+
+	for _, option := range options {
+		parents := parentsByChild[option.ID]
+		// Sorted so a page reads the same way twice: the edge rows come back in
+		// whatever order the index walk produced them.
+		slices.Sort(parents)
+		if parents == nil {
+			parents = []string{}
+		}
+		option.Parents = &parents
+	}
+	return nil
+}
+
+// getOptionNames returns the names of the given options, as option ID -> name.
+// An option with no name at all is absent rather than mapped to an empty string.
+func (s *SqlPropertyFieldStore) getOptionNames(db sqlxExecutor, fieldID string, optionIDs []string) (map[string]string, error) {
+	type named struct {
+		ID   string
+		Name *string
+	}
+
+	names := make(map[string]string, len(optionIDs))
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID", "Name").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0})
+
+		rows := []*named{}
+		if err := db.SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_names_query")
+		}
+		for _, row := range rows {
+			if row.Name != nil {
+				names[row.ID] = *row.Name
+			}
+		}
+	}
+	return names, nil
+}
+
+// GetOptionsByID returns the options among the given IDs that are live in the
+// field's effective option set, in full. Anything not returned is either not an
+// option of the field or has been deleted, which its caller has to tell apart
+// from an inherited option it may not change -- hence the effective set rather
+// than the field's own options, and the ReadOnly flag on what comes back.
+func (s *SqlPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	options, err := s.getFieldOptionsWhere(field, "ID", optionIDs)
+	if err != nil || len(options) == 0 || field.Type != model.PropertyFieldTypeGraph {
+		return options, err
+	}
+	if err := s.attachOptionParentNames(field, options); err != nil {
+		return nil, err
+	}
+	return options, nil
+}
+
+// GetOptionsByName returns the live options of the field's effective set whose
+// name is one of the given ones. It answers both questions the write path asks
+// about a name: whether an option already has it -- names are unique across a
+// field's effective set -- and, for a name used to reference a parent, which
+// option it refers to.
+//
+// Unlike GetOptionsByID it reports no parents. A name is asked about to find the
+// option behind it, and a caller may ask about as many names as a whole change
+// carries, so resolving the hierarchy around every answer would be work no caller
+// has a use for.
+func (s *SqlPropertyFieldStore) GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error) {
+	return s.getFieldOptionsWhere(field, "Name", names)
+}
+
+// getFieldOptionsWhere runs one lookup over a field's effective option set,
+// matching the given column against the given keys, with no parent information.
+//
+// It batches the keys because a caller may hold as many of them as a whole change
+// carries -- one option name per option plus one per parent named -- and a
+// statement has a hard limit on how many parameters it can take (see
+// maxOptionIDsPerQuery). The batches merge by concatenation: each key stands on
+// its own.
+func (s *SqlPropertyFieldStore) getFieldOptionsWhere(field *model.PropertyField, column string, keys []string) ([]*model.PropertyFieldOption, error) {
+	if field == nil || len(keys) == 0 {
+		return nil, nil
+	}
+
+	var options []*model.PropertyFieldOption
+	for batch := range slices.Chunk(keys, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select(propertyOptionColumns...).
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{column: batch}).
+			Where(sq.Eq{"DeleteAt": 0})
+
+		rows := []*propertyOptionRow{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_lookup_query")
+		}
+		for _, row := range rows {
+			options = append(options, row.fieldOption(field.ID))
+		}
+	}
+	return options, nil
+}
+
+// CountOptions returns how many live options a field owns itself. Options it
+// inherits from a template are not counted: they are the template's, and the
+// limit on how many options a field may have is about the ones it holds.
+func (s *SqlPropertyFieldStore) CountOptions(fieldID string) (int, error) {
+	counts, err := s.countPropertyOptions(s.GetMaster(), []string{fieldID})
+	if err != nil {
+		return 0, err
+	}
+	return counts[fieldID], nil
+}
+
+// MutateOptions changes one field's options and, for a graph field, the
+// hierarchy between them: the options in upsert are created or rewritten, the
+// parent links in remove go, and the links in add are created -- all together or
+// not at all. A caller that gets an error changed nothing.
+//
+// An option in upsert is written whole. Its row is replaced except for the two
+// columns PropertyFieldOption does not model -- the rank and the position in the
+// field's option list -- which an existing option keeps and a new one gets
+// appended after the options already there. A soft-deleted option named in
+// upsert comes back, as it does when a field is written with it in its option
+// list again.
+//
+// Every option is written under this field's ID, so a caller must not name an
+// option the field merely inherits: that would shadow the template's option with
+// a local copy rather than edit it. Nothing here can tell the two apart -- the
+// unlink path deliberately copies a template's options into a field under the
+// same identifiers -- so refusing it is the caller's job, which the options
+// endpoints do by refusing to change an option they report as read-only.
+//
+// groupID scopes the change to the property group the field is expected to be
+// in, as it does on Update and Delete, and an empty one leaves it unscoped.
+//
+// expectedUpdateAt is the field's UpdateAt as the caller read it before deciding
+// what the change should be, and the write only lands on a row still carrying
+// that value. Two changes that are each fine and jointly form a cycle therefore
+// cannot both land: the second was decided against a hierarchy the first has
+// moved, and it is refused as a conflict instead. Passing zero asserts nothing
+// and is for a caller that has no earlier read to compare against.
+//
+// The field's UpdateAt is bumped either way, because an option or hierarchy
+// change alters what the field serves without altering a single column of it,
+// and clients syncing on UpdateAt would otherwise never hear about it.
+//
+// The ceiling of this scheme is that the loser of a race discards the work it did
+// deciding what to write. Option changes are rare enough for that to be the
+// right trade; a per-group advisory lock taken before the caller validates is the
+// upgrade if concurrent hierarchy editing ever becomes ordinary.
+//
+// Two structural invariants are enforced here, both of which an edge is
+// meaningless without: the edge's field is a live graph field -- no other type's
+// options have a hierarchy for an edge to be part of -- and both endpoints of an
+// added edge are live options that field owns itself. The endpoint check runs
+// after the options are written, so one change may create an option and put it
+// under a parent.
+//
+// The shape of the resulting hierarchy -- no cycles, bounded depth, bounded
+// numbers of parents and edges -- is not checked here and cannot be: every one of
+// those is a property of the whole hierarchy rather than of the rows in front of
+// it. A caller puts its change through PropertyService.ValidateOptionEdges
+// first, which is what ApplyOptionEdges and the options endpoints do.
+func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) (err error) {
+	if len(upsert) == 0 && len(add) == 0 && len(remove) == 0 {
+		return nil
+	}
+
+	// Both lists are walked in payload order, and the additions before the
+	// removals, so which failure a caller is told about is the same run after run.
+	for _, group := range []struct {
+		what  string
+		edges []*model.PropertyOptionEdge
+	}{{"add", add}, {"remove", remove}} {
+		for i, edge := range group.edges {
+			at := fmt.Sprintf("%s[%d]", group.what, i)
+			if vErr := edge.IsValid(); vErr != nil {
+				return store.NewErrInvalidInput("PropertyOptionEdge", at, vErr.Error()).Wrap(vErr)
+			}
+			// One field per change: a cycle is confined to one field's options, so
+			// the compare-and-swap below only closes the race it exists for if
+			// everything being changed belongs to the field it swaps on.
+			if edge.FieldID != fieldID {
+				return store.NewErrInvalidInput("PropertyOptionEdge", at, edge.FieldID).
+					Wrap(errors.Errorf("edge belongs to field %s, not to %s", edge.FieldID, fieldID))
+			}
+		}
+	}
+
+	// Only an added edge's endpoints have to be options the field still has. A
+	// removal names a link that is either there, in which case its endpoints are,
+	// or already gone.
+	//
+	// Deduplicated through a map rather than by scanning what is already collected:
+	// a whole hierarchy can arrive in one change, and at tens of thousands of edges
+	// the scan is the slowest thing in the request by orders of magnitude.
+	endpoints := make([]string, 0, len(add)*2)
+	for _, edge := range add {
+		endpoints = append(endpoints, edge.ChildOptionID, edge.ParentOptionID)
+	}
+	addEndpoints := utils.RemoveDuplicatesFromStringArray(endpoints)
+
+	// An option row carries the group of the field it belongs to, and the only
+	// place that group is known here is the caller's scope: after a successful
+	// swap below, a non-empty groupID is by definition the field's own.
+	if len(upsert) > 0 && groupID == "" {
+		return store.NewErrInvalidInput("PropertyOption", "group_id", groupID).
+			Wrap(errors.New("options can only be written through a change scoped to the field's property group"))
+	}
+
+	now := model.GetMillis()
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "property_options_mutate_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Before the swap, so a caller changing links on a field that is gone or was
+	// never a graph field is told that rather than being told it lost a race.
+	if len(add) > 0 || len(remove) > 0 {
+		if err = s.requireLiveGraphField(transaction, fieldID); err != nil {
+			return err
+		}
+	}
+
+	if err = s.bumpFieldForOptionChange(transaction, groupID, fieldID, expectedUpdateAt); err != nil {
+		return err
+	}
+
+	if len(upsert) > 0 {
+		if err = s.upsertFieldOptions(transaction, groupID, fieldID, upsert, now); err != nil {
+			return err
+		}
+	}
+
+	if err = s.requireOwnedOptions(transaction, fieldID, addEndpoints); err != nil {
+		return err
+	}
+
+	if len(remove) > 0 {
+		matches := sq.Or{}
+		for _, edge := range remove {
+			matches = append(matches, sq.Eq{
+				"ChildOptionID":  edge.ChildOptionID,
+				"ParentOptionID": edge.ParentOptionID,
+			})
+		}
+		builder := s.getQueryBuilder().
+			Delete("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(matches)
+
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_delete_exec")
+		}
+	}
+
+	if len(add) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("PropertyOptionEdges").
+			Columns(propertyOptionEdgeColumns...)
+		for _, edge := range add {
+			builder = builder.Values(edge.FieldID, edge.ChildOptionID, edge.ParentOptionID, now)
+		}
+		// DO NOTHING rather than DO UPDATE: an edge has nothing to update, and the
+		// same edge listed twice in one payload conflicts with itself, which only
+		// DO NOTHING tolerates. The edges the caller passed in are left as they are
+		// -- stamping CreateAt onto them would be wrong for one that already existed.
+		builder = builder.Suffix("ON CONFLICT (FieldID, ChildOptionID, ParentOptionID) DO NOTHING")
+
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_insert_exec")
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "property_options_mutate_commit_transaction")
+	}
+
+	return nil
+}
+
+// DeleteOptions soft-deletes options a field owns and hard-deletes every parent
+// link they were part of, bumping the field's UpdateAt under the same
+// compare-and-swap MutateOptions uses.
+//
+// An option the field only inherits matches nothing and is silently left alone:
+// it is the template's to delete. Its caller refuses one rather than relying on
+// that, so that a caller naming an option it may not touch is told.
+//
+// Nothing here checks that the options being removed have nothing below them.
+// That is a question about the whole set being removed -- taking out a subtree is
+// legitimate even though every option in it but the lowest has children -- so it
+// belongs to the caller assembling the set.
+func (s *SqlPropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) (err error) {
+	if len(optionIDs) == 0 {
+		return nil
+	}
+
+	now := model.GetMillis()
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "property_options_delete_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	if err = s.bumpFieldForOptionChange(transaction, groupID, fieldID, expectedUpdateAt); err != nil {
+		return err
+	}
+
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Update("PropertyOptions").
+			Set("DeleteAt", now).
+			Set("UpdateAt", now).
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0})
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_options_delete_exec")
+		}
+
+		// An option that is gone cannot be part of a hierarchy, and an edge has no
+		// delete marker of its own to carry that with.
+		if err = s.deletePropertyOptionEdgesForOptions(transaction, fieldID, batch); err != nil {
+			return err
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "property_options_delete_commit_transaction")
+	}
+
+	return nil
+}
+
+// upsertFieldOptions writes the given options as rows of the field, creating the
+// ones it does not have and replacing the ones it does.
+//
+// Rank and SortOrder are left out of the conflict update, because
+// PropertyFieldOption does not carry either: an existing option keeps the rank
+// and the list position it had. A new option is appended -- the highest position
+// among the field's options, plus one per option here. An option already there
+// consumes a position it does not use, which leaves a gap in the sequence and
+// changes nothing: the column is only ever compared, never counted.
+func (s *SqlPropertyFieldStore) upsertFieldOptions(transaction *sqlxTxWrapper, groupID, fieldID string, options []*model.PropertyFieldOption, now int64) error {
+	query := s.getQueryBuilder().
+		Select("COALESCE(MAX(SortOrder), 0)").
+		From("PropertyOptions").
+		Where(sq.Eq{"FieldID": fieldID})
+
+	var appendAfter int
+	if err := transaction.GetBuilder(&appendAfter, query); err != nil {
+		return errors.Wrap(err, "property_options_upsert_position_query")
+	}
+
+	field := &model.PropertyField{ID: fieldID, GroupID: groupID}
+	rows := make([]*propertyOptionRow, 0, len(options))
+	for i, option := range options {
+		row, err := newPropertyOptionRow(field, flatOption(option), appendAfter+i+1, now)
+		if err != nil {
+			return err
+		}
+		rows = append(rows, row)
+	}
+
+	builder := s.getQueryBuilder().
+		Insert("PropertyOptions").
+		Columns(propertyOptionColumns...)
+	for _, row := range rows {
+		builder = builder.Values(row.insertValues()...)
+	}
+	builder = builder.Suffix(`ON CONFLICT (FieldID, ID) DO UPDATE SET
+	Name = EXCLUDED.Name,
+	Color = EXCLUDED.Color,
+	Attrs = EXCLUDED.Attrs,
+	UpdateAt = EXCLUDED.UpdateAt,
+	DeleteAt = 0`)
+
+	if _, err := transaction.ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "property_options_upsert_exec")
+	}
+	return nil
 }
 
 // wireOptions reads a field's inline option array. It runs after

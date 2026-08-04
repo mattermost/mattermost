@@ -8420,6 +8420,22 @@ func (s *TimerLayerPropertyFieldStore) CountOptionEdges(fieldID string) (int, er
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) CountOptions(fieldID string) (int, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.CountOptions(fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.CountOptions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	start := time.Now()
 
@@ -8448,6 +8464,22 @@ func (s *TimerLayerPropertyFieldStore) Delete(groupID string, id string) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPropertyFieldStore) DeleteOptions(groupID string, fieldID string, expectedUpdateAt int64, optionIDs []string) error {
+	start := time.Now()
+
+	err := s.PropertyFieldStore.DeleteOptions(groupID, fieldID, expectedUpdateAt, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.DeleteOptions", success, elapsed)
 	}
 	return err
 }
@@ -8512,6 +8544,22 @@ func (s *TimerLayerPropertyFieldStore) GetFieldByNameForObjectType(ctx context.C
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldByNameForObjectType", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldOptions", success, elapsed)
 	}
 	return result, err
 }
@@ -8644,6 +8692,38 @@ func (s *TimerLayerPropertyFieldStore) GetOptionParentEdges(fieldID string, chil
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionsByID(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionsByID", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionsByName(field, names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionsByName", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, expectedUpdateAt int64, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 	start := time.Now()
 
@@ -8656,6 +8736,22 @@ func (s *TimerLayerPropertyFieldStore) MutateOptionEdges(groupID string, fieldID
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.MutateOptionEdges", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPropertyFieldStore) MutateOptions(groupID string, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
+	start := time.Now()
+
+	err := s.PropertyFieldStore.MutateOptions(groupID, fieldID, expectedUpdateAt, upsert, add, remove)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.MutateOptions", success, elapsed)
 	}
 	return err
 }
