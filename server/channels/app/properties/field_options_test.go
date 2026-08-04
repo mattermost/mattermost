@@ -377,5 +377,114 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		_, err = th.service.CreateFieldOptions(template, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "local option of its own")
+
+		// And the other direction, which is the half a field can answer on its own: a
+		// local option may not take a name the field inherits.
+		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Air"}})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "already has")
+		require.ErrorContains(t, err, template.ID)
+	})
+
+	// The limits on a hierarchy are checked against the hierarchy as stored, and a
+	// field being created has none -- every read behind the check answers empty and
+	// what it measures is the list alone. These pin that the list is measured at
+	// all: an early return for a field with no rows yet would leave a create as the
+	// one way past every limit.
+	t.Run("a list is held to the limits on the hierarchy it describes", func(t *testing.T) {
+		chain := make([]map[string]any, 0, model.PropertyGraphMaxDepth+1)
+		for i := 0; i <= model.PropertyGraphMaxDepth; i++ {
+			if i == 0 {
+				chain = append(chain, inlineOption("N0"))
+				continue
+			}
+			chain = append(chain, inlineOption(fmt.Sprintf("N%d", i), fmt.Sprintf("N%d", i-1)))
+		}
+		_, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph, chain...))
+		require.Error(t, err)
+		require.ErrorContains(t, err, fmt.Sprintf("no chain may be longer than %d", model.PropertyGraphMaxDepth))
+
+		fan := make([]map[string]any, 0, model.PropertyGraphMaxParentsPerOption+2)
+		parents := make([]string, 0, model.PropertyGraphMaxParentsPerOption+1)
+		for i := 0; i <= model.PropertyGraphMaxParentsPerOption; i++ {
+			fan = append(fan, inlineOption(fmt.Sprintf("P%d", i)))
+			parents = append(parents, fmt.Sprintf("P%d", i))
+		}
+		fan = append(fan, inlineOption("Child", parents...))
+		_, err = th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph, fan...))
+		require.Error(t, err)
+		require.ErrorContains(t, err, fmt.Sprintf("no option may have more than %d", model.PropertyGraphMaxParentsPerOption))
+	})
+
+	t.Run("a cycle a list closes against the stored hierarchy is refused", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Air"),
+		))
+		require.NoError(t, err)
+		graph := asFixture(t, created)
+
+		// Nothing in this list is cyclic on its own: putting Air under Fighter Jet
+		// closes a cycle only together with the link already stored, which is what the
+		// check has to read to see it.
+		next := *created
+		next.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": graph.ids["Air"], "name": "Air", "parents": []string{"Fighter Jet"}},
+			map[string]any{"id": graph.ids["Fighter Jet"], "name": "Fighter Jet"},
+		}}
+		_, _, err = th.service.UpdatePropertyField(th.Context, group.ID, &next)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "below itself")
+
+		// Refused whole: the hierarchy is the one the field started with.
+		above, err := th.service.AncestorsOrSelf(th.Context, created, graph.of("Fighter Jet"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet", "Air"}, graph.named(above[graph.ids["Fighter Jet"]]))
+	})
+
+	t.Run("a hierarchy change reports the fields linking to the one that changed", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet"),
+		))
+		require.NoError(t, err)
+		graph := asFixture(t, template)
+
+		dependent := field(model.PropertyFieldTypeGraph)
+		dependent.ObjectType = model.PropertyFieldObjectTypeUser
+		dependent.LinkedFieldID = &template.ID
+		dependent.Type = ""
+		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
+		require.NoError(t, err)
+
+		// A dependent serves the template's hierarchy, so a change to it changes what
+		// the dependent answers without touching a column of the dependent's row.
+		// Reported alongside the write so its clients are told and its compiled
+		// policies are dropped -- the same reason an option change reports them.
+		withParent := func(current *model.PropertyField, parents ...string) *model.PropertyField {
+			next := *current
+			jet := map[string]any{"id": graph.ids["Fighter Jet"], "name": "Fighter Jet"}
+			if parents != nil {
+				jet["parents"] = parents
+			}
+			next.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": graph.ids["Air"], "name": "Air"},
+				jet,
+			}}
+			return &next
+		}
+
+		_, propagated, _, err := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{withParent(template, "Air")})
+		require.NoError(t, err)
+		require.Len(t, propagated, 1)
+		require.Equal(t, dependent.ID, propagated[0].ID)
+
+		// And a list restating the hierarchy it already had changes nothing, so
+		// nobody is told anything.
+		current, err := th.service.GetPropertyField(th.Context, group.ID, template.ID)
+		require.NoError(t, err)
+		_, propagated, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{withParent(current, "Air")})
+		require.NoError(t, err)
+		require.Empty(t, propagated)
 	})
 }
