@@ -14,9 +14,11 @@ import (
 // back to the test (TPNS) endpoint when it no longer does. It runs on license changes, on
 // server start, and when this node becomes the cluster leader.
 //
-// The mapping is self-inverse — promote only from exact TPNS, revert only from exact
-// MHPNSGlobal — so no persistent state is needed to know whether a value was auto-selected.
-// Custom, regional, and legacy endpoints are never touched.
+// The contract: promote only from exact TPNS to the Global endpoint; on entitlement loss,
+// revert any Mattermost-hosted production endpoint (global, regional, or legacy) to TPNS, so
+// a lapsed license never leaves push pointing at an endpoint that refuses to send. Custom
+// endpoints and env-managed values are never touched. The sync stays stateless because both
+// directions derive entirely from the current config value and the license.
 func (s *Server) syncPushNotificationServerWithLicense() {
 	if !s.IsLeader() {
 		return
@@ -53,7 +55,7 @@ func (s *Server) syncPushNotificationServerWithLicense() {
 	switch {
 	case entitled && current == model.GenericNotificationServer:
 		target = model.MHPNSGlobal
-	case !entitled && current == model.MHPNSGlobal:
+	case !entitled && model.IsMHPNSEndpoint(current):
 		target = model.GenericNotificationServer
 	default:
 		return

@@ -64,6 +64,18 @@ func TestSyncPushNotificationServerWithLicense(t *testing.T) {
 			expectedServer: model.MHPNSGlobal,
 		},
 		{
+			name:           "unentitled license reverts regional endpoint (MHPNSUS) to TPNS",
+			license:        licenseWithoutMHPNS,
+			initialServer:  model.MHPNSUS,
+			expectedServer: model.GenericNotificationServer,
+		},
+		{
+			name:           "unentitled license reverts legacy endpoint (MHPNSLegacyDE) to TPNS",
+			license:        licenseWithoutMHPNS,
+			initialServer:  model.MHPNSLegacyDE,
+			expectedServer: model.GenericNotificationServer,
+		},
+		{
 			name:           "unentitled license leaves TPNS untouched",
 			license:        licenseWithoutMHPNS,
 			initialServer:  model.GenericNotificationServer,
