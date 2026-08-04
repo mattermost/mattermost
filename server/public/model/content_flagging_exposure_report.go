@@ -24,13 +24,11 @@ type PostExposureReportEntry struct {
 	// creation time and it being flagged, per ChannelMemberHistory.
 	WasChannelMember bool `json:"was_channel_member"`
 
-	// LikelyReceivedPost records that the user's channel read state advanced to at or past
-	// the post's creation time, so the post may have been delivered to them.
-	LikelyReceivedPost bool `json:"likely_received_post"`
-
 	// LastViewedAt is nil when the user is no longer a member of the channel and so has no
 	// read state at all. A non-nil zero means they are a member who never viewed the channel.
 	LastViewedAt *int64 `json:"last_viewed_at,omitempty"`
+
+	LastActivityAt *int64 `json:"last_activity_at,omitempty"`
 }
 
 type PostExposureReport struct {
@@ -55,8 +53,8 @@ func PostExposureReportCSVHeader(T i18n.TranslateFunc) []string {
 		T("app.data_spillage.exposure.column.is_remote"),
 		T("app.data_spillage.exposure.column.is_deactivated"),
 		T("app.data_spillage.exposure.column.was_channel_member"),
-		T("app.data_spillage.exposure.column.likely_received_post"),
 		T("app.data_spillage.exposure.column.last_viewed_at"),
+		T("app.data_spillage.exposure.column.last_activity_at"),
 	}
 }
 
@@ -69,21 +67,28 @@ func (e *PostExposureReportEntry) ToCSVRow(T i18n.TranslateFunc) []string {
 		exposureBool(T, e.IsRemote),
 		exposureBool(T, e.IsDeactivated),
 		exposureBool(T, e.WasChannelMember),
-		exposureBool(T, e.LikelyReceivedPost),
 		e.lastViewedAtCell(T),
+		e.lastActivityAtCell(T),
 	}
 }
 
 func (e *PostExposureReportEntry) lastViewedAtCell(T i18n.TranslateFunc) string {
 	switch {
 	case e.LastViewedAt == nil:
-		// The user is no longer a channel member, so no read state survives for them.
 		return T("app.data_spillage.exposure.value.unknown")
 	case *e.LastViewedAt <= 0:
 		return T("app.data_spillage.exposure.value.never_viewed")
 	default:
 		return FormatExposureTime(*e.LastViewedAt)
 	}
+}
+
+func (e *PostExposureReportEntry) lastActivityAtCell(T i18n.TranslateFunc) string {
+	if e.LastActivityAt == nil {
+		return T("app.data_spillage.exposure.value.no_sessions")
+	}
+
+	return FormatExposureTime(*e.LastActivityAt)
 }
 
 func exposureBool(T i18n.TranslateFunc, v bool) string {
