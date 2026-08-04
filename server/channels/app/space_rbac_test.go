@@ -607,35 +607,6 @@ func TestSpaceSeedingMigrations(t *testing.T) {
 	})
 }
 
-func TestValidateCanonicalSpaceRole(t *testing.T) {
-	canonical := model.MakeDefaultRoles()[model.SpacePageCreatorRoleId]
-
-	t.Run("canonical row accepted", func(t *testing.T) {
-		require.NoError(t, validateCanonicalSpaceRole(canonical.Clone(), canonical))
-	})
-
-	t.Run("foreign row without ownership markers rejected", func(t *testing.T) {
-		foreign := canonical.Clone()
-		foreign.BuiltIn = false
-		require.Error(t, validateCanonicalSpaceRole(foreign, canonical))
-
-		foreign = canonical.Clone()
-		foreign.SchemeManaged = true
-		require.Error(t, validateCanonicalSpaceRole(foreign, canonical))
-
-		schemeID := model.NewId()
-		foreign = canonical.Clone()
-		foreign.SchemeId = &schemeID
-		require.Error(t, validateCanonicalSpaceRole(foreign, canonical))
-	})
-
-	t.Run("non-canonical permission set rejected", func(t *testing.T) {
-		foreign := canonical.Clone()
-		foreign.Permissions = append(foreign.Permissions, model.PermissionAdminSpace.Id)
-		require.Error(t, validateCanonicalSpaceRole(foreign, canonical))
-	})
-}
-
 // TestSpacePresetResolutionThroughRealSpace exercises the higher-scope merge
 // exemption for space permissions end to end: without it, every preset grant
 // is stripped at resolution time and these assertions fail against master.

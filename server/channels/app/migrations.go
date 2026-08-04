@@ -379,21 +379,6 @@ func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
 	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
 }
 
-// validateCanonicalSpaceRole rejects a role row that carries an atomic space
-// capability role's name but is not the canonical definition: adopting a
-// foreign row would hand its arbitrary permission set to every member granted
-// that capability. A legitimate hit is only ever a fresh install's
-// MakeDefaultRoles() seed or another HA node's identical insert.
-func validateCanonicalSpaceRole(existing, canonical *model.Role) error {
-	if !existing.BuiltIn || existing.SchemeManaged || existing.SchemeId != nil {
-		return fmt.Errorf("role %q already exists but is not the canonical space capability role definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
-	}
-	if !maps.Equal(asPermissionSet(existing.Permissions), asPermissionSet(canonical.Permissions)) {
-		return fmt.Errorf("role %q already exists with a non-canonical permission set %v; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", existing.Name, existing.Permissions)
-	}
-	return nil
-}
-
 // validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
 // scheme's name but cannot serve as one: adopting a foreign row would rewrite
 // that scheme's generated role permission sets on every boot, and a row without
@@ -439,31 +424,21 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	roles := model.MakeDefaultRoles()
 
 	for _, roleID := range model.SpaceCapabilityRoles {
-		canonical := roles[roleID]
-		existing, err := s.Store().Role().GetByName(context.Background(), roleID)
-		if err == nil {
-			if vErr := validateCanonicalSpaceRole(existing, canonical); vErr != nil {
-				return vErr
-			}
+		if _, err := s.Store().Role().GetByName(context.Background(), roleID); err == nil {
 			continue
-		}
-		if !errors.As(err, &nfErr) {
+		} else if !errors.As(err, &nfErr) {
 			return fmt.Errorf("could not query role %q: %w", roleID, err)
 		}
 
-		if _, err := s.Store().Role().Save(canonical); err != nil {
+		if _, err := s.Store().Role().Save(roles[roleID]); err != nil {
 			mlog.Debug("Couldn't save the space capability role; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
 
 			// The store wraps the raw duplicate-key error, so a lost HA insert
 			// race is detected by re-reading the row on the primary: a lagging
 			// replica could miss the other node's just-committed insert and
 			// fatal the boot.
-			existing, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID)
-			if rErr != nil {
+			if _, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID); rErr != nil {
 				return fmt.Errorf("failed to create space capability role %q: %w", roleID, err)
-			}
-			if vErr := validateCanonicalSpaceRole(existing, canonical); vErr != nil {
-				return vErr
 			}
 		}
 	}

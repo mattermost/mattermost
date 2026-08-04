@@ -39,10 +39,11 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 		return err
 	}
 
-	// A reserved preset name resolves to the seeded scheme, which would take the
-	// update branch below and carry the file's permission lists onto the roles
-	// every space on that preset resolves through. Checked before the dry run so
-	// a dry run reports it too.
+	// An import file naming a scheme after a space preset would match the seeded
+	// scheme below, update it in place, and overwrite its roles with the file's
+	// permission lists, changing what every space on that preset grants.
+	// UpdateScheme only checks the name when it changes, so it does not catch
+	// this. Checked ahead of the dry-run return so a dry run reports it too.
 	if appErr := a.checkSpaceSchemeName("BulkImport", *data.Name); appErr != nil {
 		return appErr
 	}
