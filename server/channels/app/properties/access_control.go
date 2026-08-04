@@ -297,6 +297,48 @@ func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _,
 
 // Field Post-Hooks
 
+// Field option hooks
+
+// PreChangePropertyFieldOptions gates a change to a field's options with the
+// rules that gate a change to the field itself. A field's options are part of
+// its definition: stated as the field's own option list they are written through
+// PreUpdatePropertyField, and the answer cannot depend on which of the two paths
+// a caller took -- otherwise the options endpoint is a way around the protected
+// flag and the owners list.
+//
+// The field is the one the store has, and it stands for both sides of the
+// update: an option change alters no attribute of the field, so there is no
+// incoming copy to judge, and in particular no owners list a caller could be
+// adding itself to.
+func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
+	if field == nil || !h.isGroupManaged(field.GroupID) {
+		return nil
+	}
+	return h.enforceFieldUpdateAccess(field, field, h.extractCallerID(rctx))
+}
+
+// PostGetPropertyFieldOptions applies the field's read access mode to a page of
+// its options, which are otherwise read straight from their own rows and so
+// reach none of the filtering a field read applies to the option list it carries
+// inline.
+//
+// A caller without unrestricted read access is served nothing. For a source_only
+// field that is the same answer the field read gives -- its option list is
+// emptied for everyone but the source plugin. For a shared_only field it is a
+// stricter one: the field read filters that list down to the options the caller
+// shares with the target, and there is no equivalent for the rows yet. Serving
+// them unfiltered would answer a question the field read refuses, so until the
+// filter exists this serves none of them.
+func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	if field == nil || !h.isGroupManaged(field.GroupID) {
+		return options, nil
+	}
+	if h.hasUnrestrictedFieldReadAccess(field, h.extractCallerID(rctx)) {
+		return options, nil
+	}
+	return nil, nil
+}
+
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(field.GroupID) {

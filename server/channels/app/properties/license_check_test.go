@@ -72,6 +72,30 @@ func TestLicenseCheckHook(t *testing.T) {
 		assert.Contains(t, upsertErr.Error(), "license_error")
 	})
 
+	t.Run("blocks option read and change without license", func(t *testing.T) {
+		currentLicense = enterpriseLicense
+		field := makeField()
+		field.Type = model.PropertyFieldTypeMultiselect
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Air"},
+			},
+		}
+		created := th.CreatePropertyFieldDirect(t, field)
+
+		// A field's options are the field, licensing included: reading or changing
+		// them one at a time writes no field row, so this is the only place the
+		// requirement can be applied to that path.
+		currentLicense = nil
+		_, getErr := th.service.GetFieldOptions(th.Context, created, 0, "", 100)
+		require.Error(t, getErr)
+		assert.Contains(t, getErr.Error(), "license_error")
+
+		_, createErr := th.service.CreateFieldOptions(th.Context, created, []*model.PropertyFieldOption{{Name: "Sea"}})
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "license_error")
+	})
+
 	t.Run("allows operations on unmanaged groups without license", func(t *testing.T) {
 		currentLicense = nil
 		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_no_license_needed", Version: model.PropertyGroupVersionV2})

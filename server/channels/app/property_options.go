@@ -28,7 +28,7 @@ import (
 
 // GetPropertyFieldOptions returns one page of a field's effective option set.
 func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
-	options, err := a.Srv().propertyService.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+	options, err := a.Srv().propertyService.GetFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
 	if err != nil {
 		if appErr := mapPropertyServiceError("GetPropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -40,7 +40,7 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyFie
 
 // CreatePropertyFieldOptions adds options to a field.
 func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	created, err := a.Srv().propertyService.CreateFieldOptions(field, options)
+	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, field, options)
 	if err != nil {
 		if appErr := mapPropertyServiceError("CreatePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -55,7 +55,7 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.Property
 // UpdatePropertyFieldOptions rewrites options a field owns, and reports what
 // those options were beforehand so a caller can record what the change replaced.
 func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
-	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(field, options)
+	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(rctx, field, options)
 	if err != nil {
 		if mapped := mapPropertyServiceError("UpdatePropertyFieldOptions", err); mapped != nil {
 			return nil, nil, mapped
@@ -71,7 +71,7 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.Property
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
 func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	deleted, err := a.Srv().propertyService.DeleteFieldOptions(field, optionIDs)
+	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, field, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // These cover what the field the caller hands in is and is not trusted for.
@@ -29,15 +30,15 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		// date -- which is what a read that went to a replica looks like.
 		stale := *graph.field
 
-		_, err := th.service.CreateFieldOptions(&stale, newOption("Sea"))
+		_, err := th.service.CreateFieldOptions(th.Context, &stale, newOption("Sea"))
 		require.NoError(t, err)
 
 		// Same stale copy again. The service re-reads the field it is about to swap
 		// on, so this is not a lost race; before it did, this answered 409.
-		_, err = th.service.CreateFieldOptions(&stale, newOption("Land"))
+		_, err = th.service.CreateFieldOptions(th.Context, &stale, newOption("Land"))
 		require.NoError(t, err)
 
-		options, err := th.service.GetFieldOptions(graph.field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(th.Context, graph.field, 0, "", 100)
 		require.NoError(t, err)
 		names := make([]string, 0, len(options))
 		for _, option := range options {
@@ -54,11 +55,11 @@ func TestFieldOptionsWritableField(t *testing.T) {
 
 		// The caller's copy says the field is alive. The field is not, and an option
 		// written to a deleted field is written where nothing will look for it.
-		_, err := th.service.CreateFieldOptions(&stale, newOption("Sea"))
+		_, err := th.service.CreateFieldOptions(th.Context, &stale, newOption("Sea"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "has been deleted")
 
-		_, err = th.service.DeleteFieldOptions(&stale, graph.of("Air"))
+		_, err = th.service.DeleteFieldOptions(th.Context, &stale, graph.of("Air"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "has been deleted")
 	})
@@ -78,29 +79,177 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		// An option created here would carry no rank, which is the one state a rank
 		// field's options may never be in: it makes the field unwritable through its
 		// own option list and reads as covering nothing where a policy clamps.
-		_, err := th.service.CreateFieldOptions(rank, newOption("Top Secret"))
+		_, err := th.service.CreateFieldOptions(th.Context, rank, newOption("Top Secret"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		options, err := th.service.GetFieldOptions(rank, 0, "", 100)
+		options, err := th.service.GetFieldOptions(th.Context, rank, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1, "reading a rank field's options is still allowed")
 
 		// A caller that forgot a page size is told, rather than being handed an
 		// empty page it would read as a field with no options.
-		_, err = th.service.GetFieldOptions(rank, 0, "", 0)
+		_, err = th.service.GetFieldOptions(th.Context, rank, 0, "", 0)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "positive page size")
 
-		_, _, err = th.service.UpdateFieldOptions(rank, []*model.PropertyFieldOption{
+		_, _, err = th.service.UpdateFieldOptions(th.Context, rank, []*model.PropertyFieldOption{
 			{ID: options[0].ID, Name: "Renamed"},
 		})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		_, err = th.service.DeleteFieldOptions(rank, []string{options[0].ID})
+		_, err = th.service.DeleteFieldOptions(th.Context, rank, []string{options[0].ID})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
+	})
+}
+
+// A field's options are part of its definition, so who may read and change them
+// is decided by the same rules that decide who may read and change the field.
+// These drive the option methods with a caller that has no authority over the
+// field, which is the case the two paths to a field's options could otherwise
+// answer differently: stated as the field's own option list, every one of these
+// changes is refused.
+func TestFieldOptionsAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "owning-plugin" || pluginID == "other-plugin"
+	})
+
+	source := RequestContextWithCallerID(th.Context, "owning-plugin")
+	other := RequestContextWithCallerID(th.Context, "other-plugin")
+	admin := RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+
+	// A field carrying one option, in whatever state the subtest is about. Written
+	// straight to the store, because these are states a caller is not allowed to
+	// ask for: only a plugin's own field is protected, and only an administrator
+	// hands a field an owners list.
+	fieldWith := func(t *testing.T, groupID string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": model.NewId(), "name": "Air"},
+		}
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Programs-" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      attrs,
+		})
+	}
+
+	protectedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsSourcePluginID: "owning-plugin",
+		}
+	}
+
+	// Every verb, so that none of them is the one left unguarded. Each takes the
+	// field's own option, which is the only option any of these callers could name.
+	changes := []struct {
+		name string
+		call func(rctx request.CTX, field *model.PropertyField, optionID string) error
+	}{
+		{"create", func(rctx request.CTX, field *model.PropertyField, _ string) error {
+			_, err := th.service.CreateFieldOptions(rctx, field, []*model.PropertyFieldOption{{Name: "Sea-" + model.NewId()}})
+			return err
+		}},
+		{"update", func(rctx request.CTX, field *model.PropertyField, optionID string) error {
+			_, _, err := th.service.UpdateFieldOptions(rctx, field, []*model.PropertyFieldOption{{ID: optionID, Name: "Land-" + model.NewId()}})
+			return err
+		}},
+		{"delete", func(rctx request.CTX, field *model.PropertyField, optionID string) error {
+			_, err := th.service.DeleteFieldOptions(rctx, field, []string{optionID})
+			return err
+		}},
+	}
+
+	optionID := func(t *testing.T, field *model.PropertyField) string {
+		t.Helper()
+		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Len(t, options, 1)
+		return options[0].ID
+	}
+
+	t.Run("a protected field's options are the source plugin's alone to change", func(t *testing.T) {
+		for _, change := range changes {
+			t.Run(change.name, func(t *testing.T) {
+				field := fieldWith(t, th.CPAGroupID, protectedAttrs())
+				held := optionID(t, field)
+
+				err := change.call(other, field, held)
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrAccessDenied)
+				require.ErrorContains(t, err, "owning-plugin")
+
+				// Not the administrator's either, which is what the field write path
+				// answers: a protected field is the source plugin's schema.
+				err = change.call(admin, field, held)
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrAccessDenied)
+
+				require.NoError(t, change.call(source, field, held))
+			})
+		}
+	})
+
+	t.Run("an owner-managed field's options are a listed owner's to change", func(t *testing.T) {
+		field := fieldWith(t, th.CPAGroupID, model.StringInterface{
+			model.PropertyAttrsOwners: []any{
+				map[string]any{"id": "owning-plugin", "type": model.PropertyOwnerTypePlugin},
+			},
+		})
+		held := optionID(t, field)
+
+		err := changes[0].call(other, field, held)
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrAccessDenied)
+		require.ErrorContains(t, err, "owner-managed")
+
+		require.NoError(t, changes[0].call(source, field, held))
+	})
+
+	t.Run("options are listed to a caller the field's options are readable by", func(t *testing.T) {
+		attrs := protectedAttrs()
+		attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		field := fieldWith(t, th.CPAGroupID, attrs)
+
+		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Len(t, options, 1)
+
+		// The field read hands these two an option list that has been emptied, so
+		// the rows behind it cannot answer in full either.
+		options, err = th.service.GetFieldOptions(other, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Empty(t, options)
+
+		options, err = th.service.GetFieldOptions(admin, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("a public field's options are readable and writable as before", func(t *testing.T) {
+		field := fieldWith(t, th.CPAGroupID, model.StringInterface{})
+
+		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Len(t, options, 1)
+		require.NoError(t, changes[0].call(other, field, options[0].ID))
+	})
+
+	t.Run("a group nothing manages is not gated at all", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+		field := fieldWith(t, group.ID, protectedAttrs())
+
+		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
+		require.NoError(t, err)
+		require.Len(t, options, 1)
+		require.NoError(t, changes[0].call(other, field, options[0].ID))
 	})
 }
 
@@ -268,7 +417,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		// Leaving out a leaf was never in question: put one back under Air, then write
 		// a list without it, which is the read-modify-write a client actually performs.
 		seaParents := []string{"Air"}
-		_, err = th.service.CreateFieldOptions(updated, []*model.PropertyFieldOption{
+		_, err = th.service.CreateFieldOptions(th.Context, updated, []*model.PropertyFieldOption{
 			{Name: "Sea", Parents: &seaParents},
 		})
 		require.NoError(t, err)
@@ -398,7 +547,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 
 		// A field of a type with no hierarchy may own local options beside the ones it
 		// inherits, which is the only way this collision arises.
-		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.NoError(t, err)
 
 		renamed := *template
@@ -429,18 +578,18 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
 		require.NoError(t, err)
 
-		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.NoError(t, err)
 
 		// Through the options endpoint this time: the two write paths answer the same
 		// question the same way.
-		_, err = th.service.CreateFieldOptions(template, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, template, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "local option of its own")
 
 		// And the other direction, which is the half a field can answer on its own: a
 		// local option may not take a name the field inherits.
-		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Air"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Air"}})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "already has")
 		require.ErrorContains(t, err, template.ID)
