@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"io"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -85,6 +87,39 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Contains(t, entries, "post/post.yaml")
 		require.Contains(t, entries, "content_review.yaml")
 		require.Contains(t, entries, "report_metadata.yaml")
+		require.Contains(t, entries, "exposure_report.csv")
+	})
+
+	t.Run("exposure_report.csv is a parseable exposure report", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+		seedOldChannelMemberHistory(t, th)
+
+		post := setupFlaggedPost(t, th)
+
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		entries := readReportZip(t, path)
+		require.Contains(t, entries, "exposure_report.csv")
+
+		body := string(entries["exposure_report.csv"])
+		require.Contains(t, body, "# Post ID: "+post.Id)
+
+		r := csv.NewReader(bytes.NewReader(entries["exposure_report.csv"]))
+		r.Comment = '#'
+		records, err := r.ReadAll()
+		require.NoError(t, err)
+		require.NotEmpty(t, records)
+		require.Equal(t, model.PostExposureReportCSVHeader(i18n.GetUserTranslations("en")), records[0])
+
+		var found bool
+		for _, record := range records[1:] {
+			if record[0] == th.BasicUser.Id {
+				found = true
+			}
+		}
+		require.True(t, found)
 	})
 
 	t.Run("post.yaml contains channel, team, and author details", func(t *testing.T) {
@@ -519,6 +554,69 @@ func TestNotifyReviewersOfFlaggedPostReportGeneration(t *testing.T) {
 
 		require.NotPanics(t, func() {
 			th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, model.NewId())
+		})
+	})
+}
+
+func TestNotifyReviewersOfPostExposureReportGeneration(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	reviewerMessages := func(t *testing.T, postID string) []string {
+		t.Helper()
+
+		groupID, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupID)
+		require.Nil(t, appErr)
+
+		rootPostIDs, appErr := th.App.getReviewerPostsForFlaggedPost(groupID, postID, mappedFields[contentFlaggingPropertyNameFlaggedPostId].ID)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, rootPostIDs)
+
+		var messages []string
+		for _, rootPostID := range rootPostIDs {
+			thread, appErr := th.App.GetPostThread(th.Context, rootPostID, model.GetPostsOptions{}, "")
+			require.Nil(t, appErr)
+			for _, reply := range thread.Posts {
+				messages = append(messages, reply.Message)
+			}
+		}
+		return messages
+	}
+
+	t.Run("posts an exposure-specific message distinct from the flagged post report message", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id)
+
+		messages := reviewerMessages(t, post.Id)
+		require.Contains(t, messages, "@"+th.BasicUser.Username+" generated an exposure report for the quarantined message.")
+		require.NotContains(t, messages, "@"+th.BasicUser.Username+" generated a report for the quarantined message.")
+	})
+
+	t.Run("leaves the flagged post report wording unchanged", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, th.BasicUser.Id)
+
+		messages := reviewerMessages(t, post.Id)
+		require.Contains(t, messages, "@"+th.BasicUser.Username+" generated a report for the quarantined message.")
+	})
+
+	t.Run("does not panic for a non-flagged post", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		require.NotPanics(t, func() {
+			th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, model.NewId(), th.BasicUser.Id)
 		})
 	})
 }
