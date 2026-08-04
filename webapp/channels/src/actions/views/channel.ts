@@ -17,6 +17,7 @@ import {
     getChannel as loadChannel,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import {consumeChannelPostsStaleForRedaction} from 'mattermost-redux/actions/render_permissions';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Posts, RequestStatus} from 'mattermost-redux/constants';
@@ -32,7 +33,9 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
+import {isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
+import {isChannelPostsStaleForRedaction} from 'mattermost-redux/selectors/entities/render_permissions';
 import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
@@ -63,6 +66,22 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
+
+// syncPostsOrReloadIfStale replaces syncPostsInChannel in PostList.postsOnLoad.
+// When the channel is stale (policy/attribute changed while off-screen) it calls
+// loadUnreads so posts around ViewedAt are re-fetched with fresh ABAC sanitization.
+export function syncPostsOrReloadIfStale(channelId: string, since: number, prefetch = false): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        if (isPermissionPoliciesEnabled(getState()) && isChannelPostsStaleForRedaction(getState(), channelId)) {
+            const result = await dispatch(loadUnreads(channelId, prefetch));
+            if (!result.error) {
+                dispatch(consumeChannelPostsStaleForRedaction(channelId));
+            }
+            return result;
+        }
+        return dispatch(syncPostsInChannel(channelId, since, prefetch));
+    };
+}
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {

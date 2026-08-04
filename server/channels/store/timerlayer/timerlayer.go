@@ -631,6 +631,21 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
+func (s *TimerLayerAccessControlPolicyStore) ClearEtagCache() {
+	start := time.Now()
+
+	s.AccessControlPolicyStore.ClearEtagCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.ClearEtagCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	start := time.Now()
 
@@ -695,6 +710,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX, channelID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetMaxUpdateAt", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 	start := time.Now()
 
@@ -709,6 +740,21 @@ func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetPoliciesByFieldID", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+	start := time.Now()
+
+	s.AccessControlPolicyStore.InvalidateEtagForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.InvalidateEtagForChannel", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
@@ -775,6 +821,21 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx reques
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
+	start := time.Now()
+
+	s.AttributesStore.ClearUserPropertyValuesEpochCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.ClearUserPropertyValuesEpochCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
@@ -821,6 +882,37 @@ func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetTeamMembersToRemove", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetUserPropertyValuesEpoch", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+	start := time.Now()
+
+	s.AttributesStore.InvalidateUserPropertyValuesEpoch(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.InvalidateUserPropertyValuesEpoch", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAttributesStore) RefreshAttributes() error {

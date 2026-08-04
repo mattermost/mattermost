@@ -82,8 +82,9 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
-	attributeViewRefreshMut  sync.Mutex
-	attributeViewRefreshLast time.Time
+	attributeViewRefreshMut   sync.Mutex
+	attributeViewRefreshLast  time.Time
+	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
