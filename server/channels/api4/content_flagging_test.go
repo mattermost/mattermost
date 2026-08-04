@@ -15,7 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
+func setBasicCommonReviewerConfig(th *TestHelper, extraReviewerIds ...string) *model.AppError {
+	ids := []string{th.BasicUser.Id}
+	ids = append(ids, extraReviewerIds...)
 	config := model.ContentFlaggingSettingsRequest{
 		ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
 			EnableContentFlagging: new(true),
@@ -25,7 +27,7 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 				CommonReviewers: new(true),
 			},
 			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds: []string{th.BasicUser.Id},
+				CommonReviewerIds: ids,
 			},
 		},
 	}

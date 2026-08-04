@@ -333,18 +333,28 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.NotEmpty(t, report)
 	})
 
-	t.Run("Should successfully generate report for an assigned post", func(t *testing.T) {
-		appErr := setBasicCommonReviewerConfig(th)
+	t.Run("Should generate report for both the assignee and a non-assignee reviewer", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th, th.BasicUser2.Id)
 		require.Nil(t, appErr)
 
 		post := th.CreatePost(t)
 		flagPostViaAPI(t, client, post.Id)
 
-		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser2.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
+		// BasicUser is a reviewer but not the assignee.
 		report, resp, err := client.GeneratePostExposureReport(context.Background(), post.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, report)
+
+		// BasicUser2 is the assignee, so the Assigned status is still actionable.
+		assigneeClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, assigneeClient)
+
+		report, resp, err = assigneeClient.GeneratePostExposureReport(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)

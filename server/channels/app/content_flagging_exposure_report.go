@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -19,6 +20,8 @@ import (
 )
 
 const exposureProfileBatchSize = 1000
+
+var exposurePreambleSanitizer = strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ")
 
 func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostExposureReport, *model.AppError) {
 	post, appErr := a.GetSinglePost(rctx, postID, true)
@@ -219,7 +222,7 @@ func writePostExposurePreamble(w io.Writer, report *model.PostExposureReport, T 
 	}
 
 	for _, line := range lines {
-		if _, err := fmt.Fprintf(w, "# %s: %s\n", line[0], line[1]); err != nil {
+		if _, err := fmt.Fprintf(w, "# %s: %s\n", line[0], exposurePreambleSanitizer.Replace(line[1])); err != nil {
 			return err
 		}
 	}

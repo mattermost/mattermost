@@ -161,7 +161,7 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	if _, err := w.Write(buf.Bytes()); err != nil {
-		c.Err = model.NewAppError("generatePostExposureReport", "api.data_spillage.exposure.write.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Logger.Warn("Failed to write post exposure report response", mlog.String("post_id", postId), mlog.Err(err))
 		return
 	}
 
