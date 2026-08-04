@@ -269,12 +269,6 @@ func TestMigration000216(t *testing.T) {
 	t.Run("the down migration restores the previous projections", func(t *testing.T) {
 		_, dErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000216_add_graph_to_attribute_views.down.sql"))
 		require.NoError(t, dErr)
-		// The views are shared with every other test in this package, so put them
-		// back even if an assertion below fails. Re-applying is a drop and create,
-		// so doing it twice on the way out costs nothing.
-		t.Cleanup(func() {
-			store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000216_add_graph_to_attribute_views.up.sql")) //nolint:errcheck
-		})
 		require.NoError(t, store.Attributes().RefreshAttributes())
 
 		// Without the graph branch a graph value falls through to the catch-all
