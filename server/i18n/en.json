@@ -5087,6 +5087,10 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML relay state is too long."
+  },
+  {
     "id": "api.user.send_cloud_welcome_email.error",
     "translation": "Failed to send cloud welcome email"
   },
