@@ -14,12 +14,16 @@ import (
 // them needs: past a thousand options the field stops serving its option list at
 // all, so a change has to name the options it touches.
 //
-// Every method here takes the field as the caller read it, rather than its ID.
-// The read is needed anyway -- to decide whether the caller may change the
-// field's options, and whether the options it names are the field's own or
-// inherited from a template -- and its UpdateAt is what the change is written
-// under, so that a change decided against a set of options somebody else has
-// since altered is refused rather than applied.
+// Every method here takes the field as the caller read it, rather than its ID,
+// because that read is needed anyway: to decide whether the caller may change the
+// field's options at all, and whether the options it names are the field's own or
+// inherited from a template.
+//
+// A mutation does not trust that copy's UpdateAt. Every option change is written
+// under a compare-and-swap, so that a change decided against a set of options
+// somebody else has since altered is refused rather than applied -- and the
+// property service re-reads the field from the master to anchor it, because this
+// one may have come from a replica.
 
 // GetPropertyFieldOptions returns one page of a field's effective option set.
 func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {

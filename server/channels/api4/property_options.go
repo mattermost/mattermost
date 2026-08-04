@@ -27,9 +27,11 @@ const maxPropertyFieldOptionItems = web.PerPageMaximum
 // three things every options request needs of it. It sets c.Err and returns nil
 // on failure.
 //
-// The field is returned rather than its ID because every caller needs it: which
-// options are the field's own rather than inherited, whether the caller may
-// change them, and -- for a write -- the UpdateAt the change is decided against.
+// The field is returned rather than its ID because every caller needs it: whether
+// the caller may change its options, and which of its options are its own rather
+// than inherited from a template. A write does not decide anything against this
+// copy's UpdateAt -- the property service re-reads the row it is about to swap
+// on, since this read may have gone to a replica.
 func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyField, request.CTX) {
 	c.RequireGroupName().RequireObjectType().RequireFieldId()
 	if c.Err != nil {

@@ -34,31 +34,36 @@ import (
 //     UpdateAt as the caller read it. The first thing wrong with it is reported
 //     with the position it was in, and nothing is written.
 
-// A rejected change answers with the reason in the message rather than in the
+// A rejected change answers with the reason in the *message*, not only in the
 // detail. An option payload is refused for one reason at a time and the caller
 // has to be able to act on which one -- there is no fixing a payload from "the
-// options are not valid" -- and a detail is only ever written to the server log:
-// the HTTP layer strips it from the response unless the server is in developer
-// mode. The reason is therefore built here as an already-shaped bad request,
-// with the position and the reason as message parameters.
+// options are not valid" -- and a detail does not reach a caller at all: the HTTP
+// layer strips it from the response unless the server is in developer mode. So
+// the reason is a message parameter, alongside the position of the item at fault.
 //
-// It follows that these do not wrap ErrInvalidFieldAttrs, whose mapping puts the
-// reason in the detail. Anything reaching here from code that does -- the shared
-// graph validation -- goes through optionsChangeFromValidation.
+// It is passed as the detail as well, which is what puts it in the server log and
+// what a test can assert against without translating it first.
+//
+// It follows that these do not wrap ErrInvalidFieldAttrs, whose mapping would
+// discard the shaped error and put the reason back in the detail alone. Anything
+// reaching here from code that does -- the shared graph validation -- goes
+// through optionsChangeFromValidation.
 const optionsChangeWhere = "PropertyFieldOptions"
 
 // optionsChangeError reports something wrong with the item at the given position
 // of an options payload.
 func optionsChangeError(index int, format string, args ...any) error {
+	reason := fmt.Sprintf(format, args...)
 	return model.NewAppError(optionsChangeWhere, "app.property_field.options.invalid_item.app_error",
-		map[string]any{"Index": index, "Reason": fmt.Sprintf(format, args...)}, "", http.StatusBadRequest)
+		map[string]any{"Index": index, "Reason": reason}, fmt.Sprintf("options[%d] %s", index, reason), http.StatusBadRequest)
 }
 
 // optionsChangeRefused reports something wrong with an options payload as a
 // whole, or with the field it is aimed at.
 func optionsChangeRefused(format string, args ...any) error {
+	reason := fmt.Sprintf(format, args...)
 	return model.NewAppError(optionsChangeWhere, "app.property_field.options.invalid.app_error",
-		map[string]any{"Reason": fmt.Sprintf(format, args...)}, "", http.StatusBadRequest)
+		map[string]any{"Reason": reason}, reason, http.StatusBadRequest)
 }
 
 // optionsChangeFromValidation restates a rejection from the shared graph
@@ -77,6 +82,37 @@ func optionsChangeFromValidation(err error) error {
 	return optionsChangeRefused("%s", strings.TrimSuffix(err.Error(), ": "+ErrInvalidFieldAttrs.Error()))
 }
 
+// writableField re-reads the field a change is aimed at and checks that its
+// options may be changed one at a time. The re-read field is what the change is
+// then validated and written against.
+//
+// The re-read is not redundant. A caller hands in the field as it read it, and
+// that read may have gone to a replica -- every option change is written under
+// the UpdateAt it saw, so replication lag alone would make a caller lose a race
+// against a write that had already finished, and the answer would be a conflict
+// on a request that was never in conflict with anything. Reading the row the
+// change is about to swap on narrows the window to the same one the rest of this
+// path already has: every other query behind an option change goes to the master
+// for the same reason.
+//
+// It also means the type and the link this decides on are the field's current
+// ones, so a field converted or unlinked since the caller read it is judged as it
+// is now.
+func (ps *PropertyService) writableField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, optionsChangeRefused("no property field to change the options of")
+	}
+
+	current, err := ps.getPropertyFieldFromMaster(field.GroupID, field.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the property field an option change is aimed at")
+	}
+	if err := requireWritableOptions(current); err != nil {
+		return nil, err
+	}
+	return current, nil
+}
+
 // requireWritableOptions refuses a field whose options cannot be changed one at a
 // time through this seam.
 func requireWritableOptions(field *model.PropertyField) error {
@@ -85,6 +121,27 @@ func requireWritableOptions(field *model.PropertyField) error {
 	}
 	if !field.Type.SupportsOptions() {
 		return optionsChangeRefused("a %s field has no options", field.Type)
+	}
+
+	// A deleted field takes its options with it and there is no undeleting one, so
+	// an option written to it is written nowhere anybody will look. Refused rather
+	// than quietly accepted, and refused for every type: an edge change on a graph
+	// field is already refused deeper down, and one shape of a request answering
+	// differently from another is worse than either answer.
+	if field.DeleteAt != 0 {
+		return optionsChangeRefused("field %s has been deleted", field.ID)
+	}
+
+	// A rank field's options are the one kind this cannot write. Every option on
+	// one has to carry a positive rank unique within the field, which
+	// PropertyFieldOption does not model and this seam has no way to choose: an
+	// option created here would have none, and the field would be left in the state
+	// the rank validation exists to keep it out of -- unwritable through its own
+	// option list, and read as covering nothing where a policy clamps against it.
+	// A rank field's options are authored as the field's option list, where the
+	// ranks are validated together.
+	if field.Type == model.PropertyFieldTypeRank {
+		return optionsChangeRefused("the options of a rank field carry an order that is set by writing them as the field's option list")
 	}
 
 	// A graph field's option set is owned by exactly one field, and this is one of
@@ -119,7 +176,14 @@ func optionSourceID(field *model.PropertyField) string {
 // creation and continuing after the option the cursor names. Options inherited
 // from a template come back flagged read-only, and a graph field's options carry
 // the names of the options directly above them.
+//
+// A page size has to be asked for. Reporting an empty page for a caller that
+// forgot one would be indistinguishable from a field with no options, which is
+// the mistake the option rows exist to stop being possible.
 func (ps *PropertyService) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	if perPage <= 0 {
+		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
+	}
 	if field == nil {
 		return nil, optionsChangeRefused("no property field to list the options of")
 	}
@@ -138,7 +202,8 @@ func (ps *PropertyService) GetFieldOptions(field *model.PropertyField, cursorCre
 // under options already there or under others in the same payload. Every option
 // is created or none is.
 func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
-	if err := requireWritableOptions(field); err != nil {
+	field, err := ps.writableField(field)
+	if err != nil {
 		return nil, err
 	}
 	if err := prepareOptionPayload(field, options, false); err != nil {
@@ -150,9 +215,9 @@ func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, option
 	// PropertyField.IsValid to measure. Only a graph field has a limit: it is the
 	// only type whose options something has to traverse.
 	if field.Type == model.PropertyFieldTypeGraph {
-		held, err := ps.fieldStore.CountOptions(field.ID)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to count a property field's options")
+		held, cErr := ps.fieldStore.CountOptions(field.ID)
+		if cErr != nil {
+			return nil, errors.Wrap(cErr, "failed to count a property field's options")
 		}
 		if held+len(options) > model.PropertyGraphMaxOptions {
 			return nil, optionsChangeRefused("the field would hold %d options, and no field may hold more than %d", held+len(options), model.PropertyGraphMaxOptions)
@@ -166,9 +231,9 @@ func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, option
 	for _, option := range options {
 		names = append(names, option.Name)
 	}
-	taken, err := ps.fieldStore.GetOptionsByName(field, names)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up a property field's options by name")
+	taken, tErr := ps.fieldStore.GetOptionsByName(field, names)
+	if tErr != nil {
+		return nil, errors.Wrap(tErr, "failed to look up a property field's options by name")
 	}
 	byName := optionsByName(taken)
 	for i, option := range options {
@@ -178,9 +243,9 @@ func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, option
 		option.SetID(model.NewId())
 	}
 
-	add, err := ps.resolveOptionParents(field, options, nil)
-	if err != nil {
-		return nil, err
+	add, rErr := ps.resolveOptionParents(field, options, nil)
+	if rErr != nil {
+		return nil, rErr
 	}
 
 	if len(add) > 0 {
@@ -205,7 +270,8 @@ func (ps *PropertyService) CreateFieldOptions(field *model.PropertyField, option
 // A parent link is deleted outright rather than marked, so unless a caller records
 // what a change replaced there is nothing left to say the link was ever there.
 func (ps *PropertyService) UpdateFieldOptions(field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
-	if err := requireWritableOptions(field); err != nil {
+	field, err := ps.writableField(field)
+	if err != nil {
 		return nil, nil, err
 	}
 	if err := prepareOptionPayload(field, options, true); err != nil {
@@ -216,9 +282,9 @@ func (ps *PropertyService) UpdateFieldOptions(field *model.PropertyField, option
 	for _, option := range options {
 		optionIDs = append(optionIDs, option.ID)
 	}
-	stored, err := ps.fieldStore.GetOptionsByID(field, optionIDs)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to read a property field's options")
+	stored, sErr := ps.fieldStore.GetOptionsByID(field, optionIDs)
+	if sErr != nil {
+		return nil, nil, errors.Wrap(sErr, "failed to read a property field's options")
 	}
 	byID := make(map[string]*model.PropertyFieldOption, len(stored))
 	for _, option := range stored {
@@ -263,13 +329,13 @@ func (ps *PropertyService) UpdateFieldOptions(field *model.PropertyField, option
 		}
 	}
 
-	add, err := ps.resolveOptionParents(field, options, byID)
-	if err != nil {
-		return nil, nil, err
+	add, rErr := ps.resolveOptionParents(field, options, byID)
+	if rErr != nil {
+		return nil, nil, rErr
 	}
-	remove, err := ps.parentsToDetach(field, options, add)
-	if err != nil {
-		return nil, nil, err
+	remove, dErr := ps.parentsToDetach(field, options, add)
+	if dErr != nil {
+		return nil, nil, dErr
 	}
 
 	if len(add) > 0 || len(remove) > 0 {
@@ -298,7 +364,8 @@ func (ps *PropertyService) UpdateFieldOptions(field *model.PropertyField, option
 // that no longer exists is ignored everywhere it is read, which is how the
 // property system has always treated one.
 func (ps *PropertyService) DeleteFieldOptions(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
-	if err := requireWritableOptions(field); err != nil {
+	field, err := ps.writableField(field)
+	if err != nil {
 		return nil, err
 	}
 	if len(optionIDs) == 0 {
@@ -316,9 +383,9 @@ func (ps *PropertyService) DeleteFieldOptions(field *model.PropertyField, option
 		seen[optionID] = true
 	}
 
-	stored, err := ps.fieldStore.GetOptionsByID(field, optionIDs)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read a property field's options")
+	stored, sErr := ps.fieldStore.GetOptionsByID(field, optionIDs)
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to read a property field's options")
 	}
 	byID := make(map[string]*model.PropertyFieldOption, len(stored))
 	for _, option := range stored {
