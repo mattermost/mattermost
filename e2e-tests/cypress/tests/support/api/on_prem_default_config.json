@@ -214,6 +214,7 @@
         "AmazonS3RequestTimeoutMilliseconds": 30000,
         "AmazonS3StorageClass": "",
         "DedicatedExportStore": false,
+        "EnableCloudExportDirectDownload": false,
         "ExportDriverName": "local",
         "ExportDirectory": "./data/",
         "ExportAmazonS3AccessKeyId": "",

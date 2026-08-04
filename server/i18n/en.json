@@ -6681,12 +6681,12 @@
     "translation": "This actions requires the use of a dedicated export store."
   },
   {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Your export store driver does not support presign url generation."
+    "id": "app.eport.generate_presigned_url.direct_download.app_error",
+    "translation": "Direct download of exports is not enabled for this server."
   },
   {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "This feature is restricted by a feature flag."
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
   },
   {
     "id": "app.eport.generate_presigned_url.fileexist.app_error",

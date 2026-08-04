@@ -1843,6 +1843,7 @@ type FileSettings struct {
 	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
+	EnableCloudExportDirectDownload          *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
 	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
@@ -2027,6 +2028,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = new(false)
+	}
+
+	if s.EnableCloudExportDirectDownload == nil {
+		s.EnableCloudExportDirectDownload = new(false)
 	}
 
 	if s.ExportDriverName == nil {
