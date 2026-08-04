@@ -99,6 +99,21 @@
   --ifm-color-content-secondary: var(--mm-text-secondary);
 }
 
+/* The mobile nav slide-out (.navbar-sidebar) always has a dark denim
+ * background, but its menu inherits the light-mode --ifm-menu-color*
+ * vars tuned for the light desktop sidebar — force the dark-mode values
+ * unconditionally so mobile text stays readable in light mode too. */
+.navbar-sidebar {
+  --ifm-menu-color:                   rgba(255,255,255,0.78);
+  --ifm-menu-color-active:            var(--mm-color-white);
+  --ifm-menu-color-background-active: var(--mm-denim-700);
+  --ifm-menu-color-background-hover:  var(--mm-denim-700);
+}
+/* "Back to main menu" text color isn't covered by the vars above. */
+.navbar-sidebar__back {
+  color: var(--ifm-menu-color-active);
+}
+
 /* === Type rhythm === */
 
 html {
@@ -339,6 +354,13 @@ h2, h3, h4 {
   padding-bottom: 0.4rem;
 }
 
+/* Category headers hardcode --mm-text-secondary above, so they don't
+ * pick up the .navbar-sidebar menu-color override — fix separately. */
+.navbar-sidebar .menu .menu__list-item-collapsible > .menu__link,
+.navbar-sidebar .menu > .menu__list > .menu__list-item > .menu__link {
+  color: var(--ifm-menu-color);
+}
+
 /* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server"). */
 .menu .menu__link.api-method {
   font-family: var(--mm-font-sans);
@@ -450,17 +472,24 @@ h2, h3, h4 {
  * so it still needs lightening. #52607A (~2.9:1) is that lighter fill;
  * denim-400 below gives it a real border. Needed to go further than the
  * contrast ratio alone suggests — low-luminance colors require a bigger
- * jump than the formula implies to look distinct to the eye. Trade-off:
- * dracula's comment token (#6272a4, already its dimmest/de-emphasized one)
- * loses some contrast against this fill, acceptable since it stays
- * distinguishable via italics and this site's examples don't use inline
- * comments anyway. */
+ * jump than the formula implies to look distinct to the eye. */
 .theme-code-block .prism-code {
   font-size: 0.85rem;
   background: var(--mm-denim-50) !important;
 }
 [data-theme='dark'] .theme-code-block .prism-code {
   background: #52607A !important;
+}
+
+/* Lightening the dark-mode code block fill above (#52607A) leaves
+ * dracula's comment token — already its dimmest/de-emphasized color
+ * (#6272a4) — at only ~1.35:1 contrast against it, i.e. nearly invisible.
+ * #D3DBF2 restores ~4.6:1 (WCAG AA) while staying a muted blue-lavender,
+ * distinguishable from the brighter default token colors but still legible.
+ * !important is required: prism-react-renderer sets each token's color via
+ * an inline `style` attribute, which otherwise beats this class selector. */
+[data-theme='dark'] .theme-code-block .prism-code .token.comment {
+  color: #D3DBF2 !important;
 }
 
 /* Copy button — denim border, marigold on hover */
@@ -599,6 +628,19 @@ blockquote {
   padding-right: clamp(1rem, 2vw, 2rem);
 }
 
+/* theme-classic's DocItem/Layout only caps the article column at 75% via
+ * its own `docItemCol` class when a TOC renders alongside it — pages with
+ * `hide_table_of_contents: true` (e.g. the homepage) get a lone full-width
+ * `.col` instead, so prose reads much wider than on every other doc page.
+ * Recreate the same 75% cap here, keyed off the `<article>` that's always
+ * a descendant of the doc content column, regardless of TOC presence. */
+@media (min-width: 997px) {
+  .docMainContainer_TBSr .col:has(> div > article),
+  [class*='docMainContainer'] .col:has(> div > article) {
+    max-width: 75%;
+  }
+}
+
 /* Without max-width, the doc content flex column no longer has an upper
  * bound to shrink against, so a wide code block (long lines, e.g. inline
  * YAML comments) inflates its own intrinsic min-content size and drags the
@@ -619,9 +661,14 @@ blockquote {
   padding: 0.4rem 0.75rem 0.4rem 1rem;
   font-size: 0.82rem;
 }
+/* --mm-color-denim is a fixed brand navy, not a semantic/theme-aware
+ * token — it never adapts for dark mode. Against the dark page background
+ * that's only ~1.45:1 contrast, i.e. the active TOC item nearly vanishes.
+ * --ifm-color-primary is already the theme-aware equivalent (denim in
+ * light mode, --mm-color-sky in dark, ~12:1 against the dark page). */
 .table-of-contents__link--active,
 .table-of-contents__link:hover {
-  color: var(--mm-color-denim);
+  color: var(--ifm-color-primary);
   font-weight: 600;
 }
 

@@ -198,7 +198,7 @@ function TeamMembershipTab({
         let cancelled = false;
         const loadTeamPolicy = async () => {
             try {
-                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean} | null; error?: unknown};
+                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]} | null; error?: unknown};
                 if (cancelled) {
                     return;
                 }
@@ -215,18 +215,8 @@ function TeamMembershipTab({
                     setAutoAddMembers(existingAutoAdd);
                     setOriginalAutoAddMembers(existingAutoAdd);
 
-                    if (imports.length > 0) {
-                        const fetchedPolicies = await Promise.all(
-                            imports.map(async (policyId) => {
-                                const pr = await actions.getChannelPolicy(policyId);
-                                return pr.data ?? null;
-                            }),
-                        );
-                        if (cancelled) {
-                            return;
-                        }
-                        setSystemPolicies(fetchedPolicies.filter((p): p is AccessControlPolicy => p !== null));
-                    }
+                    // Resolved server-side: team admins can't fetch parent policies directly.
+                    setSystemPolicies(result.data?.parent_policies ?? []);
                 }
             } catch {
                 if (!cancelled) {

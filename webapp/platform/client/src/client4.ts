@@ -5157,7 +5157,7 @@ export default class Client4 {
     };
 
     getTeamAccessControlPolicy = (teamId: string) => {
-        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean}>(
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]}>(
             `${this.getTeamRoute(teamId)}/access_control/policy`,
             {method: 'get'},
         );
@@ -5173,7 +5173,7 @@ export default class Client4 {
     // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
     // ABAC membership policy and are not yet members, for the policy-filtered
     // invite candidate list.
-    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '', term = '') => {
         const queryStringObj: any = {
             not_in_team: teamId,
             per_page: perPage,
@@ -5181,6 +5181,9 @@ export default class Client4 {
         };
         if (cursorId) {
             queryStringObj.cursor_id = cursorId;
+        }
+        if (term) {
+            queryStringObj.term = term;
         }
 
         return this.doFetch<UserProfile[]>(

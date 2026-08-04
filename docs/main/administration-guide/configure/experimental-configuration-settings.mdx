@@ -645,7 +645,7 @@ This setting resolves issues where YouTube video previews display as unavailable
 
 <Important>
 
-**From Mattermost v11, Bleve search has been deprecated.** These configuration settings are only available for Mattermost versions prior to v11.0. For v11.0 and later, [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [OpenSearch](/administration-guide/scale/opensearch-setup) for [enterprise search](/administration-guide/scale/enterprise-search) capabilities.
+**From Mattermost v11, Bleve search has been deprecated.** These configuration settings are only available for Mattermost versions prior to v11.0. For v11.0 and later, [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) or [OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) for [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) capabilities.
 
 </Important>
 
@@ -1554,7 +1554,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will handle tasks created by the Scheduler. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/administration-guide/scale/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
+When running Mattermost in [High Availablity mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
 
 <table>
 <colgroup>
@@ -1573,7 +1573,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will schedule tasks that will be completed by a Worker. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/administration-guide/scale/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/administration-guide/scale/high-availability-cluster-based-deployment) for more details.
+When running Mattermost in [High Availablity mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) for more details.
 
 <Warning>
 
