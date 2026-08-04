@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes, JobTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -124,6 +124,7 @@ jest.mock('actions/global_actions', () => ({
 jest.mock('actions/views/channel', () => ({
     ...jest.requireActual('actions/views/channel'),
     syncPostsInChannel: jest.fn(),
+    loadUnreads: jest.fn((channelId) => ({type: 'MOCK_LOAD_UNREADS', channelId})),
 }));
 
 jest.mock('plugins', () => ({
@@ -1093,7 +1094,7 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
                 data: {channelId: 'channel-ac-1', generation: expect.any(Number)},
             },
             {
-                type: 'MOCK_RESET_POSTS',
+                type: PostTypes.RESET_POSTS_IN_CHANNEL,
                 channelId: 'channel-ac-1',
             },
         ]);
@@ -1101,13 +1102,15 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
     });
 
-    test('resets the channel posts when the updated channel is the one being viewed', () => {
+    test('refetches the posts when the updated channel is the one being viewed', () => {
         const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
         const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
 
-        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RESET_POSTS', channelId: 'channel-ac-1'});
+        // Dropping the chunks alone would leave the channel in view empty until it remounts.
+        expect(testStore.getActions()).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: 'channel-ac-1'});
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'channel-ac-1'});
     });
 
     test('updates the channel but drops no render state when permission policies are disabled', () => {
@@ -1697,16 +1700,27 @@ describe('render permission invalidation via existing events', () => {
         };
     }
 
-    test('CPA value update for the current user clears render decisions and resets every loaded channel', () => {
+    test('CPA value update for the current user clears render decisions, resets every channel and refetches the visible one', () => {
         const testStore = configureStore(stateWithCurrentUser('visible-channel'));
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
 
-        const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        const actions = testStore.getActions();
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
 
         // One bulk reset (no channel id) rather than one dispatch per loaded channel.
-        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RESET_POSTS', channelId: undefined});
+        expect(actions).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined});
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('CPA value update with no channel in view resets without refetching', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(types).not.toContain('MOCK_LOAD_UNREADS');
     });
 
     test('CPA value update for another user does NOT invalidate current-user render decisions', () => {
@@ -1716,7 +1730,7 @@ describe('render permission invalidation via existing events', () => {
 
         const types = testStore.getActions().map((a) => a.type);
         expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
-        expect(types).not.toContain('MOCK_RESET_POSTS');
+        expect(types).not.toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
     });
 });
 
@@ -1739,8 +1753,9 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         const actions = testStore.getActions();
         expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
 
-        const resets = actions.filter((a) => a.type === 'MOCK_RESET_POSTS');
-        expect(resets).toEqual([{type: 'MOCK_RESET_POSTS', channelId: undefined}]);
+        const resets = actions.filter((a) => a.type === PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(resets).toEqual([{type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined}]);
+        expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
     });
 
     test('does nothing when permission policies are disabled', () => {

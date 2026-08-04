@@ -148,7 +148,7 @@ import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
+import {loadUnreads, syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -912,10 +912,25 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         }
 
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
+        doDispatch(refreshPostsAfterPolicyChange(channel.id));
+    };
+}
 
-        // Loaded posts were sanitized under the old policy; drop the chunks and let the normal
-        // load path re-fetch them.
-        doDispatch(resetReloadPostsInChannel(channel.id));
+// Posts already loaded were sanitized under the old policy. The channel in view is refetched
+// through the unread endpoint, which carries no ETag and so cannot 304 onto stale metadata;
+// everything else just loses its chunks and reloads on the next visit.
+//
+// Dropping the visible channel's chunks and leaving the refetch to resetReloadPostsInChannel's
+// deselect/reselect is not enough: both dispatches land in one React batch, so PostList never sees
+// the channel change and never re-runs postsOnLoad.
+function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId});
+
+        const currentChannelId = getCurrentChannelId(doGetState());
+        if (currentChannelId && (!channelId || channelId === currentChannelId)) {
+            doDispatch(loadUnreads(currentChannelId));
+        }
     };
 }
 
@@ -927,7 +942,7 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
         }
 
         doDispatch(clearRenderDecisions());
-        doDispatch(resetReloadPostsInChannel());
+        doDispatch(refreshPostsAfterPolicyChange());
     };
 }
 
@@ -1827,7 +1842,7 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         if (msg.data.user_id === getCurrentUserId(store.getState()) &&
                 isPermissionPoliciesEnabled(store.getState())) {
             store.dispatch(clearRenderDecisions());
-            store.dispatch(resetReloadPostsInChannel());
+            store.dispatch(refreshPostsAfterPolicyChange());
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -2399,7 +2414,7 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
         if (msg.data.user_id === getCurrentUserId(doGetState()) &&
                 isPermissionPoliciesEnabled(doGetState())) {
             doDispatch(clearRenderDecisions());
-            doDispatch(resetReloadPostsInChannel());
+            doDispatch(refreshPostsAfterPolicyChange());
         }
     };
 }
