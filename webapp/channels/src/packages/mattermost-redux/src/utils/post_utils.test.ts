@@ -686,5 +686,32 @@ describe('PostUtils', () => {
             delete (storedPostSansMetadata as any).metadata;
             expect(shouldUpdatePost(post, storedPostSansMetadata)).toBe(true);
         });
+
+        // A policy change strips or restores file metadata without touching update_at.
+        it('should return true for same posts whose files became redacted', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {files: [{id: 'file1'}]} as unknown as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {redacted_file_count: 1} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        it('should return true for same posts whose files stopped being redacted', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {redacted_file_count: 1} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {files: [{id: 'file1'}]} as unknown as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
     });
 });

@@ -250,6 +250,12 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
+        if ((storedPost.metadata?.redacted_file_count ?? 0) !== (receivedPost.metadata?.redacted_file_count ?? 0)) {
+            // An access control policy change alters what the server sends for a post — file
+            // metadata stripped, or restored — without touching update_at.
+            return true;
+        }
+
         // The stored post is the same as the one we've received
         return false;
     }
