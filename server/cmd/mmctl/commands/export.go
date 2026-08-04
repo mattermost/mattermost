@@ -148,15 +148,27 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	teamName, _ := command.Flags().GetString("team")
-	if teamName != "" {
-		data["team_name"] = teamName
-	}
-
 	channelName, _ := command.Flags().GetString("channel")
+
 	if teamName == "" && channelName != "" {
 		return fmt.Errorf("Please specify a team to export a channel from.")
 	}
+
+	var teamID string
+	if teamName != "" {
+		team, _, err := c.GetTeamByName(context.TODO(), teamName, "")
+		if err != nil || team == nil {
+			return fmt.Errorf("team %q not found", teamName)
+		}
+		teamID = team.Id
+		data["team_name"] = teamName
+	}
+
 	if channelName != "" {
+		channel, _, err := c.GetChannelByName(context.TODO(), channelName, teamID, "")
+		if err != nil || channel == nil {
+			return fmt.Errorf("channel %q not found in team %q", channelName, teamName)
+		}
 		data["channel_name"] = channelName
 	}
 
