@@ -828,7 +828,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoverableChannels: false,
         MobileEphemeralMode: false,
         PropertyFieldRank: false,
-        TeamMembershipAccessControl: false,
+        TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
     },
     ImportSettings: {
