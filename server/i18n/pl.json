@@ -8209,7 +8209,7 @@
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
+    "translation": "W ustawieniach poczty e-mail są wartości, które nie zostały ustawione."
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -12666,5 +12666,825 @@
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
     "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "Do zespołu zsynchronizowanego z grupą nie można zastosować polityki członkostwa."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Funkcja polityki uprawnień na poziomie kanału nie jest włączona."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Funkcja symulacji polityki nie jest włączona."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Wszyscy użytkownicy biorący udział w symulacji muszą być członkami zespołu lub kanału wskazanego w zgłoszeniu."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Funkcja kontroli dostępu dla członków zespołu nie jest włączona."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Brakuje ustawień usługi Azure Blob Storage albo są one nieprawidłowe."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Nie można uzyskać dostępu do kanałów tablic za pośrednictwem punktów końcowych /channels. Zamiast tego skorzystaj z interfejsu API /boards."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Zakładki na tablicach są zarządzane przez funkcję tablic i nie można ich tworzyć, aktualizować ani usuwać za pomocą interfejsu API zakładek."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Jesteś już członkiem tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Nie można wysłać prośby o dołączenie do zarchiwizowanego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Aby dołączyć do tego kanału, potrzebna jest zgoda administratora. Wyślij prośbę z okienka „Przeglądaj kanały”."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "Masz już oczekujące zgłoszenie o dołączenie do tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Wykrywalne kanały nie są włączone na tym serwerze."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Goście nie mogą wysyłać próśb o dołącz do wykrywalnych prywatnych kanałów."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Nieprawidłowa aktualizacja dotycząca prośby o dołączenie do kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "Ten kanał nie jest wykrywalny."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "Prośba o dołączenie nie jest już w toku."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Tylko kanały prywatne akceptują prośby o dołączenie."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "Nie spełniasz reguł dostępu wymaganych do dołączenia do tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Udostępnione kanały nie akceptują wykrywalnych próśb o dołączenie."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "Nie masz uprawnień do ustawienia group_constrained dla tego typu Kanału."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "W tym kanale obowiązuje polityka członkostwa oparta na atrybutach. Usuń tę politykę przed zmianą statusu kanału z publicznego na prywatny."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Nie udało się otworzyć wygenerowanego pliku z raportem o zgłoszonych postach."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Nie udało się odczytać informacji z pliku zgłoszenia dotyczącego oznaczonego posta."
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Nie da się utworzyć emoji. Animowany plik GIF może mieć maksymalnie {{.MaxFrames}} klatek."
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Nie udało się uwierzytelnić w systemie przechowywania plików. Sprawdź swoje dane logowania i ustawienia uwierzytelniania."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "Skonfigurowany zasobnik lub kontener nie istnieje. Sprawdź konfigurację przechowywania plików i uprawnienia."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "W ustawieniach przechowywania plików są wartości niezdefiniowane."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Nieobsługiwany sterownik przechowywania plików \"{{.Driver}}\". Obsługiwane wartości to \"local\", \"amazons3\" i \"azureblob\"."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Nie udało się przetworzyć formularza przesyłania licencji."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Funkcja „Oznacz wszystko jako przeczytane” nie jest włączona."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Nieprawidłowe zapytanie dotyczące akcji."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Atrybuty sesji wymagają licencji Enterprise Advanced."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Nieprawidłowe opcje wyszukiwania pola właściwości."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "Nie można łączyć channel_id/team_id z target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "Wymagany jest parametr zakresu (channel_id, team_id lub target_type)."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "Jeśli podasz target_id, musisz też podać target_type."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Opcje wyszukiwania, które nie znajdują się w bazie danych."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Pole właściwości {{.FieldID}} nie zostało znalezione w tej grupie."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "Wartości systemowe muszą korzystać z dedykowanego punktu końcowego dla wartości systemowych."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Nie udało się zbudować podmiotu kontroli dostępu dla użytkownika."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "Użytkownik nie posiada wymaganych atrybutów, aby dołączyć do Kanału."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Nie da się włączyć synchronizacji grupowej w zespole, do którego zastosowano politykę członkostwa."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Nieprawidłowy identyfikator urządzenia."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Nieprawidłowy identyfikator urządzenia VoIP."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Kont botów nie da się przekształcić w konta gości."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Usługa kontroli dostępu jest niedostępna. Nie można filtrować użytkowników w zespole z włączonym systemem ABAC."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Atrybuty sesji nie są włączone."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "Użytkownik webhooka musi być członkiem docelowego zespołu lub kanału."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "Nie możesz przypisać webhooka użytkownikowi z wyższymi uprawnieniami niż Twoje własne."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Nie można pobrać roli kanału dla użytkownika. Spróbuj ponownie."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Nie udało się pobrać atrybutów sesji."
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "Funkcja Zintegrowane Tablice nie jest włączona."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Nie można utworzyć kanału tablicy."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Nieprawidłowe dane kanału tablicy."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "Osiągnięto maksymalną liczbę kanałów na zespół."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Kanały tablic nie mogą być tworzone za pomocą CreateChannel. Zamiast tego użyj API /boards."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Nie można pobrać kanałów z nieprzeczytanymi wiadomościami i wzmiankami."
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Nie udało się załadować prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Nie znaleziono prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Nie udało się zapisać prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Nie udało się zaktualizować prośby o dołączenie do kanału."
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Przywrócenie kanału odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Nie można zapisać członka kanału."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Wtyczka „ {{.PluginID}} ” próbowała zmienić typ kanału za pomocą metody ChannelWillBeUpdated; zmiany typu muszą przebiegać przez dedykowaną ścieżkę zmiany typu"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Aktualizacja kanału odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "ID kanału nie jest prawidłowym identyfikatorem kanału."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Nie udało się zarejestrować zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "ID kanału jest wymagane do zarejestrowania zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Nie udało się wyrejestrować zabezpieczenia kanału."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "ID kanału jest wymagane do wyrejestrowania zabezpieczenia kanału."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Nie udało się zapisać danych w formacie CSV."
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Wyczyszczono"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Nie udało się zamknąć pliku ze zgłoszeniami oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Szczegóły"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Status"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Krok"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Usunięto."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Nie udało się pobrać historii edycji."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**Identyfikatory informacji o pliku:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "few": "{{.Count}} pliki zostało/zostały usuniętych/usunięte z dysku.",
+      "many": "Usunięto {{.Count}} plików z dysku.",
+      "one": "{{.Count}} plik został usunięty z dysku."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "Nie znaleziono żadnych danych."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "Nie znaleziono żadnych plików."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "Brak wierszy do usunięcia."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Post został wyczyszczony i usunięty."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "few": "Wyczyszczono {{.Count}} rewizji z {{.Total}}.",
+      "many": "Wyczyszczono {{.Count}} wersji z {{.Total}}.",
+      "one": "Wyczyszczono {{.Count}} rewizję z {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Wątki, reakcje i powiązane dane zostały usunięte."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Dziennik błędów"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Wygenerowano:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Usunięcie wpisu nie doszło do końca. Sprawdź dziennik błędów i zgłoś sprawę administratorowi systemu, żeby mógł to naprawić ręcznie."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "ID Posta"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Poprawka"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Znalezione poprawki:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Nie udało się"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Nie dotyczy"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Częściowy"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Usunięto"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Nieznany"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Podziękowania"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Edytuj historię"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Załączniki plików"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "Zapisy dotyczące załączników"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Stałe powiadomienia"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Dane wpisu"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Metadane dotyczące priorytetów"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Przypomnienia"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Wątek, odpowiedzi i reakcje"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Podsumowanie"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Nie udało się zsynchronizować pliku ze zgłoszeniami oznaczonych postów na dysku."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Nie udało się utworzyć pliku tymczasowego dla zgłoszenia dotyczącego oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Raport o usuniętych postach"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Łączna liczba kroków:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Nie udało się zapisać wpisu w historii edycji do zgłoszenia oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Nie udało się zapisać metadanych w raporcie dotyczącym oznaczonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Nie udało się zapisać szczegółów wpisu do raportu o zgłoszonym wpisie."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Nie udało się zapisać szczegółów przeglądu treści w raporcie dotyczącym zgłoszonego posta."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Nie udało się zamknąć archiwum zgłoszeń dotyczących oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Nie udało się skopiować zawartości załącznika do archiwum zgłoszeń dotyczących oznaczonych postów."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Nie udało się utworzyć wpisu w archiwum zgłoszeń oznaczonych postów."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Wersja robocza odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "Nie znaleziono pliku w magazynie plików pod podaną ścieżką."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Nie udało się usunąć pliku z magazynu plików."
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Nie udało się zapisać członka kanału podczas bezpośredniego importu kanału"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Polityki dotyczące członkostwa nie mają zastosowania do domyślnych kanałów zespołu."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Polityki kontroli dostępu można stosować wyłącznie do kanałów publicznych lub prywatnych."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Nie da się przypisać polityki kontroli dostępu do zespołów."
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "Nie możesz usunąć tej polityki, bo zawiera wartości atrybutów, do których nie masz uprawnień dostępu."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Nie udało się wygenerować zamaskowanego wizualnego drzewa AST na podstawie wyrażenia."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Nie udało się pobrać członków Zespołu do usunięcia."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Nie udało się określić zamaskowanych wartości dla wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Nie udało się załadować zestawu akcji zdefiniowanego w polityce kontroli dostępu kanału."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Nie udało się zamaskować wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Nie udało się połączyć wyrażenia polityki z zapisanymi wartościami zamaskowanymi."
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Nie udało się przywrócić operatorów rangi w wyrażeniu polityki."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "Nie masz uprawnień do wprowadzenia tej zmiany w polityce."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Polityka zawiera wartość, która jest niedozwolona."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "Warunek zawierający zamaskowane wartości został usunięty. Proszę ponownie załadować politykę i spróbować jeszcze raz."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "Wyrażenie w polityce zawiera wartość zastępczą, której nie udało się rozpoznać. Odśwież politykę i spróbuj jeszcze raz."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Nie udało się zainicjować modułu rozpoznawania atrybutów podczas zapisywania polityki."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Nazwy reguł uprawnień muszą być unikalne w ramach danej polityki."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "Nie spełniasz jednego lub kilku warunków określonych w niniejszej Polityce."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Nie udało się odświeżyć atrybutów symulacji."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Nie udało się skompilować polityki na potrzeby symulacji."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "Funkcja polityki uprawnień jest obecnie wyłączona."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "Ta polityka jest nieważna."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "Do przeprowadzenia symulacji potrzebna jest przynajmniej jedna czynność."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "Żeby zasymulować politykę o zasięgu kanału, potrzebny jest kanał."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "Do symulacji potrzebna jest Polityka."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "Do przeprowadzenia symulacji potrzebny jest co najmniej jeden użytkownik."
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Nie udało się zainicjować modułu rozpoznawania atrybutów do symulacji polityki."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Zgłoszono zbyt wiele wniosków od użytkowników. Maksymalna dozwolona liczba to {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Punkt zarządzania Polityką nie został zainicjowany."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Typ Polityki \"{{.Type}}\" nie jest obsługiwany przez symulator."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Nie udało się cofnąć przypisania polityki kontroli dostępu do zespołów."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operacja odrzucona: wywołanie hooka wtyczki {{.PluginID}} zakończone niepowodzeniem"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operacja odrzucona: wymagana wtyczka nie jest aktywna"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "Nie masz uprawnień do wykonania tej operacji."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "Atrybut access_mode jest nieprawidłowy."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Twoja licencja nie obsługuje tej grupy właściwości."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "Określona właściwość nie istnieje."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "To pole właściwości jest zarządzane przez zewnętrzną synchronizację i nie można go modyfikować bezpośrednio."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "Osiągnięto maksymalną liczbę pól właściwości dla tej grupy."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "Osiągnięto maksymalną liczbę pól właściwości dla tego typu obiektu."
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Nie można pobrać pól właściwości dla grupy."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Nieprawidłowe atrybuty pól właściwości."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "Nie masz uprawnień, żeby oznaczyć to pole właściwości jako zarządzane przez administratora."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "Podane pole właściwości nie istnieje."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Pola właściwości rankingu nie są włączone."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "W partii wartości właściwości występuje zduplikowany identyfikator pola."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Pole właściwości {{.FieldID}} nie zostało znalezione."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Nieprawidłowy identyfikator pola właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "Wszystkie wartości właściwości w partii muszą należeć do tej samej grupy właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Typ obiektu pola właściwości nie pasuje do żądania."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Walidacja wartości właściwości nie powiodła się."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Nie udało się oznaczyć streszczeń jako obejrzanych."
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Zaplanowany post odrzucony przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Aktualizacja zaplanowanego posta została odrzucona przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Identyfikator urządzenia nie może być pusty."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "Identyfikator urządzenia VoIP nie może być pusty."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Pól atrybutów sesji nie można tworzyć ani usuwać; można zmieniać tylko wartości „enabled”, „ttl_seconds” i „grace_period_seconds”."
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "Twój osobisty token dostępu stracił ważność."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "Podana data „expires_at” jest już miniona."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Osobisty token dostępu musi zawierać datę wygaśnięcia, bo serwer narzuca maksymalny czas ważności tokenu."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "Podana data expires_at przekracza skonfigurowany maksymalny okres ważności osobistego tokenu dostępu ({{.Days}} dni)."
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Nie udało się usunąć plików zbiorczo"
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Importy muszą być powiązane z nadrzędną polityką członkostwa."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Członkostwo nie może być łączone z innymi działaniami w tej samej regule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Reguły dotyczące uprawnień można stosować wyłącznie w ramach polityk kanałów."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Zasady uprawnień wymagają, żeby nazwa nie była pusta i mieściła się w maksymalnej długości określonej w Polityce."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Nazwy reguł uprawnień muszą być unikalne w ramach danej polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Nieprawidłowa rola dla tej reguły."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Reguły członkostwa nie mogą odwoływać się do atrybutów sesji (user.session). Zamiast tego użyj polityki uprawnień."
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Tylko kanały prywatne można oznaczyć jako widoczne."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Ograniczenia grupowe można nakładać tylko na kanały publiczne i prywatne."
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Nazwa wyświetlana na tablicy nie może być pusta."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Kanały tablicy muszą należeć do zespołu."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Typ kanału musi to być BO (otwarta tablica) albo BP (prywatna tablica)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Zakładki w tablicy nie mogą odwoływać się do pliku."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "W zakładkach na forum nie można podać adresu URL obrazka."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "URL linku zakładki tablicy musi być ścieżką względną witryny zaczynającą się od /, nie może zawierać :// i nie może przekraczać maksymalnej długości."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Zakładki w tablicy wymagają prawidłowego identyfikatora docelowego."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Identyfikator docelowy jest dozwolony tylko w przypadku typów zakładek, które odwołują się do innego elementu."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
   }
 ]

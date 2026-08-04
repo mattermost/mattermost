@@ -249,7 +249,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -332,7 +332,7 @@ jobs:
         working-directory: e2e-tests
         run: make start-server
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -377,7 +377,7 @@ jobs:
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}

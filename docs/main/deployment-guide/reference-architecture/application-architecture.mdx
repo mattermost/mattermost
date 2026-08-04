@@ -1,9 +1,11 @@
 ---
 title: "Application architecture"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 Mattermost is an open-source collaboration platform that offers secure messaging, file sharing, and integrations for team communication. It's self-hosted, providing IT admins full control over data, security, integrations, and customization. The platform is built with modular components to ensure scalability, flexibility, and extensibility.
 
-<img src="/images/network-diagram.svg" class="bg-white" alt="Mattermost network diagram shows how the components can be deployed. Includes optional configurations for scaling for larger enterprise organizations." />
+<img src={useBaseUrl('/images/network-diagram.svg')} class="bg-white" alt="Mattermost network diagram shows how the components can be deployed. Includes optional configurations for scaling for larger enterprise organizations." />
 
 ## Workflow overview
 
@@ -31,7 +33,7 @@ The Access Layer plays a critical role in ensuring that users are always connect
 
 The Mattermost Server is the heart of the platform and responsible for processing all user and system operations. It's composed of multiple modular elements as follows:
 
-<img src="/images/architecture_basics.png" class="bg-white" alt="Mattermost architecture basics" />
+<img src={useBaseUrl('/images/architecture_basics.png')} class="bg-white" alt="Mattermost architecture basics" />
 
 **RESTful JSON Web Service**: Handles all incoming API requests (from web clients, apps, and integrations) and ensures that responses are formatted in JSON. Acts as the communication bridge between the clients (Access Layer) and backend systems. To ensure high availability, this layer can be distributed across multiple servers and load-balanced, preventing service disruptions due to high traffic or server failure.
 
@@ -109,7 +111,7 @@ If a WSS connection is not available and HTTPS is substituted, the system will a
 
 High availability for WSS connections can be achieved through clustering Mattermost servers and load balancing WebSocket connections across those cluster nodes. Proxy servers and WebSocket-specific configurations (such as sticky sessions or connection persistence) are essential to maintain real-time interactivity during server or network failures.
 
-<img src="/images/architecture_with_protocol.png" class="bg-white" alt="Mattermost architecture with protocol connections" />
+<img src={useBaseUrl('/images/architecture_with_protocol.png')} class="bg-white" alt="Mattermost architecture with protocol connections" />
 
 By incorporating high availability strategies into communication protocols, the platform ensures secure, scalable, and reliable connections for both regular user interactions (via HTTPS) and real-time updates (via WSS). These measures are critical for mission-critical environments and distributed deployments where continuous communication is necessary.
 

@@ -71,7 +71,8 @@ describe('MediaGallery', () => {
         );
 
         const tile = await screen.findByTestId('media-gallery-tile');
-        await userEvent.click(tile);
+        const image = tile.querySelector('img');
+        await userEvent.click(image!);
 
         expect(onClick).toHaveBeenCalledWith(1);
     });
