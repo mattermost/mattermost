@@ -478,6 +478,25 @@ func TestWritePostExposureCSV(t *testing.T) {
 		require.Equal(t, "line\nbreak@example.com", records[1][2])
 	})
 
+	t.Run("collapses line breaks in preamble values", func(t *testing.T) {
+		// A channel display name may contain line breaks: Channel.IsValid only bounds its
+		// length and SanitizeUnicode leaves \n and \r alone. Written raw, the remainder of
+		// the value would land on a line without a leading "#", which a comment-aware
+		// reader parses as a data record and rejects for having the wrong field count.
+		report := baseReport()
+		report.ChannelName = "Town\nSquare\r\nAnnex\rWing"
+
+		var buf bytes.Buffer
+		require.NoError(t, WritePostExposureCSV(&buf, report, T))
+
+		out := buf.String()
+		require.Contains(t, out, "# Channel: Town Square Annex Wing (channel1)")
+
+		records := parseCSV(t, buf.Bytes())
+		require.Len(t, records, 1, "the preamble must stay fully commented out")
+		require.Equal(t, model.PostExposureReportCSVHeader(T), records[0])
+	})
+
 	t.Run("is byte-for-byte deterministic", func(t *testing.T) {
 		report := baseReport()
 		report.Entries = append(report.Entries,
