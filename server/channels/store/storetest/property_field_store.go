@@ -4301,6 +4301,117 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, err)
 		require.Empty(t, edges)
 	})
+
+	t.Run("a field write applies the parents its option list states", func(t *testing.T) {
+		ids := programIDs()
+		options := []any{
+			// Named before the option it sits under appears, which a list building a
+			// hierarchy in one write has to allow.
+			map[string]any{"id": ids["Fighter Jet Program"], "name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+			map[string]any{"id": ids["Air Program"], "name": "Air Program"},
+			map[string]any{"id": ids["F-18 Program"], "name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+		}
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "EdgesFromList-" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{"options": options},
+		})
+		require.NoError(t, err)
+
+		// The links landed in the same write as the options they join, so an option
+		// never existed without them.
+		stored, err := ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, [][2]string{
+			{ids["Fighter Jet Program"], ids["Air Program"]},
+			{ids["F-18 Program"], ids["Fighter Jet Program"]},
+		}, asPairs(stored))
+
+		// The parents are not an attribute of the option: they became rows, and the
+		// option reads back exactly as one written without them would.
+		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		for _, raw := range read.Attrs["options"].([]any) {
+			require.NotContains(t, raw.(map[string]any), "parents")
+		}
+
+		// A list stating a parent set replaces that option's set and leaves every
+		// other option's alone.
+		read.Attrs["options"] = []any{
+			map[string]any{"id": ids["Air Program"], "name": "Air Program"},
+			map[string]any{"id": ids["Fighter Jet Program"], "name": "Fighter Jet Program"},
+			map[string]any{"id": ids["F-18 Program"], "name": "F-18 Program", "parents": []string{"Air Program"}},
+		}
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)
+		require.NoError(t, err)
+
+		stored, err = ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, [][2]string{
+			{ids["Fighter Jet Program"], ids["Air Program"]},
+			{ids["F-18 Program"], ids["Air Program"]},
+		}, asPairs(stored))
+
+		// A list that says nothing about parents leaves the hierarchy as it is, which
+		// is what a read-modify-write of a field looks like: an option reads back
+		// without its parents.
+		read, err = ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		require.NoError(t, err)
+		read.Name = "EdgesFromListRenamed-" + model.NewId()
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)
+		require.NoError(t, err)
+
+		stored, err = ss.PropertyField().GetOptionEdges(field.ID)
+		require.NoError(t, err)
+		require.Len(t, stored, 2, "a write that states no parents must not flatten the hierarchy")
+	})
+
+	t.Run("an option list can only state parents on a field that owns a hierarchy", func(t *testing.T) {
+		// The service refuses both of these first, with a message naming the option
+		// at fault. They are refused here as well because the field as the store has
+		// it is the only place its real type and its link are known -- a field created
+		// by linking to a graph template arrives with neither in the request.
+		selectID := model.NewId()
+		_, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "EdgesFromListSelect-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": selectID, "name": "Only"},
+				map[string]any{"id": model.NewId(), "name": "Below", "parents": []string{"Only"}},
+			}},
+		})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "form no hierarchy")
+
+		// A field linking to a graph template owns none of the hierarchy it serves,
+		// so an option of the template's is not one it may link to anything.
+		ids := programIDs()
+		template := newField(t, model.PropertyFieldTypeGraph, ids)
+		_, err = ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "EdgesFromListLinked-" + model.NewId(),
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &template.ID,
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": ids["Air Program"], "name": "Air Program"},
+				map[string]any{"id": ids["F-18 Program"], "name": "F-18 Program", "parents": []string{"Air Program"}},
+			}},
+		})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "no live option")
+
+		edges, err := ss.PropertyField().GetOptionEdges(template.ID)
+		require.NoError(t, err)
+		require.Empty(t, edges, "a refused write leaves the template's hierarchy alone")
+	})
 }
 
 func testPropertyFieldOptionHierarchy(t *testing.T, _ request.CTX, ss store.Store) {

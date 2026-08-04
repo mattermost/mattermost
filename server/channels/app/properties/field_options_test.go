@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -100,5 +101,281 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		_, err = th.service.DeleteFieldOptions(rank, []string{options[0].ID})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
+	})
+}
+
+// The option list a field is written with can state the hierarchy between its
+// options, which is the only way to create one in a single call. These drive the
+// service rather than the API, because what a list means depends on the field as
+// the store has it -- its type and its link -- and the interesting cases are the
+// ones where that differs from what the request said.
+func TestFieldOptionsFromFieldList(t *testing.T) {
+	th := Setup(t)
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+	// inlineOption builds one entry of a field's option list. Parents are named,
+	// and an entry that names none says nothing about the options above it.
+	inlineOption := func(name string, parents ...string) map[string]any {
+		option := map[string]any{"name": name}
+		if parents != nil {
+			option["parents"] = parents
+		}
+		return option
+	}
+
+	field := func(fieldType model.PropertyFieldType, options ...map[string]any) *model.PropertyField {
+		list := make([]any, 0, len(options))
+		for _, option := range options {
+			list = append(list, option)
+		}
+		created := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "Programs-" + model.NewId(),
+			Type:       fieldType,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		if len(list) > 0 {
+			created.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: list}
+		}
+		return created
+	}
+
+	// asFixture reads the identifiers a write assigned to the options it created,
+	// so a test can ask about the hierarchy it described by name.
+	asFixture := func(t *testing.T, written *model.PropertyField) *graphFixture {
+		t.Helper()
+		fixture := &graphFixture{field: written, ids: map[string]string{}}
+		options, ok := written.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "the field carries no option list")
+		for _, item := range options {
+			option, ok := item.(map[string]any)
+			require.True(t, ok)
+			fixture.ids[option["name"].(string)] = option["id"].(string)
+		}
+		return fixture
+	}
+
+	t.Run("a whole hierarchy is created in one field write, naming options further down the list", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Fighter Jet", "Air"),
+			inlineOption("Air"),
+			inlineOption("F-18", "Fighter Jet"),
+		))
+		require.NoError(t, err)
+
+		graph := asFixture(t, created)
+		above, err := th.service.AncestorsOrSelf(th.Context, created, graph.of("F-18", "Air"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Fighter Jet", "Air"}, graph.named(above[graph.ids["F-18"]]))
+		require.ElementsMatch(t, []string{"Air"}, graph.named(above[graph.ids["Air"]]))
+
+		// The hierarchy is not part of what the field serves: an option reads back
+		// without it, and the parents never became an attribute of their own.
+		read, err := th.service.GetPropertyField(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		for _, item := range read.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+			option := item.(map[string]any)
+			require.NotContains(t, option, "parents", "option %q", option["name"])
+		}
+	})
+
+	t.Run("a parent no option in the list is called is refused, naming both", func(t *testing.T) {
+		_, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Sea"),
+		))
+		require.Error(t, err)
+		require.ErrorContains(t, err, `index 1 is put under "Sea"`)
+		require.ErrorContains(t, err, "no option called")
+
+		// The reason has to reach the caller as a message parameter, not only as the
+		// error's detail: the HTTP layer strips the detail from the response unless
+		// the server is in developer mode. Rendered here with the parameters in place
+		// of the translation, which is what the response carries.
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Contains(t, appErr.SystemMessage(func(_ string, args ...any) string {
+			return fmt.Sprintf("%v", args)
+		}), "no option called")
+	})
+
+	t.Run("an option put under itself is refused", func(t *testing.T) {
+		_, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air", "Air"),
+		))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "is put under itself")
+	})
+
+	t.Run("a cycle stated in one write is refused", func(t *testing.T) {
+		_, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air", "Sea"),
+			inlineOption("Sea", "Air"),
+		))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "below itself")
+	})
+
+	t.Run("parents on a field whose options form no hierarchy are refused", func(t *testing.T) {
+		_, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeMultiselect,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Air"),
+		))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "form no hierarchy")
+	})
+
+	t.Run("a list that states no parents leaves the hierarchy alone, and one that does replaces them", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Air"),
+			inlineOption("F-18", "Fighter Jet"),
+		))
+		require.NoError(t, err)
+		graph := asFixture(t, created)
+
+		// What a read gives a caller back: the same options, with nothing said about
+		// the hierarchy. Writing it again must not flatten what it does not mention.
+		read, err := th.service.GetPropertyField(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		read.Name = "Renamed-" + model.NewId()
+		updated, _, err := th.service.UpdatePropertyField(th.Context, group.ID, read)
+		require.NoError(t, err)
+
+		above, err := th.service.AncestorsOrSelf(th.Context, updated, graph.of("F-18"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Fighter Jet", "Air"}, graph.named(above[graph.ids["F-18"]]))
+
+		// Stating a parent list replaces that option's parents and no others': F-18
+		// moves up beside Fighter Jet, which keeps the parent it was never asked about.
+		moved := *updated
+		moved.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": graph.ids["Air"], "name": "Air"},
+			map[string]any{"id": graph.ids["Fighter Jet"], "name": "Fighter Jet"},
+			map[string]any{"id": graph.ids["F-18"], "name": "F-18", "parents": []string{"Air"}},
+		}}
+		updated, _, err = th.service.UpdatePropertyField(th.Context, group.ID, &moved)
+		require.NoError(t, err)
+
+		above, err = th.service.AncestorsOrSelf(th.Context, updated, graph.of("F-18", "Fighter Jet"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Air"}, graph.named(above[graph.ids["F-18"]]))
+		require.ElementsMatch(t, []string{"Fighter Jet", "Air"}, graph.named(above[graph.ids["Fighter Jet"]]))
+
+		// An empty list detaches, which is the only way a write can say "nothing
+		// above this one".
+		moved.Attrs[model.PropertyFieldAttributeOptions].([]any)[2].(map[string]any)["parents"] = []string{}
+		updated, _, err = th.service.UpdatePropertyField(th.Context, group.ID, &moved)
+		require.NoError(t, err)
+
+		above, err = th.service.AncestorsOrSelf(th.Context, updated, graph.of("F-18"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18"}, graph.named(above[graph.ids["F-18"]]))
+	})
+
+	t.Run("an option list round-trips unchanged for a type with no hierarchy", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeMultiselect,
+			map[string]any{"name": "Air", "color": "#111111", "emoji": "airplane"},
+			map[string]any{"name": "Sea"},
+		))
+		require.NoError(t, err)
+
+		read, err := th.service.GetPropertyField(th.Context, group.ID, created.ID)
+		require.NoError(t, err)
+		require.Equal(t, created.Attrs[model.PropertyFieldAttributeOptions], read.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
+	t.Run("a field linking to a graph template cannot bring options of its own", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeGraph,
+			inlineOption("Air"),
+			inlineOption("Fighter Jet", "Air"),
+		))
+		require.NoError(t, err)
+		graph := asFixture(t, template)
+
+		linked := func(options ...map[string]any) *model.PropertyField {
+			list := make([]any, 0, len(options))
+			for _, option := range options {
+				list = append(list, option)
+			}
+			created := field(model.PropertyFieldTypeGraph)
+			created.ObjectType = model.PropertyFieldObjectTypeUser
+			created.LinkedFieldID = &template.ID
+			created.Type = ""
+			if len(list) > 0 {
+				created.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: list}
+			}
+			return created
+		}
+
+		// The request says nothing about the graph type -- the field takes it from the
+		// template -- so a check reading the type off the request would miss this.
+		_, err = th.service.CreatePropertyField(th.Context, linked(inlineOption("Land")))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "cannot own options of its own")
+
+		// Without a list of its own it serves the template's hierarchy.
+		dependent, err := th.service.CreatePropertyField(th.Context, linked())
+		require.NoError(t, err)
+		above, err := th.service.AncestorsOrSelf(th.Context, dependent, graph.of("Fighter Jet"))
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"Fighter Jet", "Air"}, graph.named(above[graph.ids["Fighter Jet"]]))
+	})
+
+	t.Run("a write may not take a name an option of a linked field already has", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeMultiselect,
+			inlineOption("Air"),
+		))
+		require.NoError(t, err)
+
+		dependent := field(model.PropertyFieldTypeMultiselect)
+		dependent.ObjectType = model.PropertyFieldObjectTypeUser
+		dependent.LinkedFieldID = &template.ID
+		dependent.Type = ""
+		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
+		require.NoError(t, err)
+
+		// A field of a type with no hierarchy may own local options beside the ones it
+		// inherits, which is the only way this collision arises.
+		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		require.NoError(t, err)
+
+		renamed := *template
+		renamed.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": asFixture(t, template).ids["Air"], "name": "Land"},
+		}}
+		_, _, err = th.service.UpdatePropertyField(th.Context, group.ID, &renamed)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "local option of its own")
+		require.ErrorContains(t, err, dependent.ID)
+
+		// The same rename to a name nothing else serves is fine.
+		renamed.Attrs[model.PropertyFieldAttributeOptions].([]any)[0].(map[string]any)["name"] = "Sea"
+		_, _, err = th.service.UpdatePropertyField(th.Context, group.ID, &renamed)
+		require.NoError(t, err)
+	})
+
+	t.Run("an option added to a template may not take a linked field's local name either", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, field(model.PropertyFieldTypeMultiselect,
+			inlineOption("Air"),
+		))
+		require.NoError(t, err)
+
+		dependent := field(model.PropertyFieldTypeMultiselect)
+		dependent.ObjectType = model.PropertyFieldObjectTypeUser
+		dependent.LinkedFieldID = &template.ID
+		dependent.Type = ""
+		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
+		require.NoError(t, err)
+
+		_, err = th.service.CreateFieldOptions(dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		require.NoError(t, err)
+
+		// Through the options endpoint this time: the two write paths answer the same
+		// question the same way.
+		_, err = th.service.CreateFieldOptions(template, []*model.PropertyFieldOption{{Name: "Land"}})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "local option of its own")
 	})
 }

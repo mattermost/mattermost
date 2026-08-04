@@ -966,6 +966,38 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			assert.True(t, ok, "each option element should be map[string]any, got %T", opt)
 		}
 	})
+
+	t.Run("sanitizeAndValidateOptions carries a graph field's parents through", func(t *testing.T) {
+		// That canonicalization decodes each option into a fixed shape and encodes it
+		// again, which drops every key the shape does not name. The options above
+		// carry none that matter; the parents of a graph field's option do, and a
+		// hierarchy silently dropped here would leave every option a root -- covered
+		// by nothing, so every rule written over it denies.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: "system",
+			ObjectType: "template",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air"},
+					map[string]any{"name": "Fighter Jet", "parents": []string{"Air"}},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		options := created.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, options, 2)
+		air := options[0].(map[string]any)["id"].(string)
+		jet := options[1].(map[string]any)["id"].(string)
+
+		above, resolveErr := th.service.AncestorsOrSelf(th.Context, created, []string{jet})
+		require.NoError(t, resolveErr)
+		assert.ElementsMatch(t, []string{jet, air}, above[jet])
+	})
 }
 
 func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) {

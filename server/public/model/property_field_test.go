@@ -2021,3 +2021,150 @@ func TestPropertyField_WithheldOptions(t *testing.T) {
 		}
 	})
 }
+
+func TestPropertyField_OptionParentLinks(t *testing.T) {
+	fieldID := NewId()
+	graphField := func(options ...map[string]any) *PropertyField {
+		list := make([]any, 0, len(options))
+		for _, option := range options {
+			list = append(list, option)
+		}
+		return &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: list},
+		}
+	}
+
+	t.Run("resolves names within the list, in either shape a caller sends them", func(t *testing.T) {
+		air, jet, f18 := NewId(), NewId(), NewId()
+		// The list refers forwards to Air, and states its parents as []any of string
+		// on one option -- what JSON produces -- and as []string on the other, which
+		// is what a Go caller builds.
+		field := graphField(
+			map[string]any{"id": jet, "name": "Fighter Jet", "parents": []any{"Air"}},
+			map[string]any{"id": air, "name": "Air"},
+			map[string]any{"id": f18, "name": "F-18", "parents": []string{"Fighter Jet", "Air"}},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Equal(t, []string{jet, f18}, replacing, "only the options that stated parents")
+		assert.Equal(t, []*PropertyOptionEdge{
+			{FieldID: fieldID, ChildOptionID: jet, ParentOptionID: air},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: jet},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: air},
+		}, add)
+	})
+
+	t.Run("an option that states nothing is left out of both answers", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea"},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("an empty parent list replaces with nothing, which is how an option is detached", func(t *testing.T) {
+		air := NewId()
+		field := graphField(map[string]any{"id": air, "name": "Air", "parents": []any{}})
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Equal(t, []string{air}, replacing)
+	})
+
+	t.Run("refuses what it cannot resolve unambiguously", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			options []map[string]any
+			reason  string
+		}{
+			{
+				name: "a name no option in the list has",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Land"}},
+				},
+				reason: `index 1 is put under "Land", which the field has no option called`,
+			},
+			{
+				name:    "an option under itself",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{"Air"}}},
+				reason:  "is put under itself",
+			},
+			{
+				name: "a name two options answer to",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+				},
+				reason: "two of the field's options are called that",
+			},
+			{
+				name:    "a parent with no name",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{""}}},
+				reason:  "under an option with no name",
+			},
+			{
+				name:    "parents that are not a list of names",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": "Sea"}},
+				reason:  "not a list of option names",
+			},
+			{
+				name:    "an option with no identifier to link",
+				options: []map[string]any{{"name": "Air"}, {"name": "Sea", "parents": []any{"Air"}}},
+				reason:  "has no id",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, err := graphField(tc.options...).OptionParentLinks()
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.reason)
+			})
+		}
+	})
+
+	t.Run("a type whose options form no hierarchy cannot state parents at all", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+		)
+		field.Type = PropertyFieldTypeMultiselect
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "the options of a multiselect field form no hierarchy")
+
+		// A list that says nothing about parents is fine on any type, including the
+		// ones with no option list at all.
+		field.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": NewId(), "name": "Air"}}
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+
+		add, replacing, err = (&PropertyField{ID: fieldID, Type: PropertyFieldTypeText}).OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("a list in a shape EnsureOptionIDs would have normalized is refused", func(t *testing.T) {
+		field := &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: []map[string]any{{"name": "Air"}}},
+		}
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not a list")
+	})
+}

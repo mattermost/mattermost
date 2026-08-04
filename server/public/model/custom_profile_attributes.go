@@ -101,6 +101,13 @@ type CustomProfileAttributesSelectOption struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 	Rank  *int   `json:"rank,omitempty"`
+	// Parents carries the options directly above this one, by name, on a graph
+	// field. It is here only so that it survives: an option list written to a
+	// managed property group is normalized by decoding it into this type and
+	// encoding it again, which drops every key the type does not name. Nothing
+	// validates or stores it through this type -- PropertyField.OptionParentLinks
+	// is what reads it, from the option list itself.
+	Parents *[]string `json:"parents,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {

@@ -37,9 +37,11 @@ const (
 	// no single-value variant, which is why the name is unqualified.
 	//
 	// The hierarchy is held as parent links between options, in
-	// PropertyOptionEdges, and is read through the store rather than being part
-	// of the field: a graph field's options are still served inline like a
-	// multiselect field's and carry no parent information.
+	// PropertyOptionEdges. A graph field's options are served inline like a
+	// multiselect field's and read back without any parent information: an
+	// option's place in the hierarchy is reported by the endpoints that address
+	// options one at a time. A write may state it, though -- see
+	// PropertyField.OptionParentLinks.
 	PropertyFieldTypeGraph PropertyFieldType = "graph"
 
 	PropertyFieldNameMaxRunes       = 255
@@ -209,6 +211,144 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 	pf.Attrs[PropertyFieldAttributeOptions] = optionsAny
 
 	return nil
+}
+
+// PropertyFieldOptionKeyParents is the key an inline option carries the options
+// directly above it under. Its value is a list of option *names*: an identifier
+// is assigned when an option is created, so a list that creates a hierarchy in
+// one write has no identifier to refer to yet, while a name is something the
+// caller chose and can refer forwards to.
+const PropertyFieldOptionKeyParents = "parents"
+
+// OptionParentLinks returns the parent links the field's inline option list asks
+// for, and the options whose parents that list states in full.
+//
+// A name resolves within the list itself, and nowhere else: the list is the whole
+// of the field's option set once the write lands, so an option outside it is
+// either about to be removed or belongs to another field. That is also what lets
+// one write build a hierarchy, naming an option that appears further down the
+// list.
+//
+// An option with no "parents" key is absent from replacing, because a write that
+// says nothing about an option's parents leaves them as they are. The alternative
+// -- treating an absent key as "no parents" -- would make an unrelated edit, or a
+// read-modify-write of a field read back without parent information, silently turn
+// options into roots: an option covered by nothing but itself, which every rule
+// that reached it through an option above stops matching.
+//
+// Run EnsureOptionIDs first. Every option's identifier is taken as given here,
+// and so is the field's, which the returned links belong to.
+func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replacing []string, err error) {
+	options, err := pf.inlineOptions()
+	if err != nil || len(options) == 0 {
+		return nil, nil, err
+	}
+
+	// Two options answering to the same name make every reference to it
+	// ambiguous. Only a name actually referenced is refused, so a field whose
+	// options are not uniquely named -- which nothing has ever stopped for a type
+	// with no hierarchy -- stays writable.
+	idsByName := make(map[string]string, len(options))
+	ambiguous := make(map[string]bool)
+	for _, option := range options {
+		name, _ := option["name"].(string)
+		if name == "" {
+			continue
+		}
+		if _, taken := idsByName[name]; taken {
+			ambiguous[name] = true
+			continue
+		}
+		idsByName[name], _ = option["id"].(string)
+	}
+
+	for i, option := range options {
+		raw, ok := option[PropertyFieldOptionKeyParents]
+		if !ok || raw == nil {
+			continue
+		}
+		if pf.Type != PropertyFieldTypeGraph {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents, and the options of a %s field form no hierarchy", i, pf.Type)
+		}
+
+		parents, ok := optionParentNames(raw)
+		if !ok {
+			return nil, nil, fmt.Errorf("the parents of the option at index %d are not a list of option names", i)
+		}
+		optionID, _ := option["id"].(string)
+		if optionID == "" {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents but has no id", i)
+		}
+		replacing = append(replacing, optionID)
+
+		named, _ := option["name"].(string)
+		for _, parent := range parents {
+			switch {
+			case parent == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under an option with no name", i)
+			case ambiguous[parent]:
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, and two of the field's options are called that", i, parent)
+			case idsByName[parent] == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, which the field has no option called", i, parent)
+			case idsByName[parent] == optionID:
+				return nil, nil, fmt.Errorf("the option at index %d, %q, is put under itself", i, named)
+			}
+			add = append(add, &PropertyOptionEdge{
+				FieldID:        pf.ID,
+				ChildOptionID:  optionID,
+				ParentOptionID: idsByName[parent],
+			})
+		}
+	}
+	return add, replacing, nil
+}
+
+// inlineOptions returns the field's option list as the objects it is made of.
+// The shape is the one EnsureOptionIDs normalizes any option list to, so a list
+// in any other shape is a caller that did not run it.
+func (pf *PropertyField) inlineOptions() ([]map[string]any, error) {
+	if pf.Attrs == nil {
+		return nil, nil
+	}
+	raw, ok := pf.Attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil, nil
+	}
+	list, ok := raw.([]any)
+	if !ok {
+		return nil, errors.New("the option list is not a list")
+	}
+
+	options := make([]map[string]any, 0, len(list))
+	for i, item := range list {
+		option, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("the option at index %d is not an object", i)
+		}
+		options = append(options, option)
+	}
+	return options, nil
+}
+
+// optionParentNames reads an inline option's parents key. It arrives as []any of
+// string from JSON, and as []string from a Go caller building a field directly.
+func optionParentNames(raw any) ([]string, bool) {
+	switch value := raw.(type) {
+	case []string:
+		return value, true
+	case []any:
+		names := make([]string, 0, len(value))
+		for _, item := range value {
+			name, ok := item.(string)
+			if !ok {
+				return nil, false
+			}
+			names = append(names, name)
+		}
+		return names, true
+	default:
+		return nil, false
+	}
 }
 
 func (pf *PropertyField) IsValid() error {

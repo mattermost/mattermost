@@ -458,6 +458,36 @@ func (_m *PropertyFieldStore) GetForGroup(ctx context.Context, groupID string) (
 	return r0, r1
 }
 
+// GetLinkedFieldOptionNames provides a mock function with given fields: fieldID, names
+func (_m *PropertyFieldStore) GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error) {
+	ret := _m.Called(fieldID, names)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLinkedFieldOptionNames")
+	}
+
+	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) (map[string]string, error)); ok {
+		return rf(fieldID, names)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) map[string]string); ok {
+		r0 = rf(fieldID, names)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(fieldID, names)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMany provides a mock function with given fields: ctx, groupID, ids
 func (_m *PropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	ret := _m.Called(ctx, groupID, ids)

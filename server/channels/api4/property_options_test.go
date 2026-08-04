@@ -544,6 +544,56 @@ func TestPropertyFieldOptions(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	// A hierarchy can also be written as part of the field itself, which is the only
+	// way to create one in a single request. The two write paths have to agree about
+	// what an option's parents are, so these read the result back through the
+	// endpoints above.
+	t.Run("a hierarchy is created with the field, and read back through its options", func(t *testing.T) {
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, template, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              graph,
+			TargetType:        "system",
+			PermissionOptions: &memberLevel,
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []map[string]any{
+				{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+				{"name": "Air Program"},
+				{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+			}},
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		options, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, created.ID, 0, "", 100)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, options, 3)
+		require.Equal(t, []string{"Air Program"}, *optionByName(t, options, "Fighter Jet Program").Parents)
+		require.Equal(t, []string{"Fighter Jet Program"}, *optionByName(t, options, "F-18 Program").Parents)
+		require.Empty(t, *optionByName(t, options, "Air Program").Parents)
+	})
+
+	t.Run("a parent no option of the field is called is refused, in the answer to the request", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, template, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       graph,
+			TargetType: "system",
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []map[string]any{
+				{"name": "Air Program"},
+				{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+			}},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// The reason has to be in the response, not only in the server log: there is
+		// no fixing a payload from "the options were rejected". Asserted on Message
+		// rather than DetailedError, which the HTTP layer strips.
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Contains(t, appErr.Message, `"Fighter Jet Program"`)
+		require.Contains(t, appErr.Message, "no option called")
+	})
 }
 
 func TestPropertyFieldOptionsAudit(t *testing.T) {

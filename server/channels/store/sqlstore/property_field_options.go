@@ -28,7 +28,14 @@ import (
 //	name          -> the Name column, when the value is a string
 //	color         -> the Color column, when the value is a string
 //	rank          -> the Rank column, when the value is a whole number
+//	parents       -> rows in PropertyOptionEdges, on the way in only
 //	anything else -> the option's own Attrs
+//
+// The parents key is the one asymmetric part: a write may state the options an
+// option sits under, and a read leaves them out. An option's place in a hierarchy
+// is reported by the endpoints that address options one at a time, and leaving it
+// out here is what makes a read-modify-write of a field leave the hierarchy alone
+// rather than flatten it.
 //
 // The promotions are conditional because an option object is open-shaped — it is
 // not even required to carry a name, and a plugin may store anything under any of
@@ -119,7 +126,11 @@ func newPropertyOptionRow(field *model.PropertyField, opt map[string]any, sortOr
 		UpdateAt:  now,
 	}
 
-	promoted := []string{optionKeyID}
+	// The parents key is promoted without a column of its own: it becomes edge
+	// rows, written by applyOptionParentLinks. Listing it here is what keeps it
+	// out of the option's Attrs, where it would be served back as an attribute
+	// alongside the hierarchy it had already been turned into.
+	promoted := []string{optionKeyID, model.PropertyFieldOptionKeyParents}
 	if name, ok := opt[optionKeyName].(string); ok {
 		row.Name = &name
 		promoted = append(promoted, optionKeyName)
@@ -468,6 +479,53 @@ func (s *SqlPropertyFieldStore) getFieldOptionsWhere(field *model.PropertyField,
 		}
 	}
 	return options, nil
+}
+
+// GetLinkedFieldOptionNames reports which of the given names an option local to a
+// field linking to this one already has, as name -> that field's ID.
+//
+// A name has to identify one option across everything a field serves, and a field
+// linking to a template serves that template's options beside its own. So a name
+// the template is about to use is only free if no dependent has a local option
+// called that -- a question about rows belonging to fields the write does not
+// name, which is why it cannot be answered from the field being written.
+//
+// Only the types whose linked fields may own local options can collide: a field
+// linking to a graph template owns no options at all. Nothing here special-cases
+// that -- there is simply nothing to find for one.
+//
+// Reads from the master, like every other query the option write path makes:
+// replication lag would clear a name that a dependent has just taken.
+func (s *SqlPropertyFieldStore) GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error) {
+	if fieldID == "" || len(names) == 0 {
+		return nil, nil
+	}
+
+	type ownedName struct {
+		FieldID string
+		Name    string
+	}
+
+	taken := map[string]string{}
+	for batch := range slices.Chunk(names, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("opt.FieldID", "opt.Name").
+			From("PropertyOptions opt").
+			Join("PropertyFields dependent ON dependent.ID = opt.FieldID").
+			Where(sq.Eq{"dependent.LinkedFieldID": fieldID}).
+			Where(sq.Eq{"dependent.DeleteAt": 0}).
+			Where(sq.Eq{"opt.Name": batch}).
+			Where(sq.Eq{"opt.DeleteAt": 0})
+
+		rows := []*ownedName{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_linked_field_names_query")
+		}
+		for _, row := range rows {
+			taken[row.Name] = row.FieldID
+		}
+	}
+	return taken, nil
 }
 
 // CountOptions returns how many live options a field owns itself. Options it
@@ -1122,6 +1180,7 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 
 	var upserts []*propertyOptionRow
 	deletesByField := map[string][]string{}
+	var linkChanges []optionParentLinks
 	var changedFieldIDs []string
 	markChanged := func(fieldID string) {
 		if !slices.Contains(changedFieldIDs, fieldID) {
@@ -1141,6 +1200,20 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 		options, wErr := wireOptions(field)
 		if wErr != nil {
 			return nil, wErr
+		}
+
+		// Read from the same list, before any of it is written: the links refer to
+		// options by name, and the names are the ones the list is about to give them.
+		// A rejection here describes the request, so it is not a server error --
+		// PropertyService.validateOptionBlobLinks reports the same thing with the
+		// position at fault, and gets there first for every caller that goes through
+		// the service.
+		add, replacing, lErr := field.OptionParentLinks()
+		if lErr != nil {
+			return nil, store.NewErrInvalidInput("PropertyOption", model.PropertyFieldOptionKeyParents, field.ID).Wrap(lErr)
+		}
+		if len(add) > 0 || len(replacing) > 0 {
+			linkChanges = append(linkChanges, optionParentLinks{field: field, add: add, replacing: replacing})
 		}
 
 		own := byField[field.ID]
@@ -1204,7 +1277,127 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 		}
 	}
 
+	// Last: an option can only be linked once its row exists, and the rows of the
+	// options the list dropped are already gone, so nothing here can link to one.
+	for _, links := range linkChanges {
+		changed, err := s.applyOptionParentLinks(transaction, links, now)
+		if err != nil {
+			return nil, err
+		}
+		if changed {
+			markChanged(links.field.ID)
+		}
+	}
+
 	return changedFieldIDs, nil
+}
+
+// optionParentLinks is what one field's option list says about the hierarchy
+// between its options: the links to create, and the options whose links the list
+// states in full. See PropertyField.OptionParentLinks, which reads it off the
+// list.
+type optionParentLinks struct {
+	field     *model.PropertyField
+	add       []*model.PropertyOptionEdge
+	replacing []string
+}
+
+// applyOptionParentLinks makes a field's hierarchy match what its option list
+// asked for: every option whose parents the list stated ends up with exactly
+// those, and no other option's links are touched. It reports whether anything
+// actually moved, so a list that restated the hierarchy it already had is not
+// broadcast as a change.
+//
+// A link the list restated keeps the row it already had rather than being deleted
+// and written again, which is what makes CreateAt on an edge mean when the
+// relationship was recorded.
+//
+// Nothing here checks the shape the resulting hierarchy has -- no cycles, bounded
+// depth, bounded fan-in -- for the same reason MutateOptions does not: each is a
+// property of the whole hierarchy rather than of the rows in front of it, and
+// PropertyService.validateOptionBlobLinks is where a field write has them
+// checked.
+func (s *SqlPropertyFieldStore) applyOptionParentLinks(transaction *sqlxTxWrapper, links optionParentLinks, now int64) (bool, error) {
+	field := links.field
+
+	// The type of the field as it is being written, which for a field created by
+	// linking to a template is the template's: the request that created it need not
+	// have mentioned the graph type at all.
+	if field.Type != model.PropertyFieldTypeGraph {
+		return false, store.NewErrInvalidInput("PropertyOptionEdge", "field_id", field.ID).
+			Wrap(errors.Errorf("options of a %s field have no hierarchy to link", field.Type))
+	}
+
+	endpoints := make([]string, 0, len(links.add)*2)
+	for _, edge := range links.add {
+		endpoints = append(endpoints, edge.ChildOptionID, edge.ParentOptionID)
+	}
+	if err := s.requireOwnedOptions(transaction, field.ID, utils.RemoveDuplicatesFromStringArray(endpoints)); err != nil {
+		return false, err
+	}
+
+	keep := make(map[[2]string]bool, len(links.add))
+	for _, edge := range links.add {
+		keep[[2]string{edge.ChildOptionID, edge.ParentOptionID}] = true
+	}
+
+	current, err := s.optionParentEdges(transaction, field.ID, links.replacing)
+	if err != nil {
+		return false, err
+	}
+	var remove []*model.PropertyOptionEdge
+	stored := make(map[[2]string]bool, len(current))
+	for _, edge := range current {
+		pair := [2]string{edge.ChildOptionID, edge.ParentOptionID}
+		stored[pair] = true
+		if !keep[pair] {
+			remove = append(remove, edge)
+		}
+	}
+
+	// Batched for the same reason every other statement carrying option
+	// identifiers is: one option list can describe a hierarchy of any size, and a
+	// statement has a hard ceiling on how many parameters it may take (see
+	// maxOptionIDsPerQuery). Each edge costs two parameters here and four below.
+	for batch := range slices.Chunk(remove, maxOptionIDsPerQuery) {
+		matches := sq.Or{}
+		for _, edge := range batch {
+			matches = append(matches, sq.Eq{
+				"ChildOptionID":  edge.ChildOptionID,
+				"ParentOptionID": edge.ParentOptionID,
+			})
+		}
+		builder := s.getQueryBuilder().
+			Delete("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": field.ID}).
+			Where(matches)
+
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return false, errors.Wrap(err, "property_option_links_delete_exec")
+		}
+	}
+
+	var added int
+	for batch := range slices.Chunk(links.add, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Insert("PropertyOptionEdges").
+			Columns(propertyOptionEdgeColumns...)
+		for _, edge := range batch {
+			builder = builder.Values(field.ID, edge.ChildOptionID, edge.ParentOptionID, now)
+			if !stored[[2]string{edge.ChildOptionID, edge.ParentOptionID}] {
+				added++
+			}
+		}
+		// DO NOTHING rather than DO UPDATE, as in MutateOptions: an edge has nothing
+		// to update, and the same link stated twice in one list conflicts with itself.
+		builder = builder.Suffix("ON CONFLICT (FieldID, ChildOptionID, ParentOptionID) DO NOTHING")
+
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return false, errors.Wrap(err, "property_option_links_insert_exec")
+		}
+	}
+
+	return added > 0 || len(remove) > 0, nil
 }
 
 func equalStringPtr(a, b *string) bool {

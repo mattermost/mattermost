@@ -171,6 +171,13 @@ func (s *SqlPropertyFieldStore) GetOptionChildEdges(fieldID string, parentOption
 // batches, like the walks below: a caller may hold as many options as a whole
 // change touches (see maxOptionIDsPerQuery).
 func (s *SqlPropertyFieldStore) GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
+	return s.optionParentEdges(s.GetMaster(), fieldID, childOptionIDs)
+}
+
+// optionParentEdges is GetOptionParentEdges against a given connection, for the
+// one caller that asks inside the transaction it is about to write in and so must
+// see that transaction's own uncommitted work.
+func (s *SqlPropertyFieldStore) optionParentEdges(db sqlxExecutor, fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	if len(childOptionIDs) == 0 {
 		return nil, nil
 	}
@@ -184,7 +191,7 @@ func (s *SqlPropertyFieldStore) GetOptionParentEdges(fieldID string, childOption
 			Where(sq.Eq{"ChildOptionID": batch})
 
 		found := []*model.PropertyOptionEdge{}
-		if err := s.GetMaster().SelectBuilder(&found, builder); err != nil {
+		if err := db.SelectBuilder(&found, builder); err != nil {
 			return nil, errors.Wrap(err, "property_option_parent_edges_select_query")
 		}
 		edges = append(edges, found...)
