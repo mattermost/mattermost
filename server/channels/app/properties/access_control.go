@@ -28,6 +28,7 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -631,7 +632,7 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 
 	callerID := h.extractCallerID(rctx)
 
-	filtered, err := h.applyValueReadAccessControl([]*model.PropertyValue{value}, callerID)
+	filtered, err := h.applyValueReadAccessControl(rctx, []*model.PropertyValue{value}, callerID)
 	if err != nil {
 		return nil, err
 	}
@@ -653,7 +654,7 @@ func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*mo
 
 	callerID := h.extractCallerID(rctx)
 
-	return h.applyValueReadAccessControl(values, callerID)
+	return h.applyValueReadAccessControl(rctx, values, callerID)
 }
 
 // Access Control Helper Methods
@@ -1017,7 +1018,10 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 			optionIDs[optionID] = struct{}{}
 		}
 
-	case model.PropertyFieldTypeMultiselect:
+	// A graph value holds the options an object is marked with, which is a
+	// multiselect value's shape; what differs is the relation between those
+	// options, and nothing about parsing them.
+	case model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeGraph:
 		var ids []string
 		if err := json.Unmarshal(value, &ids); err != nil {
 			return nil, err
@@ -1029,7 +1033,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 		}
 
 	default:
-		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select, multiselect and rank field types, got: %s", fieldType)
+		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select, multiselect, rank and graph field types, got: %s", fieldType)
 	}
 
 	return optionIDs, nil
@@ -1081,6 +1085,13 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 // field exposes every option at or below the caller's own rank ("everything at
 // your rank and lower"), so a higher-cleared caller sees the full ladder up to
 // their level. See filterSharedOnlyRankFieldOptions.
+//
+// A graph field's options go through the exact-match path, which under-reports
+// what its caller may see: one option of a graph field stands for every option
+// below it, which is how filterSharedOnlyGraphValue masks that same field's
+// values. Filtering this list against the hierarchy instead is a follow-up —
+// exact match errs towards showing the caller less than they are entitled to,
+// never more.
 func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
 	if !field.Type.SupportsOptions() {
 		return field
@@ -1264,6 +1275,9 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 //   - rank: clearance-style. The caller sees the option at the highest rank they share with the
 //     target — the target's own value when its rank is at or below the caller's, otherwise the
 //     value clamped down to the option at the caller's own rank. See filterSharedOnlyRankValue.
+//   - graph: hierarchy-style. Each option the caller covers shows as it stands, and each one
+//     they do not is replaced by the options below it that they do cover. See
+//     filterSharedOnlyGraphValue.
 //   - select / multiselect: per-value intersection (a multi-value field may return a subset).
 //   - text / date / user / any other primitive type: binary — visible only if the caller's
 //     stored value equals the target's value exactly. Otherwise nil.
@@ -1271,9 +1285,13 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 // The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
-func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) filterSharedOnlyValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if field.Type == model.PropertyFieldTypeRank {
 		return h.filterSharedOnlyRankValue(field, value, callerID)
+	}
+
+	if field.Type == model.PropertyFieldTypeGraph {
+		return h.filterSharedOnlyGraphValue(rctx, field, value, callerID)
 	}
 
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
@@ -1389,6 +1407,80 @@ func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, ran
 	return &clamped
 }
 
+// filterSharedOnlyGraphValue returns what the caller may see of a graph value:
+// every option the caller covers — one of their own options is at-or-above it —
+// as it stands, and every option they do not cover replaced by the options below
+// it that they do cover. An option with nothing covered below it is left out, and
+// a value left with no options at all is hidden entirely.
+//
+// So a caller holding one program in a family sees a target marked with the whole
+// family as marked with their own part of it: enough to know they have something
+// in common, and nothing about the parts of the family they hold no claim to.
+// That is more than the exact-match intersection select/multiselect use, neither
+// of which has a hierarchy to consult. It is not rank's ladder either: ranks are
+// a total order, so a caller with any rank at all shares a rung with every target,
+// whereas two options here can be unrelated — and then there is nothing to show
+// and the value is hidden. A caller holding nothing for the field sees nothing.
+//
+// The option list inlined into the field is not consulted, so a field with more
+// options than a read inlines (model.PropertyFieldMaxHydratedOptions) masks
+// exactly like any other: the hierarchy is read from the option rows, and a graph
+// field is expected to be well past that cap. The other shared_only paths have to
+// hide in that case for want of anything to check against.
+func (h *AccessControlHook) filterSharedOnlyGraphValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil {
+		logHiddenGraphValue(rctx, field, value, err)
+		return nil
+	}
+	if len(callerOptionIDs) == 0 {
+		return nil
+	}
+
+	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
+	if err != nil {
+		logHiddenGraphValue(rctx, field, value, err)
+		return nil
+	}
+	if len(targetOptionIDs) == 0 {
+		return nil
+	}
+
+	visible, err := h.propertyService.clampToCoverage(rctx, field,
+		slices.Collect(maps.Keys(targetOptionIDs)), slices.Collect(maps.Keys(callerOptionIDs)))
+	if err != nil {
+		logHiddenGraphValue(rctx, field, value, err)
+		return nil
+	}
+	if len(visible) == 0 {
+		return nil
+	}
+
+	jsonValue, err := json.Marshal(visible)
+	if err != nil {
+		logHiddenGraphValue(rctx, field, value, err)
+		return nil
+	}
+
+	filtered := *value
+	filtered.Value = jsonValue
+	return &filtered
+}
+
+// logHiddenGraphValue records a value that was hidden because what the caller may
+// see of it could not be worked out. Hiding is the only safe answer, and it is
+// also the answer for a caller who genuinely shares nothing with the target — so
+// without a log there is nothing anywhere to tell a broken hierarchy from a
+// working one.
+func logHiddenGraphValue(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
+	rctx.Logger().Error(
+		"Hiding a graph property value because what the caller may see of it could not be established",
+		mlog.String("field_id", field.ID),
+		mlog.String("value_id", value.ID),
+		mlog.Err(err),
+	)
+}
+
 // filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
 // returns the value as-is if the caller's own stored value for the same field equals
 // the target's value, otherwise nil. Caller and target may legitimately store nothing,
@@ -1486,7 +1578,7 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 }
 
 // applyValueReadAccessControl applies read access control to a list of values.
-func (h *AccessControlHook) applyValueReadAccessControl(values []*model.PropertyValue, callerID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values []*model.PropertyValue, callerID string) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -1508,7 +1600,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(values []*model.Property
 		if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 			filtered = append(filtered, value)
 		} else if accessMode == model.PropertyAccessModeSharedOnly {
-			filteredValue := h.filterSharedOnlyValue(field, value, callerID)
+			filteredValue := h.filterSharedOnlyValue(rctx, field, value, callerID)
 			if filteredValue != nil {
 				filtered = append(filtered, filteredValue)
 			}

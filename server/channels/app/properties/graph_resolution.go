@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"maps"
 	"slices"
 
 	"github.com/pkg/errors"
@@ -101,8 +102,8 @@ func (ps *PropertyService) WithinAny(rctx request.CTX, field *model.PropertyFiel
 	return some, err
 }
 
-// coverage walks up from each anchor and reports whether every anchor and
-// whether any anchor has one of the holders at-or-above it.
+// coverage reports whether every anchor and whether any anchor has one of the
+// holders at-or-above it.
 //
 // All four predicates are this one question: covering asks it of the target
 // options, being within asks it of the held options, and each reads off one of
@@ -116,32 +117,52 @@ func (ps *PropertyService) coverage(rctx request.CTX, field *model.PropertyField
 		return false, false, nil
 	}
 
-	above, err := ps.AncestorsOrSelf(rctx, field, anchors)
+	covered, err := ps.coveredBy(rctx, field, anchors, holders)
 	if err != nil {
 		return false, false, err
 	}
 
-	// As a set, because the options above one anchor are bounded only by the size
-	// of the hierarchy while the holders are one object's values.
-	holderSet := make(map[string]bool, len(holders))
-	for _, optionID := range holders {
-		holderSet[optionID] = true
-	}
-
 	all = true
 	for _, anchor := range anchors {
-		// An anchor the field does not have reaches nothing, including itself, so
-		// it is uncovered and drops the "all" answer.
-		covered := slices.ContainsFunc(above[anchor], func(optionID string) bool {
-			return holderSet[optionID]
-		})
-		if covered {
+		if covered[anchor] {
 			some = true
 		} else {
 			all = false
 		}
 	}
 	return all, some, nil
+}
+
+// coveredBy walks up from each of the given options and reports, for each one,
+// whether one of the holders is at-or-above it. Every option asked about has an
+// entry, so a false is an answer and not a gap.
+//
+// One walk for the whole set, because the questions built on this are asked
+// about several options at once -- which of the options one object is marked with
+// may be shown to another, whether a subject accounts for all of them -- and a
+// walk seeded with a set costs what a walk seeded with one of them costs.
+func (ps *PropertyService) coveredBy(rctx request.CTX, field *model.PropertyField, optionIDs, holders []string) (map[string]bool, error) {
+	above, err := ps.AncestorsOrSelf(rctx, field, optionIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// The holders go into a set, because the options above one option are bounded
+	// only by the size of the hierarchy while the holders are one object's values.
+	holderSet := make(map[string]bool, len(holders))
+	for _, optionID := range holders {
+		holderSet[optionID] = true
+	}
+
+	covered := make(map[string]bool, len(optionIDs))
+	for _, optionID := range optionIDs {
+		// An option the field does not have reaches nothing, itself included, so
+		// nothing covers it.
+		covered[optionID] = slices.ContainsFunc(above[optionID], func(holderID string) bool {
+			return holderSet[holderID]
+		})
+	}
+	return covered, nil
 }
 
 // CommonGround returns the most specific options every participant covers, given
@@ -191,7 +212,7 @@ func (ps *PropertyService) CommonGround(rctx request.CTX, field *model.PropertyF
 			return nil, err
 		}
 
-		var descend []string
+		var uncovered []string
 		for _, optionID := range frontier {
 			// An option the field does not have reaches nothing, itself included,
 			// so there is neither anything to share nor anywhere to descend to.
@@ -203,44 +224,207 @@ func (ps *PropertyService) CommonGround(rctx request.CTX, field *model.PropertyF
 				sharedAncestors[optionID] = above[optionID]
 				continue
 			}
-			descend = append(descend, optionID)
+			uncovered = append(uncovered, optionID)
 		}
 
-		children, err := ps.fieldStore.GetOptionChildren(field, descend)
+		frontier, err = ps.levelBelow(field, uncovered, seen)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to read the options below a graph property field's options")
-		}
-
-		frontier = nil
-		for _, optionID := range descend {
-			for _, childID := range children[optionID] {
-				if seen[childID] {
-					continue
-				}
-				seen[childID] = true
-				frontier = append(frontier, childID)
-			}
+			return nil, err
 		}
 	}
 
 	// Separate branches can stop at options that turn out to be related, since a
 	// branch that stopped never looked below itself. An option with another
 	// shared option above it is not one of the most specific ones.
-	sharedSet := make(map[string]bool, len(shared))
-	for _, optionID := range shared {
-		sharedSet[optionID] = true
+	return maximalElements(shared, sharedAncestors), nil
+}
+
+// clampToCoverage returns what a holder of the given options may be told about
+// another object's: each of the object's options the holder covers, unchanged,
+// and each one they do not replaced by the options below it that they do cover
+// and that nothing else in that replacement sits above. An option with nothing
+// covered below it contributes nothing, so an empty result means none of it may
+// be seen at all.
+//
+// This is the read-masking rule for a hierarchy, and the reason it is a
+// replacement rather than a yes-or-no: a holder of one program in a family has
+// no business learning that an object is marked with the whole family, but
+// hiding the mark outright would also hide the part of it they are entitled to.
+// The replacement says as much as the holder's own options account for and no
+// more.
+//
+// An option the field does not have is covered by nothing and has nothing below
+// it, so it drops out -- a value naming an option that has since been deleted
+// masks to nothing rather than to itself.
+func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.PropertyField, optionIDs, held []string) ([]string, error) {
+	if err := requireGraphField(field); err != nil {
+		return nil, err
+	}
+	// A holder of nothing covers nothing, and there is nothing to say about an
+	// object that is marked with nothing.
+	if len(optionIDs) == 0 || len(held) == 0 {
+		return nil, nil
 	}
 
-	maximal := make([]string, 0, len(shared))
-	for _, optionID := range shared {
-		if slices.ContainsFunc(sharedAncestors[optionID], func(ancestorID string) bool {
-			return ancestorID != optionID && sharedSet[ancestorID]
+	covered, err := ps.coveredBy(rctx, field, optionIDs, held)
+	if err != nil {
+		return nil, err
+	}
+
+	visible := map[string]bool{}
+	for _, optionID := range optionIDs {
+		if covered[optionID] {
+			visible[optionID] = true
+			continue
+		}
+		below, err := ps.coveredBelow(rctx, field, optionID, held)
+		if err != nil {
+			return nil, err
+		}
+		for _, coveredID := range below {
+			visible[coveredID] = true
+		}
+	}
+
+	// Sorted so that the same holdings mask the same value to the same answer
+	// every time it is read: the options come out of a walk over rows and then a
+	// map, and neither promises an order. A masked value that reshuffles between
+	// two reads reads as the value having changed.
+	return slices.Sorted(maps.Keys(visible)), nil
+}
+
+// coveredBelow returns the options below the given one that a holder of held
+// covers and that no other such option sits above: what the holder may be told
+// about an option they do not cover themselves.
+//
+// It descends and stops each branch at the first option the holder covers, which
+// is what leaves the result maximal without materializing anything. Be clear
+// about what stopping does and does not save: it prunes the branch the covered
+// option is on and no other, so a holder whose clearance is narrow -- one option
+// among a wide level -- still sends the walk down every other branch to the
+// bottom. What bounds this is the size of the subtree below the option, not how
+// far down the holder's own options sit, in one query per level. Measured on a
+// 1,110-option subtree, masking its root costs the same whether the holder covers
+// nothing below it or holds an option one level down.
+//
+// Nothing is capped, because a cap would mask a value to less than the holder may
+// see with nothing anywhere to say why. The subtree bounds it already, and the
+// holder who would make that subtree largest -- one holding a root -- covers the
+// option outright and never arrives here.
+//
+// The other way to compute it is to intersect everything below the option with
+// everything the holder covers: three queries rather than one per level, at the
+// price of holding both sets in memory. On the same fixture that measured about
+// four times faster, so it is the upgrade path if masking ever shows up in a read
+// profile. Both formulations sit on the same store primitives and agree option for
+// option.
+func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyField, optionID string, held []string) ([]string, error) {
+	// The option itself is never a candidate -- whoever asks has established that
+	// the holder does not cover it -- and having it here also keeps a branch that
+	// rejoins the hierarchy above from walking back onto it.
+	seen := map[string]bool{optionID: true}
+
+	frontier, err := ps.levelBelow(field, []string{optionID}, seen)
+	if err != nil {
+		return nil, err
+	}
+
+	var candidates []string
+	for len(frontier) > 0 {
+		var covered map[string]bool
+		covered, err = ps.coveredBy(rctx, field, frontier, held)
+		if err != nil {
+			return nil, err
+		}
+
+		var uncovered []string
+		for _, reachedID := range frontier {
+			if covered[reachedID] {
+				// Everything below a covered option is covered too, and this one is
+				// above all of it, so the branch has nothing to add below here.
+				candidates = append(candidates, reachedID)
+				continue
+			}
+			uncovered = append(uncovered, reachedID)
+		}
+
+		frontier, err = ps.levelBelow(field, uncovered, seen)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(candidates) < 2 {
+		return candidates, nil
+	}
+
+	// Stopping at the first covered option on each branch does not by itself make
+	// the result maximal: where branches rejoin, an option can be reached by a
+	// route that never crossed one of the options already taken, and so be
+	// reported alongside something that is above it.
+	above, err := ps.AncestorsOrSelf(rctx, field, candidates)
+	if err != nil {
+		return nil, err
+	}
+	return maximalElements(candidates, above), nil
+}
+
+// levelBelow returns the options one step below the given ones, leaving out any
+// option a walk has already reached and recording the ones it returns as
+// reached. A hierarchy where branches rejoin is therefore walked once per option
+// rather than once per route to it -- and one that somehow held a cycle stops
+// instead of descending forever, which is why the caller passes the option it
+// started from in as already reached.
+func (ps *PropertyService) levelBelow(field *model.PropertyField, optionIDs []string, seen map[string]bool) ([]string, error) {
+	if len(optionIDs) == 0 {
+		return nil, nil
+	}
+
+	children, err := ps.fieldStore.GetOptionChildren(field, optionIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the options below a graph property field's options")
+	}
+
+	var below []string
+	for _, optionID := range optionIDs {
+		for _, childID := range children[optionID] {
+			if seen[childID] {
+				continue
+			}
+			seen[childID] = true
+			below = append(below, childID)
+		}
+	}
+	return below, nil
+}
+
+// maximalElements drops every one of the given options that another of them sits
+// above, leaving the ones nothing else accounts for. above must say, for each
+// option, which options are at-or-above it.
+//
+// Two of the walks here stop a branch as soon as it reaches an option worth
+// reporting, which leaves this as the one place the results are compared against
+// each other.
+func maximalElements(optionIDs []string, above map[string][]string) []string {
+	if len(optionIDs) < 2 {
+		return optionIDs
+	}
+
+	candidates := make(map[string]bool, len(optionIDs))
+	for _, optionID := range optionIDs {
+		candidates[optionID] = true
+	}
+
+	maximal := make([]string, 0, len(optionIDs))
+	for _, optionID := range optionIDs {
+		if slices.ContainsFunc(above[optionID], func(ancestorID string) bool {
+			return ancestorID != optionID && candidates[ancestorID]
 		}) {
 			continue
 		}
 		maximal = append(maximal, optionID)
 	}
-	return maximal, nil
+	return maximal
 }
 
 // coveredByEvery reports whether every participant holds one of the given
