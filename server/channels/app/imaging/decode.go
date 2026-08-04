@@ -216,11 +216,6 @@ func GetDimensions(imageData io.Reader) (width int, height int, err error) {
 // It streams the RIFF chunk list so only the first ANMF frame payload is read
 // into memory — the rest of the file is discarded without buffering.
 func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
-	if d.opts.ConcurrencyLevel != 0 {
-		d.sem <- struct{}{}
-		defer func() { <-d.sem }()
-	}
-
 	var header [riffContainerSize]byte
 	if _, err := io.ReadFull(r, header[:]); err != nil {
 		return nil, fmt.Errorf("webp: read failed: %w", err)
@@ -246,7 +241,17 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			if err != nil {
 				return nil, err
 			}
-			img, _, err := image.Decode(bytes.NewReader(container))
+			// enforceResolutionLimit peeks the header and seeks back, so rd is
+			// ready to pass straight to image.Decode.
+			rd, err := d.enforceResolutionLimit(bytes.NewReader(container))
+			if err != nil {
+				return nil, err
+			}
+			if d.opts.ConcurrencyLevel != 0 {
+				d.sem <- struct{}{}
+				defer func() { <-d.sem }()
+			}
+			img, _, err := image.Decode(rd)
 			if err != nil {
 				return nil, fmt.Errorf("webp: first frame decode failed: %w", err)
 			}

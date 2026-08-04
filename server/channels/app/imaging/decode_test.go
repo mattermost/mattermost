@@ -379,6 +379,17 @@ func TestDecodeWebPFirstFrame(t *testing.T) {
 			require.Error(t, err)
 		})
 	})
+
+	t.Run("frame exceeding MaxDecodedResolution is rejected", func(t *testing.T) {
+		// The vp8Chunk fixture is 128x256 = 32768 pixels. A decoder capped at
+		// 1000 pixels should reject it through enforceResolutionLimit, which is
+		// now applied to the synthesised container before image.Decode is called.
+		capped, err := NewDecoder(DecoderOptions{MaxDecodedResolution: 1000})
+		require.NoError(t, err)
+		_, err = capped.DecodeWebPFirstFrame(bytes.NewReader(wrapWebP(mkANMF(vp8Chunk))))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exceeds the maximum allowed")
+	})
 }
 
 func TestPSDNotSupported(t *testing.T) {
