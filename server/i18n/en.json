@@ -6247,12 +6247,12 @@
     "translation": "Remote user"
   },
   {
-    "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": "Last viewed channel at (UTC)"
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "User last activity time (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
-    "id": "app.data_spillage.exposure.column.likely_received_post",
-    "translation": "Likely received post"
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
@@ -6273,6 +6273,10 @@
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
     "translation": "Failed to retrieve the channel membership history for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Failed to retrieve session activity for the flagged post."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
@@ -6316,11 +6320,15 @@
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": "Never viewed"
+    "translation": "N/A"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
     "translation": "No"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "No sessions found"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",

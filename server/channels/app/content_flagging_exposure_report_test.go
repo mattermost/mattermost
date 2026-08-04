@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"net/http"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -43,6 +44,14 @@ func setLastViewedAt(t *testing.T, th *TestHelper, channelID, userID string, las
 		`UPDATE ChannelMembers SET LastViewedAt = ? WHERE ChannelId = ? AND UserId = ?`,
 		lastViewedAt, channelID, userID)
 	require.NoError(t, err)
+}
+
+func seedSessionWithLastActivityAt(t *testing.T, th *TestHelper, userID string, lastActivityAt int64) {
+	t.Helper()
+
+	session, err := th.App.Srv().Store().Session().Save(th.Context, &model.Session{UserId: userID})
+	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, lastActivityAt))
 }
 
 // seedOldChannelMemberHistory makes GetUsersInChannelDuring use ChannelMemberHistory rather
@@ -112,35 +121,13 @@ func TestComputePostExposure(t *testing.T) {
 		entry := entryFor(report, viewer.Id)
 		require.NotNil(t, entry)
 		require.True(t, entry.WasChannelMember)
-		require.True(t, entry.LikelyReceivedPost)
 		require.NotNil(t, entry.LastViewedAt)
 		require.Equal(t, post.CreateAt+1000, *entry.LastViewedAt)
 		require.Equal(t, viewer.Username, entry.Username)
 		require.Equal(t, viewer.Email, entry.UserEmail)
 	})
 
-	t.Run("includes a member whose LastViewedAt equals the post CreateAt exactly", func(t *testing.T) {
-		// UpdateLastViewedAt sets LastViewedAt to Channels.LastPostAt rather than to
-		// wall-clock now, so reading a channel whose newest post is the flagged one lands
-		// on exact equality. A strict > comparison would silently drop the single most
-		// common real exposure.
-		channel := th.CreateChannel(t, th.BasicTeam)
-		viewer := th.CreateUser(t)
-		th.LinkUserToTeam(t, viewer, th.BasicTeam)
-		th.AddUserToChannel(t, viewer, channel)
-
-		post := flagPostInChannel(t, th, channel)
-		setLastViewedAt(t, th, channel.Id, viewer.Id, post.CreateAt)
-
-		report, appErr := th.App.ComputePostExposure(th.Context, post.Id)
-		require.Nil(t, appErr)
-
-		entry := entryFor(report, viewer.Id)
-		require.NotNil(t, entry)
-		require.True(t, entry.LikelyReceivedPost)
-	})
-
-	t.Run("reports a member who never viewed the channel as not having received the post", func(t *testing.T) {
+	t.Run("reports a member whose last channel view predates the post", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		nonViewer := th.CreateUser(t)
 		th.LinkUserToTeam(t, nonViewer, th.BasicTeam)
@@ -155,7 +142,6 @@ func TestComputePostExposure(t *testing.T) {
 		entry := entryFor(report, nonViewer.Id)
 		require.NotNil(t, entry)
 		require.True(t, entry.WasChannelMember)
-		require.False(t, entry.LikelyReceivedPost)
 		require.NotNil(t, entry.LastViewedAt)
 		require.Equal(t, post.CreateAt-1, *entry.LastViewedAt)
 	})
@@ -175,7 +161,6 @@ func TestComputePostExposure(t *testing.T) {
 		entry := entryFor(report, leaver.Id)
 		require.NotNil(t, entry, "a user who left after the post must still be reported as a member")
 		require.True(t, entry.WasChannelMember)
-		require.False(t, entry.LikelyReceivedPost)
 		require.Nil(t, entry.LastViewedAt, "no read state survives for a former member")
 	})
 
@@ -249,7 +234,67 @@ func TestComputePostExposure(t *testing.T) {
 
 		entry := entryFor(report, user.Id)
 		require.NotNil(t, entry, "archiving is soft; membership and read state survive it")
-		require.True(t, entry.LikelyReceivedPost)
+		require.NotNil(t, entry.LastViewedAt)
+		require.Equal(t, post.CreateAt+1, *entry.LastViewedAt)
+	})
+
+	t.Run("reports the latest activity across all of a user's sessions", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, channel)
+
+		post := flagPostInChannel(t, th, channel)
+		seedSessionWithLastActivityAt(t, th, user.Id, post.CreateAt-5000)
+		seedSessionWithLastActivityAt(t, th, user.Id, post.CreateAt+7000)
+
+		report, appErr := th.App.ComputePostExposure(th.Context, post.Id)
+		require.Nil(t, appErr)
+
+		entry := entryFor(report, user.Id)
+		require.NotNil(t, entry)
+		require.NotNil(t, entry.LastActivityAt)
+		require.Equal(t, post.CreateAt+7000, *entry.LastActivityAt)
+	})
+
+	t.Run("leaves LastActivityAt unset for a member with no sessions", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, channel)
+
+		post := flagPostInChannel(t, th, channel)
+
+		report, appErr := th.App.ComputePostExposure(th.Context, post.Id)
+		require.Nil(t, appErr)
+
+		entry := entryFor(report, user.Id)
+		require.NotNil(t, entry)
+		require.Nil(t, entry.LastActivityAt)
+	})
+
+	t.Run("excludes bots", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		th.AddUserToChannel(t, botUser, channel)
+
+		human := th.CreateUser(t)
+		th.LinkUserToTeam(t, human, th.BasicTeam)
+		th.AddUserToChannel(t, human, channel)
+
+		_, err := th.App.GetChannelMember(th.Context, channel.Id, bot.UserId)
+		require.Nil(t, err, "the bot must really be a channel member for this to test anything")
+
+		post := flagPostInChannel(t, th, channel)
+
+		report, appErr := th.App.ComputePostExposure(th.Context, post.Id)
+		require.Nil(t, appErr)
+
+		require.NotNil(t, entryFor(report, human.Id), "the channel's human members must still be reported")
+		require.Nil(t, entryFor(report, bot.UserId), "a bot cannot be a recipient of a data spillage")
 	})
 
 	t.Run("populates the report window and metadata", func(t *testing.T) {
@@ -401,6 +446,13 @@ func TestWritePostExposureCSV(t *testing.T) {
 		return records
 	}
 
+	headerIndex := func(t *testing.T, key string) int {
+		t.Helper()
+		idx := slices.Index(model.PostExposureReportCSVHeader(T), T(key))
+		require.GreaterOrEqual(t, idx, 0, "no column is headed by %s", key)
+		return idx
+	}
+
 	t.Run("writes a preamble and a header for an empty report", func(t *testing.T) {
 		var buf bytes.Buffer
 		require.NoError(t, WritePostExposureCSV(&buf, baseReport(), T))
@@ -420,15 +472,15 @@ func TestWritePostExposureCSV(t *testing.T) {
 	t.Run("renders every column", func(t *testing.T) {
 		report := baseReport()
 		report.Entries = append(report.Entries, &model.PostExposureReportEntry{
-			UserID:             "user1",
-			Username:           "alice",
-			UserEmail:          "alice@example.com",
-			IsGuest:            true,
-			IsRemote:           false,
-			IsDeactivated:      true,
-			WasChannelMember:   true,
-			LikelyReceivedPost: true,
-			LastViewedAt:       model.NewPointer(int64(1700000300000)),
+			UserID:           "user1",
+			Username:         "alice",
+			UserEmail:        "alice@example.com",
+			IsGuest:          true,
+			IsRemote:         false,
+			IsDeactivated:    true,
+			WasChannelMember: true,
+			LastViewedAt:     model.NewPointer(int64(1700000300000)),
+			LastActivityAt:   model.NewPointer(int64(1700000900000)),
 		})
 
 		var buf bytes.Buffer
@@ -438,8 +490,8 @@ func TestWritePostExposureCSV(t *testing.T) {
 		require.Len(t, records, 2)
 		require.Equal(t, []string{
 			"user1", "alice", "alice@example.com",
-			"Yes", "No", "Yes", "Yes", "Yes",
-			"2023-11-14T22:18:20Z",
+			"Yes", "No", "Yes", "Yes",
+			"2023-11-14T22:18:20Z", "2023-11-14T22:28:20Z",
 		}, records[1])
 		require.Len(t, records[1], len(model.PostExposureReportCSVHeader(T)))
 	})
@@ -456,8 +508,13 @@ func TestWritePostExposureCSV(t *testing.T) {
 
 		records := parseCSV(t, buf.Bytes())
 		require.Len(t, records, 3)
-		require.Equal(t, "Unknown", records[1][8])
-		require.Equal(t, "Never viewed", records[2][8])
+
+		lastViewed := headerIndex(t, "app.data_spillage.exposure.column.last_viewed_at")
+		lastActivity := headerIndex(t, "app.data_spillage.exposure.column.last_activity_at")
+
+		require.Equal(t, "Unknown", records[1][lastViewed])
+		require.Equal(t, "No sessions found", records[1][lastActivity])
+		require.Equal(t, "N/A", records[2][lastViewed])
 		require.NotContains(t, buf.String(), "1970-01-01")
 	})
 

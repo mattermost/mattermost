@@ -70,7 +70,7 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 	memberUserIDs := make([]string, 0, len(histories))
 	seen := make(map[string]bool, len(histories))
 	for _, h := range histories {
-		if seen[h.UserId] {
+		if h.IsBot || seen[h.UserId] {
 			continue
 		}
 		seen[h.UserId] = true
@@ -111,7 +111,14 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 
 		if lastViewedAt, isMember := lastViewedByUser[userID]; isMember {
 			entry.LastViewedAt = model.NewPointer(lastViewedAt)
-			entry.LikelyReceivedPost = lastViewedAt >= post.CreateAt
+		}
+
+		if !entry.IsDeactivated {
+			lastActivityAt, appErr := a.getUserLastActivityAt(rctx, userID)
+			if appErr != nil {
+				return nil, appErr
+			}
+			entry.LastActivityAt = lastActivityAt
 		}
 
 		report.Entries = append(report.Entries, entry)
@@ -186,6 +193,26 @@ func (a *App) getUsersProfiles(rctx request.CTX, userIDs []string) (map[string]*
 	}
 
 	return profiles, nil
+}
+
+func (a *App) getUserLastActivityAt(rctx request.CTX, userID string) (*int64, *model.AppError) {
+	sessions, appErr := a.GetSessions(rctx, userID)
+	if appErr != nil {
+		return nil, model.NewAppError("getUserLastActivityAt", "app.data_spillage.exposure.get_last_activity.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	if len(sessions) == 0 {
+		return nil, nil
+	}
+
+	var lastActivityAt int64
+	for _, session := range sessions {
+		if session.LastActivityAt > lastActivityAt {
+			lastActivityAt = session.LastActivityAt
+		}
+	}
+
+	return model.NewPointer(lastActivityAt), nil
 }
 
 func WritePostExposureCSV(w io.Writer, report *model.PostExposureReport, T i18n.TranslateFunc) error {
