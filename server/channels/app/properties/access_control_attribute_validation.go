@@ -579,8 +579,16 @@ func (h *AccessControlAttributeValidationHook) requireOptionsExist(field *model.
 //   - text: max length, value_type format (email, url, phone)
 //   - select: option ID must exist in the field's options
 //   - multiselect: all option IDs must exist
+//   - graph: all option IDs must exist, and none may be repeated
 //   - user: value must be a valid Mattermost ID
 //   - multiuser: all values must be valid Mattermost IDs
+//   - date: nothing
+//
+// Every field type the model allows has a case, and a type with none is refused
+// outright. Access rules in these groups are written against the values this
+// decides on, so a type falling through to "valid" would let anything at all be
+// stored under it -- the wrong shape, or option identifiers naming no option --
+// and every rule reading it would then decide from data nothing had checked.
 func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
@@ -615,6 +623,28 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 		}
 		return h.requireOptionsExist(field, values)
 
+	case model.PropertyFieldTypeGraph:
+		// The same shape as a multiselect value -- the options an object holds, in
+		// no particular order -- and checked the same way, against the option rows.
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return fmt.Errorf("expected string array value for graph field: %w", err)
+		}
+
+		// Holding an option twice says nothing that holding it once does not, so a
+		// repeat is a mistake in the caller rather than something to quietly
+		// discard. Refused here and not for multiselect, where a repeat has always
+		// been accepted and refusing one now would reject values callers already
+		// send.
+		seen := make(map[string]bool, len(values))
+		for _, v := range values {
+			if seen[v] {
+				return fmt.Errorf("option %q is listed more than once", v)
+			}
+			seen[v] = true
+		}
+		return h.requireOptionsExist(field, values)
+
 	case model.PropertyFieldTypeUser:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
@@ -634,6 +664,14 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 				return fmt.Errorf("invalid user id: %s", v)
 			}
 		}
+
+	case model.PropertyFieldTypeDate:
+		// Nothing to check. A date value's shape has never been constrained here,
+		// and constraining it now would refuse values already stored. Listed so
+		// that the case below is only reached by a type nobody has considered.
+
+	default:
+		return fmt.Errorf("values of a %s field are not validated, so none may be written", field.Type)
 	}
 
 	return nil

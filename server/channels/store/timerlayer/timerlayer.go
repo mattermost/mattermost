@@ -8596,6 +8596,22 @@ func (s *TimerLayerPropertyFieldStore) GetLinkedFieldOptionNames(fieldID string,
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetLinkedFields(fieldIDs []string, excludeIDs []string) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetLinkedFields(fieldIDs, excludeIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLinkedFields", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 

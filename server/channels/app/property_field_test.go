@@ -1182,6 +1182,53 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
+	t.Run("an option change signals for the changed field and for every field linking to it", func(t *testing.T) {
+		// A field linking to a template serves the template's options without
+		// holding a copy of them, so an option change on the template leaves the
+		// dependent's row untouched -- nothing else drops the policies compiled
+		// against the dependent, which are cached under its own ID.
+		memberLevel := model.PermissionLevelMember
+		tmpl, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeMultiselect,
+			TargetType:        "system",
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Air"}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		linked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked_" + model.NewId(),
+			TargetType:    "system",
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &tmpl.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		options, ok := tmpl.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok)
+		optionID := options[0].(map[string]any)["id"].(string)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return().Once()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return().Once()
+
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+			{ID: optionID, Name: "Aerial"},
+		}, "")
+		require.Nil(t, appErr)
+
+		mockACS.AssertExpectations(t)
+	})
+
 	t.Run("mutations succeed (no panic) when access control is unavailable", func(t *testing.T) {
 		// The signalling is guarded by `if acs != nil`; with no enterprise
 		// service installed the field CRUD must still succeed.

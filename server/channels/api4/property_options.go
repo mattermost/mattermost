@@ -189,7 +189,7 @@ func createPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	created, appErr := c.App.CreatePropertyFieldOptions(rctx, field, options)
+	created, appErr := c.App.CreatePropertyFieldOptions(rctx, field, options, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -225,7 +225,7 @@ func patchPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	updated, prior, appErr := c.App.UpdatePropertyFieldOptions(rctx, field, options)
+	updated, prior, appErr := c.App.UpdatePropertyFieldOptions(rctx, field, options, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -270,7 +270,7 @@ func deletePropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	deleted, appErr := c.App.DeletePropertyFieldOptions(rctx, field, optionIDs)
+	deleted, appErr := c.App.DeletePropertyFieldOptions(rctx, field, optionIDs, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return

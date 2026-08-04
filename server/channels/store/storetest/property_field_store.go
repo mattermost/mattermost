@@ -31,6 +31,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
+	t.Run("GetLinkedFields", func(t *testing.T) { testGetLinkedFields(t, rctx, ss) })
 	t.Run("UpdateWithLinkedDependents", func(t *testing.T) { testUpdateWithLinkedDependents(t, rctx, ss) })
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
@@ -3070,6 +3071,88 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 		count, cErr := ss.PropertyField().CountLinkedFields(sourceField.ID)
 		require.NoError(t, cErr)
 		require.Equal(t, int64(2), count)
+	})
+}
+
+func testGetLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	template, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Programs",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: map[string]any{
+			"options": []any{map[string]any{"name": "Air Program"}},
+		},
+	})
+	require.NoError(t, err)
+
+	newLinkedField := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		field, cErr := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          name,
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    "user",
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, cErr)
+		return field
+	}
+
+	fieldIDs := func(fields []*model.PropertyField) []string {
+		ids := make([]string, 0, len(fields))
+		for _, field := range fields {
+			ids = append(ids, field.ID)
+		}
+		return ids
+	}
+
+	t.Run("should return nothing for a field nothing links to", func(t *testing.T) {
+		fields, gErr := ss.PropertyField().GetLinkedFields([]string{template.ID}, nil)
+		require.NoError(t, gErr)
+		require.Empty(t, fields)
+	})
+
+	t.Run("should return nothing when asked about no fields", func(t *testing.T) {
+		fields, gErr := ss.PropertyField().GetLinkedFields(nil, nil)
+		require.NoError(t, gErr)
+		require.Empty(t, fields)
+	})
+
+	first := newLinkedField(t, "First")
+	second := newLinkedField(t, "Second")
+
+	t.Run("should return each linking field with the options it derives", func(t *testing.T) {
+		fields, gErr := ss.PropertyField().GetLinkedFields([]string{template.ID}, nil)
+		require.NoError(t, gErr)
+		require.ElementsMatch(t, []string{first.ID, second.ID}, fieldIDs(fields))
+
+		// The options are the template's: a linking field owns none of its own, and
+		// the point of this read is to hand a caller the field as its readers see it.
+		for _, field := range fields {
+			options, ok := field.Attrs["options"].([]any)
+			require.True(t, ok, "field %s should carry an option list", field.Name)
+			require.Len(t, options, 1)
+			require.Equal(t, "Air Program", options[0].(map[string]any)["name"])
+		}
+	})
+
+	t.Run("should leave out the fields named in excludeIDs", func(t *testing.T) {
+		fields, gErr := ss.PropertyField().GetLinkedFields([]string{template.ID}, []string{first.ID})
+		require.NoError(t, gErr)
+		require.Equal(t, []string{second.ID}, fieldIDs(fields))
+	})
+
+	t.Run("should leave out a deleted field", func(t *testing.T) {
+		require.NoError(t, ss.PropertyField().Delete("", second.ID))
+
+		fields, gErr := ss.PropertyField().GetLinkedFields([]string{template.ID}, nil)
+		require.NoError(t, gErr)
+		require.Equal(t, []string{first.ID}, fieldIDs(fields))
 	})
 }
 

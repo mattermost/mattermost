@@ -5,10 +5,12 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -139,6 +141,67 @@ func TestPropertyFieldOptions(t *testing.T) {
 		after, appErr := th.App.GetPropertyField(th.Context, group.ID, fields.template.ID)
 		require.Nil(t, appErr)
 		require.Greater(t, after.UpdateAt, fields.template.UpdateAt)
+	})
+
+	t.Run("an option change is announced for the field that owns it and for every field serving it", func(t *testing.T) {
+		// The template's row is the only one an option change writes, so nothing
+		// about a field linking to it says that the options it serves have moved.
+		// Each field is announced separately, from its own perspective: the option
+		// list is the one that field's readers see, and the event carries that
+		// field's own object type.
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		created, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+			namedOption("Air Program"),
+		})
+		require.NoError(t, err)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, err = th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+			{ID: created[0].ID, Name: "Aerial Program"},
+		})
+		require.NoError(t, err)
+
+		// One event per field, keyed by the field each one carries. Other events may
+		// arrive in between, so this collects rather than reading a fixed number.
+		announced := map[string]*model.WebSocketEvent{}
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
+					return false
+				}
+				var received model.PropertyField
+				require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+				announced[received.ID] = event
+			default:
+			}
+			return len(announced) == 2
+		}, 5*time.Second, 100*time.Millisecond)
+
+		for _, tc := range []struct {
+			fieldID    string
+			objectType string
+		}{
+			{fields.template.ID, template},
+			{fields.linked.ID, userObject},
+		} {
+			event := announced[tc.fieldID]
+			require.NotNil(t, event, "no event for field %s", tc.fieldID)
+			require.Equal(t, tc.objectType, event.GetData()["object_type"])
+
+			var received model.PropertyField
+			require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+
+			// The renamed option, as this field serves it: the template owns it and
+			// the linked field derives it, and both carry the new name.
+			options, ok := received.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.True(t, ok, "field %s should carry its option list", tc.fieldID)
+			require.Len(t, options, 1)
+			assert.Equal(t, "Aerial Program", options[0].(map[string]any)["name"])
+		}
 	})
 
 	t.Run("the effective set is listed, with inherited options read-only", func(t *testing.T) {

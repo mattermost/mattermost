@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -38,7 +39,7 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyFie
 }
 
 // CreatePropertyFieldOptions adds options to a field.
-func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, *model.AppError) {
+func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
 	created, err := a.Srv().propertyService.CreateFieldOptions(field, options)
 	if err != nil {
 		if appErr := mapPropertyServiceError("CreatePropertyFieldOptions", err); appErr != nil {
@@ -47,13 +48,13 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("CreatePropertyFieldOptions", "app.property_field.options.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.invalidatePolicyCachesForOptionChange(rctx, field)
+	a.propertyFieldOptionsChanged(rctx, field, connectionID)
 	return created, nil
 }
 
 // UpdatePropertyFieldOptions rewrites options a field owns, and reports what
 // those options were beforehand so a caller can record what the change replaced.
-func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
+func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
 	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(field, options)
 	if err != nil {
 		if mapped := mapPropertyServiceError("UpdatePropertyFieldOptions", err); mapped != nil {
@@ -62,14 +63,14 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, nil, model.NewAppError("UpdatePropertyFieldOptions", "app.property_field.options.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.invalidatePolicyCachesForOptionChange(rctx, field)
+	a.propertyFieldOptionsChanged(rctx, field, connectionID)
 	return updated, prior, nil
 }
 
 // DeletePropertyFieldOptions removes options a field owns, and reports them as
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
-func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, *model.AppError) {
+func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
 	deleted, err := a.Srv().propertyService.DeleteFieldOptions(field, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {
@@ -78,8 +79,62 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.invalidatePolicyCachesForOptionChange(rctx, field)
+	a.propertyFieldOptionsChanged(rctx, field, connectionID)
 	return deleted, nil
+}
+
+// propertyFieldOptionsChanged announces a change to a field's options: it drops
+// the access control caches resting on them and tells connected clients to read
+// the field again.
+//
+// Both go to the field named by the change *and* to every field linking to it. A
+// linked field serves the template's options as its own without holding a copy of
+// them, so a change to the template changes what the dependent serves while
+// leaving the dependent's own row untouched -- nothing about the dependent would
+// otherwise say that its option list had moved. Access rules are written against
+// option names and compiled per field, so a policy compiled against a dependent
+// would go on deciding from options that have been renamed or deleted, and a
+// client holding the dependent would go on offering them.
+//
+// Each field is published separately rather than as a list, because each event is
+// a different one: the option list is inlined from that field's own perspective,
+// and the broadcast is scoped to that field's own target.
+//
+// connectionID is the connection that asked for the change, which is excluded from
+// the event for the field it named -- it already knows. It is not excluded from the
+// dependents' events, which are about fields it did not write.
+//
+// The invalidation runs before the broadcast, so that a client acting on the event
+// cannot read back a cache entry the event was announcing the end of. This is the
+// ordering the field write path uses, for the same reason.
+func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.PropertyField, connectionID string) {
+	current, dependents, err := a.Srv().propertyService.FieldWithDependents(field)
+	if err != nil {
+		// The field the change named is still invalidated, from the caller's copy:
+		// dropping a cache entry that did not need dropping costs a recompile,
+		// while keeping one that did means deciding access from options that are
+		// gone. Its dependents cannot be -- they are exactly what could not be
+		// read -- so this is logged as an error and not swallowed. Nothing is
+		// published, because the only field state to publish is the one from
+		// before the change.
+		rctx.Logger().Error(
+			"Failed to read the property fields serving changed options; dependent access policy caches and clients were not notified",
+			mlog.String("field_id", field.ID),
+			mlog.Err(err),
+		)
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		return
+	}
+
+	a.invalidatePolicyCachesForOptionChange(rctx, current.ID)
+	for _, dependent := range dependents {
+		a.invalidatePolicyCachesForOptionChange(rctx, dependent.ID)
+	}
+
+	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)
+	for _, dependent := range dependents {
+		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, dependent, "")
+	}
 }
 
 // invalidatePolicyCachesForOptionChange tells the access control service that a
@@ -87,15 +142,8 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 // compiled policy resting on it are dropped. Access rules are written against
 // option names, so a cache holding options that have been renamed or removed
 // would go on deciding from a set of options that no longer exists.
-//
-// Only the field whose options changed. A field linking to it serves the same
-// options and its own compiled policies are cached under its own ID, so those
-// are not dropped here -- the websocket republication that tells clients about a
-// linked field's derived options is where that belongs, and it is not yet
-// written. Until it is, a policy compiled against a linked field keeps a stale
-// option set until its own field changes or the node restarts.
-func (a *App) invalidatePolicyCachesForOptionChange(rctx request.CTX, field *model.PropertyField) {
+func (a *App) invalidatePolicyCachesForOptionChange(rctx request.CTX, fieldID string) {
 	if acs := a.Srv().ch.AccessControl; acs != nil {
-		acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
+		acs.OnPropertyFieldOptionsChanged(rctx, fieldID)
 	}
 }

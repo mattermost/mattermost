@@ -527,17 +527,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	// dependents' clients that their option list moved.
 	var dependents []*model.PropertyField
 	if len(changedFieldIDs) > 0 {
-		selectBuilder := s.tableSelectQuery.
-			Where(sq.Eq{"LinkedFieldID": changedFieldIDs}).
-			Where(sq.Eq{"DeleteAt": 0}).
-			Where(sq.NotEq{"ID": ids})
-
-		if selectErr := transaction.SelectBuilder(&dependents, selectBuilder); selectErr != nil {
-			return nil, errors.Wrap(selectErr, "property_field_update_select_dependents")
-		}
-
-		if hydrateErr := s.hydratePropertyFieldOptions(transaction, dependents); hydrateErr != nil {
-			return nil, errors.Wrap(hydrateErr, "property_field_update_hydrate_dependents")
+		dependents, err = s.getLinkedFields(transaction, changedFieldIDs, ids)
+		if err != nil {
+			return nil, errors.Wrap(err, "property_field_update_select_dependents")
 		}
 	}
 
@@ -789,6 +781,46 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 // because it gates writes, matching CountLinkedFields.
 func (s *SqlPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
 	return s.getExistingOptionIDs(s.GetMaster(), optionOwnerIDs(field), optionIDs)
+}
+
+// GetLinkedFields returns the live fields linking to any of the given fields,
+// each with its own effective option set inlined. Fields named in excludeIDs are
+// left out, so a caller already holding some of them is not handed the same field
+// twice.
+//
+// A field linking to a template serves that template's options as its own without
+// holding a copy, so a change to the template changes what the dependent serves
+// while leaving the dependent's row untouched. This is how the fields that change
+// with it are found.
+//
+// Reads the master. Every caller is a write path asking what else its write
+// affected, and a replica could answer with the option list from before it.
+func (s *SqlPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
+	return s.getLinkedFields(s.GetMaster(), fieldIDs, excludeIDs)
+}
+
+func (s *SqlPropertyFieldStore) getLinkedFields(db sqlxExecutor, fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
+	if len(fieldIDs) == 0 {
+		return nil, nil
+	}
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"LinkedFieldID": fieldIDs}).
+		Where(sq.Eq{"DeleteAt": 0})
+	if len(excludeIDs) > 0 {
+		builder = builder.Where(sq.NotEq{"ID": excludeIDs})
+	}
+
+	var fields []*model.PropertyField
+	if err := db.SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_linked_fields")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_linked_fields_hydrate_options")
+	}
+
+	return fields, nil
 }
 
 func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
