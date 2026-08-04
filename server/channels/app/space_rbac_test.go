@@ -18,15 +18,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
-// setupSpaceRBACMock builds a store-mock helper with the Docs feature flag on.
-// The space guards fail open while the flag is off, so the scope rules under
-// test here only engage on a server that has the feature enabled.
+// setupSpaceRBACMock builds a store-mock helper for the space scope guards.
+//
+// The guards are not gated on the Docs feature flag — the only thing that flag
+// gates is space creation — so the flag's value is irrelevant to everything
+// tested through this helper. TestSpaceGuardsHoldWithFlagOff pins that.
 func setupSpaceRBACMock(t *testing.T) *TestHelper {
-	th := SetupWithStoreMock(t)
-	// Mutate in place — UpdateConfig persists config and triggers
-	// listeners that call Store.Post(), which the mock store lacks.
-	th.App.Config().FeatureFlags.EnableDocs = true
-	return th
+	return SetupWithStoreMock(t)
 }
 
 func TestCheckSpacePermissionScope(t *testing.T) {
@@ -95,6 +93,36 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		role := &model.Role{Name: model.SpacePageCommenterRoleId, Permissions: append(
 			model.PermissionIDs(model.SpacePageCommenterRolePermissions), model.PermissionAdminSpace.Id)}
 		require.NotNil(t, th.App.checkSpacePermissionScope(role, model.PermissionIDs(model.SpacePageCommenterRolePermissions)))
+	})
+
+	// The name-based rejects above all run with a nil SchemeId, where the final
+	// fail-closed fallthrough would refuse the write anyway. Pairing each name
+	// with a scheme that genuinely proves space scope is the only shape that
+	// tells the two apart: without the name checks these would be allowed.
+	t.Run("guarded role names rejected even when their scheme proves space scope", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		for _, name := range []string{
+			model.SpacePageCommenterRoleId,
+			model.TeamUserRoleId,
+			model.ChannelUserRoleId,
+		} {
+			t.Run(name, func(t *testing.T) {
+				th := setupSpaceRBACMock(t)
+
+				schemeID := model.NewId()
+				mockStore := th.App.Srv().Store().(*mocks.Store)
+				mockSchemeStore := mocks.SchemeStore{}
+				mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+					Id: schemeID, Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel,
+				}, nil)
+				mockStore.On("Scheme").Return(&mockSchemeStore)
+
+				role := &model.Role{Name: name, SchemeId: &schemeID, Permissions: []string{guarded}}
+				require.NotNil(t, th.App.checkSpacePermissionScope(role, nil),
+					"role %q must be rejected by name, not by the nil-SchemeId fallthrough", name)
+			})
+		}
 	})
 
 	t.Run("space-scheme generated role allowed", func(t *testing.T) {
@@ -291,38 +319,69 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 	})
 }
 
-// TestUpdateRoleIgnoresMismatchedStoredRole pins that the Name-keyed baseline
-// lookup is discarded when it resolves a different row than the Id-keyed save,
-// so a divergent Id/Name pair cannot smuggle a guarded permission past the
-// scope check by diffing against the wrong role.
-func TestUpdateRoleIgnoresMismatchedStoredRole(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := setupSpaceRBACMock(t)
+// TestUpdateRoleBaselineIsKeyedById pins that the guard diffs against the row the
+// save will actually overwrite. Role().Get is the one read of a role that no cache
+// layer serves, so a peer node's removal that has not yet invalidated this node's
+// entry cannot leave a stale-wider baseline that lets a re-add through — the
+// Name-keyed lookup, which is answered from cache before the context is consulted,
+// is never used when the save carries an Id. Keying by Id also makes a divergent
+// Id/Name pair structurally unable to select the wrong baseline.
+func TestUpdateRoleBaselineIsKeyedById(t *testing.T) {
+	t.Run("baseline read by id, never by name", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
 
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-	mockRoleStore := mocks.RoleStore{}
-	mockStore.On("Role").Return(&mockRoleStore)
-	mockSchemeStore := mocks.SchemeStore{}
-	mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockStore.On("Role").Return(&mockRoleStore)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockStore.On("Scheme").Return(&mockSchemeStore)
 
-	roleName := model.NewId()
-	// The stored row already carries the guarded permission, but it is a
-	// different row than the one being saved.
-	mockRoleStore.On("GetByName", mock.Anything, roleName).Return(&model.Role{
-		Id:          model.NewId(),
-		Name:        roleName,
-		Permissions: []string{model.PermissionAdminSpace.Id},
-	}, nil)
+		roleID, roleName := model.NewId(), model.NewId()
+		// The row being saved does not carry the guarded permission, so the
+		// incoming one is an add and must be rejected.
+		mockRoleStore.On("Get", roleID).Return(&model.Role{
+			Id:   roleID,
+			Name: roleName,
+		}, nil)
 
-	role := &model.Role{
-		Id:          model.NewId(),
-		Name:        roleName,
-		Permissions: []string{model.PermissionAdminSpace.Id},
-	}
-	_, appErr := th.App.UpdateRole(role)
-	require.NotNil(t, appErr, "a mismatched baseline must not be trusted")
-	assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
-	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+		role := &model.Role{
+			Id:          roleID,
+			Name:        roleName,
+			Permissions: []string{model.PermissionAdminSpace.Id},
+		}
+		_, appErr := th.App.UpdateRole(role)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+		mockRoleStore.AssertNotCalled(t, "GetByName", mock.Anything, mock.Anything)
+		mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+	})
+
+	t.Run("a save carrying no id falls back to the name lookup", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockStore.On("Role").Return(&mockRoleStore)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		roleName := model.NewId()
+		mockRoleStore.On("GetByName", mock.Anything, roleName).Return(&model.Role{
+			Name: roleName,
+		}, nil)
+
+		role := &model.Role{
+			Name:        roleName,
+			Permissions: []string{model.PermissionAdminSpace.Id},
+		}
+		_, appErr := th.App.UpdateRole(role)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+		mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+	})
+
 }
 
 func TestValidateAdoptableSpaceScheme(t *testing.T) {
@@ -788,6 +847,36 @@ func TestCreateChannelRejectsSpaceScheme(t *testing.T) {
 	require.NotNil(t, created)
 }
 
+// TestUpdateChannelRejectsSpaceScheme pins the generic sink. UpdateChannel takes
+// SchemeId straight from the caller and two paths reach it without passing
+// UpdateChannelScheme — bulk import repoints an already-existing channel through
+// it, and the plugin API delegates to it — so guarding only the narrower entry
+// points would leave an ordinary channel reachable. Attaching a preset there
+// would strip create_post from every member below admin.
+func TestUpdateChannelRejectsSpaceScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+
+	channel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+
+	channel.SchemeId = &contribute.Id
+	_, appErr = th.App.UpdateChannel(th.Context, channel)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
+
+	// An edit that leaves SchemeId alone is unaffected.
+	unchanged, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+	unchanged.DisplayName = "Renamed"
+	updated, appErr := th.App.UpdateChannel(th.Context, unchanged)
+	require.Nil(t, appErr)
+	assert.Equal(t, "Renamed", updated.DisplayName)
+}
+
 // TestUpdateChannelSchemeUnresolvableSchemeIsNotRejected pins the guard's scope:
 // it refuses the space presets, and leaves an id that resolves to no scheme to
 // the write path rather than validating that a channel's scheme exists.
@@ -1045,7 +1134,7 @@ func TestUpdateRoleStoreErrorIsNotReportedAsAScopeViolation(t *testing.T) {
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
-	mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(nil, errors.New("connection reset"))
+	mockRoleStore.On("Get", mock.Anything).Return(nil, errors.New("connection reset"))
 	mockStore.On("Role").Return(&mockRoleStore)
 
 	role := &model.Role{Id: model.NewId(), Name: model.NewId(), Permissions: []string{model.PermissionAdminSpace.Id}}

@@ -1139,9 +1139,9 @@ func (api *apiTimerLayer) GetRoleByName(name string) (*model.Role, *model.AppErr
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+func (api *apiTimerLayer) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.PatchRole(role, patch)
+	_returnsA, _returnsB := api.apiImpl.PatchRole(roleID, patch)
 	api.recordTime(startTime, "PatchRole", _returnsB == nil)
 	return _returnsA, _returnsB
 }

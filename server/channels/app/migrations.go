@@ -386,10 +386,10 @@ func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
 // MakeDefaultRoles() seed or another HA node's identical insert.
 func validateCanonicalSpaceRole(existing, canonical *model.Role) error {
 	if !existing.BuiltIn || existing.SchemeManaged || existing.SchemeId != nil {
-		return fmt.Errorf("role %q already exists but is not the canonical space capability role definition; rename or delete the conflicting role to proceed", existing.Name)
+		return fmt.Errorf("role %q already exists but is not the canonical space capability role definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
 	}
 	if !maps.Equal(asPermissionSet(existing.Permissions), asPermissionSet(canonical.Permissions)) {
-		return fmt.Errorf("role %q already exists with a non-canonical permission set %v; rename or delete the conflicting role to proceed", existing.Name, existing.Permissions)
+		return fmt.Errorf("role %q already exists with a non-canonical permission set %v; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", existing.Name, existing.Permissions)
 	}
 	return nil
 }
@@ -404,13 +404,13 @@ func validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	// back like any other; adopting one would mark the migration complete while
 	// leaving no live preset behind.
 	if existing.DeleteAt != 0 {
-		return fmt.Errorf("scheme %q already exists but is deleted; restore or permanently remove the conflicting scheme to proceed", existing.Name)
+		return fmt.Errorf("scheme %q already exists but is deleted; restore or permanently remove the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
 	}
 	if existing.Scope != model.SchemeScopeChannel {
-		return fmt.Errorf("scheme %q already exists with scope %q instead of %q; rename or delete the conflicting scheme to proceed", existing.Name, existing.Scope, model.SchemeScopeChannel)
+		return fmt.Errorf("scheme %q already exists with scope %q instead of %q; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name, existing.Scope, model.SchemeScopeChannel)
 	}
 	if existing.DefaultChannelUserRole == "" || existing.DefaultChannelAdminRole == "" || existing.DefaultChannelGuestRole == "" {
-		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles; rename or delete the conflicting scheme to proceed", existing.Name)
+		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
 	}
 	return nil
 }
@@ -440,7 +440,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 		}
 
 		if _, err := s.Store().Role().Save(canonical); err != nil {
-			mlog.Warn("Couldn't save the space capability role, this can be an expected case", mlog.String("role_name", roleID), mlog.Err(err))
+			mlog.Debug("Couldn't save the space capability role; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
 
 			// The store wraps the raw duplicate-key error, so a lost HA insert
 			// race is detected by re-reading the row on the primary: a lagging
@@ -545,7 +545,7 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 				Scope:       model.SchemeScopeChannel,
 			})
 			if err != nil {
-				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case", mlog.String("scheme_name", preset.name), mlog.Err(err))
+				mlog.Debug("Couldn't save the space preset scheme; another node likely won the insert race, re-reading on the primary", mlog.String("scheme_name", preset.name), mlog.Err(err))
 
 				// Same lost-HA-insert-race recovery as the space roles
 				// migration: re-read on the primary before treating the save

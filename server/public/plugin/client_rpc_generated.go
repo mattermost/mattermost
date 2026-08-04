@@ -6885,7 +6885,7 @@ func (s *apiRPCServer) GetRoleByName(args *Z_GetRoleByNameArgs, returns *Z_GetRo
 }
 
 type Z_PatchRoleArgs struct {
-	A *model.Role
+	A string
 	B *model.RolePatch
 }
 
@@ -6894,8 +6894,8 @@ type Z_PatchRoleReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	_args := &Z_PatchRoleArgs{role, patch}
+func (g *apiRPCClient) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	_args := &Z_PatchRoleArgs{roleID, patch}
 	_returns := &Z_PatchRoleReturns{}
 	if err := g.client.Call("Plugin.PatchRole", _args, _returns); err != nil {
 		log.Printf("RPC call to PatchRole API failed: %s", err.Error())
@@ -6905,7 +6905,7 @@ func (g *apiRPCClient) PatchRole(role *model.Role, patch *model.RolePatch) (*mod
 
 func (s *apiRPCServer) PatchRole(args *Z_PatchRoleArgs, returns *Z_PatchRoleReturns) error {
 	if hook, ok := s.impl.(interface {
-		PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
+		PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.PatchRole(args.A, args.B)
 	} else {

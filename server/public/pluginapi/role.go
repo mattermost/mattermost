@@ -26,12 +26,11 @@ func (r *RoleService) GetByName(name string) (*model.Role, error) {
 // roles, not after. Removing one is always allowed. A scheme is attached by
 // setting SchemeId on the channel and updating it.
 //
-// The role is read back by id before the patch is applied, so only Id is read
-// from the passed role.
+// The role is read back by id before the patch is applied.
 //
 // Minimum server version: 11.10
-func (r *RoleService) Patch(role *model.Role, patch *model.RolePatch) (*model.Role, error) {
-	patched, appErr := r.api.PatchRole(role, patch)
+func (r *RoleService) Patch(roleID string, patch *model.RolePatch) (*model.Role, error) {
+	patched, appErr := r.api.PatchRole(roleID, patch)
 
 	return patched, normalizeAppErr(appErr)
 }

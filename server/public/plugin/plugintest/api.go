@@ -4740,9 +4740,9 @@ func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberId
 	return r0
 }
 
-// PatchRole provides a mock function with given fields: role, patch
-func (_m *API) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	ret := _m.Called(role, patch)
+// PatchRole provides a mock function with given fields: roleID, patch
+func (_m *API) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	ret := _m.Called(roleID, patch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PatchRole")
@@ -4750,19 +4750,19 @@ func (_m *API) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role,
 
 	var r0 *model.Role
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Role, *model.RolePatch) (*model.Role, *model.AppError)); ok {
-		return rf(role, patch)
+	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) (*model.Role, *model.AppError)); ok {
+		return rf(roleID, patch)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Role, *model.RolePatch) *model.Role); ok {
-		r0 = rf(role, patch)
+	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) *model.Role); ok {
+		r0 = rf(roleID, patch)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Role, *model.RolePatch) *model.AppError); ok {
-		r1 = rf(role, patch)
+	if rf, ok := ret.Get(1).(func(string, *model.RolePatch) *model.AppError); ok {
+		r1 = rf(roleID, patch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

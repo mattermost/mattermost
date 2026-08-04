@@ -199,6 +199,81 @@ func spacePermissionAddDiff(incoming, stored []string) []string {
 	return added
 }
 
+// storedRoleForSpaceGuard reads the row a role save will overwrite, so the scope
+// guard can diff the incoming permissions against it. A nil role with a nil error
+// means there is no stored row, and every incoming guarded permission counts as
+// an add.
+//
+// Keyed by Id wherever the caller supplies one, which is every sink that reaches
+// UpdateRole with a role it first read back. Role().Get is the one read of a role
+// that no cache layer serves, where GetByName is answered from the local cache
+// before the context is even consulted — so store.WithMaster does not make it
+// fresh, and a peer node's removal that has not yet invalidated this node's entry
+// would leave the guard diffing against a stale-wider baseline and letting a
+// re-add through.
+//
+// Name is the fallback for a save carrying no Id. Keying by Id first also removes
+// the divergent-Id/Name hazard by construction: the baseline is now read from the
+// same row the save will write, so the two can no longer select different rows.
+func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.AppError) {
+	readErr := func(err error) *model.AppError {
+		// An unreadable stored role cannot be diffed against; failing here beats
+		// misreporting the cause as a scope violation.
+		return model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var nfErr *store.ErrNotFound
+
+	if role.Id != "" {
+		storedRole, err := a.Srv().Store().Role().Get(role.Id)
+		if err != nil {
+			if !errors.As(err, &nfErr) {
+				return nil, readErr(err)
+			}
+			return nil, nil
+		}
+		return storedRole, nil
+	}
+
+	if role.Name == "" {
+		return nil, nil
+	}
+
+	storedRole, err := a.Srv().Store().Role().GetByName(store.WithMaster(context.Background()), role.Name)
+	if err != nil {
+		if !errors.As(err, &nfErr) {
+			return nil, readErr(err)
+		}
+		return nil, nil
+	}
+	return storedRole, nil
+}
+
+// rejectSpaceCapabilityRoleOutsideSpace reports whether an ExplicitRoles write
+// carries an atomic space capability role where it cannot legitimately mean
+// anything. Those roles grant space authority on a single space's backing
+// channel, so ownerIsSpaceChannel is the whole test: false for every ordinary
+// channel, and false for a team member, whose roles are consulted as the
+// fallback for every channel in the team and so would spread one space's grant
+// across all of them.
+//
+// Both ExplicitRoles sinks call this rather than repeating the predicate, so a
+// future write path has one function to find instead of the rule to rediscover.
+// Each sink builds its own AppError, because the i18n extractor only collects
+// message IDs written as literals at the model.NewAppError call site.
+func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName string, ownerIsSpaceChannel bool) bool {
+	if !model.IsSpaceCapabilityRole(roleName) || ownerIsSpaceChannel {
+		return false
+	}
+	// A refused space grant is a scope violation worth an operator trail, not
+	// just an error to the caller.
+	rctx.Logger().Warn("Refused a space capability role outside a space",
+		mlog.String("where", where),
+		mlog.String("role_name", roleName),
+	)
+	return true
+}
+
 // checkSpacePermissionScope rejects a role write that adds any channel-scoped
 // space permission (the six page operations and admin_space) to a role whose
 // scheme does not govern a space, which a seeded preset name or a space backing
@@ -317,34 +392,21 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	// The sink holds no prior permission set, so re-read the stored role to
-	// diff against before saving: only an *add* of a guarded permission is
-	// rejected, never a removal. The read asks for the primary, but a warm cache
-	// entry is still returned, so the baseline can be stale. Usually that only
-	// costs a spurious rejection; in the window where a cluster peer's removal
-	// has not yet invalidated this node's entry, the stale-wider baseline can
-	// also let a re-add through, so this read tightens the guard rather than
-	// completing it.
+	// The sink holds no prior permission set, so re-read the stored role to diff
+	// against before saving: only an *add* of a guarded permission is rejected,
+	// never a removal.
 	//
 	// Only a write carrying one of the guarded permissions needs a baseline at
 	// all: with none of them incoming there is no add to find, whatever the
 	// stored row says. Skipping the read there keeps every ordinary role write —
 	// which is nearly all of them — at its previous cost.
 	var storedPermissions []string
-	if role.Name != "" && hasSpaceChannelScopedPermission(role.Permissions) {
-		storedRole, err := a.Srv().Store().Role().GetByName(store.WithMaster(context.Background()), role.Name)
-		if err != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(err, &nfErr) {
-				// An unreadable stored role cannot be diffed against; failing
-				// here beats misreporting the cause as a scope violation.
-				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-		} else if role.Id == "" || storedRole.Id == role.Id {
-			// The save is keyed by Id but this lookup is keyed by Name, so only
-			// trust the row when the two agree: a role whose Id and Name pointed
-			// at different rows would otherwise be diffed against the wrong
-			// baseline and skip the guard entirely.
+	if hasSpaceChannelScopedPermission(role.Permissions) {
+		storedRole, appErr := a.storedRoleForSpaceGuard(role)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if storedRole != nil {
 			storedPermissions = storedRole.Permissions
 		}
 	}

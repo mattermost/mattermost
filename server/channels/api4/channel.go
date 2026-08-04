@@ -31,16 +31,15 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 // rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
 // to a space channel. Space channels must use the spaces API, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
-// It reads from the primary so a freshly created space cannot slip through on
-// replica lag, and fails closed by rejecting on any error other than not-found.
+// A failed lookup fails closed: the request is rejected rather than allowed through.
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
-	_, err := c.App.GetChannelOfType(c.AppContext.With(app.RequestContextWithMaster), channelId, model.ChannelTypeSpace)
-	if err == nil {
-		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+	isSpace, err := c.App.IsSpaceChannelByID(c.AppContext, channelId)
+	if err != nil {
+		c.Err = err
 		return true
 	}
-	if err.StatusCode != http.StatusNotFound {
-		c.Err = err
+	if isSpace {
+		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
 		return true
 	}
 	return false

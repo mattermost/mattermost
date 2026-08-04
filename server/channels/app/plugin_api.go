@@ -756,14 +756,14 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 // rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
 // Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
 // not belong on an internal space backing channel, so they are rejected here. It fails closed by
-// propagating any error other than not-found, so a lookup failure cannot let a space through.
+// propagating the lookup error, so a lookup failure cannot let a space through.
 func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
-	_, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
-	if err == nil {
-		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
-	}
-	if err.StatusCode != http.StatusNotFound {
+	isSpace, err := api.app.IsSpaceChannelByID(api.ctx, channelID)
+	if err != nil {
 		return err
+	}
+	if isSpace {
+		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1288,8 +1288,8 @@ func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) 
 // stored scheme rather than the one the caller passed in: the guard resolves
 // the space proof from role.SchemeId, and the store writes that same field
 // back, so a caller-supplied id would both decide and outlive the check.
-func (api *PluginAPI) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	stored, appErr := api.app.GetRole(role.Id)
+func (api *PluginAPI) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	stored, appErr := api.app.GetRole(roleID)
 	if appErr != nil {
 		return nil, appErr
 	}

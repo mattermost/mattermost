@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -350,6 +351,26 @@ func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, sc
 	return nil
 }
 
+// schemeGrantsSpacePermissions reports whether any of a channel scheme's generated
+// roles carries a channel-scoped space permission, which marks it as a per-space
+// custom scheme. Answered from the roles already in memory, so it costs no query.
+func schemeGrantsSpacePermissions(scheme *model.Scheme, rolesMap map[string]*model.Role) bool {
+	for _, roleName := range []string{
+		scheme.DefaultChannelAdminRole,
+		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelGuestRole,
+	} {
+		role, ok := rolesMap[roleName]
+		if !ok {
+			continue
+		}
+		if slices.ContainsFunc(role.Permissions, model.IsSpaceChannelScopedPermissionID) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
 	rolesMap := make(map[string]*model.Role, len(allRoles))
 	for _, role := range allRoles {
@@ -390,13 +411,22 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
 			}
 
-			// Every server seeds the space preset schemes by migration, so a
-			// server importing this file already has its own. Exporting them
-			// would carry a reserved name into an import that now refuses to
-			// create a scheme under it. Their generated roles are recorded
-			// above, so skipping the scheme does not leak them into the
-			// standalone role export below.
-			if scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
+			// Space schemes are skipped. Every server seeds the presets by
+			// migration, so a server importing this file already has its own,
+			// and exporting one would carry a reserved name into an import that
+			// now refuses to create a scheme under it.
+			//
+			// A per-space custom scheme is skipped for a different reason: its
+			// generated roles hold space permissions, which the scope guard only
+			// accepts once the scheme governs a space. Import recreates the
+			// scheme detached — spaces themselves are not exported — so those
+			// roles would be rejected and the whole import would fail, on data
+			// that is orphaned at the destination anyway.
+			//
+			// Their generated roles are recorded above, so skipping the scheme
+			// does not leak them into the standalone role export below.
+			if scheme.Scope == model.SchemeScopeChannel &&
+				(model.IsSpaceSchemeName(scheme.Name) || schemeGrantsSpacePermissions(scheme, rolesMap)) {
 				continue
 			}
 

@@ -6,7 +6,6 @@ package model
 import (
 	"fmt"
 	"regexp"
-	"slices"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
@@ -33,21 +32,37 @@ const (
 	SchemeDisplayNameSpaceReadOnly   = "Space Read-Only Scheme"
 )
 
-// SpaceSchemeNames lists the three seeded space preset scheme names.
+// SpaceSchemeNames lists the three seeded space preset scheme names. It is the
+// enumeration source; membership tests go through IsSpaceSchemeName, which reads
+// a set frozen at init so a later mutation of this slice cannot widen them.
 var SpaceSchemeNames = []string{
 	SchemeNameSpaceContribute,
 	SchemeNameSpaceComment,
 	SchemeNameSpaceReadOnly,
 }
 
+var spaceSchemeNameSet map[string]bool
+
+func init() {
+	spaceSchemeNameSet = make(map[string]bool, len(SpaceSchemeNames))
+	for _, name := range SpaceSchemeNames {
+		spaceSchemeNameSet[name] = true
+	}
+}
+
 // IsSpaceSchemeName reports whether name is one of the three seeded space preset
 // scheme names. It serves both as the reservation predicate — these names may
 // not be created or renamed into — and as proof that a scheme is a preset: the
-// boot seeding creates all three unconditionally and scheme names are unique, so
-// by the time any request runs, a match proves the scheme is the seeded row
-// rather than merely carrying its name.
+// boot seeding creates all three unconditionally and the Schemes.Name column is
+// unique, so by the time any request runs, a match proves the scheme is the
+// seeded row rather than merely carrying its name.
+//
+// The answer comes from a set frozen at init rather than from SpaceSchemeNames
+// itself: three security guards read this as proof of space authority, so the
+// accepted names must not be widenable by mutating an exported slice. This
+// matches IsSpaceChannelScopedPermissionID and IsSpaceCapabilityRole.
 func IsSpaceSchemeName(name string) bool {
-	return slices.Contains(SpaceSchemeNames, name)
+	return spaceSchemeNameSet[name]
 }
 
 type Scheme struct {

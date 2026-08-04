@@ -1083,12 +1083,11 @@ type API interface {
 	// patching its roles, not after. Removing one is always allowed. A scheme
 	// is attached by setting SchemeId on the channel and calling UpdateChannel.
 	//
-	// The role is read back by id before the patch is applied, so only Id is
-	// read from the passed role.
+	// The role is read back by id before the patch is applied.
 	//
 	// @tag Role
 	// Minimum server version: 11.10
-	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
+	PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError)
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
