@@ -24,6 +24,7 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
+    enableDesktopLandingPage: boolean;
 };
 
 type State = {
@@ -89,7 +90,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        if (this.checkLandingPreferenceApp()) {
+        // When the landing page is disabled, render() has already redirected to the browser, so a stale
+        // "open in app" preference must not navigate away from it.
+        if (this.props.enableDesktopLandingPage && this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }
 
@@ -475,7 +478,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
+        if (!this.props.enableDesktopLandingPage || this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }
