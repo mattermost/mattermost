@@ -1273,18 +1273,18 @@ func TestExportRoles(t *testing.T) {
 	})
 }
 
-// customSchemes drops the space preset schemes. The boot seeding creates them
-// on every server, so they are present before any test does anything, and bulk
-// export deliberately skips them — only customer-created schemes are of interest
-// to the export assertions below.
-func customSchemes(schemes []*model.Scheme) []*model.Scheme {
-	custom := make([]*model.Scheme, 0, len(schemes))
+// nonSpaceSchemes drops the space preset schemes, which the boot seeding creates
+// on every server and bulk export deliberately skips. They are present before any
+// test does anything, so the assertions below filter them out to see only the
+// schemes the test itself created.
+func nonSpaceSchemes(schemes []*model.Scheme) []*model.Scheme {
+	filtered := make([]*model.Scheme, 0, len(schemes))
 	for _, scheme := range schemes {
 		if !model.IsSpaceSchemeName(scheme.Name) {
-			custom = append(custom, scheme)
+			filtered = append(filtered, scheme)
 		}
 	}
-	return custom
+	return filtered
 }
 
 // seededSpaceRoles counts the roles the space seeding migrations add to every
@@ -1306,11 +1306,11 @@ func TestExportSchemes(t *testing.T) {
 
 		schemes, err := th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, customSchemes(schemes))
+		require.Empty(t, nonSpaceSchemes(schemes))
 
 		schemes, err = th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, customSchemes(schemes))
+		require.Empty(t, nonSpaceSchemes(schemes))
 
 		var b bytes.Buffer
 		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
@@ -1331,11 +1331,11 @@ func TestExportSchemes(t *testing.T) {
 
 		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, customSchemes(schemes))
+		require.Empty(t, nonSpaceSchemes(schemes))
 
 		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 100)
 		require.NoError(t, err)
-		require.Empty(t, customSchemes(schemes))
+		require.Empty(t, nonSpaceSchemes(schemes))
 	})
 
 	t.Run("skip export", func(t *testing.T) {

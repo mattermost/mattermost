@@ -915,7 +915,7 @@ type RoleStore interface {
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
-	GetByName(ctx context.Context, schemeName string) (*model.Scheme, error)
+	GetByName(schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)
 	PermanentDeleteAll() error

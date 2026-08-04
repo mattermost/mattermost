@@ -13198,11 +13198,11 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 
 }
 
-func (s *RetryLayerSchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
+func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 
 	tries := 0
 	for {
-		result, err := s.SchemeStore.GetByName(ctx, schemeName)
+		result, err := s.SchemeStore.GetByName(schemeName)
 		if err == nil {
 			return result, nil
 		}

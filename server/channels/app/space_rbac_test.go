@@ -480,7 +480,7 @@ func saveSpaceChannelMember(t *testing.T, th *TestHelper, channelID, userID stri
 
 func getSeededSpaceScheme(t *testing.T, th *TestHelper, name string) *model.Scheme {
 	t.Helper()
-	scheme, err := th.App.Srv().Store().Scheme().GetByName(th.Context.Context(), name)
+	scheme, err := th.App.Srv().Store().Scheme().GetByName(name)
 	require.NoError(t, err, "seeding migration must have created scheme %q", name)
 	return scheme
 }
@@ -752,6 +752,40 @@ func TestCreateRoleClearsSchemeId(t *testing.T) {
 	// The guard must never have consulted the borrowed scheme.
 	mockSchemeStore.AssertNotCalled(t, "Get", mock.Anything)
 	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestCreateRoleClearsSchemeIdOnAcceptedRole covers the same clear on the path
+// that reaches the store. Master leaves SchemeId alone because nothing there
+// reads it to grant anything — permission merging keys off SchemeManaged, which
+// CreateRole already clears. checkSpacePermissionScope is the first code to
+// treat SchemeId as proof of scope, so the saved row must not carry one the
+// caller chose.
+func TestCreateRoleClearsSchemeIdOnAcceptedRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockRoleStore := mocks.RoleStore{}
+	mockStore.On("Role").Return(&mockRoleStore)
+
+	var saved *model.Role
+	mockRoleStore.On("Save", mock.AnythingOfType("*model.Role")).
+		Run(func(args mock.Arguments) {
+			saved = args.Get(0).(*model.Role)
+		}).
+		Return(&model.Role{}, nil)
+
+	schemeID := model.NewId()
+	role := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: "custom",
+		SchemeId:    &schemeID,
+		Permissions: []string{model.PermissionCreatePost.Id},
+	}
+	_, appErr := th.App.CreateRole(role)
+	require.Nil(t, appErr)
+	require.NotNil(t, saved)
+	assert.Nil(t, saved.SchemeId, "the saved role must not carry a caller-supplied SchemeId")
 }
 
 // TestSpaceCapabilityRoleConfinedToSpaces pins that the atomic capability

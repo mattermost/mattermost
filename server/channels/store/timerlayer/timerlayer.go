@@ -10451,10 +10451,10 @@ func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	return result, err
 }
 
-func (s *TimerLayerSchemeStore) GetByName(ctx context.Context, schemeName string) (*model.Scheme, error) {
+func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	start := time.Now()
 
-	result, err := s.SchemeStore.GetByName(ctx, schemeName)
+	result, err := s.SchemeStore.GetByName(schemeName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
