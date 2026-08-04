@@ -60,7 +60,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     await dialog.getByRole('textbox', {name: /^Password/}).fill('testpassword123');
 
     // Number is required
-    await dialog.getByRole('spinbutton', {name: /^Number/}).fill('42');
+    await dialog.getByRole('textbox', {name: /^Number/}).fill('42');
 
     // Option Selector — required, no default
     await dialog.getByRole('combobox', {name: 'Option Selector *'}).click();
@@ -178,7 +178,7 @@ test('should show validation errors when required fields are submitted empty', a
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Clear the Number field and submit
-    await dialog.getByRole('spinbutton', {name: /^Number/}).clear();
+    await dialog.getByRole('textbox', {name: /^Number/}).clear();
     await dialog.getByRole('button', {name: 'Submit'}).click();
 
     // 7. Verify dialog stays open with validation errors

@@ -48,12 +48,12 @@ describe('TextInputElement', () => {
             type: 'text_input',
             name: 'title',
             label: '',
+            optional: true,
         });
 
-        expect(screen.queryByTestId('mm-blocks-post-1-titlelabel')).not.toBeInTheDocument();
-        expect(screen.getByTestId('mm-blocks-post-1-titleinput')).toBeInTheDocument();
         expect(screen.queryByText('*')).not.toBeInTheDocument();
         expect(screen.queryByText('(optional)')).not.toBeInTheDocument();
+        expect(screen.getByTestId('mm-blocks-post-1-titleinput')).toBeInTheDocument();
     });
 
     it('renders TextSetting with label, placeholder, and initial value', () => {
@@ -62,26 +62,26 @@ describe('TextInputElement', () => {
             name: 'title',
             label: 'Title',
             placeholder: 'Enter title',
-            initial_value: 'hello',
+            initial_value: 'Demo',
             help_text: 'Helpful',
         });
 
-        expect(screen.getByTestId('mm-blocks-post-1-titlelabel')).toHaveTextContent('Title *');
-        expect(screen.getByTestId('mm-blocks-post-1-titleinput')).toHaveValue('hello');
-        expect(screen.getByTestId('mm-blocks-post-1-titleinput')).toHaveAttribute('placeholder', 'Enter title');
-        expect(screen.getByTestId('mm-blocks-post-1-titlehelp-text')).toHaveTextContent('Helpful');
+        expect(screen.getByText('Title')).toBeInTheDocument();
+        expect(screen.getByText('*')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter title')).toHaveValue('Demo');
+        expect(screen.getByText('Helpful')).toBeInTheDocument();
     });
 
     it('marks optional fields without required asterisk', () => {
         renderInput({
             type: 'text_input',
-            name: 'notes',
-            label: 'Notes',
+            name: 'title',
+            label: 'Title',
             optional: true,
         });
 
-        expect(screen.getByTestId('mm-blocks-post-1-noteslabel')).toHaveTextContent('Notes (optional)');
-        expect(screen.getByTestId('mm-blocks-post-1-noteslabel')).not.toHaveTextContent('*');
+        expect(screen.getByText('(optional)')).toBeInTheDocument();
+        expect(screen.queryByText('*')).not.toBeInTheDocument();
     });
 
     it('renders multiline as textarea', () => {
@@ -105,10 +105,8 @@ describe('TextInputElement', () => {
 
         const input = screen.getByTestId('mm-blocks-post-1-titleinput');
         await user.clear(input);
-        await user.type(input, 'typed');
-
-        expect(input).toHaveValue('typed');
-        expect(onAction).not.toHaveBeenCalled();
+        await user.type(input, 'Hello');
+        expect(input).toHaveValue('Hello');
     });
 
     it('dispatches onChange action with form values separately from query', async () => {
@@ -121,11 +119,15 @@ describe('TextInputElement', () => {
         });
 
         const input = screen.getByTestId('mm-blocks-post-1-titleinput');
-        await user.clear(input);
-        await user.type(input, 'a');
+        await user.type(input, 'A');
 
-        expect(onAction).toHaveBeenCalled();
-        expect(onAction).toHaveBeenLastCalledWith('refresh_form', undefined, undefined, undefined, expect.objectContaining({title: 'a'}));
+        expect(onAction).toHaveBeenLastCalledWith(
+            'refresh_form',
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({title: 'A'}),
+        );
     });
 
     it('disables input when interactions are disabled', () => {

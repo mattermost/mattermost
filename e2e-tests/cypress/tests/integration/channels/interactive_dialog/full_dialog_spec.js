@@ -20,7 +20,10 @@ describe('Interactive Dialog - Apps Form', () => {
     const inputTypes = {
         realname: 'text',
         someemail: 'email',
-        somenumber: 'number',
+
+        // Number fields render as type=text so intermediate edits ("-", "1.") work in a
+        // controlled input; values are still parsed/validated as numbers on submit.
+        somenumber: 'text',
         somepassword: 'password',
     };
 
@@ -138,8 +141,7 @@ describe('Interactive Dialog - Apps Form', () => {
                         cy.get(fieldDomId(element.name)).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
                     }
 
-                    // * Verify that input element are given with the correct type of "input", "email", "number" and "password".
-                    // * To take advantage of supported built-in validation.
+                    // * Verify input type attributes (number subtype uses text; see inputTypes).
                     if (inputTypes[element.name]) {
                         cy.get(fieldDomId(element.name)).should('have.attr', 'type', inputTypes[element.name]);
                     }

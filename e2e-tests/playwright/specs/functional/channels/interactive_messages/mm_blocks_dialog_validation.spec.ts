@@ -48,7 +48,7 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
         const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
         await dialog.getByRole('textbox', {name: /^Name/}).fill('Ada');
         await dialog.getByRole('textbox', {name: /Email/}).fill('not-an-email');
-        await dialog.getByRole('spinbutton', {name: /Number/}).fill('42');
+        await dialog.getByRole('textbox', {name: /Number/}).fill('42');
         await dialog.getByRole('button', {name: 'Submit'}).click();
 
         await expect(dialog).toBeVisible();
@@ -73,13 +73,13 @@ test.describe('Interactive mm_blocks (blocks dialog validation)', () => {
             const dialog = await openBlocksDialogFromPost(channelsPage, marker, openButtonName);
             await dialog.getByRole('textbox', {name: /^Name/}).fill('Ada');
             await dialog.getByRole('textbox', {name: /Email/}).fill('ada@example.com');
-            // Leave number empty (required) — browser type=number may ignore non-numeric fills.
+            // Leave number empty (required).
             await dialog.getByRole('button', {name: 'Submit'}).click();
 
             await expect(dialog).toBeVisible();
             await expect(dialog.getByTestId('somenumber-error')).toBeVisible();
 
-            await dialog.getByRole('spinbutton', {name: /Number/}).fill('99');
+            await dialog.getByRole('textbox', {name: /Number/}).fill('99');
             await dialog.getByRole('button', {name: 'Submit'}).click();
             await expect(dialog).toBeHidden();
             await expectEphemeral(channelsPage.page, /somenumber=99/);

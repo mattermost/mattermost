@@ -35,8 +35,7 @@ function TextSetting(props: Props) {
 
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
-            // Pass raw text so callers can preserve intermediate values ("-", "1.") while editing.
-            props.onChange(props.id, event.target.value);
+            props.onChange(props.id, parseInt(event.target.value, 10));
         } else if (props.type === 'text' && props.multiple) {
             if (event.target.value === '') {
                 props.onChange(props.id, []);
