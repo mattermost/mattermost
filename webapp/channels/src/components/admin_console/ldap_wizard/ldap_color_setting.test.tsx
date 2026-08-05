@@ -24,6 +24,7 @@ const baseProps = {
     schema,
     value: '#4578ff',
     disabled: false,
+    setByEnv: false,
     onChange: jest.fn(),
 };
 
@@ -68,6 +69,18 @@ describe('components/admin_console/ldap_wizard/LDAPColorSetting', () => {
         );
 
         expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+    });
+
+    test('disables the color input and shows the env notice when setByEnv', () => {
+        renderWithContext(
+            <LDAPColorSetting
+                {...baseProps}
+                setByEnv={true}
+            />,
+        );
+
+        expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+        expect(screen.getByText(/This setting has been set through an environment variable/)).toBeInTheDocument();
     });
 
     test('renders the LDAP-specific "More Info" hover affordance when help_text_more_info is set', () => {

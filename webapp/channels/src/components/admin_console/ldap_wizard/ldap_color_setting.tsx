@@ -15,6 +15,7 @@ type ColorSettingProps = {
     value: string;
     onChange(id: string, value: any): void;
     disabled: boolean;
+    setByEnv: boolean;
 } & GeneralSettingProps;
 
 const LDAPColorSetting = (props: ColorSettingProps) => {
@@ -35,6 +36,7 @@ const LDAPColorSetting = (props: ColorSettingProps) => {
             helpText={helpText}
             value={props.value}
             disabled={props.disabled}
+            setByEnv={props.setByEnv}
             onChange={props.onChange}
         />
     );

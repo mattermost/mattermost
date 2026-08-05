@@ -80,4 +80,23 @@ describe('components/ColorSetting', () => {
 
         expect(container).toMatchSnapshot();
     });
+
+    test('should disable the color input and show env notice when setByEnv', () => {
+        function emptyFunction() {} //eslint-disable-line no-empty-function
+
+        renderWithContext(
+            <ColorSetting
+                id='id'
+                label='label'
+                helpText='helptext'
+                value='#fff'
+                onChange={emptyFunction}
+                disabled={false}
+                setByEnv={true}
+            />,
+        );
+
+        expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+        expect(screen.getByText(/This setting has been set through an environment variable/)).toBeInTheDocument();
+    });
 });

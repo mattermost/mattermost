@@ -14,6 +14,7 @@ type Props = {
     value: string;
     onChange?: (id: string, color: string) => void;
     disabled?: boolean;
+    setByEnv?: boolean;
 };
 
 const ColorSetting = (props: Props) => {
@@ -23,17 +24,20 @@ const ColorSetting = (props: Props) => {
         }
     }, [props.id, props.onChange]);
 
+    const isDisabled = Boolean(props.disabled || props.setByEnv);
+
     return (
         <Setting
             label={props.label}
             helpText={props.helpText}
             inputId={props.id}
+            setByEnv={props.setByEnv}
         >
             <ColorInput
                 id={props.id}
                 value={props.value}
                 onChange={handleChange}
-                isDisabled={props.disabled}
+                isDisabled={isDisabled}
             />
         </Setting>
     );

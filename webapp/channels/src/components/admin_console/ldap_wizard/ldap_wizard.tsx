@@ -241,6 +241,7 @@ const LDAPWizard = (props: Props) => {
                 onChange={handleChange}
                 schema={schema}
                 disabled={isDisabled(setting)}
+                setByEnv={isSetByEnv(setting.key!, props.environmentConfig)}
                 setting={setting}
             />
         );
