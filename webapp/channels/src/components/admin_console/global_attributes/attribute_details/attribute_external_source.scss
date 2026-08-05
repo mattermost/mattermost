@@ -47,21 +47,22 @@
     }
 }
 
-// Adapts .AttributeDetails__editLink's link-button styling to a row layout
-// with a leading icon and trailing chevron, rather than forking it.
+// Button shell (transparent at rest, no border) comes from
+// buttonClassNames({emphasis: 'quaternary'}) -- this rule only adds the
+// separator above it and a leading icon + row layout, plus overrides the
+// quaternary default's --button-bg-rgb hover tint with --link-color-rgb
+// (extra class/pseudo count on the selector to beat _buttons.scss's own
+// .btn.btn-quaternary:hover on specificity regardless of stylesheet order).
 .AttributeExternalSource__trigger {
     display: flex;
     align-items: center;
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--link-color);
-    cursor: pointer;
-    font-size: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin-top: 12px;
     gap: 6px;
 
-    &:hover {
-        text-decoration: underline;
+    &.btn.btn-quaternary:hover {
+        background: rgba(var(--link-color-rgb), 0.08);
     }
 
     .icon {
