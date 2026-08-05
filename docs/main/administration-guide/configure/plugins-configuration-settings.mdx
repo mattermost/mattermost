@@ -437,7 +437,7 @@ Use this setting as a system admin to confirm calls work as expected. When **fal
 
 <Note>
 
-\- This setting is applicable only to self-hosted deployments. - The environment variable `MM_CALLS_MAX_PARTICIPANTS` is deprecated in favor of `MM_CALLS_MAX_CALL_PARTICIPANTS`. - This setting is optional, but the recommended maximum number of participants is **50**. Call participant limits greatly depends on instance resources. See the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for details.
+\- This setting is applicable only to self-hosted deployments. - The environment variable `MM_CALLS_MAX_PARTICIPANTS` is deprecated in favor of `MM_CALLS_MAX_CALL_PARTICIPANTS`. - This setting is optional, but the recommended maximum number of participants is **50**. Call participant limits greatly depends on instance resources. See the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) documentation for details.
 
 </Note>
 
@@ -458,7 +458,7 @@ Use this setting as a system admin to confirm calls work as expected. When **fal
 
 <Note>
 
-\- This setting is applicable only to self-hosted deployments. - The configurations above, containing STUN and TURN servers, are sent to the clients and used to generate local candidates. - If hosting calls through the plugin (i.e. not using the [RTCD service](/administration-guide/configure/calls-deployment-guide)) any configured STUN server may also be used to find the instance's public IP when none is provided through the [ICE Host Override](/administration-guide/configure/plugins-configuration-settings#ice-host-override) option.
+\- This setting is applicable only to self-hosted deployments. - The configurations above, containing STUN and TURN servers, are sent to the clients and used to generate local candidates. - If hosting calls through the plugin (i.e. not using the [RTCD service](/deployment-guide/calls/calls-deployment-guide)) any configured STUN server may also be used to find the instance's public IP when none is provided through the [ICE Host Override](/administration-guide/configure/plugins-configuration-settings#ice-host-override) option.
 
 </Note>
 
@@ -693,7 +693,7 @@ This setting is applicable only to self-hosted deployments.
 
 <Note>
 
-\- This setting is applicable only to self-hosted deployments. - The quality setting will affect the performance of the job service and the file size of recordings. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information.
+\- This setting is applicable only to self-hosted deployments. - The quality setting will affect the performance of the job service and the file size of recordings. Refer to the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) documentation for more information.
 
 </Note>
 
@@ -739,7 +739,7 @@ This setting is applicable only to self-hosted deployments.
 
 <Note>
 
-\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.22. The model size setting will affect the performance of the job service. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information.
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.22. The model size setting will affect the performance of the job service. Refer to the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) documentation for more information.
 
 </Note>
 
@@ -762,7 +762,7 @@ This setting is applicable only to self-hosted deployments.
 
 <Note>
 
-\- This setting is applicable only to self-hosted deployments. - The call transcriber threads setting will affect the performance of the job service. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information. This setting is available starting in plugin version 0.26.2.
+\- This setting is applicable only to self-hosted deployments. - The call transcriber threads setting will affect the performance of the job service. Refer to the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) documentation for more information. This setting is available starting in plugin version 0.26.2.
 
 </Note>
 
@@ -966,7 +966,7 @@ The ability to enable video calls in DMs is currently [Experimental](/administra
 </Note>
 <Note>
 
-If your deployment offloads calls to the [RTCD service](/administration-guide/configure/calls-rtcd-setup), video in DM calls requires **rtcd v1.2.2 or later**. We recommend running the rtcd version that ships with your Calls plugin release (rtcd v1.2.5 for Calls v1.12.0) and keeping rtcd updated alongside the plugin. Deployments that use the plugin's built-in RTC server (no RTCD) support video without additional configuration.
+If your deployment offloads calls to the [RTCD service](/deployment-guide/calls/calls-rtcd-setup), video in DM calls requires **rtcd v1.2.2 or later**. We recommend running the rtcd version that ships with your Calls plugin release (rtcd v1.2.5 for Calls v1.12.0) and keeping rtcd updated alongside the plugin. Deployments that use the plugin's built-in RTC server (no RTCD) support video without additional configuration.
 
 </Note>
 
@@ -987,7 +987,7 @@ If your deployment offloads calls to the [RTCD service](/administration-guide/co
 
 <Note>
 
-- Version v0.18.0 or higher of the [RTCD service](/administration-guide/configure/calls-deployment-guide) is required for this functionality to work when hosting calls through the dedicated WebRTC service.
+- Version v0.18.0 or higher of the [RTCD service](/deployment-guide/calls/calls-deployment-guide) is required for this functionality to work when hosting calls through the dedicated WebRTC service.
 - Use caution when enabling this experimental configuration setting since it determines how the system handles part of the setup for WebRTC-based calls. Enabling this configuration setting may make the call setup a bit faster or more reliable in certain situations.
 
 </Note>
