@@ -900,6 +900,12 @@ type RoleStore interface {
 	// Unrecognized permissions are logged (see MM-68830).
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
+	// GetFromMaster reads on the primary. No cache layer serves the by-id read,
+	// so it is the freshest baseline available to the space permission scope
+	// guard, which diffs a role write against what is stored: a replica that has
+	// not yet seen a peer node's removal would hand the guard a wider baseline
+	// and let a re-add through unchecked.
+	GetFromMaster(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
@@ -921,7 +927,18 @@ type RoleStore interface {
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
+	// GetFromMaster reads on the primary, so a scheme created moments earlier
+	// cannot be missed. The space guards decide whether a scheme may become a
+	// space's, and a replica that has not yet seen the row would make a
+	// just-created scheme look like it does not exist.
+	GetFromMaster(schemeID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
+	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race
+	// to create a pooled scheme adopts the winner's by looking it up under the
+	// name both agreed on, which is a read of a row another node wrote moments
+	// earlier; on a replica that has not caught up it would read as absent and
+	// the loser would fail instead of adopting.
+	GetByNameFromMaster(schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)
 	PermanentDeleteAll() error

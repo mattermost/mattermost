@@ -325,9 +325,23 @@ func filterModerated(permissions []string) []string {
 }
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
+	return s.get(schemeId, false)
+}
+
+func (s *SqlSchemeStore) GetFromMaster(schemeId string) (*model.Scheme, error) {
+	return s.get(schemeId, true)
+}
+
+func (s *SqlSchemeStore) get(schemeId string, fromMaster bool) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
-	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
+
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
@@ -337,9 +351,23 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 }
 
 func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
+	return s.getByName(schemeName, false)
+}
+
+func (s *SqlSchemeStore) GetByNameFromMaster(schemeName string) (*model.Scheme, error) {
+	return s.getByName(schemeName, true)
+}
+
+func (s *SqlSchemeStore) getByName(schemeName string, fromMaster bool) (*model.Scheme, error) {
 	var scheme model.Scheme
 	query := s.schemeSelectQuery.Where(sq.Eq{"Name": schemeName})
-	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
+
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}

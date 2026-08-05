@@ -442,9 +442,10 @@ var PermissionManageSpace *Permission
 var PermissionDeleteSpace *Permission
 
 // SpaceChannelScopedPermissions is the canonical membership set of the seven
-// channel-scoped space permissions. The seeding migrations, the role-write
-// scope guard and the higher-scope merge exemption all decide "is this a space
-// permission" through it.
+// channel-scoped space permissions. The role-write scope guard and the
+// higher-scope merge exemption decide "is this a space permission" through it,
+// and the permissions migration enumerates it to grant the whole set to
+// system_admin.
 //
 // The capability slices below enumerate their own subsets rather than deriving
 // from it, so that each role's grant reads literally. TestSpaceCapabilitySlicesMatchCanonicalSet

@@ -24,6 +24,14 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		return nil, appErr
 	}
 
+	// A board is never a space, and SchemeId is taken straight from the request
+	// body here as it is in CreateChannel, so the same refusal applies: a scheme
+	// carrying space authority would otherwise resolve those grants for this
+	// channel's members.
+	if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("CreateBoardChannel", channel.SchemeId); appErr != nil {
+		return nil, appErr
+	}
+
 	// Look up boards property fields by name
 	boardsGroup, appErr := a.GetPropertyGroup(rctx, model.BoardsPropertyGroupName)
 	if appErr != nil {

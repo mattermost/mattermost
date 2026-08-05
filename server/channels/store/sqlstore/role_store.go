@@ -219,10 +219,23 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 }
 
 func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
+	return s.get(roleId, false)
+}
+
+func (s *SqlRoleStore) GetFromMaster(roleId string) (*model.Role, error) {
+	return s.get(roleId, true)
+}
+
+func (s *SqlRoleStore) get(roleId string, fromMaster bool) (*model.Role, error) {
 	dbRole := Role{}
 	query := s.tableSelectQuery.Where(sq.Eq{"Id": roleId})
 
-	if err := s.GetReplica().GetBuilder(&dbRole, query); err != nil {
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&dbRole, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}

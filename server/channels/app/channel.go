@@ -245,8 +245,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
-	// A space carries a preset scheme legitimately; any other channel would be
-	// borrowing one. CreateChannel takes SchemeId straight from the caller, so
+	// Which schemes are allowed depends on the channel type, so the two guards
+	// enforce opposite rules: a space may only take a scheme that can serve as a
+	// space's, and an ordinary channel may not take a scheme that carries space
+	// authority. CreateChannel takes SchemeId straight from the caller, so
 	// without this guard it would bypass the check UpdateChannelScheme enforces.
 	if channel.IsSpace() {
 		if appErr := a.rejectUnusableSpaceScheme("CreateChannel", channel.SchemeId); appErr != nil {
@@ -785,12 +787,12 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		}
 	}
 
-	// A space carries a preset scheme legitimately; any other channel would be
-	// borrowing one. This is the generic sink that takes SchemeId straight from
-	// the caller, and two paths reach it without passing UpdateChannelScheme:
-	// bulk import repoints an already-existing channel here, and the plugin API
-	// delegates here directly. Guarding only the two narrower entry points would
-	// leave both open.
+	// Which schemes are allowed depends on the channel type, so the two guards
+	// enforce opposite rules: a space may only take a scheme that can serve as a
+	// space's, and an ordinary channel may not take a scheme that carries space
+	// authority. UpdateChannel takes SchemeId straight from the caller, and both
+	// bulk import and the plugin API reach it without passing UpdateChannelScheme,
+	// so the guard has to sit here rather than on that narrower entry point.
 	//
 	// The type is read from oldChannel, not from channel: the incoming type is
 	// caller-supplied and could falsely claim to be a space. The SchemeId
@@ -924,11 +926,11 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 		return nil, err
 	}
 
-	// GetChannel excludes spaces, so anything reaching here is not one.
-	if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", channel.SchemeId); appErr != nil {
-		return nil, appErr
-	}
-
+	// The scheme guard is not repeated here: UpdateChannel re-reads the stored
+	// row and runs it whenever SchemeId differs from what is persisted, which is
+	// exactly the case this function creates. Guarding here as well would repeat
+	// the primary-side count query, and would also refuse re-setting the scheme a
+	// channel already carries, which UpdateChannel deliberately allows.
 	oldChannel.SchemeId = channel.SchemeId
 	return a.UpdateChannel(rctx, oldChannel)
 }
@@ -1188,7 +1190,21 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			return
+			if err.StatusCode != http.StatusNotFound {
+				return
+			}
+			// The by-id read is served from the replica and nothing populates the
+			// scheme cache on create, so a scheme created moments earlier reads as
+			// absent until replication catches up. Resolving a channel's roles right
+			// after pointing it at a new scheme is the ordinary way a caller reaches
+			// here. Re-read on the primary before concluding it does not exist; only
+			// the miss pays for it.
+			var storeErr error
+			scheme, storeErr = a.Srv().Store().Scheme().GetFromMaster(*channel.SchemeId)
+			if storeErr != nil {
+				return
+			}
+			err = nil
 		}
 
 		guestRoleName = scheme.DefaultChannelGuestRole

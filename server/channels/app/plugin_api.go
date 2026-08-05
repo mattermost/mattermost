@@ -1332,8 +1332,12 @@ func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName,
 	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
 }
 
+// Read from master: a plugin that has just had a scheme created reads back the roles core
+// generated for it to give them their permission sets, so this is a read-after-write on a row no
+// cache serves. On a lagging replica the role would read as absent and the configure would fail
+// against the scheme the same call had just created.
 func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return api.app.GetRoleByName(api.ctx, name)
+	return api.app.GetRoleByName(RequestContextWithMaster(api.ctx), name)
 }
 
 // The role is re-read by id because a RolePatch carries only Permissions: the

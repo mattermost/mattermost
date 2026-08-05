@@ -83,7 +83,11 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 	var nfErr *store.ErrNotFound
 
 	if role.Id != "" {
-		storedRole, err := a.Srv().Store().Role().Get(role.Id)
+		// Read on the primary: this baseline decides whether a guarded permission
+		// counts as newly added, so a replica that has not yet seen a peer node's
+		// removal would present a wider baseline and let the re-add through
+		// without reproving the scheme's space scope.
+		storedRole, err := a.Srv().Store().Role().GetFromMaster(role.Id)
 		if err != nil {
 			if !errors.As(err, &nfErr) {
 				return nil, readErr(err)
@@ -192,8 +196,18 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 				// is simply unreachable. Both outcomes refuse the write.
 				return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			// Fail closed: an unresolvable scheme cannot prove space scope.
-			return reject()
+			// The by-id read is served from the replica, so a scheme created
+			// shortly before this role write reads as absent until replication
+			// catches up, and the write would be refused for the wrong reason.
+			// Re-read on the primary before concluding it does not exist.
+			scheme, err = a.Srv().Store().Scheme().GetFromMaster(*role.SchemeId)
+			if err != nil {
+				if !errors.As(err, &nfErr) {
+					return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				// Fail closed: an unresolvable scheme cannot prove space scope.
+				return reject()
+			}
 		}
 		// Channel scope alone is too wide: an ordinary customer channel scheme
 		// is channel-scoped too, so accepting it would let anyone who can write

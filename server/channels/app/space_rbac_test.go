@@ -284,10 +284,32 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		require.NotNil(t, th.App.checkSpacePermissionScope(role, nil))
+	})
+
+	t.Run("scheme missed on the replica is resolved on the primary", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		// The replica has not caught up with a scheme created moments earlier;
+		// the primary has it, and it is a seeded preset, so the write is allowed.
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id:    schemeID,
+			Name:  model.SchemeNameSpaceContribute,
+			Scope: model.SchemeScopeChannel,
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
 	t.Run("nil-SchemeId unrecognized name fails closed", func(t *testing.T) {
@@ -344,7 +366,7 @@ func TestUpdateRoleBaselineIsKeyedById(t *testing.T) {
 		roleID, roleName := model.NewId(), model.NewId()
 		// The row being saved does not carry the guarded permission, so the
 		// incoming one is an add and must be rejected.
-		mockRoleStore.On("Get", roleID).Return(&model.Role{
+		mockRoleStore.On("GetFromMaster", roleID).Return(&model.Role{
 			Id:   roleID,
 			Name: roleName,
 		}, nil)
@@ -358,6 +380,9 @@ func TestUpdateRoleBaselineIsKeyedById(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
 		mockRoleStore.AssertNotCalled(t, "GetByName", mock.Anything, mock.Anything)
+		// The replica read would present a baseline that a peer node's removal
+		// may not have reached yet, so the guard must not fall back to it.
+		mockRoleStore.AssertNotCalled(t, "Get", mock.Anything)
 		mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
 
@@ -1184,6 +1209,33 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
 }
 
+// CreateBoardChannel takes SchemeId from the request body the same way
+// CreateChannel does, so it is a third sink for the same refusal and is pinned
+// here: a board is never a space, and must not carry a space's scheme.
+func TestCreateBoardChannelRejectsASpaceScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	// The preset is seeded at boot, so this resolves to the real row the guard
+	// refuses rather than a mocked stand-in.
+	preset, err := th.App.Srv().Store().Scheme().GetByName(model.SchemeNameSpaceContribute)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		Type:        model.ChannelTypeOpenBoard,
+		DisplayName: "board",
+		Name:        "board-" + model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+		SchemeId:    &preset.Id,
+	}
+	_, appErr := th.App.CreateBoardChannel(th.Context, channel)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
+}
+
 // The mirror of the case above: once a space points at a custom scheme, that
 // association is what checkSpacePermissionScope accepts as proof the scheme's
 // roles may hold page permissions, so the same scheme must be barred from
@@ -1448,11 +1500,36 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
 		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
+
+	t.Run("a scheme missed on the replica is resolved on the primary", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		// Creating a scheme and pointing a space at it is the ordinary caller
+		// sequence, so the replica routinely has not caught up by the time this
+		// guard runs. The primary resolves it and the attach is allowed.
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id:    schemeID,
+			Name:  model.NewId(),
+			Scope: model.SchemeScopeChannel,
+		}, nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
 	})
 }
 
@@ -1499,7 +1576,7 @@ func TestUpdateRoleStoreErrorIsNotReportedAsAScopeViolation(t *testing.T) {
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
-	mockRoleStore.On("Get", mock.Anything).Return(nil, errors.New("connection reset"))
+	mockRoleStore.On("GetFromMaster", mock.Anything).Return(nil, errors.New("connection reset"))
 	mockStore.On("Role").Return(&mockRoleStore)
 
 	role := &model.Role{Id: model.NewId(), Name: model.NewId(), Permissions: []string{model.PermissionAdminSpace.Id}}

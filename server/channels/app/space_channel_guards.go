@@ -102,8 +102,19 @@ func (a *App) rejectUnusableSpaceScheme(where string, schemeId *string) *model.A
 		if !errors.As(err, &nfErr) {
 			return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		// Fail closed: a scheme that does not resolve cannot prove anything.
-		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
+		// The by-id read is served from the replica, and nothing populates the
+		// scheme cache on create, so a scheme created moments earlier reads as
+		// absent until replication catches up. That is the ordinary way a caller
+		// reaches here: create a scheme, then point a space at it. Re-read on the
+		// primary before concluding it does not exist; only the miss pays for it.
+		scheme, err = a.Srv().Store().Scheme().GetFromMaster(*schemeId)
+		if err != nil {
+			if !errors.As(err, &nfErr) {
+				return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			// Fail closed: a scheme that does not resolve cannot prove anything.
+			return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	if scheme.Scope == model.SchemeScopeChannel {
