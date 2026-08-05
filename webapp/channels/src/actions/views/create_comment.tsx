@@ -198,7 +198,7 @@ export function onSubmit(
             // rather than the colon-wrapped name, so REACTION_PATTERN won't match. Resolve it
             // back to a name via EmojiMap.getUnicode.
             if (!isReaction) {
-                const unicodeMatch = /^([+-])(\S+)\s*$/.exec(message.trim());
+                const unicodeMatch = /^([+-])(\S+)\s*$/.exec(message);
                 if (unicodeMatch) {
                     const codepoint = [...unicodeMatch[2]]
                         .map((c) => c.codePointAt(0)!.toString(16))
