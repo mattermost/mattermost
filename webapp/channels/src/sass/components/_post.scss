@@ -405,10 +405,12 @@
     > button {
         @include mixins.button-small;
 
+        flex-shrink: 0;
         padding: 10px 16px;
         border-width: 0;
         border-radius: 4px;
         box-shadow: none;
+        white-space: nowrap;
 
         &.cancel {
             background: rgba(var(--button-bg-rgb), 0.08);
