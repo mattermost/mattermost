@@ -1128,10 +1128,12 @@ func TestDatabaseStoreReconcileExternalChanges(t *testing.T) {
 		assert.False(t, changed)
 	})
 
-	t.Run("cluster-pushed config re-reads the database instead of persisting", func(t *testing.T) {
+	t.Run("cluster push with no new active row visible is deferred to the reconciler", func(t *testing.T) {
 		activeID, _ := getActualDatabaseConfig(t)
 
-		// A stale payload pushed by a peer must not overwrite the active row.
+		// A stale payload pushed by a peer must not overwrite the active row
+		// or the in-memory config; with no unseen active row (as with a
+		// lagging replica read), the apply is skipped after bounded retries.
 		staleCfg := ds.Get().Clone()
 		staleCfg.TeamSettings.SiteName = model.NewPointer("stale cluster payload")
 		require.NoError(t, ds.ApplyClusterConfig(staleCfg))
@@ -1140,6 +1142,31 @@ func TestDatabaseStoreReconcileExternalChanges(t *testing.T) {
 		assert.Equal(t, activeID, newActiveID, "active row must not be rewritten")
 		assert.Equal(t, "external write", *actualCfg.TeamSettings.SiteName)
 		assert.Equal(t, "external write", *ds.Get().TeamSettings.SiteName)
+		assert.Empty(t, listenerInvocations)
+	})
+
+	t.Run("cluster push applies the database content, not the payload", func(t *testing.T) {
+		// Simulate the sender having persisted a new row before pushing.
+		otherStore, err := newTestDatabaseStore(nil)
+		require.NoError(t, err)
+		defer otherStore.Close()
+		otherStore.stopReconciler()
+
+		newCfg := otherStore.Get().Clone()
+		newCfg.TeamSettings.SiteName = model.NewPointer("sender persisted")
+		_, _, err = otherStore.Set(newCfg)
+		require.NoError(t, err)
+		activeID, _ := getActualDatabaseConfig(t)
+
+		// The pushed payload carries a different (older) value than the row.
+		payload := ds.Get().Clone()
+		payload.TeamSettings.SiteName = model.NewPointer("pushed payload")
+		require.NoError(t, ds.ApplyClusterConfig(payload))
+
+		newActiveID, _ := getActualDatabaseConfig(t)
+		assert.Equal(t, activeID, newActiveID, "active row must not be rewritten")
+		assert.Equal(t, "sender persisted", *ds.Get().TeamSettings.SiteName)
+		<-listenerInvocations
 	})
 }
 

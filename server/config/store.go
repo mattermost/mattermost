@@ -29,6 +29,17 @@ var (
 // guarantees when a cluster config-change notification is lost.
 const databaseStoreReconcileInterval = 30 * time.Second
 
+// Retry schedule for reading a cluster-pushed configuration change back from
+// the database. The sender persists a new active row before notifying peers,
+// so a read that still matches the last known checksum means the read landed
+// on a lagging replica (e.g. behind a load-balancing proxy) or the change was
+// already applied; a few short retries cover typical replication lag, and the
+// periodic reconciler covers anything longer.
+const (
+	clusterConfigReadRetries    = 5
+	clusterConfigReadRetryDelay = 500 * time.Millisecond
+)
+
 // Store is the higher level object that handles storing and retrieval of config data.
 // To do so it relies on a variety of backing stores (e.g. file, database, memory).
 type Store struct {
@@ -161,12 +172,32 @@ func (s *Store) reconcileFromDatabase(databaseStore *DatabaseStore) {
 // reactivate a stale configuration. File-backed stores persist the payload
 // locally as usual, since each node owns its copy of the file.
 func (s *Store) ApplyClusterConfig(newCfg *model.Config) error {
-	if _, ok := s.backingStore.(*DatabaseStore); ok {
-		return s.load(false)
+	databaseStore, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		_, _, err := s.Set(newCfg)
+		return err
 	}
 
-	_, _, err := s.Set(newCfg)
-	return err
+	// The sender persisted a new active row before notifying, so a fresh read
+	// must expose a checksum we haven't seen. If it doesn't, either the read
+	// hit a lagging replica or the change was already applied locally; retry
+	// briefly and otherwise leave convergence to the reconciler.
+	for attempt := 0; ; attempt++ {
+		changed, err := databaseStore.hasChangedExternally()
+		if err != nil {
+			return err
+		}
+		if changed {
+			break
+		}
+		if attempt >= clusterConfigReadRetries {
+			mlog.Debug("Cluster config change not yet visible in the database; deferring to the reconciler")
+			return nil
+		}
+		time.Sleep(clusterConfigReadRetryDelay)
+	}
+
+	return s.load(false)
 }
 
 // NewStoreFromDSN creates and returns a new config store backed by either a database or file store
