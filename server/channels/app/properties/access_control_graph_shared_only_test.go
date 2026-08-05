@@ -658,3 +658,44 @@ func TestGraphSharedOnly_OptionListLinkedField(t *testing.T) {
 	// Fail-closed, and the same answer the value masking gives.
 	assert.Empty(t, h.listedOptions(t, caller, template, 0, "", 100))
 }
+
+// TestGraphSharedOnly_OptionListPageFilled covers the arithmetic of filling a page
+// from more than one page of rows: that a full page is answered full even when the
+// rows behind it were mostly invisible, that the surplus a filling read picks up is
+// dropped rather than lost, and that paging on from what was shown neither skips an
+// option nor repeats one.
+//
+// The options here sit under nothing, so a caller covers exactly what they hold.
+// The hierarchy is not what is under test; the paging is.
+func TestGraphSharedOnly_OptionListPageFilled(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-filled", nil,
+		"Program A", "Program B", "Program C", "Program D")
+
+	// A listing is ordered by creation time and then identifier, and these were
+	// written in one call — so the order has to be read rather than assumed. Hold
+	// everything but whichever option leads, so the first page of two must look
+	// past a row it may not show and still come back full.
+	order := listedNames(h.listedOptions(t, "test-plugin", field, 0, "", 100))
+	require.Len(t, order, 4)
+
+	caller := model.NewId()
+	held := make([]string, 0, 3)
+	for _, name := range order[1:] {
+		held = append(held, ids[name])
+	}
+	h.assign(t, field.ID, caller, held...)
+
+	first := h.listedOptions(t, caller, field, 0, "", 2)
+	require.Len(t, first, 2, "a page is filled from the rows behind it, not answered short")
+	assert.Equal(t, order[1:3], listedNames(first))
+
+	// Continue from the last option shown. The option the filling read picked up
+	// past the page size was dropped, so it has to come back here.
+	second := h.listedOptions(t, caller, field, first[1].CreateAt, first[1].ID, 2)
+	assert.Equal(t, order[3:], listedNames(second), "the surplus is dropped, not lost")
+
+	last := second[len(second)-1]
+	assert.Empty(t, h.listedOptions(t, caller, field, last.CreateAt, last.ID, 2),
+		"and then the listing ends")
+}
