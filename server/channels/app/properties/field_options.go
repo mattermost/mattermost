@@ -254,15 +254,19 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	// on until the page is full or the rows run out, so a short page means what a
 	// caller reads it as.
 	//
-	// The cost of that is a scan: a caller who may see a handful of a large field's
-	// options pays for the rows in between to find them, and so does a caller who
-	// may see none of them at all -- the answer a source_only field gives everyone
-	// but its source plugin, which used to cost one page. Telling those two apart
-	// would need a hook able to say "nothing here, ever" as distinct from "nothing
-	// on this page", which none of them can express. The scan goes away entirely by
-	// asking the rows for the options the caller may see rather than filtering them
-	// afterwards, which for a hierarchy means paging the options below the ones the
-	// caller holds.
+	// The cost of that is a scan of the whole field whenever little of it is
+	// visible. A caller who may see a handful of a large field's options pays for
+	// the rows in between to find them -- and a caller who may see *none* of them
+	// pays for all of them to establish it, which is the common case rather than
+	// the exotic one: it is every caller of a source_only field but its source
+	// plugin, and every caller of a shared_only field who holds nothing for it,
+	// both of which used to cost a single page. Stopping early for them needs a
+	// hook able to say "nothing here, ever" as distinct from "nothing on this
+	// page", which none of them can express -- and the difference matters, because
+	// "nothing on this page" is exactly what the loop exists to read past. The scan
+	// goes away entirely by asking the rows for the options the caller may see
+	// rather than filtering them afterwards, which for a hierarchy means paging the
+	// options below the ones the caller holds.
 	//
 	// An empty page and no page are not the same answer: a hook building its result
 	// by appending returns nil when it keeps nothing, and nil serializes as null
