@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {enableMaskingFlag} from '../masking/masking_helpers';
 import {enableUserManagedAttributes} from '../support';
 
-import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
+import {createChannelTextField, createParentPolicyViaAPI, deletePropertyFieldQuietly} from './helpers';
 
 /**
  * Attribute-value masking on the resource.attributes.* write path.
@@ -25,6 +25,21 @@ import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
  * masking Playwright suite whose mechanics the resource path shares.
  */
 test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '@abac_masking']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Reverse order, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
 
@@ -36,7 +51,8 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         await enableMaskingFlag(adminClient);
 
         const attr = `region${pw.random.id()}`;
-        await createChannelTextField(adminClient, attr);
+        const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         // The 8-dash sentinel is server-generated and never a real value, so a
         // submitted expression containing it cannot be resolved to a stored

@@ -302,8 +302,13 @@ export async function createLinkedGraphHierarchy(
  * shows is paginated, so policies accumulated on a shared server push newer ones
  * off the first page, and a spec that finds its policy by scanning that list then
  * fails in a way that reads as a failed save. Unassigning first so the per-channel
- * child policy goes too, rather than leaving a channel enforcing a parent that no
- * longer exists.
+ * child policy goes too — a parent that still has children is refused, and a
+ * channel left importing a deleted parent enforces a rule nobody can read.
+ *
+ * Delete a policy BEFORE the fields its rules reference, not after. While
+ * attribute-value masking is on, deleting a policy first asks which of its values
+ * the caller may see, and that check fails outright when a referenced field is
+ * gone — leaving a policy that cannot be deleted through the API at all.
  *
  * Best-effort — a failure here should not mask the assertion that already ran.
  */
@@ -319,21 +324,43 @@ export async function deleteParentPolicy(
 }
 
 /**
- * Delete a hierarchy's three fields. The access_control group caps how many
- * fields may exist in it at once and the policy editor asks for only the first
- * page of them, so a spec that leaks fields degrades later runs rather than its
- * own. Dependents first as a precaution, since deleting the owning template
- * cascades to the options and edges the linked fields were serving.
+ * Delete one field of the access_control group by object type.
  *
  * Best-effort — a failure here should not mask the assertion that already ran.
  */
-export async function deleteGraphHierarchy(adminClient: Client4, hierarchy: GraphHierarchy): Promise<void> {
+export async function deletePropertyFieldQuietly(
+    adminClient: Client4,
+    objectType: string,
+    fieldId: string,
+): Promise<void> {
+    await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId).catch(() => {});
+}
+
+/**
+ * Delete the three fields of a linked template/user/channel fixture, whether it
+ * came from createLinkedGraphHierarchy or createLinkedMultiselectScale.
+ *
+ * Fixtures are worth deleting rather than leaving behind: the access_control group
+ * allows at most 20 user-object fields, and once that is reached every later spec
+ * that creates a user attribute fails in its setup. The policy editor also reads
+ * only the first page of fields, so leaked fields can hide a real one from the
+ * attribute picker well before the cap.
+ *
+ * Dependents first as a precaution, since deleting the owning template cascades to
+ * the options and edges the linked fields were serving.
+ *
+ * Best-effort — a failure here should not mask the assertion that already ran.
+ */
+export async function deleteLinkedFieldTrio(
+    adminClient: Client4,
+    fixture: {templateId: string; userFieldId: string; channelFieldId: string},
+): Promise<void> {
     for (const [objectType, fieldId] of [
-        [USER_OBJECT_TYPE, hierarchy.userFieldId],
-        [CHANNEL_OBJECT_TYPE, hierarchy.channelFieldId],
-        [TEMPLATE_OBJECT_TYPE, hierarchy.templateId],
+        [USER_OBJECT_TYPE, fixture.userFieldId],
+        [CHANNEL_OBJECT_TYPE, fixture.channelFieldId],
+        [TEMPLATE_OBJECT_TYPE, fixture.templateId],
     ] as const) {
-        await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId).catch(() => {});
+        await deletePropertyFieldQuietly(adminClient, objectType, fieldId);
     }
 }
 

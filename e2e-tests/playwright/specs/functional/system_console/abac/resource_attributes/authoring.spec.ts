@@ -6,7 +6,12 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {enableUserManagedAttributes} from '../support';
 import {enableTeamMembershipPolicies} from '../teams/helpers';
 
-import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
+import {
+    createChannelTextField,
+    createParentPolicyViaAPI,
+    deleteParentPolicy,
+    deletePropertyFieldQuietly,
+} from './helpers';
 
 /**
  * Authoring round-trip for resource.attributes.* over the real HTTP boundary
@@ -19,6 +24,21 @@ import {createChannelTextField, createParentPolicyViaAPI} from './helpers';
  * enterprise engine unit tests.
  */
 test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Reverse order, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('accepts a parent policy mixing user and resource attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
 
@@ -29,7 +49,8 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
         const attr = `region${pw.random.id()}`;
-        await createChannelTextField(adminClient, attr);
+        const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         // Save succeeds and returns a policy id — the round-trip accepts a
         // mixed user/resource expression on a parent policy.
@@ -38,6 +59,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
             expression: `resource.attributes.${attr} == "us"`,
         });
         expect(policyId).toBeTruthy();
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId));
     });
 
     test('rejects has(resource.attributes.*) at check time', async ({pw}) => {
@@ -50,7 +72,8 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
         const attr = `region${pw.random.id()}`;
-        await createChannelTextField(adminClient, attr);
+        const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         // Absence is handled by deny-on-miss, so has() guards on resource
         // attributes are rejected. cel/check surfaces the error to the editor.
@@ -66,12 +89,15 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         await enableTeamMembershipPolicies(adminClient);
 
         const attr = `region${pw.random.id()}`;
-        await createChannelTextField(adminClient, attr);
+        const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Team Boundary ${pw.random.id()}`,
             expression: `resource.attributes.${attr} == "us"`,
         });
+
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId));
 
         // A team's resource is a team, which has no CPA attributes, so a parent
         // that references resource.attributes.* must not be importable by a team.

@@ -29,7 +29,7 @@ import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 import {
     createLinkedGraphHierarchy,
-    deleteGraphHierarchy,
+    deleteLinkedFieldTrio,
     openPolicyEditor,
     skipIfNoGraphFields,
     type GraphHierarchy,
@@ -71,7 +71,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
 
     test.afterEach(async () => {
         if (hierarchy) {
-            await deleteGraphHierarchy(adminClient, hierarchy);
+            await deleteLinkedFieldTrio(adminClient, hierarchy);
             hierarchy = undefined;
         }
     });

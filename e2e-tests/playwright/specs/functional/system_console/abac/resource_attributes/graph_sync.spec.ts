@@ -14,7 +14,7 @@ import {
     assignChannelsToPolicy,
     createLinkedGraphHierarchy,
     createParentPolicyViaAPI,
-    deleteGraphHierarchy,
+    deleteLinkedFieldTrio,
     deleteParentPolicy,
     // A graph value is the same wire shape as a multiselect one — a list of the
     // option ids the object holds — so the multiselect setters serve both, and the
@@ -148,7 +148,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
                 await deleteParentPolicy(adminClient, createdPolicyId, governedChannelId ? [governedChannelId] : []);
             }
             if (hierarchy) {
-                await deleteGraphHierarchy(adminClient, hierarchy);
+                await deleteLinkedFieldTrio(adminClient, hierarchy);
             }
         }
     });
@@ -206,7 +206,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
                 await deleteParentPolicy(adminClient, createdPolicyId, governedChannelId ? [governedChannelId] : []);
             }
             if (hierarchy) {
-                await deleteGraphHierarchy(adminClient, hierarchy);
+                await deleteLinkedFieldTrio(adminClient, hierarchy);
             }
         }
     });
