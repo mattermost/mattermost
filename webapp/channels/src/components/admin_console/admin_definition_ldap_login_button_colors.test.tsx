@@ -44,9 +44,6 @@ describe('AdminDefinition - AD/LDAP login button colors', () => {
 
         expect(setting).toBeDefined();
         expect(setting?.type).toBe('color');
-
-        // Assert the exact message ids so a copy/paste mistake between the three
-        // colors (or a leftover admin.experimental.* id) is caught.
         expect((setting?.label as {id?: string})?.id).toBe(labelId);
         expect((setting?.help_text as {id?: string})?.id).toBe(helpId);
     });
