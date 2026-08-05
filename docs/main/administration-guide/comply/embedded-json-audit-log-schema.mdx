@@ -1804,6 +1804,59 @@ Recap events include a `channel_id` in the event parameters, indicating which ch
 </tbody>
 </table>
 
+### Data Spillage Handling Events
+
+Most of these events identify the quarantined message through a post ID event parameter, but the parameter name differs. The review events use `postId`, while `generateFlaggedPostReport` and `generatePostExposureReport` use `flaggedPostId`. Account for both names when querying audit logs for a specific message. `setFlaggedPostReviewer` records `assigningUserId` and `reviewerUserId` instead, and `updateContentFlaggingConfig` records no event parameters.
+
+Six of these events are emitted at the `audit-content` level. `setFlaggedPostReviewer` and `updateContentFlaggingConfig` are emitted at `audit-api`. If you route the two levels to different destinations, the trail for a single quarantined message spans both. See [Logging](/administration-guide/manage/logging) for how audit levels are routed.
+
+<table style={{width: '88%'}}>
+<colgroup>
+<col style={{width: '30%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>flagPost</code></td>
+<td>Quarantining messages for review</td>
+</tr>
+<tr>
+<td><code>generateFlaggedPostReport</code></td>
+<td>Generating quarantined message reports</td>
+</tr>
+<tr>
+<td><code>generatePostExposureReport</code></td>
+<td>Generating post exposure reports</td>
+</tr>
+<tr>
+<td><code>getFlaggedPost</code></td>
+<td>Retrieving quarantined message details</td>
+</tr>
+<tr>
+<td><code>keepFlaggedPost</code></td>
+<td>Retaining quarantined messages</td>
+</tr>
+<tr>
+<td><code>permanentlyRemoveFlaggedPost</code></td>
+<td>Permanently removing quarantined messages</td>
+</tr>
+<tr>
+<td><code>setFlaggedPostReviewer</code></td>
+<td>Assigning reviewers to quarantined messages</td>
+</tr>
+<tr>
+<td><code>updateContentFlaggingConfig</code></td>
+<td>Updating Data Spillage Handling configuration</td>
+</tr>
+</tbody>
+</table>
+
 <Note>
 
 This comprehensive list includes all audit events captured by Mattermost across all major system operations. Additional events may be logged depending on your Mattermost version, enabled features, and configuration settings. Enterprise and Enterprise Advanced features may generate additional audit events.
