@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	svg "github.com/h2non/go-is-svg"
@@ -31,6 +32,10 @@ import (
 // prepackagedPluginsDir is the hard-coded folder name where prepackaged plugins are bundled
 // alongside the server.
 const prepackagedPluginsDir = "prepackaged_plugins"
+
+// pluginOnConfigurationChangeWaitLimit bounds how long a config save waits for plugin
+// OnConfigurationChange hooks. Hooks exceeding it finish in the background.
+const pluginOnConfigurationChangeWaitLimit = 15 * time.Second
 
 // pluginSignaturePath tracks the path to the plugin bundle and signature for the given plugin.
 type pluginSignaturePath struct {
@@ -242,12 +247,16 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			ch.syncPluginsActiveState()
 		}
 
-		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		// Notify plugins concurrently with a bounded wait: this listener runs
+		// synchronously inside every config save (including saves relayed from
+		// cluster peers), so serial dispatch would make save latency grow with
+		// the number of plugins and a single slow plugin could block it
+		// entirely.
+		ch.RunMultiHookConcurrent(func(hooks plugin.Hooks, manifest *model.Manifest) {
 			if err := hooks.OnConfigurationChange(); err != nil {
-				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.String("plugin_id", manifest.Id), mlog.Err(err))
 			}
-			return true
-		}, plugin.OnConfigurationChangeID)
+		}, plugin.OnConfigurationChangeID, pluginOnConfigurationChangeWaitLimit)
 	})
 	ch.pluginsLock.Unlock()
 
