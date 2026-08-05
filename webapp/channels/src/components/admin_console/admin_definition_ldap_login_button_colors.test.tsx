@@ -7,11 +7,13 @@ import AdminDefinition from './admin_definition';
 import {ldapWizardAdminDefinition} from './admin_definition_ldap_wizard';
 import type {AdminDefinitionSetting} from './types';
 
-const LOGIN_BUTTON_COLOR_KEYS = [
-    'LdapSettings.LoginButtonColor',
-    'LdapSettings.LoginButtonBorderColor',
-    'LdapSettings.LoginButtonTextColor',
+const LOGIN_BUTTON_COLOR_SETTINGS = [
+    {key: 'LdapSettings.LoginButtonColor', labelId: 'admin.ldap.loginButtonColor.title', helpId: 'admin.ldap.loginButtonColor.desc'},
+    {key: 'LdapSettings.LoginButtonBorderColor', labelId: 'admin.ldap.loginButtonBorderColor.title', helpId: 'admin.ldap.loginButtonBorderColor.desc'},
+    {key: 'LdapSettings.LoginButtonTextColor', labelId: 'admin.ldap.loginButtonTextColor.title', helpId: 'admin.ldap.loginButtonTextColor.desc'},
 ];
+
+const LOGIN_BUTTON_COLOR_KEYS = LOGIN_BUTTON_COLOR_SETTINGS.map((s) => s.key);
 
 type IsDisabledCheck = (
     config: object,
@@ -37,13 +39,16 @@ describe('AdminDefinition - AD/LDAP login button colors', () => {
         return (settings ?? []) as AdminDefinitionSetting[];
     };
 
-    it.each(LOGIN_BUTTON_COLOR_KEYS)('defines %s as a color setting on the AD/LDAP page', (key) => {
+    it.each(LOGIN_BUTTON_COLOR_SETTINGS)('defines $key as a color setting on the AD/LDAP page', ({key, labelId, helpId}) => {
         const setting = getLdapConnectionSettings().find((s) => s.key === key);
 
         expect(setting).toBeDefined();
         expect(setting?.type).toBe('color');
-        expect(setting?.label).toBeDefined();
-        expect(setting?.help_text).toBeDefined();
+
+        // Assert the exact message ids so a copy/paste mistake between the three
+        // colors (or a leftover admin.experimental.* id) is caught.
+        expect((setting?.label as {id?: string})?.id).toBe(labelId);
+        expect((setting?.help_text as {id?: string})?.id).toBe(helpId);
     });
 
     it.each(LOGIN_BUTTON_COLOR_KEYS)('no longer exposes %s on the Experimental Features page', (key) => {
