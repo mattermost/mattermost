@@ -135,8 +135,13 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 	recorder := httptest.NewRecorder()
 
 	if truncated := backend.ServeImage(recorder, req, maxImageSize); truncated {
-		mlog.Warn("Discarding proxied image that exceeded max size for direct fetch",
-			mlog.String("url", imageURL), mlog.Int("max_bytes", maxImageSize))
+		// Log only the host, not the full URL: the path/query may carry
+		// sensitive tokens or signed parameters that shouldn't hit the logs.
+		fields := []mlog.Field{mlog.Int("max_bytes", maxImageSize)}
+		if parsed, parseErr := url.Parse(imageURL); parseErr == nil {
+			fields = append(fields, mlog.String("host", parsed.Host))
+		}
+		mlog.Warn("Discarding proxied image that exceeded max size for direct fetch", fields...)
 		return nil, "", ErrImageTooLarge
 	}
 
