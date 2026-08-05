@@ -86,6 +86,8 @@ func (c *captureClusterMock) GetWSQueues(userID, connectionID string, seqNum int
 	return nil, nil
 }
 
+func (c *captureClusterMock) Shutdown() {}
+
 func TestChannelGuardCacheBroadcastShape(t *testing.T) {
 	mainHelper.Parallel(t)
 	cluster := &captureClusterMock{}

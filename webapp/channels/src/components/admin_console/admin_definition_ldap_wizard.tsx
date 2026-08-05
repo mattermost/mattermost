@@ -546,10 +546,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'custom',
                 key: 'LdapSettings.CustomProfileAttributes',
                 component: CustomProfileAttributes,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
             },
         ],
     },

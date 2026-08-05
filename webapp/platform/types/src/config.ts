@@ -129,7 +129,6 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
-    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
@@ -139,6 +138,7 @@ export type ClientConfig = {
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
+    FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
 
     ForgotPasswordLink: string;
@@ -249,6 +249,8 @@ export type ClientConfig = {
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
     EnableUserManagedAttributes: string;
+    EnableAccessControlAuditLogging: string;
+    AuditLoggingActive: string;
     EnableChannelPolicyIndicators: string;
 
     // Auto Translation Settings
@@ -1066,6 +1068,7 @@ export type AccessControlSettings = {
     EnableChannelPolicyIndicators: boolean;
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
+    EnableAccessControlAuditLogging: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {

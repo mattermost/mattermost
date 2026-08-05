@@ -5431,6 +5431,38 @@
     "translation": "You do not have permission to manage this access control policy."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Access control could not be evaluated for this resource."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "The acting user is invalid or does not exist."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "The action is not a valid access control action."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Invalid identifier supplied to the access control API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "The resource type is not a valid plugin access control resource type."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Access control policy not found."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "The calling plugin does not own this resource type."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "An access control policy of a different type already exists for this ID."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects"
   },
@@ -11175,6 +11207,10 @@
     "translation": "Invalid name for the policy."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Invalid access control policy: type is not a valid plugin resource type."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision."
   },
@@ -11733,6 +11769,10 @@
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "To must be greater than From."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Invalid access control sync job interval. Must be at least 60 seconds."
   },
   {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
