@@ -52,6 +52,7 @@ const getArchivedOtherChannels = createSelector(
 const getPrivateChannelsSelector = createSelector(
     'getPrivateChannelsSelector',
     getChannelsInCurrentTeam,
+
     // Active private channels only. Archived private channels are surfaced
     // exclusively through `archivedChannels`; including them here would both
     // leak them past the Hide Archived toggle and double them up alongside the

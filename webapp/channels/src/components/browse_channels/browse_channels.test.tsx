@@ -824,7 +824,8 @@ describe('components/BrowseChannels', () => {
     };
 
     test('hides both archived public and private channels from the All list when the toggle is on', async () => {
-        renderWithContext(<BrowseChannels {...bothTypesArchivedProps} shouldHideArchivedChannels={true}/>);
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: true};
+        renderWithContext(<BrowseChannels {...props}/>);
 
         await act(async () => {
             await Promise.resolve();
@@ -836,7 +837,8 @@ describe('components/BrowseChannels', () => {
     });
 
     test('shows each archived channel exactly once in the All list when the toggle is off', async () => {
-        renderWithContext(<BrowseChannels {...bothTypesArchivedProps} shouldHideArchivedChannels={false}/>);
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
 
         await act(async () => {
             await Promise.resolve();
@@ -850,7 +852,8 @@ describe('components/BrowseChannels', () => {
     });
 
     test('includes archived channels of the matching type under the Public and Private filters when the toggle is off', async () => {
-        renderWithContext(<BrowseChannels {...bothTypesArchivedProps} shouldHideArchivedChannels={false}/>);
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
 
         await act(async () => {
             await Promise.resolve();
