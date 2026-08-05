@@ -138,6 +138,7 @@ export type ClientConfig = {
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
+    FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
 
     ForgotPasswordLink: string;

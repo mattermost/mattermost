@@ -22,6 +22,10 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+export function isPostAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPostAttributes === 'true';
+}
+
 // Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
 // server flag. When the flag is off the toggle UI, request endpoints, and
 // admin queue routes are all hidden — old clients see today's behavior.
