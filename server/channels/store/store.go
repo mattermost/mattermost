@@ -301,6 +301,12 @@ type ChannelStore interface {
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
+	// CountNonSpaceChannelsByScheme counts the ordinary channels carrying the
+	// scheme — the same population GetChannelsByScheme returns, counted rather
+	// than paged. Reads from the primary because the callers are authorization
+	// guards: a scheme that has just been attached to an ordinary channel must
+	// not still look unused to the next guard that consults it.
+	CountNonSpaceChannelsByScheme(schemeID string) (int64, error)
 	// CountSpaceChannelsByScheme counts the space backing channels carrying the
 	// scheme, deliberately including soft-deleted channels: a deleted space is
 	// restorable and keeps its SchemeId. Reads from the primary so a

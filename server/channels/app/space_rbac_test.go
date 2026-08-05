@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -398,39 +397,39 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 		DefaultChannelGuestRole: model.NewId(),
 	}
 
-	// governs is what GetChannelsByScheme returns; it excludes spaces, so a
-	// non-empty list means the scheme belongs to a customer's channels.
-	setup := func(t *testing.T, governs model.ChannelList) *TestHelper {
+	// governs counts the ordinary channels on the scheme; it excludes spaces, so
+	// a non-zero count means the scheme belongs to a customer's channels.
+	setup := func(t *testing.T, governs int64) *TestHelper {
 		th := setupSpaceRBACMock(t)
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("GetChannelsByScheme", mock.AnythingOfType("string"), 0, 1).Return(governs, nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", mock.AnythingOfType("string")).Return(governs, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 		return th
 	}
 
 	t.Run("canonical row accepted", func(t *testing.T) {
-		th := setup(t, model.ChannelList{})
+		th := setup(t, 0)
 		require.NoError(t, th.App.Srv().validateAdoptableSpaceScheme(canonical))
 	})
 
 	t.Run("soft-deleted row rejected", func(t *testing.T) {
 		// GetByName has no DeleteAt filter, so a deleted row reaches the check.
-		th := setup(t, model.ChannelList{})
+		th := setup(t, 0)
 		foreign := *canonical
 		foreign.DeleteAt = 1
 		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(&foreign))
 	})
 
 	t.Run("wrong scope rejected", func(t *testing.T) {
-		th := setup(t, model.ChannelList{})
+		th := setup(t, 0)
 		foreign := *canonical
 		foreign.Scope = model.SchemeScopeTeam
 		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(&foreign))
 	})
 
 	t.Run("incomplete generated roles rejected", func(t *testing.T) {
-		th := setup(t, model.ChannelList{})
+		th := setup(t, 0)
 		for _, blank := range []func(*model.Scheme){
 			func(s *model.Scheme) { s.DefaultChannelUserRole = "" },
 			func(s *model.Scheme) { s.DefaultChannelAdminRole = "" },
@@ -446,7 +445,7 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 		// A customer scheme that predates the name reservation satisfies every
 		// shape check above; adopting it would strip the moderated permissions
 		// from the channels it governs.
-		th := setup(t, model.ChannelList{{Id: model.NewId(), Type: model.ChannelTypeOpen}})
+		th := setup(t, 1)
 		require.Error(t, th.App.Srv().validateAdoptableSpaceScheme(canonical))
 	})
 }
@@ -1161,9 +1160,10 @@ func TestCreateSchemeSpaceNameGuard(t *testing.T) {
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
-// A custom scheme is not a preset, so the ordinary-channel guard leaves it
-// alone: only the presets carry the moderated-permission stripping that would
-// silently take create_post away from an ordinary channel's members.
+// A custom scheme no space points at is not a preset and carries no space
+// authority, so the ordinary-channel guard leaves it alone: only the presets
+// carry the moderated-permission stripping that would silently take create_post
+// away from an ordinary channel's members.
 func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
@@ -1174,8 +1174,198 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mockSchemeStore.On("Get", schemeID).
 		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
 
 	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
+}
+
+// The mirror of the case above: once a space points at a custom scheme, that
+// association is what checkSpacePermissionScope accepts as proof the scheme's
+// roles may hold page permissions, so the same scheme must be barred from
+// ordinary channels or those grants would resolve for their members too.
+func TestRejectSpaceSchemeOnOrdinaryChannelRefusesSchemeUsedByASpace(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	schemeID := model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).
+		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+}
+
+// isSeededSpaceScheme answers the preset question for three guards, so each of
+// its branches is pinned here rather than only through its callers.
+func TestIsSeededSpaceScheme(t *testing.T) {
+	setup := func(t *testing.T, ret *model.Scheme, err error) (*TestHelper, string) {
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(ret, err)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		return th, schemeID
+	}
+
+	t.Run("a seeded preset is recognised", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t, &model.Scheme{Id: model.NewId(), Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel}, nil)
+		isPreset, appErr := th.App.isSeededSpaceScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.True(t, isPreset)
+	})
+
+	t.Run("a reserved name outside channel scope is a squatter, not a preset", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t, &model.Scheme{Id: model.NewId(), Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeTeam}, nil)
+		isPreset, appErr := th.App.isSeededSpaceScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.False(t, isPreset, "scope is part of the identity")
+	})
+
+	t.Run("an ordinary channel scheme is not a preset", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t, &model.Scheme{Id: model.NewId(), Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		isPreset, appErr := th.App.isSeededSpaceScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.False(t, isPreset)
+	})
+
+	t.Run("a missing scheme is not a preset and is not an error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t, nil, store.NewErrNotFound("Scheme", "id"))
+		isPreset, appErr := th.App.isSeededSpaceScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.False(t, isPreset)
+	})
+
+	t.Run("a store failure is reported, never reported as not-a-preset", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t, nil, errors.New("db down"))
+		isPreset, appErr := th.App.isSeededSpaceScheme(schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.get.app_error", appErr.Id)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.False(t, isPreset)
+	})
+}
+
+// IsSpaceChannelByID must distinguish "not a space" from "could not tell". A
+// lookup failure that returned (false, nil) would silently downgrade every
+// caller's guard to "ordinary channel", which is the permissive answer.
+func TestIsSpaceChannelByIDFailsClosedOnLookupError(t *testing.T) {
+	setup := func(t *testing.T, err error) (*TestHelper, string) {
+		th := setupSpaceRBACMock(t)
+		channelID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetChannelOfType", mock.Anything, channelID, model.ChannelTypeSpace).
+			Return(nil, err)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		return th, channelID
+	}
+
+	t.Run("a store failure is surfaced, not reported as 'not a space'", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID := setup(t, errors.New("db down"))
+
+		isSpace, appErr := th.App.IsSpaceChannelByID(th.Context, channelID)
+		require.NotNil(t, appErr, "a failed lookup must not answer the permissive way")
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.False(t, isSpace)
+	})
+
+	t.Run("a genuine not-found is the one case that answers 'not a space'", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID := setup(t, store.NewErrNotFound("Channel", "id"))
+
+		isSpace, appErr := th.App.IsSpaceChannelByID(th.Context, channelID)
+		require.Nil(t, appErr)
+		assert.False(t, isSpace)
+	})
+}
+
+// The scheme lookup inside the preset check is shared by both channel guards, so
+// a failure there has to surface rather than be read as "not a preset".
+func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
+	setup := func(t *testing.T) (*TestHelper, string) {
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, errors.New("db down"))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		return th, schemeID
+	}
+
+	t.Run("rejectSpaceSchemeOnOrdinaryChannel", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t)
+		appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("rejectUnusableSpaceScheme", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, schemeID := setup(t)
+		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+}
+
+// The space guard on a space's own SchemeId counts ordinary channels on the
+// primary; a failure there cannot prove the scheme is unused, so it refuses.
+func TestRejectUnusableSpaceSchemeFailsClosedOnCountError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	schemeID := model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).
+		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+}
+
+// A store failure on the space-association read is not proof the scheme is
+// clean, so the guard reports the failure instead of allowing the write.
+func TestRejectSpaceSchemeOnOrdinaryChannelFailsClosedOnCountError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	schemeID := model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).
+		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 }
 
 // TestRejectUnusableSpaceScheme pins the guard on a space's own SchemeId. It is
@@ -1222,7 +1412,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1).Return(model.ChannelList{}, nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
@@ -1239,8 +1429,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1).
-			Return(model.ChannelList{{Id: model.NewId()}}, nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
@@ -1488,9 +1677,23 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 			case strings.HasSuffix(name, "_"+model.ChannelGuestRoleId):
 				base = model.ChannelGuestRoleId
 			}
+			// What createScheme actually produces for a channel-scoped scheme,
+			// which is not the global default role: the generated admin role
+			// starts empty, and the user and guest roles keep only the
+			// channel-moderated permissions of the global role each is seeded
+			// from. Seeding the full default role here would model a scheme the
+			// server never creates.
+			seeded := []string{}
+			if base != model.ChannelAdminRoleId {
+				for _, p := range defaults[base].Permissions {
+					if _, moderated := model.ChannelModeratedPermissionsMap[p]; moderated {
+						seeded = append(seeded, p)
+					}
+				}
+			}
 			return &model.Role{
 				Name:        name,
-				Permissions: append(slices.Clone(defaults[base].Permissions), extraRolePermissions...),
+				Permissions: append(seeded, extraRolePermissions...),
 			}, nil
 		})
 	// applySpaceSchemeRolePermissions writes through the unknown-permission
@@ -1503,8 +1706,8 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 	// A scheme reached through the insert race is one another node just created,
 	// so it governs none.
 	mockChannelStore := mocks.ChannelStore{}
-	mockChannelStore.On("GetChannelsByScheme", mock.AnythingOfType("string"), 0, 1).
-		Return(model.ChannelList{}, nil)
+	mockChannelStore.On("CountNonSpaceChannelsByScheme", mock.AnythingOfType("string")).
+		Return(int64(0), nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockStore.On("Close").Return(nil)

@@ -144,10 +144,35 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 	return a.Srv().mergeChannelHigherScopedPermissions(roles)
 }
 
+// rolePatchDeniedPermissions are refused on any role patch regardless of the
+// caller's own authority: granting them through a role would hand the permission
+// to every account holding that role at once, invisibly from the per-user views
+// where role membership is normally audited.
+//
+// The REST handler enforces its own copy of this list. Consolidating the two on
+// a single source is a follow-up: api4/role.go is not otherwise touched here.
+var rolePatchDeniedPermissions = []string{
+	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
+	model.PermissionManageRoles.Id,
+	model.PermissionManageSystem.Id,
+}
+
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil
+	}
+
+	// At the App sink rather than only in the REST handler, so a second entry
+	// point cannot reach a role write with the blocklist unapplied — which is
+	// what the plugin API would otherwise do.
+	if patch.Permissions != nil {
+		for _, permission := range model.PermissionsChangedByPatch(role, patch) {
+			if slices.Contains(rolePatchDeniedPermissions, permission) {
+				return nil, model.NewAppError("PatchRole", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
+			}
+		}
 	}
 
 	role.Patch(patch)

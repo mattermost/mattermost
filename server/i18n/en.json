@@ -5651,6 +5651,10 @@
     "translation": "Unable to count messages since given date."
   },
   {
+    "id": "app.channel.count_non_space_channels_by_scheme.app_error",
+    "translation": "Unable to count the channels using this scheme."
+  },
+  {
     "id": "app.channel.count_space_channels_by_scheme.app_error",
     "translation": "Unable to count the spaces using this scheme."
   },
@@ -8995,6 +8999,10 @@
   {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "The role was not valid."
+  },
+  {
+    "id": "app.role.save.space_capability_role.app_error",
+    "translation": "The role \"{{.RoleName}}\" is a space capability role and cannot be changed. Its permissions are fixed by the server."
   },
   {
     "id": "app.role.save.space_permission_scope.app_error",

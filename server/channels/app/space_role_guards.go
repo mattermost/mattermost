@@ -144,6 +144,20 @@ func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName str
 // the flag was off would survive the flip and become live space authority, and
 // nothing re-validates stored rows at enable time.
 func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *model.AppError {
+	// Ahead of the add diff, because a capability role is frozen in both
+	// directions. Diffing first would accept a write that only *removes* a page
+	// permission — dropping read_page from docs_space_page_editor degrades every
+	// member holding it on every space, and the seeding migration does not repair
+	// it: its existence check short-circuits on the first read and only compares
+	// permission sets on the lost-insert-race path.
+	if model.IsSpaceCapabilityRole(role.Name) {
+		// Changing an atomic capability role is a code plus migration change,
+		// never a runtime role write; the seeding writes these store-direct,
+		// below this guard.
+		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_capability_role.app_error",
+			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+	}
+
 	added := spacePermissionAddDiff(role.Permissions, stored)
 	if len(added) == 0 {
 		return nil
@@ -158,12 +172,6 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		// system_admin legitimately carries every space permission, so an add
 		// here is never a scope violation.
 		return nil
-	}
-
-	if model.IsSpaceCapabilityRole(role.Name) {
-		// Widening an atomic capability role is a code+migration change, never
-		// a runtime role write.
-		return reject()
 	}
 
 	if model.IsBuiltInRole(role.Name) {

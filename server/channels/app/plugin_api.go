@@ -39,6 +39,25 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
+// checkCustomPermissionsSchemesLicense mirrors the gate the scheme REST handlers
+// apply, so reaching scheme writes through a plugin does not skip it: a license
+// covers a capability, not the transport that reaches it. The condition is the
+// one from Api4.CreateScheme rather than a copy of checkLDAPLicense below,
+// because this feature also ships to Professional whatever the feature flag says
+// — dropping that clause would lock out paying licensees.
+//
+// This does not gate space permissions as such. The seeded space preset schemes
+// are created by doSpaceSchemesCreationMigration on every edition, and pointing
+// a space at one is an ordinary channel update that never arrives here; what a
+// license buys, and what this gate covers, is minting a custom scheme.
+func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
+	license := api.GetLicense()
+	if license == nil || (!*license.Features.CustomPermissionsSchemes && license.SkuShortName != model.LicenseShortSkuProfessional) {
+		return errors.New("license does not support custom permissions schemes")
+	}
+	return nil
+}
+
 func (api *PluginAPI) checkLDAPLicense() error {
 	license := api.GetLicense()
 	if license == nil || !*license.Features.LDAPGroups {
@@ -1269,10 +1288,16 @@ func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppErr
 }
 
 func (api *PluginAPI) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return nil, model.NewAppError("PluginAPI.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented).Wrap(err)
+	}
 	return api.app.CreateScheme(scheme)
 }
 
 func (api *PluginAPI) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return nil, model.NewAppError("PluginAPI.DeleteScheme", "api.scheme.delete_scheme.license.error", nil, "", http.StatusNotImplemented).Wrap(err)
+	}
 	return api.app.DeleteScheme(schemeID)
 }
 

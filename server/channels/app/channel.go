@@ -1494,6 +1494,9 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
+	// Resolved at most once for the whole write; see the capability role check below.
+	var channelIsSpace, spaceLookupDone bool
+
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(rctx, roleName)
@@ -1513,13 +1516,17 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			// other channel they would smuggle space authority onto a member.
 			//
 			// The lookup runs only for a capability role, so an ordinary role
-			// write keeps the reads it already had.
-			var ownerIsSpaceChannel bool
-			if model.IsSpaceCapabilityRole(roleName) {
-				if ownerIsSpaceChannel, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
+			// write keeps the reads it already had, and it is memoised because
+			// channelID does not change across the loop: a write carrying
+			// several capability roles would otherwise repeat an uncached
+			// primary read once per role.
+			if model.IsSpaceCapabilityRole(roleName) && !spaceLookupDone {
+				if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
 					return nil, err
 				}
+				spaceLookupDone = true
 			}
+			ownerIsSpaceChannel := model.IsSpaceCapabilityRole(roleName) && channelIsSpace
 			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateChannelMemberRoles", roleName, ownerIsSpaceChannel) {
 				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
