@@ -105,6 +105,21 @@ describe('components/admin_console/ldap_wizard/LDAPColorSetting', () => {
         expect(screen.getByRole('button', {name: 'More Info'})).toBeInTheDocument();
     });
 
+    test('renders the disabled help text instead of the default when disabled', () => {
+        renderWithContext(
+            <LDAPColorSetting
+                schema={schema}
+                setting={{...setting, disabled_help_text: 'This setting is managed elsewhere.'}}
+                value='#FF0000'
+                disabled={true}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('This setting is managed elsewhere.')).toBeInTheDocument();
+        expect(screen.queryByText('Specify the color of the AD/LDAP login button border for white labeling purposes.')).not.toBeInTheDocument();
+    });
+
     test('renders nothing for a non-color setting', () => {
         const {container} = renderWithContext(
             <LDAPColorSetting
@@ -124,6 +139,20 @@ describe('components/admin_console/ldap_wizard/LDAPColorSetting', () => {
             <LDAPColorSetting
                 schema={schema}
                 setting={{...setting, key: undefined}}
+                value='#FF0000'
+                disabled={false}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('renders nothing when there is no schema', () => {
+        const {container} = renderWithContext(
+            <LDAPColorSetting
+                schema={null}
+                setting={setting}
                 value='#FF0000'
                 disabled={false}
                 onChange={jest.fn()}
