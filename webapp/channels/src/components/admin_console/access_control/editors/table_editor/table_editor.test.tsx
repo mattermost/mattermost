@@ -878,8 +878,13 @@ describe('rowToCEL', () => {
 
     test('fully-masked row (hasMaskedValues=true, values=[]) emits "in []" placeholder regardless of operator', () => {
         // The placeholder is needed so the backend merge can locate this condition
-        // by attribute and re-inject the hidden values.  The operator is irrelevant
-        // because the backend always overrides it from the stored expression.
+        // by attribute and re-inject the hidden values. The operator the row was on
+        // is not carried in it, and the server does not take the operator from the
+        // submitted side — it pairs a stored condition with the submitted one by
+        // call shape and puts the stored operator back. So a stored condition of a
+        // shape this placeholder cannot stand in for is refused rather than
+        // rewritten; the hierarchy predicates are that case, and emit a placeholder
+        // of their own shape instead.
         const operators = ['in', 'is', 'has all of', 'has any of', 'contains', 'starts with'];
         for (const operator of operators) {
             const cel = rowToCEL({
@@ -904,6 +909,48 @@ describe('rowToCEL', () => {
             hasMaskedValues: true,
         });
         expect(cel).toBe('user.attributes.program in ["Alpha"]');
+    });
+
+    test('fully-masked hierarchy predicate keeps its own shape as the placeholder', () => {
+        // The server pairs a stored condition with the submitted one by operator
+        // and call shape, so an `in []` placeholder does not stand in for a stored
+        // coversAll(...) — it is refused and the save fails. An empty target list
+        // is the placeholder that does pair, and the hidden option names are put
+        // back into it.
+        for (const operator of ['coversAll', 'coversAny', 'withinAll', 'withinAny']) {
+            const cel = rowToCEL({
+                attribute: 'programs',
+                operator,
+                values: [],
+                attribute_type: 'graph',
+                hasMaskedValues: true,
+            });
+            expect(cel).toBe(`user.attributes.programs.${operator}([])`);
+        }
+    });
+
+    test('exact membership on a graph attribute still uses the in [] placeholder', () => {
+        // It is stored as an `in` test, so the shape the server pairs on is the
+        // one the generic placeholder already produces.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'in',
+            values: [],
+            attribute_type: 'graph',
+            hasMaskedValues: true,
+        });
+        expect(cel).toBe('user.attributes.programs in []');
+    });
+
+    test('partially-masked hierarchy predicate emits the visible option names', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'coversAll',
+            values: ['F-18 Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: true,
+        });
+        expect(cel).toBe('user.attributes.programs.coversAll(["F-18 Program"])');
     });
 
     // --- Session-attribute namespace tests ---

@@ -41,7 +41,12 @@ export function rowToCEL(row: TableRow): string {
     // Without this guard the condition would be filtered out by updateExpression,
     // the empty expression would be sent to the server, and buildCELFromConditions
     // would return "true" — making the policy wide-open (security regression).
-    if (row.hasMaskedValues && row.values.length === 0 && !row.targetAttribute) {
+    // A graph predicate is excluded: the server pairs a stored condition with the
+    // submitted one by operator and call shape, so an `in []` placeholder does not
+    // match a stored `coversAll(...)` and the save is refused. The graph branch
+    // below emits `coversAll([])`, which does match — an empty target list is the
+    // placeholder for a predicate, exactly as an empty `in` list is for the rest.
+    if (row.hasMaskedValues && row.values.length === 0 && !row.targetAttribute && !isGraphOperator(row.operator)) {
         return `${attributeExpr} in []`;
     }
 
