@@ -1060,6 +1060,89 @@ func TestDatabaseStoreString(t *testing.T) {
 	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }
 
+func TestDatabaseStoreReconcileExternalChanges(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	require.NotNil(t, ds)
+	defer ds.Close()
+
+	// Stop the background reconciler so its tick cannot race the manual
+	// reconcile calls below.
+	ds.stopReconciler()
+
+	databaseStore, ok := ds.backingStore.(*DatabaseStore)
+	require.True(t, ok, "should be a DatabaseStore instance")
+
+	listenerInvocations := make(chan struct{}, 10)
+	ds.AddListener(func(oldCfg, newCfg *model.Config) {
+		listenerInvocations <- struct{}{}
+	})
+
+	t.Run("no change detected after own persist", func(t *testing.T) {
+		newCfg := ds.Get().Clone()
+		newCfg.TeamSettings.SiteName = model.NewPointer("self write")
+		_, _, err := ds.Set(newCfg)
+		require.NoError(t, err)
+		<-listenerInvocations
+
+		changed, err := databaseStore.hasChangedExternally()
+		require.NoError(t, err)
+		assert.False(t, changed)
+
+		ds.reconcileFromDatabase(databaseStore)
+		assert.Empty(t, listenerInvocations)
+	})
+
+	t.Run("reload on external write", func(t *testing.T) {
+		// Simulate another node writing to the same configuration database.
+		otherStore, err := newTestDatabaseStore(nil)
+		require.NoError(t, err)
+		defer otherStore.Close()
+		otherStore.stopReconciler()
+
+		newCfg := otherStore.Get().Clone()
+		newCfg.TeamSettings.SiteName = model.NewPointer("external write")
+		_, _, err = otherStore.Set(newCfg)
+		require.NoError(t, err)
+
+		// The first store hasn't seen the change yet.
+		assert.Equal(t, "self write", *ds.Get().TeamSettings.SiteName)
+
+		changed, err := databaseStore.hasChangedExternally()
+		require.NoError(t, err)
+		assert.True(t, changed)
+
+		ds.reconcileFromDatabase(databaseStore)
+		assert.Equal(t, "external write", *ds.Get().TeamSettings.SiteName)
+		<-listenerInvocations
+
+		// A second reconcile is a no-op.
+		changed, err = databaseStore.hasChangedExternally()
+		require.NoError(t, err)
+		assert.False(t, changed)
+	})
+
+	t.Run("cluster-pushed config re-reads the database instead of persisting", func(t *testing.T) {
+		activeID, _ := getActualDatabaseConfig(t)
+
+		// A stale payload pushed by a peer must not overwrite the active row.
+		staleCfg := ds.Get().Clone()
+		staleCfg.TeamSettings.SiteName = model.NewPointer("stale cluster payload")
+		require.NoError(t, ds.ApplyClusterConfig(staleCfg))
+
+		newActiveID, actualCfg := getActualDatabaseConfig(t)
+		assert.Equal(t, activeID, newActiveID, "active row must not be rewritten")
+		assert.Equal(t, "external write", *actualCfg.TeamSettings.SiteName)
+		assert.Equal(t, "external write", *ds.Get().TeamSettings.SiteName)
+	})
+}
+
 func TestCleanUp(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()
