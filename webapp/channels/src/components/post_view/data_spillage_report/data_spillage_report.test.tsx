@@ -484,9 +484,10 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
     describe.each([
         ['Pending', true],
+        ['Assigned', true],
         ['Retained', false],
         ['Removed', false],
-    ])('Download Report button when status is %s', (status, expectActions) => {
+    ])('Download Report button when status is %s', (status, reviewIsOpen) => {
         it('is rendered in action rows in RHS mode', async () => {
             usePostContentFlaggingValues.mockReturnValue(
                 postContentFlaggingValues.map((v) =>
@@ -507,17 +508,16 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
             expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
 
-            // the exposure report row is always present, but only actionable while the review is open
+            // the exposure report is downloadable in every status, including once the review is closed
             expect(screen.getByTestId('data-spillage-exposure-report-row')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Download exposure report');
 
-            if (expectActions) {
+            // the Remove/Keep actions, in contrast, are only offered while the review is open
+            if (reviewIsOpen) {
                 expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
-                expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeVisible();
-                expect(screen.queryByTestId('data-spillage-exposure-report-unavailable')).not.toBeInTheDocument();
             } else {
                 expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('data-spillage-action-download-exposure-report')).not.toBeInTheDocument();
-                expect(screen.getByTestId('data-spillage-exposure-report-unavailable')).toHaveTextContent('Exposure report is no longer available for this message.');
             }
         });
     });

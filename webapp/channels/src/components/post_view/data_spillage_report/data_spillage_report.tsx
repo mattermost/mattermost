@@ -182,10 +182,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 />
             ),
             content: (
-                <DataSpillageExposureReport
-                    flaggedPostId={reportedPost.id}
-                    isActionable={reviewIsOpen}
-                />
+                <DataSpillageExposureReport flaggedPostId={reportedPost.id}/>
             ),
             testId: 'data-spillage-exposure-report-row',
         });

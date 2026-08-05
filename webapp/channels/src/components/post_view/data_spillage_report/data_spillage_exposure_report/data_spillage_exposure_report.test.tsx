@@ -47,10 +47,7 @@ describe('DataSpillageExposureReport', () => {
 
     test('renders idle download button', () => {
         renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={true}
-            />,
+            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
         );
 
         const button = screen.getByTestId('data-spillage-action-download-exposure-report');
@@ -61,10 +58,7 @@ describe('DataSpillageExposureReport', () => {
 
     test('click triggers download and returns to idle on success', async () => {
         renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={true}
-            />,
+            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
         );
 
         await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
@@ -99,10 +93,7 @@ describe('DataSpillageExposureReport', () => {
         });
 
         renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={true}
-            />,
+            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
         );
 
         await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
@@ -118,10 +109,7 @@ describe('DataSpillageExposureReport', () => {
         jest.spyOn(Client4, 'generatePostExposureReport').mockRejectedValue(new Error('boom'));
 
         renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={true}
-            />,
+            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
         );
 
         await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
@@ -141,10 +129,7 @@ describe('DataSpillageExposureReport', () => {
         jest.spyOn(Client4, 'generatePostExposureReport').mockReturnValue(requestPromise);
 
         const {unmount} = renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={true}
-            />,
+            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
         );
 
         await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
@@ -161,17 +146,5 @@ describe('DataSpillageExposureReport', () => {
         await Promise.resolve();
         await Promise.resolve();
         expect(URL.createObjectURL).not.toHaveBeenCalled();
-    });
-
-    test('renders the unavailable explanation instead of a button when the review is closed', () => {
-        renderWithContext(
-            <DataSpillageExposureReport
-                flaggedPostId={flaggedPostId}
-                isActionable={false}
-            />,
-        );
-
-        expect(screen.getByTestId('data-spillage-exposure-report-unavailable')).toHaveTextContent('Exposure report is no longer available for this message.');
-        expect(screen.queryByTestId('data-spillage-action-download-exposure-report')).not.toBeInTheDocument();
     });
 });

@@ -15,10 +15,9 @@ type Status = 'idle' | 'generating' | 'error';
 
 type Props = {
     flaggedPostId: string;
-    isActionable: boolean;
 };
 
-export default function DataSpillageExposureReport({flaggedPostId, isActionable}: Props) {
+export default function DataSpillageExposureReport({flaggedPostId}: Props) {
     const [status, setStatus] = useState<Status>('idle');
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -115,26 +114,6 @@ export default function DataSpillageExposureReport({flaggedPostId, isActionable}
 
         return {icon, label, buttonClass};
     }, [status]);
-
-    if (!isActionable) {
-        return (
-            <div
-                className='DataSpillageExposureReport'
-                data-testid='data-spillage-exposure-report'
-            >
-                <span
-                    className='DataSpillageExposureReport__unavailable'
-                    data-testid='data-spillage-exposure-report-unavailable'
-                >
-                    <i className='icon icon-information-outline'/>
-                    <FormattedMessage
-                        id='data_spillage_report.exposure_report.unavailable'
-                        defaultMessage='Exposure report is no longer available for this message.'
-                    />
-                </span>
-            </div>
-        );
-    }
 
     return (
         <div
