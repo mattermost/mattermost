@@ -812,5 +812,47 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 'Engineering',
             );
         });
+
+        /**
+         * @objective Ensure a Text attribute can be linked to AD/LDAP via the external source
+         * picker end-to-end, and that the Manage Attributes list picks up the new attrs.ldap
+         * value with no further changes needed on that page.
+         */
+        test('creates a Text attribute linked to AD/LDAP via the external source picker', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright LDAP Linked Attribute ${timestamp}`;
+            const expectedName = `playwright_ldap_linked_attribute_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Open the external source picker and link AD/LDAP
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('textbox').fill('employeeID');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * A chip for AD/LDAP now appears, and Type shows Text
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+                await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * The new attribute shows "AD/LDAP" in the Source column
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
     });
 });

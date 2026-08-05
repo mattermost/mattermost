@@ -27,6 +27,8 @@ import Constants from 'utils/constants';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
+import AttributeExternalSource from './attribute_external_source';
+import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
@@ -146,6 +148,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
+    // Independent of fieldType/options -- both may be set at once (mirrors
+    // CPA's own dot-menu, which lets an admin link both AD/LDAP and SAML on
+    // the same field). See attribute_external_source.tsx.
+    const [ldapAttr, setLdapAttr] = useState('');
+    const [samlAttr, setSamlAttr] = useState('');
+
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
 
@@ -217,6 +225,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (newType === 'rank' && fieldType !== 'rank') {
             setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
         }
+
+        // The server unconditionally strips attrs.ldap/attrs.saml from any
+        // non-Text field on save (AccessControlAttributeValidationHook) --
+        // clear both proactively here so the UI never shows a link that's
+        // about to silently vanish.
+        if (newType !== 'text') {
+            setLdapAttr('');
+            setSamlAttr('');
+        }
         setFieldType(newType);
     }, [fieldType, markDirty]);
 
@@ -224,6 +241,27 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         markDirty();
         setOptions(newOptions);
     }, [markDirty]);
+
+    // Shared by both the "add" trigger (value: newly typed attribute name)
+    // and a chip's remove action (value: ''). A no-op (unchanged value) skips
+    // both the state update and markDirty(), mirroring handleTypeChange's own
+    // no-op guard above.
+    const handleLink = useCallback((source: ExternalSource, rawValue: string) => {
+        const value = rawValue.trim();
+        const current = source === 'ldap' ? ldapAttr : samlAttr;
+        if (value === current) {
+            return;
+        }
+        markDirty();
+        if (source === 'ldap') {
+            setLdapAttr(value);
+        } else {
+            setSamlAttr(value);
+        }
+        if (value) {
+            setFieldType('text');
+        }
+    }, [ldapAttr, samlAttr, markDirty]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.target.value);
@@ -318,7 +356,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setSaving(true);
         setErrorKind(null);
         try {
-            await createAttributeField(displayName, currentName, fieldType, options);
+            await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
             if (!isMountedRef.current) {
                 return;
             }
@@ -334,7 +372,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setSaving(false);
             }
         }
-    }, [canSave, displayName, currentName, fieldType, options, dispatch]);
+    }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, dispatch]);
 
     const TypeIcon = getTypeIcon(fieldType);
 
@@ -571,6 +609,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             <FormattedMessage {...messages.optionsHelp}/>
                                         </p>
                                     )}
+                                    <AttributeExternalSource
+                                        ldapAttr={ldapAttr}
+                                        samlAttr={samlAttr}
+                                        fieldType={fieldType}
+                                        onLink={handleLink}
+                                    />
                                 </div>
                             </div>
                         </Card.Body>
