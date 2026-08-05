@@ -7,14 +7,6 @@ import AdminDefinition from './admin_definition';
 import {ldapWizardAdminDefinition} from './admin_definition_ldap_wizard';
 import type {AdminDefinitionSetting} from './types';
 
-const LOGIN_BUTTON_COLOR_SETTINGS = [
-    {key: 'LdapSettings.LoginButtonColor', labelId: 'admin.ldap.loginButtonColor.title', helpId: 'admin.ldap.loginButtonColor.desc'},
-    {key: 'LdapSettings.LoginButtonBorderColor', labelId: 'admin.ldap.loginButtonBorderColor.title', helpId: 'admin.ldap.loginButtonBorderColor.desc'},
-    {key: 'LdapSettings.LoginButtonTextColor', labelId: 'admin.ldap.loginButtonTextColor.title', helpId: 'admin.ldap.loginButtonTextColor.desc'},
-];
-
-const LOGIN_BUTTON_COLOR_KEYS = LOGIN_BUTTON_COLOR_SETTINGS.map((s) => s.key);
-
 type IsDisabledCheck = (
     config: object,
     state: object,
@@ -23,13 +15,11 @@ type IsDisabledCheck = (
     consoleAccess: {read?: Record<string, boolean>; write?: Record<string, boolean>},
 ) => boolean;
 
-describe('AdminDefinition - AD/LDAP login button colors', () => {
-    const getLdapConnectionSettings = (): AdminDefinitionSetting[] => {
-        const connectionSection = ldapWizardAdminDefinition.sections?.find(
-            (section) => section.key === 'admin.authentication.ldap.connection',
+describe('AdminDefinition - AD/LDAP login button text color', () => {
+    const getLoginButtonSection = () => {
+        return ldapWizardAdminDefinition.sections?.find(
+            (section) => section.key === 'admin.authentication.ldap.login_button',
         );
-
-        return (connectionSection?.settings ?? []) as AdminDefinitionSetting[];
     };
 
     const getExperimentalFeatureSettings = (): AdminDefinitionSetting[] => {
@@ -39,57 +29,47 @@ describe('AdminDefinition - AD/LDAP login button colors', () => {
         return (settings ?? []) as AdminDefinitionSetting[];
     };
 
-    it.each(LOGIN_BUTTON_COLOR_SETTINGS)('defines $key as a color setting on the AD/LDAP page', ({key, labelId, helpId}) => {
-        const setting = getLdapConnectionSettings().find((s) => s.key === key);
+    it('adds a dedicated Login Button section to the AD/LDAP page with the text color setting', () => {
+        const section = getLoginButtonSection();
+
+        expect(section).toBeDefined();
+
+        const setting = section?.settings.find((s) => s.key === 'LdapSettings.LoginButtonTextColor');
 
         expect(setting).toBeDefined();
         expect(setting?.type).toBe('color');
-        expect((setting?.label as {id?: string})?.id).toBe(labelId);
-        expect((setting?.help_text as {id?: string})?.id).toBe(helpId);
+        expect((setting?.label as {id?: string})?.id).toBe('admin.ldap.loginButtonTextColorTitle');
+        expect((setting?.help_text as {id?: string})?.id).toBe('admin.ldap.loginButtonTextColorDesc');
     });
 
-    it.each(LOGIN_BUTTON_COLOR_KEYS)('no longer exposes %s on the Experimental Features page', (key) => {
-        const setting = getExperimentalFeatureSettings().find((s) => s.key === key);
+    it('removes only the text color from the Experimental Features page', () => {
+        const keys = getExperimentalFeatureSettings().map((s) => s.key);
 
-        expect(setting).toBeUndefined();
+        expect(keys).not.toContain('LdapSettings.LoginButtonTextColor');
+
+        // The sibling colors are moved by separate tickets and must stay put.
+        expect(keys).toContain('LdapSettings.LoginButtonColor');
+        expect(keys).toContain('LdapSettings.LoginButtonBorderColor');
     });
 
-    describe('are governed by AD/LDAP write permission', () => {
-        const enabledState = {'LdapSettings.Enable': true, 'LdapSettings.EnableSync': true};
+    describe('is governed by AD/LDAP write permission', () => {
+        const getIsDisabled = () => {
+            const setting = getLoginButtonSection()?.settings.find((s) => s.key === 'LdapSettings.LoginButtonTextColor');
+            return setting?.isDisabled as IsDisabledCheck;
+        };
 
-        it.each(LOGIN_BUTTON_COLOR_KEYS)('disables %s without AD/LDAP write permission', (key) => {
-            const setting = getLdapConnectionSettings().find((s) => s.key === key);
-            const isDisabled = setting?.isDisabled as IsDisabledCheck;
-
-            const disabled = isDisabled({}, enabledState, undefined, undefined, {write: {}});
+        it('disables the setting without AD/LDAP write permission', () => {
+            const disabled = getIsDisabled()({}, {}, undefined, undefined, {write: {}});
 
             expect(disabled).toBe(true);
         });
 
-        it.each(LOGIN_BUTTON_COLOR_KEYS)('enables %s with AD/LDAP write permission when AD/LDAP is enabled', (key) => {
-            const setting = getLdapConnectionSettings().find((s) => s.key === key);
-            const isDisabled = setting?.isDisabled as IsDisabledCheck;
-
-            const disabled = isDisabled({}, enabledState, undefined, undefined, {
+        it('enables the setting with AD/LDAP write permission', () => {
+            const disabled = getIsDisabled()({}, {}, undefined, undefined, {
                 write: {[RESOURCE_KEYS.AUTHENTICATION.LDAP]: true},
             });
 
             expect(disabled).toBe(false);
-        });
-
-        it.each(LOGIN_BUTTON_COLOR_KEYS)('disables %s when AD/LDAP sign-in and sync are both off', (key) => {
-            const setting = getLdapConnectionSettings().find((s) => s.key === key);
-            const isDisabled = setting?.isDisabled as IsDisabledCheck;
-
-            const disabled = isDisabled(
-                {},
-                {'LdapSettings.Enable': false, 'LdapSettings.EnableSync': false},
-                undefined,
-                undefined,
-                {write: {[RESOURCE_KEYS.AUTHENTICATION.LDAP]: true}},
-            );
-
-            expect(disabled).toBe(true);
         });
     });
 });

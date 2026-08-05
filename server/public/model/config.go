@@ -2725,9 +2725,9 @@ type LdapSettings struct {
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
 
-	LoginButtonColor       *string `access:"authentication_ldap"`
-	LoginButtonBorderColor *string `access:"authentication_ldap"`
-	LoginButtonTextColor   *string `access:"authentication_ldap"`
+	LoginButtonColor       *string `access:"experimental_features"`
+	LoginButtonBorderColor *string `access:"experimental_features"`
+	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *LdapSettings) SetDefaults() {

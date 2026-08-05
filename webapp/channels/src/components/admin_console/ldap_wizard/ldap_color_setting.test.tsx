@@ -16,8 +16,8 @@ describe('components/admin_console/ldap_wizard/LDAPColorSetting', () => {
     const colorSetting = {
         type: 'color' as const,
         key: 'LdapSettings.LoginButtonTextColor',
-        label: defineMessage({id: 'admin.ldap.loginButtonTextColor.title', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
-        help_text: defineMessage({id: 'admin.ldap.loginButtonTextColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button text.'}),
+        label: defineMessage({id: 'admin.ldap.loginButtonTextColorTitle', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
+        help_text: defineMessage({id: 'admin.ldap.loginButtonTextColorDesc', defaultMessage: 'Specify the color of the AD/LDAP login button text.'}),
     };
 
     test('renders a color input for a color setting', () => {
