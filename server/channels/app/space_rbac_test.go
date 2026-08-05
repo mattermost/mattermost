@@ -782,9 +782,8 @@ func TestCreateRoleClearsSchemeId(t *testing.T) {
 }
 
 // TestCreateRoleClearsSchemeIdOnAcceptedRole covers the same clear on the path
-// that reaches the store. Master leaves SchemeId alone because nothing there
-// reads it to grant anything — permission merging keys off SchemeManaged, which
-// CreateRole already clears. checkSpacePermissionScope is the first code to
+// that reaches the store. Nothing else reads SchemeId to grant anything —
+// permission merging keys off SchemeManaged, which CreateRole already clears. checkSpacePermissionScope is the first code to
 // treat SchemeId as proof of scope, so the saved row must not carry one the
 // caller chose.
 func TestCreateRoleClearsSchemeIdOnAcceptedRole(t *testing.T) {
@@ -817,9 +816,9 @@ func TestCreateRoleClearsSchemeIdOnAcceptedRole(t *testing.T) {
 
 // TestSpaceCapabilityRoleConfinedToSpaces pins that the atomic capability
 // roles, which are excluded from BuiltInSchemeManagedRoleIDs so they can ride
-// in ExplicitRoles, are refused by the channel-member role sink on an ordinary
-// channel and accepted there only once the channel resolves to a space. The
-// sink settles that with a dedicated space lookup rather than the scheme-role
+// in ExplicitRoles, are refused by UpdateChannelMemberRoles on an ordinary
+// channel and accepted there only once the channel resolves to a space. It
+// settles that with a dedicated space lookup rather than the scheme-role
 // resolution it uses for ordinary channels.
 func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -832,14 +831,14 @@ func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 		assert.Equal(t, "api.channel.update_channel_member_roles.space_role.app_error", appErr.Id, "role %q", roleName)
 	}
 
-	// An ordinary explicit role on the same sink still works.
+	// UpdateChannelMemberRoles still accepts an ordinary explicit role.
 	member, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
 	require.Nil(t, appErr)
 	assert.Equal(t, "", member.ExplicitRoles)
 
 	// On a space backing channel the same roles are the per-member capability
-	// grants and must be accepted — the docs plugin writes them through this
-	// sink alongside the scheme's generated user role.
+	// grants and must be accepted — the docs plugin writes them through
+	// UpdateChannelMemberRoles alongside the scheme's generated user role.
 	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
 	contribute := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
 	space := saveSpaceChannelWithScheme(t, th, contribute.Id)
@@ -853,10 +852,10 @@ func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 }
 
 // TestSpaceCapabilityRoleConfinedToChannels pins the team-member counterpart of
-// the channel sink guard. A team member's roles are the fallback consulted for
-// every channel in the team, so a capability role accepted here would grant
-// space authority across all of them at once — wider than the channel sink
-// refuses one channel at a time.
+// the UpdateChannelMemberRoles guard. A team member's roles are the fallback
+// consulted for every channel in the team, so a capability role accepted here
+// would grant space authority across all of them at once — wider than
+// UpdateChannelMemberRoles refuses one channel at a time.
 func TestSpaceCapabilityRoleConfinedToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -868,16 +867,17 @@ func TestSpaceCapabilityRoleConfinedToChannels(t *testing.T) {
 		assert.Equal(t, "api.team.update_team_member_roles.space_role.app_error", appErr.Id, "role %q", roleName)
 	}
 
-	// An ordinary role on the same sink still works.
+	// UpdateTeamMemberRoles still accepts an ordinary role.
 	member, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
 	require.Nil(t, appErr)
 	assert.Equal(t, "", member.ExplicitRoles)
 }
 
-// TestSpaceCapabilityRoleConfinedToSystemRoles pins the third role-assignment
-// sink. A system role is the fallback consulted for every channel on the
-// server, so a capability role accepted here would be wider still than the team
-// sink refuses — and CheckRolesExist alone would accept it, since the capability
+// TestSpaceCapabilityRoleConfinedToSystemRoles pins the third guarded
+// role-assignment path, UpdateUserRoles. A system role is the fallback consulted
+// for every channel on the server, so a capability role accepted here would be
+// wider still than UpdateTeamMemberRoles refuses — and CheckRolesExist alone
+// would accept it, since the capability
 // roles are deliberately absent from BuiltInSchemeManagedRoleIDs.
 func TestSpaceCapabilityRoleConfinedToSystemRoles(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -890,7 +890,7 @@ func TestSpaceCapabilityRoleConfinedToSystemRoles(t *testing.T) {
 		assert.Equal(t, "api.user.update_user_roles.space_role.app_error", appErr.Id, "role %q", roleName)
 	}
 
-	// An ordinary system role on the same sink still works.
+	// UpdateUserRoles still accepts an ordinary system role.
 	user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, model.SystemUserRoleId, user.Roles)
@@ -958,8 +958,8 @@ func TestCreateChannelRejectsSpaceScheme(t *testing.T) {
 	require.NotNil(t, created)
 }
 
-// TestUpdateChannelRejectsSpaceScheme pins the generic sink. UpdateChannel takes
-// SchemeId straight from the caller and two paths reach it without passing
+// TestUpdateChannelRejectsSpaceScheme pins UpdateChannel, which takes SchemeId
+// straight from the caller. Two paths reach it without passing
 // UpdateChannelScheme — bulk import repoints an already-existing channel through
 // it, and the plugin API delegates to it — so guarding only the narrower entry
 // points would leave an ordinary channel reachable. Attaching a preset there
@@ -1210,7 +1210,7 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 }
 
 // CreateBoardChannel takes SchemeId from the request body the same way
-// CreateChannel does, so it is a third sink for the same refusal and is pinned
+// CreateChannel does, so it is a third entry point for the same refusal and is pinned
 // here: a board is never a space, and must not carry a space's scheme.
 func TestCreateBoardChannelRejectsASpaceScheme(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -1545,12 +1545,35 @@ func TestUpdateSchemeNotFoundIsNotAServerError(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockSchemeStore := mocks.SchemeStore{}
 	mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+	mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 
 	_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: "ordinary_scheme", Scope: model.SchemeScopeChannel})
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusNotFound, appErr.StatusCode, "a missing scheme is a 404, not a 500")
+	mockSchemeStore.AssertCalled(t, "GetFromMaster", schemeID)
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+func TestUpdateSchemeMissedOnTheReplicaIsResolvedOnThePrimary(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	schemeID := model.NewId()
+	stored := &model.Scheme{Id: schemeID, Name: "ordinary_scheme", Scope: model.SchemeScopeChannel}
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+	mockSchemeStore.On("GetFromMaster", schemeID).Return(stored, nil)
+	mockSchemeStore.On("Save", mock.Anything).Return(stored, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+
+	// The import path resolves a scheme on the primary and hands its id straight
+	// to UpdateScheme, so the rename guard has to look there too before refusing.
+	_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: "ordinary_scheme", Scope: model.SchemeScopeChannel})
+	require.Nil(t, appErr)
+	mockSchemeStore.AssertCalled(t, "Save", mock.Anything)
 }
 
 func TestUpdateSchemeStoreErrorIsAServerError(t *testing.T) {

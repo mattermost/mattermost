@@ -934,7 +934,7 @@ type SchemeStore interface {
 	GetFromMaster(schemeID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
 	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race
-	// to create a pooled scheme adopts the winner's by looking it up under the
+	// to create a scheme adopts the winner's row by looking it up under the
 	// name both agreed on, which is a read of a row another node wrote moments
 	// earlier; on a replica that has not caught up it would read as absent and
 	// the loser would fail instead of adopting.

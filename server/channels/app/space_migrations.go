@@ -25,8 +25,8 @@ func sortedPermissions(permissions []string) []string {
 // validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
 // scheme's name but cannot serve as one: adopting a foreign row would rewrite
 // that scheme's generated role permission sets on every boot, and a row without
-// a full set of generated channel roles would fail the closure with a
-// not-found on an empty role name.
+// a full set of generated channel roles would fail the role-permission seeding
+// with a not-found on an empty role name.
 func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	// The scheme select carries no DeleteAt filter, so a soft-deleted row comes
 	// back like any other; adopting one would mark the migration complete while
@@ -42,7 +42,7 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	}
 	// The three checks above are all satisfied by an ordinary channel scheme, so
 	// on a server that already had one under a reserved name they would adopt it
-	// — and the permission closure below would then strip the moderated
+	// — and the role-permission seeding below would then strip the moderated
 	// permissions from every channel it governs. GetChannelsByScheme excludes
 	// spaces, so a single row here proves the scheme is a customer's.
 	governed, err := s.Store().Channel().CountNonSpaceChannelsByScheme(existing.Id)
@@ -60,7 +60,7 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 // proves the authority, which has to be checked separately because the seeding
 // only strips the moderated permissions and adds the targets — every other
 // permission already on a generated role survives into what becomes, from here
-// on, an unforgeable proof of space scope for three security guards.
+// on, an unforgeable proof of space scope wherever the scope guards read it.
 //
 // Only permissions this build recognises are judged, so a server downgraded from
 // a newer release is not blocked by permissions it merely does not know yet —
@@ -128,11 +128,10 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	for _, roleID := range model.SpaceCapabilityRoles {
 		if stored, err := s.Store().Role().GetByName(context.Background(), roleID); err == nil {
 			// A row already under the reserved name is only this migration's own
-			// earlier work if it grants what the built-in definition grants.
-			// Anything else is a name collision, and adopting it would leave a
-			// role carrying space authority nobody here defined — the same
-			// refusal the lost-insert-race branch below makes, applied to the
-			// path that reaches an existing row first.
+			// earlier work if its permissions match the built-in definition.
+			// Anything else is a name collision: adopting it would hand out
+			// space permissions this migration never defined. The lost-insert-race
+			// branch below refuses the same way.
 			if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(roles[roleID].Permissions)) {
 				return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
 			}
@@ -155,9 +154,9 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 
 			// A row under the reserved name is only proof the race was lost if
 			// it is the row this migration would have written. Anything else is
-			// a name collision, and adopting it would leave a role carrying
-			// space authority nobody here defined; the scheme seeding refuses
-			// the same way in validateAdoptableSpaceScheme.
+			// a name collision: adopting it would hand out space permissions
+			// this migration never defined. validateAdoptableSpaceScheme
+			// refuses the same way when seeding schemes.
 			if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(roles[roleID].Permissions)) {
 				return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
 			}

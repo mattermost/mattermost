@@ -15,7 +15,8 @@ import (
 // preset schemes. Resolving the id and reading its name costs one lookup, where
 // resolving each reserved name in turn would cost three; the by-id read is also
 // the cached one, and the names it is compared against cannot drift because
-// renaming a seeded preset is refused. A lookup failure other than not-found
+// renaming a seeded preset is refused. Identity is the pair (channel scope, one of
+// the three reserved names), not the id. A lookup failure other than not-found
 // fails closed.
 func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
@@ -47,8 +48,8 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 // The roles are read by name through the cached path, the same way
 // mergeChannelHigherScopedPermissions resolves scheme roles. A role write that
 // has not yet invalidated this node's cache could be missed, which is why this
-// is the second of two tests rather than the only one: the association check
-// above it already refuses the scheme while a space holds it.
+// is the second of two tests rather than the only one: the caller already refuses
+// the scheme by its live space association before reaching this function.
 func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
 	if err != nil {
@@ -91,8 +92,8 @@ func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 
 // checkSpaceSchemeRename guards a scheme update in both directions: renaming a
 // seeded preset away from its reserved name, and renaming any scheme into one.
-// Space scheme identity is protected at this shared sink because a name-keyed
-// delete refusal alone would be defeated by renaming the scheme first.
+// Space scheme identity is protected here because a name-keyed delete refusal
+// alone would be defeated by renaming the scheme first.
 //
 // The stored row has to be read to see the name the update replaces, so this
 // runs before the save on every update.
@@ -100,11 +101,20 @@ func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 	stored, err := a.Srv().Store().Scheme().Get(scheme.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
+		if !errors.As(err, &nfErr) {
 			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		// The by-id read is served from the replica, so a scheme created moments
+		// earlier reads as absent until replication catches up. The import path
+		// reaches here that way: GetSchemeByName resolves the row on the primary,
+		// then hands its id straight to UpdateScheme. Re-read on the primary
+		// before concluding it does not exist.
+		stored, err = a.Srv().Store().Scheme().GetFromMaster(scheme.Id)
+		if err != nil {
+			if !errors.As(err, &nfErr) {
+				return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 	}
 	if stored.Name == scheme.Name {

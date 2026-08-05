@@ -174,7 +174,7 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return role, nil
 	}
 
-	// At the App sink rather than only in the REST handler, so a second entry
+	// In PatchRole rather than only in the REST handler, so a second entry
 	// point cannot reach a role write with the blocklist unapplied — which is
 	// what the plugin API would otherwise do.
 	if patch.Permissions != nil {
@@ -232,7 +232,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	// The sink holds no prior permission set, so re-read the stored role to diff
+	// UpdateRole receives no prior permission set, so re-read the stored role to diff
 	// against before saving: only an *add* of a guarded permission is rejected,
 	// never a removal.
 	//

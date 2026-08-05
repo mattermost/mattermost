@@ -928,9 +928,9 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 
 	// The scheme guard is not repeated here: UpdateChannel re-reads the stored
 	// row and runs it whenever SchemeId differs from what is persisted, which is
-	// exactly the case this function creates. Guarding here as well would repeat
-	// the primary-side count query, and would also refuse re-setting the scheme a
-	// channel already carries, which UpdateChannel deliberately allows.
+	// exactly the case this function creates. Guarding here as well would run the
+	// guard twice, and would also refuse re-setting the scheme a channel already
+	// carries, which UpdateChannel deliberately allows.
 	oldChannel.SchemeId = channel.SchemeId
 	return a.UpdateChannel(rctx, oldChannel)
 }
@@ -1202,6 +1202,14 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 			var storeErr error
 			scheme, storeErr = a.Srv().Store().Scheme().GetFromMaster(*channel.SchemeId)
 			if storeErr != nil {
+				// The not-found from the replica read above only describes the
+				// replica. Reporting it for a primary read that failed for another
+				// reason would tell the caller the scheme is gone when the database
+				// is simply unreachable.
+				var nfErr *store.ErrNotFound
+				if !errors.As(storeErr, &nfErr) {
+					err = model.NewAppError("GetSchemeRolesForChannel", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+				}
 				return
 			}
 			err = nil

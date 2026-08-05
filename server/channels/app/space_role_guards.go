@@ -62,7 +62,7 @@ func spacePermissionAddDiff(incoming, stored []string) []string {
 // permission list. A widened baseline would make a genuine re-add look like it
 // was already stored, and the guard would pass it.
 //
-// Keyed by Id wherever the caller supplies one, which is every sink that reaches
+// Keyed by Id wherever the caller supplies one, which is every caller that reaches
 // UpdateRole with a role it first read back. Role().Get is the one read of a role
 // that no cache layer serves, where GetByName is answered from the local cache
 // before the context is even consulted — so store.WithMaster does not make it
@@ -122,9 +122,10 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 // fallback for every channel in the team and so would spread one space's grant
 // across all of them.
 //
-// Every ExplicitRoles sink calls this rather than repeating the predicate, so a
-// future write path has one function to find instead of the rule to rediscover.
-// Each sink builds its own AppError, because the i18n extractor only collects
+// UpdateChannelMemberRoles, UpdateTeamMemberRoles, UpdateUserRoles and BulkImport
+// all call this rather than repeating the predicate, so a future write path has one
+// function to find instead of the rule to rediscover. Each caller builds its own
+// AppError, because the i18n extractor only collects
 // message IDs written as literals at the model.NewAppError call site.
 func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName string, ownerIsSpaceChannel bool) bool {
 	if !model.IsSpaceCapabilityRole(roleName) || ownerIsSpaceChannel {
@@ -143,8 +144,8 @@ func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName str
 // space permission (the six page operations and admin_space) to a role whose
 // scheme does not govern a space, which a seeded preset name or a space backing
 // channel pointing at the scheme proves; system_admin is the single exception.
-// The guard governs the App sinks only; migration seeding writes store-direct,
-// below it.
+// The guard governs PatchRole and UpdateRole only; migration seeding writes to the
+// store directly, below it.
 //
 // Deliberately not gated on the docs feature flag. The permissions, roles and
 // preset schemes are seeded unconditionally at boot, so a grant planted while

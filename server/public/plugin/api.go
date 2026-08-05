@@ -1054,8 +1054,10 @@ type API interface {
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 
 	// DeleteScheme soft-deletes a scheme and its generated roles, reverting any
-	// teams or channels using it to the system-default roles. A scheme a space
-	// backing channel still references is refused — detach the space first.
+	// teams or channels using it to the system-default roles. The seeded space
+	// preset schemes are refused by identity and can never be deleted. Any other
+	// scheme a space backing channel still references is refused too — detach the
+	// space first.
 	//
 	// @tag Scheme
 	// Minimum server version: 11.10

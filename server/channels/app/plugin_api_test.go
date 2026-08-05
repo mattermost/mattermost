@@ -4665,4 +4665,58 @@ func TestPluginAPISchemeCustomPermissionsLicenseGate(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, deleted)
 	})
+
+	t.Run("CreateScheme on Professional is allowed with the feature flag off", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
+		license := model.NewTestLicenseWithFalseDefaults("custom_permissions_schemes")
+		license.SkuShortName = model.LicenseShortSkuProfessional
+		th.App.Srv().SetLicense(license)
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		scheme := &model.Scheme{
+			DisplayName: "Test Scheme",
+			Name:        "test_scheme_" + model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		}
+
+		created, appErr := api.CreateScheme(scheme)
+		require.Nil(t, appErr)
+		require.NotNil(t, created)
+	})
+
+	t.Run("CreateScheme off Professional is refused with the feature flag off", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
+		license := model.NewTestLicenseWithFalseDefaults("custom_permissions_schemes")
+		license.SkuShortName = model.LicenseShortSkuEnterprise
+		th.App.Srv().SetLicense(license)
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		scheme := &model.Scheme{
+			DisplayName: "Test Scheme",
+			Name:        "test_scheme_" + model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		}
+
+		created, appErr := api.CreateScheme(scheme)
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "api.scheme.create_scheme.license.error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
 }
