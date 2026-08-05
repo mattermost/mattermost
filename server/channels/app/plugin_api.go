@@ -1332,11 +1332,10 @@ func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName,
 	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
 }
 
-// Read from master so the miss path skips the replica: a plugin that has just had a scheme created
-// reads back the roles core generated for it to give them their permission sets, and on a lagging
-// replica the role would read as absent, failing the configure against the scheme the same call had
-// just created. This narrows the window rather than closing it — the role cache answers ahead of the
-// context, as storedRoleForSpaceGuard records, so a cache hit is served whatever the context asks for.
+// Read from master: a plugin that has just had a scheme created reads back the roles core
+// generated for it, and on a lagging replica the role would read as absent, failing the configure.
+// This narrows the window rather than closing it — the role cache answers ahead of the context, as
+// storedRoleForSpaceGuard records, so a cache hit is served whatever the context asks for.
 func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
 	return api.app.GetRoleByName(RequestContextWithMaster(api.ctx), name)
 }

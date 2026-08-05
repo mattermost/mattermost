@@ -104,11 +104,10 @@ func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 		if !errors.As(err, &nfErr) {
 			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		// The by-id read is served from the replica, so a scheme created moments
-		// earlier reads as absent until replication catches up. The import path
-		// reaches here that way: GetSchemeByName resolves the row on the primary,
-		// then hands its id straight to UpdateScheme. Re-read on the primary
-		// before concluding it does not exist.
+		// Re-read on the primary: a scheme created moments earlier is absent from
+		// the replica. The import path reaches here that way — GetSchemeByName
+		// resolves the row on the primary, then hands its id straight to
+		// UpdateScheme.
 		stored, err = a.Srv().Store().Scheme().GetFromMaster(scheme.Id)
 		if err != nil {
 			if !errors.As(err, &nfErr) {

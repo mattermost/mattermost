@@ -197,10 +197,9 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 				// is simply unreachable. Both outcomes refuse the write.
 				return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			// The by-id read is served from the replica, so a scheme created
-			// shortly before this role write reads as absent until replication
-			// catches up, and the write would be refused for the wrong reason.
-			// Re-read on the primary before concluding it does not exist.
+			// Re-read on the primary: a scheme created shortly before this role write
+			// is absent from the replica, and the write would be refused for the
+			// wrong reason.
 			scheme, err = a.Srv().Store().Scheme().GetFromMaster(*role.SchemeId)
 			if err != nil {
 				if !errors.As(err, &nfErr) {

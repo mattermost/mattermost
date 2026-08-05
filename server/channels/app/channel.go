@@ -766,9 +766,7 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	// The generic Get excludes spaces, so fetch a space by its exact type instead; otherwise
 	// UpdateChannel can't load the existing channel and a rename or header edit would fail with
-	// a not-found before it reaches the store.
-	// Read from master: spaces are uncached, so an update right after create would otherwise
-	// miss against a lagging replica.
+	// a not-found before it reaches the store. Spaces are uncached, so read from master.
 	var oldChannel *model.Channel
 	var getErr error
 	if channel.IsSpace() {
@@ -926,11 +924,6 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 		return nil, err
 	}
 
-	// The scheme guard is not repeated here: UpdateChannel re-reads the stored
-	// row and runs it whenever SchemeId differs from what is persisted, which is
-	// exactly the case this function creates. Guarding here as well would run the
-	// guard twice, and would also refuse re-setting the scheme a channel already
-	// carries, which UpdateChannel deliberately allows.
 	oldChannel.SchemeId = channel.SchemeId
 	return a.UpdateChannel(rctx, oldChannel)
 }
@@ -1179,8 +1172,7 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 			return
 		}
 		// The generic get excludes space backing channels, so fetch one by its exact
-		// type instead. Read from master: spaces are uncached, so resolving one right
-		// after create would otherwise miss against a lagging replica.
+		// type instead. Spaces are uncached, so read from master.
 		if channel, err = a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace); err != nil {
 			return
 		}
@@ -1190,15 +1182,15 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			if err.StatusCode != http.StatusNotFound {
+			// An ordinary channel keeps the replica's answer: its scheme is not
+			// created moments before the roles are read.
+			if err.StatusCode != http.StatusNotFound || !channel.IsSpace() {
 				return
 			}
-			// The by-id read is served from the replica and nothing populates the
-			// scheme cache on create, so a scheme created moments earlier reads as
-			// absent until replication catches up. Resolving a channel's roles right
-			// after pointing it at a new scheme is the ordinary way a caller reaches
-			// here. Re-read on the primary before concluding it does not exist; only
-			// the miss pays for it.
+			// Re-read on the primary: nothing populates the scheme cache on create, so
+			// a scheme created moments earlier is absent from the replica. A space
+			// points at a scheme the same caller just created, which is the ordinary
+			// way a caller reaches here.
 			var storeErr error
 			scheme, storeErr = a.Srv().Store().Scheme().GetFromMaster(*channel.SchemeId)
 			if storeErr != nil {

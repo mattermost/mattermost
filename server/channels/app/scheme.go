@@ -40,11 +40,9 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 		if !errors.As(err, &nfErr) {
 			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		// The by-name read is served from the replica, so a scheme another node
-		// created moments earlier reads as absent until replication catches up.
-		// A caller that loses a race to create a shared scheme reaches here to
-		// adopt the winner's, which is exactly that read. Re-read on the primary
-		// before concluding it does not exist; only the miss pays for it.
+		// Re-read on the primary: a scheme another node created moments earlier is
+		// absent from the replica. A caller that loses a race to create a shared
+		// scheme reaches here to adopt the winner's.
 		scheme, err = a.Srv().Store().Scheme().GetByNameFromMaster(name)
 		if err != nil {
 			if !errors.As(err, &nfErr) {
