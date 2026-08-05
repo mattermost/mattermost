@@ -1463,7 +1463,6 @@
   "admin.global_attributes.attribute_details.save_error.limit_reached": "You have reached the maximum number of attributes for this server. Delete an existing attribute before creating a new one.",
   "admin.global_attributes.attribute_details.save_error.name_conflict": "An attribute with this name already exists. Please choose a different name.",
   "admin.global_attributes.attribute_details.save_error.reserved_word": "This name is a reserved word and cannot be used. Please choose a different name.",
-  "admin.global_attributes.attribute_details.save_error.title": "Unable to save attribute",
   "admin.global_attributes.attribute_details.subtitle": "Add a display name, choose a type, and pick where it applies.",
   "admin.global_attributes.attribute_details.title": "New attribute",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Type: {value}",
