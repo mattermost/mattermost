@@ -19,11 +19,11 @@ import {findRankCollision, isValidRank} from 'components/admin_console/system_pr
 import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 import {filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -145,6 +145,13 @@ function AttributeDetails(): JSX.Element {
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
 
+    // Only populated for 'name_conflict' -- the server's own message names the
+    // specific conflicting field and the level it conflicts at (e.g. "system"),
+    // which the canned copy below can't express since it doesn't know that detail.
+    // Other kinds keep the canned copy: e.g. invalid_attrs's server message
+    // ("Invalid property field attributes.") is less specific than ours.
+    const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+
     // Guards the post-await side effects in handleSave below against firing
     // after the component has unmounted (e.g. the admin confirmed "leave
     // without saving" via the BlockableLink prompt while a request was still
@@ -178,6 +185,7 @@ function AttributeDetails(): JSX.Element {
     const markDirty = useCallback(() => {
         dispatch(setNavigationBlocked(true));
         setErrorKind(null);
+        setServerErrorMessage(null);
     }, [dispatch]);
 
     // Switching into Rank from any other type (re)assigns rank = index + 1 to
@@ -220,10 +228,10 @@ function AttributeDetails(): JSX.Element {
                 setIsNameManuallyEdited(false);
             }
         } else {
-            setIsNameManuallyEdited(true);
+            setIsNameManuallyEdited(manualName !== (autoSlugDisplay ?? ''));
         }
         setIsEditingName(false);
-    }, [manualName, isNameManuallyEdited]);
+    }, [manualName, isNameManuallyEdited, autoSlugDisplay]);
 
     const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setManualName(filterCELIdentifier(e.target.value));
@@ -293,6 +301,7 @@ function AttributeDetails(): JSX.Element {
         } catch (error) {
             if (isMountedRef.current) {
                 setErrorKind(errorKindFromError(error));
+                setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
             }
         } finally {
             if (isMountedRef.current) {
@@ -365,6 +374,7 @@ function AttributeDetails(): JSX.Element {
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
                                         disabled={saving}
+                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
                                     <div className='AttributeDetails__uniqueName'>
@@ -552,18 +562,15 @@ function AttributeDetails(): JSX.Element {
                     <FormattedMessage {...messages.cancel}/>
                 </BlockableLink>
                 {errorKind && (
-                    <div
+                    <span
                         id='attribute-save-error'
-                        className='AttributeDetails__serverError'
+                        className='AttributeDetails__error'
                         role='alert'
                         data-testid='attributeSaveError'
                     >
-                        <SectionNotice
-                            type='danger'
-                            title={formatMessage(messages.saveErrorTitle)}
-                            text={formatMessage(errorMessages[errorKind])}
-                        />
-                    </div>
+                        <i className='icon icon-alert-outline'/>
+                        {errorKind === 'name_conflict' && serverErrorMessage ? serverErrorMessage : formatMessage(errorMessages[errorKind])}
+                    </span>
                 )}
             </div>
         </div>
@@ -611,7 +618,6 @@ const messages = defineMessages({
     },
     save: {id: 'admin.global_attributes.attribute_details.save', defaultMessage: 'Save'},
     cancel: {id: 'admin.global_attributes.attribute_details.cancel', defaultMessage: 'Cancel'},
-    saveErrorTitle: {id: 'admin.global_attributes.attribute_details.save_error.title', defaultMessage: 'Unable to save attribute'},
 });
 
 const nameErrorMessages = defineMessages({

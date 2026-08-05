@@ -36,14 +36,12 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable} from '../list_table';
 
 import './global_attributes_table.scss';
-
-export const GLOBAL_ATTRIBUTES_GROUP_NAME = 'access_control';
-export const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
-export const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 
 const columnHelper = createColumnHelper<PropertyField>();
 

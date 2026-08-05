@@ -5,7 +5,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 
 import {Client4} from 'mattermost-redux/client';
 
-import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './global_attributes_table';
+import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 
 export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank';
 

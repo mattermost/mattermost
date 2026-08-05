@@ -205,7 +205,15 @@
     font-size: 14px;
 }
 
-.AttributeDetails__serverError {
-    flex: 0 0 100%;
-    margin-top: 12px;
+.AttributeDetails__error {
+    display: flex;
+    align-items: center;
+    margin-left: 12px;
+    color: var(--error-text);
+    font-size: 14px;
+
+    i {
+        margin-right: 4px;
+        font-size: 16px;
+    }
 }

@@ -27,9 +27,9 @@ jest.mock('actions/admin_actions', () => ({
     },
 }));
 
-function makeClientError(serverErrorId: string): ClientError {
+function makeClientError(serverErrorId: string, message = 'error'): ClientError {
     return new ClientError('https://example.com', {
-        message: 'error',
+        message,
         server_error_id: serverErrorId,
         status_code: 422,
         url: 'https://example.com/api/v4/properties/groups/access_control/template/fields',
@@ -106,6 +106,21 @@ describe('AttributeDetails', () => {
         // Re-opening Edit must not re-seed from the (now stale) auto-slug.
         await userEvent.click(screen.getByTestId('attributeNameEditLink'));
         expect(screen.getByTestId('attributeNameInput')).toHaveValue('custom_name');
+    });
+
+    it('keeps auto-derivation live if Done is clicked without changing the seeded value', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+
+        // Auto-derivation must still be live -- opening and closing Edit without
+        // an actual change must not freeze the Name to the seeded snapshot.
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
     });
 
     it('reverts to auto-derived mode if Done is clicked with an empty field on the very first edit', async () => {
@@ -349,19 +364,33 @@ describe('AttributeDetails', () => {
     });
 
     it.each([
-        ['app.property_field.create.name_conflict.app_error', 'already exists'],
-        ['model.cpa_field.name.invalid_charset.app_error', 'must start with a letter'],
-        ['model.cpa_field.name.reserved_word.app_error', 'reserved word'],
-        ['app.property_field.create.limit_reached.app_error', 'maximum number'],
-        ['app.property_field.invalid_attrs.app_error', 'problem with one or more options'],
-    ])('renders specific inline copy for %s', async (serverErrorId, expectedText) => {
-        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError(serverErrorId));
+        ['model.cpa_field.name.invalid_charset.app_error', 'must start with a letter', undefined],
+        ['model.cpa_field.name.reserved_word.app_error', 'reserved word', undefined],
+        ['app.property_field.create.limit_reached.app_error', 'maximum number', undefined],
+        ['app.property_field.invalid_attrs.app_error', 'problem with one or more options', undefined],
+    ])('renders specific inline copy for %s', async (serverErrorId, expectedText, message) => {
+        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError(serverErrorId, message));
 
         renderComponent();
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
         await userEvent.click(screen.getByTestId('saveSetting'));
 
         expect(await screen.findByText(new RegExp(expectedText, 'i'))).toBeInTheDocument();
+        expect(mockHistoryPush).not.toHaveBeenCalled();
+        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+    });
+
+    it('renders the server\'s own message for a name conflict, since it names the specific field and level', async () => {
+        const serverMessage = 'Cannot create property "classification": a property with this name already exists at the system level.';
+        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(
+            makeClientError('app.property_field.create.name_conflict.app_error', serverMessage),
+        );
+
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Classification');
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(await screen.findByText(serverMessage)).toBeInTheDocument();
         expect(mockHistoryPush).not.toHaveBeenCalled();
         expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
     });
@@ -464,7 +493,7 @@ describe('AttributeDetails', () => {
     });
 
     it('clears a stale server save error once the display name is edited again', async () => {
-        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error'));
+        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'An attribute with this name already exists.'));
 
         renderComponent();
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -478,7 +507,7 @@ describe('AttributeDetails', () => {
     });
 
     it('clears a stale server save error once the manual Name is edited again', async () => {
-        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error'));
+        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'An attribute with this name already exists.'));
 
         renderComponent();
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
