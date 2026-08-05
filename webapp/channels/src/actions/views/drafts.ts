@@ -20,6 +20,7 @@ import {getGlobalItem} from 'selectors/storage';
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
+import {isPostDraftEmpty} from 'types/store/draft';
 import type {PostDraft} from 'types/store/draft';
 
 type Draft = {
@@ -57,7 +58,10 @@ export function getDrafts(teamId: string): ActionFuncAsync<boolean> {
                 return true;
             }
             const localValue = localItem.value as PostDraft | null;
-            return Boolean(localValue?.message || localValue?.fileInfos?.length);
+            if (!localValue) {
+                return true;
+            }
+            return !isPostDraftEmpty(localValue);
         });
         const drafts = [...filteredServerDrafts, ...localDrafts];
 
