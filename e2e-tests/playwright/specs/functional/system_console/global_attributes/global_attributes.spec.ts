@@ -906,13 +906,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
-                // * With both linked, the list's Source column resolves via the same
-                // ldap-priority logic the list table already uses for any dual-linked field
+                // * With both linked, the list's Source column shows both sources together
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
                 const row = systemConsolePage.page.locator('tr', {
                     has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
                 });
-                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP');
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP, SAML');
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
             }
