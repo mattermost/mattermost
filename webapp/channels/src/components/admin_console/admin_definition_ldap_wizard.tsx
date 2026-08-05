@@ -255,6 +255,22 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
         ],
     },
     {
+        key: 'admin.authentication.ldap.login_button',
+        title: 'Login Button',
+        subtitle: 'Customize the appearance of the AD/LDAP login button in the mobile apps.',
+        sectionTitle: 'Login Button',
+        settings: [
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonBorderColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonBorderColorTitle', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonBorderColorDesc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+            },
+        ],
+    },
+    {
         key: 'admin.authentication.ldap.dn_and_filters',
         title: 'User Filters',
         subtitle: 'Tell Mattermost how to identify your users within LDAP',
