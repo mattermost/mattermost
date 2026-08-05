@@ -207,7 +207,16 @@ const UserPropertyValues = ({
         );
     }
 
-    if (!supportsOptions(field)) {
+    // A graph field's options form a hierarchy, and this cell can only send back
+    // a flat list: saving one would keep the option names and drop every parent
+    // edge between them. So the options are shown and never editable, keyed on
+    // the type rather than on attrs.protected, which marks a plugin-owned field
+    // and means something else. supportsOptions deliberately still says no for
+    // graph: it also gates this page's "at least one option" save requirement,
+    // which a graph field whose options the server withheld could not meet.
+    const isGraph = field.type === 'graph';
+
+    if (!supportsOptions(field) && !isGraph) {
         return (
             <span className='user-property-field-values'>
                 {'-'}
@@ -231,7 +240,7 @@ const UserPropertyValues = ({
 
     // Linked fields inherit their options from the template they link to; the
     // server rejects an options change on them.
-    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field);
+    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field) || isGraph;
 
     return (
         <>

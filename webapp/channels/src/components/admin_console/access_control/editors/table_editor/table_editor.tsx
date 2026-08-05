@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -45,20 +45,34 @@ export function rowToCEL(row: TableRow): string {
         return `${attributeExpr} in []`;
     }
 
+    // A graph hierarchy predicate is a member call on the user's graph attribute
+    // whose one argument is either a list of option names or the accessed
+    // channel's graph attribute. Neither shape fits OPERATOR_CONFIG, so the
+    // predicate is recognized from the operator alone, before config is read.
+    // Exact membership on a graph attribute is not here: it stays on the list
+    // operators below, which lower to a chain of `in` tests.
+    if (isGraphOperator(row.operator)) {
+        if (row.targetAttribute) {
+            return `${attributeExpr}.${row.operator}(resource.attributes.${row.targetAttribute})`;
+        }
+        const targets = row.values.map((val: string) => celStringLiteral(val)).join(', ');
+        return `${attributeExpr}.${row.operator}([${targets}])`;
+    }
+
     const config = OPERATOR_CONFIG[row.operator];
 
     // Right-hand side is the accessed channel's attribute, not a literal:
-    // user.attributes.X <op> resource.attributes.Y. Only comparison operators
-    // (is / is not / the ranked ordinals) take an attribute target.
-    if (row.targetAttribute && config && config.type === 'comparison') {
-        return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
-    }
+    // user.attributes.X <op> resource.attributes.Y. Which operators may take one
+    // depends on the attribute type as well — see operatorSupportsChannelTarget.
+    // The literal-value forms below still apply when the row has no
+    // targetAttribute, or when the operator cannot carry one.
+    if (row.targetAttribute && operatorSupportsChannelTarget(row.operator, row.attribute_type)) {
+        if (config?.type === 'comparison') {
+            return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
+        }
 
-    // A multiselect list-vs-list comparison against a channel attribute is stored
-    // verbatim as a member-function call the engine holds as-is:
-    // user.attributes.X.hasAnyOf(resource.attributes.Y). The literal-value
-    // in-chain (below) still applies when the row has no targetAttribute.
-    if (row.targetAttribute && isMultiselectOperator(row.operator)) {
+        // What is left is a multiselect list-vs-list comparison, stored verbatim
+        // as a member-function call the engine holds as-is.
         const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
         return `${attributeExpr}.${fn}(resource.attributes.${row.targetAttribute})`;
     }
@@ -196,13 +210,18 @@ export const findFirstAvailableAttributeFromList = (
 
 // Returns the operator a freshly-selected attribute of the given type should
 // default to. Ranked attributes default to "is at least" (the canonical
-// "Secret or above" clearance comparison).
+// "Secret or above" clearance comparison); graph attributes to "covers all of",
+// the hierarchy test the type exists for — the holder is at or above every
+// option the rule names.
 const defaultOperatorForType = (type?: string): OperatorLabel => {
     if (type === 'multiselect') {
         return OperatorLabel.HAS_ANY_OF;
     }
     if (type === 'rank') {
         return OperatorLabel.IS_AT_LEAST;
+    }
+    if (type === 'graph') {
+        return OperatorLabel.COVERS_ALL;
     }
     return OperatorLabel.IS;
 };
@@ -216,8 +235,23 @@ const isOperatorValidForType = (op: string, type?: string): boolean => {
     if (type === 'rank') {
         return isRankOperator(op) || op === OperatorLabel.IS_NOT;
     }
-    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op);
+    if (type === 'graph') {
+        // The hierarchy predicates, plus the two list operators — on a graph
+        // attribute those lower to a chain of `in` tests, which is the exact,
+        // hierarchy-blind membership check. Every other operator is refused when
+        // the policy is saved.
+        return isGraphOperator(op) || isMultiselectOperator(op);
+    }
+    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op) && !isGraphOperator(op);
 };
+
+// The field whose options a graph attribute draws on: the template it links to,
+// or itself when it is the source. Two graph attributes can be compared exactly
+// when these match, which also admits the pair where the channel attribute links
+// directly to the user attribute. That is looser than the shared-template rule
+// the other option-based types use, and it is the rule the server applies when
+// the rule is saved.
+const graphOptionOwner = (field: UserPropertyField): string => field.linked_field_id || field.id;
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
 // This allows the expression to be displayed and edited in a user-friendly table format.
@@ -373,11 +407,31 @@ function TableEditor({
         return {userFields: uf, resourceAttributes: ra};
     }, [userAttributes]);
 
+    // The field definition behind a row. Resolved by name AND namespace: a CPA
+    // and a session attribute can share a name, so object_type disambiguates.
+    // The left picker only offers user attributes, so this resolves against
+    // userFields (channel fields are right-hand-side targets only). Undefined
+    // when the rule names an attribute that no longer exists.
+    const fieldForRow = useCallback((row: TableRow): UserPropertyField | undefined => {
+        return userFields.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
+    }, [userFields]);
+
+    // A row's live attribute type. The type stored on the row is a snapshot —
+    // from the server visual AST at parse time, or the field type when the row
+    // was added — and can be stale or, for an exact-membership condition,
+    // deliberately imprecise: the server reports such a row as multiselect
+    // whatever field it is on, because it reads no field types.
+    const attributeTypeForRow = useCallback((row: TableRow): string | undefined => {
+        return fieldForRow(row)?.type || row.attribute_type || undefined;
+    }, [fieldForRow]);
+
     // Channel attributes the given user attribute may be compared against.
     // Same field type is required; for option-based types (select/multiselect/
     // rank) the two must also share an option scale, enforced structurally by
     // linking to the same template field (equal, non-null linked_field_id).
-    // Non-comparable pairs are also rejected server-side at save/check.
+    // Graph attributes share an option pool under a looser rule — see
+    // graphOptionOwner. Non-comparable pairs are also rejected server-side at
+    // save/check.
     const comparableChannelFields = useCallback((userField?: UserPropertyField): UserPropertyField[] => {
         if (!userField) {
             return [];
@@ -386,6 +440,9 @@ function TableEditor({
         return resourceAttributes.filter((cf) => {
             if (cf.type !== userField.type) {
                 return false;
+            }
+            if (userField.type === 'graph') {
+                return graphOptionOwner(cf) === graphOptionOwner(userField);
             }
             if (optionBased) {
                 return Boolean(userField.linked_field_id) && userField.linked_field_id === cf.linked_field_id;
@@ -615,17 +672,18 @@ function TableEditor({
                 values: newValues,
             };
 
-            // A resource target is valid only for comparison operators and the
-            // multiselect list operators (has any of / has all of); drop it when
-            // moving to any other operator (e.g. "in", "starts with").
-            if (OPERATOR_CONFIG[newOperator]?.type !== 'comparison' && !isMultiselectOperator(newOperator)) {
+            // Drop the resource target when the new operator cannot carry one
+            // (e.g. "in", "starts with", or the membership operators on a graph
+            // attribute) — otherwise it would survive invisibly and be emitted in
+            // a form the server refuses.
+            if (!operatorSupportsChannelTarget(newOperator, attributeTypeForRow(currentRows[index]))) {
                 newRows[index].targetAttribute = undefined;
             }
 
             updateExpression(newRows);
             return newRows;
         });
-    }, [updateExpression]);
+    }, [updateExpression, attributeTypeForRow]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
         setRows((currentRows) => {
@@ -700,11 +758,7 @@ function TableEditor({
                         </tr>
                     ) : (
                         rows.map((row, index) => {
-                            // Resolve by name AND namespace: a CPA and a session
-                            // attribute can share a name, so object_type disambiguates.
-                            // The left picker only offers user attributes, so resolve
-                            // against userFields (channel fields are RHS targets only).
-                            const field = userFields.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'));
+                            const field = fieldForRow(row);
                             const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
                             const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
@@ -714,13 +768,13 @@ function TableEditor({
                             // alongside literal values).
                             const targets = comparableChannelFields(field);
 
-                            // Comparison operators target any comparable channel
-                            // field; the multiselect list operators (has any of /
-                            // has all of) target a multiselect channel field
-                            // (list-vs-list). comparableChannelFields already
-                            // enforces the shared option scale.
+                            // Channel attributes this row's operator can compare
+                            // against, if any. comparableChannelFields has
+                            // already enforced the shared option scale; the
+                            // operator and the attribute's type decide whether a
+                            // target is offered at all.
                             const supportsTarget = targets.length > 0 &&
-                                (OPERATOR_CONFIG[row.operator]?.type === 'comparison' || isMultiselectOperator(row.operator));
+                                operatorSupportsChannelTarget(row.operator, attributeTypeForRow(row));
                             const cellDisabled = disabled || row.hasMaskedValues;
                             return (
                                 <tr
@@ -747,17 +801,11 @@ function TableEditor({
                                             disabled={cellDisabled}
                                             onChange={(operator) => updateRowOperator(index, operator)}
 
-                                            // Prefer the resolved field's live type over the
-                                            // row's stored attribute_type. The stored value is a
-                                            // snapshot — from the server visual AST at parse time,
-                                            // or the field type when the row was added — and can
-                                            // drift from the current attribute definition: a saved
+                                            // The live type, not the row's stored snapshot: a saved
                                             // rank rule whose server AST labeled the attribute
                                             // 'select' would otherwise show the default operator set
-                                            // instead of the ranked one. `field` is resolved by name
-                                            // AND object_type, so this keeps the namespace
-                                            // disambiguation the stored type was introduced for.
-                                            attributeType={field?.type || row.attribute_type || undefined}
+                                            // instead of the ranked one.
+                                            attributeType={attributeTypeForRow(row)}
                                             allowedOperators={allowedOperatorLabelsForField(field)}
                                         />
                                     </td>

@@ -797,6 +797,83 @@ describe('rowToCEL', () => {
         expect(cel).toBe('user.attributes.clearance != "Secret"');
     });
 
+    // --- Graph hierarchy predicates ---
+    //
+    // Each is a member call on the user's graph attribute. The operator label is
+    // the CEL function name, so it is emitted verbatim; the argument is either a
+    // list of option names or the accessed channel's graph attribute.
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s emits a member call over a list of option names', (operator) => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator,
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe(`user.attributes.programs.${operator}(["F-18 Program", "Navy Program"])`);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s emits a member call against a channel-attribute target', (operator) => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator,
+            values: [],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe(`user.attributes.programs.${operator}(resource.attributes.channelPrograms)`);
+    });
+
+    test('a hierarchy predicate escapes quotes in option names', () => {
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'coversAll',
+            values: ['O\'Brien\'s "Program"'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.programs.coversAll(["O\'Brien\'s \\"Program\\""])');
+    });
+
+    test('exact membership on a graph attribute keeps the element-wise in-chain', () => {
+        // Membership is hierarchy-blind and stays on the list operators. The
+        // server labels such a row multiselect — it reads no field types when it
+        // converts an expression back — so the row arrives that way and the
+        // operator, not the attribute type, is what selects the emitted form.
+        expect(rowToCEL({
+            attribute: 'programs',
+            operator: 'has all of',
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'multiselect',
+            hasMaskedValues: false,
+        })).toBe('"F-18 Program" in user.attributes.programs && "Navy Program" in user.attributes.programs');
+
+        expect(rowToCEL({
+            attribute: 'programs',
+            operator: 'has any of',
+            values: ['F-18 Program', 'Navy Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+        })).toBe('("F-18 Program" in user.attributes.programs || "Navy Program" in user.attributes.programs)');
+    });
+
+    test('a membership operator on a graph attribute never emits the list-vs-list member call', () => {
+        // hasAllOf/hasAnyOf against a channel attribute requires both sides to be
+        // multiselect; on a graph attribute the engine refuses it, so a stale
+        // target must not resurface as one. The literal form is used instead.
+        const cel = rowToCEL({
+            attribute: 'programs',
+            operator: 'has all of',
+            values: ['F-18 Program'],
+            attribute_type: 'graph',
+            hasMaskedValues: false,
+            targetAttribute: 'channelPrograms',
+        });
+        expect(cel).toBe('"F-18 Program" in user.attributes.programs');
+    });
+
     // --- Masking-related tests ---
 
     test('fully-masked row (hasMaskedValues=true, values=[]) emits "in []" placeholder regardless of operator', () => {
@@ -936,6 +1013,72 @@ describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
         expect(rows[0].targetAttribute).toBeUndefined();
         expect(rows[0].values).toEqual(['Dragon', 'Phoenix']);
         expect(rowToCEL(rows[0])).toBe(expected);
+    });
+});
+
+describe('graph hierarchy round-trips (parseExpression -> rowToCEL)', () => {
+    // A saved graph rule comes back from the server as a condition whose
+    // operator is the CEL function name and whose attribute_type is "graph". It
+    // must re-render as a row and re-serialize to the same expression, or
+    // opening a policy in the table editor would rewrite it.
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s over literal option names', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: ['F-18 Program', 'Navy Program'],
+                    value_type: 0,
+                    attribute_type: 'graph',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].operator).toBe(celFn);
+        expect(rows[0].values).toEqual(['F-18 Program', 'Navy Program']);
+        expect(rows[0].targetAttribute).toBeUndefined();
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(["F-18 Program", "Navy Program"])`);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'graph',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].operator).toBe(celFn);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+    });
+
+    test('exact membership survives arriving labelled multiselect', () => {
+        // The server cannot tell `"X" in <graph field>` from the same expression
+        // over a multiselect field, so it reports the row as multiselect with the
+        // operator promoted to hasAllOf. The chain it re-emits is identical.
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: 'hasAllOf',
+                    value: ['F-18 Program'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rowToCEL(rows[0])).toBe('"F-18 Program" in user.attributes.programs');
     });
 });
 

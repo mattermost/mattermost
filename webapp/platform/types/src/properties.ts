@@ -10,7 +10,12 @@ export type FieldType = (
     'date' |
     'user' |
     'multiuser' |
-    'rank'
+    'rank' |
+
+    // A multi-valued select whose options form a hierarchy. The options and
+    // their parent edges are created through the REST and plugin APIs only, so
+    // no editor here writes them.
+    'graph'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
