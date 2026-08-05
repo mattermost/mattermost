@@ -39,10 +39,10 @@ type PropertyHook interface {
 	PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
 
-	// PostUpdatePropertyFields runs after a successful field update (including
-	// the linked-field propagation pass). It receives the pre-update state of
-	// the requested fields (parallel to requested), the post-update requested
-	// fields, and the post-update propagated fields. Hooks may transform attrs
+	// PostUpdatePropertyFields runs after a successful field update. It receives
+	// the pre-update state of the requested fields (parallel to requested), the
+	// post-update requested fields, and the linked fields whose derived option
+	// list the update changed (the propagated bucket). Hooks may transform attrs
 	// on either bucket (e.g. redact information for the caller); the
 	// dispatcher enforces cardinality preservation on both buckets so a buggy
 	// hook that drops fields surfaces an error rather than silently truncating
@@ -69,6 +69,33 @@ type PropertyHook interface {
 	// Implementations must preserve slice length — the dispatcher enforces this and will
 	// return an error if a hook returns fewer fields than it received.
 	PostGetPropertyFields(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error)
+
+	// Field option hooks
+	//
+	// A field's options are rows of their own, addressable one at a time, and a
+	// change to one does not write the field's row — so none of the field hooks
+	// above sees it. These are that path's equivalents, and they exist so that
+	// the two ways of changing a field's options cannot answer differently: the
+	// same change stated as the field's inline option list goes through
+	// PreUpdatePropertyField, and a caller must not be able to pick the path
+	// that skips a check.
+	//
+	// Both receive the field as the store has it, so a decision is made against
+	// the field's real type, link, and access attributes rather than against a
+	// copy the caller supplied.
+
+	// PreChangePropertyFieldOptions runs before options are created, changed, or
+	// deleted on a field. One hook covers all three verbs because what they have
+	// in common — the caller's authority over this field's option set — is the
+	// whole of what there is to decide before the change is validated. Return an
+	// error to block it.
+	PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error
+
+	// PostGetPropertyFieldOptions is called after reading a page of a field's
+	// options. Implementations may drop entries; unlike the field post-hooks
+	// there is no cardinality rule, because a shorter page is the answer when a
+	// caller may not see all of them.
+	PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
 
 	// Value pre-hooks (write operations)
 
@@ -136,6 +163,12 @@ func (BasePropertyHook) PostGetPropertyField(_ request.CTX, field *model.Propert
 }
 func (BasePropertyHook) PostGetPropertyFields(_ request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	return fields, nil
+}
+func (BasePropertyHook) PreChangePropertyFieldOptions(_ request.CTX, _ *model.PropertyField) error {
+	return nil
+}
+func (BasePropertyHook) PostGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return options, nil
 }
 func (BasePropertyHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	return value, nil
@@ -345,6 +378,30 @@ func (ps *PropertyService) runPostGetPropertyFields(rctx request.CTX, fields []*
 		}
 	}
 	return fields, nil
+}
+
+// runPreChangePropertyFieldOptions runs all registered pre-hooks for a change to
+// a field's options. field must be the field as the store has it.
+func (ps *PropertyService) runPreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
+	for _, hook := range ps.hooks {
+		if err := hook.PreChangePropertyFieldOptions(rctx, field); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// runPostGetPropertyFieldOptions runs all registered post-hooks for a page of a
+// field's options. A hook may return fewer options than it received, or none.
+func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	var err error
+	for _, hook := range ps.hooks {
+		options, err = hook.PostGetPropertyFieldOptions(rctx, field, options)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return options, nil
 }
 
 // runPreCreatePropertyValue runs all registered pre-hooks for CreatePropertyValue.

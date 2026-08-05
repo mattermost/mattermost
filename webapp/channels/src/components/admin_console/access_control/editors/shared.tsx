@@ -67,6 +67,18 @@ export enum OperatorLabel {
     IS_LESS_THAN = 'is less than',
 
     YOUNGER_THAN = 'younger than',
+
+    // Hierarchy predicates, shown only for attributes of type 'graph', whose
+    // options form a hierarchy. The attribute holds a set of options; "covers"
+    // asks whether each held option is at or above a target, "within" whether it
+    // is at or below. The label is the CEL function name itself because the
+    // server reports the function as the condition's operator when it converts a
+    // saved expression back to rows — a second spelling would be one more thing
+    // to keep in step.
+    COVERS_ALL = 'coversAll',
+    COVERS_ANY = 'coversAny',
+    WITHIN_ALL = 'withinAll',
+    WITHIN_ANY = 'withinAny',
 }
 
 // Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
@@ -87,6 +99,15 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.YOUNGER_THAN_DAYS]: OperatorLabel.YOUNGER_THAN,
     hasAnyOf: OperatorLabel.HAS_ANY_OF,
     hasAllOf: OperatorLabel.HAS_ALL_OF,
+
+    // The graph hierarchy predicates keep their CEL spelling as their label, so
+    // these entries are identities. They are listed anyway: this map is what
+    // parseExpression consults, and an operator missing from it silently falls
+    // back to "is".
+    coversAll: OperatorLabel.COVERS_ALL,
+    coversAny: OperatorLabel.COVERS_ANY,
+    withinAll: OperatorLabel.WITHIN_ALL,
+    withinAny: OperatorLabel.WITHIN_ANY,
 };
 
 // 'native_method' is a member call whose argument is emitted verbatim (e.g. an
@@ -115,11 +136,42 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
 };
 
 export function isMultiValueOperator(op: string): boolean {
-    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF ||
+        isGraphOperator(op);
 }
 
 export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+// The four hierarchy predicates, exclusive to attributes of type 'graph'. Each
+// is a member call taking one argument: a list of option names, or the accessed
+// channel's graph attribute. No OPERATOR_CONFIG entry can describe that — its
+// shapes each take a single literal or none at all — so the predicates are
+// deliberately absent from it and every site that would consult it asks here.
+export function isGraphOperator(op: string): boolean {
+    return op === OperatorLabel.COVERS_ALL ||
+        op === OperatorLabel.COVERS_ANY ||
+        op === OperatorLabel.WITHIN_ALL ||
+        op === OperatorLabel.WITHIN_ANY;
+}
+
+// Whether a row's right-hand side may be the accessed channel's attribute
+// (resource.attributes.*) rather than literal values, given the operator and the
+// attribute's type. The comparison operators and the graph hierarchy predicates
+// always may. The multiselect list operators may only on a multiselect
+// attribute: on a graph attribute they mean exact membership against literal
+// option names, and the policy engine has no live-versus-live form for a pair of
+// graph attributes, so offering a target there would build a rule that fails to
+// save.
+export function operatorSupportsChannelTarget(op: string, attributeType?: string): boolean {
+    if (isGraphOperator(op)) {
+        return true;
+    }
+    if (isMultiselectOperator(op)) {
+        return attributeType !== 'graph';
+    }
+    return OPERATOR_CONFIG[op]?.type === 'comparison';
 }
 
 // Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
@@ -248,6 +300,13 @@ export function isSimpleCondition(s: string): boolean {
         // multiselect attribute and the single argument is a resource.attributes.*
         // selector (never a literal — that form is the in-chain above).
         trimmed.match(/^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(resource\.attributes\.\w+\)$/) ||
+
+        // A graph hierarchy predicate: a member call on the user's graph
+        // attribute whose single argument is a list of option names or the
+        // accessed channel's graph attribute. Only the custom-profile namespace,
+        // since a session attribute is never a graph field. Exact membership on
+        // a graph attribute is the `in` form matched above, unchanged.
+        trimmed.match(/^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:\[.*?\]|resource\.attributes\.\w+)\)$/) ||
 
         // Native user attributes (single segment after `user.`). Restricted to
         // the field/operator pairings the table editor can round-trip: boolean

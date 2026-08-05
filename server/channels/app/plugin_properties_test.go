@@ -1182,4 +1182,388 @@ func TestPluginProperties(t *testing.T) {
 		}
 		require.True(t, fieldWasUpdated, "Non-protected field should have been updated by plugin2")
 	})
+
+	// A field's options are addressable one at a time, which is what a hierarchy
+	// of them needs. Everything a plugin can do to them is exercised in one
+	// activation, against a graph template and a field linking to it, because
+	// each subtest here compiles and runs a plugin of its own.
+	//
+	// In the access_control group, because a group a plugin registers for itself
+	// is a version 1 group and a legacy field's options are part of the field
+	// rather than addressable.
+	t.Run("test property field option methods", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
+
+		// Feature flags are read-only at runtime by default, and creating the
+		// graph field below needs the gate open.
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldGraph = true })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldGraph = false })
+			th.ConfigStore.SetReadOnlyFF(true)
+		})
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"strings"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func parents(names ...string) *[]string {
+				return &names
+			}
+
+			func byName(options []*model.PropertyFieldOption, name string) *model.PropertyFieldOption {
+				for _, option := range options {
+					if option.Name == name {
+						return option
+					}
+				}
+				return nil
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				groupID := "` + cpaID + `"
+
+				template, err := p.API.CreatePropertyField(&model.PropertyField{
+					GroupID:    groupID,
+					Name:       "Programs",
+					Type:       model.PropertyFieldTypeGraph,
+					ObjectType: model.PropertyFieldObjectTypeTemplate,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create the template field: %w", err)
+				}
+
+				linked, err := p.API.CreatePropertyField(&model.PropertyField{
+					GroupID:       groupID,
+					Name:          "Program",
+					ObjectType:    model.PropertyFieldObjectTypeUser,
+					TargetType:    string(model.PropertyFieldTargetLevelSystem),
+					LinkedFieldID: &template.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create the linked field: %w", err)
+				}
+
+				// A whole hierarchy in one call, naming an option further down the
+				// payload: the names resolve after every option has an identifier.
+				created, err := p.API.CreatePropertyFieldOptions(groupID, template.ID, []*model.PropertyFieldOption{
+					{Name: "Fighter Jet Program", Parents: parents("Air Program")},
+					{Name: "Air Program"},
+					{Name: "F-18 Program", Parents: parents("Fighter Jet Program")},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create options: %w", err)
+				}
+				if len(created) != 3 {
+					return fmt.Errorf("expected 3 options, got %d", len(created))
+				}
+				for _, option := range created {
+					if !model.IsValidId(option.ID) {
+						return fmt.Errorf("option %q was created without an identifier", option.Name)
+					}
+					if option.ReadOnly {
+						return fmt.Errorf("option %q is the template's own and should not be read only", option.Name)
+					}
+				}
+				if jet := byName(created, "Fighter Jet Program"); jet.Parents == nil || len(*jet.Parents) != 1 || (*jet.Parents)[0] != "Air Program" {
+					return fmt.Errorf("the fighter jet program came back under %v", jet.Parents)
+				}
+
+				// The field linking to the template serves those options without
+				// owning any of them, which is what read only says.
+				inherited, err := p.API.GetPropertyFieldOptions(groupID, linked.ID, 0, "", 100)
+				if err != nil {
+					return fmt.Errorf("failed to list the linked field's options: %w", err)
+				}
+				if len(inherited) != 3 {
+					return fmt.Errorf("expected the linked field to serve 3 options, got %d", len(inherited))
+				}
+				for _, option := range inherited {
+					if !option.ReadOnly {
+						return fmt.Errorf("option %q is inherited and should be read only", option.Name)
+					}
+				}
+
+				// It cannot own options of its own: one could never be attached to
+				// the hierarchy it exists to serve.
+				if _, err = p.API.CreatePropertyFieldOptions(groupID, linked.ID, []*model.PropertyFieldOption{
+					{Name: "Land Program"},
+				}); err == nil {
+					return fmt.Errorf("a linked graph field was allowed to own an option of its own")
+				}
+
+				// Nor change one it merely inherits.
+				air := byName(created, "Air Program")
+				if _, err = p.API.UpdatePropertyFieldOptions(groupID, linked.ID, []*model.PropertyFieldOption{
+					{ID: air.ID, Name: "Aerial Program"},
+				}); err == nil {
+					return fmt.Errorf("an inherited option was changed through the field that inherits it")
+				}
+
+				// A rename and a move through the field that owns them. The colour
+				// is left out and so left alone; the parents given replace the ones
+				// the option had.
+				f18 := byName(created, "F-18 Program")
+				updated, err := p.API.UpdatePropertyFieldOptions(groupID, template.ID, []*model.PropertyFieldOption{
+					{ID: f18.ID, Name: "F/A-18 Program", Parents: parents("Air Program")},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to update an option: %w", err)
+				}
+				if len(updated) != 1 || updated[0].Name != "F/A-18 Program" {
+					return fmt.Errorf("the option came back as %v", updated)
+				}
+				if len(*updated[0].Parents) != 1 || (*updated[0].Parents)[0] != "Air Program" {
+					return fmt.Errorf("the option came back under %v", *updated[0].Parents)
+				}
+
+				// The first item that cannot be accepted fails the call, and the
+				// answer says which one it was.
+				_, err = p.API.CreatePropertyFieldOptions(groupID, template.ID, []*model.PropertyFieldOption{
+					{Name: "Sea Program"},
+					{Name: "Carrier Program", Parents: parents("No Such Program")},
+				})
+				if err == nil {
+					return fmt.Errorf("an option under a parent nothing is called was accepted")
+				}
+				if !strings.Contains(err.Error(), "options[1]") {
+					return fmt.Errorf("the refusal did not say which item was at fault: %s", err.Error())
+				}
+				// Nothing was written, including the item that was fine.
+				held, err := p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
+				if err != nil {
+					return fmt.Errorf("failed to list options: %w", err)
+				}
+				if len(held) != 3 {
+					return fmt.Errorf("expected the refused call to write nothing, found %d options", len(held))
+				}
+
+				if _, err = p.API.CreatePropertyFieldOptions(groupID, template.ID, nil); err == nil {
+					return fmt.Errorf("a call naming no options was accepted")
+				}
+
+				// An option with something still below it cannot go on its own,
+				// because whatever is under it would be left hanging off nothing.
+				jet := byName(created, "Fighter Jet Program")
+				if err = p.API.DeletePropertyFieldOptions(groupID, template.ID, []string{air.ID}); err == nil {
+					return fmt.Errorf("an option with options below it was deleted on its own")
+				}
+
+				// The whole branch at once is the supported way.
+				if err = p.API.DeletePropertyFieldOptions(groupID, template.ID, []string{air.ID, jet.ID, f18.ID}); err != nil {
+					return fmt.Errorf("failed to delete a branch: %w", err)
+				}
+				held, err = p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
+				if err != nil {
+					return fmt.Errorf("failed to list options after the deletion: %w", err)
+				}
+				if len(held) != 0 {
+					return fmt.Errorf("expected no options left, found %d", len(held))
+				}
+
+				// A page has to be asked for: an empty page would read as a field
+				// with no options, which is the answer a page size of zero would
+				// give for every field.
+				if _, err = p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 0); err == nil {
+					return fmt.Errorf("a listing with no page size was accepted")
+				}
+
+				// And a cursor is both halves or neither: half of one would start
+				// from the beginning again, so a caller paging until a short page
+				// would never stop.
+				if _, err = p.API.GetPropertyFieldOptions(groupID, template.ID, 0, model.NewId(), 100); err == nil {
+					return fmt.Errorf("a listing with half a cursor was accepted")
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
+
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test plugin cannot read or change the options of another plugin's protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: a protected field only it may read the options of, which
+			// it then adds an option to through the options API.
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				field, err := p.API.CreatePropertyField(&model.PropertyField{
+					GroupID:    "` + cpaID + `",
+					Name:       "plugin1_protected_options",
+					Type:       model.PropertyFieldTypeMultiselect,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
+					Attrs: map[string]any{
+						"protected":   true,
+						"access_mode": model.PropertyAccessModeSourceOnly,
+						"options": []any{
+							map[string]any{"name": "Air Program"},
+						},
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				if _, err = p.API.CreatePropertyFieldOptions("` + cpaID + `", field.ID, []*model.PropertyFieldOption{
+					{Name: "Sea Program"},
+				}); err != nil {
+					return fmt.Errorf("the source plugin failed to add an option to its own field: %w", err)
+				}
+
+				options, err := p.API.GetPropertyFieldOptions("` + cpaID + `", field.ID, 0, "", 100)
+				if err != nil {
+					return fmt.Errorf("the source plugin failed to list its own field's options: %w", err)
+				}
+				if len(options) != 2 {
+					return fmt.Errorf("expected the source plugin to see 2 options, got %d", len(options))
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			// Plugin 2: the same field, from a plugin that does not own it.
+			`
+			package main
+
+			import (
+				"errors"
+				"fmt"
+				"net/http"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				fields, err := p.API.SearchPropertyFields("` + cpaID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var target *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "plugin1_protected_options" {
+						target = field
+						break
+					}
+				}
+				if target == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// The field itself reads back with its option list emptied, and the
+				// options behind it answer the same way rather than serving what the
+				// field read refused.
+				options, err := p.API.GetPropertyFieldOptions("` + cpaID + `", target.ID, 0, "", 100)
+				if err != nil {
+					return fmt.Errorf("failed to list another plugin's options: %w", err)
+				}
+				if len(options) != 0 {
+					return fmt.Errorf("expected to see none of another plugin's options, got %d", len(options))
+				}
+
+				// Refused for want of authority over the field, not because the
+				// option named cannot be found: an option this plugin may not
+				// change is a different answer from one that is not there, and
+				// only the first is a refusal it cannot work around.
+				refused := func(verb string, err error) error {
+					if err == nil {
+						return fmt.Errorf("%s an option of another plugin's protected field", verb)
+					}
+					var appErr *model.AppError
+					if !errors.As(err, &appErr) {
+						return fmt.Errorf("%s: expected an app error, got %T: %s", verb, err, err.Error())
+					}
+					if appErr.StatusCode != http.StatusForbidden {
+						return fmt.Errorf("%s: expected the change to be forbidden, got %d: %s", verb, appErr.StatusCode, appErr.Error())
+					}
+					return nil
+				}
+
+				_, err = p.API.CreatePropertyFieldOptions("` + cpaID + `", target.ID, []*model.PropertyFieldOption{
+					{Name: "Land Program"},
+				})
+				if problem := refused("added", err); problem != nil {
+					return problem
+				}
+
+				_, err = p.API.UpdatePropertyFieldOptions("` + cpaID + `", target.ID, []*model.PropertyFieldOption{
+					{ID: model.NewId(), Name: "Land Program"},
+				})
+				if problem := refused("changed", err); problem != nil {
+					return problem
+				}
+
+				err = p.API.DeletePropertyFieldOptions("` + cpaID + `", target.ID, []string{model.NewId()})
+				if problem := refused("deleted", err); problem != nil {
+					return problem
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+	})
 }

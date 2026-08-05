@@ -21,6 +21,7 @@ import {
     CellphoneIcon,
     GlobeIcon,
     SortAscendingIcon,
+    SitemapIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -68,6 +69,8 @@ export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
         case 'rank':
             return <SortAscendingIcon {...iconProps}/>;
+        case 'graph':
+            return <SitemapIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;
         case 'text':

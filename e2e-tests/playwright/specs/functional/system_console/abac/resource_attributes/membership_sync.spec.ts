@@ -4,7 +4,10 @@
 import {expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {
+    deleteCustomProfileAttributes,
+    setupCustomProfileAttributeFields,
+} from '../../../channels/custom_profile_attributes/helpers';
 import {
     createPrivateChannelForABAC,
     createUserForABAC,
@@ -16,6 +19,8 @@ import {
     assignChannelsToPolicy,
     createChannelTextField,
     createParentPolicyViaAPI,
+    deleteParentPolicy,
+    deletePropertyFieldQuietly,
     expectAddToChannelDenied,
     setChannelAttributeValue,
     triggerSyncJob,
@@ -34,6 +39,21 @@ import {
  * the table-editor's RHS constraints.
  */
 test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Reverse order, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('mixed user/resource scalar policy syncs and enforces joins', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
@@ -50,7 +70,9 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         const attr = `region${pw.random.id()}`;
         const userAttribute: CustomProfileAttribute[] = [{name: attr, type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, userAttribute);
+        cleanups.push(() => deleteCustomProfileAttributes(adminClient, attributeFieldsMap));
         const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         const matchingUserNotInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: attr, type: 'text', value: 'us'},
@@ -74,6 +96,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
             name: `Resource Region ${pw.random.id()}`,
             expression: `user.attributes.${attr} == resource.attributes.${attr}`,
         });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
         await triggerSyncJob(adminClient, policyId);
@@ -112,11 +135,13 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
             {name: attr, type: 'text', value: ''},
         ]);
+        cleanups.push(() => deleteCustomProfileAttributes(adminClient, attributeFieldsMap));
 
         // Channel field exists so the reference resolves at save time, but the
         // channel below never sets a value → the referenced field is missing for
         // that channel → deny-on-miss.
-        await createChannelTextField(adminClient, attr);
+        const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         const member = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: attr, type: 'text', value: 'us'},
@@ -131,6 +156,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
             name: `Resource DenyOnMiss ${pw.random.id()}`,
             expression: `user.attributes.${attr} == resource.attributes.${attr}`,
         });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
         await triggerSyncJob(adminClient, policyId);

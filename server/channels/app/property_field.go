@@ -19,6 +19,12 @@ import (
 // patch on a linked field — see UpdatePropertyFields' linked-field invariants.
 // Both nil/zero forms compare equal; otherwise reflect.DeepEqual handles the
 // nested map/slice shape produced by JSON unmarshalling.
+//
+// A field read above model.PropertyFieldMaxHydratedOptions has no options key,
+// so a read-modify-write of one compares nil against nil and is allowed through
+// to leave its options untouched. A caller that supplies a real list for such a
+// field is refused before reaching the store, by the option-list invariant in
+// the property service's UpdatePropertyFields.
 func propertyFieldOptionsEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
@@ -96,6 +102,47 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 	)
 }
 
+// graphPropertyFieldGate blocks the "graph" property field type while the
+// PropertyFieldGraph feature flag is disabled. existing is the field's current
+// stored state, or nil when the field is being created.
+//
+// Two operations are blocked and no others: creating a graph field, and
+// converting a field of another type to graph. A graph field that already exists
+// stays fully operable with the flag off — nothing but this gate acts on the
+// flag, and it runs only on field create and field update, so an existing graph
+// field's definition and options stay editable and every path that merely reads
+// one is untouched.
+//
+// That half is the one a reader will not assume, and it is deliberate: the flag
+// exists to stop new graph fields appearing, not to freeze the ones already in
+// use. A flag switched off underneath a field somebody is halfway through
+// populating would leave that field uncorrectable, with no way out but deleting
+// it — a worse outcome than the type shipping with no flag at all.
+//
+// Unlike rankPropertyFieldGate this is not narrowed to user-object fields.
+// Nothing shipped uses the graph type yet, so there is no existing feature to
+// exempt, and a hierarchy is normally defined on a template field that user and
+// channel fields link to — narrowing to user objects would leave the definition
+// itself ungated.
+func (a *App) graphPropertyFieldGate(where string, existing, field *model.PropertyField) *model.AppError {
+	if field == nil || field.Type != model.PropertyFieldTypeGraph {
+		return nil
+	}
+	if existing != nil && existing.Type == model.PropertyFieldTypeGraph {
+		return nil
+	}
+	if a.Config().FeatureFlags.PropertyFieldGraph {
+		return nil
+	}
+	return model.NewAppError(
+		where,
+		"app.property_field.graph_disabled.app_error",
+		nil,
+		"graph property fields are not enabled",
+		http.StatusBadRequest,
+	)
+}
+
 // CreatePropertyField creates a new property field.
 func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	if field == nil {
@@ -108,6 +155,31 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 
 	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
 		return nil, appErr
+	}
+
+	if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, field); appErr != nil {
+		return nil, appErr
+	}
+
+	// A field created with a linked_field_id takes its type from the template it
+	// links to — the property service copies the source's type over whatever the
+	// request said — so the check above cannot see what is about to be created.
+	// Gate on the source's type as well, or a graph template hands out new graph
+	// fields while the flag is off. Skipped entirely when the flag is on, so the
+	// usual path pays no extra read.
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && !a.Config().FeatureFlags.PropertyFieldGraph {
+		source, appErr := a.GetPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
+		switch {
+		case appErr != nil && appErr.StatusCode == http.StatusNotFound:
+			// No such source in this group. Nothing to gate, and the service has
+			// the specific errors for an unusable link target.
+		case appErr != nil:
+			return nil, appErr
+		default:
+			if appErr := a.graphPropertyFieldGate("CreatePropertyField", nil, source); appErr != nil {
+				return nil, appErr
+			}
+		}
 	}
 
 	if !bypassProtectedCheck && field.Protected {
@@ -312,6 +384,13 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			return nil, nil, appErr
 		}
 
+		// Graph-type gate: block converting a field to graph while the feature
+		// flag is off. A field that is already graph-typed passes, so its
+		// definition and options stay editable with the flag off.
+		if appErr := a.graphPropertyFieldGate("UpdatePropertyFields", existing, f); appErr != nil {
+			return nil, nil, appErr
+		}
+
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
 		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
 		// existing was linked.
@@ -399,7 +478,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	// Broadcast websocket events for both requested and propagated fields
+	// Broadcast websocket events for the requested fields and for the linked
+	// fields whose derived option list changed with them
 	for _, field := range updated {
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
 	}

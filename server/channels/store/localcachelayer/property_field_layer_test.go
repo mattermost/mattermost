@@ -74,6 +74,26 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
 
+	t.Run("MutateOptionEdges invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		// A hierarchy change moves the field's UpdateAt without changing anything
+		// else about the row, so a cached group would keep reporting the old one.
+		err = cachedStore.PropertyField().MutateOptionEdges(groupID, fakeField.ID, 0, nil, nil)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
 	t.Run("Delete invalidates the group cache", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()

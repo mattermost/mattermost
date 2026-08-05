@@ -74,6 +74,16 @@ func (h *LicenseCheckHook) PreCountPropertyFields(_ request.CTX, groupID string)
 	return h.requireLicense(groupID)
 }
 
+// Field option hooks
+
+func (h *LicenseCheckHook) PreChangePropertyFieldOptions(_ request.CTX, field *model.PropertyField) error {
+	return h.requireLicense(field.GroupID)
+}
+
+func (h *LicenseCheckHook) PostGetPropertyFieldOptions(_ request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return options, h.requireLicense(field.GroupID)
+}
+
 // Field post-hooks
 
 func (h *LicenseCheckHook) PostGetPropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {

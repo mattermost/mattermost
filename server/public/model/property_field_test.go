@@ -831,6 +831,86 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 	})
+
+	t.Run("graph options", func(t *testing.T) {
+		graphField := func(options ...any) *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "programs",
+				Type:       PropertyFieldTypeGraph,
+				ObjectType: PropertyFieldObjectTypeTemplate,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+				Attrs:      StringInterface{PropertyFieldAttributeOptions: options},
+			}
+		}
+
+		t.Run("graph is an accepted type", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program"})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("no options at all is valid", func(t *testing.T) {
+			pf := graphField()
+			pf.Attrs = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects an option carrying a rank", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "Fighter Jet Program", "rank": 2},
+			)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			// The offending option's position is reported, so a caller sending a
+			// long list knows which entry to fix.
+			require.Equal(t, "attrs.options[1].rank", appErr.params["FieldName"])
+		})
+
+		t.Run("a null rank is treated as absent", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": nil})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects a rank whatever shape it arrives in", func(t *testing.T) {
+			for _, rank := range []any{1, int64(1), 1.0, "1"} {
+				pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": rank})
+				require.Error(t, pf.IsValid(), "rank %#v should be rejected", rank)
+			}
+		})
+
+		t.Run("other option-bearing types keep their ranks", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "LOW", "rank": 1})
+			pf.Type = PropertyFieldTypeRank
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("a field may carry as many options as the limit and no more", func(t *testing.T) {
+			// The options themselves do not matter here, only how many there are:
+			// what bounds a hierarchy is the number of options in it.
+			pf := graphField(make([]any, PropertyGraphMaxOptions)...)
+			require.NoError(t, pf.IsValid())
+
+			pf = graphField(make([]any, PropertyGraphMaxOptions+1)...)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			require.Equal(t, "attrs.options", appErr.params["FieldName"])
+
+			// A type whose options are a flat list has no such limit: its options are
+			// bounded by the response size rules alone.
+			pf.Type = PropertyFieldTypeMultiselect
+			require.NoError(t, pf.IsValid())
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
@@ -863,6 +943,14 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		patch := &PropertyFieldPatch{
 			Name: nil,
 			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("graph is an accepted type", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: new("programs"),
+			Type: new(PropertyFieldTypeGraph),
 		}
 		require.NoError(t, patch.IsValid())
 	})
@@ -1682,6 +1770,7 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeSelect:      true,
 		PropertyFieldTypeMultiselect: true,
 		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
 		PropertyFieldTypeText:        false,
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,
@@ -1849,5 +1938,233 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 		err := pf.EnsureOptionIDs()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "field456")
+	})
+}
+
+// TestPropertyField_WithheldOptions covers the two states a read leaves behind
+// for a field with more than PropertyFieldMaxHydratedOptions options — no
+// options key, plus options_count and options_omitted — and what a patch on top
+// of them is allowed to do.
+func TestPropertyField_WithheldOptions(t *testing.T) {
+	withheldAttrs := func() StringInterface {
+		return StringInterface{
+			PropertyFieldAttributeOptionsCount:   1500,
+			PropertyFieldAttributeOptionsOmitted: true,
+			"visibility":                         "when_set",
+		}
+	}
+
+	t.Run("PropertyFieldOptionsOmitted distinguishes withheld from absent", func(t *testing.T) {
+		assert.True(t, PropertyFieldOptionsOmitted(withheldAttrs()))
+		assert.False(t, PropertyFieldOptionsOmitted(StringInterface{}), "a field with no options is not a field with withheld options")
+		assert.False(t, PropertyFieldOptionsOmitted(nil), "nil attrs must not panic")
+		assert.False(t, PropertyFieldOptionsOmitted(StringInterface{PropertyFieldAttributeOptionsOmitted: "true"}),
+			"only a real bool counts, so a stray string cannot flip a consumer into hiding")
+	})
+
+	t.Run("HideOptions leaves an empty list and no count", func(t *testing.T) {
+		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
+
+		pf.HideOptions()
+
+		assert.Equal(t, []any{}, pf.Attrs[PropertyFieldAttributeOptions])
+		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsCount, "the option count is itself controlled information")
+		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+		assert.Equal(t, "when_set", pf.Attrs["visibility"], "unrelated attrs are untouched")
+	})
+
+	t.Run("HideOptions allocates attrs when there are none", func(t *testing.T) {
+		pf := &PropertyField{Type: PropertyFieldTypeSelect}
+
+		pf.HideOptions()
+
+		assert.Equal(t, []any{}, pf.Attrs[PropertyFieldAttributeOptions])
+	})
+
+	t.Run("PropertyFieldSuppliesOptions tells an asserted list from an echoed-back one", func(t *testing.T) {
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}},
+		}))
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []map[string]any{{"id": "opt1"}},
+		}), "a Go caller's slice shape counts too")
+
+		assert.False(t, PropertyFieldSuppliesOptions(withheldAttrs()), "no key at all")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: []any{}}),
+			"an empty list asserts nothing; it is what a caller echoes back when the list it read was withheld")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: nil}))
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: "not a list"}))
+
+		var typedNil PropertyOptions[*PluginPropertyOption]
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: typedNil}),
+			"a typed nil slice is still an empty list")
+	})
+
+	t.Run("Patch leaves the withheld markers alone", func(t *testing.T) {
+		// Patch is deliberately dumb about them: whether a supplied option list may
+		// be applied at all is decided by the property service, which can see the
+		// stored field. Patch clearing them here would let the store take a list
+		// built on nothing at face value.
+		for name, patchAttrs := range map[string]StringInterface{
+			"a non-empty list": {PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}}},
+			"an empty list":    {PropertyFieldAttributeOptions: []any{}},
+			"another attr":     {"visibility": "always"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
+
+				pf.Patch(&PropertyFieldPatch{Attrs: &patchAttrs}, true)
+
+				assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs))
+				assert.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
+			})
+		}
+	})
+}
+
+func TestPropertyField_OptionParentLinks(t *testing.T) {
+	fieldID := NewId()
+	graphField := func(options ...map[string]any) *PropertyField {
+		list := make([]any, 0, len(options))
+		for _, option := range options {
+			list = append(list, option)
+		}
+		return &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: list},
+		}
+	}
+
+	t.Run("resolves names within the list, in either shape a caller sends them", func(t *testing.T) {
+		air, jet, f18 := NewId(), NewId(), NewId()
+		// The list refers forwards to Air, and states its parents as []any of string
+		// on one option -- what JSON produces -- and as []string on the other, which
+		// is what a Go caller builds.
+		field := graphField(
+			map[string]any{"id": jet, "name": "Fighter Jet", "parents": []any{"Air"}},
+			map[string]any{"id": air, "name": "Air"},
+			map[string]any{"id": f18, "name": "F-18", "parents": []string{"Fighter Jet", "Air"}},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Equal(t, []string{jet, f18}, replacing, "only the options that stated parents")
+		assert.Equal(t, []*PropertyOptionEdge{
+			{FieldID: fieldID, ChildOptionID: jet, ParentOptionID: air},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: jet},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: air},
+		}, add)
+	})
+
+	t.Run("an option that states nothing is left out of both answers", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea"},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("an empty parent list replaces with nothing, which is how an option is detached", func(t *testing.T) {
+		air := NewId()
+		field := graphField(map[string]any{"id": air, "name": "Air", "parents": []any{}})
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Equal(t, []string{air}, replacing)
+	})
+
+	t.Run("refuses what it cannot resolve unambiguously", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			options []map[string]any
+			reason  string
+		}{
+			{
+				name: "a name no option in the list has",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Land"}},
+				},
+				reason: `index 1 is put under "Land", which the field has no option called`,
+			},
+			{
+				name:    "an option under itself",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{"Air"}}},
+				reason:  "is put under itself",
+			},
+			{
+				name: "a name two options answer to",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+				},
+				reason: "two of the field's options are called that",
+			},
+			{
+				name:    "a parent with no name",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{""}}},
+				reason:  "under an option with no name",
+			},
+			{
+				name:    "parents that are not a list of names",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": "Sea"}},
+				reason:  "not a list of option names",
+			},
+			{
+				name:    "an option with no identifier to link",
+				options: []map[string]any{{"name": "Air"}, {"name": "Sea", "parents": []any{"Air"}}},
+				reason:  "has no id",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, err := graphField(tc.options...).OptionParentLinks()
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.reason)
+			})
+		}
+	})
+
+	t.Run("a type whose options form no hierarchy cannot state parents at all", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+		)
+		field.Type = PropertyFieldTypeMultiselect
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "the options of a multiselect field form no hierarchy")
+
+		// A list that says nothing about parents is fine on any type, including the
+		// ones with no option list at all.
+		field.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": NewId(), "name": "Air"}}
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+
+		add, replacing, err = (&PropertyField{ID: fieldID, Type: PropertyFieldTypeText}).OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("a list in a shape EnsureOptionIDs would have normalized is refused", func(t *testing.T) {
+		field := &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: []map[string]any{{"name": "Air"}}},
+		}
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not a list")
 	})
 }

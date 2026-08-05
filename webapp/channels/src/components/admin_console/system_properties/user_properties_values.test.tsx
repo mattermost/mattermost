@@ -157,6 +157,17 @@ describe('UserPropertyValues', () => {
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
 
+    it('renders a graph field read-only', () => {
+        // A graph field's options carry parent edges this cell knows nothing
+        // about, so it shows them and refuses every edit — the API is the only
+        // way to change them.
+        renderComponent({...baseField, type: 'graph'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+    });
+
     it('shows LDAP sync information when field has LDAP attribute', () => {
         const ldapField = {
             ...baseField,

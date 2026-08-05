@@ -7,7 +7,7 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {ArrowDownBoldCircleOutlineIcon, ArrowDownIcon, ArrowUpBoldCircleOutlineIcon, ArrowUpIcon, CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -78,14 +78,18 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
 
     // The operator set depends on the attribute type. Ranked attributes expose
     // the ordinal comparison operators (and reuse "is not"); multiselect exposes
-    // only the set membership operators; everything else gets the default set.
-    // Each list is ordered the way it should appear in the menu.
+    // only the set membership operators; graph exposes the hierarchy predicates
+    // and reuses those same membership operators; everything else gets the
+    // default set. Each list is ordered the way it should appear in the menu.
     const operatorIds = useMemo(() => {
         if (attributeType === 'multiselect') {
             return MULTISELECT_OPERATOR_ORDER;
         }
         if (attributeType === 'rank') {
             return RANK_OPERATOR_ORDER;
+        }
+        if (attributeType === 'graph') {
+            return GRAPH_OPERATOR_ORDER;
         }
         return DEFAULT_OPERATOR_ORDER;
     }, [attributeType]);
@@ -298,6 +302,43 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
             defaultMessage: 'younger than (days)',
         }),
     },
+
+    // The hierarchy predicates. The arrow points the way the holder's options
+    // sit relative to the options the rule names — up for "covers" (at or
+    // above), down for "within" (at or below) — and the circled variant marks
+    // the all-of form, the stricter sibling of the plain any-of one.
+    [OperatorLabel.COVERS_ALL]: {
+        id: OperatorLabel.COVERS_ALL,
+        icon: ArrowUpBoldCircleOutlineIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.covers_all',
+            defaultMessage: 'covers all of',
+        }),
+    },
+    [OperatorLabel.COVERS_ANY]: {
+        id: OperatorLabel.COVERS_ANY,
+        icon: ArrowUpIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.covers_any',
+            defaultMessage: 'covers any of',
+        }),
+    },
+    [OperatorLabel.WITHIN_ALL]: {
+        id: OperatorLabel.WITHIN_ALL,
+        icon: ArrowDownBoldCircleOutlineIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.within_all',
+            defaultMessage: 'is within all of',
+        }),
+    },
+    [OperatorLabel.WITHIN_ANY]: {
+        id: OperatorLabel.WITHIN_ANY,
+        icon: ArrowDownIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.within_any',
+            defaultMessage: 'is within any of',
+        }),
+    },
 };
 
 // Operator ordering per attribute type. Ranked attributes lead with "is exactly"
@@ -313,6 +354,18 @@ const DEFAULT_OPERATOR_ORDER: OperatorLabel[] = [
 ];
 
 const MULTISELECT_OPERATOR_ORDER: OperatorLabel[] = [
+    OperatorLabel.HAS_ANY_OF,
+    OperatorLabel.HAS_ALL_OF,
+];
+
+// The hierarchy predicates lead, paired by direction, with the exact-membership
+// operators last: they ignore the hierarchy, which is the reason a graph
+// attribute exists, so they are the fallback rather than the headline.
+const GRAPH_OPERATOR_ORDER: OperatorLabel[] = [
+    OperatorLabel.COVERS_ALL,
+    OperatorLabel.COVERS_ANY,
+    OperatorLabel.WITHIN_ALL,
+    OperatorLabel.WITHIN_ANY,
     OperatorLabel.HAS_ANY_OF,
     OperatorLabel.HAS_ALL_OF,
 ];
