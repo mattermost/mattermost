@@ -70,6 +70,48 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 ),
             },
             {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonColor.title', defaultMessage: 'AD/LDAP Login Button Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonBorderColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonBorderColor.title', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonBorderColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonTextColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonTextColor.title', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonTextColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                    it.all(
+                        it.stateIsFalse('LdapSettings.Enable'),
+                        it.stateIsFalse('LdapSettings.EnableSync'),
+                    ),
+                ),
+            },
+            {
                 type: 'text',
                 key: 'LdapSettings.LdapServer',
                 label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
