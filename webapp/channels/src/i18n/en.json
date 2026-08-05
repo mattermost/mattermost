@@ -1498,6 +1498,7 @@
   "admin.global_attributes.table.source": "Source",
   "admin.global_attributes.table.source.classification_markings": "Classification Markings",
   "admin.global_attributes.table.source.ldap": "AD/LDAP",
+  "admin.global_attributes.table.source.ldap_and_saml": "AD/LDAP, SAML",
   "admin.global_attributes.table.source.managed": "Managed here",
   "admin.global_attributes.table.source.saml": "SAML",
   "admin.global_attributes.table.type": "Type",
