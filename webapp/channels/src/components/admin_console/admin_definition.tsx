@@ -3170,7 +3170,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 searchableStrings: classificationMarkingsSearchableStrings,
                 isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 isDisabled: it.not(it.isSystemAdmin),
@@ -3184,7 +3184,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 schema: {
