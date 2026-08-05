@@ -39,9 +39,9 @@ require (
 	github.com/hashicorp/memberlist v0.5.4
 	github.com/icrowley/fake v0.0.0-20240710202011-f797eb4a99c0
 	github.com/isacikgoz/prompt v0.1.0
+	github.com/jaytaylor/html2text v0.0.0-20260303211410-1a4bdc82ecec
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/klauspost/compress v1.18.6
-	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lib/pq v1.12.3
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
@@ -50,6 +50,7 @@ require (
 	github.com/mattermost/mattermost-plugin-ai v1.14.0
 	github.com/mattermost/mattermost/server/public v0.4.0
 	github.com/mattermost/morph v1.1.0
+	github.com/mattermost/pdf v0.0.0-20260728101013-cd8a834041c4
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
 	github.com/mholt/archives v0.1.5
@@ -73,16 +74,16 @@ require (
 	github.com/tylerb/graceful v1.2.15
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	github.com/wiggin77/merror v1.0.5
-	github.com/wneessen/go-mail v0.7.3
+	github.com/wneessen/go-mail v0.8.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.8.2
-	golang.org/x/crypto v0.53.0
-	golang.org/x/image v0.40.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/image v0.44.0
 	golang.org/x/net v0.56.0
-	golang.org/x/sync v0.21.0
-	golang.org/x/sys v0.46.0
-	golang.org/x/term v0.44.0
-	golang.org/x/text v0.38.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/term v0.45.0
+	golang.org/x/text v0.40.0
 )
 
 require (
@@ -153,7 +154,6 @@ require (
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/isacikgoz/fuzzy v0.2.0 // indirect
-	github.com/jaytaylor/html2text v0.0.0-20260303211410-1a4bdc82ecec // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/crc32 v1.3.0 // indirect
@@ -220,8 +220,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/exp v0.0.0-20260508232706-74f9aab9d74a // indirect
-	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/tools v0.45.0 // indirect
+	golang.org/x/mod v0.37.0 // indirect
+	golang.org/x/tools v0.47.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
 	google.golang.org/grpc v1.81.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
@@ -236,6 +236,3 @@ require (
 
 // See MM-66167, MM-68222 for more details.
 replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
-
-// See MM-63434 for more details.
-replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe

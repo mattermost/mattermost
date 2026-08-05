@@ -23,7 +23,8 @@ func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards ||
 		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
 		api.srv.Config().FeatureFlags.ClassificationMarkings ||
-		api.srv.Config().FeatureFlags.SessionAttributes {
+		api.srv.Config().FeatureFlags.SessionAttributes ||
+		api.srv.Config().FeatureFlags.PostAttributes {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
@@ -50,8 +51,11 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
-	// Session attribute schema management requires Enterprise Advanced.
-	if group.Name == model.SessionAttributesPropertyGroupName && !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+	// Session attributes require both the feature flag and Enterprise
+	// Advanced. This mirrors the dedicated manifest endpoint's gate so the
+	// generic Properties API cannot expose the schema when the feature is off.
+	if group.Name == model.SessionAttributesPropertyGroupName &&
+		(!c.App.Config().FeatureFlags.SessionAttributes || !model.MinimumEnterpriseAdvancedLicense(c.App.License())) {
 		c.Err = model.NewAppError(callerName, "api.property.session_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return nil
 	}

@@ -25,6 +25,30 @@ func celSafeName() string {
 	return "f_" + model.NewId()
 }
 
+func TestPopulateAccessControlPolicyChildCounts(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil policy is a no-op", func(t *testing.T) {
+		// Must not panic on a nil policy.
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, nil)
+	})
+
+	t.Run("non-parent policy is left untouched", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeTeam}
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, policy)
+		assert.Nil(t, policy.Props, "child counts must only be stamped on parent policies")
+	})
+
+	t.Run("parent policy with no children gets zeroed counts and empty child_ids", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeParent}
+		th.App.PopulateAccessControlPolicyChildCounts(th.Context, policy)
+		require.NotNil(t, policy.Props)
+		assert.Equal(t, 0, policy.Props["channel_count"])
+		assert.Equal(t, 0, policy.Props["team_count"])
+		assert.Equal(t, []string{}, policy.Props["child_ids"])
+	})
+}
+
 func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
 	tb.Helper()
 	th := SetupWithStoreMock(tb)
@@ -3923,6 +3947,89 @@ func TestRedactSimulationAttributesForCallerSystemAdminBypass(t *testing.T) {
 	mockGroupStore.AssertNotCalled(t, "Get", mock.Anything)
 	mockFieldStore.AssertExpectations(t)
 	mockValueStore.AssertExpectations(t)
+}
+
+func TestSanitizeSimulationEvaluationTracesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	topLevelTree := &model.PolicySimulationEvaluationNode{
+		Kind:    model.PolicySimulationEvaluationKindAnd,
+		Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mergedRuleTree := &model.PolicySimulationEvaluationNode{
+		Kind:        model.PolicySimulationEvaluationKindCompare,
+		Attribute:   "user.attributes.clearance",
+		ActualValue: "il5",
+		Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mkResp := func() *model.PolicySimulationResponse {
+		return &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:         model.PolicySimulationBlameSourceThisRule,
+							RuleName:       "rule1",
+							Expression:     "user.attributes.clearance == 'il5'",
+							EvaluationTree: topLevelTree,
+							MergedRules: []model.PolicySimulationMergedRule{{
+								Name:           "rule1",
+								Expression:     "user.attributes.clearance == 'il5'",
+								EvaluationTree: mergedRuleTree,
+							}},
+						}},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID: "s1",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{{
+								Source:         model.PolicySimulationBlameSourceThisRule,
+								EvaluationTree: topLevelTree,
+							}},
+						},
+					},
+				}},
+			}},
+		}
+	}
+
+	t.Run("system admins keep evaluation trees", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, true)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, blame.EvaluationTree)
+		require.NotNil(t, blame.MergedRules[0].EvaluationTree)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("non-system-admin callers get trees stripped", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, false)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, blame.EvaluationTree)
+		assert.Nil(t, blame.MergedRules[0].EvaluationTree)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.Expression)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.MergedRules[0].Expression)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			th.App.SanitizeSimulationEvaluationTracesForCaller(nil, false)
+		})
+	})
 }
 
 // TestValidatePolicySimulationUsersInScopeChannel covers the channel-

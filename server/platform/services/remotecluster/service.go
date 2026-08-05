@@ -69,6 +69,7 @@ type RemoteClusterServiceIFace interface {
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
 	PingNow(rc *model.RemoteCluster)
+	NotifySyncFailed(remoteId string)
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
@@ -88,6 +89,8 @@ type Service struct {
 	active      atomic.Bool   // true after Start(), false after Shutdown()
 	disablePing bool          // when true, pingStart skips launching the ping loop; for testing
 
+	syncFailedSinceLastPing sync.Map // set of remoteIds (string) with a pending sync failure; presence is the marker
+
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
 	leaderListenerId         string
@@ -95,6 +98,13 @@ type Service struct {
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
 	pingDone                 chan struct{}                       // signals ping workers to stop; lifecycle: pingStart -> pingStop
 	pingFreq                 time.Duration
+}
+
+// NotifySyncFailed records that a sync has failed for the given remote. On the next
+// successful ping, PingNow will fire a connection-state-change event so the shared
+// channel service re-syncs any affected channels.
+func (rcs *Service) NotifySyncFailed(remoteId string) {
+	rcs.syncFailedSinceLastPing.Store(remoteId, struct{}{})
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
@@ -106,10 +116,14 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 			KeepAlive: 30 * time.Second,
 			DualStack: true,
 		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          200,
-		MaxIdleConnsPerHost:   2,
-		IdleConnTimeout:       90 * time.Second,
+		ForceAttemptHTTP2:   true,
+		MaxIdleConns:        200,
+		MaxIdleConnsPerHost: 2,
+		// Must stay strictly below PingFreq so the pool always discards a connection
+		// before the next ping reuses it. Otherwise pings race the peer reaping its own
+		// idle keep-alive connections (ServiceSettings.IdleTimeout, default 60s) and fail
+		// intermittently with stale-connection errors. See MM-69982.
+		IdleConnTimeout:       PingFreq / 2,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		DisableCompression:    false,

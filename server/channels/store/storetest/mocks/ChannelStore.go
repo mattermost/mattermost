@@ -978,6 +978,36 @@ func (_m *ChannelStore) GetChannelMembersTimezones(channelID string) ([]model.St
 	return r0, r1
 }
 
+// GetChannelOfType provides a mock function with given fields: rctx, id, channelType
+func (_m *ChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+	ret := _m.Called(rctx, id, channelType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelOfType")
+	}
+
+	var r0 *model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) (*model.Channel, error)); ok {
+		return rf(rctx, id, channelType)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) *model.Channel); ok {
+		r0 = rf(rctx, id, channelType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.ChannelType) error); ok {
+		r1 = rf(rctx, id, channelType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelUnread provides a mock function with given fields: channelID, userID
 func (_m *ChannelStore) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, error) {
 	ret := _m.Called(channelID, userID)
@@ -2293,6 +2323,66 @@ func (_m *ChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID str
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTeamSpaceChannels provides a mock function with given fields: teamID
+func (_m *ChannelStore) GetTeamSpaceChannels(teamID string) (model.ChannelList, error) {
+	ret := _m.Called(teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamSpaceChannels")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (model.ChannelList, error)); ok {
+		return rf(teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string) model.ChannelList); ok {
+		r0 = rf(teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTeamSpaceChannelsForUser provides a mock function with given fields: teamID, userID
+func (_m *ChannelStore) GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamSpaceChannelsForUser")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (model.ChannelList, error)); ok {
+		return rf(teamID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) model.ChannelList); ok {
+		r0 = rf(teamID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

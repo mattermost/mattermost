@@ -20,6 +20,14 @@
     }
 }
 
+.modal-dialog.menuModal {
+    pointer-events: none;
+}
+
+.modal-dialog.menuModal .modal-content {
+    pointer-events: auto;
+}
+
 .menuModal {
     & .modal-header {
         display: none;
