@@ -33,13 +33,14 @@ type Props = {
     samlAttr: string;
     fieldType: AttributeFieldType;
     onLink: (source: ExternalSource, value: string) => void;
+    disabled?: boolean;
 };
 
 function sourceValue(source: ExternalSource, ldapAttr: string, samlAttr: string): string {
     return source === 'ldap' ? ldapAttr : samlAttr;
 }
 
-function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink}: Props): JSX.Element {
+function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disabled = false}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -110,6 +111,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink}: Props)
                     menuButton={{
                         id: TRIGGER_ID,
                         class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
+                        disabled,
                         children: (
                             <>
                                 <RefreshIcon size={16}/>
@@ -149,6 +151,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink}: Props)
                             value={sourceValue(source, ldapAttr, samlAttr)}
                             onEdit={() => openLinkModal(source)}
                             onRemove={() => onLink(source, '')}
+                            disabled={disabled}
                         />
                     ))}
                 </div>
@@ -169,9 +172,10 @@ type ExternalSourceChipProps = {
     value: string;
     onEdit: () => void;
     onRemove: () => void;
+    disabled?: boolean;
 };
 
-function ExternalSourceChip({source, value, onEdit, onRemove}: ExternalSourceChipProps): JSX.Element {
+function ExternalSourceChip({source, value, onEdit, onRemove, disabled = false}: ExternalSourceChipProps): JSX.Element {
     const {formatMessage} = useIntl();
 
     const sourceTitle = formatMessage(sourceMessages[source].title);
@@ -192,6 +196,7 @@ function ExternalSourceChip({source, value, onEdit, onRemove}: ExternalSourceChi
                 className='AttributeExternalSource__chipAction'
                 data-testid={`attributeExternalSourceChip-${source}-edit`}
                 onClick={onEdit}
+                disabled={disabled}
                 aria-label={editLabel}
             >
                 <PencilOutlineIcon size={14}/>
@@ -201,6 +206,7 @@ function ExternalSourceChip({source, value, onEdit, onRemove}: ExternalSourceChi
                 className='AttributeExternalSource__chipAction'
                 data-testid={`attributeExternalSourceChip-${source}-remove`}
                 onClick={onRemove}
+                disabled={disabled}
                 aria-label={removeLabel}
             >
                 <components.CrossIcon size={14}/>

@@ -55,6 +55,13 @@
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: var(--center-channel-color);
     }
+
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
 }
 
 // Button shell (transparent at rest, no border, inline-flex sizing to
