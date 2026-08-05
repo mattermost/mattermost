@@ -11807,6 +11807,10 @@
     "translation": "To must be greater than From."
   },
   {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Invalid access control sync job interval. Must be at least 60 seconds."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Invalid AI recap cooldown minutes. Must be greater than or equal to 0."
   },

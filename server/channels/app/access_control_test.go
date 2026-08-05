@@ -3990,6 +3990,89 @@ func TestRedactSimulationAttributesForCallerSystemAdminBypass(t *testing.T) {
 	mockValueStore.AssertExpectations(t)
 }
 
+func TestSanitizeSimulationEvaluationTracesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	topLevelTree := &model.PolicySimulationEvaluationNode{
+		Kind:    model.PolicySimulationEvaluationKindAnd,
+		Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mergedRuleTree := &model.PolicySimulationEvaluationNode{
+		Kind:        model.PolicySimulationEvaluationKindCompare,
+		Attribute:   "user.attributes.clearance",
+		ActualValue: "il5",
+		Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mkResp := func() *model.PolicySimulationResponse {
+		return &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:         model.PolicySimulationBlameSourceThisRule,
+							RuleName:       "rule1",
+							Expression:     "user.attributes.clearance == 'il5'",
+							EvaluationTree: topLevelTree,
+							MergedRules: []model.PolicySimulationMergedRule{{
+								Name:           "rule1",
+								Expression:     "user.attributes.clearance == 'il5'",
+								EvaluationTree: mergedRuleTree,
+							}},
+						}},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID: "s1",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{{
+								Source:         model.PolicySimulationBlameSourceThisRule,
+								EvaluationTree: topLevelTree,
+							}},
+						},
+					},
+				}},
+			}},
+		}
+	}
+
+	t.Run("system admins keep evaluation trees", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, true)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, blame.EvaluationTree)
+		require.NotNil(t, blame.MergedRules[0].EvaluationTree)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("non-system-admin callers get trees stripped", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, false)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, blame.EvaluationTree)
+		assert.Nil(t, blame.MergedRules[0].EvaluationTree)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.Expression)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.MergedRules[0].Expression)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			th.App.SanitizeSimulationEvaluationTracesForCaller(nil, false)
+		})
+	})
+}
+
 // TestValidatePolicySimulationUsersInScopeChannel covers the channel-
 // scope branch of the delegated-simulate input validator. The
 // channel-scope branch is reached when a non-system-admin author
@@ -5395,6 +5478,10 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
 
 	rctx := request.TestContext(t)
 
@@ -5438,6 +5525,10 @@ func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *t
 func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
 
 	rctx := request.TestContext(t)
 
@@ -5471,6 +5562,24 @@ func TestGetAccessControlFieldsAutocomplete_IncludeResourceFieldsFlag(t *testing
 	require.Nil(t, appErr)
 	assert.False(t, contains(withoutFlag, channelField.ID),
 		"channel field must not appear without a channel scope or the flag")
+
+	// With the feature off, neither entry path offers a channel field. This is what
+	// keeps every editor from being able to author a resource rule, so assert both
+	// the request flag and a channel scope are powerless on their own.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = false
+	})
+
+	gatedByRequestFlag, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, "", true, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByRequestFlag, channelField.ID),
+		"channel field must not appear via includeResourceFields while the feature is off")
+	assert.NotEmpty(t, gatedByRequestFlag, "user attributes must still be returned while the feature is off")
+
+	gatedByScope, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, th.BasicChannel.Id, false, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.False(t, contains(gatedByScope, channelField.ID),
+		"channel field must not appear via a channel scope while the feature is off")
 }
 
 // Verify that the team join path (channelID="") produces a subject with no

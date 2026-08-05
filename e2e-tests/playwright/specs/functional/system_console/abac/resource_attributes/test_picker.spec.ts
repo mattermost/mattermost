@@ -58,6 +58,7 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
     test('picker resolves a resource rule against the chosen channel', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -121,7 +122,15 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
         }).toPass({timeout: 60000, intervals: [3000]});
 
         // The non-matching user (region == "eu") is not admitted against this channel.
+        // Wait for the search round-trip before asserting absence: the previous
+        // row is cleared the moment the term changes, so toHaveCount(0) would
+        // pass on that intermediate empty render even if userEU were admitted.
+        const euSearch = page.waitForResponse(
+            (r) => r.url().includes('/access_control_policies/cel/test') && r.request().method() === 'POST',
+            {timeout: 15000},
+        );
         await memberSearch.fill(userEU.username);
+        await euSearch;
         await expect(modal.locator('.more-modal__name', {hasText: userEU.username})).toHaveCount(0);
 
         // The back arrow returns to the picker (only present because it preceded).

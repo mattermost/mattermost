@@ -21,6 +21,22 @@ import (
 const attributeViewRefreshInterval = 30 * time.Second
 const accessControlChildPolicySearchLimit = 1000
 
+// ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
+// user's attributes against the accessed channel's. It gates authoring only: the
+// autocomplete endpoint stops offering channel-object-type fields, so no editor
+// can build such a rule, and the engine rejects one at save time. Evaluation of a
+// rule already stored is deliberately not gated — those rules deny for any channel
+// missing a value, so dropping enforcement would remove every member of every
+// channel the policy governs.
+//
+// Only the flag is checked here. The licence and AccessControlSettings gates are
+// applied by the surfaces that need them, and ABAC is unusable without both
+// anyway; re-checking them here would make the autocomplete endpoint stricter
+// than it is for user attributes today.
+func (a *App) ResourceAttributesInPoliciesEnabled() bool {
+	return a.Config().FeatureFlags.ResourceAttributesInPolicies
+}
+
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
 	if appErr != nil {
@@ -1103,6 +1119,41 @@ func clearActualValuesInTree(node *model.PolicySimulationEvaluationNode) {
 	}
 }
 
+// SanitizeSimulationEvaluationTracesForCaller strips evaluation trace
+// trees from a PolicySimulationResponse before it is returned to
+// non-system-admin callers. Evaluation traces are sysadmin-only;
+// channel/team admins still receive flat blame expressions where
+// the simulator attached them, and the frontend falls back to
+// rendering those when evaluation_tree is absent.
+func (a *App) SanitizeSimulationEvaluationTracesForCaller(resp *model.PolicySimulationResponse, callerIsSystemAdmin bool) {
+	if resp == nil || callerIsSystemAdmin {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			stripEvaluationTracesFromDecision(&dec)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				stripEvaluationTracesFromDecision(&dec)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func stripEvaluationTracesFromDecision(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		b.EvaluationTree = nil
+		for j := range b.MergedRules {
+			b.MergedRules[j].EvaluationTree = nil
+		}
+	}
+}
+
 // enrichBlameForDraftScope walks the simulator response and:
 //   - copies the failing rule's expression into draft-side blame entries
 //     (this_rule / sibling_rule / sibling_saved) using params.Policy.Rules
@@ -1762,8 +1813,12 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 	// channels import has no single channel to scope by, and still needs the
 	// fields to author against. Each returned field carries its ObjectType, so
 	// a caller can tell the two namespaces apart.
+	//
+	// Both paths are gated: while resource attributes are off, omitting the
+	// channel object type is what keeps every editor from offering one, since
+	// each authoring surface is driven by what this endpoint returns.
 	objectTypes := []string{model.PropertyFieldObjectTypeUser}
-	if channelID != "" || includeResourceFields {
+	if (channelID != "" || includeResourceFields) && a.ResourceAttributesInPoliciesEnabled() {
 		objectTypes = append(objectTypes, model.PropertyFieldObjectTypeChannel)
 	}
 

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
-import {enableMaskingFlag} from '../masking/masking_helpers';
 import {enableUserManagedAttributes} from '../support';
 
-import {createChannelTextField, createParentPolicyViaAPI, deletePropertyFieldQuietly} from './helpers';
+import {createChannelTextField, deletePropertyFieldQuietly, expectMaskedTokenRejected} from './helpers';
 
 /**
  * Attribute-value masking on the resource.attributes.* write path.
@@ -42,13 +41,19 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
 
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+
+        // The sentinel rejection under test lives inside the server's
+        // AttributeValueMasking branch, so the flag has to be on. It cannot be
+        // turned on from here (the config store restores feature flags on
+        // write), so guard rather than try to set it.
+        await pw.skipIfFeatureFlagNotSet('AttributeValueMasking', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         } as Parameters<typeof adminClient.patchConfig>[0]);
-        await enableMaskingFlag(adminClient);
 
         const attr = `region${pw.random.id()}`;
         const channelFieldId = await createChannelTextField(adminClient, attr);
@@ -57,15 +62,9 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         // The 8-dash sentinel is server-generated and never a real value, so a
         // submitted expression containing it cannot be resolved to a stored
         // value and is rejected.
-        let saveFailed = false;
-        try {
-            await createParentPolicyViaAPI(adminClient, {
-                name: `Masked Sentinel ${pw.random.id()}`,
-                expression: `resource.attributes.${attr} == "--------"`,
-            });
-        } catch {
-            saveFailed = true;
-        }
-        expect(saveFailed).toBe(true);
+        await expectMaskedTokenRejected(adminClient, {
+            name: `Masked Sentinel ${pw.random.id()}`,
+            expression: `resource.attributes.${attr} == "--------"`,
+        });
     });
 });

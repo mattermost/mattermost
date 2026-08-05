@@ -116,6 +116,30 @@ func TestConfigIsValid(t *testing.T) {
 	})
 }
 
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		IntervalSeconds int
+		ExpectError     bool
+	}{
+		"zero":                {IntervalSeconds: 0, ExpectError: true},
+		"negative":            {IntervalSeconds: -1000, ExpectError: true},
+		"sub-minute rejected": {IntervalSeconds: 30, ExpectError: true},
+		"just below minimum":  {IntervalSeconds: 59, ExpectError: true},
+		"minimum":             {IntervalSeconds: 60, ExpectError: false},
+		"default":             {IntervalSeconds: 3600, ExpectError: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := AccessControlSettings{SyncJobIntervalSeconds: new(test.IntervalSeconds)}
+
+			if test.ExpectError {
+				require.NotNil(t, s.isValid())
+			} else {
+				require.Nil(t, s.isValid())
+			}
+		})
+	}
+}
+
 func TestConfigEmptySiteName(t *testing.T) {
 	c1 := Config{
 		TeamSettings: TeamSettings{

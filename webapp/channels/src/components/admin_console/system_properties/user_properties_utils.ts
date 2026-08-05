@@ -337,7 +337,7 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
     Reflect.deleteProperty(attrs, 'ldap');
     Reflect.deleteProperty(attrs, 'saml');
 
-    const field: UserPropertyField = {
+    return {
         type: 'text',
         ...patch,
         group_id: 'custom_profile_attributes' satisfies UserPropertyFieldGroupID,
@@ -357,10 +357,4 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
             ...attrs,
         },
     };
-
-    // The create request only carries name/type/attrs, so a new field is always
-    // unlinked — drop a link inherited from the duplicated field.
-    Reflect.deleteProperty(field, 'linked_field_id');
-
-    return field;
 };

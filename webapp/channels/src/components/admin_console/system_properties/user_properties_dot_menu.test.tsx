@@ -480,6 +480,28 @@ describe('UserPropertyDotMenu', () => {
         });
     });
 
+    it('duplicating a template-linked field produces an unlinked copy', async () => {
+        const linkedField: UserPropertyField = {
+            ...baseField,
+            id: 'template-linked-duplicate',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        };
+
+        renderComponent(linkedField);
+
+        await userEvent.click(screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`));
+        await userEvent.click(screen.getByText(/Duplicate attribute/));
+
+        // A copy is a standalone field. Carrying the link over would make it
+        // inherit a type and option set the create request cannot send, and would
+        // leave a second dependent on the template.
+        await waitFor(() => {
+            expect(createField).toHaveBeenCalledWith(expect.objectContaining({name: 'test_field_copy'}));
+        });
+        expect(createField.mock.calls[0][0]).not.toHaveProperty('linked_field_id');
+    });
+
     it('duplicate produces _2 suffix when base name is already taken', async () => {
         const existingCopy = {
             ...baseField,

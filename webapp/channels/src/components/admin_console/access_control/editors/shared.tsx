@@ -199,6 +199,17 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
+// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// admin-managed, plugin-protected, or owner-managed integration) and so cannot be
+// set by users. Such attributes are safe to reference in access control policies.
+export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
+    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isAdminManaged = field.attrs?.managed === 'admin';
+    const isProtected = Boolean(field.attrs?.protected);
+    const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
+    return isSynced || isAdminManaged || isProtected || isOwnerManaged;
+}
+
 // A native boolean attribute (e.g. user.verified) is modeled as a select whose
 // options are exactly true/false. Its CEL literal must be emitted unquoted.
 export function isNativeBooleanField(field?: UserPropertyField): boolean {
@@ -258,10 +269,7 @@ export function toCELEditorAttributes(
             if (isSessionAttributeField(attr) || isNativeField(attr) || enableUserManagedAttributes) {
                 return true;
             }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return Boolean(isSynced || isAdminManaged || isProtected);
+            return hasControlledAttributeValues(attr);
         }).
         map((attr) => ({
             attribute: attr.name,
@@ -338,17 +346,16 @@ export function isSimpleExpression(expr: string): boolean {
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
 // 1. It doesn't contain spaces (CEL incompatible)
-// 2. It's either synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR user-managed attributes are enabled
+// 2. Its values come from a controlled source (synced from LDAP/SAML, admin-managed,
+//    plugin-protected, or owner-managed), it's a native attribute, OR user-managed
+//    attributes are enabled
 export function hasUsableAttributes(
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): boolean {
     return userAttributes.some((attr) => {
         const hasSpaces = attr.name.includes(' ');
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return !hasSpaces && allowed;
     });
 }

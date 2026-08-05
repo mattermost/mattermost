@@ -29,6 +29,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
+    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
@@ -1124,7 +1125,8 @@ describe('GlobalClassificationIndicators section', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]);
+            mockResolvedValueOnce([]). // channel-linked field lookup during disable -> none
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
@@ -1295,9 +1297,10 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
             mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
-        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeUserLinkedField());
+        const createdClearance = makeUserLinkedField();
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
 
-        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByText('Classification Enforcement');
 
         const user = userEvent.setup();
@@ -1312,11 +1315,15 @@ describe('Channel classification linked field branches', () => {
                     name: CLEARANCE_FIELD_NAME,
                     type: 'rank',
                     linked_field_id: field.id,
-                    attrs: expect.objectContaining({managed: 'admin'}),
+                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
                 }),
             );
         });
         await act(async () => {});
+
+        // Pushed into Redux eagerly, like every other field this save touches, so
+        // a consumer reading the properties slice sees it without a reload.
+        expect(store.getState().entities.properties.fields.byId[createdClearance.id]).toEqual(createdClearance);
     });
 
     test('should delete the linked Clearance user field on save when the clearance checkbox is disabled (ABAC on)', async () => {
@@ -1325,7 +1332,12 @@ describe('Channel classification linked field branches', () => {
         const channel = makeChannelLinkedField();
         const clearance = makeUserLinkedField();
 
-        // Clearance exists: return it on the first user-object-type page, then an
+        // Two linked clearance fields: this UI only ever creates one, but every
+        // match must be deleted — leaving one behind would keep enforcement live
+        // while the saved state records it as off.
+        const extraClearance = makeUserLinkedField({id: 'clearance_field2', name: 'clearance_dupe'});
+
+        // Clearance exists: return both on the first user-object-type page, then an
         // empty page to end pagination (per fetchUserLinkedFields invocation).
         let userCalls = 0;
         jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
@@ -1337,7 +1349,7 @@ describe('Channel classification linked field branches', () => {
             case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
                 return [channel];
             default:
-                return (userCalls++ % 2 === 0) ? [clearance] : [];
+                return (userCalls++ % 2 === 0) ? [clearance, extraClearance] : [];
             }
         });
         jest.spyOn(Client4, 'patchPropertyField').
@@ -1360,6 +1372,11 @@ describe('Channel classification linked field branches', () => {
                 CLASSIFICATIONS_USER_OBJECT_TYPE,
                 clearance.id,
             );
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                extraClearance.id,
+            );
         });
         await act(async () => {});
     });
@@ -1374,7 +1391,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]). // template field load
             mockResolvedValueOnce([linked]). // linked field load
-            mockResolvedValueOnce([channel]); // channel field lookup during disable
+            mockResolvedValueOnce([channel]). // channel field lookup during disable
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
@@ -1433,7 +1451,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]); // no channel field exists
+            mockResolvedValueOnce([]). // no channel field exists
+            mockResolvedValueOnce([]); // no clearance user field exists
 
         const deletedTypes: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType) => {
@@ -1464,6 +1483,64 @@ describe('Channel classification linked field branches', () => {
 
             await waitFor(() => {
                 expect(deletedTypes).toEqual([CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]);
+            });
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should delete an existing clearance field when disabling even with ABAC off', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const clearance = makeUserLinkedField();
+
+        // ABAC is off now, but the clearance field was created while it was on.
+        // Skipping its deletion would leave a dependent and fail the template delete.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        const deletedIds: string[] = [];
+        jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, _objectType, id) => {
+            deletedIds.push(id);
+            return {status: 'OK'};
+        });
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
+
+            const user = userEvent.setup();
+
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(deletedIds).toEqual([clearance.id, linked.id, field.id]);
             });
         } finally {
             console.error = origError;

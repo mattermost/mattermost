@@ -36,6 +36,7 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
@@ -453,11 +454,18 @@ export default function ClassificationMarkings({disabled}: Props) {
             // avoid duplicating if the initial load missed it. ABAC-gated to
             // match the section's visibility.
             if (abacEnabled) {
-                const currentClearance = (await fetchUserLinkedFields(savedTemplate.id))[0] ?? null;
-                if (clearanceEnabled && !currentClearance) {
-                    await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME);
-                } else if (!clearanceEnabled && currentClearance) {
-                    await saveDeleteUserLinkedField(currentClearance.id);
+                // Delete every match, not just the first: this UI creates one, but a
+                // second linked field made another way would otherwise survive and
+                // reappear on reload while enforcement records itself as disabled.
+                const currentClearance = await fetchUserLinkedFields(savedTemplate.id);
+                if (clearanceEnabled && currentClearance.length === 0) {
+                    const savedClearance = await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME, CLEARANCE_FIELD_DISPLAY_NAME);
+                    dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedClearance]}});
+                } else if (!clearanceEnabled) {
+                    for (const cf of currentClearance) {
+                        await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
+                        dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
+                    }
                 }
             }
 
@@ -478,12 +486,14 @@ export default function ClassificationMarkings({disabled}: Props) {
                 await saveDeleteChannelLinkedField(channelField.id);
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: channelField.id}});
             }
-            if (abacEnabled) {
-                const clearanceFields = await fetchUserLinkedFields(templateField.id);
-                for (const cf of clearanceFields) {
-                    await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
-                    dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
-                }
+
+            // Not ABAC-gated, unlike the create path: a clearance field created
+            // while ABAC was on outlives the setting, and leaving it behind makes
+            // the template delete below fail on its dependents.
+            const clearanceFields = await fetchUserLinkedFields(templateField.id);
+            for (const cf of clearanceFields) {
+                await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
+                dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
             }
             if (linkedField) {
                 await saveDeleteLinkedField(linkedField.id);

@@ -307,6 +307,60 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 		m.AssertExpectations(t)
 	})
 
+	t.Run("term query param is forwarded to the policy query", func(t *testing.T) {
+		m := enableTeamABAC(t, th)
+		saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+
+		qualifying := th.CreateUser(t)
+		m.On("QueryUsersForResource", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.Term == "eng"
+		})).Return([]*model.User{qualifying}, int64(1), (*model.AppError)(nil))
+
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/users?not_in_team="+th.BasicTeam.Id+"&abac_match_only=true&term=eng&per_page=200", "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		m.AssertExpectations(t)
+	})
+
+	// The term search must not let a non-admin probe users' real names when
+	// PrivacySettings.ShowFullName is off — mirroring the normal user-search gate.
+	// System admin (asAdmin) is never restricted.
+	privacyCases := []struct {
+		name             string
+		asAdmin          bool
+		showFullName     bool
+		wantExcludeNames bool
+	}{
+		{"non-admin with ShowFullName off excludes full names", false, false, true},
+		{"non-admin with ShowFullName on allows full names", false, true, false},
+		{"system admin always allows full names", true, false, false},
+	}
+	for _, tc := range privacyCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := enableTeamABAC(t, th)
+			saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PrivacySettings.ShowFullName = model.NewPointer(tc.showFullName)
+			})
+
+			m.On("QueryUsersForResource", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.ExcludeFullNames == tc.wantExcludeNames
+			})).Return([]*model.User{}, int64(0), (*model.AppError)(nil))
+
+			// BasicUser is a member of BasicTeam, so it holds ViewTeam but is not a sysadmin.
+			client := th.Client
+			if tc.asAdmin {
+				client = th.SystemAdminClient
+			}
+			resp, err := client.DoAPIGet(context.Background(), "/users?not_in_team="+th.BasicTeam.Id+"&abac_match_only=true&term=smith&per_page=200", "")
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			m.AssertExpectations(t)
+		})
+	}
+
 	t.Run("caller without view_team permission is forbidden", func(t *testing.T) {
 		// Owned by the admin so BasicUser is a genuine non-member without ViewTeam.
 		otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)

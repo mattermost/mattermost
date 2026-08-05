@@ -170,6 +170,25 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
         });
     });
 
+    describe('text field in target mode with the target list unavailable', () => {
+        test('still shows the channel target instead of a bare input', () => {
+            renderWithContext(
+                <ValueSelectorMenu
+                    row={baseRow({attribute_type: 'text', targetAttribute: 'owningTeamText'})}
+                    disabled={false}
+                    updateValues={updateValues}
+                    options={[]}
+                    onSelectTarget={onSelectTarget}
+                />,
+            );
+
+            // No options and no channel fields (still loading / feature off /
+            // attribute deleted), but the row targets one — falling back to the
+            // bare input would hide the target and drop it on the next keystroke.
+            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('owningTeamText');
+        });
+    });
+
     describe('multiselect field (has any of) with channel targets', () => {
         const programs = channelField('channelPrograms', 'multiselect', 'Channel programs');
 

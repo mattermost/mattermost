@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -205,10 +205,7 @@ export const findFirstAvailableAttributeFromList = (
         // Mirror AttributeSelectorMenu: session attributes are always
         // selectable, so a session-only attribute set must yield a usable
         // default instead of failing rule creation.
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return isValidCELIdentifier && allowed;
     });
 };
@@ -569,31 +566,32 @@ function TableEditor({
             return;
         }
 
-        setRows((currentRows) => {
-            const newRow: TableRow = {
-                attribute: firstAvailableAttribute.name,
-                attribute_object_type: firstAvailableAttribute.object_type,
-                operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
-                values: [],
-                attribute_type: firstAvailableAttribute.type || '',
-                hasMaskedValues: false,
-                isNative: isNativeField(firstAvailableAttribute),
-                isBoolean: isNativeBooleanField(firstAvailableAttribute),
-            };
-            const newRows = [...currentRows, newRow];
-            updateExpression(newRows); // Ensure expression is updated immediately
-            setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
-            return newRows;
-        });
-    }, [userFields, updateExpression, findFirstAvailableAttribute]);
+        // Every mutator below computes the next rows from `rows` and runs its side
+        // effects (updateExpression, which calls onChange/onValidate and flips the
+        // isInternalChange ref) outside setRows. React may invoke a state updater
+        // more than once, so a side effect inside one can fire onChange twice and
+        // desync that ref into a spurious getVisualAST reparse.
+        const newRow: TableRow = {
+            attribute: firstAvailableAttribute.name,
+            attribute_object_type: firstAvailableAttribute.object_type,
+            operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
+            values: [],
+            attribute_type: firstAvailableAttribute.type || '',
+            hasMaskedValues: false,
+            isNative: isNativeField(firstAvailableAttribute),
+            isBoolean: isNativeBooleanField(firstAvailableAttribute),
+        };
+        const newRows = [...rows, newRow];
+        setRows(newRows);
+        setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
+        updateExpression(newRows); // Ensure expression is updated immediately
+    }, [userFields, updateExpression, findFirstAvailableAttribute, rows]);
 
     const removeRow = useCallback((index: number) => {
-        setRows((currentRows) => {
-            const newRows = currentRows.toSpliced(index, 1);
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = rows.toSpliced(index, 1);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [rows, updateExpression]);
 
     const requestRemoveRow = useCallback((index: number) => {
         // Masked rows have their remove button disabled — the row is read-only
@@ -602,118 +600,112 @@ function TableEditor({
     }, [removeRow]);
 
     const updateRowAttribute = useCallback((index: number, attributeId: string) => {
-        setRows((currentRows) => {
-            // Resolve by unique id, not name: a CPA attribute and a session
-            // attribute can share a name, and only the id pins down the correct
-            // namespace (object_type) for CEL generation.
-            const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
-            const newAttribute = newAttributeObj?.name || '';
-            const newObjectType = newAttributeObj?.object_type || 'user';
+        // Resolve by unique id, not name: a CPA attribute and a session
+        // attribute can share a name, and only the id pins down the correct
+        // namespace (object_type) for CEL generation.
+        const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
+        const newAttribute = newAttributeObj?.name || '';
+        const newObjectType = newAttributeObj?.object_type || 'user';
 
-            const newRows = [...currentRows];
-            const current = newRows[index];
-            const attributeChanged = current.attribute !== newAttribute ||
-                (current.attribute_object_type || 'user') !== newObjectType;
-            newRows[index] = {...current, attribute: newAttribute};
+        const newRows = [...rows];
+        const current = newRows[index];
+        const attributeChanged = current.attribute !== newAttribute ||
+            (current.attribute_object_type || 'user') !== newObjectType;
+        newRows[index] = {...current, attribute: newAttribute};
 
-            if (attributeChanged) {
-                newRows[index].values = [];
+        if (attributeChanged) {
+            newRows[index].values = [];
 
-                // A resource target is type-specific to the old attribute; drop it.
-                newRows[index].targetAttribute = undefined;
+            // A resource target is type-specific to the old attribute; drop it.
+            newRows[index].targetAttribute = undefined;
 
-                const newType = newAttributeObj?.type || '';
-                newRows[index].attribute_type = newType;
-                newRows[index].attribute_object_type = newObjectType;
-                newRows[index].isNative = isNativeField(newAttributeObj);
-                newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
+            const newType = newAttributeObj?.type || '';
+            newRows[index].attribute_type = newType;
+            newRows[index].attribute_object_type = newObjectType;
+            newRows[index].isNative = isNativeField(newAttributeObj);
+            newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
 
-                // Reset the operator to a valid default when the current one isn't
-                // offered for the new attribute. Native attributes advertise an
-                // explicit operator set (e.g. native createat only allows "younger
-                // than"); everything else validates against the attribute type
-                // (rank, multiselect, …).
-                const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
-                if (allowedOperators) {
-                    if (!allowedOperators.includes(newRows[index].operator)) {
-                        newRows[index].operator = defaultOperatorForField(newAttributeObj);
-                    }
-                } else if (!isOperatorValidForType(currentRows[index].operator, newType)) {
-                    newRows[index].operator = defaultOperatorForType(newType);
+            // Reset the operator to a valid default when the current one isn't
+            // offered for the new attribute. Native attributes advertise an
+            // explicit operator set (e.g. native createat only allows "younger
+            // than"); everything else validates against the attribute type
+            // (rank, multiselect, …).
+            const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
+            if (allowedOperators) {
+                if (!allowedOperators.includes(newRows[index].operator)) {
+                    newRows[index].operator = defaultOperatorForField(newAttributeObj);
                 }
-
-                // Values were cleared — row is in an intermediate editing state.
-                // Don't regenerate the expression now; it will be updated when
-                // the user selects new values via updateRowValues.
-                return newRows;
+            } else if (!isOperatorValidForType(current.operator, newType)) {
+                newRows[index].operator = defaultOperatorForType(newType);
             }
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression, userAttributes]);
+
+            // Values were cleared — row is in an intermediate editing state.
+            // Don't regenerate the expression now; it will be updated when
+            // the user selects new values via updateRowValues.
+            setRows(newRows);
+            return;
+        }
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, userAttributes, rows]);
 
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
-        setRows((currentRows) => {
-            const oldOperator = currentRows[index].operator;
-            let newValues = [...currentRows[index].values];
+        const oldOperator = rows[index].operator;
+        let newValues = [...rows[index].values];
 
-            const wasMulti = isMultiValueOperator(oldOperator);
-            const isMulti = isMultiValueOperator(newOperator);
+        const wasMulti = isMultiValueOperator(oldOperator);
+        const isMulti = isMultiValueOperator(newOperator);
 
-            if (isMulti && !wasMulti) {
-                // Transitioning TO a multi-value operator FROM a single-value operator:
-                newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
-            } else if (!isMulti && wasMulti) {
-                // Transitioning TO a single-value operator FROM a multi-value operator:
-                if (newValues.length > 1) {
-                    newValues = [newValues[0]];
-                }
+        if (isMulti && !wasMulti) {
+            // Transitioning TO a multi-value operator FROM a single-value operator:
+            newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
+        } else if (!isMulti && wasMulti) {
+            // Transitioning TO a single-value operator FROM a multi-value operator:
+            if (newValues.length > 1) {
+                newValues = [newValues[0]];
             }
+        }
 
-            const newRows = [...currentRows];
-            newRows[index] = {
-                ...currentRows[index],
-                operator: newOperator,
-                values: newValues,
-            };
+        const newRows = [...rows];
+        newRows[index] = {
+            ...rows[index],
+            operator: newOperator,
+            values: newValues,
+        };
 
-            // Drop the resource target when the new operator cannot carry one
-            // (e.g. "in", "starts with", or the membership operators on a graph
-            // attribute) — otherwise it would survive invisibly and be emitted in
-            // a form the server refuses.
-            if (!operatorSupportsChannelTarget(newOperator, attributeTypeForRow(currentRows[index]))) {
-                newRows[index].targetAttribute = undefined;
-            }
+        // Drop the resource target when the new operator cannot carry one
+        // (e.g. "in", "starts with", or the membership operators on a graph
+        // attribute) — otherwise it would survive invisibly and be emitted in
+        // a form the server refuses. Read the type off the pre-update row: an
+        // operator change never changes which attribute the row names.
+        if (!operatorSupportsChannelTarget(newOperator, attributeTypeForRow(rows[index]))) {
+            newRows[index].targetAttribute = undefined;
+        }
 
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression, attributeTypeForRow]);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows, attributeTypeForRow]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
-        setRows((currentRows) => {
-            const newRows = [...currentRows];
+        const newRows = [...rows];
 
-            // Literal value(s) and a channel-attribute target are mutually
-            // exclusive: picking a value in the consolidated dropdown drops any
-            // target the row was comparing against.
-            newRows[index] = {...newRows[index], values, targetAttribute: undefined};
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        // Literal value(s) and a channel-attribute target are mutually
+        // exclusive: picking a value in the consolidated dropdown drops any
+        // target the row was comparing against.
+        newRows[index] = {...newRows[index], values, targetAttribute: undefined};
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     // Switch the row's right-hand side to the accessed channel's attribute
     // (resource.attributes.*). Literal values are cleared — the two are
     // mutually exclusive.
     const updateRowTarget = useCallback((index: number, targetAttribute: string) => {
-        setRows((currentRows) => {
-            const newRows = [...currentRows];
-            newRows[index] = {...newRows[index], targetAttribute, values: []};
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = [...rows];
+        newRows[index] = {...newRows[index], targetAttribute, values: []};
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     return (
         <div

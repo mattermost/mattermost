@@ -16,6 +16,7 @@ import {
     createParentPolicyViaAPI,
     deleteLinkedFieldTrio,
     deleteParentPolicy,
+    expectAddToChannelDenied,
     setChannelMultiselectValue,
     setUserMultiselectValue,
     triggerSyncJob,
@@ -56,6 +57,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
     test('has any of syncs and enforces on list intersection', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -108,17 +110,14 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
         // intersecting user succeeds, while the disjoint one is blocked.
         await adminClient.addToChannel(matchTeamOnly.id, channel.id);
         expect(await verifyUserInChannel(adminClient, matchTeamOnly.id, channel.id)).toBe(true);
-        try {
-            await adminClient.addToChannel(nonMatch.id, channel.id);
-        } catch {
-            // expected: the runtime PDP denies the disjoint user
-        }
+        await expectAddToChannelDenied(adminClient, nonMatch.id, channel.id);
         expect(await verifyUserInChannel(adminClient, nonMatch.id, channel.id)).toBe(false);
     });
 
     test('has all of syncs and enforces on channel-list subset', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -172,11 +171,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
         // subset-missing user is blocked.
         await adminClient.addToChannel(matchTeamOnly.id, channel.id);
         expect(await verifyUserInChannel(adminClient, matchTeamOnly.id, channel.id)).toBe(true);
-        try {
-            await adminClient.addToChannel(nonMatch.id, channel.id);
-        } catch {
-            // expected: the runtime PDP denies the user missing a required value
-        }
+        await expectAddToChannelDenied(adminClient, nonMatch.id, channel.id);
         expect(await verifyUserInChannel(adminClient, nonMatch.id, channel.id)).toBe(false);
     });
 });

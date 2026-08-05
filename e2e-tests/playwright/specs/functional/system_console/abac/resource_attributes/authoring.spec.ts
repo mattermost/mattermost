@@ -11,6 +11,7 @@ import {
     createParentPolicyViaAPI,
     deleteParentPolicy,
     deletePropertyFieldQuietly,
+    expectAssignTeamsDenied,
 } from './helpers';
 
 /**
@@ -41,6 +42,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
     test('accepts a parent policy mixing user and resource attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -64,6 +66,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
     test('rejects has(resource.attributes.*) at check time', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -77,12 +80,17 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         // Absence is handled by deny-on-miss, so has() guards on resource
         // attributes are rejected. cel/check surfaces the error to the editor.
+        // Assert the reason, not just that validation failed: a bare count also
+        // passes on an unrelated compile or engine error, and would have kept
+        // passing while the feature flag denied every resource reference.
         const errors = await adminClient.checkAccessControlExpression(`has(resource.attributes.${attr})`);
         expect(errors.length).toBeGreaterThan(0);
+        expect(errors[0].message).toContain('has() is not supported on resource attributes');
     });
 
     test('rejects assigning a resource parent to a team', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -101,12 +109,6 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         // A team's resource is a team, which has no CPA attributes, so a parent
         // that references resource.attributes.* must not be importable by a team.
-        let assignFailed = false;
-        try {
-            await adminClient.assignTeamsToAccessControlPolicy(policyId, [team.id]);
-        } catch {
-            assignFailed = true;
-        }
-        expect(assignFailed).toBe(true);
+        await expectAssignTeamsDenied(adminClient, policyId, [team.id]);
     });
 });

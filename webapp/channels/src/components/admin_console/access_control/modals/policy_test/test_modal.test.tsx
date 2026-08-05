@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TestResultsModal from './test_modal';
@@ -388,6 +388,66 @@ describe('TestResultsModal', () => {
                 expect(screen.getByTestId('searchable-user-list')).toBeInTheDocument();
             });
             expect(mockSearchUsers).toHaveBeenCalledWith('', '', 50, 'picked-channel');
+        });
+
+        it('keeps a members search scoped to the picked channel', async () => {
+            renderWithContext(
+                <TestResultsModal
+                    {...defaultProps}
+                    requireChannel={true}
+                />,
+            );
+
+            await userEvent.click(await screen.findByTestId('mock-pick-channel'));
+            await screen.findByTestId('searchable-user-list');
+
+            // handleSearch passes no channel override, so the picked channel has
+            // to come from the channelId the fetchUsers callback closed over.
+            await userEvent.type(screen.getByTestId('search-input'), 'ann');
+
+            await waitFor(() => {
+                expect(mockSearchUsers).toHaveBeenLastCalledWith('ann', '', 50, 'picked-channel');
+            });
+        });
+
+        it('ignores a stale in-flight response after the channel is re-picked', async () => {
+            const laterUser = TestHelper.getUserMock({
+                id: 'user3',
+                username: 'testuser3',
+                email: 'test3@example.com',
+            });
+
+            let resolveStale: (value: unknown) => void = () => {};
+            mockSearchUsers.
+                mockReturnValueOnce(() => new Promise((resolve) => {
+                    resolveStale = resolve;
+                })).
+                mockReturnValueOnce(() => Promise.resolve({data: {users: [laterUser], total: 1}}));
+
+            renderWithContext(
+                <TestResultsModal
+                    {...defaultProps}
+                    requireChannel={true}
+                />,
+            );
+
+            // First pick's response is withheld, then the admin goes back and
+            // picks again — the second fetch supersedes the first.
+            await userEvent.click(await screen.findByTestId('mock-pick-channel'));
+            await userEvent.click(await screen.findByLabelText('Back to channel selection'));
+            await userEvent.click(await screen.findByTestId('mock-pick-channel'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('user-user3')).toBeInTheDocument();
+            });
+
+            // The superseded response landing late must not replace the results.
+            await act(async () => {
+                resolveStale({data: {users: mockUsers, total: 2}});
+            });
+
+            expect(screen.getByTestId('user-count')).toHaveTextContent('Showing 1 of 1 users');
+            expect(screen.queryByTestId('user-user1')).not.toBeInTheDocument();
         });
 
         it('shows a back arrow in the members view that returns to the picker', async () => {

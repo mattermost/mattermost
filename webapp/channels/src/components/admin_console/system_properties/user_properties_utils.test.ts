@@ -635,14 +635,20 @@ describe('isLinkedField', () => {
 });
 
 describe('newPendingField', () => {
-    it('drops the template link when duplicating a linked field', () => {
+    // newPendingField doesn't strip the link, so a pending field keeps whatever
+    // it was handed. That only reaches the collection, not the server: the
+    // commit path sends name/type/attrs, and every linked field is created
+    // directly via Client4.createPropertyField (classification_markings/utils).
+    // Dropping the link is specific to duplication and lives in the dot menu's
+    // handleDuplicate — see user_properties_dot_menu.test.tsx.
+    it('keeps an explicitly requested template link', () => {
         const pending = newPendingField({
-            name: 'clearance_copy',
+            name: 'clearance',
             type: 'rank',
             linked_field_id: 'template-field-id',
         } as UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>);
 
-        expect(pending.linked_field_id).toBeUndefined();
-        expect(isLinkedField(pending)).toBe(false);
+        expect(pending.linked_field_id).toBe('template-field-id');
+        expect(isLinkedField(pending)).toBe(true);
     });
 });

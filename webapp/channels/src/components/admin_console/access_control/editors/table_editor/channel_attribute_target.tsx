@@ -79,11 +79,16 @@ export function SelectedChannelAttributeLabel({field, fallbackName}: {field?: Us
     return (
         <span className='value-selector-menu-button__target-label'>
             <CodeBracketsIcon size={12}/>
-            <FormattedMessage
-                id='admin.access_control.table_editor.rhs.channel_target_label'
-                defaultMessage='Channel: {name}'
-                values={{name: field ? getUserPropertyFieldLabel(field) : fallbackName}}
-            />
+
+            {/* Own element so a long display name ellipsizes: text-overflow
+                applies to the text's own box, not to the chip's flex items. */}
+            <span className='value-selector-menu-button__target-label-text'>
+                <FormattedMessage
+                    id='admin.access_control.table_editor.rhs.channel_target_label'
+                    defaultMessage='Channel: {name}'
+                    values={{name: field ? getUserPropertyFieldLabel(field) : fallbackName}}
+                />
+            </span>
         </span>
     );
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -61,9 +61,18 @@ function TestResultsModal({
     const [channelId, setChannelId] = useState<string | undefined>(undefined);
     const showPicker = requireChannel && !channelId;
 
+    // Guards against a slow earlier request overwriting a newer one's results —
+    // e.g. back out of the members list and pick a different channel before the
+    // first channel's fetch resolves.
+    const requestSeq = useRef(0);
+
     const fetchUsers = useCallback(async (searchTerm: string, cursor: string, reset: boolean = false, channelOverride?: string) => {
+        const seq = ++requestSeq.current;
         setLoading(true);
         const result: ActionResult<AccessControlTestResult> = await dispatch(actions.searchUsers(searchTerm, cursor, USERS_TO_FETCH, channelOverride ?? channelId));
+        if (seq !== requestSeq.current) {
+            return;
+        }
         if (result?.data) {
             const newUsers = result.data.users;
             if (reset) {

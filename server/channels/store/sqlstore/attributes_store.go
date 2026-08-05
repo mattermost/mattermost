@@ -24,20 +24,26 @@ type SqlAttributesStore struct {
 	selectQueryBuilder sq.SelectBuilder
 }
 
+// attributeViewsByObjectType is the single source of truth for the
+// object-type-to-materialized-view mapping: both the per-type lookup and the
+// refresh sweep read it, so adding an object type cannot leave a new view
+// perpetually stale. The view is per-object-type (migration 000212) so a
+// refresh of one type's attributes doesn't recompute the others.
+var attributeViewsByObjectType = map[string]string{
+	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
+	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
+}
+
 // attributeViewFor maps a property-field object type to its materialized view.
-// The view is per-object-type (migration 000212) so a refresh of one type's
-// attributes doesn't recompute the others. An unrecognized type is an error
-// rather than a fallback to the user view: a silent coercion would surface a
-// future miswire as a wrong-but-successful user lookup.
+// An unrecognized type is an error rather than a fallback to the user view: a
+// silent coercion would surface a future miswire as a wrong-but-successful user
+// lookup.
 func attributeViewFor(objectType string) (string, error) {
-	switch objectType {
-	case model.PropertyFieldObjectTypeChannel:
-		return "ChannelAttributeView", nil
-	case model.PropertyFieldObjectTypeUser:
-		return "UserAttributeView", nil
-	default:
+	view, ok := attributeViewsByObjectType[objectType]
+	if !ok {
 		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
 	}
+	return view, nil
 }
 
 func attributesSliceColumns(prefix ...string) []string {
@@ -86,8 +92,10 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 	// a read straddling a refresh can see the two views a generation apart. Every
 	// consumer tolerates that — values are eventually consistent and the
 	// membership sync re-runs on cadence and converges. Refreshing only the view
-	// whose attributes actually changed is a scale follow-up.
-	for _, view := range []string{"UserAttributeView", "ChannelAttributeView"} {
+	// whose attributes actually changed is a scale follow-up. Refresh order is
+	// unspecified (map iteration) and does not matter: each REFRESH is its own
+	// independent statement.
+	for _, view := range attributeViewsByObjectType {
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
 			return errors.Wrapf(err, "error refreshing materialized view %s", view)
 		}
@@ -185,8 +193,12 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
-	searchFields := make([]string, 0, len(UserSearchTypeNames))
-	for _, field := range UserSearchTypeNames {
+	termFields := UserSearchTypeNames
+	if opts.ExcludeFullNames {
+		termFields = UserSearchTypeNamesNoFullName
+	}
+	searchFields := make([]string, 0, len(termFields))
+	for _, field := range termFields {
 		searchFields = append(searchFields, strings.Join([]string{"Users", field}, "."))
 	}
 

@@ -257,13 +257,16 @@ func (r *appMaskingResolver) fieldToMaskingInfo(h *maskingHoldings) *model.Maski
 		info.Access = model.MaskingFieldAccessSourceOnly
 	case model.PropertyAccessModeSharedOnly:
 		info.Access = model.MaskingFieldAccessSharedOnly
+
 		// Every type that carries options names its values with option names, and
 		// the field was read with caller context so its list is already the one the
 		// caller may see. Sending a rank or graph field down the text path instead
 		// unmarshals its value as a string -- which for graph fails outright and for
 		// rank yields an option identifier where a name is wanted -- so both would
 		// come back with nothing visible and mask every condition value. Same test
-		// as maskConditionValues, which is the surface this feeds.
+		// as maskConditionValues, which is the surface this feeds; spelling the type
+		// list out in either place would let the two disagree about what a caller
+		// can see.
 		if h.field.Type.SupportsOptions() {
 			info.VisibleValues = extractVisibleOptionNames(h.field)
 		} else {
