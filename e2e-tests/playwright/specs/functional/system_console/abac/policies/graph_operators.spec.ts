@@ -293,6 +293,11 @@ test.describe('System Console - Membership Policy graph operators', () => {
      * exist, so the channel field is offered as a comparison target.
      */
     test('round-trips a "covers all of" rule against a channel attribute', {tag: '@abac'}, async ({pw}) => {
+        // Only this test in the file needs the flag: comparing against the accessed
+        // channel's attribute is what it gates, and saving such a rule is rejected
+        // while it is off. The two tests above name option names literally.
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         const policyName = `Graph Channel RT ${getRandomId()}`;

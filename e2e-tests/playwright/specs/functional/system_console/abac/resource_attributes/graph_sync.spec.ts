@@ -72,6 +72,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
     test('coversAll syncs and enforces hierarchy coverage', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await skipIfNoGraphFields(adminClient);
@@ -156,6 +157,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
     test('a member is removed once their value stops covering the channel', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await skipIfNoGraphFields(adminClient);
