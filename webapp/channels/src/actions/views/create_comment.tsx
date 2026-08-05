@@ -191,10 +191,30 @@ export function onSubmit(
             const emojis = getCustomEmojisByName(state);
             const emojiMap = new EmojiMap(emojis);
 
-            if (isReaction && emojiMap.has(isReaction[2])) {
+            let reactionAction = isReaction ? isReaction[1] : null;
+            let reactionName = isReaction ? isReaction[2] : null;
+
+            // TAB-completing an emoji from autocomplete inserts its unicode character (e.g. "+🤯 ")
+            // rather than the colon-wrapped name, so REACTION_PATTERN won't match. Resolve it
+            // back to a name via EmojiMap.getUnicode.
+            if (!isReaction) {
+                const unicodeMatch = /^([+-])(\S+)\s*$/.exec(message.trim());
+                if (unicodeMatch) {
+                    const codepoint = [...unicodeMatch[2]]
+                        .map((c) => c.codePointAt(0)!.toString(16))
+                        .join('-');
+                    const emoji = emojiMap.getUnicode(codepoint);
+                    if (emoji) {
+                        reactionAction = unicodeMatch[1];
+                        reactionName = emoji.short_names[0];
+                    }
+                }
+            }
+
+            if (reactionAction && reactionName && emojiMap.has(reactionName)) {
                 const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
                 if (latestPostId) {
-                    return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+                    return dispatch(PostActions.submitReaction(latestPostId, reactionAction, reactionName));
                 }
                 return {error: new Error('no post to react to')};
             }
