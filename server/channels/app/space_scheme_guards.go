@@ -32,6 +32,46 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	return scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
+// schemeHoldsSpaceGrants reports whether a scheme's generated channel roles
+// currently carry a space permission.
+//
+// This is the durable half of the space-scheme test. Whether a space points at
+// a scheme is live state that can be taken away — repoint the space at a preset,
+// or delete it — but the permissions checkSpacePermissionScope let onto the
+// scheme's roles while that association held stay written. Asking only whether a
+// space points at the scheme today would therefore let a scheme that still
+// grants admin_space and the page permissions move to an ordinary channel once
+// the association lapses, where MergeChannelHigherScopedPermissions carries
+// those grants through to its members.
+//
+// The roles are read by name through the cached path, the same way
+// mergeChannelHigherScopedPermissions resolves scheme roles. A role write that
+// has not yet invalidated this node's cache could be missed, which is why this
+// is the second of two tests rather than the only one: the association check
+// above it already refuses the scheme while a space holds it.
+func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
+	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return false, nil
+		}
+		return false, model.NewAppError("schemeHoldsSpaceGrants", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	names := []string{scheme.DefaultChannelAdminRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelGuestRole}
+	roles, nErr := a.Srv().Store().Role().GetByNames(names)
+	if nErr != nil {
+		return false, model.NewAppError("schemeHoldsSpaceGrants", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	rolesMap := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesMap[role.Name] = role
+	}
+	return schemeGrantsSpacePermissions(scheme, rolesMap), nil
+}
+
 // checkSpaceSchemeName rejects creating or renaming a scheme to one of the
 // three seeded space preset names: a pre-migration name squat would be silently
 // adopted by the seeding migration's get-or-create, and the permission scope

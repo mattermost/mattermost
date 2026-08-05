@@ -5647,12 +5647,12 @@
     "translation": "Failed to retrieve the channel members."
   },
   {
-    "id": "app.channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date."
-  },
-  {
     "id": "app.channel.count_non_space_channels_by_scheme.app_error",
     "translation": "Unable to count the channels using this scheme."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date."
   },
   {
     "id": "app.channel.count_space_channels_by_scheme.app_error",
@@ -5773,10 +5773,6 @@
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "app.channel.get_channels_by_scheme.app_error",
-    "translation": "Unable to get the channels using this scheme."
   },
   {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",

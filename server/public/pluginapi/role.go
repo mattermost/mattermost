@@ -28,6 +28,9 @@ func (r *RoleService) GetByName(name string) (*model.Role, error) {
 //
 // The role is read back by id before the patch is applied.
 //
+// Patching the permissions of a guest role requires a license granting guest
+// account permissions; without one the call is refused.
+//
 // Minimum server version: 11.10
 func (r *RoleService) Patch(roleID string, patch *model.RolePatch) (*model.Role, error) {
 	patched, appErr := r.api.PatchRole(roleID, patch)

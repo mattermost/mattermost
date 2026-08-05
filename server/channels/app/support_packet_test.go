@@ -649,7 +649,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		assert.Len(t, permissions.Roles, builtInRoles+10) // built-in roles + 10 custom roles from the scheme
-		require.Len(t, permissions.Schemes, 4)           // 3 seeded space preset schemes + the custom one
+		require.Len(t, permissions.Schemes, 4)            // 3 seeded space preset schemes + the custom one
 
 		var custom *model.Scheme
 		for _, s := range permissions.Schemes {

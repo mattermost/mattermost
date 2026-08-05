@@ -97,7 +97,10 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 		return nil, nil
 	}
 
-	storedRole, err := a.Srv().Store().Role().GetByName(store.WithMaster(context.Background()), role.Name)
+	// Plain context: as the comment above records, the cache answers this read
+	// before the context is consulted, so asking for the master here would claim
+	// a freshness this path cannot deliver.
+	storedRole, err := a.Srv().Store().Role().GetByName(context.Background(), role.Name)
 	if err != nil {
 		if !errors.As(err, &nfErr) {
 			return nil, readErr(err)
@@ -115,7 +118,7 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 // fallback for every channel in the team and so would spread one space's grant
 // across all of them.
 //
-// Both ExplicitRoles sinks call this rather than repeating the predicate, so a
+// Every ExplicitRoles sink calls this rather than repeating the predicate, so a
 // future write path has one function to find instead of the rule to rediscover.
 // Each sink builds its own AppError, because the i18n extractor only collects
 // message IDs written as literals at the model.NewAppError call site.
@@ -220,7 +223,21 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 				return model.NewAppError("checkSpacePermissionScope", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
 			}
 			if count > 0 {
-				return nil
+				// A space pointing at the scheme is only half the proof. The
+				// channel guard refuses to add an ordinary channel to a scheme
+				// that already grants space permissions, but nothing stops both
+				// channels being attached first and the grant being asked for
+				// afterwards — and an ordinary channel sharing the scheme would
+				// resolve whatever is granted here for its own members. Both
+				// counts are read on the primary, so a scheme that is exclusively
+				// a space's cannot look shared, or the reverse.
+				governed, gErr := a.Srv().Store().Channel().CountNonSpaceChannelsByScheme(*role.SchemeId)
+				if gErr != nil {
+					return model.NewAppError("checkSpacePermissionScope", "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
+				}
+				if governed == 0 {
+					return nil
+				}
 			}
 		}
 		return reject()

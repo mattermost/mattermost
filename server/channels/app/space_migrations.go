@@ -291,11 +291,13 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 			}
 		}
 
-		if vErr := s.validateAdoptableSpaceScheme(scheme); vErr != nil {
-			return vErr
-		}
-
+		// Only a row this migration did not create needs to prove itself. A row
+		// it just inserted is a preset by construction, and validating it would
+		// spend a primary count per preset on every fresh boot to re-derive that.
 		if adopted {
+			if vErr := s.validateAdoptableSpaceScheme(scheme); vErr != nil {
+				return vErr
+			}
 			if vErr := s.validateAdoptedSpaceSchemeRoles(scheme, preset.userPerms); vErr != nil {
 				return vErr
 			}

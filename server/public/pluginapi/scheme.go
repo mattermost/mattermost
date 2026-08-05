@@ -22,6 +22,10 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 // Create creates a scheme and its generated roles. The scheme's role fields are
 // server-assigned; any caller-supplied values are ignored.
 //
+// Requires a license covering custom permissions schemes; without one the call
+// is refused. The seeded space preset schemes exist on every edition, so
+// pointing a space at one needs no license — this gate covers minting a new one.
+//
 // Minimum server version: 11.10
 func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
 	created, appErr := s.api.CreateScheme(scheme)
@@ -32,6 +36,9 @@ func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
 // Delete soft-deletes a scheme and its generated roles, reverting any teams or
 // channels using it to the system-default roles. A scheme a space backing
 // channel still references is refused — detach the space first.
+//
+// Requires a license covering custom permissions schemes; without one the call
+// is refused.
 //
 // Minimum server version: 11.10
 func (s *SchemeService) Delete(schemeID string) (*model.Scheme, error) {

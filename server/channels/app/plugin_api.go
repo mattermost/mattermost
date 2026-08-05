@@ -58,6 +58,33 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	return nil
 }
 
+// checkGuestPermissionsLicense mirrors the guest-role gate Api4.PatchRole
+// applies, for the same reason checkCustomPermissionsSchemesLicense mirrors the
+// scheme one: editing what a guest may do is the licensed capability, and
+// reaching that write through a plugin must not skip it. App.PatchRole carries
+// only the permission blocklist, so without this the plugin path could grant
+// permissions to a guest role on a server with no license at all.
+func (api *PluginAPI) checkGuestPermissionsLicense(stored *model.Role, patch *model.RolePatch) *model.AppError {
+	isGuest := stored.Name == model.SystemGuestRoleId ||
+		stored.Name == model.TeamGuestRoleId ||
+		stored.Name == model.ChannelGuestRoleId
+	if !isGuest {
+		return nil
+	}
+
+	license := api.GetLicense()
+	if license == nil {
+		if patch.Permissions != nil {
+			return model.NewAppError("PluginAPI.PatchRole", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+		}
+		return nil
+	}
+	if !*license.Features.GuestAccountsPermissions {
+		return model.NewAppError("PluginAPI.PatchRole", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+	}
+	return nil
+}
+
 func (api *PluginAPI) checkLDAPLicense() error {
 	license := api.GetLicense()
 	if license == nil || !*license.Features.LDAPGroups {
@@ -1309,13 +1336,17 @@ func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) 
 	return api.app.GetRoleByName(api.ctx, name)
 }
 
-// The role is re-read before patching so the scope guard below judges the
-// stored scheme rather than the one the caller passed in: the guard resolves
-// the space proof from role.SchemeId, and the store writes that same field
-// back, so a caller-supplied id would both decide and outlive the check.
+// The role is re-read by id because a RolePatch carries only Permissions: the
+// scope guard reached through UpdateRole resolves the space proof from
+// role.SchemeId, and neither argument here supplies it. Reading the stored row
+// is what puts that field in front of the guard.
 func (api *PluginAPI) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	stored, appErr := api.app.GetRole(roleID)
 	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr := api.checkGuestPermissionsLicense(stored, patch); appErr != nil {
 		return nil, appErr
 	}
 

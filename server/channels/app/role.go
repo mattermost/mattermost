@@ -159,6 +159,16 @@ var rolePatchDeniedPermissions = []string{
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	// Ahead of the no-op short-circuit below, so the answer to "may I write this
+	// role?" does not depend on whether the caller happened to send the
+	// permissions it already has. checkSpacePermissionScope refuses these roles
+	// on the write path regardless; deciding it here too keeps a caller probing
+	// the surface from reading a short-circuited 200 as permission.
+	if model.IsSpaceCapabilityRole(role.Name) {
+		return nil, model.NewAppError("PatchRole", "app.role.save.space_capability_role.app_error",
+			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+	}
+
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil

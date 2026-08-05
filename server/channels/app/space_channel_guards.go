@@ -53,6 +53,20 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// The association above is live state; the grants it authorised are not. A
+	// scheme whose roles still carry space permissions is refused even once no
+	// space points at it, so dropping the association cannot launder the scheme
+	// onto an ordinary channel. The case where the grants are added after both
+	// channels already point at the scheme is refused on the role write instead,
+	// by the ordinary-channel count in checkSpacePermissionScope.
+	grants, gErr := a.schemeHoldsSpaceGrants(*schemeId)
+	if gErr != nil {
+		return gErr
+	}
+	if grants {
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 

@@ -4474,3 +4474,195 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestPluginAPIPatchRoleGuestLicenseGate(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	guestRoleNames := []string{model.SystemGuestRoleId, model.TeamGuestRoleId, model.ChannelGuestRoleId}
+
+	t.Run("unlicensed guest role with Permissions patch is refused", func(t *testing.T) {
+		for _, roleName := range guestRoleNames {
+			t.Run(roleName, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				role, appErr := api.GetRoleByName(roleName)
+				require.Nil(t, appErr)
+				require.NotNil(t, role)
+
+				patch := &model.RolePatch{Permissions: &[]string{}}
+				updated, appErr := api.PatchRole(role.Id, patch)
+				require.NotNil(t, appErr)
+				assert.Nil(t, updated)
+				assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
+				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+			})
+		}
+	})
+
+	t.Run("unlicensed guest role without Permissions patch is allowed", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		role, appErr := api.GetRoleByName(model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+		require.NotNil(t, role)
+
+		patch := &model.RolePatch{}
+		updated, appErr := api.PatchRole(role.Id, patch)
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+		assert.Equal(t, role.Permissions, updated.Permissions)
+	})
+
+	t.Run("licensed without GuestAccountsPermissions feature refuses guest role regardless of Permissions", func(t *testing.T) {
+		for _, roleName := range guestRoleNames {
+			t.Run(roleName, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions"))
+				defer func() {
+					appErr := th.App.Srv().RemoveLicense()
+					require.Nil(t, appErr)
+				}()
+
+				role, appErr := api.GetRoleByName(roleName)
+				require.Nil(t, appErr)
+				require.NotNil(t, role)
+
+				for _, patch := range []*model.RolePatch{
+					{},
+					{Permissions: &[]string{}},
+				} {
+					updated, appErr := api.PatchRole(role.Id, patch)
+					require.NotNil(t, appErr)
+					assert.Nil(t, updated)
+					assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
+					assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+				}
+			})
+		}
+	})
+
+	t.Run("licensed with GuestAccountsPermissions feature allows guest role", func(t *testing.T) {
+		for _, roleName := range guestRoleNames {
+			t.Run(roleName, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts_permissions"))
+				defer func() {
+					appErr := th.App.Srv().RemoveLicense()
+					require.Nil(t, appErr)
+				}()
+
+				role, appErr := api.GetRoleByName(roleName)
+				require.Nil(t, appErr)
+				require.NotNil(t, role)
+
+				permissions := append([]string{}, role.Permissions...)
+				patch := &model.RolePatch{Permissions: &permissions}
+				updated, appErr := api.PatchRole(role.Id, patch)
+				require.Nil(t, appErr)
+				require.NotNil(t, updated)
+				assert.Equal(t, permissions, updated.Permissions)
+			})
+		}
+	})
+
+	t.Run("non-guest role is unaffected by the guest license gate in every license state", func(t *testing.T) {
+		licenseStates := []struct {
+			name    string
+			license *model.License
+		}{
+			{"unlicensed", nil},
+			{"licensed without GuestAccountsPermissions", model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions")},
+			{"licensed with GuestAccountsPermissions", model.NewTestLicense("guest_accounts_permissions")},
+		}
+
+		for _, ls := range licenseStates {
+			t.Run(ls.name, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				if ls.license != nil {
+					th.App.Srv().SetLicense(ls.license)
+					defer func() {
+						appErr := th.App.Srv().RemoveLicense()
+						require.Nil(t, appErr)
+					}()
+				}
+
+				role := th.CreateRole(t, "custom_role_"+model.NewId())
+
+				permissions := []string{model.PermissionAddReaction.Id}
+				patch := &model.RolePatch{Permissions: &permissions}
+				updated, appErr := api.PatchRole(role.Id, patch)
+				require.Nil(t, appErr)
+				require.NotNil(t, updated)
+				assert.Equal(t, permissions, updated.Permissions)
+			})
+		}
+	})
+}
+
+func TestPluginAPISchemeCustomPermissionsLicenseGate(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("CreateScheme without a license is refused", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		scheme := &model.Scheme{
+			DisplayName: "Test Scheme",
+			Name:        "test_scheme_" + model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		}
+
+		created, appErr := api.CreateScheme(scheme)
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "api.scheme.create_scheme.license.error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
+
+	t.Run("DeleteScheme without a license is refused", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		deleted, appErr := api.DeleteScheme(model.NewId())
+		require.NotNil(t, appErr)
+		assert.Nil(t, deleted)
+		assert.Equal(t, "api.scheme.delete_scheme.license.error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
+
+	t.Run("CreateScheme with a license covering custom permissions schemes is allowed", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		scheme := &model.Scheme{
+			DisplayName: "Test Scheme",
+			Name:        "test_scheme_" + model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		}
+
+		created, appErr := api.CreateScheme(scheme)
+		require.Nil(t, appErr)
+		require.NotNil(t, created)
+
+		deleted, appErr := api.DeleteScheme(created.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, deleted)
+	})
+}

@@ -155,6 +155,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
@@ -384,7 +385,6 @@ func TestUpdateRoleBaselineIsKeyedById(t *testing.T) {
 		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
 		mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
-
 }
 
 func TestValidateAdoptableSpaceScheme(t *testing.T) {
@@ -1177,6 +1177,9 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockRoleStore := mocks.RoleStore{}
+	mockRoleStore.On("GetByNames", mock.Anything).Return([]*model.Role{}, nil)
+	mockStore.On("Role").Return(&mockRoleStore)
 
 	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
 }
@@ -1850,4 +1853,268 @@ func TestSpaceGuardsHoldWithFlagOff(t *testing.T) {
 		role := &model.Role{Name: model.TeamUserRoleId, Permissions: []string{model.PermissionCreatePost.Id}}
 		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
+}
+
+// TestUpdateSchemeRenameGuardAllowsSameNameSave pins the early return in
+// checkSpaceSchemeRename: api4.patchScheme reads the stored scheme and applies
+// model.Scheme.Patch, which leaves Name untouched unless the patch sets it. A
+// save that only changes DisplayName on a seeded preset must not be treated as
+// a rename away from the reserved name — every other subtest in
+// TestUpdateSchemeSpaceGuards passes a scheme whose Name differs from the
+// stored row, so none of them would fail if this early return were deleted.
+func TestUpdateSchemeRenameGuardAllowsSameNameSave(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	stored := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	stored.DisplayName = "Updated Display Name"
+
+	updated, appErr := th.App.UpdateScheme(stored)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.SchemeNameSpaceContribute, updated.Name)
+	assert.Equal(t, "Updated Display Name", updated.DisplayName)
+}
+
+// TestUpdateRoleBaselineNameFallbackStoreError covers the name-fallback branch
+// of storedRoleForSpaceGuard: a save carrying no Id reads the stored baseline by
+// name, and a store failure there must surface as a server error rather than be
+// silently swallowed or misreported as a scope violation.
+func TestUpdateRoleBaselineNameFallbackStoreError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockRoleStore := mocks.RoleStore{}
+	mockStore.On("Role").Return(&mockRoleStore)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+
+	roleName := model.NewId()
+	mockRoleStore.On("GetByName", mock.Anything, roleName).Return(nil, errors.New("connection reset"))
+
+	role := &model.Role{
+		Name:        roleName,
+		Permissions: []string{model.PermissionAdminSpace.Id},
+	}
+	_, appErr := th.App.UpdateRole(role)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.role.get.app_error", appErr.Id)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestSpaceRolesMigrationExistenceCheckStoreError pins the existence-check
+// branch inside doSpaceRolesCreationMigration's per-role loop: a store failure
+// reading a role by name must abort the migration rather than be treated as a
+// not-found and proceed to save.
+func TestSpaceRolesMigrationExistenceCheckStoreError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := mocks.Store{}
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", SpaceRolesCreationMigrationKey).
+		Return(nil, store.NewErrNotFound("System", SpaceRolesCreationMigrationKey))
+	mockStore.On("System").Return(&mockSystemStore)
+
+	mockRoleStore := mocks.RoleStore{}
+	mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(nil, errors.New("connection reset"))
+	mockStore.On("Role").Return(&mockRoleStore)
+	mockStore.On("Close").Return(nil)
+
+	th.App.Srv().SetStore(&mockStore)
+
+	err := th.Server.doSpaceRolesCreationMigration()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "connection reset")
+	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestSpaceSchemesMigrationExistenceCheckStoreError pins the existence-check
+// branch inside doSpaceSchemesCreationMigration's per-preset loop: the fixture
+// elsewhere in this file (spaceSchemesMigrationStore) only ever returns
+// ErrNotFound on the first GetByName call, forcing the insert-race path; this
+// test instead fails that very first call with a genuine store error, which
+// must abort the migration rather than fall through to the Save attempt.
+func TestSpaceSchemesMigrationExistenceCheckStoreError(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := mocks.Store{}
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", SpaceSchemesCreationMigrationKey).
+		Return(nil, store.NewErrNotFound("System", SpaceSchemesCreationMigrationKey))
+	mockStore.On("System").Return(&mockSystemStore)
+
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("GetByName", mock.AnythingOfType("string")).Return(nil, errors.New("connection reset"))
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockStore.On("Close").Return(nil)
+
+	th.App.Srv().SetStore(&mockStore)
+
+	err := th.Server.doSpaceSchemesCreationMigration()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "connection reset")
+	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestApplySpaceSchemeRolePermissionsStoreErrors pins the two store-error
+// branches of applySpaceSchemeRolePermissions: the read that fetches the
+// scheme-generated role, and the write that persists the stripped/granted
+// permission set. Neither may be silently swallowed.
+func TestApplySpaceSchemeRolePermissionsStoreErrors(t *testing.T) {
+	t.Run("GetByName failure", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(nil, errors.New("connection reset"))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		err := th.Server.applySpaceSchemeRolePermissions(model.NewId(), model.SpaceAdminRolePermissions, false)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "connection reset")
+	})
+
+	t.Run("SavePreservingUnknownPermissions failure", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		roleName := model.NewId()
+		mockRoleStore.On("GetByName", mock.Anything, roleName).Return(&model.Role{Name: roleName, Permissions: []string{}}, nil)
+		mockRoleStore.On("SavePreservingUnknownPermissions", mock.Anything).Return(nil, errors.New("connection reset"))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		err := th.Server.applySpaceSchemeRolePermissions(roleName, model.SpaceAdminRolePermissions, false)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "connection reset")
+	})
+}
+
+// TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent pins that both
+// migrations return immediately, with no further role or scheme reads, once
+// their completion marker is already stored. TestSpaceSeedingMigrations only
+// exercises the marker-absent path (after deleting the markers and re-running
+// once); this pins the ordinary boot path where the marker is already there on
+// every subsequent call.
+func TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", SpaceRolesCreationMigrationKey).
+		Return(&model.System{Name: SpaceRolesCreationMigrationKey, Value: "true"}, nil)
+	mockSystemStore.On("GetByName", SpaceSchemesCreationMigrationKey).
+		Return(&model.System{Name: SpaceSchemesCreationMigrationKey, Value: "true"}, nil)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockRoleStore := mocks.RoleStore{}
+	mockStore.On("Role").Return(&mockRoleStore)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+
+	require.NoError(t, th.Server.doSpaceRolesCreationMigration())
+	require.NoError(t, th.Server.doSpaceSchemesCreationMigration())
+
+	mockRoleStore.AssertNotCalled(t, "GetByName", mock.Anything, mock.Anything)
+	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+	mockSchemeStore.AssertNotCalled(t, "GetByName", mock.Anything)
+	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants pins the second
+// check rejectSpaceSchemeOnOrdinaryChannel runs after the space-count check: a
+// custom scheme no space currently points at (CountSpaceChannelsByScheme == 0)
+// is still refused if its generated channel roles carry a space permission,
+// because that grant is durable state a lapsed association cannot launder away.
+func TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	schemeID := model.NewId()
+	userRoleName, adminRoleName, guestRoleName := model.NewId(), model.NewId(), model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+		Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+		DefaultChannelUserRole:  userRoleName,
+		DefaultChannelAdminRole: adminRoleName,
+		DefaultChannelGuestRole: guestRoleName,
+	}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockRoleStore := mocks.RoleStore{}
+	mockRoleStore.On("GetByNames", []string{adminRoleName, userRoleName, guestRoleName}).Return([]*model.Role{
+		{Name: userRoleName, Permissions: []string{model.PermissionCreatePage.Id}},
+		{Name: adminRoleName, Permissions: []string{}},
+		{Name: guestRoleName, Permissions: []string{}},
+	}, nil)
+	mockStore.On("Role").Return(&mockRoleStore)
+
+	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
+}
+
+// TestCheckSpacePermissionScopeRefusesSchemeSharedWithOrdinaryChannel pins the
+// second half of the association proof checkSpacePermissionScope now requires:
+// a scheme both a space and an ordinary channel point at must have a
+// space-permission add on its roles rejected, because an ordinary channel
+// sharing the scheme would resolve the same grant for its own members.
+// TestCheckSpacePermissionScope's "custom scheme a space references allowed"
+// subtest pins the counterpart: a space-only scheme still succeeds.
+func TestCheckSpacePermissionScopeRefusesSchemeSharedWithOrdinaryChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	guarded := model.PermissionReadPage.Id
+	schemeID := model.NewId()
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSchemeStore := mocks.SchemeStore{}
+	mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+	mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+	appErr := th.App.checkSpacePermissionScope(role, nil)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+}
+
+// TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit pins that the
+// capability-role guard in PatchRole runs before the no-op short-circuit: a
+// patch whose Permissions are identical to the role's stored permissions must
+// still be refused, not silently accepted as a 200/no-op that would let a
+// caller probing the surface read the short-circuit as permission.
+func TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSpaceRBACMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockRoleStore := mocks.RoleStore{}
+	mockStore.On("Role").Return(&mockRoleStore)
+
+	permissions := model.PermissionIDs(model.SpacePageCommenterRolePermissions)
+	role := &model.Role{
+		Id:          model.NewId(),
+		Name:        model.SpacePageCommenterRoleId,
+		Permissions: permissions,
+	}
+	patch := &model.RolePatch{Permissions: &permissions}
+
+	_, appErr := th.App.PatchRole(role, patch)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.role.save.space_capability_role.app_error", appErr.Id)
+	mockRoleStore.AssertNotCalled(t, "Get", mock.Anything)
+	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 }
