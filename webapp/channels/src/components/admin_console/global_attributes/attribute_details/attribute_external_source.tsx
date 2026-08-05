@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {components} from 'react-select';
 
 import {PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import {openModal} from 'actions/views/modals';
 
@@ -117,7 +119,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink}: Props)
                 <Menu.Container
                     menuButton={{
                         id: TRIGGER_ID,
-                        class: 'AttributeExternalSource__trigger',
+                        class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
                         children: (
                             <>
                                 <RefreshIcon size={16}/>
