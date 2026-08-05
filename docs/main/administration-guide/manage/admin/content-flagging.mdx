@@ -1,4 +1,4 @@
----
+d---
 title: "Data Spillage Handling"
 ---
 <PlanAvailability slug="entry-adv" />
@@ -87,6 +87,7 @@ Reviewers can select **View details** to take action as follows:
 - **Keep message**: Dismiss the quarantine and restore the message if it was hidden. The status of the quarantined message changes to **Retained**.
 - **Add a comment**: Record the reason for the decision when required.
 - **Generate a report**: Download a report of the quarantined message and review activity for record-keeping or incident response. See [Generate a quarantined message report](#generate-a-quarantined-message-report) for details.
+- **Generate an exposure report**: Download a report of the users who may have been exposed to the quarantined message while it was visible in its channel. See [Generate a post exposure report](#generate-a-post-exposure-report) for details.
 
 Once an action is taken, the **Status** field updates automatically. The **Data Spillage Bot** sends follow-up notifications to the reporter, author, and other reviewers based on how Data Spillage Handling is configured.
 
@@ -96,7 +97,7 @@ Reviewers can generate a downloadable report that captures the full context of a
 
 A report can be generated from any of the following entry points:
 
-- **From the quarantined message details**: Select **Download report** from the message details panel. This option is available regardless of the quarantine's status, including **Pending**, **Reviewer Assigned**, **Removed**, or **Retained**.
+- **From the quarantined message details**: Select **Download report** from the message details panel. This option is available regardless of the quarantine's status, including **Pending**, **Reviewer Assigned**, **Removed**, or **Retained**. The separate [post exposure report](#generate-a-post-exposure-report) is more restricted, and can only be downloaded on its own while a review is still open.
 - **From the Remove message flow**: When you select **Remove message**, the confirmation dialog includes a **Download quarantined message report** checkbox, selected by default. With the checkbox selected, Mattermost generates and downloads the report before you can permanently remove the message. This safeguard ensures the record is preserved on your device before the message contents are deleted.
 - **From the Keep message flow**: When you select **Keep message**, the confirmation dialog includes the same checkbox. With the checkbox selected, Mattermost generates and downloads the report in the background while the keep action completes.
 
@@ -104,7 +105,7 @@ If you choose to skip the report download from the **Remove message** or **Keep 
 
 If report generation fails (for example, due to a network interruption or session timeout), the dialog displays an error and offers a retry option. You can also skip the report and proceed with the action, or cancel and download the report later from the message details.
 
-Each time a reviewer generates a report, the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained.
+Each time a reviewer generates a quarantined message report or a [post exposure report](#generate-a-post-exposure-report), the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained.
 
 <Tip>
 
@@ -114,7 +115,7 @@ We recommend generating a report before removing a message. Once a message is re
 
 #### Report contents and format
 
-Each report is a ZIP archive containing YAML metadata files and the original file attachments. YAML is used because it's both human-readable and machine-parseable, which makes the report suitable for manual review and for ingestion by downstream compliance or incident-response tooling.
+Each report is a ZIP archive containing YAML metadata files, a CSV exposure report, and the original file attachments. YAML is used for the metadata files because it's both human-readable and machine-parseable, which makes the report suitable for manual review and for ingestion by downstream compliance or incident-response tooling. The exposure report is CSV so that reviewers can open it directly in a spreadsheet.
 
 The archive has the following structure:
 
@@ -122,6 +123,7 @@ The archive has the following structure:
 /
 ├── report_metadata.yaml
 ├── content_review.yaml
+├── exposure_report.csv
 ├── post/
 │   ├── post.yaml
 │   └── attachments/
@@ -133,13 +135,101 @@ The archive has the following structure:
             └── <original attachment files>
 ```
 
-- **report_metadata.yaml**: Identifies the report itself, including the user ID and username of the reviewer who generated the report, the generation timestamp, and the report format version (used for forward compatibility if the report format changes in future releases).
+- **report_metadata.yaml**: Identifies the report itself, including the user ID and username of the reviewer who generated the report, the generation timestamp, and the report format version (used for forward compatibility if the report format changes in future releases). Report format version 1.1 added `exposure_report.csv` to the archive.
 - **content_review.yaml**: Captures the data spillage event, including the reporter's user ID, username, selected reason, and comment; the report timestamp; whether the message was hidden during review; and, once the quarantine is resolved, the reviewer's user ID, username, comment, and action timestamp. For unresolved quarantines, reviewer fields are omitted.
+- **exposure_report.csv**: Lists the users who may have been exposed to the quarantined message while it was visible in its channel. This is the same report that reviewers can download on its own, in the same format. See [Exposure report contents](#exposure-report-contents) for the columns and how to interpret them.
 - **post/post.yaml**: Describes the quarantined message, including the post ID, author ID, author name, author email, message content, channel ID, channel display name, team ID, team display name, creation and update timestamps, pinned status, root ID, post properties, post metadata, reply count (for root posts), and the ordered list of edit history post IDs.
 - **post/attachments/**: The original files attached to the quarantined message, included verbatim.
 - **edit_history/\<edit_post_id\>/**: One subdirectory per previous version of the message, each containing a `post.yaml` and an `attachments/` directory in the same format as the base post directory.
 
 To avoid duplication, attachment files are deduplicated across the entire archive by their file ID. Each unique attachment appears exactly once — under the base post if it exists in the current version of the message, or under the earliest edit-history entry that referenced it.
+
+### Generate a post exposure report
+
+From Mattermost v11.11, reviewers can generate a post exposure report: a CSV file listing the users who may have been exposed to a quarantined message while it was visible in its channel. The report helps a reviewer scope the impact of a potential data spill and decide who needs follow-up.
+
+<Important>
+
+A post exposure report identifies who *may* have been exposed to a quarantined message. It isn't evidence that anyone read the message.
+
+- The report is derived from channel membership history and from channel read timestamps. Neither records whether a message was ever displayed on screen.
+- A **Last viewed channel at** timestamp after the message was posted means the user opened the channel while the message was visible. It doesn't mean the message was displayed to them, or that they read it.
+- Treat the report as a starting point for investigation, not as the sole basis for a compliance or disciplinary finding.
+
+See [Exposure report limitations](#exposure-report-limitations) for what the report can and can't establish.
+
+</Important>
+
+A post exposure report can be obtained from either of the following entry points:
+
+- **From the quarantined message details**: Select **View details**, then select **Download exposure report** in the **Exposure report** row. The file downloads as `post-exposure-<post_id>-<timestamp>.csv`. This option is available only while the quarantine is **Pending** or **Reviewer Assigned**. Once the quarantine is **Removed** or **Retained**, the row reads **Exposure report is no longer available for this message**.
+- **From the quarantined message report**: The ZIP archive produced by **Download report** includes the same data as `exposure_report.csv`. Because **Download report** stays available for every quarantine status, the archive is how you obtain exposure data after a quarantine is resolved.
+
+Only content reviewers for the team that the message belongs to can generate a post exposure report.
+
+#### Exposure report contents
+
+Every row in the report is one user who was a member of the channel at some point between the message being posted and the message being quarantined, taken from channel membership history. That row set is the complete population of users who could have been exposed.
+
+The report doesn't produce a separate list of users who probably saw the message. Instead, every row carries the channel read state and account activity timestamps needed to judge likelihood, so reviewers triage a single table by sorting and filtering rather than reconciling two overlapping lists.
+
+Report metadata is written as `#`-prefixed comment lines above the header row, so the file describes itself without a separate metadata file. Most tools can skip these lines — for example, Go's `csv.Reader` with `Comment: '#'`, or pandas with `comment='#'`.
+
+``` text
+# Report version: 1.0
+# Post ID: 8xk3mq7pzjfytr4wn6hb2dcvse
+# Channel: Engineering (jr9v2thq5xkfcm8bwd63pnysa4)
+# Post created at: 2026-07-14T09:12:03Z
+# Flagged at: 2026-07-14T11:48:37Z
+# Generated at: 2026-07-14T12:05:19Z
+# Total users: 3
+User ID,Username,Email,Guest,Remote user,Deactivated,Was channel member,Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ),User last activity time (YYYY-MM-DDTHH:MM:SSZ)
+4tqzn8mhs2xdwc7bkgv6yrfpj3,alice.chen,alice.chen@example.com,No,No,No,Yes,2026-07-14T10:31:52Z,2026-07-14T11:59:08Z
+mw6cbyx9rntk3f7zqhdps2gjv5,bhavna.rao,bhavna.rao@example.com,No,No,No,Yes,2026-07-02T16:20:44Z,2026-07-14T12:01:44Z
+zd7pfk2vqn6ymxb3wcjs9htgr8,carlos.mendes,carlos.mendes@example.com,No,No,Yes,Yes,Unknown,No sessions found
+```
+
+**Post created at** and **Flagged at** bound the reporting window that membership is resolved against. **Total users** is the number of rows in the file, counted after any users whose account records no longer exist are skipped.
+
+The report includes the following columns:
+
+- **User ID**: The system identifier for the user.
+- **Username**: The user's Mattermost username.
+- **Email**: The user's email address.
+- **Guest**: `Yes` if the user is a guest account.
+- **Remote user**: `Yes` if the user belongs to a remote server through a shared channel. Content on a remote server is beyond the reach of hiding or removing the message locally.
+- **Deactivated**: `Yes` if the user's account is deactivated. Deactivating a user doesn't undo their exposure, so deactivated accounts are still reported.
+- **Was channel member**: Always `Yes` in report version 1.0. Every row is a channel member by definition, and the column is reserved for future report versions that may add other exposure paths.
+- **Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)**: The user's *current* last-viewed timestamp for the channel, not a snapshot taken when the message was quarantined. `Unknown` means no read state exists because the user is no longer a channel member. `N/A` means the user is a member who has never opened the channel.
+- **User last activity time (YYYY-MM-DDTHH:MM:SSZ)**: The user's most recent session activity anywhere in Mattermost, not in this channel. `No sessions found` means no session records exist for the user, which is always the case for deactivated accounts.
+
+To scope who needs follow-up, compare each row's **Last viewed channel at** value against the **Post created at** value in the report metadata:
+
+- **At or after Post created at**: The user opened the channel while the message was visible. This is a possible exposure, and should be prioritized for follow-up.
+- **Before Post created at**: The user was a channel member, but hadn't opened the channel since before the message was posted. Exposure is unlikely.
+- **Unknown or N/A**: No channel read state exists for the user. Exposure is undetermined. Don't read these values as confirmation that the user didn't see the message.
+
+<Tip>
+
+Generate the exposure report early in the review. **Last viewed channel at** reflects live channel read state, so it moves whenever a user opens the channel again, including after the quarantine is resolved.
+
+</Tip>
+
+Rows are sorted by username, then by user ID, so the same report generated twice produces identical output. Column headings and values, including `Yes`, `No`, `Unknown`, `N/A`, and `No sessions found`, are localized to the language of the reviewer who generated the report. Downstream tooling shouldn't match on the English strings.
+
+#### Exposure report limitations
+
+The report is derived from channel membership history and channel read state, which constrains what it can establish:
+
+- **Bots are excluded**: Bot accounts are omitted from the report.
+- **Users who joined after the message was quarantined are excluded**: Membership is resolved against the reporting window only.
+- **Users who left and rejoined appear once**: The report is a list of users, so multiple membership periods are collapsed into a single row. Individual join and leave times aren't reported.
+- **Users who left and didn't rejoin are included**: They're reported with **Last viewed channel at** set to `Unknown`, because no channel read state survives for a former member.
+- **Guests and remote users are included**: Both are identified in their own columns.
+- **Archived channels are supported**: Members of an archived channel are reported as usual.
+- **Deleted accounts are omitted**: If a user's account record no longer exists, that user is skipped, and **Total users** reflects the count after the skip.
+
+Generating an exposure report queries session activity for each user in the report individually, and the whole report is assembled in memory before the download starts. On channels with several thousand members, expect generation to take proportionally longer.
 
 ### Deleted messages
 
