@@ -94,18 +94,6 @@ func requireFlaggedPost(c *Context, postId string) {
 	}
 }
 
-func requireActionableFlaggedPost(c *Context, postId string) {
-	if postId == "" {
-		c.SetInvalidParam("flagged_post_id")
-		return
-	}
-
-	if _, appErr := c.App.CheckFlaggedPostActionable("requireActionableFlaggedPost", postId); appErr != nil {
-		c.Err = appErr
-		return
-	}
-}
-
 func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return

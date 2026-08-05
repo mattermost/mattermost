@@ -447,7 +447,7 @@
       summary: Generate and download a post exposure report
       description: |
         Generates a CSV report listing the users who may have been exposed to a flagged post, derived from the channel membership history between the post's creation and it being flagged, and from each member's channel read state. All other content reviewers of the post's team are notified that an exposure report has been generated.
-        The user must be a content reviewer of the team to which the post belongs to, the post must be flagged, and its review must still be open (not already removed or retained).
+        The user must be a content reviewer of the team to which the post belongs to, and the post must be flagged. The report remains available after the review is closed, in any status.
         Exposure reports are not available for direct or group message channels.
         An enterprise advanced license is required.
       tags:
@@ -473,7 +473,7 @@
               schema:
                 type: string
         '400':
-          description: Bad request - Invalid post ID, the post's review is already closed, or the post is in a direct or group message channel.
+          description: Bad request - Invalid post ID, or the post is in a direct or group message channel.
         '403':
           description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
         '404':

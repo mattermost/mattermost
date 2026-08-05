@@ -270,7 +270,7 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.Empty(t, report)
 	})
 
-	t.Run("Should return 400 when the post has already been retained", func(t *testing.T) {
+	t.Run("Should successfully generate report when the post has already been retained", func(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
@@ -282,12 +282,15 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		report, resp, err := client.GeneratePostExposureReport(context.Background(), post.Id)
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		require.Empty(t, report)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, report)
+
+		require.Contains(t, resp.Header.Get("Content-Type"), "text/csv")
+		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment; filename=\"post-exposure-"+post.Id)
 	})
 
-	t.Run("Should return 400 when the post has already been removed", func(t *testing.T) {
+	t.Run("Should successfully generate report when the post has already been removed", func(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
@@ -298,10 +301,15 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
+		// Removal scrubs the post's content but retains a stub row, and it never deletes
+		// the reporting_time property, so the exposure window is still computable.
 		report, resp, err := client.GeneratePostExposureReport(context.Background(), post.Id)
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		require.Empty(t, report)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, report)
+
+		require.Contains(t, resp.Header.Get("Content-Type"), "text/csv")
+		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment; filename=\"post-exposure-"+post.Id)
 	})
 
 	t.Run("Should successfully generate report for a common reviewer", func(t *testing.T) {
@@ -350,7 +358,7 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
 
-		// BasicUser2 is the assignee, so the Assigned status is still actionable.
+		// BasicUser2 is the assignee, and is therefore also a reviewer.
 		assigneeClient := th.CreateClient()
 		th.LoginBasic2WithClient(t, assigneeClient)
 
