@@ -51,6 +51,12 @@ describe('AttributeExternalSource', () => {
         expect(screen.queryByRole('menuitem', {name: /AD\/LDAP/})).not.toBeInTheDocument();
     });
 
+    it('renders a chip\'s label as "<source>: <value>"', () => {
+        renderComponent({ldapAttr: 'department'});
+
+        expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toHaveTextContent('AD/LDAP: department');
+    });
+
     it('renders both chips and omits the trigger entirely once both sources are linked', () => {
         renderComponent({ldapAttr: 'department', samlAttr: 'dept'});
 

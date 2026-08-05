@@ -4,8 +4,18 @@
 .AttributeExternalSource {
     display: flex;
     flex-direction: column;
-    margin-top: 8px;
+    margin-top: 12px;
     gap: 8px;
+}
+
+// The Divider is a section separator between the Options row above and this
+// whole external-source block (chips and/or the "add" trigger) -- it's a
+// real full-width element (components/divider) rather than a border on the
+// trigger button itself, so it always spans the full row width regardless
+// of the button's own (inline, content-sized) width, and still shows even
+// when only chips are rendered (both sources linked, no trigger).
+.AttributeExternalSource__divider {
+    margin-bottom: 12px;
 }
 
 .AttributeExternalSource__chips {
@@ -47,18 +57,21 @@
     }
 }
 
-// Button shell (transparent at rest, no border) comes from
-// buttonClassNames({emphasis: 'quaternary'}) -- this rule only adds the
-// separator above it and a leading icon + row layout, plus overrides the
-// quaternary default's --button-bg-rgb hover tint with --link-color-rgb
-// (extra class/pseudo count on the selector to beat _buttons.scss's own
-// .btn.btn-quaternary:hover on specificity regardless of stylesheet order).
+// Button shell (transparent at rest, no border, inline-flex sizing to
+// content) comes from buttonClassNames({emphasis: 'quaternary'}) -- this
+// rule must NOT set its own `display`, since a block-level `display: flex`
+// here would fight .btn's own `display: inline-flex` and, combined with
+// this trigger's flex-column parent defaulting every child to
+// align-self: stretch, stretch the button to the full row width instead of
+// sizing to its content. align-self: flex-start opts back out of that
+// stretch regardless of which `display` wins.
+// The hover-tint override is nested under the repeated .btn.btn-quaternary
+// classes (not just .AttributeExternalSource__trigger alone) so this
+// selector's specificity reliably beats _buttons.scss's own same-named rule,
+// regardless of stylesheet load order.
 .AttributeExternalSource__trigger {
-    display: flex;
     align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    margin-top: 12px;
+    align-self: flex-start;
     gap: 6px;
 
     &.btn.btn-quaternary:hover {
