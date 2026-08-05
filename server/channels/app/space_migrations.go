@@ -14,6 +14,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// sortedPermissions returns the permissions in a stable order so two sets can be
+// compared without caring how either was assembled.
+func sortedPermissions(permissions []string) []string {
+	sorted := slices.Clone(permissions)
+	slices.Sort(sorted)
+	return sorted
+}
+
 // validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
 // scheme's name but cannot serve as one: adopting a foreign row would rewrite
 // that scheme's generated role permission sets on every boot, and a row without
@@ -47,6 +55,53 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	return nil
 }
 
+// validateAdoptedSpaceSchemeRoles refuses a row that is shaped like a preset but
+// does not grant like one. validateAdoptableSpaceScheme proves the shape; this
+// proves the authority, which has to be checked separately because the seeding
+// only strips the moderated permissions and adds the targets — every other
+// permission already on a generated role survives into what becomes, from here
+// on, an unforgeable proof of space scope for three security guards.
+//
+// Only permissions this build recognises are judged, so a server downgraded from
+// a newer release is not blocked by permissions it merely does not know yet —
+// the same reason the seeding writes through SavePreservingUnknownPermissions.
+func (s *Server) validateAdoptedSpaceSchemeRoles(scheme *model.Scheme, userTarget []*model.Permission) error {
+	known := make(map[string]bool, len(model.AllPermissions))
+	for _, p := range model.AllPermissions {
+		known[p.Id] = true
+	}
+
+	defaults := model.MakeDefaultRoles()
+	for _, generated := range []struct {
+		roleName string
+		baseRole string
+		target   []*model.Permission
+	}{
+		{scheme.DefaultChannelUserRole, model.ChannelUserRoleId, userTarget},
+		{scheme.DefaultChannelAdminRole, model.ChannelAdminRoleId, model.SpaceAdminRolePermissions},
+		{scheme.DefaultChannelGuestRole, model.ChannelGuestRoleId, model.SpaceDefaultReadOnlyPermissions},
+	} {
+		role, err := s.Store().Role().GetByName(store.WithMaster(context.Background()), generated.roleName)
+		if err != nil {
+			return fmt.Errorf("could not query scheme role %q for scheme %q: %w", generated.roleName, scheme.Name, err)
+		}
+
+		// What the seeding would have produced: the global role the generated
+		// one is seeded from, plus this preset's grants.
+		allowed := asPermissionSet(defaults[generated.baseRole].Permissions)
+		for _, p := range generated.target {
+			allowed[p.Id] = true
+		}
+
+		for _, p := range role.Permissions {
+			if known[p] && !allowed[p] {
+				return fmt.Errorf("scheme %q already exists and its generated role %q grants %q, which a seeded space preset never does; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", scheme.Name, generated.roleName, p)
+			}
+		}
+	}
+	return nil
+}
+
 func (s *Server) doSpaceRolesCreationMigration() error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
@@ -66,14 +121,24 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 		}
 
 		if _, err := s.Store().Role().Save(roles[roleID]); err != nil {
-			mlog.Debug("Couldn't save the space capability role; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
+			mlog.Warn("Couldn't save the space capability role, this can be an expected case; another node likely won the insert race, re-reading on the primary", mlog.String("role_name", roleID), mlog.Err(err))
 
 			// The store wraps the raw duplicate-key error, so a lost HA insert
 			// race is detected by re-reading the row on the primary: a lagging
 			// replica could miss the other node's just-committed insert and
 			// fatal the boot.
-			if _, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID); rErr != nil {
-				return fmt.Errorf("failed to create space capability role %q: %w", roleID, err)
+			stored, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID)
+			if rErr != nil {
+				return fmt.Errorf("failed to create space capability role %q: %w (re-read on the primary also failed: %v)", roleID, err, rErr)
+			}
+
+			// A row under the reserved name is only proof the race was lost if
+			// it is the row this migration would have written. Anything else is
+			// a name collision, and adopting it would leave a role carrying
+			// space authority nobody here defined; the scheme seeding refuses
+			// the same way in validateAdoptableSpaceScheme.
+			if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(roles[roleID].Permissions)) {
+				return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
 			}
 		}
 	}
@@ -160,6 +225,9 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 	}
 
 	for _, preset := range presets {
+		// A row this migration did not just create is one it is adopting, and an
+		// adopted row has to prove it is a preset rather than a name collision.
+		adopted := true
 		scheme, err := s.Store().Scheme().GetByName(preset.name)
 		if err != nil {
 			if !errors.As(err, &nfErr) {
@@ -170,25 +238,34 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 				DisplayName: preset.displayName,
 				Scope:       model.SchemeScopeChannel,
 			})
-			if err != nil {
-				mlog.Debug("Couldn't save the space preset scheme; another node likely won the insert race, re-reading", mlog.String("scheme_name", preset.name), mlog.Err(err))
+			if err == nil {
+				adopted = false
+			} else {
+				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case; another node likely won the insert race, re-reading", mlog.String("scheme_name", preset.name), mlog.Err(err))
 
 				// Re-read before treating the save error as real, the same
 				// recovery doAdvancedPermissionsMigration performs on a role.
 				// The read is served by a replica, so a peer's just-committed
 				// insert can still be missed and the boot fails; the node picks
 				// the row up on its next start. The original save error is the
-				// root cause, so it is the one wrapped when the re-read misses.
+				// root cause, so it is the one reported, with the re-read
+				// failure carried alongside it.
 				var rErr error
 				scheme, rErr = s.Store().Scheme().GetByName(preset.name)
 				if rErr != nil {
-					return fmt.Errorf("failed to create space scheme %q: %w", preset.name, err)
+					return fmt.Errorf("failed to create space scheme %q: %w (re-read also failed: %v)", preset.name, err, rErr)
 				}
 			}
 		}
 
 		if vErr := s.validateAdoptableSpaceScheme(scheme); vErr != nil {
 			return vErr
+		}
+
+		if adopted {
+			if vErr := s.validateAdoptedSpaceSchemeRoles(scheme, preset.userPerms); vErr != nil {
+				return vErr
+			}
 		}
 
 		if err := s.applySpaceSchemeRolePermissions(scheme.DefaultChannelUserRole, preset.userPerms, true); err != nil {

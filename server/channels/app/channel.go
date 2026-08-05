@@ -248,7 +248,11 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	// A space carries a preset scheme legitimately; any other channel would be
 	// borrowing one. CreateChannel takes SchemeId straight from the caller, so
 	// without this guard it would bypass the check UpdateChannelScheme enforces.
-	if !channel.IsSpace() {
+	if channel.IsSpace() {
+		if appErr := a.rejectUnusableSpaceScheme("CreateChannel", channel.SchemeId); appErr != nil {
+			return nil, appErr
+		}
+	} else {
 		if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("CreateChannel", channel.SchemeId); appErr != nil {
 			return nil, appErr
 		}
@@ -792,8 +796,12 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	// caller-supplied and could falsely claim to be a space. The SchemeId
 	// comparison keeps an ordinary edit from being refused over a scheme the
 	// channel already carries.
-	if !oldChannel.IsSpace() && model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
-		if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannel", channel.SchemeId); appErr != nil {
+	if model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
+		if oldChannel.IsSpace() {
+			if appErr := a.rejectUnusableSpaceScheme("UpdateChannel", channel.SchemeId); appErr != nil {
+				return nil, appErr
+			}
+		} else if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannel", channel.SchemeId); appErr != nil {
 			return nil, appErr
 		}
 	}

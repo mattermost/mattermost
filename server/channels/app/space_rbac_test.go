@@ -7,6 +7,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1175,6 +1178,92 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
 }
 
+// TestRejectUnusableSpaceScheme pins the guard on a space's own SchemeId. It is
+// the mirror of the ordinary-channel guard: that one keeps a preset off a
+// channel, this one keeps an arbitrary customer scheme off a space, because a
+// space pointing at a scheme is what checkSpacePermissionScope later reads as
+// proof of space scope and what checkSpaceSchemeDelete reads as a reason to
+// refuse a delete.
+func TestRejectUnusableSpaceScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("no scheme is accepted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", nil))
+		empty := ""
+		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &empty))
+	})
+
+	t.Run("a seeded preset is accepted by identity", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel,
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+	})
+
+	t.Run("a channel scheme governing no ordinary channel is accepted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).
+			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1).Return(model.ChannelList{}, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+	})
+
+	t.Run("a scheme already governing an ordinary channel is refused", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).
+			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetChannelsByScheme", schemeID, 0, 1).
+			Return(model.ChannelList{{Id: model.NewId()}}, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
+
+	t.Run("an unresolvable scheme fails closed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
+}
+
 // The guards below fail closed on a store error rather than letting a write or
 // delete through on an unreadable row, so each error branch is pinned.
 
@@ -1348,6 +1437,14 @@ func TestSpaceRolesMigrationRecoversFromLostInsertRace(t *testing.T) {
 // concurrent HA insert, so the primary re-read and the adoption check run.
 func spaceSchemesMigrationStore(t *testing.T, reread func(name string) (*model.Scheme, error)) *mocks.Store {
 	t.Helper()
+	return spaceSchemesMigrationStoreGranting(t, reread, nil)
+}
+
+// spaceSchemesMigrationStoreGranting is spaceSchemesMigrationStore with extra
+// permissions planted on every generated role, standing in for a scheme that
+// carries a preset name but grants more than a seeded preset ever would.
+func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (*model.Scheme, error), extraRolePermissions []string) *mocks.Store {
+	t.Helper()
 	mockStore := mocks.Store{}
 
 	mockSystemStore := mocks.SystemStore{}
@@ -1356,24 +1453,49 @@ func spaceSchemesMigrationStore(t *testing.T, reread func(name string) (*model.S
 	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
 	mockStore.On("System").Return(&mockSystemStore)
 
+	// GetByName is called twice for each preset: the get-or-create read, which
+	// has to miss so the failing Save below runs, and the recovery re-read that
+	// follows it. SchemeStore.GetByName takes no context, so the two are told
+	// apart by call order per name rather than by a master flag.
+	var mu sync.Mutex
+	reads := map[string]int{}
 	mockSchemeStore := mocks.SchemeStore{}
-	mockSchemeStore.On("GetByName", mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, name string) (*model.Scheme, error) {
-			if store.HasMaster(ctx) {
-				return reread(name)
+	mockSchemeStore.On("GetByName", mock.AnythingOfType("string")).Return(
+		func(name string) (*model.Scheme, error) {
+			mu.Lock()
+			defer mu.Unlock()
+			reads[name]++
+			if reads[name] == 1 {
+				return nil, store.NewErrNotFound("Scheme", name)
 			}
-			return nil, store.NewErrNotFound("Scheme", name)
+			return reread(name)
 		})
 	mockSchemeStore.On("Save", mock.Anything).Return(nil, errors.New("duplicate key"))
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 
-	// The generated roles the closure reads back and rewrites.
+	// The generated roles the closure reads back and rewrites. A real scheme
+	// seeds each one from the global role of the same kind, so the fixture does
+	// too — handing all three the same permission set would give the admin role
+	// grants channel_admin never has, which the adoption check rightly refuses.
 	mockRoleStore := mocks.RoleStore{}
 	mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(
 		func(_ context.Context, name string) (*model.Role, error) {
-			return &model.Role{Name: name, Permissions: []string{model.PermissionCreatePost.Id}}, nil
+			defaults := model.MakeDefaultRoles()
+			base := model.ChannelUserRoleId
+			switch {
+			case strings.HasSuffix(name, "_"+model.ChannelAdminRoleId):
+				base = model.ChannelAdminRoleId
+			case strings.HasSuffix(name, "_"+model.ChannelGuestRoleId):
+				base = model.ChannelGuestRoleId
+			}
+			return &model.Role{
+				Name:        name,
+				Permissions: append(slices.Clone(defaults[base].Permissions), extraRolePermissions...),
+			}, nil
 		})
-	mockRoleStore.On("Save", mock.Anything).Return(
+	// applySpaceSchemeRolePermissions writes through the unknown-permission
+	// preserving save, not the plain one.
+	mockRoleStore.On("SavePreservingUnknownPermissions", mock.Anything).Return(
 		func(role *model.Role) (*model.Role, error) { return role, nil })
 	mockStore.On("Role").Return(&mockRoleStore)
 
@@ -1389,14 +1511,17 @@ func spaceSchemesMigrationStore(t *testing.T, reread func(name string) (*model.S
 	return &mockStore
 }
 
+// adoptableSpaceScheme builds a row shaped like a scheme another node just
+// created. The generated role names carry the kind they were seeded from so the
+// role fixture can return that kind's permissions, the way a real scheme does.
 func adoptableSpaceScheme(name string) *model.Scheme {
 	return &model.Scheme{
 		Id:                      model.NewId(),
 		Name:                    name,
 		Scope:                   model.SchemeScopeChannel,
-		DefaultChannelUserRole:  model.NewId(),
-		DefaultChannelAdminRole: model.NewId(),
-		DefaultChannelGuestRole: model.NewId(),
+		DefaultChannelUserRole:  name + "_" + model.ChannelUserRoleId,
+		DefaultChannelAdminRole: name + "_" + model.ChannelAdminRoleId,
+		DefaultChannelGuestRole: name + "_" + model.ChannelGuestRoleId,
 	}
 }
 
@@ -1410,6 +1535,24 @@ func TestSpaceSchemesMigrationRecoversFromLostInsertRace(t *testing.T) {
 		}))
 
 		require.NoError(t, th.Server.doSpaceSchemesCreationMigration())
+	})
+
+	t.Run("re-read finding an over-granting scheme fails the migration", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		// Shaped exactly like a preset, so every check in
+		// validateAdoptableSpaceScheme passes, but its generated roles carry a
+		// channel permission the seeding never grants. Adopting it would leave
+		// that grant on a row three guards then read as proof of space scope.
+		th.App.Srv().SetStore(spaceSchemesMigrationStoreGranting(t,
+			func(name string) (*model.Scheme, error) { return adoptableSpaceScheme(name), nil },
+			[]string{model.PermissionDeletePublicChannel.Id}))
+
+		err := th.Server.doSpaceSchemesCreationMigration()
+		require.Error(t, err, "a scheme granting more than a preset must not be adopted")
+		assert.Contains(t, err.Error(), model.PermissionDeletePublicChannel.Id,
+			"the error names the permission that disqualified the row")
 	})
 
 	t.Run("re-read finding a wrong-scope scheme fails the migration", func(t *testing.T) {

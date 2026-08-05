@@ -5771,6 +5771,10 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_by_scheme.app_error",
+    "translation": "Unable to get the channels using this scheme."
+  },
+  {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
     "translation": "Unable to get channels with unreads and mentions."
   },
@@ -6025,6 +6029,10 @@
   {
     "id": "app.channel.update_channel_scheme.space_scheme.app_error",
     "translation": "This scheme is reserved for spaces and cannot be applied to a channel."
+  },
+  {
+    "id": "app.channel.update_channel_scheme.space_scheme_unusable.app_error",
+    "translation": "This scheme cannot be applied to a space. Use one of the space presets, or a channel scheme that is not already in use by other channels."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",

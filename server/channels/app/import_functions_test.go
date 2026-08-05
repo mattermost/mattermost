@@ -804,6 +804,30 @@ func TestImportImportUser(t *testing.T) {
 		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 	})
 
+	// The create path writes Roles straight through on the FromImport path,
+	// skipping the role defaulting and validation CreateUser otherwise applies,
+	// so it needs its own refusal of the atomic space capability roles. A system
+	// role is the fallback for every channel on the server, so one landed here
+	// would resolve its page permissions everywhere.
+	t.Run("import a new user carrying a space capability role", func(t *testing.T) {
+		roles := model.SpacePageEditorRoleId
+		data := imports.UserImportData{
+			Username: new(model.NewUsername()),
+			Email:    new(model.NewId() + "@example.com"),
+			Roles:    &roles,
+		}
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.NotNil(t, appErr, "a space capability role must not become a system role")
+		assert.Equal(t, "api.user.update_user_roles.space_role.app_error", appErr.Id)
+
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "the refused user must not have been created")
+	})
+
 	t.Run("import a valid user in apply mode", func(t *testing.T) {
 		username := "A" + model.NewUsername()[1:]
 		testsDir, _ := fileutils.FindDir("tests")

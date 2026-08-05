@@ -487,6 +487,19 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			hasUserRolesChanged = true
 		}
 	}
+
+	// The existing-user branch below routes role changes through UpdateUserRoles,
+	// which refuses a space capability role on a system role. Creating a user
+	// does not: it writes Roles straight through on the FromImport path, which
+	// skips the role defaulting and validation CreateUser otherwise applies. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one landed here would resolve its page permissions everywhere.
+	for roleName := range strings.FieldsSeq(roles) {
+		if rejectSpaceCapabilityRoleOutsideSpace(rctx, "BulkImport", roleName, false) {
+			return model.NewAppError("BulkImport", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+		}
+	}
+
 	user.Roles = roles
 
 	if data.NotifyProps != nil {
