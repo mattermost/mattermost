@@ -615,6 +615,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         samlAttr={samlAttr}
                                         fieldType={fieldType}
                                         onLink={handleLink}
+                                        disabled={saving || disabled}
                                     />
                                 </div>
                             </div>
