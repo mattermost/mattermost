@@ -861,7 +861,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * once both are linked), and that each chip shows the actual linked value, not just the
          * source name.
          */
-        test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({pw}) => {
+        test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
+            pw,
+        }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -886,7 +888,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
                 // * The chip shows the source and the value that was actually typed
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: employeeID');
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
 
                 // # Reopen the trigger -- AD/LDAP is no longer offered, only SAML
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
@@ -900,8 +904,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 // * Both chips are shown with their own values, and the trigger disappears
                 // entirely -- there is nothing left to add
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: employeeID');
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText('SAML: position');
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
+                    'SAML: position',
+                );
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).not.toBeVisible();
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
@@ -921,7 +929,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
          * a changed value, and that its remove action clears the link immediately with no modal.
          */
-        test('edits a linked chip\'s value via its edit action, and removes a link via its remove action with no modal', async ({pw}) => {
+        test("edits a linked chip's value via its edit action, and removes a link via its remove action with no modal", async ({
+            pw,
+        }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -934,7 +944,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
             await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
             await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: employeeID');
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: employeeID',
+            );
 
             // # Click the chip's edit action -- the modal reopens pre-filled with the current value
             await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
@@ -943,7 +955,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // # Change the value and save
             await systemConsolePage.page.getByPlaceholder('department').fill('newEmployeeID');
             await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: newEmployeeID');
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: newEmployeeID',
+            );
 
             // # Click the chip's remove action -- the link clears immediately, no modal opens
             await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
@@ -959,7 +973,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * manually switching Type away from Text afterward clears the link and announces it via
          * the status region (not just a silently-removed chip).
          */
-        test('warns before converting a non-Text field, and clears + announces the link when Type is switched away from Text', async ({pw}) => {
+        test('warns before converting a non-Text field, and clears + announces the link when Type is switched away from Text', async ({
+            pw,
+        }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -990,7 +1006,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
             // * The link is cleared, and the removal is announced via the status region
             await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText('External source link removed');
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText(
+                'External source link removed',
+            );
         });
     });
 });
