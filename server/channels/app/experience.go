@@ -404,3 +404,148 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		Statuses:             a.buildStatusSnapshot(statusUserIDs),
 	}, nil
 }
+
+// since=0 is a full response; otherwise it's a delta cursor. Sidebar categories are
+// sent on a cold start, or when the sidebar was mutated after the client's cursor.
+func (a *App) GetTeamLoad(rctx request.CTX, userID, teamID string, since int64) (*model.TeamLoadResponse, *model.AppError) {
+	// Verify the team exists and has not been deleted.
+	team, appErr := a.GetTeam(teamID)
+	if appErr != nil {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.team_not_found.app_error", nil, "", http.StatusForbidden).Wrap(appErr)
+	}
+	if team.DeleteAt > 0 {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.team_deleted.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Verify the user is an active member of the team.
+	member, appErr := a.GetTeamMember(rctx, teamID, userID)
+	if appErr != nil {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.not_member.app_error", nil, "", http.StatusForbidden).Wrap(appErr)
+	}
+	if member.DeleteAt > 0 {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.membership_deleted.app_error", nil, "", http.StatusForbidden)
+	}
+
+	var (
+		allChannels    model.ChannelList
+		channelMembers model.ChannelMembersWithTeamData
+		sidebarCats    *model.OrderedSidebarCategories
+		removedChIDs   []string
+		prefs          model.Preferences
+	)
+
+	eg, _ := errgroup.WithContext(rctx.Context())
+
+	eg.Go(func() error {
+		opts := &model.ChannelSearchOpts{
+			IncludeDeleted: since > 0,
+		}
+		chans, err := a.GetChannelsForTeamForUser(rctx, teamID, userID, opts)
+		if err != nil {
+			return err
+		}
+		// GetChannelsForTeamForUser includes DM/GM channels (OR ch.TeamId = '').
+		// Filter to this team only.
+		filtered := make(model.ChannelList, 0, len(chans))
+		for _, ch := range chans {
+			if ch.TeamId == teamID {
+				filtered = append(filtered, ch)
+			}
+		}
+		allChannels = filtered
+		return nil
+	})
+
+	eg.Go(func() error {
+		members, err := a.getAllChannelMembersForUser(rctx, userID)
+		if err != nil {
+			return err
+		}
+		channelMembers = members
+		return nil
+	})
+
+	eg.Go(func() error {
+		cats, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, teamID)
+		if err != nil {
+			return err
+		}
+		sidebarCats = cats
+		return nil
+	})
+
+	eg.Go(func() error {
+		allPrefs, err := a.GetPreferencesForUser(rctx, userID)
+		if err != nil {
+			return err
+		}
+		prefs = allPrefs
+		return nil
+	})
+
+	if since > 0 {
+		eg.Go(func() error {
+			ids, err := a.Srv().Store().ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, teamID, since)
+			if err != nil {
+				return model.NewAppError("GetTeamLoad", "app.team_load.channel_history.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			removedChIDs = ids
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.fanout.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Scope channel members to this team only.
+	teamChIDs := make(map[string]struct{}, len(allChannels))
+	for _, ch := range allChannels {
+		teamChIDs[ch.Id] = struct{}{}
+	}
+	scopedMembers := make(model.ChannelMembersWithTeamData, 0, len(channelMembers))
+	for i := range channelMembers {
+		if _, ok := teamChIDs[channelMembers[i].ChannelId]; ok {
+			scopedMembers = append(scopedMembers, channelMembers[i])
+		}
+	}
+
+	changedChannels := allChannels
+	changedMembers := scopedMembers
+	if since > 0 {
+		filtered := make(model.ChannelList, 0, len(allChannels))
+		for _, ch := range allChannels {
+			if ch.UpdateAt > since {
+				filtered = append(filtered, ch)
+			}
+		}
+		changedChannels = filtered
+		changedMembers = filterMembersSince(scopedMembers, since)
+	}
+
+	roles, rolesErr := a.getRolesSince(nil, nil, scopedMembers, since)
+	if rolesErr != nil {
+		return nil, rolesErr
+	}
+
+	if since > 0 && getSidebarVersion(prefs, teamID) <= since {
+		sidebarCats = nil
+	}
+
+	include := func(ch *model.Channel) bool { return ch.TeamId == teamID }
+	chList, cmList := buildExperienceChannelLists(allChannels, changedChannels, changedMembers, include, nil)
+
+	return &model.TeamLoadResponse{
+		Channels: chList,
+		ChannelMembers: model.ExperienceChannelMemberList{
+			Members:           cmList,
+			RemovedChannelIds: removedChIDs,
+		},
+		SidebarCategories: sidebarCats,
+		Roles:             toExperienceRoles(roles),
+		Timestamp:         model.GetMillis(),
+	}, nil
+}

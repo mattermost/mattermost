@@ -1117,6 +1117,65 @@
             feature flag is off.
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/api/v4/users/me/teams/{team_id}/load":
+    get:
+      tags:
+        - users
+      summary: Get aggregate data for a single team
+      description: >
+        Returns a single team's channels, channel members, sidebar categories and
+        the roles needed to evaluate permissions within it, so a client switching
+        to a team it has not loaded yet can do so in one request instead of
+        several.
+
+
+        Pass `since` to get a delta response containing only what changed since
+        that cursor, including the IDs of channels the user has left; omit it (or
+        pass `0`) for a full snapshot. Store the response's `timestamp` field and
+        pass it back as `since` on the next call.
+
+
+        Direct and group message channels are not returned, since they are not
+        team-scoped.
+
+
+        This endpoint is rate limited per session.
+
+        ##### Permissions
+        Must be an active member of the team.
+      operationId: GetTeamLoad
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Cursor from a previous call's `timestamp` field. When provided,
+            the response contains only data that changed since that cursor.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Team load data retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamLoadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Feature disabled. Returned when the `EnableExperienceAPI`
+            feature flag is off.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/api/v4/users/{user_id}":
     get:
       tags:
