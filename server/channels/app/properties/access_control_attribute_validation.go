@@ -136,6 +136,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
+	if err := model.ValidatePropertyFieldActions(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
 	return nil
 }
 

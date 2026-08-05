@@ -80,6 +80,42 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 	})
 
+	t.Run("allows classification and smart label actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayLabelHeader,
+				model.PropertyFieldActionDisplayLabelInfo,
+			}},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.Equal(t, []any{
+			model.PropertyFieldActionDisplayBannerTop,
+			model.PropertyFieldActionDisplayLabelHeader,
+			model.PropertyFieldActionDisplayLabelInfo,
+		}, created.Attrs[model.PropertyFieldAttrActions])
+	})
+
+	t.Run("rejects invalid actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "unknown action")
+	})
+
 	t.Run("rejects invalid visibility on update", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
@@ -93,6 +129,21 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "visibility")
+	})
+
+	t.Run("rejects invalid actions on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {

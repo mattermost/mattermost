@@ -69,6 +69,64 @@ func TestValidatePropertyFieldSortOrder(t *testing.T) {
 	}
 }
 
+func TestValidatePropertyFieldActions(t *testing.T) {
+	tests := []struct {
+		name      string
+		attrs     StringInterface
+		want      []any
+		wantKey   bool
+		wantError string
+	}{
+		{name: "nil attrs", attrs: nil},
+		{name: "no actions key", attrs: StringInterface{"other": "value"}},
+		{name: "nil actions", attrs: StringInterface{PropertyFieldAttrActions: nil}, wantKey: true},
+		{name: "empty typed actions", attrs: StringInterface{PropertyFieldAttrActions: []string{}}},
+		{name: "empty decoded actions", attrs: StringInterface{PropertyFieldAttrActions: []any{}}},
+		{
+			name:    "classification banner actions",
+			attrs:   StringInterface{PropertyFieldAttrActions: []any{PropertyFieldActionDisplayBannerTop, PropertyFieldActionDisplayBannerBottom}},
+			want:    []any{PropertyFieldActionDisplayBannerTop, PropertyFieldActionDisplayBannerBottom},
+			wantKey: true,
+		},
+		{
+			name:    "smart label actions are trimmed and canonicalized",
+			attrs:   StringInterface{PropertyFieldAttrActions: []string{" " + PropertyFieldActionDisplayLabelHeader + " ", PropertyFieldActionDisplayLabelInfo}},
+			want:    []any{PropertyFieldActionDisplayLabelHeader, PropertyFieldActionDisplayLabelInfo},
+			wantKey: true,
+		},
+		{name: "non-array", attrs: StringInterface{PropertyFieldAttrActions: "display_label_header"}, wantError: "actions must be an array"},
+		{name: "non-string element", attrs: StringInterface{PropertyFieldAttrActions: []any{42}}, wantError: "actions[0] must be a string"},
+		{name: "empty action", attrs: StringInterface{PropertyFieldAttrActions: []any{" "}}, wantError: "actions must not contain empty strings"},
+		{name: "unknown action", attrs: StringInterface{PropertyFieldAttrActions: []any{"unknown"}}, wantError: "unknown action"},
+		{
+			name:      "duplicate action",
+			attrs:     StringInterface{PropertyFieldAttrActions: []any{PropertyFieldActionDisplayLabelHeader, PropertyFieldActionDisplayLabelHeader}},
+			wantError: "duplicate action",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{Attrs: tt.attrs}
+			err := ValidatePropertyFieldActions(field)
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+
+			require.NoError(t, err)
+			if field.Attrs == nil {
+				return
+			}
+			actual, ok := field.Attrs[PropertyFieldAttrActions]
+			require.Equal(t, tt.wantKey, ok)
+			if tt.wantKey && tt.want != nil {
+				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
 func TestValidatePropertyValueForValueType(t *testing.T) {
 	tests := []struct {
 		name      string

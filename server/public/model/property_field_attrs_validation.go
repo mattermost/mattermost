@@ -20,6 +20,16 @@ const (
 	PropertyFieldAttrSAML        = "saml"
 	PropertyFieldAttrManaged     = "managed"
 	PropertyFieldAttrDisplayName = "display_name"
+	// PropertyFieldAttrActions lists the rendering actions a field triggers.
+	PropertyFieldAttrActions = "actions"
+)
+
+// Valid action values for PropertyFieldAttrActions.
+const (
+	PropertyFieldActionDisplayBannerTop    = "display_banner_top"
+	PropertyFieldActionDisplayBannerBottom = "display_banner_bottom"
+	PropertyFieldActionDisplayLabelHeader  = "display_label_header"
+	PropertyFieldActionDisplayLabelInfo    = "display_label_info"
 )
 
 // Valid visibility values for property fields.
@@ -189,4 +199,75 @@ func GetPropertyFieldSyncSource(field *PropertyField) string {
 		return "saml"
 	}
 	return ""
+}
+
+// IsValidPropertyFieldAction reports whether the given string is a known action value.
+func IsValidPropertyFieldAction(a string) bool {
+	switch a {
+	case PropertyFieldActionDisplayBannerTop,
+		PropertyFieldActionDisplayBannerBottom,
+		PropertyFieldActionDisplayLabelHeader,
+		PropertyFieldActionDisplayLabelInfo:
+		return true
+	default:
+		return false
+	}
+}
+
+// ValidatePropertyFieldActions validates the "actions" attr on a PropertyField.
+// Nil, absent, or empty arrays are valid. Non-array values, non-string elements,
+// empty/whitespace strings, unknown actions, and duplicates are rejected.
+// On success the attr is written back in canonical []any form with trimmed strings.
+func ValidatePropertyFieldActions(field *PropertyField) error {
+	if field.Attrs == nil {
+		return nil
+	}
+
+	raw, ok := field.Attrs[PropertyFieldAttrActions]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	// Accept both the JSON-decoded []any shape and typed []string.
+	var items []string
+	switch v := raw.(type) {
+	case []string:
+		items = v
+	case []any:
+		items = make([]string, 0, len(v))
+		for i, elem := range v {
+			s, ok := elem.(string)
+			if !ok {
+				return fmt.Errorf("actions[%d] must be a string, got %T", i, elem)
+			}
+			items = append(items, s)
+		}
+	default:
+		return fmt.Errorf("actions must be an array, got %T", raw)
+	}
+
+	if len(items) == 0 {
+		delete(field.Attrs, PropertyFieldAttrActions)
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(items))
+	canonical := make([]any, 0, len(items))
+	for _, s := range items {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return fmt.Errorf("actions must not contain empty strings")
+		}
+		if !IsValidPropertyFieldAction(s) {
+			return fmt.Errorf("unknown action %q", s)
+		}
+		if _, dup := seen[s]; dup {
+			return fmt.Errorf("duplicate action %q", s)
+		}
+		seen[s] = struct{}{}
+		canonical = append(canonical, s)
+	}
+
+	field.Attrs[PropertyFieldAttrActions] = canonical
+	return nil
 }

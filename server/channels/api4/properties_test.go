@@ -196,6 +196,42 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 	})
 }
 
+func TestPropertyRoutesWithChannelAttributesFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "channel_attributes_test",
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+	require.NotNil(t, group)
+
+	field := &model.PropertyField{
+		Name:       model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+	}
+	createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "channel", field)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.NotEmpty(t, createdField.ID)
+
+	fields, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), group.Name, "channel", model.PropertyFieldSearch{TargetType: "system"})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Len(t, fields, 1)
+	require.Equal(t, createdField.ID, fields[0].ID)
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -3744,6 +3780,24 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		return createdField
 	}
 
+	createAdminField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		adminLevel := model.PermissionLevelAdmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return createdField
+	}
+
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
@@ -3824,6 +3878,19 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("DM channel - system admin non-participant can write admin-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createAdminField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-admin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+
 	t.Run("GM channel - participant can write", func(t *testing.T) {
 		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3848,6 +3915,158 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 			{FieldID: f.ID, Value: json.RawMessage(`"should-fail"`)},
 		}
 		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GM channel - system admin non-participant can write admin-tier value", func(t *testing.T) {
+		thirdUser := th.CreateUser(t)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, thirdUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		f := createAdminField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"gm-admin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+	})
+}
+
+// TestPatchPropertyValuesChannelAdminTier covers the two independent gates an
+// admin-tier channel value write has to clear: the outer per-channel
+// "may write properties here" check (manage_*_channel_properties, a channel_user
+// grant) and the inner per-field tier (manage_channel_roles, a channel_admin
+// grant that team_admin also carries). Clearing one never implies the other.
+func TestPatchPropertyValuesChannelAdminTier(t *testing.T) {
+	mainHelper.Parallel(t)
+	// ChannelAttributes is the only enabled gate flag, so this also asserts it
+	// opens the channel *value* routes and not just the field routes.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_admin_tier", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+
+	adminLevel := model.PermissionLevelAdmin
+
+	createAdminField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		createdField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+		return createdField
+	}
+
+	newChannel := func(t *testing.T, channelType model.ChannelType) *model.Channel {
+		t.Helper()
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        channelType,
+			Name:        model.NewId(),
+			DisplayName: "Channel Attributes Test",
+			CreatorId:   th.SystemAdminUser.Id,
+		}, false)
+		require.Nil(t, appErr)
+		return channel
+	}
+
+	loginNewClient := func(t *testing.T, user *model.User) *model.Client4 {
+		t.Helper()
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+		return client
+	}
+
+	t.Run("plain channel member cannot write an admin-tier value", func(t *testing.T) {
+		f := createAdminField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"member-attempt"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel admin can write an admin-tier value", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, channel)
+		th.MakeUserChannelAdmin(t, channelAdmin, channel)
+		client := loginNewClient(t, channelAdmin)
+
+		f := createAdminField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"channel-admin-val"`)},
+		}
+		values, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"channel-admin-val"`), values[0].Value)
+	})
+
+	t.Run("team admin inherits the admin tier inside a channel they belong to", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypeOpen)
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, teamAdmin, th.BasicTeam)
+		member := th.AddUserToChannel(t, teamAdmin, channel)
+		// The admin tier has to come from the team role: this membership is a
+		// plain channel_user, so channel_admin cannot be the reason it passes.
+		require.False(t, member.SchemeAdmin)
+		client := loginNewClient(t, teamAdmin)
+
+		f := createAdminField(t)
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"team-admin-val"`)},
+		}
+		values, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"team-admin-val"`), values[0].Value)
+	})
+
+	t.Run("team admin outside the channel is stopped by the outer property-write gate", func(t *testing.T) {
+		channel := newChannel(t, model.ChannelTypePrivate)
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, teamAdmin, th.BasicTeam)
+		client := loginNewClient(t, teamAdmin)
+
+		f := createAdminField(t)
+
+		// Inner tier is satisfied without membership: manage_channel_roles
+		// cascades from the team role.
+		require.True(t, th.App.HasPermissionToSetPropertyFieldValues(th.Context, teamAdmin.Id, f, channel.Id))
+
+		// The outer gate is independent and still rejects the write:
+		// manage_private_channel_properties is a channel_user grant that
+		// team_admin does not carry.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"outside-attempt"`)},
+		}
+		_, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "channel", channel.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
