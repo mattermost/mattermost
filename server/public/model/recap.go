@@ -42,6 +42,11 @@ type AIRecapSummaryResponse struct {
 	ActionItems []string `json:"action_items"`
 }
 
+// MarkRecapsViewedResponse is the response of POST /api/v4/recaps/mark_viewed.
+type MarkRecapsViewedResponse struct {
+	RecapIds []string `json:"recap_ids"`
+}
+
 type RecapProcessingOptions struct {
 	TimePeriod         string
 	CustomInstructions string
