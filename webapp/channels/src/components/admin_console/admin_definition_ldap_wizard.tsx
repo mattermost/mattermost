@@ -255,6 +255,37 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
         ],
     },
     {
+        key: 'admin.authentication.ldap.login_button',
+        title: 'Login Button',
+        subtitle: 'Customize the AD/LDAP login button for white labeling in the mobile apps.',
+        settings: [
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonColorTitle', defaultMessage: 'AD/LDAP Login Button Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonColorDesc', defaultMessage: 'Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+            },
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonBorderColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonBorderColorTitle', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonBorderColorDesc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+            },
+            {
+                type: 'color',
+                key: 'LdapSettings.LoginButtonTextColor',
+                label: defineMessage({id: 'admin.ldap.loginButtonTextColorTitle', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
+                help_text: defineMessage({id: 'admin.ldap.loginButtonTextColorDesc', defaultMessage: 'Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
+                help_text_markdown: false,
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+            },
+        ],
+    },
+    {
         key: 'admin.authentication.ldap.dn_and_filters',
         title: 'User Filters',
         subtitle: 'Tell Mattermost how to identify your users within LDAP',

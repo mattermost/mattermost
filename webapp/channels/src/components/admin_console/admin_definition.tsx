@@ -6439,33 +6439,6 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.experimental.experimentalFeatures', defaultMessage: 'Experimental Features'}),
                     settings: [
                         {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.title', defaultMessage: 'AD/LDAP Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.title', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.title', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
                             type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableAuthenticationTransfer',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAuthenticationTransfer.title', defaultMessage: 'Allow Authentication Transfer:'}),

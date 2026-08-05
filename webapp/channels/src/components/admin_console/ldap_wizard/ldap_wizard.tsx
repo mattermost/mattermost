@@ -25,6 +25,7 @@ import {isMessageDescriptor} from 'utils/i18n';
 
 import LDAPBooleanSetting from './ldap_boolean_setting';
 import LDAPButtonSetting from './ldap_button_setting';
+import LDAPColorSetting from './ldap_color_setting';
 import LDAPCustomSetting from './ldap_custom_setting';
 import LDAPDropdownSetting from './ldap_dropdown_setting';
 import LDAPExpandableSetting from './ldap_expandable_setting';
@@ -232,6 +233,19 @@ const LDAPWizard = (props: Props) => {
         );
     };
 
+    const buildColorSetting = (setting: AdminDefinitionSetting) => {
+        return (
+            <LDAPColorSetting
+                key={schema.id + '_color_' + setting.key}
+                value={state[setting.key!] as string || ''}
+                onChange={handleChange}
+                schema={schema}
+                disabled={isDisabled(setting)}
+                setting={setting}
+            />
+        );
+    };
+
     const buildJobsTableSetting = (setting: AdminDefinitionSetting) => {
         return (
             <LDAPJobsTableSetting
@@ -319,7 +333,7 @@ const LDAPWizard = (props: Props) => {
         [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: buildFileUploadSetting,
         [Constants.SettingsTypes.TYPE_CUSTOM]: buildCustomSetting,
         [Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING]: buildExpandableSetting,
-        [Constants.SettingsTypes.TYPE_COLOR]: nullFunction,
+        [Constants.SettingsTypes.TYPE_COLOR]: buildColorSetting,
         [Constants.SettingsTypes.TYPE_PERMISSION]: nullFunction,
         [Constants.SettingsTypes.TYPE_RADIO]: nullFunction,
         [Constants.SettingsTypes.TYPE_BANNER]: nullFunction,
