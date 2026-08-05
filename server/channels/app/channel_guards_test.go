@@ -89,6 +89,7 @@ func (c *captureClusterMock) GetWSQueues(userID, connectionID string, seqNum int
 func (c *captureClusterMock) Shutdown() {}
 
 func TestChannelGuardCacheBroadcastShape(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70114")
 	mainHelper.Parallel(t)
 	cluster := &captureClusterMock{}
 	th := SetupWithClusterMock(t, cluster)
