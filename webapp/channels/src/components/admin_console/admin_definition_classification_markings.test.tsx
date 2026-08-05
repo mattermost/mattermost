@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -87,6 +88,14 @@ describe('AdminDefinition - Classification Markings discovery', () => {
 
         const schema = discoverySubsection.schema;
         expect('name' in schema ? schema.name : undefined).toEqual(settingsSubsection.title);
+    });
+
+    test('advertises Enterprise Advanced as the required tier in the restricted indicator', () => {
+        const restrictedIndicator = discoverySubsection.restrictedIndicator;
+        expect(restrictedIndicator).toBeDefined();
+
+        const indicator = restrictedIndicator!.value({} as CloudState);
+        expect(indicator.props.minimumPlanRequiredForFeature).toBe(LicenseSkus.EnterpriseAdvanced);
     });
 
     test('shows discovery instead of settings for Professional licenses', () => {
