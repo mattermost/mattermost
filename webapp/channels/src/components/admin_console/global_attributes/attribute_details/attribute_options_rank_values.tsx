@@ -26,6 +26,7 @@ const labelInputCustomStyles = css`
 type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
+    disabled?: boolean;
 };
 
 // Renders a ranked field's options as numbered chips in ascending rank order
@@ -36,7 +37,7 @@ type Props = {
 // to a brand-new, unsaved attribute draft. Shared add/remove/rename/duplicate
 // logic lives in use_option_chip_editor.ts, consumed by this and the
 // Select/Multiselect editor.
-const AttributeOptionsRankValues = ({options, onOptionsChange}: Props) => {
+const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const ascOptions = useMemo(() => sortOptionsByRankAsc(options), [options]);
@@ -78,6 +79,7 @@ const AttributeOptionsRankValues = ({options, onOptionsChange}: Props) => {
                         onRename={handleRename}
                         onMoveToPosition={handleMoveToPosition}
                         onRemove={handleRemove}
+                        disabled={disabled}
                     />
                 ))}
                 <span
@@ -96,6 +98,7 @@ const AttributeOptionsRankValues = ({options, onOptionsChange}: Props) => {
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleQueryKeyDown}
                         onBlur={addValue}
+                        disabled={disabled}
                     />
                 </span>
             </div>
@@ -123,10 +126,11 @@ type RankChipProps = {
     onRename: (ascIndex: number, name: string) => void;
     onMoveToPosition: (ascIndex: number, targetAscIndex: number) => void;
     onRemove: (ascIndex: number) => void;
+    disabled?: boolean;
 };
 
 // A single ranked chip plus its inline editing popover.
-const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove}: RankChipProps) => {
+const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, disabled = false}: RankChipProps) => {
     const {formatMessage} = useIntl();
     const total = sortedRanks.length;
     const [label, setLabel] = useState(option.name);
@@ -188,6 +192,7 @@ const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameColli
                 menuButton={{
                     id: chipId,
                     class: 'attribute-options-rank-values__chip-name',
+                    disabled,
                     children: (
                         <span
                             className='attribute-options-rank-values__chip-label'
@@ -269,6 +274,7 @@ const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameColli
                 data-testid={`${chipId}-remove`}
                 onClick={() => onRemove(ascIndex)}
                 aria-label={removeLabel}
+                disabled={disabled}
             >
                 <components.CrossIcon size={14}/>
             </button>

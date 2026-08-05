@@ -31,6 +31,11 @@ export default function CardBody(props: CardChildProps & {children: React.ReactN
 
     useEffect(() => {
         if (props.disableExpandAnimation) {
+            // Keep local state in sync with props while animation is
+            // skipped, so it isn't stale if disableExpandAnimation later
+            // flips back to false.
+            setExpanding(false);
+            setExpanded(Boolean(props.expanded));
             return;
         }
 

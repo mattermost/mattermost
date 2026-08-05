@@ -24,7 +24,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
+import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeOptionsRankValues from './attribute_options_rank_values';
@@ -109,7 +109,11 @@ function nameErrorMessage(error: CPAFieldNameValidationError, formatMessage: Int
     return formatMessage(nameErrorMessages.invalidCharset);
 }
 
-function AttributeDetails(): JSX.Element {
+type Props = {
+    disabled?: boolean;
+};
+
+function AttributeDetails({disabled = false}: Props): JSX.Element {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
@@ -283,7 +287,7 @@ function AttributeDetails(): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const canSave = Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null;
+    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null;
 
     const handleSave = useCallback(async () => {
         if (!canSave) {
@@ -373,7 +377,7 @@ function AttributeDetails(): JSX.Element {
                                         value={displayName}
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
-                                        disabled={saving}
+                                        disabled={saving || disabled}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
@@ -400,7 +404,8 @@ function AttributeDetails(): JSX.Element {
                                                     onChange={handleNameChange}
                                                     onKeyDown={handleNameKeyDown}
                                                     autoFocus={true}
-                                                    disabled={saving}
+                                                    disabled={saving || disabled}
+                                                    maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
                                                     aria-invalid={Boolean(nameValidationError) || isServerNameError}
@@ -419,7 +424,7 @@ function AttributeDetails(): JSX.Element {
                                                 type='button'
                                                 className='AttributeDetails__editLink'
                                                 onClick={isEditingName ? handleDoneClick : handleEditClick}
-                                                disabled={saving}
+                                                disabled={saving || disabled}
                                                 aria-label={formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
                                                 data-testid='attributeNameEditLink'
                                             >
@@ -464,7 +469,7 @@ function AttributeDetails(): JSX.Element {
                                         menuButton={{
                                             id: 'attribute-type-menu-button',
                                             class: 'AttributeDetails__typeButton',
-                                            disabled: saving,
+                                            disabled: saving || disabled,
                                             'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
                                             children: (
                                                 <>
@@ -516,11 +521,13 @@ function AttributeDetails(): JSX.Element {
                                                 <AttributeOptionsRankValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
+                                                    disabled={saving || disabled}
                                                 />
                                             ) : (
                                                 <AttributeOptionsValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
+                                                    disabled={saving || disabled}
                                                 />
                                             )}
                                             {optionsIssue && (

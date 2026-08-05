@@ -24,6 +24,7 @@ const labelInputCustomStyles = css`
 type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
+    disabled?: boolean;
 };
 
 // Moves the option at fromIndex to toIndex, a plain array-position splice with
@@ -49,7 +50,7 @@ const buildNewOption = (name: string): PropertyFieldOption => ({id: '', name});
 // reorder requirement needs the same keyboard-accessible popover Rank already
 // has, not a mouse-only drag surface. Shared add/remove/rename/duplicate logic
 // lives in use_option_chip_editor.ts, consumed by this and the Rank editor.
-const AttributeOptionsValues = ({options, onOptionsChange}: Props) => {
+const AttributeOptionsValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const {
@@ -83,6 +84,7 @@ const AttributeOptionsValues = ({options, onOptionsChange}: Props) => {
                         onRename={handleRename}
                         onMoveToPosition={handleMoveToPosition}
                         onRemove={handleRemove}
+                        disabled={disabled}
                     />
                 ))}
                 <span
@@ -101,6 +103,7 @@ const AttributeOptionsValues = ({options, onOptionsChange}: Props) => {
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleQueryKeyDown}
                         onBlur={addValue}
+                        disabled={disabled}
                     />
                 </span>
             </div>
@@ -128,10 +131,11 @@ type OptionChipProps = {
     onRename: (index: number, name: string) => void;
     onMoveToPosition: (index: number, targetIndex: number) => void;
     onRemove: (index: number) => void;
+    disabled?: boolean;
 };
 
 // A single removable chip plus its inline rename/reorder popover.
-const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove}: OptionChipProps) => {
+const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, disabled = false}: OptionChipProps) => {
     const {formatMessage} = useIntl();
     const [label, setLabel] = useState(option.name);
 
@@ -177,6 +181,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 menuButton={{
                     id: chipId,
                     class: 'attribute-options-values__chip-name',
+                    disabled,
                     children: (
                         <span
                             className='attribute-options-values__chip-label'
@@ -255,6 +260,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 data-testid={`${chipId}-remove`}
                 onClick={() => onRemove(index)}
                 aria-label={removeLabel}
+                disabled={disabled}
             >
                 <components.CrossIcon size={14}/>
             </button>

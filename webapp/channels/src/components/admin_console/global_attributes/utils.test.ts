@@ -9,6 +9,10 @@ import {createAttributeField} from './utils';
 
 describe('global_attributes/utils', () => {
     describe('createAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
         it('calls Client4.createPropertyField with the expected bare-text template shape', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 

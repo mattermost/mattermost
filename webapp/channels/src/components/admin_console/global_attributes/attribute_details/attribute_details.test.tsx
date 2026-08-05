@@ -39,6 +39,7 @@ function makeClientError(serverErrorId: string, message = 'error'): ClientError 
 describe('AttributeDetails', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     const renderComponent = () => renderWithContext(<AttributeDetails/>);
@@ -451,6 +452,34 @@ describe('AttributeDetails', () => {
 
         // Reverts to the auto-derived slug, since this was the first-ever edit session.
         expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+    });
+
+    it('pressing Escape after a manual name was already committed restores the committed value, not the auto-derived slug', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        let nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'committed_name{Enter}');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
+
+        // Reopen the editor and change the value, then discard via Escape.
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'discarded_name{Escape}');
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+
+        // Restores the previously-committed manual name, not the auto-derived slug.
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
+
+        // Still manually edited: a further Display name change must not
+        // silently re-derive the Name back from it.
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Extra');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
     });
 
     it('disables the Display name input, Name input, and Edit/Done link while saving', async () => {

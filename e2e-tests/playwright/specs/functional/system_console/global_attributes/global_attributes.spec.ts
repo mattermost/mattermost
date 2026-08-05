@@ -530,6 +530,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
 
                 await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
 
                 // # Switch type to Select
                 await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
@@ -582,6 +583,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 await systemConsolePage.page.getByTestId('newAttributeButton').click();
                 await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
 
                 await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
                 await systemConsolePage.page.getByRole('menuitemradio', {name: /Ranked/}).click();

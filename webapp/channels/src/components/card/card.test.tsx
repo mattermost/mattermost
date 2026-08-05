@@ -99,6 +99,50 @@ describe('components/card/card', () => {
         expect(body).not.toHaveAttribute('style');
     });
 
+    test('re-enabling animation after expanded goes false while disabled does not leave a stale expanded class', () => {
+        const {container, rerender} = renderWithContext(
+            <Card expanded={true}>
+                <Card.Header>{'Header Test'}</Card.Header>
+                <Card.Body>{'Body Test'}</Card.Body>
+            </Card>,
+        );
+
+        // Enter the disabled-animation path while still expanded, then
+        // collapse while animation is disabled -- local state must track
+        // this, not just the initial disabled-path render.
+        rerender(
+            <Card
+                expanded={true}
+                disableExpandAnimation={true}
+            >
+                <Card.Header>{'Header Test'}</Card.Header>
+                <Card.Body>{'Body Test'}</Card.Body>
+            </Card>,
+        );
+        rerender(
+            <Card
+                expanded={false}
+                disableExpandAnimation={true}
+            >
+                <Card.Header>{'Header Test'}</Card.Header>
+                <Card.Body>{'Body Test'}</Card.Body>
+            </Card>,
+        );
+
+        // Re-enable animation -- without syncing local state while disabled,
+        // this would render with a stale 'expanded' class left over from the
+        // very first render.
+        rerender(
+            <Card expanded={false}>
+                <Card.Header>{'Header Test'}</Card.Header>
+                <Card.Body>{'Body Test'}</Card.Body>
+            </Card>,
+        );
+
+        const body = container.querySelector('.Card__body');
+        expect(body).not.toHaveClass('expanded');
+    });
+
     test('a real transitionend event clears expanding immediately', () => {
         const props = {
             expanded: true,
