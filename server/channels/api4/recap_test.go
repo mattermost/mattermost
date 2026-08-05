@@ -11,32 +11,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// enableRecapsForTest turns on the AI Recaps feature and disables the manual
-// cooldown so tests can create multiple recaps back to back.
-func enableRecapsForTest(th *TestHelper) {
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.EnableAIRecaps = true
-		cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(0)
-	})
+// recapTestConfig enables AI Recaps (must happen at setup time: SetupConfig
+// unlocks feature-flag writes, which plain Setup keeps read-only), stops job
+// workers so recaps stay in the status the API wrote, and defensively zeroes
+// the manual cooldown so tests can create recaps back to back.
+func recapTestConfig(cfg *model.Config) {
+	cfg.FeatureFlags.EnableAIRecaps = true
+	cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(0)
+	cfg.AIRecapSettings.DefaultLimits.MaxRecapsPerDay = model.NewPointer(10)
+	cfg.JobSettings.RunJobs = model.NewPointer(false)
+}
+
+// withRecapsDisabled toggles the AI Recaps feature flag off for the duration
+// of the callback.
+func withRecapsDisabled(th *TestHelper, fn func()) {
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+	fn()
 }
 
 func TestCreateRecap(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	t.Run("feature disabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = false })
-
-		_, resp, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
-			Title:      "My recap",
-			ChannelIds: []string{th.BasicChannel.Id},
-			AgentID:    model.NewId(),
+		withRecapsDisabled(th, func() {
+			_, resp, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
+				Title:      "My recap",
+				ChannelIds: []string{th.BasicChannel.Id},
+				AgentID:    model.NewId(),
+			})
+			require.Error(t, err)
+			CheckNotImplementedStatus(t, resp)
 		})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
 	})
-
-	enableRecapsForTest(th)
 
 	t.Run("invalid request bodies", func(t *testing.T) {
 		for name, req := range map[string]*model.CreateRecapRequest{
@@ -85,8 +93,7 @@ func TestCreateRecap(t *testing.T) {
 
 func TestGetRecap(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	created, _, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
 		Title:      "My recap",
@@ -120,8 +127,7 @@ func TestGetRecap(t *testing.T) {
 
 func TestGetRecaps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	first, _, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
 		Title:      "First recap",
@@ -162,16 +168,13 @@ func TestGetRecaps(t *testing.T) {
 
 		recaps, _, err := th.Client.GetRecaps(context.Background(), 0, 10)
 		require.NoError(t, err)
-		for _, recap := range recaps {
-			require.NotEqual(t, th.BasicUser.Id, recap.UserId)
-		}
+		require.Empty(t, recaps)
 	})
 }
 
 func TestGetRecapLimitStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	status, _, err := th.Client.GetRecapLimitStatus(context.Background())
 	require.NoError(t, err)
@@ -193,8 +196,7 @@ func TestGetRecapLimitStatus(t *testing.T) {
 
 func TestMarkRecapReadAndViewed(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	created, _, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
 		Title:      "My recap",
@@ -219,6 +221,10 @@ func TestMarkRecapReadAndViewed(t *testing.T) {
 	})
 
 	t.Run("mark viewed", func(t *testing.T) {
+		// Only completed/failed recaps get marked viewed; nothing processes
+		// the pending recap in this harness, so complete it directly.
+		require.NoError(t, th.App.Srv().Store().Recap().UpdateRecapStatus(created.Id, model.RecapStatusCompleted))
+
 		viewed, _, err := th.Client.MarkRecapsAsViewed(context.Background())
 		require.NoError(t, err)
 		require.Contains(t, viewed.RecapIds, created.Id)
@@ -229,10 +235,43 @@ func TestMarkRecapReadAndViewed(t *testing.T) {
 	})
 }
 
+func TestRegenerateRecap(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
+
+	created, _, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
+		Title:      "My recap",
+		ChannelIds: []string{th.BasicChannel.Id},
+		AgentID:    model.NewId(),
+	})
+	require.NoError(t, err)
+
+	t.Run("other user cannot regenerate", func(t *testing.T) {
+		th.LoginBasic2(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.RegenerateRecap(context.Background(), created.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("unknown recap", func(t *testing.T) {
+		_, resp, err := th.Client.RegenerateRecap(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("owner can regenerate", func(t *testing.T) {
+		recap, _, err := th.Client.RegenerateRecap(context.Background(), created.Id)
+		require.NoError(t, err)
+		require.Equal(t, created.Id, recap.Id)
+		require.Equal(t, model.RecapStatusPending, recap.Status)
+	})
+}
+
 func TestDeleteRecap(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	created, _, err := th.Client.CreateRecap(context.Background(), &model.CreateRecapRequest{
 		Title:      "My recap",
@@ -276,17 +315,15 @@ func newTestScheduledRecap(th *TestHelper) *model.ScheduledRecap {
 
 func TestCreateScheduledRecap(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	t.Run("feature disabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = false })
-
-		_, resp, err := th.Client.CreateScheduledRecap(context.Background(), newTestScheduledRecap(th))
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		withRecapsDisabled(th, func() {
+			_, resp, err := th.Client.CreateScheduledRecap(context.Background(), newTestScheduledRecap(th))
+			require.Error(t, err)
+			CheckNotImplementedStatus(t, resp)
+		})
 	})
-
-	enableRecapsForTest(th)
 
 	t.Run("missing required fields", func(t *testing.T) {
 		scheduledRecap := newTestScheduledRecap(th)
@@ -310,8 +347,7 @@ func TestCreateScheduledRecap(t *testing.T) {
 
 func TestScheduledRecapLifecycle(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	enableRecapsForTest(th)
+	th := SetupConfig(t, recapTestConfig).InitBasic(t)
 
 	created, _, err := th.Client.CreateScheduledRecap(context.Background(), newTestScheduledRecap(th))
 	require.NoError(t, err)
