@@ -1,0 +1,71 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributeExternalSource {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    gap: 8px;
+}
+
+.AttributeExternalSource__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chipLabel {
+    line-height: 16px;
+}
+
+.AttributeExternalSource__chipAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+}
+
+// Adapts .AttributeDetails__editLink's link-button styling to a row layout
+// with a leading icon and trailing chevron, rather than forking it.
+.AttributeExternalSource__trigger {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--link-color);
+    cursor: pointer;
+    font-size: 14px;
+    gap: 6px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
+    .icon {
+        color: inherit;
+        font-size: 16px;
+    }
+}
