@@ -52,7 +52,11 @@ const getArchivedOtherChannels = createSelector(
 const getPrivateChannelsSelector = createSelector(
     'getPrivateChannelsSelector',
     getChannelsInCurrentTeam,
-    (channels: Channel[]) => channels && channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL),
+    // Active private channels only. Archived private channels are surfaced
+    // exclusively through `archivedChannels`; including them here would both
+    // leak them past the Hide Archived toggle and double them up alongside the
+    // archived list.
+    (channels: Channel[]) => channels && channels.filter((c) => c.delete_at === 0 && c.type === Constants.PRIVATE_CHANNEL),
 );
 
 function mapStateToProps(state: GlobalState) {
