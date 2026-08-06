@@ -262,7 +262,7 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
 	defer es.Stop()
 	appErr := es.Start(context.Background())
-	require.Error(t, appErr)
+	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
 	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
 	require.Equal(t, int32(0), es.ready.Load())
@@ -290,7 +290,7 @@ func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
 	defer func() { require.Nil(t, es.Stop()) }()
 
 	appErr := es.Start(context.Background())
-	require.Error(t, appErr)
+	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
 	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
 	require.Equal(t, int32(0), es.ready.Load())

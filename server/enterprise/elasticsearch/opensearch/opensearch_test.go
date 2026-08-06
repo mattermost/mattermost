@@ -157,7 +157,7 @@ func TestWrapPostsTemplateError(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			wrapped := wrapPostsTemplateError(tc.err)
-			require.NotNil(t, wrapped)
+			require.Error(t, wrapped)
 			for _, field := range tc.wantCauseFields {
 				require.Contains(t, wrapped.Error(), field)
 			}
@@ -204,7 +204,7 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 
 	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
 	appErr := impl.Start(context.Background())
-	require.Error(t, appErr)
+	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "icu_tokenizer")
 	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 	require.Equal(t, int32(0), impl.ready.Load())
@@ -234,7 +234,7 @@ func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
 	defer func() { require.Nil(t, osImpl.Stop()) }()
 
 	appErr := osImpl.Start(context.Background())
-	require.Error(t, appErr)
+	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
 	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 	require.Equal(t, int32(0), osImpl.ready.Load())
