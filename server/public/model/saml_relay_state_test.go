@@ -4,8 +4,11 @@
 package model
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -35,6 +38,9 @@ func TestSignAndVerifySamlRelayStateRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, OAuthActionSignup, got["action"])
 	assert.Equal(t, "some-invite-id", got["invite_id"])
+	// The expiry field is internal bookkeeping and must not leak into the caller's relayProps.
+	_, hasExp := got["exp"]
+	assert.False(t, hasExp)
 }
 
 func TestSignSamlRelayStateDoesNotMutateInput(t *testing.T) {
@@ -105,6 +111,24 @@ func TestVerifySamlRelayStateRejectsMalformedInput(t *testing.T) {
 		_, err := VerifySamlRelayState(key, tc)
 		assert.Error(t, err, "expected rejection for input: %q", tc)
 	}
+}
+
+func TestVerifySamlRelayStateRejectsExpired(t *testing.T) {
+	key := testSamlRelayStateKey(t)
+
+	// Hand-construct a relay state with a backdated expiry, using the same wire format as
+	// SignSamlRelayState, since that function always embeds a fresh (non-expired) expiry.
+	expiredProps := map[string]string{
+		"action": OAuthActionSignup,
+		"exp":    strconv.FormatInt(GetMillis()-1000, 10),
+	}
+	payload := []byte(MapToJSON(expiredProps))
+	mac := hmac.New(sha256.New, key)
+	mac.Write(payload)
+	relayState := base64.RawURLEncoding.EncodeToString(payload) + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	_, err := VerifySamlRelayState(key, relayState)
+	assert.Error(t, err)
 }
 
 func TestVerifySamlRelayStateRejectsLegacyBase64Blob(t *testing.T) {

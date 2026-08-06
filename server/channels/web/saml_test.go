@@ -192,11 +192,15 @@ func TestCompleteSamlRelayStateSignedRoundTrip(t *testing.T) {
 	assert.Equal(t, http.StatusFound, res.Code)
 	assert.Equal(t, model.OAuthActionLogin, capturedRelayProps["action"])
 	assert.Equal(t, "inviteABC", capturedRelayProps["invite_id"])
+	// The internal expiry field is bookkeeping only and must not leak into relayProps.
+	_, hasExp := capturedRelayProps["exp"]
+	assert.False(t, hasExp)
 
-	// A signed RelayState is not single-use and does not expire: replaying it succeeds again.
-	// This is intentional - RelayState carries no field that's trusted without independent
-	// revalidation at the point it's consumed (invite validity, redirect_to scheme/host, etc.),
-	// and expiry is bounded upstream by the IdP's own assertion Conditions, not by Mattermost.
+	// A signed RelayState is not single-use: replaying it within its expiry window succeeds
+	// again. Restricting the replay window to a few minutes (rather than eliminating replay
+	// entirely) is an intentional, low-cost defense-in-depth measure requested by the security
+	// team, on top of the fact that no RelayState field is trusted without independent
+	// revalidation at the point it's consumed (invite validity, redirect_to scheme/host, etc.).
 	res = postCompleteSaml(t, th, "dummy-encoded-xml", capturedRelayState)
 	assert.Equal(t, http.StatusFound, res.Code)
 	fakeSaml.AssertNumberOfCalls(t, "DoLogin", 2)
