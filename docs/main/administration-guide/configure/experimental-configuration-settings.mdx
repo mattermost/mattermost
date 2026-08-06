@@ -284,7 +284,7 @@ Changes made when hardened mode is enabled:
 - Password reset does not inform the user that they can not reset their SSO account through Mattermost and instead claims to have sent the password reset email.
 - Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user facing errors with the server logs.
 
-Post identity and display-override props (`from_webhook`, `from_bot`, `override_username`, `override_icon_url`, and related keys) are always stripped on create/update for non-integration authors and re-applied only under verified integration authority. That behavior is independent of hardened mode.
+Post identity and display-override props (`from_webhook`, `from_bot`, `override_username`, `override_icon_url`, and related keys) are always stripped from caller-supplied create/update payloads for non-integration authors and re-applied only under verified integration authority. On update, stripping removes values the caller sent; existing identity props already stored on the post are preserved so a normal edit cannot wipe or replace a bot or webhook identity. That behavior is independent of hardened mode.
 
 <table>
 <colgroup>
