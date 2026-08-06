@@ -19,6 +19,6 @@ type BulkExportOpts struct {
 
 type BulkImportOpts struct {
 	// DestinationTeam remaps the source team name to a different team name on
-	// the destination server. Only applies to channel-scoped imports.
+	// the destination server.
 	DestinationTeam string
 }
