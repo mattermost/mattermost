@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -76,21 +75,6 @@ func postPriorityCheck(
 			if user.IsGuest() {
 				return priorityForbiddenErr
 			}
-		}
-	}
-
-	return nil
-}
-
-func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {
-	hardenedModeEnabled := *a.Config().ServiceSettings.ExperimentalEnableHardenedMode
-	return postHardenedModeCheck(hardenedModeEnabled, isIntegration, props)
-}
-
-func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.StringInterface) *model.AppError {
-	if hardenedModeEnabled {
-		if reservedProps := model.ContainsIntegrationsReservedProps(props); len(reservedProps) > 0 && !isIntegration {
-			return model.NewAppError("", "api.context.invalid_body_param.app_error", map[string]any{"Name": "props"}, fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps), http.StatusBadRequest)
 		}
 	}
 

@@ -3062,7 +3062,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	}
 	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
-		thread.Post.SanitizeProps()
+		thread.Post.SanitizeNonIdentityProps()
 		list.AddPost(thread.Post)
 	}
 
@@ -3098,7 +3098,7 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	}
 
 	a.sanitizeProfiles(thread.Participants, false)
-	thread.Post.SanitizeProps()
+	thread.Post.SanitizeNonIdentityProps()
 	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
 }
@@ -3182,7 +3182,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
-	userThread.Post.SanitizeProps()
+	userThread.Post.SanitizeNonIdentityProps()
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
