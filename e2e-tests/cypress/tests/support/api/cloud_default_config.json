@@ -294,10 +294,7 @@
         "QueryTimeout": 60,
         "AnalyticsQueryTimeout": 300,
         "MaxPageSize": 500,
-        "LoginFieldName": "",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7"
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,
