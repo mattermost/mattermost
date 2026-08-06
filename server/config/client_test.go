@@ -849,6 +849,26 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"SAML login button text exposed with license, button colors removed",
+			&model.Config{
+				SamlSettings: model.SamlSettings{
+					Enable:          new(true),
+					LoginButtonText: new("With SAML"),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SAML: new(true),
+				},
+			},
+			map[string]string{
+				"EnableSaml":          "true",
+				"SamlLoginButtonText": "With SAML",
+			},
+			[]string{"SamlLoginButtonColor", "SamlLoginButtonBorderColor", "SamlLoginButtonTextColor"},
+		},
 	}
 
 	for _, testCase := range testCases {
