@@ -219,6 +219,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       elasticsearch-version: "8.9.0"
+      analysis-icu-free-service: "elasticsearch-no-icu"
       test-target: "test-server-elasticsearch"
 
   test-opensearch-v2:
@@ -237,6 +238,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       opensearch-version: "2.19.0"
+      analysis-icu-free-service: "opensearch-no-icu"
       test-target: "test-server-opensearch"
 
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".

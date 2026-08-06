@@ -1,4 +1,8 @@
 ARG OPENSEARCH_VERSION=3.0.0
 FROM opensearchproject/opensearch:$OPENSEARCH_VERSION
 
-RUN /usr/share/opensearch/bin/opensearch-plugin install analysis-icu analysis-nori analysis-kuromoji analysis-smartcn
+ARG INSTALL_ANALYSIS_ICU=true
+
+RUN plugins="analysis-nori analysis-kuromoji analysis-smartcn"; \
+    if [ "$INSTALL_ANALYSIS_ICU" = "true" ]; then plugins="analysis-icu $plugins"; fi; \
+    /usr/share/opensearch/bin/opensearch-plugin install $plugins

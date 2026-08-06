@@ -41,6 +41,11 @@ on:
         required: false
         type: string
         default: "3.0.0"
+      analysis-icu-free-service:
+        description: "Optional search service without analysis-icu for backend startup tests"
+        required: false
+        type: string
+        default: ""
       test-target:
         required: false
         type: string
@@ -151,6 +156,41 @@ jobs:
           echo "$INPUT_NAME" > server/test-name
           echo "$INPUT_PR_NUMBER" > server/pr-number
 
+      - name: Configure analysis-icu-free search backend
+        env:
+          ANALYSIS_ICU_FREE_SERVICE: ${{ inputs.analysis-icu-free-service }}
+        run: |
+          set -euo pipefail
+
+          case "$ANALYSIS_ICU_FREE_SERVICE" in
+            elasticsearch-no-icu)
+              analysis_icu_free_host="elasticsearch-no-icu"
+              analysis_icu_free_port="9200"
+              analysis_icu_free_url="http://${analysis_icu_free_host}:${analysis_icu_free_port}"
+              analysis_icu_free_test_env="MM_TEST_ELASTICSEARCH_ANALYSIS_ICU_FREE_URL"
+              ;;
+            opensearch-no-icu)
+              analysis_icu_free_host="opensearch-no-icu"
+              analysis_icu_free_port="9201"
+              analysis_icu_free_url="http://${analysis_icu_free_host}:${analysis_icu_free_port}"
+              analysis_icu_free_test_env="MM_TEST_OPENSEARCH_ANALYSIS_ICU_FREE_URL"
+              ;;
+            "")
+              echo "COMPOSE_FILE=docker-compose.yml" >> "$GITHUB_ENV"
+              exit 0
+              ;;
+            *)
+              echo "Unsupported analysis-icu-free service: $ANALYSIS_ICU_FREE_SERVICE" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "COMPOSE_FILE=docker-compose.yml:docker-compose.no-icu.yml" >> "$GITHUB_ENV"
+          echo "ANALYSIS_ICU_FREE_SERVICE_HOST=$analysis_icu_free_host" >> "$GITHUB_ENV"
+          echo "ANALYSIS_ICU_FREE_SERVICE_PORT=$analysis_icu_free_port" >> "$GITHUB_ENV"
+          echo "ANALYSIS_ICU_FREE_URL=$analysis_icu_free_url" >> "$GITHUB_ENV"
+          echo "ANALYSIS_ICU_FREE_TEST_ENV=$analysis_icu_free_test_env" >> "$GITHUB_ENV"
+
       - name: Run docker compose
         env:
           ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
@@ -164,6 +204,18 @@ jobs:
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+
+      - name: Start analysis-icu-free search backend
+        if: inputs.analysis-icu-free-service != ''
+        working-directory: server/build
+        env:
+          ANALYSIS_ICU_FREE_SERVICE: ${{ inputs.analysis-icu-free-service }}
+        run: |
+          set -euo pipefail
+
+          docker compose --ansi never up --detach --build "$ANALYSIS_ICU_FREE_SERVICE"
+          docker compose --ansi never run --rm --no-deps start_dependencies \
+            "${ANALYSIS_ICU_FREE_SERVICE_HOST}:${ANALYSIS_ICU_FREE_SERVICE_PORT}"
 
       # ── Test-level sharding ────────────────────────────────────────────
       # When shard-total > 1, we split tests across N parallel runners.
@@ -231,6 +283,8 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.buildenv.outputs.image }}
         run: |
+          set -euo pipefail
+
           RACE_MODE=""
           if [[ "$INPUT_RACE_ENABLED" == "true" ]]; then
             RACE_MODE="-race"
@@ -249,6 +303,11 @@ jobs:
             DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
           fi
 
+          ANALYSIS_ICU_FREE_ENV_ARGS=()
+          if [[ -n "${ANALYSIS_ICU_FREE_TEST_ENV:-}" ]]; then
+            ANALYSIS_ICU_FREE_ENV_ARGS+=(--env "${ANALYSIS_ICU_FREE_TEST_ENV}=${ANALYSIS_ICU_FREE_URL}")
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -261,6 +320,7 @@ jobs:
             --env RACE_MODE \
             --env TEST_TARGET \
             --env BUILD_NUMBER \
+            "${ANALYSIS_ICU_FREE_ENV_ARGS[@]}" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
@@ -290,4 +350,3 @@ jobs:
             server/cover.out
             server/test-name
             server/pr-number
-

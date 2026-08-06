@@ -1,0 +1,18 @@
+# Optional services used by the Elasticsearch/OpenSearch integration tests to
+# verify the startup error path when analysis-icu is not installed.
+services:
+  elasticsearch-no-icu:
+    extends:
+      file: docker-compose.common.yml
+      service: elasticsearch
+    build:
+      args:
+        INSTALL_ANALYSIS_ICU: "false"
+
+  opensearch-no-icu:
+    extends:
+      file: docker-compose.common.yml
+      service: opensearch
+    build:
+      args:
+        INSTALL_ANALYSIS_ICU: "false"
