@@ -635,8 +635,8 @@
     .filter-container {
         position: relative;
         z-index: 1;
-        margin-top: 8px;
         padding: 0px 12px;
+        margin-top: 8px;
         box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
 
         .search__icon {
@@ -658,9 +658,9 @@
                 border-radius: var(--radius-s);
                 background: rgba(var(--sys-sidebar-text-rgb), 0.08);
                 color: var(--sys-sidebar-text);
-                transition: background-color 0.2s ease-in-out;
                 font-size: 14px;
                 outline: none;
+                transition: background-color 0.2s ease-in-out;
 
                 &::placeholder {
                     color: rgba(var(--sys-sidebar-text-rgb), 0.64);
