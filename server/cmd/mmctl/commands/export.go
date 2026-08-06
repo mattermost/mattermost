@@ -157,7 +157,10 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	var teamID string
 	if teamName != "" {
 		team, _, err := c.GetTeamByName(context.TODO(), teamName, "")
-		if err != nil || team == nil {
+		if err != nil {
+			return fmt.Errorf("failed to lookup team %q: %w", teamName, err)
+		}
+		if team == nil {
 			return fmt.Errorf("team %q not found", teamName)
 		}
 		teamID = team.Id
@@ -166,7 +169,10 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 
 	if channelName != "" {
 		channel, _, err := c.GetChannelByName(context.TODO(), channelName, teamID, "")
-		if err != nil || channel == nil {
+		if err != nil {
+			return fmt.Errorf("failed to lookup channel %q in team %q: %w", channelName, teamName, err)
+		}
+		if channel == nil {
 			return fmt.Errorf("channel %q not found in team %q", channelName, teamName)
 		}
 		data["channel_name"] = channelName
