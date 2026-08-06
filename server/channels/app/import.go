@@ -332,8 +332,6 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 
 		// When ExportScopeAdditional is absent (e.g. full-team export from older binaries),
 		// infer sourceTeamName from the first team line so --destination-team still works.
-		// When ExportScopeAdditional is absent (e.g. full-team export from older binaries),
-		// infer sourceTeamName from the first team line so --destination-team still works.
 		if destinationTeam != "" && sourceTeamName == "" && line.Type == "team" && line.Team != nil && line.Team.Name != nil {
 			sourceTeamName = *line.Team.Name
 		}
