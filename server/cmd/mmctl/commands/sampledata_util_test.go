@@ -10,8 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestCreateUserPasswordLength ensures all generated sampledata passwords meet the
-// FIPS minimum length requirement (14 chars) for every user type and index range.
+// Verifies all sampledata passwords meet the FIPS minimum length (PasswordFIPSMinimumLength).
 func TestCreateUserPasswordLength(t *testing.T) {
 	const minLen = model.PasswordFIPSMinimumLength
 
