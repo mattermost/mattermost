@@ -25,6 +25,7 @@ func TestCreateUserPasswordLength(t *testing.T) {
 				name = "user"
 			}
 			t.Run(fmt.Sprintf("%s/idx=%d", name, idx), func(t *testing.T) {
+				t.Parallel()
 				data := createUser(idx, 0, 0, map[string][]string{}, nil, userType)
 				pwd := *data.User.Password
 				require.GreaterOrEqualf(t, len(pwd), minLen,
