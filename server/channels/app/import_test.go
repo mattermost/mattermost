@@ -786,9 +786,10 @@ func TestExistingUsersOnlyMode(t *testing.T) {
 	_, err := th.App.Srv().Store().User().GetByUsername(existingUser.Username)
 	require.NoError(t, err, "existing user should still be present")
 
-	// The new user should NOT have been created.
-	_, err = th.App.Srv().Store().User().GetByUsername(newUsername)
-	require.Error(t, err, "new user should not have been created in existingUsersOnly mode")
+	// The new user should have been created as a deactivated placeholder account.
+	u, err := th.App.Srv().Store().User().GetByUsername(newUsername)
+	require.NoError(t, err, "new user should have been created in existingUsersOnly mode")
+	assert.NotZero(t, u.DeleteAt, "newly-created user should be deactivated")
 }
 
 func TestRewriteTeamNameEndToEnd(t *testing.T) {
