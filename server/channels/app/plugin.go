@@ -249,6 +249,38 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			return true
 		}, plugin.OnConfigurationChangeID)
 	})
+
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		type failedPlugin struct {
+			id  string
+			err error
+		}
+		var failed []failedPlugin
+
+		ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+			if err := hooks.OnLicenseChanged(oldLicense, newLicense); err != nil {
+				ch.srv.Log().Error("Plugin OnLicenseChanged hook failed",
+					mlog.String("plugin_id", manifest.Id),
+					mlog.Err(err),
+				)
+				failed = append(failed, failedPlugin{id: manifest.Id, err: err})
+			}
+			return true
+		}, plugin.OnLicenseChangedID)
+
+		if len(failed) == 0 {
+			return
+		}
+
+		pluginsEnvironment := ch.GetPluginsEnvironment()
+		if pluginsEnvironment == nil {
+			return
+		}
+		for _, f := range failed {
+			pluginsEnvironment.MarkPluginFailedToStayRunning(f.id, f.err)
+		}
+	})
 	ch.pluginsLock.Unlock()
 
 	ch.syncPluginsActiveState()
@@ -359,6 +391,8 @@ func (ch *Channels) ShutDownPlugins() {
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ""
 	ch.srv.RemoveClusterLeaderChangedListener(ch.pluginClusterLeaderListenerID)
 	ch.pluginClusterLeaderListenerID = ""
 
