@@ -635,12 +635,12 @@
     .filter-container {
         position: relative;
         z-index: 1;
-        padding: 8px 12px 0px 12px;
+        padding: 4px 12px 0px 12px;
         box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
 
         .search__icon {
             position: absolute;
-            top: 15px;
+            top: 11px;
             left: 22px;
             width: 16px;
             height: 16px;
@@ -656,6 +656,7 @@
                 border: none;
                 border-radius: var(--radius-s);
                 background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                transition: background-color 0.2s ease-in-out;
                 color: var(--sys-sidebar-text);
                 font-size: 14px;
                 outline: none;
@@ -680,8 +681,8 @@
             .input-clear {
                 .input-clear-x {
                     position: absolute;
-                    top: 12px;
-                    right: 16px;
+                    top: 9px;
+                    right: 13px;
                     color: rgba(var(--sys-sidebar-text-rgb), 0.56);
                     font-weight: bold;
                 }
@@ -758,7 +759,7 @@
         }
 
         .category-title {
-            padding: 4px 12px 4px 20px;
+            padding: 4px 12px 4px 22px;
             color: rgba(var(--sys-sidebar-text-rgb), 1);
             font-size: 12px;
             font-weight: 600;
@@ -827,8 +828,8 @@
         padding: 0 4px 0 4px;
         border-radius: 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.75);
-        color: rgba(61, 60, 64, 1);
+        background-color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+        color: var(--sys-sidebar-bg);
         font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
@@ -862,9 +863,12 @@
     .sidebar-subsection-title {
         position: relative;
         display: block;
-        padding: 6px 32px 6px 20px;
+        padding: 6px 24px 6px 10px;
+        border-radius: var(--radius-s);
+        margin: 0 12px;
         color: rgba(var(--sys-sidebar-text-rgb), 0.75);
         letter-spacing: 0.01em;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
         &:focus {
             text-decoration: none;
@@ -877,8 +881,9 @@
         }
 
         &--active {
-            background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
             color: var(--sys-sidebar-text);
+            font-weight: 600;
 
             i {
                 color: var(--sys-sidebar-text);
@@ -886,23 +891,12 @@
 
             &:hover,
             &:focus {
-                background: rgba(var(--sys-sidebar-text-rgb), 0.12);
+                background: rgba(var(--sys-sidebar-text-rgb), 0.16);
                 color: var(--sys-sidebar-text);
 
                 i {
                     color: var(--sys-sidebar-text);
                 }
-            }
-
-            &:before {
-                position: absolute;
-                top: 0;
-                left: -2px;
-                width: 4px;
-                height: 100%;
-                border-radius: 4px;
-                background: var(--sys-sidebar-active-border);
-                content: "";
             }
         }
     }
