@@ -8,9 +8,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1746,6 +1748,19 @@ func parseExportLines(t *testing.T, b *bytes.Buffer) map[string][]map[string]any
 	}
 	require.NoError(t, scanner.Err())
 	return result
+}
+
+func TestBulkExportChannelRequiresTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var buf strings.Builder
+	appErr := th.App.BulkExport(th.Context, &buf, t.TempDir(), nil, model.BulkExportOpts{
+		ChannelName: "some-channel",
+		TeamName:    "",
+	})
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 
 func TestBulkExportSingleChannel(t *testing.T) {
