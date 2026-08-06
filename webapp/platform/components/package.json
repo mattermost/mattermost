@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@tippyjs/react": "4.2.6",
-    "react-bootstrap": "github:mattermost/react-bootstrap#177c152a9d7801dab0f00a278bbf6dae2ba0bc0f",
+    "react-bootstrap": "github:mattermost/react-bootstrap#83814377a5697c6ae5fcb68248395c27b1b51a96",
     "styled-components": "5.3.7"
   }
 }

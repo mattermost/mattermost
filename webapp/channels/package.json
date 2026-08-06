@@ -75,7 +75,7 @@
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-beautiful-dnd": "13.1.1",
-    "react-bootstrap": "github:mattermost/react-bootstrap#177c152a9d7801dab0f00a278bbf6dae2ba0bc0f",
+    "react-bootstrap": "github:mattermost/react-bootstrap#83814377a5697c6ae5fcb68248395c27b1b51a96",
     "react-color": "2.19.3",
     "react-day-picker": "8.3.6",
     "react-dom": "18.2.0",
