@@ -110,6 +110,11 @@ var exportablePreferences = map[imports.ComparablePreference]string{
 }
 
 func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
+	if opts.ChannelName != "" && opts.TeamName == "" {
+		return model.NewAppError("BulkExport", "app.export.channel_requires_team.error",
+			nil, "ChannelName requires TeamName to be set", http.StatusBadRequest)
+	}
+
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
