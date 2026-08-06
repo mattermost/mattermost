@@ -1048,6 +1048,7 @@ function PermissionRuleEditor({
                         }}
                         menu={{
                             id: 'cpp-role-selector-menu',
+                            className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                             'aria-label': formatMessage({
                                 id: 'channel_settings.permissions_policy.field.role_menu_aria',
                                 defaultMessage: 'Role selection menu',
@@ -1197,6 +1198,7 @@ function PermissionRuleEditor({
                             }}
                             menu={{
                                 id: 'cpp-add-permission-menu',
+                                className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                                 'aria-label': formatMessage({
                                     id: 'channel_settings.permissions_policy.field.actions_add_menu_aria',
                                     defaultMessage: 'Add permission menu',
