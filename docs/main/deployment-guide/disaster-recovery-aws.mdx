@@ -264,7 +264,7 @@ After creating the master user, IP based access to the OS might not work from Ma
 
 ## Replicate job servers
 
-If the job scheduler is left running in the secondary region, it will pick up jobs and start running them. Follow these steps to manage it correctly. See the [RunScheduler configuration setting](/administration-guide/configure/environment-configuration-settings#run-scheduler) documentation for details.
+If the job scheduler is left running in the secondary region, it will pick up jobs and start running them. Follow these steps to manage it correctly. See the [RunScheduler configuration setting](/administration-guide/configure/experimental-configuration-settings#run-scheduler) documentation for details.
 
 1.  **Precondition:** Set `JobSettings.RunScheduler` to `false` on all nodes in the secondary region before enabling that region.
 2.  **On failover:** Set `JobSettings.RunScheduler` to `true` on all nodes in the new primary region.

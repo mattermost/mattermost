@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,6 +12,8 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {toTitleCase} from 'utils/utils';
+
+import './audit_row.scss';
 
 import holders from '../holders';
 
@@ -84,13 +87,13 @@ export default function AuditRow({
     const userId = auditProfile ? auditProfile.email : audit.user_id;
     let uContent;
     if (showUserId) {
-        uContent = <td className='word-break--all'>{userId}</td>;
+        uContent = <td>{userId}</td>;
     }
 
     let iContent;
     if (showIp) {
         iContent = (
-            <td className='whitespace--nowrap word-break--all'>
+            <td>
                 {ip}
             </td>
         );
@@ -99,24 +102,23 @@ export default function AuditRow({
     let sContent;
     if (showSession) {
         sContent = (
-            <td className='whitespace--nowrap word-break--all'>
+            <td>
                 {sessionId}
             </td>
         );
     }
 
-    let descStyle = '';
-    if (desc.toLowerCase().indexOf('fail') !== -1) {
-        descStyle = ' color--error';
-    }
-
     return (
-        <tr key={audit.id}>
-            <td className='whitespace--nowrap word-break--all'>
+        <tr className='AuditRow'>
+            <td>
                 {timestamp}
             </td>
             {uContent}
-            <td className={'word-break--all' + descStyle}>{desc}</td>
+            <td
+                className={classNames('AuditRowDesc', {
+                    'AuditRowDesc--error': desc.toLowerCase().indexOf('fail') !== -1,
+                })}
+            >{desc}</td>
             {iContent}
             {sContent}
         </tr>

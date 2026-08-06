@@ -465,6 +465,19 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
 	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		longPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   strings.Repeat("a", th.App.MaxPostSize()+1),
+		}
+
+		rpost, resp, err := client.CreatePost(context.Background(), longPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
+
 	t.Run("not logged in", func(t *testing.T) {
 		resp, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -1572,6 +1585,138 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	assert.Equal(t, "online", st.Status)
 }
 
+func TestCreatePostSilentRejectedForHumanUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	api, err := Init(th.Server)
+	require.NoError(t, err)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+
+	handler := api.APIHandler(createPost)
+	resp := httptest.NewRecorder()
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent human post",
+	}
+
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req := httptest.NewRequest("POST", "/api/v4/posts?silent=true", bytes.NewReader(postJSON))
+	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusForbidden, resp.Code)
+}
+
+func TestCreatePostSilentQueryParam(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	api, err := Init(th.Server)
+	require.NoError(t, err)
+
+	handler := api.APIHandler(createPost)
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent query param post",
+	}
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+
+	t.Run("invalid silent value returns 400", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=invalid", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+	})
+
+	t.Run("silent=false does not set prop", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=false", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("silent=0 does not set prop", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=0", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("empty silent param is ignored", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("bot may create silent post via query param", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		bot := th.CreateBotWithSystemAdminClient(t)
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+		})
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "silent-bot-token", 0)
+		require.NoError(t, err)
+
+		resp := httptest.NewRecorder()
+		botPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent bot post",
+			UserId:    bot.UserId,
+		}
+		botPostJSON, err := json.Marshal(botPost)
+		require.NoError(t, err)
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=true", bytes.NewReader(botPostJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+rtoken.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.True(t, rp.HasSilentNotification())
+	})
+}
+
 func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2301,6 +2446,25 @@ func TestUpdatePost(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		longPost := &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   strings.Repeat("a", th.App.MaxPostSize()+1),
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), post.Id, longPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, updatedPost)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
@@ -2901,6 +3065,22 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, 2, len(patchedPost.FileIds))
 		require.Contains(t, patchedPost.FileIds, fileInfo1.Id)
 		require.Contains(t, patchedPost.FileIds, fileInfo2.Id)
+	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+		})
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			Message: new(strings.Repeat("a", th.App.MaxPostSize()+1)),
+		}
+		patchedPost, resp, err := client.PatchPost(context.Background(), post.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, patchedPost)
 	})
 }
 

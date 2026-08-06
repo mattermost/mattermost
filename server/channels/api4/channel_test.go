@@ -333,6 +333,28 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
+func TestCreateChannelRejectsSpaceType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, enableDocs := range []bool{false, true} {
+		t.Run(fmt.Sprintf("EnableDocs=%v", enableDocs), func(t *testing.T) {
+			th := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.EnableDocs = enableDocs
+			}).InitBasic(t)
+
+			space := &model.Channel{
+				DisplayName: "Space",
+				Name:        "space-" + model.NewId(),
+				Type:        model.ChannelTypeSpace,
+				TeamId:      th.BasicTeam.Id,
+			}
+			_, resp, err := th.Client.CreateChannel(context.Background(), space)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
+}
+
 func TestCreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -7792,6 +7814,382 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		for _, ch := range channels {
 			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in searchAllChannelsForUser results", ch.Id, ch.Type)
 		}
+	})
+}
+
+// createTestSpaceChannel creates a ChannelTypeSpace ("S") backing channel directly through the
+// store, since spaces have no dedicated REST creation endpoint in this slice.
+func createTestSpaceChannel(t *testing.T, th *TestHelper) *model.Channel {
+	t.Helper()
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, err := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, err)
+	return space
+}
+
+// addUserToSpaceChannel makes a user a member of a space backing channel. Membership is written
+// directly through the store, since this slice has no app/REST path for adding members to a
+// space, and the per-user authorization cache is invalidated so SessionHasPermissionToChannel
+// sees the new membership.
+func addUserToSpaceChannel(t *testing.T, th *TestHelper, space *model.Channel, userID string) {
+	t.Helper()
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(userID)
+}
+
+// TestChannelEndpointsExcludeSpaces mirrors TestChannelEndpointsExcludeBoards for the space ("S")
+// backing-channel type: it 404s on every /channels endpoint and never leaks into any list, search,
+// or by-name surface, except where rejectSpaceChannelByID guards a member-mutation endpoint or
+// view-state marking no-ops through the store-level type filter.
+func TestChannelEndpointsExcludeSpaces(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	ctx := context.Background()
+
+	space := createTestSpaceChannel(t, th)
+
+	// BasicUser is a member of the space backing channel (e.g. a page collaborator).
+	addUserToSpaceChannel(t, th, space, th.BasicUser.Id)
+
+	assertNoSpacesInList := func(t *testing.T, channels []*model.Channel) {
+		t.Helper()
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in channel list", ch.Id)
+		}
+	}
+
+	// --- Space backing channels never leak into list/search surfaces ---
+
+	t.Run("getPublicChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := client.GetPublicChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getPrivateChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetPrivateChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getDeletedChannelsForTeam excludes spaces", func(t *testing.T) {
+		deletedSpace := createTestSpaceChannel(t, th)
+		nErr := th.App.Srv().Store().Channel().Delete(deletedSpace.Id, model.GetMillis())
+		require.NoError(t, nErr)
+
+		channels, _, err := th.SystemAdminClient.GetDeletedChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("searchChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := client.SearchChannels(ctx, th.BasicTeam.Id, &model.ChannelSearch{Term: "space"})
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("autocompleteChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := client.AutocompleteChannelsForTeam(ctx, th.BasicTeam.Id, "space")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, []*model.Channel(channels))
+	})
+
+	t.Run("searchAllChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.SearchAllChannels(ctx, &model.ChannelSearch{Term: "space"})
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in searchAllChannels results", ch.Id)
+		}
+	})
+
+	t.Run("getAllChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetAllChannels(ctx, 0, 100, "")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in getAllChannels results", ch.Id)
+		}
+	})
+
+	t.Run("getChannelsForTeamForUser excludes spaces", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForTeamForUser(ctx, th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getChannelsForUser excludes spaces even for a member", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForUserWithLastDeleteAt(ctx, th.BasicUser.Id, 0)
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getChannelsMemberCount excludes spaces", func(t *testing.T) {
+		counts, _, err := client.GetChannelsMemberCount(ctx, []string{th.BasicChannel.Id, space.Id})
+		require.NoError(t, err)
+		_, hasRegular := counts[th.BasicChannel.Id]
+		assert.True(t, hasRegular, "regular channel should be in member count results")
+		_, hasSpace := counts[space.Id]
+		assert.False(t, hasSpace, "space backing channel should not be in member count results")
+	})
+
+	t.Run("getChannelByName 404s for space", func(t *testing.T) {
+		_, resp, err := client.GetChannelByName(ctx, space.Name, th.BasicTeam.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannelByNameForTeamName 404s for space", func(t *testing.T) {
+		_, resp, err := client.GetChannelByNameForTeamName(ctx, space.Name, th.BasicTeam.Name, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("searchAllChannelsForUser excludes spaces", func(t *testing.T) {
+		channels, _, err := client.SearchAllChannelsForUser(ctx, "space")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in searchAllChannelsForUser results", ch.Id)
+		}
+	})
+
+	// --- Like boards, a space backing channel is excluded from the generic getChannel and
+	// --- 404s for everyone; it resolves only through the dedicated space APIs. ---
+
+	t.Run("getChannel 404s a space for a member", func(t *testing.T) {
+		_, resp, err := client.GetChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannel 404s a space for system admin", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic destructive/conversion endpoints 404 (Get-resolving) or reject (member-mutation) spaces ---
+
+	t.Run("createChannel rejects a space", func(t *testing.T) {
+		_, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("deleteChannel 404s a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("updateChannelPrivacy 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.UpdateChannelPrivacy(ctx, space.Id, model.ChannelTypeOpen)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("restoreChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.RestoreChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("updateChannelScheme rejects a space", func(t *testing.T) {
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
+		channelScheme, _, err := th.SystemAdminClient.CreateScheme(ctx, &model.Scheme{
+			DisplayName: "DisplayName",
+			Name:        model.NewId(),
+			Description: "Some description",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.UpdateChannelScheme(ctx, space.Id, channelScheme.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic member/view-state mutation endpoints reject or no-op spaces (managed by the spaces feature) ---
+
+	t.Run("viewChannel silently no-ops a space", func(t *testing.T) {
+		// Spaces carry no chat read-state: GetChannelsWithUnreadsAndWithMentions filters
+		// them out, so viewing one succeeds without marking anything viewed — the same
+		// behavior as a nonexistent channel ID.
+		viewResp, resp, err := client.ViewChannel(ctx, th.BasicUser.Id, &model.ChannelView{ChannelId: space.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotContains(t, viewResp.LastViewedAtTimes, space.Id)
+	})
+
+	t.Run("updateChannelMemberRoles rejects a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(ctx, space.Id, th.BasicUser.Id, "channel_user")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberSchemeRoles rejects a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelMemberSchemeRoles(ctx, space.Id, th.BasicUser.Id, &model.SchemeRoles{SchemeUser: true})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberNotifyProps rejects a space", func(t *testing.T) {
+		resp, err := client.UpdateChannelNotifyProps(ctx, space.Id, th.BasicUser.Id, map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberAutotranslation rejects a space", func(t *testing.T) {
+		mockAutotranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutotranslation.On("IsFeatureAvailable").Return(true)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutotranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(ctx, space.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("addChannelMember 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.AddChannelMember(ctx, space.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("setChannelMembers 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, space.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser2.Id}}, 0, 0)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("moveChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.MoveChannel(ctx, space.Id, th.BasicTeam.Id, false)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic read endpoints that resolve the channel via GetChannel return 403 for spaces,
+	// --- because GetChannel returns not-found for space channels, which SessionHasPermissionToChannel
+	// --- treats as no permission. No explicit space guard is needed here. ---
+
+	t.Run("getChannelStats rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelStats(ctx, space.Id, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembers rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembers(ctx, space.Id, 0, 100, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersTimezones rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersTimezones(ctx, space.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersByIds rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersByIds(ctx, space.Id, []string{th.BasicUser.Id})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMember rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMember(ctx, space.Id, th.BasicUser.Id, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channelMemberCountsByGroup rejects a space", func(t *testing.T) {
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		_, resp, err := client.GetChannelMemberCountsByGroup(ctx, space.Id, false, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channelMembersMinusGroupMembers rejects a space", func(t *testing.T) {
+		_, _, resp, err := th.SystemAdminClient.ChannelMembersMinusGroupMembers(ctx, space.Id, []string{model.NewId()}, 0, 100, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelAccessControlAttributes rejects a space", func(t *testing.T) {
+		r, err := client.DoAPIGet(ctx, "/channels/"+space.Id+"/access_control/attributes", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("convertGroupMessageToChannel rejects a space", func(t *testing.T) {
+		resp, err := client.DoAPIPost(ctx, "/channels/"+space.Id+"/convert_to_channel", "{}")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	// --- rejectSpaceChannelByID passes through a not-found result (a nonexistent id is definitely
+	// --- not a space), so the endpoint's own not-found/permission handling surfaces normally ---
+
+	t.Run("updateChannelMemberRoles on a nonexistent channel behaves as before", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(ctx, model.NewId(), th.BasicUser.Id, "channel_user")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+// TestLocalChannelEndpoints404Spaces verifies the local (admin socket) channel endpoints 404 a
+// space, the same as /api/v4: space channels are excluded from the generic GetChannel these
+// handlers resolve through, so they never reach the mutation.
+func TestLocalChannelEndpoints404Spaces(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	ctx := context.Background()
+
+	space := createTestSpaceChannel(t, th)
+
+	t.Run("local deleteChannel 404s a space", func(t *testing.T) {
+		resp, err := th.LocalClient.DeleteChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("local restoreChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.LocalClient.RestoreChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("local addChannelMember 404s a space", func(t *testing.T) {
+		_, resp, err := th.LocalClient.AddChannelMember(ctx, space.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 

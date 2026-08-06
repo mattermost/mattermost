@@ -148,6 +148,41 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   data-testid="fieldColumn"
                 >
                   <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
                     Authentication Method
                     <span>
                       <svg
@@ -401,6 +436,41 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -684,6 +754,41 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   data-testid="fieldColumn"
                 >
                   <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
                     Authentication Method
                     <span>
                       <svg
@@ -952,6 +1057,41 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   data-testid="fieldColumn"
                 >
                   <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
                     Authentication Method
                     <span>
                       <svg
@@ -1205,6 +1345,41 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1494,6 +1669,41 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   data-testid="fieldColumn"
                 >
                   <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
                     Authentication Method
                     <span>
                       <svg
@@ -1749,6 +1959,43 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                       disabled=""
                       readonly=""
                       style="cursor: not-allowed;"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter first name"
+                      readonly=""
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter last name"
+                      readonly=""
                       type="text"
                       value=""
                     />

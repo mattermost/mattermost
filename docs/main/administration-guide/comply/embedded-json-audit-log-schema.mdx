@@ -1,6 +1,5 @@
 ---
 title: "Audit Log JSON Schema"
-draft: true
 ---
 <PlanAvailability slug="entry-ent" />
 
@@ -365,6 +364,10 @@ The following tables list the comprehensive audit event types (`event_name` valu
 <tr>
 <td><code>restoreChannel</code></td>
 <td>Restoring deleted channels</td>
+</tr>
+<tr>
+<td><code>setChannelMembers</code></td>
+<td>Bulk set (replace) channel memberships</td>
 </tr>
 <tr>
 <td><code>updateChannel</code></td>
@@ -1826,7 +1829,7 @@ This comprehensive list includes all audit events captured by Mattermost across 
 <tr>
 <td>timestamp</td>
 <td>int64</td>
-<td colspan="2"><dl><dt>Date/time when event or activity has taken place. |</dt><dd><div class="line-block"></div></dd></dl><p>Mattermost currently supports three log formats: plain, JSON, and | <a href="https://go2docs.graylog.org/current/getting_in_log_data/gelf.html">GELF</a>. | | - Plain log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Aplain%20log%20format%20configuration%20options">plain log format configuration</a> documentation for supported options. | - JSON log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Ajson%20log%20format%20configuration%20options">JSON log format configuration</a> documentation for supported options. | | - GELF log format uses <a href="https://www.unixtimestamp.com/">unixtime</a>. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Agelf%20log%20format%20configuration%20options">GELF log format configuration</a> documentation for supported options. |</p></td>
+<td colspan="2"><dl><dt>Date/time when event or activity has taken place. |</dt><dd><div class="line-block"></div></dd></dl><p>Mattermost currently supports three log formats: plain, JSON, and | <a href="https://go2docs.graylog.org/current/getting_in_log_data/gelf.html">GELF</a>. | | - Plain log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="/administration-guide/manage/logging#plain-log-format-configuration-options">plain log format configuration</a> documentation for supported options. | - JSON log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="/administration-guide/manage/logging#json-log-format-configuration-options">JSON log format configuration</a> documentation for supported options. | | - GELF log format uses <a href="https://www.unixtimestamp.com/">unixtime</a>. | See the <a href="/administration-guide/manage/logging#gelf-log-format-configuration-options">GELF log format configuration</a> documentation for supported options. |</p></td>
 </tr>
 <tr>
 <td>event_name</td>
