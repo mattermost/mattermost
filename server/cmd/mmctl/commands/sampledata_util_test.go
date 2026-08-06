@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -19,11 +20,13 @@ func TestCreateUserPasswordLength(t *testing.T) {
 
 	for _, userType := range userTypes {
 		for _, idx := range indices {
-			data := createUser(idx, 0, 0, map[string][]string{}, nil, userType)
-			pwd := *data.User.Password
-			require.GreaterOrEqualf(t, len(pwd), minLen,
-				"password %q (userType=%q idx=%d) is shorter than FIPS minimum %d",
-				pwd, userType, idx, minLen)
+			t.Run(fmt.Sprintf("%s/idx=%d", userType, idx), func(t *testing.T) {
+				data := createUser(idx, 0, 0, map[string][]string{}, nil, userType)
+				pwd := *data.User.Password
+				require.GreaterOrEqualf(t, len(pwd), minLen,
+					"password %q (userType=%q idx=%d) is shorter than FIPS minimum %d",
+					pwd, userType, idx, minLen)
+			})
 		}
 	}
 }
