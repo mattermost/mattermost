@@ -4,9 +4,7 @@
 import type {IntlShape} from 'react-intl';
 import type {AnyAction} from 'redux';
 
-import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
-import type {CommandArgs} from '@mattermost/types/integrations';
-import type {Post} from '@mattermost/types/posts';
+import type {AppCallResponse, AppForm, AppCallRequest, AppContext} from '@mattermost/types/apps';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -16,66 +14,15 @@ import {openModal} from 'actions/views/modals';
 
 import AppsForm from 'components/apps_form';
 
-import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
+import {makeCallErrorResponse} from 'utils/apps';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import type {DoAppCallResult} from 'types/apps';
-import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ThunkActionFunc} from 'types/store';
 
 import {sendEphemeralPost} from './global_actions';
-
-export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
-    return async (dispatch) => {
-        // Fetch form
-        let form = binding.form;
-        if (form?.source) {
-            const callRequest = createCallRequest(form.source, context);
-            const res = await dispatch(doAppFetchForm<Res>(callRequest, intl));
-            if (res.error) {
-                return res;
-            }
-            form = res.data!.form;
-        }
-
-        // Open form
-        if (form) {
-            // This should come properly formed, but using preventive checks
-            if (!form?.submit) {
-                const errMsg = intl.formatMessage({
-                    id: 'apps.error.malformed_binding',
-                    defaultMessage: 'This binding is not properly formed. Contact the App developer.',
-                });
-                return {error: makeCallErrorResponse(errMsg)};
-            }
-
-            const res: AppCallResponse<Res> = {
-                type: AppCallResponseTypes.FORM,
-                form,
-            };
-            return {data: res};
-        }
-
-        // Submit binding
-        // This should come properly formed, but using preventive checks
-        if (!binding.submit) {
-            const errMsg = intl.formatMessage({
-                id: 'apps.error.malformed_binding',
-                defaultMessage: 'This binding is not properly formed. Contact the App developer.',
-            });
-            return {error: makeCallErrorResponse(errMsg)};
-        }
-
-        const callRequest = createCallRequest(
-            binding.submit,
-            context,
-        );
-
-        const res = await dispatch(doAppSubmit<Res>(callRequest, intl));
-        return res;
-    };
-}
 
 export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: IntlShape): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async () => {
@@ -208,21 +155,6 @@ export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): Thunk
     };
 }
 
-export function makeFetchBindings(location: string): (channelId: string, teamId: string) => ActionFuncAsync<AppBinding[]> {
-    return (channelId: string, teamId: string): ActionFuncAsync<AppBinding[]> => {
-        return async () => {
-            try {
-                const allBindings = await Client4.getAppsBindings(channelId, teamId);
-                const headerBindings = allBindings.filter((b) => b.location === location);
-                const bindings = headerBindings.reduce((accum: AppBinding[], current: AppBinding) => accum.concat(current.bindings || []), []);
-                return {data: bindings};
-            } catch {
-                return {data: []};
-            }
-        };
-    };
-}
-
 export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
     return openModal({
         modalId: ModalIdentifiers.APPS_MODAL,
@@ -234,38 +166,11 @@ export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
     });
 }
 
-export function postEphemeralCallResponseForPost(response: AppCallResponse, message: string, post: Post) {
-    return sendEphemeralPost(
-        message,
-        post.channel_id,
-        post.root_id || post.id,
-        response.app_metadata?.bot_user_id,
-    );
-}
-
-export function postEphemeralCallResponseForChannel(response: AppCallResponse, message: string, channelID: string) {
-    return sendEphemeralPost(
-        message,
-        channelID,
-        '',
-        response.app_metadata?.bot_user_id,
-    );
-}
-
 export function postEphemeralCallResponseForContext(response: AppCallResponse, message: string, context: AppContext) {
     return sendEphemeralPost(
         message,
         context.channel_id,
         context.root_id || context.post_id,
-        response.app_metadata?.bot_user_id,
-    );
-}
-
-export function postEphemeralCallResponseForCommandArgs(response: AppCallResponse, message: string, args: CommandArgs) {
-    return sendEphemeralPost(
-        message,
-        args.channel_id,
-        args.root_id,
         response.app_metadata?.bot_user_id,
     );
 }

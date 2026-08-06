@@ -3,12 +3,9 @@
 
 import React from 'react';
 
-import {isAppBinding, type AppBinding} from '@mattermost/types/apps';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
-import {isArrayOf} from '@mattermost/types/utilities';
 
-import {validateBindings} from 'mattermost-redux/utils/apps';
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
 import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
@@ -24,7 +21,6 @@ import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
-import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
 import InteractiveMessages from '../interactive_messages';
 
 export type Props = {
@@ -33,7 +29,6 @@ export type Props = {
     children?: JSX.Element;
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;
-    appsEnabled: boolean;
     mmBlocksEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     actions: {
@@ -169,22 +164,6 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
                     <>
                         {this.props.children}
                         <InteractiveMessages post={this.props.post}/>
-                    </>
-                );
-            }
-        }
-
-        if (this.props.appsEnabled) {
-            const appEmbeds = isArrayOf<AppBinding>(this.props.post.props?.app_bindings, isAppBinding) ? validateBindings(this.props.post.props?.app_bindings) : [];
-            if (appEmbeds.length) {
-                // TODO Put some log / message if the form is not valid?
-                return (
-                    <>
-                        {this.props.children}
-                        <EmbeddedBindings
-                            embeds={appEmbeds}
-                            post={this.props.post}
-                        />
                     </>
                 );
             }

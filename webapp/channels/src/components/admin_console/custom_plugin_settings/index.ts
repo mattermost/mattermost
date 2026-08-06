@@ -8,7 +8,6 @@ import {connect} from 'react-redux';
 import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
@@ -35,9 +34,8 @@ function makeGetPluginSchema() {
         (state: GlobalState, pluginId: string) => state.entities.admin.plugins?.[pluginId],
         (state: GlobalState, pluginId: string) => getAdminConsoleCustomComponents(state, pluginId),
         (state: GlobalState, pluginId: string) => getAdminConsoleCustomSections(state, pluginId),
-        (state) => appsFeatureFlagEnabled(state),
         isCurrentLicenseCloud,
-        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, appsFeatureFlagIsEnabled, isCloudLicense) => {
+        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, isCloudLicense) => {
             if (!plugin) {
                 return null;
             }
@@ -133,7 +131,7 @@ function makeGetPluginSchema() {
                 settings = parsePluginSettings(plugin.settings_schema.settings);
             }
 
-            if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
+            if (plugin.id !== appsPluginID) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
                 const hasAllCustomSectionsDisabled = plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);

@@ -799,7 +799,6 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannelsPlugins: true,
         EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
-        AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
         EnableExportDirectDownload: false,

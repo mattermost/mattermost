@@ -10,19 +10,14 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
-import {getIntl} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
-
-import {AppCommandParser} from './app_command_parser/app_command_parser';
-import type {ExtendedAutocompleteSuggestion} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
 import type {ResultsCallback} from '../provider';
@@ -110,41 +105,22 @@ export default class CommandProvider extends Provider {
     private props: Props;
     private store: Store<GlobalState>;
     public triggerCharacter: string;
-    private appCommandParser: AppCommandParser;
 
     constructor(props: Props) {
         super();
 
         this.store = globalStore;
         this.props = props;
-        this.appCommandParser = new AppCommandParser(this.store as any, getIntl(), props.channelId, props.teamId, props.rootId);
         this.triggerCharacter = '/';
     }
 
     setProps(props: Props) {
         this.props = props;
-        this.appCommandParser.setChannelContext(props.channelId, props.teamId, props.rootId);
     }
 
     handlePretextChanged(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         if (!pretext.startsWith(this.triggerCharacter)) {
             return false;
-        }
-
-        if (appsEnabled(this.store.getState()) && this.appCommandParser.isAppCommand(pretext)) {
-            this.appCommandParser.getSuggestions(pretext).then((suggestions) => {
-                const matches = suggestions.map((suggestion) => ({
-                    ...suggestion,
-                    Complete: '/' + suggestion.Complete,
-                    Suggestion: '/' + suggestion.Suggestion,
-                }));
-
-                resultCallback({
-                    matchedPretext: pretext,
-                    groups: [commandsGroup(matches)],
-                });
-            });
-            return true;
         }
 
         if (UserAgent.isMobile()) {
@@ -168,10 +144,6 @@ export default class CommandProvider extends Provider {
         Client4.getCommandsList(teamId).then(
             (data) => {
                 let matches: AutocompleteSuggestion[] = [];
-                if (appsEnabled(this.store.getState())) {
-                    const appCommandSuggestions = this.appCommandParser.getSuggestionsBase(pretext);
-                    matches = matches.concat(appCommandSuggestions);
-                }
 
                 data.forEach((cmd) => {
                     if (!cmd.auto_complete) {
@@ -222,20 +194,11 @@ export default class CommandProvider extends Provider {
 
         Client4.getCommandAutocompleteSuggestionsList(command, teamId, args).then(
             ((data: AutocompleteSuggestion[]) => {
-                let matches: AutocompleteSuggestion[] = [];
+                const matches: AutocompleteSuggestion[] = [];
 
                 let cmd = 'Ctrl';
                 if (UserAgent.isMac()) {
                     cmd = '⌘';
-                }
-
-                if (appsEnabled(this.store.getState())) {
-                    const appCommandSuggestions = this.appCommandParser.getSuggestionsBase(pretext).map((suggestion) => ({
-                        ...suggestion,
-                        Complete: '/' + suggestion.Complete,
-                        Suggestion: suggestion.Suggestion,
-                    }));
-                    matches = matches.concat(appCommandSuggestions);
                 }
 
                 data.forEach((s) => {
@@ -299,7 +262,7 @@ export default class CommandProvider extends Provider {
     }
 }
 
-export function commandsGroup(items: ExtendedAutocompleteSuggestion[]) {
+export function commandsGroup(items: AutocompleteSuggestion[]) {
     const terms = items.map((suggestion) => suggestion.Complete);
 
     return {

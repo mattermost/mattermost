@@ -17,7 +17,6 @@ import AutosizeTextarea from 'components/autosize_textarea';
 import PostMarkdown from 'components/post_markdown';
 import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
-import AppCommandProvider from 'components/suggestion/command_provider/app_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import type Provider from 'components/suggestion/provider';
@@ -96,14 +95,6 @@ export default class Textbox extends React.PureComponent<Props> {
 
         this.suggestionProviders = [];
 
-        if (props.supportsCommands) {
-            this.suggestionProviders.push(new AppCommandProvider({
-                teamId: this.props.currentTeamId,
-                channelId: this.props.channelId,
-                rootId: this.props.rootId,
-            }));
-        }
-
         this.suggestionProviders.push(
             new AtMentionProvider({
                 currentUserId: this.props.currentUserId,
@@ -171,16 +162,9 @@ export default class Textbox extends React.PureComponent<Props> {
         if (this.props.channelId !== prevProps.channelId ||
             this.props.currentTeamId !== prevProps.currentTeamId ||
             this.props.rootId !== prevProps.rootId) {
-            // Update channel id for CommandProvider and AppCommandProvider.
+            // Update channel id for CommandProvider.
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof CommandProvider) {
-                    provider.setProps({
-                        teamId: this.props.currentTeamId,
-                        channelId: this.props.channelId,
-                        rootId: this.props.rootId,
-                    });
-                }
-                if (provider instanceof AppCommandProvider) {
                     provider.setProps({
                         teamId: this.props.currentTeamId,
                         channelId: this.props.channelId,

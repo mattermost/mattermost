@@ -3,7 +3,6 @@
 
 import type {AdminState} from './admin';
 import type {LLMService} from './agents';
-import type {AppsState} from './apps';
 import type {Bot} from './bots';
 import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
@@ -94,7 +93,6 @@ export type GlobalState = {
         schemes: SchemesState;
         groups: GroupsState;
         channelCategories: ChannelCategoriesState;
-        apps: AppsState;
         cloud: CloudState;
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;

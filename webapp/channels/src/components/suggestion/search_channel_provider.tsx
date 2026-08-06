@@ -3,6 +3,7 @@
 
 import {defineMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {General} from 'mattermost-redux/constants';
@@ -15,7 +16,6 @@ import store from 'stores/redux_store';
 
 import Constants from 'utils/constants';
 
-import type {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import SearchChannelSuggestion from './search_channel_suggestion';

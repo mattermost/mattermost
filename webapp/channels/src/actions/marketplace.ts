@@ -6,30 +6,28 @@ import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketpl
 
 import {Client4} from 'mattermost-redux/client';
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
-import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
-
 import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 
+import type {DoAppCallResult} from 'types/apps';
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 
-// fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
+// fetchPlugins fetches the latest marketplace plugins, subject to any existing search filter.
 export function fetchListing(localOnly = false): ActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>> {
     return async (dispatch, getState) => {
         const state = getState();
         const filter = getFilter(state);
 
         let plugins: MarketplacePlugin[];
-        let apps: MarketplaceApp[] = [];
+        const apps: MarketplaceApp[] = [];
 
         try {
             plugins = await Client4.getMarketplacePlugins(filter, localOnly);
@@ -45,19 +43,6 @@ export function fetchListing(localOnly = false): ActionFuncAsync<Array<Marketpla
             type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
             plugins,
         });
-
-        if (appsEnabled(state)) {
-            try {
-                apps = await Client4.getMarketplaceApps(filter);
-            } catch {
-                return {data: plugins};
-            }
-
-            dispatch({
-                type: ActionTypes.RECEIVED_MARKETPLACE_APPS,
-                apps,
-            });
-        }
 
         if (plugins) {
             return {data: (plugins as Array<MarketplacePlugin | MarketplaceApp>).concat(apps)};

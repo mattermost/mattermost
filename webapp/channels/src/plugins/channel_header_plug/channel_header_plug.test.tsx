@@ -14,13 +14,6 @@ describe('plugins/ChannelHeaderPlug', () => {
         channel: TestHelper.getChannelMock({id: 'channel1'}),
         channelMember: TestHelper.getChannelMembershipMock({channel_id: 'channel1', user_id: 'user1'}),
         sidebarOpen: false,
-        actions: {
-            handleBindingClick: jest.fn(),
-            postEphemeralCallResponseForChannel: jest.fn(),
-            openAppsModal: jest.fn(),
-        },
-        appBindings: [],
-        appsEnabled: false,
         shouldShowAppBar: false,
     };
 

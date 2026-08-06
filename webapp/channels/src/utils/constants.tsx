@@ -642,9 +642,6 @@ export const AppEvents = {
  * @deprecated Use WebSocketEvents from @mattermost/client instead.
  */
 export const SocketEvents = {
-    APPS_FRAMEWORK_REFRESH_BINDINGS: 'custom_com.mattermost.apps_refresh_bindings',
-    APPS_FRAMEWORK_PLUGIN_ENABLED: 'custom_com.mattermost.apps_plugin_enabled',
-    APPS_FRAMEWORK_PLUGIN_DISABLED: 'custom_com.mattermost.apps_plugin_disabled',
     FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED: 'first_admin_visit_marketplace_status_received',
     THREAD_UPDATED: 'thread_updated',
     THREAD_FOLLOW_CHANGED: 'thread_follow_changed',

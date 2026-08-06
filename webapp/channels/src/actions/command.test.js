@@ -5,7 +5,6 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import * as Channels from 'mattermost-redux/selectors/entities/channels';
 import * as Teams from 'mattermost-redux/selectors/entities/teams';
 
@@ -69,56 +68,6 @@ const initialState = {
                     },
                 },
             },
-        },
-        apps: {
-            main: {
-                bindings: [
-                    {
-                        location: '/command',
-                        bindings: [
-                            {
-                                location: '/command/appid',
-                                app_id: 'appid',
-                                label: 'appid',
-                                bindings: [
-                                    {
-                                        location: '/command/appid/custom',
-                                        app_id: 'appid',
-                                        label: 'custom',
-                                        description: 'Run the command.',
-                                        form: {
-                                            submit: {
-                                                path: 'https://someserver.com/command',
-                                            },
-                                            fields: [
-                                                {
-                                                    name: 'key1',
-                                                    label: 'key1',
-                                                    type: 'text',
-                                                    position: 1,
-                                                },
-                                                {
-                                                    name: 'key2',
-                                                    label: 'key2',
-                                                    type: 'static_select',
-                                                    options: [
-                                                        {
-                                                            label: 'Value 2',
-                                                            value: 'value2',
-                                                        },
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-                forms: {},
-            },
-            pluginEnabled: true,
         },
         general: {
             config: {},
@@ -352,55 +301,6 @@ describe('executeCommand', () => {
             store = await mockStore(state);
             const res = await store.dispatch(executeCommand('/marketplace', []));
             expect(res.error).not.toBeUndefined();
-        });
-    });
-
-    describe('app command', () => {
-        test('should call executeAppCall', async () => {
-            const state = {
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    general: {
-                        ...initialState.entities.general,
-                        config: {
-                            ...initialState.entities.general.config,
-                            FeatureFlagAppsEnabled: 'true',
-                        },
-                    },
-                },
-            };
-            store = await mockStore(state);
-            const f = Client4.executeAppCall;
-            const mocked = jest.fn().mockResolvedValue(Promise.resolve({
-                type: AppCallResponseTypes.OK,
-                markdown: 'Success',
-            }));
-            Client4.executeAppCall = mocked;
-
-            const result = await store.dispatch(executeCommand('/appid custom value1 --key2 value2', {channel_id: '123'}));
-            Client4.executeAppCall = f;
-
-            expect(mocked).toHaveBeenCalledWith({
-                context: {
-                    app_id: 'appid',
-                    channel_id: '123',
-                    location: '/command/appid/custom',
-                    root_id: '',
-                    team_id: '456',
-                    track_as_submit: true,
-                },
-                raw_command: '/appid custom value1 --key2 value2',
-                path: 'https://someserver.com/command',
-                values: {
-                    key1: 'value1',
-                    key2: {label: 'Value 2', value: 'value2'},
-                },
-                expand: {},
-                query: undefined,
-                selected_field: undefined,
-            }, true);
-            expect(result.data).toBeDefined();
         });
     });
 });

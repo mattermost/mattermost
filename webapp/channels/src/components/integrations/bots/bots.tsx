@@ -38,11 +38,6 @@ type Props = {
     appsBotIDs: string[];
 
     /**
-     * Whether apps framework is enabled
-     */
-    appsEnabled: boolean;
-
-    /**
     *  Map from botUserId to accessTokens.
     */
     accessTokens?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
@@ -128,10 +123,7 @@ export default class Bots extends React.PureComponent<Props, State> {
 
     public componentDidMount(): void {
         this.loadAllBots();
-
-        if (this.props.appsEnabled) {
-            this.props.actions.fetchAppsBotIDs();
-        }
+        this.props.actions.fetchAppsBotIDs();
     }
 
     private async loadAllBots(): Promise<void> {

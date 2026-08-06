@@ -2692,6 +2692,7 @@
   "admin.permissions.teamScheme.schemeNamePlaceholder": "Scheme Name",
   "admin.permissions.teamScheme.selectTeamsDescription": "Select teams where permission exceptions are required.",
   "admin.permissions.teamScheme.selectTeamsTitle": "Select teams to override permissions",
+  "admin.plugin.appsFrameworkDeprecated": "Apps framework is deprecated and no longer supported.",
   "admin.plugin.backToPlugins": "Go back to the Plugins",
   "admin.plugin.choose": "Choose File",
   "admin.plugin.cluster_instance": "Cluster Instance",

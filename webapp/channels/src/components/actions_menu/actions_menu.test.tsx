@@ -49,8 +49,6 @@ const dropdownComponents: PostDropdownMenuItemComponent[] = [
 
 describe('components/actions_menu/ActionsMenu', () => {
     const baseProps: Omit<Props, 'intl'> = {
-        appBindings: [],
-        appsEnabled: false,
         teamId: 'team_id_1',
         handleDropdownOpened: jest.fn(),
         isMenuOpen: true,
@@ -62,10 +60,6 @@ describe('components/actions_menu/ActionsMenu', () => {
         canOpenMarketplace: false,
         actions: {
             openModal: jest.fn(),
-            openAppsModal: jest.fn(),
-            handleBindingClick: jest.fn(),
-            postEphemeralCallResponseForPost: jest.fn(),
-            fetchBindings: jest.fn(),
         },
     };
 

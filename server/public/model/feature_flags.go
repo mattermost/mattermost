@@ -22,9 +22,6 @@ type FeatureFlags struct {
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
 
-	// AppsEnabled toggles the Apps framework functionalities both in server and client side
-	AppsEnabled bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
@@ -159,7 +156,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ClusterGracefulDrain = true
 	f.EnableSharedChannelsDMs = false
 	f.EnableSyncAllUsersForRemoteCluster = false
-	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
 	f.EnableExportDirectDownload = false

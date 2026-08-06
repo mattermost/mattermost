@@ -46,10 +46,6 @@ jest.mock('mattermost-redux/actions/integrations', () => ({
     isIncomingWebhooksWithCount: jest.fn(() => false),
 }));
 
-jest.mock('mattermost-redux/selectors/entities/apps', () => ({
-    appsEnabled: jest.fn(() => true),
-}));
-
 jest.mock('mattermost-redux/selectors/entities/integrations', () => ({
     getDialogArguments: jest.fn(() => null),
 }));

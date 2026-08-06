@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -13,7 +16,6 @@ import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
 
-import type {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';

@@ -11,7 +11,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
 import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
 import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser} from 'mattermost-redux/actions/users';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
@@ -52,7 +51,6 @@ function mapStateToProps(state: GlobalState) {
         users,
         pluginDisplayNames,
         appsBotIDs: getAppsBotIDs(state),
-        appsEnabled: appsEnabled(state),
     };
 }
 

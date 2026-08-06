@@ -198,17 +198,6 @@ const state: GlobalState = {
             orderByTeam: {},
             managedCategoryMappings: {},
         },
-        apps: {
-            main: {
-                bindings: [],
-                forms: {},
-            },
-            rhs: {
-                bindings: [],
-                forms: {},
-            },
-            pluginEnabled: true,
-        },
         cloud: {
             limits: {
                 limits: {},

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
-import type {AppCallResponse} from '@mattermost/types/apps';
 import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
@@ -10,8 +9,6 @@ import {unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannel, getRedirectChannelNameForTeam, isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -25,7 +22,6 @@ import {openModal} from 'actions/views/modals';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import {AppCommandParser} from 'components/suggestion/command_provider/app_command_parser/app_command_parser';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {getHistory} from 'utils/browser_history';
@@ -37,13 +33,10 @@ import {getUserIdFromChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
 
-import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
-
 export type ExecuteCommandReturnType = {
     frontendHandled?: boolean;
     silentFailureReason?: Error;
     commandResponse?: CommandResponse;
-    appResponse?: AppCallResponse;
 };
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
@@ -134,64 +127,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/expand':
             dispatch(PostActions.resetEmbedVisibility());
             dispatch(PostActions.resetInlineImageVisibility());
-        }
-
-        if (appsEnabled(state)) {
-            const getGlobalState = () => getState();
-            const createErrorMessage = (errMessage: string) => {
-                return {error: {message: errMessage}};
-            };
-            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intl, args.channel_id, args.team_id, args.root_id);
-            if (parser.isAppCommand(msg)) {
-                try {
-                    const {creq, errorMessage} = await parser.composeCommandSubmitCall(msg);
-                    if (!creq) {
-                        return createErrorMessage(errorMessage!);
-                    }
-
-                    const res = await dispatch(doAppSubmit(creq, intl));
-
-                    if (res.error) {
-                        const errorResponse = res.error;
-                        return createErrorMessage(errorResponse.text || intl.formatMessage({
-                            id: 'apps.error.unknown',
-                            defaultMessage: 'Unknown error occurred.',
-                        }));
-                    }
-
-                    const callResp = res.data!;
-                    switch (callResp.type) {
-                    case AppCallResponseTypes.OK:
-                        if (callResp.text) {
-                            dispatch(postEphemeralCallResponseForCommandArgs(callResp, callResp.text, args));
-                        }
-                        return {data: {appResponse: callResp}};
-                    case AppCallResponseTypes.FORM:
-                        if (callResp.form) {
-                            dispatch(openAppsModal(callResp.form, creq.context));
-                        }
-                        return {data: {appResponse: callResp}};
-                    case AppCallResponseTypes.NAVIGATE:
-                        return {data: {appResponse: callResp}};
-                    default:
-                        return createErrorMessage(intl.formatMessage(
-                            {
-                                id: 'apps.error.responses.unknown_type',
-                                defaultMessage: 'App response type not supported. Response type: {type}.',
-                            },
-                            {
-                                type: callResp.type,
-                            },
-                        ));
-                    }
-                } catch (err: any) {
-                    const message = err.message || intl.formatMessage({
-                        id: 'apps.error.unknown',
-                        defaultMessage: 'Unknown error occurred.',
-                    });
-                    return createErrorMessage(message);
-                }
-            }
         }
 
         let data;

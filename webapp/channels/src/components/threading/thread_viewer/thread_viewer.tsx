@@ -31,7 +31,6 @@ type Attrs = Pick<HTMLAttributes<HTMLDivElement>, 'className' | 'id'>;
 
 export type Props = Attrs & {
     isCollapsedThreadsEnabled: boolean;
-    appsEnabled: boolean;
     userThread?: UserThread | null;
     channel?: Channel;
     selected?: Post | FakePost;
@@ -39,7 +38,6 @@ export type Props = Attrs & {
     currentTeamId: string;
     socketConnectionStatus: boolean;
     actions: {
-        fetchRHSAppsBindings: (channelId: string, rootID: string) => unknown;
         getNewestPostThread: (rootId: string) => Promise<ActionResult>;
         getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<ActionResult>;
@@ -77,10 +75,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         this.onInit();
-
-        if (this.props.appsEnabled) {
-            this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected?.id || this.props.rootPostId);
-        }
     }
 
     public componentWillUnmount() {
@@ -104,12 +98,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             this.props.userThread?.id !== prevProps.userThread?.id
         ) {
             this.markThreadRead();
-        }
-
-        if (this.props.appsEnabled && (
-            this.props.channel?.id !== prevProps.channel?.id || selectedChanged
-        )) {
-            this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected.id);
         }
     }
 

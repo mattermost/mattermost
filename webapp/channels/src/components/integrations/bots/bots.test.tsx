@@ -60,7 +60,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={users}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -90,7 +89,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={users}
                 actions={{...actions, loadBots}}
-                appsEnabled={true}
                 appsBotIDs={['3']}
             />,
         );
@@ -129,7 +127,6 @@ describe('components/integrations/bots/Bots', () => {
                 users={users}
                 pluginDisplayNames={{[bot1.user_id]: 'Playbooks'}}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -174,7 +171,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={allUsers}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -226,7 +222,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -250,7 +245,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -292,7 +286,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={allUsers}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -321,7 +314,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -346,7 +338,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
@@ -394,7 +385,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={owners}
                 users={users}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
                 appsBotIDs={[]}
             />,
         );
