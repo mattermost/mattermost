@@ -233,9 +233,6 @@ func (s *ElasticsearchInterfaceTestSuite) TestTemplateCreationClientError() {
 }
 
 func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicense())
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -252,6 +249,11 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 		}
 	}))
 	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
+
+	th := api4.SetupEnterprise(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
@@ -260,7 +262,7 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	})
 
 	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
-	defer es.Stop()
+	defer func() { require.Nil(t, es.Stop()) }()
 	appErr := es.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
@@ -275,6 +277,8 @@ func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
 	if analysisICUFreeURL == "" {
 		t.Skip("MM_TEST_ELASTICSEARCH_ANALYSIS_ICU_FREE_URL is not set")
 	}
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", analysisICUFreeURL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
 
 	th := api4.SetupEnterprise(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {

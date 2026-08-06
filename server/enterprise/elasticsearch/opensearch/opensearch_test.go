@@ -192,6 +192,8 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 		}
 	}))
 	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
 
 	th := api4.SetupEnterprise(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -219,6 +221,8 @@ func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
 	if analysisICUFreeURL == "" {
 		t.Skip("MM_TEST_OPENSEARCH_ANALYSIS_ICU_FREE_URL is not set")
 	}
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", analysisICUFreeURL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
 
 	th := api4.SetupEnterprise(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {

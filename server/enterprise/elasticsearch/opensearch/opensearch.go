@@ -351,13 +351,16 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 
 	// Flush any pending requests. Attempt both processors even if the first
 	// stop reports an error.
+	// PlatformService initializes its logger before this lifecycle is reached.
+	// Log returns that logger through an interface, so checking the result
+	// against nil is ineffective; keep only the Platform guard for test doubles.
 	if bulkProcessor != nil {
-		if err := bulkProcessor.Stop(); err != nil && os.Platform != nil && os.Platform.Log() != nil {
+		if err := bulkProcessor.Stop(); err != nil && os.Platform != nil {
 			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
 		}
 	}
 	if syncBulkProcessor != nil {
-		if err := syncBulkProcessor.Stop(); err != nil && os.Platform != nil && os.Platform.Log() != nil {
+		if err := syncBulkProcessor.Stop(); err != nil && os.Platform != nil {
 			os.Platform.Log().Warn("Error stopping synchronous bulk processor", mlog.Err(err))
 		}
 	}
