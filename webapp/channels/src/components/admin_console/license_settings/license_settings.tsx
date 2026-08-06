@@ -325,7 +325,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     fileInputRef={this.fileInputRef}
                     handleChange={this.handleChange}
                     statsActiveUsers={this.props.totalUsers || 0}
-                    isLicenseSetByEnvVar={Boolean(this.props.environmentConfig?.ServiceSettings?.LicenseFileLocation)}
+                    isLicenseSetByEnvVar={Boolean(this.props.environmentConfig?.License)}
                 />
             );
 

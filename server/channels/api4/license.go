@@ -103,6 +103,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Srv().Platform().IsLicenseSetFromEnvironment() {
+		c.Err = model.NewAppError("addLicense", "api.license.set_by_environment.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	licenseBytes, filename, appErr := parseLicenseFileFromRequest(c, r)
 	if appErr != nil {
 		c.Err = appErr
@@ -197,6 +202,11 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	if c.App.Srv().Platform().IsLicenseSetFromEnvironment() {
+		c.Err = model.NewAppError("removeLicense", "api.license.set_by_environment.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

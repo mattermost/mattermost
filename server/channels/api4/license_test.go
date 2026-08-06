@@ -64,6 +64,14 @@ func TestUploadLicenseFile(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("blocked when the license is set from the environment", func(t *testing.T) {
+		t.Setenv("MM_LICENSE", "license-provided-through-the-environment")
+
+		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte("licensebytes"))
+		CheckErrorID(t, err, "api.license.set_by_environment.app_error")
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		resp, err := c.UploadLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
@@ -343,6 +351,17 @@ func TestRemoveLicenseFile(t *testing.T) {
 		_, err := LocalClient.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 	})
+}
+
+func TestRemoveLicenseFileWhenSetFromEnvironment(t *testing.T) {
+	// t.Setenv prevents t.Parallel — the MM_LICENSE environment variable has no config equivalent.
+	th := Setup(t)
+
+	t.Setenv("MM_LICENSE", "license-provided-through-the-environment")
+
+	resp, err := th.SystemAdminClient.RemoveLicenseFile(context.Background())
+	CheckErrorID(t, err, "api.license.set_by_environment.app_error")
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 }
 
 func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
