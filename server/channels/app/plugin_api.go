@@ -39,17 +39,16 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
-// checkCustomPermissionsSchemesLicense mirrors the gate the scheme REST handlers
-// apply, so reaching scheme writes through a plugin does not skip it: a license
-// covers a capability, not the transport that reaches it. The condition is the
-// one from Api4.CreateScheme rather than a copy of checkLDAPLicense below,
-// because this feature also ships to Professional whatever the feature flag says
-// — dropping that clause would lock out paying licensees.
+// checkCustomPermissionsSchemesLicense mirrors the license gate the scheme REST
+// handlers apply, so reaching scheme writes through a plugin does not skip it: a
+// license covers a capability, not the transport that reaches it. The condition
+// is copied from Api4.CreateScheme, including its Professional SKU clause —
+// dropping that clause would lock out paying licensees.
 //
-// This does not gate space permissions as such. The seeded space preset schemes
-// are created by doSpaceSchemesCreationMigration on every edition, and pointing
-// a space at one is an ordinary channel update that never arrives here; what a
-// license buys, and what this gate covers, is minting a custom scheme.
+// What this gates is minting a custom scheme, not space permissions. The space
+// preset schemes are seeded by doSpaceSchemesCreationMigration on every edition,
+// and pointing a space at one is an ordinary channel update that never arrives
+// here.
 func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	license := api.GetLicense()
 	if license == nil || (!*license.Features.CustomPermissionsSchemes && license.SkuShortName != model.LicenseShortSkuProfessional) {
@@ -1344,8 +1343,13 @@ func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) 
 // scope guard reached through UpdateRole resolves the space proof from
 // role.SchemeId, and neither argument here supplies it. Reading the stored row
 // is what puts that field in front of the guard.
+//
+// From the primary, for the same reason GetRoleByName above reads there: the
+// create-then-read-then-patch sequence a plugin performs to configure a scheme
+// it just created would otherwise return a transient not-found on the role core
+// generated for it.
 func (api *PluginAPI) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	stored, appErr := api.app.GetRole(roleID)
+	stored, appErr := api.app.GetRoleFromMaster(roleID)
 	if appErr != nil {
 		return nil, appErr
 	}

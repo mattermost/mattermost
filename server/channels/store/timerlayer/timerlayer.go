@@ -10019,6 +10019,22 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetByNamesFromMaster(names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetByNamesFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRoleStore) GetFromMaster(roleID string) (*model.Role, error) {
 	start := time.Now()
 

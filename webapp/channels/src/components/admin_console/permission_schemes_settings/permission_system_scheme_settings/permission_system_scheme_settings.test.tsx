@@ -182,6 +182,42 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(editRole).toHaveBeenCalledTimes(11);
     });
 
+    test('should preserve the team-scoped space permissions across a save', async () => {
+        // The save path rebuilds team_user/team_guest by filtering the aggregated
+        // role through PermissionsScope, so a space permission missing from that
+        // map would be silently dropped from a role the admin never touched.
+        const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                roles={{
+                    ...defaultProps.roles,
+                    team_user: {...defaultRole, name: 'team_user', permissions: [Permissions.READ_SPACE, Permissions.CREATE_SPACE]},
+                    team_guest: {...defaultRole, name: 'team_guest', permissions: [Permissions.READ_SPACE]},
+                    team_admin: {...defaultRole, name: 'team_admin', permissions: [Permissions.MANAGE_SPACE, Permissions.DELETE_SPACE]},
+                }}
+                actions={{...defaultProps.actions, editRole}}
+                ref={ref}
+            />,
+        );
+
+        await act(async () => {
+            await (ref.current as any).handleSubmit();
+        });
+
+        const savedRole = (name: string) => editRole.mock.calls.map((call) => call[0]).find((role) => role.name === name);
+
+        expect(savedRole('team_user').permissions).toEqual(expect.arrayContaining([Permissions.READ_SPACE, Permissions.CREATE_SPACE]));
+        expect(savedRole('team_admin').permissions).toEqual(expect.arrayContaining([Permissions.MANAGE_SPACE, Permissions.DELETE_SPACE]));
+
+        // Exactly once: the guest branch re-adds permissions the guest tree does not
+        // manage, so read_space being both scope-mapped and tree-managed is what keeps
+        // it from being appended a second time on every save.
+        const guestPermissions = savedRole('team_guest').permissions;
+        expect(guestPermissions.filter((p: string) => p === Permissions.READ_SPACE)).toHaveLength(1);
+    });
+
     test('should save roles based on license', async () => {
         const license = {
             IsLicensed: 'true',
@@ -328,6 +364,34 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.roles.channel_admin.permissions).toBe(DefaultRolePermissions.channel_admin);
         expect(ref.current!.state.roles.team_admin.permissions).toBe(DefaultRolePermissions.team_admin);
         expect(ref.current!.state.roles.system_admin.permissions?.length).toBe(defaultProps.roles.system_admin.permissions.length);
+    });
+
+    test('should restore the space permissions the server grants by default', () => {
+        // resetDefaults replaces each role's permissions wholesale, so anything
+        // missing from DefaultRolePermissions is revoked on the next save. These
+        // mirror MakeDefaultRoles: team_user gains read/create, team_admin gains
+        // manage/delete, and team_guest gains read. Asserted by content rather
+        // than against the constant itself, which would hold however it drifts.
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            (ref.current as any).resetDefaults();
+        });
+
+        expect(ref.current!.state.roles.all_users.permissions).toEqual(
+            expect.arrayContaining([Permissions.READ_SPACE, Permissions.CREATE_SPACE]),
+        );
+        expect(ref.current!.state.roles.team_admin.permissions).toEqual(
+            expect.arrayContaining([Permissions.MANAGE_SPACE, Permissions.DELETE_SPACE]),
+        );
+        expect(ref.current!.state.roles.guests.permissions).toEqual(
+            expect.arrayContaining([Permissions.READ_SPACE]),
+        );
     });
 
     test('should set moderated permissions on team/channel admins', () => {

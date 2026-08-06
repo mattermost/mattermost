@@ -4607,6 +4607,77 @@ func TestPluginAPIPatchRoleGuestLicenseGate(t *testing.T) {
 	})
 }
 
+// TestPluginAPIPatchRoleDeniedPermissions covers the blocklist on the plugin API
+// path. The REST handler enforces its own copy and rejects first, so this is the
+// only entry point that reaches the App.PatchRole check.
+func TestPluginAPIPatchRoleDeniedPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	deniedPermissions := []string{
+		model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+		model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
+		model.PermissionManageRoles.Id,
+		model.PermissionManageSystem.Id,
+	}
+
+	t.Run("adding a denied permission is refused", func(t *testing.T) {
+		for _, permission := range deniedPermissions {
+			t.Run(permission, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				role := th.CreateRole(t, "custom_role_"+model.NewId())
+
+				updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{permission}})
+				require.NotNil(t, appErr)
+				assert.Nil(t, updated)
+				assert.Equal(t, "api.roles.patch_roles.not_allowed_permission.error", appErr.Id)
+				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+				assert.Contains(t, appErr.DetailedError, permission,
+					"the error names the permission that was refused")
+			})
+		}
+	})
+
+	t.Run("removing a denied permission is refused", func(t *testing.T) {
+		// The blocklist is a diff over the patch, so dropping a denied permission
+		// a role already carries is refused the same way granting one is.
+		for _, permission := range deniedPermissions {
+			t.Run(permission, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				api := th.SetupPluginAPI()
+
+				role, appErr := th.App.CreateRole(&model.Role{
+					Name:        "custom_role_" + model.NewId(),
+					DisplayName: "custom role",
+					Description: "custom role",
+					Permissions: []string{permission},
+				})
+				require.Nil(t, appErr)
+
+				updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
+				require.NotNil(t, appErr)
+				assert.Nil(t, updated)
+				assert.Equal(t, "api.roles.patch_roles.not_allowed_permission.error", appErr.Id)
+				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+			})
+		}
+	})
+
+	t.Run("a permission outside the blocklist is allowed", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		role := th.CreateRole(t, "custom_role_"+model.NewId())
+
+		permissions := []string{model.PermissionAddReaction.Id}
+		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &permissions})
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+		assert.Equal(t, permissions, updated.Permissions)
+	})
+}
+
 func TestPluginAPISchemeCustomPermissionsLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 

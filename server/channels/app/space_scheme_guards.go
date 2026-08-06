@@ -40,15 +40,16 @@ func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme
 	return scheme, nil
 }
 
-// getSchemeFromMaster resolves a scheme on the primary only. The two guards that
-// read a scheme to decide whether it may hold space authority use this rather
+// getSchemeFromMaster resolves a scheme on the primary only. Every guard that
+// reads a scheme to decide whether it may hold space authority uses this rather
 // than the replica-first fallback above: the fallback re-reads the primary only
 // when the replica has no row, so a replica that has not yet seen a delete
 // answers DeleteAt == 0 for a row the primary has already soft-deleted, and the
 // deleted-scheme refusal passes on stale state. The channel counts those guards
 // fall back on cannot catch it either, because deleting a scheme blanks SchemeId
-// on every channel that used it, so they come back empty and agree. Both callers
-// are sysconsole-gated and low frequency, so the replica offload buys nothing.
+// on every channel that used it, so they come back empty and agree. Every caller
+// is sysconsole- or plugin-gated and low frequency, so the replica offload buys
+// nothing.
 //
 // A nil scheme with a nil error means the id resolves to no row. Each caller
 // refuses that its own way.
@@ -66,19 +67,23 @@ func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model
 
 // isSeededSpaceScheme reports whether schemeId is one of the three seeded space
 // preset schemes. Resolving the id and reading its name costs one lookup, where
-// resolving each reserved name in turn would cost three; the by-id read is also
-// the cached one, and the names it is compared against cannot drift because
-// renaming a seeded preset is refused. Identity is the pair (channel scope, one of
-// the three reserved names), not the id. A lookup failure other than not-found
-// fails closed.
+// resolving each reserved name in turn would cost three, and the names it is
+// compared against cannot drift because renaming a seeded preset is refused.
+// Identity is the pair (channel scope, one of the three reserved names), not the
+// id. A lookup failure other than not-found fails closed.
+//
+// Read on the primary, because preset identity is what the callers refuse on: a
+// preset seeded moments earlier that reads as absent is read as "not a preset",
+// which would let it be deleted or attached to an ordinary channel. The seeding
+// migration marks itself complete, so a preset deleted that way is not restored
+// on the next boot.
 func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
-	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return false, nil
-		}
-		return false, model.NewAppError("isSeededSpaceScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	scheme, appErr := a.getSchemeFromMaster("isSeededSpaceScheme", schemeId)
+	if appErr != nil {
+		return false, appErr
+	}
+	if scheme == nil {
+		return false, nil
 	}
 	// Scope is part of the identity: a scheme of another scope carrying a
 	// reserved name is a conflicting row the seeding migration refuses to adopt,
@@ -99,23 +104,21 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 // the association lapses, where MergeChannelHigherScopedPermissions carries
 // those grants through to its members.
 //
-// The roles are read by name through the cached path, the same way
-// mergeChannelHigherScopedPermissions resolves scheme roles. A role write that
-// has not yet invalidated this node's cache could be missed, which is why this
-// is the second of two tests rather than the only one: the caller already refuses
-// the scheme by its live space association before reaching this function.
+// Both reads go to the primary and neither is served by a cache. That is the
+// case the caller's earlier tests cannot cover for this one: dropping the
+// association is exactly what leaves this the only test standing, so a grant a
+// peer node wrote and this node has not yet seen would let the scheme through.
 func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
-	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return false, nil
-		}
-		return false, model.NewAppError("schemeHoldsSpaceGrants", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	scheme, appErr := a.getSchemeFromMaster("schemeHoldsSpaceGrants", schemeId)
+	if appErr != nil {
+		return false, appErr
+	}
+	if scheme == nil {
+		return false, nil
 	}
 
 	names := []string{scheme.DefaultChannelAdminRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelGuestRole}
-	roles, nErr := a.Srv().Store().Role().GetByNames(names)
+	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster(names)
 	if nErr != nil {
 		return false, model.NewAppError("schemeHoldsSpaceGrants", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

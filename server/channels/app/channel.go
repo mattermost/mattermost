@@ -1167,8 +1167,9 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 			if err.StatusCode != http.StatusNotFound || !channel.IsSpace() {
 				return
 			}
-			// A space points at a scheme the same caller just created, which is the
-			// ordinary way a caller reaches here.
+			// A space's scheme is typically created moments earlier by the same
+			// caller, so a not-found here is most likely replica lag rather than
+			// a real absence.
 			var fallbackErr *model.AppError
 			scheme, fallbackErr = a.getSchemeWithMasterFallback("GetSchemeRolesForChannel", *channel.SchemeId)
 			if fallbackErr != nil {
@@ -1487,6 +1488,7 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 
 	// Resolved at most once for the whole write; see the capability role check below.
 	var channelIsSpace, spaceLookupDone bool
+	var capabilityRoleName string
 
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
@@ -1520,6 +1522,9 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateChannelMemberRoles", roleName, ownerIsSpaceChannel) {
 				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
+			if isCapabilityRole {
+				capabilityRoleName = roleName
+			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
 			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
@@ -1539,6 +1544,33 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 
 	if member.SchemeUser && member.SchemeGuest {
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// A guest reads a space and nothing more, so no capability role may be
+	// granted to one. Checked after the loop rather than beside the capability
+	// role itself: SchemeGuest is settled by the scheme-managed branch of the
+	// same loop, which the roles reach in whatever order the caller sent them.
+	if member.SchemeGuest && capabilityRoleName != "" {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_role.app_error", nil, "role_name="+capabilityRoleName, http.StatusBadRequest)
+	}
+
+	// The scheme's own admin role carries the same authority a capability role
+	// does — admin_space and every page permission — and the check above does not
+	// see it, because a scheme role sets SchemeAdmin instead of landing in
+	// ExplicitRoles. Guest and admin resolve independently in getChannelRoles, so
+	// a member holding both reads as a guest and is granted the admin role.
+	//
+	// Gated on the space: an ordinary channel may still have a guest channel
+	// admin, which is long-standing behaviour this does not disturb.
+	if member.SchemeGuest && member.SchemeAdmin {
+		if !spaceLookupDone {
+			if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
+				return nil, err
+			}
+		}
+		if channelIsSpace {
+			return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	if prevSchemeGuestValue != member.SchemeGuest {

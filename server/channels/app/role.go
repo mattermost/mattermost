@@ -22,7 +22,25 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	role, err := a.Srv().Store().Role().Get(id)
+	return a.getRole(id, false)
+}
+
+// GetRoleFromMaster is GetRole on the primary, for a caller reading back a role
+// core generated moments earlier: on a lagging replica that role reads as
+// absent. Unlike GetRoleByName, the primary request is honoured rather than
+// narrowed — no cache layer serves the by-id read, as storedRoleForSpaceGuard
+// records.
+func (a *App) GetRoleFromMaster(id string) (*model.Role, *model.AppError) {
+	return a.getRole(id, true)
+}
+
+func (a *App) getRole(id string, fromMaster bool) (*model.Role, *model.AppError) {
+	get := a.Srv().Store().Role().Get
+	if fromMaster {
+		get = a.Srv().Store().Role().GetFromMaster
+	}
+
+	role, err := get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

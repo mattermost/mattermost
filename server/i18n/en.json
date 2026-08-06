@@ -744,6 +744,14 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.space_guest_admin.app_error",
+    "translation": "A guest cannot be made an administrator of a space, and has read-only access to every space."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.space_guest_role.app_error",
+    "translation": "The provided role grants space permissions and cannot be applied to a guest, who has read-only access to every space."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.space_role.app_error",
     "translation": "The provided role grants space permissions and can only be applied to a member of a space."
   },
@@ -9003,6 +9011,10 @@
   {
     "id": "app.role.save.space_permission_scope.app_error",
     "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by the roles of a scheme that governs a space. If this scheme is meant to govern one, attach it to the space before patching its roles."
+  },
+  {
+    "id": "app.role.save.space_role_scheme_managed.app_error",
+    "translation": "The role \"{{.RoleName}}\" carries space permissions and must remain managed by its scheme. Remove the space permissions before making it a standalone role."
   },
   {
     "id": "app.role.send_updated_role_event.app_error",

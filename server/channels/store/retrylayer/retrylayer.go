@@ -12646,6 +12646,27 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 
 }
 
+func (s *RetryLayerRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetByNamesFromMaster(names)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRoleStore) GetFromMaster(roleID string) (*model.Role, error) {
 
 	tries := 0

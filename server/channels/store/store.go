@@ -909,6 +909,12 @@ type RoleStore interface {
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
+	// GetByNamesFromMaster reads on the primary and is served by no cache layer,
+	// where GetByNames is answered from the local role cache before the store is
+	// consulted. The space guard that decides whether a scheme's generated roles
+	// carry space authority needs both: a grant a peer node wrote would otherwise
+	// be hidden by this node's cache entry, or by a lagging replica.
+	GetByNamesFromMaster(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
 

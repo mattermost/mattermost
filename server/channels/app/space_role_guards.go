@@ -168,6 +168,21 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 
 	added := spacePermissionAddDiff(role.Permissions, stored)
 	if len(added) == 0 {
+		// A write that adds nothing can still change what the grants already on
+		// the role are worth. The acceptance guards admit a non-scheme-managed
+		// role on its name alone and know only the five capability names, so a
+		// scheme-generated space role that keeps its grants while dropping
+		// SchemeManaged becomes assignable as an arbitrary explicit user, team or
+		// ordinary channel role. Its authority comes from the scheme, so it has to
+		// stay scheme-managed for as long as it holds the grants.
+		//
+		// Built-ins are exempt: they carry a reserved name those same guards match
+		// on, so one never becomes freely assignable this way, and a grant already
+		// stored on one has to stay removable.
+		if !role.SchemeManaged && !model.IsBuiltInRole(role.Name) && hasSpaceChannelScopedPermission(role.Permissions) {
+			return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_role_scheme_managed.app_error",
+				map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+		}
 		return nil
 	}
 
