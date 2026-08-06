@@ -22,7 +22,7 @@ func TestSpaceChannelScopedPermissions(t *testing.T) {
 	assert.False(t, IsSpaceChannelScopedPermissionID(PermissionReadSpace.Id))
 	assert.False(t, IsSpaceChannelScopedPermissionID(PermissionCreatePost.Id))
 
-	// Every atomic capability role slice is self-contained: read_page plus a
+	// Every space capability role slice is self-contained: read_page plus a
 	// subset of the seven.
 	for _, slice := range [][]*Permission{
 		SpacePageCreatorRolePermissions,
@@ -46,9 +46,9 @@ func TestSpaceChannelScopedPermissions(t *testing.T) {
 // TestSpacePermissionsNotOnTeamOrSystemRoles mechanizes the scope invariant:
 // no channel-scoped space permission may appear on any team- or system-scoped
 // built-in role (system_admin excepted) nor on the global channel roles. The
-// atomic capability roles are excluded by name — they must carry them.
+// space capability roles are excluded by name — they must carry them.
 func TestSpacePermissionsNotOnTeamOrSystemRoles(t *testing.T) {
-	atomicRoleNames := map[string]bool{
+	capabilityRoleNames := map[string]bool{
 		SpacePageCreatorRoleId:    true,
 		SpacePageCommenterRoleId:  true,
 		SpacePageEditorRoleId:     true,
@@ -64,7 +64,7 @@ func TestSpacePermissionsNotOnTeamOrSystemRoles(t *testing.T) {
 	}
 
 	for name, role := range MakeDefaultRoles() {
-		if name == SystemAdminRoleId || atomicRoleNames[name] {
+		if name == SystemAdminRoleId || capabilityRoleNames[name] {
 			continue
 		}
 		mustBeClean := globalChannelRoleNames[name] || IsBuiltInRole(name)

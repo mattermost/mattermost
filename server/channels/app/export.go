@@ -331,7 +331,7 @@ func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.
 func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
 	var cnt int
 	for _, role := range allRoles {
-		// Every server seeds the atomic space capability roles by migration, so
+		// Every server seeds the space capability roles by migration, so
 		// a server importing this file already has its own; an exported copy
 		// would only compete with them.
 		if model.IsSpaceCapabilityRole(role.Name) {

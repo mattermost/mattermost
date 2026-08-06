@@ -456,7 +456,7 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 			return nil, err
 		}
 		if !role.SchemeManaged {
-			// The atomic space capability roles carry channel-scoped page
+			// The space capability roles carry channel-scoped page
 			// permissions and are excluded from BuiltInSchemeManagedRoleIDs so
 			// they can ride in ExplicitRoles on a space's backing channel. A
 			// team member is never a space backing channel, so the guard always

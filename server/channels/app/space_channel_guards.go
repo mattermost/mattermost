@@ -55,8 +55,8 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 
 	// The association above is live state; the grants it authorised are not. A
 	// scheme whose roles still carry space permissions is refused even once no
-	// space points at it, so dropping the association cannot launder the scheme
-	// onto an ordinary channel. The case where the grants are added after both
+	// space points at it, so dropping the association cannot make the scheme
+	// eligible for an ordinary channel. The case where the grants are added after both
 	// channels already point at the scheme is refused on the role write instead,
 	// by the ordinary-channel count in checkSpacePermissionScope.
 	grants, gErr := a.schemeHoldsSpaceGrants(*schemeId)
@@ -135,7 +135,7 @@ func (a *App) rejectUnusableSpaceScheme(where string, schemeId *string) *model.A
 }
 
 // IsSpaceChannelByID reports whether channelID is a space backing channel. It reads from the
-// primary so a freshly created space cannot slip through on replica lag, and returns the lookup
+// primary so a freshly created space cannot be missed on replica lag, and returns the lookup
 // error on anything other than not-found so callers can fail closed.
 func (a *App) IsSpaceChannelByID(rctx request.CTX, channelID string) (bool, *model.AppError) {
 	_, err := a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)

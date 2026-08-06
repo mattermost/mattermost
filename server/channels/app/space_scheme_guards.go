@@ -28,8 +28,8 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 		return false, model.NewAppError("isSeededSpaceScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	// Scope is part of the identity: a scheme of another scope carrying a
-	// reserved name is a squatter the seeding migration refuses to adopt, and
-	// deleting it is the operator's remedy.
+	// reserved name is a conflicting row the seeding migration refuses to adopt,
+	// and deleting it is the operator's remedy.
 	return scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
@@ -122,7 +122,7 @@ func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 
 	// Only a channel-scoped scheme can actually be a space scheme, so the
 	// rename refusal is scoped to that case. A scheme of any other scope
-	// carrying a reserved name is a squatter that the seeding migration
+	// carrying a reserved name is a conflicting row that the seeding migration
 	// refuses to adopt — renaming it away is the operator's remedy, and
 	// refusing that rename too would leave the boot permanently blocked.
 	if stored.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(stored.Name) {

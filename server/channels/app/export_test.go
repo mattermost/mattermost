@@ -1288,7 +1288,7 @@ func nonSpaceSchemes(schemes []*model.Scheme) []*model.Scheme {
 }
 
 // seededSpaceRoles counts the roles the space seeding migrations add to every
-// server: the atomic capability roles, plus the three generated channel roles
+// server: the space capability roles, plus the three generated channel roles
 // each preset scheme carries.
 func seededSpaceRoles() int {
 	return len(model.SpaceCapabilityRoles) + len(model.SpaceSchemeNames)*3

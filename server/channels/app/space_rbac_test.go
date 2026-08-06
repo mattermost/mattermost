@@ -89,7 +89,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		}
 	})
 
-	t.Run("atomic capability role names rejected", func(t *testing.T) {
+	t.Run("space capability role names rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
@@ -562,7 +562,7 @@ func TestSpaceSeedingSurvivesPermissionsReset(t *testing.T) {
 }
 
 // TestSpaceSeedingMigrations asserts against a real database that the boot
-// seeding created the atomic capability roles and the three preset schemes
+// seeding created the space capability roles and the three preset schemes
 // with exactly the canonical permission sets — moderated permissions stripped
 // from the generated user and guest roles, the admin role granted the full
 // admin slice.
@@ -570,7 +570,7 @@ func TestSpaceSeedingMigrations(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	t.Run("atomic capability roles exist with canonical definitions", func(t *testing.T) {
+	t.Run("space capability roles exist with canonical definitions", func(t *testing.T) {
 		canonical := model.MakeDefaultRoles()
 		for _, roleID := range []string{
 			model.SpacePageCreatorRoleId,
@@ -684,7 +684,7 @@ func TestSpacePresetResolutionThroughRealSpace(t *testing.T) {
 		assert.False(t, check(guest.Id, model.PermissionCreatePost))
 	})
 
-	t.Run("atomic capability role in ExplicitRoles unions on top of a read-only default", func(t *testing.T) {
+	t.Run("space capability role in ExplicitRoles unions on top of a read-only default", func(t *testing.T) {
 		readOnly := getSeededSpaceScheme(t, th, model.SchemeNameSpaceReadOnly)
 		roSpace := saveSpaceChannelWithScheme(t, th, readOnly.Id)
 		creator := th.CreateUser(t)
@@ -814,7 +814,7 @@ func TestCreateRoleClearsSchemeIdOnAcceptedRole(t *testing.T) {
 	assert.Nil(t, saved.SchemeId, "the saved role must not carry a caller-supplied SchemeId")
 }
 
-// TestSpaceCapabilityRoleConfinedToSpaces pins that the atomic capability
+// TestSpaceCapabilityRoleConfinedToSpaces pins that the space capability
 // roles, which are excluded from BuiltInSchemeManagedRoleIDs so they can ride
 // in ExplicitRoles, are refused by UpdateChannelMemberRoles on an ordinary
 // channel and accepted there only once the channel resolves to a space. It
@@ -1032,7 +1032,7 @@ func TestDeleteSchemeSpaceGuards(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
-	// A scheme of another scope carrying a reserved name is a squatter the
+	// A scheme of another scope carrying a reserved name is a conflicting row the
 	// seeding migration refuses to adopt; deleting it is the operator's remedy.
 	t.Run("reserved name outside channel scope is not treated as a preset", func(t *testing.T) {
 		mainHelper.Parallel(t)
@@ -1143,8 +1143,8 @@ func TestUpdateSchemeSpaceGuards(t *testing.T) {
 	})
 
 	// A scheme of a scope other than channel can never be a space scheme, so one
-	// carrying a reserved name is a squatter that the seeding migration refuses
-	// to adopt. Renaming it away is the operator's only remedy; refusing that
+	// carrying a reserved name is a conflicting row that the seeding migration
+	// refuses to adopt. Renaming it away is the operator's only remedy; refusing that
 	// rename too would leave the boot blocked with no way out.
 	t.Run("renaming a wrong-scope squatter away is allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
@@ -2131,7 +2131,7 @@ func TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent(t *testing.T) {
 // check rejectSpaceSchemeOnOrdinaryChannel runs after the space-count check: a
 // custom scheme no space currently points at (CountSpaceChannelsByScheme == 0)
 // is still refused if its generated channel roles carry a space permission,
-// because that grant is durable state a lapsed association cannot launder away.
+// because that grant is durable state a lapsed association cannot revoke.
 func TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)

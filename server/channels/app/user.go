@@ -2067,7 +2067,7 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		return nil, err
 	}
 
-	// The atomic space capability roles are excluded from
+	// The space capability roles are excluded from
 	// BuiltInSchemeManagedRoleIDs so they can ride in ExplicitRoles on a space's
 	// backing channel, which also means CheckRolesExist accepts them here. A
 	// system role is consulted as the fallback for every channel on the server,

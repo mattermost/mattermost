@@ -115,7 +115,7 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 }
 
 // rejectSpaceCapabilityRoleOutsideSpace reports whether an ExplicitRoles write
-// carries an atomic space capability role where it cannot legitimately mean
+// carries a space capability role where it cannot legitimately mean
 // anything. Those roles grant space authority on a single space's backing
 // channel, so ownerIsSpaceChannel is the whole test: false for every ordinary
 // channel, and false for a team member, whose roles are consulted as the
@@ -159,7 +159,7 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 	// it: its existence check short-circuits on the first read and only compares
 	// permission sets on the lost-insert-race path.
 	if model.IsSpaceCapabilityRole(role.Name) {
-		// Changing an atomic capability role is a code plus migration change,
+		// Changing a space capability role is a code plus migration change,
 		// never a runtime role write; the seeding writes these store-direct,
 		// below this guard.
 		return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_capability_role.app_error",

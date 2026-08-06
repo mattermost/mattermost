@@ -404,7 +404,7 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
-	// Atomic space capability roles. Each is channel-scoped, self-contained
+	// Space capability roles. Each is channel-scoped, self-contained
 	// (read_page plus one capability), assigned per-member via ExplicitRoles on
 	// a space's backing channel in any subset. Deliberately NOT listed in
 	// BuiltInSchemeManagedRoleIDs: membership there would make
@@ -938,7 +938,7 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
 }
 
-// SpaceCapabilityRoles is the canonical list of the atomic space capability
+// SpaceCapabilityRoles is the canonical list of the space capability
 // roles. It is the single source of truth for the seeding migration, the
 // role-write scope guard, and the channel-member assignment guard.
 var SpaceCapabilityRoles = []string{
@@ -951,7 +951,7 @@ var SpaceCapabilityRoles = []string{
 
 var spaceCapabilityRoleSet map[string]bool
 
-// IsSpaceCapabilityRole reports whether roleName is one of the atomic space
+// IsSpaceCapabilityRole reports whether roleName is one of the space
 // capability roles in SpaceCapabilityRoles. These carry space authority, so
 // they are only meaningful on a space's backing channel.
 func IsSpaceCapabilityRole(roleName string) bool {

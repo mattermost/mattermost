@@ -1526,10 +1526,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 				return nil, err
 			}
-			// The atomic space capability roles sit outside the built-in check
+			// The space capability roles sit outside the built-in check
 			// above, so they reach here as explicit roles. They are the
 			// per-member capability grants on a space's backing channel; on any
-			// other channel they would smuggle space authority onto a member.
+			// other channel they would grant space authority to a member.
 			//
 			// The lookup runs only for a capability role, so an ordinary role
 			// write keeps the reads it already had, and it is memoised because

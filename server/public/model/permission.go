@@ -471,7 +471,7 @@ func PermissionIDs(permissions []*Permission) []string {
 }
 
 // Canonical capability→permission slices for the space capability model.
-// Each atomic capability role is self-contained: read_page plus its single
+// Each space capability role is self-contained: read_page plus its single
 // capability. The default-preset slices are the all-members baselines the
 // seeded schemes grant, and the admin slice is the full authority SchemeAdmin
 // resolves to.
