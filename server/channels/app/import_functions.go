@@ -354,8 +354,8 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 
 	// The existing-user branch below routes role changes through UpdateUserRoles,
 	// which refuses a space capability role on a system role. Creating a user
-	// does not: it writes Roles straight through on the FromImport path, which
-	// skips the role defaulting and validation CreateUser otherwise applies. A
+	// does not: it writes Roles straight through on the FromImport path, skipping
+	// CreateUser's usual role defaulting and validation. A
 	// system role is consulted as the fallback for every channel on the server,
 	// so one landed here would resolve its page permissions everywhere.
 	//

@@ -58,8 +58,9 @@ func init() {
 // either was created by the seeding or passed its adoption checks.
 //
 // The answer comes from a set frozen at init rather than from SpaceSchemeNames
-// itself: three security guards read this as proof of space authority, so the
-// accepted names must not be widenable by mutating an exported slice. This
+// itself: checkSpacePermissionScope, checkChannelSchemeAssignment and
+// checkSpaceSchemeDelete read this as proof of space authority, so the accepted
+// names must not be widenable by mutating an exported slice. This
 // matches IsSpaceChannelScopedPermissionID and IsSpaceCapabilityRole.
 func IsSpaceSchemeName(name string) bool {
 	return spaceSchemeNameSet[name]

@@ -939,8 +939,8 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 }
 
 // SpaceCapabilityRoles is the canonical list of the space capability
-// roles. It is the single source of truth for the seeding migration, the
-// role-write scope guard, and the channel-member assignment guard.
+// roles. It is the single source of truth for the seeding migration,
+// checkSpacePermissionScope, and rejectSpaceCapabilityRoleOutsideSpace.
 var SpaceCapabilityRoles = []string{
 	SpacePageCreatorRoleId,
 	SpacePageCommenterRoleId,

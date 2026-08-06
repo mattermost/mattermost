@@ -245,8 +245,8 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
-	// CreateChannel takes SchemeId straight from the caller, so without this
-	// guard it would bypass the check UpdateChannelScheme enforces.
+	// CreateChannel takes SchemeId straight from the caller; this guard applies
+	// the same check UpdateChannelScheme enforces.
 	if appErr := a.checkChannelSchemeAssignment("CreateChannel", channel.IsSpace(), channel.SchemeId); appErr != nil {
 		return nil, appErr
 	}
@@ -755,9 +755,8 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	// The generic Get excludes spaces, so fetch a space by its exact type instead; otherwise
-	// UpdateChannel can't load the existing channel and a rename or header edit would fail with
-	// a not-found before it reaches the store. Spaces are uncached, so read from master.
+	// The generic Get excludes spaces, so fetch a space by its exact type instead.
+	// Spaces are uncached, so read from master.
 	var oldChannel *model.Channel
 	var getErr error
 	if channel.IsSpace() {
@@ -1168,21 +1167,16 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 			if err.StatusCode != http.StatusNotFound || !channel.IsSpace() {
 				return
 			}
-			// Re-read on the primary: nothing populates the scheme cache on create, so
-			// a scheme created moments earlier is absent from the replica. A space
-			// points at a scheme the same caller just created, which is the ordinary
-			// way a caller reaches here.
-			var storeErr error
-			scheme, storeErr = a.Srv().Store().Scheme().GetFromMaster(*channel.SchemeId)
-			if storeErr != nil {
-				// The not-found from the replica read above only describes the
-				// replica. Reporting it for a primary read that failed for another
-				// reason would tell the caller the scheme is gone when the database
-				// is simply unreachable.
-				var nfErr *store.ErrNotFound
-				if !errors.As(storeErr, &nfErr) {
-					err = model.NewAppError("GetSchemeRolesForChannel", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
-				}
+			// A space points at a scheme the same caller just created, which is the
+			// ordinary way a caller reaches here.
+			var fallbackErr *model.AppError
+			scheme, fallbackErr = a.getSchemeWithMasterFallback("GetSchemeRolesForChannel", *channel.SchemeId)
+			if fallbackErr != nil {
+				err = fallbackErr
+				return
+			}
+			if scheme == nil {
+				// Absent on the primary too: keep the not-found from the read above.
 				return
 			}
 			err = nil
@@ -1515,13 +1509,14 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			// Only a capability role needs this lookup, so an ordinary role write
 			// costs no extra read. channelID is the same for every role in the
 			// loop, so the result is reused rather than re-read once per role.
-			if model.IsSpaceCapabilityRole(roleName) && !spaceLookupDone {
+			isCapabilityRole := model.IsSpaceCapabilityRole(roleName)
+			if isCapabilityRole && !spaceLookupDone {
 				if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
 					return nil, err
 				}
 				spaceLookupDone = true
 			}
-			ownerIsSpaceChannel := model.IsSpaceCapabilityRole(roleName) && channelIsSpace
+			ownerIsSpaceChannel := isCapabilityRole && channelIsSpace
 			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateChannelMemberRoles", roleName, ownerIsSpaceChannel) {
 				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}

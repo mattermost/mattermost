@@ -54,8 +54,8 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 	// scope checkSpacePermissionScope accepts, so its roles may hold the page
 	// permissions and admin_space. Putting that same scheme on an ordinary
 	// channel would resolve those grants for that channel's members. The two
-	// guards therefore have to read the association the same way; testing only
-	// the reserved names here left the wider proof unguarded.
+	// guards therefore have to read the association the same way, so this checks
+	// the full space-scheme proof, not just the reserved names.
 	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(*schemeId)
 	if cErr != nil {
 		return model.NewAppError(where, "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)

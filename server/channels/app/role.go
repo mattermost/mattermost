@@ -145,9 +145,9 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 }
 
 // rolePatchDeniedPermissions are refused on any role patch regardless of the
-// caller's own authority: granting them through a role would hand the permission
-// to every account holding that role at once, invisibly from the per-user views
-// where role membership is normally audited.
+// caller's own authority: granting one hands the permission to every account
+// holding that role at once, invisible from the per-user views where role
+// membership is normally audited.
 //
 // The REST handler enforces its own copy of this list. Consolidating the two on
 // a single source is a follow-up: api4/role.go is not otherwise touched here.
@@ -174,9 +174,9 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return role, nil
 	}
 
-	// In PatchRole rather than only in the REST handler, so a second entry
-	// point cannot reach a role write with the blocklist unapplied — which is
-	// what the plugin API would otherwise do.
+	// In PatchRole rather than only in the REST handler, so every entry point
+	// applies the blocklist — including the plugin API, which calls PatchRole
+	// directly.
 	if patch.Permissions != nil {
 		for _, permission := range model.PermissionsChangedByPatch(role, patch) {
 			if slices.Contains(rolePatchDeniedPermissions, permission) {
