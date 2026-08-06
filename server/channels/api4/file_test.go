@@ -1000,7 +1000,7 @@ func TestGetFileAsContentReviewer(t *testing.T) {
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "failed to set license")
 	defer th.RemoveLicense(t)
-	
+
 	appErr := setBasicCommonReviewerConfig(th)
 	require.Nil(t, appErr)
 
