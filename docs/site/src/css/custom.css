@@ -19,8 +19,8 @@
 
   --ifm-font-family-base:      var(--mm-font-sans);
   --ifm-font-family-monospace: var(--mm-font-mono);
-  --ifm-heading-font-family:   var(--mm-font-heading);
-  --ifm-heading-font-weight:   900;
+  --ifm-heading-font-family:   var(--mm-font-sans);
+  --ifm-heading-font-weight:   700;
   --ifm-h1-font-size:          2.6rem;
   --ifm-h2-font-size:          1.85rem;
   --ifm-h3-font-size:          1.35rem;
@@ -49,11 +49,23 @@
   --ifm-toc-border-color:    var(--mm-border-subtle);
   --ifm-hr-border-color:     var(--mm-border-subtle);
 
+  /* Infima's own default body color isn't derived from our brand palette
+   * at all — pin it to --mm-text-primary for a guaranteed, auditable
+   * near-black. */
+  --ifm-font-color-base:      var(--mm-text-primary);
+  --ifm-color-content:        var(--mm-text-primary);
+  --ifm-font-color-secondary: var(--mm-text-secondary);
+  --ifm-color-content-secondary: var(--mm-text-secondary);
+
   /* Sidebar */
   --ifm-menu-color:                  var(--mm-denim-700);
   --ifm-menu-color-active:           var(--mm-color-denim);
-  --ifm-menu-color-background-active: var(--mm-denim-50);
-  --ifm-menu-color-background-hover: var(--mm-denim-50);
+  /* denim-100, not -50: the sidebar container itself now sits on
+   * --mm-bg-subtle (= denim-50, see .theme-doc-sidebar-container), so the
+   * active/hover highlight needs a visibly darker step or it'd disappear
+   * into its own background. */
+  --ifm-menu-color-background-active: var(--mm-denim-100);
+  --ifm-menu-color-background-hover: var(--mm-denim-100);
   --ifm-menu-link-padding-vertical:   0.45rem;
   --ifm-menu-link-padding-horizontal: 0.85rem;
 }
@@ -79,6 +91,27 @@
   --ifm-menu-color-active:            var(--mm-color-white);
   --ifm-menu-color-background-active: var(--mm-denim-700);
   --ifm-menu-color-background-hover:  var(--mm-denim-700);
+
+  /* See light-mode block above — same rationale, dark-mode near-white. */
+  --ifm-font-color-base:      var(--mm-text-primary);
+  --ifm-color-content:        var(--mm-text-primary);
+  --ifm-font-color-secondary: var(--mm-text-secondary);
+  --ifm-color-content-secondary: var(--mm-text-secondary);
+}
+
+/* The mobile nav slide-out (.navbar-sidebar) always has a dark denim
+ * background, but its menu inherits the light-mode --ifm-menu-color*
+ * vars tuned for the light desktop sidebar — force the dark-mode values
+ * unconditionally so mobile text stays readable in light mode too. */
+.navbar-sidebar {
+  --ifm-menu-color:                   rgba(255,255,255,0.78);
+  --ifm-menu-color-active:            var(--mm-color-white);
+  --ifm-menu-color-background-active: var(--mm-denim-700);
+  --ifm-menu-color-background-hover:  var(--mm-denim-700);
+}
+/* "Back to main menu" text color isn't covered by the vars above. */
+.navbar-sidebar__back {
+  color: var(--ifm-menu-color-active);
 }
 
 /* === Type rhythm === */
@@ -96,17 +129,48 @@ body {
 /* Headlines target Trade Gothic Next Heavy proportions: tighter set
  * than Archivo Black's default. We tune letter-spacing per size and
  * apply a mild horizontal squeeze via font-stretch where the platform
- * supports it (no-op on Archivo Black, which is fixed-width). */
-h1, h2, h3, h4 {
-  font-family: var(--mm-font-heading);
-  letter-spacing: -0.015em;
-  line-height: 1.12;
-  font-stretch: 92%;            /* ignored by static fonts; helps with variable Saira if loaded */
+ * supports it (no-op on Archivo Black, which is fixed-width).
+ *
+ * h1 used to be 900-weight Archivo Black, but that read as too
+ * heavy/shouty for page titles at body-copy reading distance — same
+ * complaint that already moved h2-h4 to this sans-at-700 treatment, so
+ * h1 now shares it too (just at its own larger --ifm-h1-font-size). */
+h1,
+.markdown h2, .markdown h3, .markdown h4,
+h2, h3, h4 {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
-h1 { letter-spacing: -0.025em; }
-h2 { letter-spacing: -0.018em; }
-h3 { letter-spacing: -0.012em; }
+/* A touch of extra tracking on bold prose keeps adjacent heavy glyphs
+ * from visually merging — subtle enough not to loosen word shapes. */
+.markdown strong,
+.markdown b {
+  letter-spacing: 0.01em;
+}
+
+/* Color alone isn't a reliable "this is a link" signal (WCAG 1.4.1), but a
+ * default underline on every inline link reads as visual noise in body
+ * copy. Medium weight is the non-color cue instead — heavier than body
+ * text, without competing with `.markdown strong`'s bold weight or adding
+ * an underline (reserved for hover/focus). Scoped to prose so nav/footer/
+ * sidebar links keep their own treatments. */
+.markdown a {
+  font-weight: 600;
+}
+
+/* Search results page ("See all results") — each hit's title is a plain h2
+ * outside `.markdown`, so it inherits the full --ifm-h2-font-size (1.85rem),
+ * as large as an in-article section header. Scoped to the wrapper class
+ * Docusaurus's SearchPage puts on <html> rather than the plugin's own
+ * (hashed) CSS-module class, so this survives dependency upgrades. */
+.search-page-wrapper h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
 
 /* Section heading rhythm — a small marigold rule sits above each h2.
  * Scoped via the `mm-section` class (auto-applied below) so it doesn't
@@ -233,7 +297,13 @@ h3 { letter-spacing: -0.012em; }
 
 /* === Sidebar === */
 
+/* Left nav, right TOC, and the main reading column previously all shared
+ * the same page background, so nothing set the article apart as "the
+ * content". Tinting just the side chrome with --mm-bg-subtle — leaving
+ * the main column on --mm-bg-page/-surface — makes the reading pane read
+ * as the brighter, foregrounded surface. */
 .theme-doc-sidebar-container {
+  background-color: var(--mm-bg-subtle);
   border-right: 1px solid var(--mm-border-subtle) !important;
 }
 [data-theme='dark'] .theme-doc-sidebar-container {
@@ -263,20 +333,32 @@ h3 { letter-spacing: -0.012em; }
 }
 
 /* Categories at any depth — including OpenAPI tag groups in the API
- * sidebar (users → Users, audit logs → Audit Logs) — render in Trade
- * Gothic Heavy with title case. (`::first-letter` doesn't apply to
- * the menu link's flex layout, so we use text-transform: capitalize
- * which capitalizes the first letter of every word.) */
+ * sidebar (users → Users, audit logs → Audit Logs) — render in title
+ * case. (`::first-letter` doesn't apply to the menu link's flex layout,
+ * so we use text-transform: capitalize which capitalizes the first
+ * letter of every word.)
+ *
+ * Font: Archivo Black's 900-weight display face reads fine for a short,
+ * single word/acronym at large size (e.g. an "IME" page title), but at
+ * this small size (0.82rem) its heavy strokes and tight kerning crowd
+ * multi-word labels together — use the body sans face at bold instead. */
 .menu .menu__list-item-collapsible > .menu__link,
 .menu > .menu__list > .menu__list-item > .menu__link {
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: capitalize;
   font-size: 0.82rem;
   color: var(--mm-text-secondary);
   padding-top: 0.55rem;
   padding-bottom: 0.4rem;
+}
+
+/* Category headers hardcode --mm-text-secondary above, so they don't
+ * pick up the .navbar-sidebar menu-color override — fix separately. */
+.navbar-sidebar .menu .menu__list-item-collapsible > .menu__link,
+.navbar-sidebar .menu > .menu__list > .menu__list-item > .menu__link {
+  color: var(--ifm-menu-color);
 }
 
 /* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server"). */
@@ -291,16 +373,79 @@ h3 { letter-spacing: -0.012em; }
 
 /* === Code === */
 
-code {
+/* `:not(pre) > code`, not bare `code`: a code block's own `<code>` (inside
+ * `<pre>`) is also just a `code` element, and this rule's specificity
+ * ([data-theme='dark'] + tag) beats Infima's `pre code { background:
+ * transparent }` (two tags only). Left unscoped, this inline-code
+ * background painted over almost the entire visible area of every
+ * dark-mode code block. */
+:not(pre) > code {
   background-color: var(--mm-denim-50);
+  color: var(--mm-text-primary);
   border: 1px solid var(--mm-border-subtle);
   border-radius: 3px;
   padding: 0.1em 0.35em;
   font-size: 0.88em;
+  /* Infima's `code` selector has no line-height of its own, so an inline
+   * code span inherits the paragraph's 1.65 --ifm-line-height-base,
+   * inflating the whole line's height wherever one shows up mid-sentence.
+   * Multi-line fences are unaffected — `pre code` has higher specificity
+   * and `.theme-code-block .prism-code` sets its own line-height. */
+  line-height: 1.2;
 }
-[data-theme='dark'] code {
-  background-color: var(--mm-denim-800);
-  border-color: var(--mm-denim-700);
+/* Same dark-on-dark collision as blockquote/callout/code-block: denim-800
+ * (#0C1424) and denim-700 (#121E37) are both within ~1:1 contrast of the
+ * page background (#0E1525), so inline code like `ClusterEncryptionKey`
+ * had no visible chip around it in dark mode. --mm-bg-surface + denim-400
+ * match the fill/border already used for code blocks elsewhere in this
+ * file, for a consistent "raised surface" look across all code UI. */
+[data-theme='dark'] :not(pre) > code {
+  background-color: var(--mm-bg-surface);
+  border-color: var(--mm-denim-400);
+}
+
+/* === Admonitions / callouts ===
+ * Dark-mode callout text/label/icon were nearly the same color as the
+ * background across all five admonition types (note/tip/info/warning/
+ * danger) — Infima's default alert coloring was never wired to our brand
+ * tokens. Pin explicit, contrast-checked colors instead. Left border/
+ * accent-bar colors (--ifm-alert-border-color) are intentionally left
+ * untouched — a parallel "remove yellow left border" workstream reworks
+ * those on the same selectors.
+ *
+ * Heading label and icon are set explicitly (not just via the shared
+ * --ifm-alert-foreground-color below) since the label was the most
+ * visibly low-contrast part, in case a theme upgrade changes the
+ * inheritance. */
+[data-theme='dark'] .alert {
+  --ifm-alert-foreground-color: var(--mm-callout-text);
+}
+[data-theme='dark'] .alert__heading,
+[data-theme='dark'] .alert__icon svg {
+  color: var(--mm-callout-text);
+  fill: var(--mm-callout-text);
+}
+/* denim-700 (the previous note/info background) is ~1.1:1 from the page
+ * — same navy hue family, no visible surface. success/warning/danger
+ * don't have this problem since green/amber/red are a different hue
+ * family from the page. Fix: denim-500 (brand primary, ~4x page
+ * luminance) as the fill, plus a border (separate from the reserved
+ * --ifm-alert-border-color/left accent bar) for a crisp edge. */
+[data-theme='dark'] .alert--secondary,
+[data-theme='dark'] .alert--info {
+  --ifm-alert-background-color: var(--mm-denim-500);
+  border-top: 1px solid var(--mm-denim-300);
+  border-right: 1px solid var(--mm-denim-300);
+  border-bottom: 1px solid var(--mm-denim-300);
+}
+[data-theme='dark'] .alert--success {
+  --ifm-alert-background-color: #14442c;
+}
+[data-theme='dark'] .alert--warning {
+  --ifm-alert-background-color: #4a3a10;
+}
+[data-theme='dark'] .alert--danger {
+  --ifm-alert-background-color: #4a1f1f;
 }
 
 .theme-code-block {
@@ -309,16 +454,42 @@ code {
   box-shadow: none !important;
 }
 
+/* --mm-denim-700 (#121E37) is only ~1.1:1 contrast from the page
+ * background (#0E1525) — same dark-navy hue family, no visible edge.
+ * denim-400 is a real jump in lightness, giving the block a border that
+ * actually reads as a boundary. */
 [data-theme='dark'] .theme-code-block {
-  border-color: var(--mm-denim-700);
+  border-color: var(--mm-denim-400);
 }
 
+/* Light mode uses the "github" Prism theme (near-white bg) — --mm-denim-50
+ * keeps it in the brand palette without breaking github's token contrast.
+ *
+ * Dark mode uses "dracula" (docusaurus.config.ts), whose token colors are
+ * tuned against its own #282a36 background — don't hardcode a different
+ * background here, or token colors go muddy/low-contrast. But dracula's own
+ * #282a36 is only ~1.3:1 from our page bg (#0E1525), i.e. visually the same,
+ * so it still needs lightening. #52607A (~2.9:1) is that lighter fill;
+ * denim-400 below gives it a real border. Needed to go further than the
+ * contrast ratio alone suggests — low-luminance colors require a bigger
+ * jump than the formula implies to look distinct to the eye. */
 .theme-code-block .prism-code {
   font-size: 0.85rem;
   background: var(--mm-denim-50) !important;
 }
 [data-theme='dark'] .theme-code-block .prism-code {
-  background: var(--mm-denim-800) !important;
+  background: #52607A !important;
+}
+
+/* Lightening the dark-mode code block fill above (#52607A) leaves
+ * dracula's comment token — already its dimmest/de-emphasized color
+ * (#6272a4) — at only ~1.35:1 contrast against it, i.e. nearly invisible.
+ * #D3DBF2 restores ~4.6:1 (WCAG AA) while staying a muted blue-lavender,
+ * distinguishable from the brighter default token colors but still legible.
+ * !important is required: prism-react-renderer sets each token's color via
+ * an inline `style` attribute, which otherwise beats this class selector. */
+[data-theme='dark'] .theme-code-block .prism-code .token.comment {
+  color: #D3DBF2 !important;
 }
 
 /* Copy button — denim border, marigold on hover */
@@ -343,11 +514,14 @@ table {
 table thead {
   background: var(--mm-color-denim);
 }
+/* Same problem as the TOC category labels above — multi-word headers
+ * like "Feature category" at 0.78rem crowd together in Archivo Black.
+ * Same fix: base sans face at bold weight. */
 table thead th {
   color: var(--mm-color-white);
-  font-family: var(--mm-font-heading);
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   font-size: 0.78rem;
   padding: 0.85rem 1rem;
@@ -361,19 +535,31 @@ table tbody td {
 table tbody tr:nth-child(even) {
   background: var(--mm-denim-50);
 }
+/* Same collision as blockquote/callout/code — denim-800 zebra striping
+ * was indistinguishable from the page background in dark mode. */
 [data-theme='dark'] table tbody tr:nth-child(even) {
-  background: var(--mm-denim-800);
+  background: var(--mm-bg-surface);
 }
 
-/* === Blockquote === */
+/* === Blockquote ===
+ * Neutral denim border + subtle tint — marigold is reserved for CTAs and
+ * interactive accents (see tokens.css), not an unconditional bar on every
+ * quoted paragraph. */
 
 blockquote {
-  border-left: 4px solid var(--mm-color-marigold);
+  border-left: 3px solid var(--mm-border-strong);
   background: var(--mm-bg-subtle);
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
   border-radius: 0 4px 4px 0;
   color: var(--mm-text-primary);
+}
+/* --mm-bg-subtle in dark mode is denim-800 (#0C1424), effectively the same
+ * as the page background — same collision already fixed for callouts and
+ * code blocks. The marigold left border already reads fine; only the
+ * fill needed the surface-level bump. */
+[data-theme='dark'] blockquote {
+  background: var(--mm-bg-surface);
 }
 
 /* === Footer === */
@@ -388,6 +574,10 @@ blockquote {
   color: var(--ifm-footer-color);
   padding: 3.5rem 1rem 2.5rem;
 }
+/* Footer column titles ("Docs", "Community", "More") stay on the heading
+ * face: short, single words are the case Archivo Black handles fine —
+ * it's small multi-word labels (TOC categories, table headers above)
+ * that crowd together at this weight. */
 .footer__title {
   color: var(--ifm-footer-title-color);
   font-family: var(--mm-font-heading);
@@ -408,8 +598,7 @@ blockquote {
 
 /* Docusaurus's default `.theme-doc-markdown` is fluid; we don't constrain
  * it. The OpenAPI plugin's 2-column layout (request panel on the right)
- * needs the full width of the article column. Long-form prose pages get
- * comfortable measure via the article container's natural max-width. */
+ * needs the full width of the article column. */
 .theme-doc-markdown {
   font-size: 1rem;
 }
@@ -439,6 +628,19 @@ blockquote {
   padding-right: clamp(1rem, 2vw, 2rem);
 }
 
+/* theme-classic's DocItem/Layout only caps the article column at 75% via
+ * its own `docItemCol` class when a TOC renders alongside it — pages with
+ * `hide_table_of_contents: true` (e.g. the homepage) get a lone full-width
+ * `.col` instead, so prose reads much wider than on every other doc page.
+ * Recreate the same 75% cap here, keyed off the `<article>` that's always
+ * a descendant of the doc content column, regardless of TOC presence. */
+@media (min-width: 997px) {
+  .docMainContainer_TBSr .col:has(> div > article),
+  [class*='docMainContainer'] .col:has(> div > article) {
+    max-width: 75%;
+  }
+}
+
 /* Without max-width, the doc content flex column no longer has an upper
  * bound to shrink against, so a wide code block (long lines, e.g. inline
  * YAML comments) inflates its own intrinsic min-content size and drags the
@@ -451,15 +653,22 @@ blockquote {
   min-width: 0;
 }
 
-/* TOC right column (per-page) */
+/* TOC right column (per-page) — same side-panel treatment as the left
+ * sidebar, see comment above `.theme-doc-sidebar-container`. */
 .table-of-contents {
+  background-color: var(--mm-bg-subtle);
   border-left: 1px solid var(--mm-border-subtle);
-  padding: 0.4rem 0 0.4rem 1rem;
+  padding: 0.4rem 0.75rem 0.4rem 1rem;
   font-size: 0.82rem;
 }
+/* --mm-color-denim is a fixed brand navy, not a semantic/theme-aware
+ * token — it never adapts for dark mode. Against the dark page background
+ * that's only ~1.45:1 contrast, i.e. the active TOC item nearly vanishes.
+ * --ifm-color-primary is already the theme-aware equivalent (denim in
+ * light mode, --mm-color-sky in dark, ~12:1 against the dark page). */
 .table-of-contents__link--active,
 .table-of-contents__link:hover {
-  color: var(--mm-color-denim);
+  color: var(--ifm-color-primary);
   font-weight: 600;
 }
 
@@ -487,16 +696,91 @@ blockquote {
   text-decoration: none;
 }
 
-/* Tables: scroll horizontally within themselves instead of overflowing the
- * viewport. Applied unconditionally (not just under the mobile breakpoint
- * below) since a wide table can force the same horizontal-overflow problem
- * at any viewport width — e.g. at higher browser zoom levels, where the
- * effective layout width shrinks but the media query doesn't re-trigger. */
+/* Tables: keep native table layout so header and body columns stay aligned.
+ * Wide tables (e.g. upgrade notes) use a dedicated wrapper class instead. */
 .markdown table {
-  display: block;
+  display: table;
   width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.upgrade-notes-table-wrapper {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.markdown table.upgrade-notes-table {
+  display: table;
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.markdown table.upgrade-notes-table thead {
+  display: table-header-group;
+}
+
+.markdown table.upgrade-notes-table tbody {
+  display: table-row-group;
+}
+
+.markdown table.upgrade-notes-table thead th {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  padding: 0.5rem 0.65rem;
+}
+
+.markdown table.upgrade-notes-table th,
+.markdown table.upgrade-notes-table td {
+  vertical-align: top;
+  padding: 0.5rem 0.65rem;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.markdown table.upgrade-notes-table th:first-child,
+.markdown table.upgrade-notes-table td:first-child {
+  width: 25%;
+}
+
+.markdown table.upgrade-notes-table th:last-child,
+.markdown table.upgrade-notes-table td:last-child {
+  width: 75%;
+  max-width: 0;
+}
+
+.markdown table.upgrade-notes-table td:first-child:not(:last-child) {
+  white-space: nowrap;
+}
+
+.markdown table.upgrade-notes-table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+.markdown table.upgrade-notes-table tbody td {
+  border-bottom: 1px solid var(--mm-border-subtle);
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table .sourceCode {
+  max-width: 100%;
+  margin: 0.5rem 0 0;
+  overflow-x: auto;
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table pre code,
+.markdown table.upgrade-notes-table code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* === Mobile / responsive === */
@@ -549,6 +833,93 @@ blockquote {
   border-top: 2px solid var(--mm-color-marigold);
   width: 3rem;
   margin: 2.5rem 0 1.5rem;
+}
+
+/* === Release policy Gantt chart (scoped — no global mermaid overrides) === */
+
+.release-policy-gantt {
+  margin: 1.25rem 0;
+  /* On narrow viewports, scroll horizontally instead of shrinking the
+   * chart below a legible size. */
+  overflow-x: auto;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container {
+  margin: 0;
+  background: var(--mm-color-white);
+  border: 2px solid #0745a1;
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem 0.25rem;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container {
+  background: #1e1e1e;
+  border-color: #555555;
+}
+
+/* Hide mermaid's semi-transparent gantt row backgrounds (pink tint in light mode) */
+.release-policy-gantt .docusaurus-mermaid-container svg rect.section,
+.release-policy-gantt .docusaurus-mermaid-container svg rect.grid-panel {
+  opacity: 0 !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg {
+  background: transparent;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg line {
+  stroke: #0745a1;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg rect.task {
+  fill: #0984e3 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
+  fill: #d63031 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .taskText {
+  fill: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideLeft,
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideRight {
+  fill: #2d3436 !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .sectionTitle,
+.release-policy-gantt .docusaurus-mermaid-container text[class*='tick'],
+.release-policy-gantt .docusaurus-mermaid-container text[class*='label'] {
+  fill: #2d3436 !important;
+  font-weight: 600 !important;
+  font-size: 22px !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect.task {
+  stroke: #ffffff !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
+  stroke: #ffffff !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container text {
+  fill: #ffffff !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container > svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* (Marigold strip is now the navbar's own border-bottom.) */

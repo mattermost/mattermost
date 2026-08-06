@@ -17,7 +17,7 @@ Health monitoring ensures that only healthy pods are replaced, and new pods are 
 
 ### High Availability
 
-In [High Availability (HA) cluster-based deployments](/administration-guide/scale/high-availability-cluster-based-deployment), Mattermost runs multiple application servers in a cluster. This configuration ensures that if one server fails, others can continue to serve requests without downtime. User traffic load balancing is managed with services such as NGINX Ingress or HAProxy. [PostgreSQL](/deployment-guide/server/preparations#database-preparation) and [file storage](/deployment-guide/server/preparations#file-storage-preparation) are deployed with replication for redundancy and failover.
+In [High Availability (HA) cluster-based deployments](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), Mattermost runs multiple application servers in a cluster. This configuration ensures that if one server fails, others can continue to serve requests without downtime. User traffic load balancing is managed with services such as NGINX Ingress or HAProxy. [PostgreSQL](/deployment-guide/server/preparations#database-preparation) and [file storage](/deployment-guide/server/preparations#file-storage-preparation) are deployed with replication for redundancy and failover.
 
 ### Active/Active deployments
 
