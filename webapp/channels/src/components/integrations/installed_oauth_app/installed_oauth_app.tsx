@@ -35,11 +35,6 @@ export type InstalledOAuthAppProps = {
      */
     oauthApp: OAuthApp;
 
-    /**
-     * Whether the oauth app is created by an App
-     */
-    fromApp: boolean;
-
     creatorName: string;
 
     /**
@@ -271,123 +266,108 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             );
         }
 
-        let actions;
-        if (!this.props.fromApp) {
-            const actionParts = [];
+        const actionParts = [];
 
-            // Only show secret controls for confidential clients
-            if (!isPublicClient) {
-                actionParts.push(showHide);
-                actionParts.push(regen);
-            }
-
-            actionParts.push(
-                <Link
-                    key='edit'
-                    to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.edit'
-                        defaultMessage='Edit'
-                    />
-                </Link>,
-            );
-
-            actionParts.push(
-                <DeleteIntegrationLink
-                    key='delete'
-                    modalMessage={
-                        <FormattedMessage
-                            id='installed_oauth_apps.delete.confirm'
-                            defaultMessage='This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?'
-                        />
-                    }
-                    onDelete={this.handleDelete}
-                />,
-            );
-
-            actions = (
-                <div className='item-actions'>
-                    {actionParts.map((part, idx) => (
-                        <React.Fragment key={idx}>
-                            {idx > 0 && ' - '}
-                            {part}
-                        </React.Fragment>
-                    ))}
-                </div>
-            );
+        // Only show secret controls for confidential clients
+        if (!isPublicClient) {
+            actionParts.push(showHide);
+            actionParts.push(regen);
         }
 
-        let appInfo = (
-            <div className='item-details__row'>
-                <span className='item-details__creation'>
+        actionParts.push(
+            <Link
+                key='edit'
+                to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}
+            >
+                <FormattedMessage
+                    id='installed_integrations.edit'
+                    defaultMessage='Edit'
+                />
+            </Link>,
+        );
+
+        actionParts.push(
+            <DeleteIntegrationLink
+                key='delete'
+                modalMessage={
                     <FormattedMessage
-                        id='installed_integrations.fromApp'
-                        defaultMessage='Managed by Apps Framework'
+                        id='installed_oauth_apps.delete.confirm'
+                        defaultMessage='This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?'
                     />
-                </span>
+                }
+                onDelete={this.handleDelete}
+            />,
+        );
+
+        const actions = (
+            <div className='item-actions'>
+                {actionParts.map((part, idx) => (
+                    <React.Fragment key={idx}>
+                        {idx > 0 && ' - '}
+                        {part}
+                    </React.Fragment>
+                ))}
             </div>
         );
-        if (!this.props.fromApp) {
-            appInfo = (
-                <>
+
+        const appInfo = (
+            <>
+                <div className='item-details__row'>
+                    <span className='item-details__url word-break--all'>
+                        <FormattedMessage
+                            id='installed_oauth_apps.is_trusted'
+                            defaultMessage='Is Trusted: '
+                        />
+                        <strong>{isTrusted}</strong>
+                    </span>
+                </div>
+                {oauthApp.is_dynamically_registered && (
                     <div className='item-details__row'>
                         <span className='item-details__url word-break--all'>
                             <FormattedMessage
-                                id='installed_oauth_apps.is_trusted'
-                                defaultMessage='Is Trusted: '
+                                id='installed_oauth_apps.dynamically_registered'
+                                defaultMessage='Dynamically Registered: '
                             />
-                            <strong>{isTrusted}</strong>
-                        </span>
-                    </div>
-                    {oauthApp.is_dynamically_registered && (
-                        <div className='item-details__row'>
-                            <span className='item-details__url word-break--all'>
+                            <strong>
                                 <FormattedMessage
-                                    id='installed_oauth_apps.dynamically_registered'
-                                    defaultMessage='Dynamically Registered: '
+                                    id='installed_oauth_apps.dynamically_registered.yes'
+                                    defaultMessage='Yes'
                                 />
-                                <strong>
-                                    <FormattedMessage
-                                        id='installed_oauth_apps.dynamically_registered.yes'
-                                        defaultMessage='Yes'
-                                    />
-                                </strong>
-                            </span>
-                        </div>
-                    )}
-                    <div className='item-details__row'>
-                        <span className='item-details__token'>
-                            <FormattedMessage
-                                id='installed_integrations.client_id'
-                                defaultMessage='Client ID: '
-                            />
-                            <strong>{oauthApp.id}</strong>
-                            <CopyText
-                                label={messages.copyClientId}
-                                value={oauthApp.id}
-                            />
+                            </strong>
                         </span>
                     </div>
-                    <div className='item-details__row'>
-                        {clientSecret}
-                    </div>
-                    {urls}
-                    <div className='item-details__row'>
-                        <span className='item-details__creation'>
-                            <FormattedMessage
-                                id='installed_integrations.creation'
-                                defaultMessage='Created by {creator} on {createAt, date, full}'
-                                values={{
-                                    creator: creatorName,
-                                    createAt: oauthApp.create_at,
-                                }}
-                            />
-                        </span>
-                    </div>
-                </>
-            );
-        }
+                )}
+                <div className='item-details__row'>
+                    <span className='item-details__token'>
+                        <FormattedMessage
+                            id='installed_integrations.client_id'
+                            defaultMessage='Client ID: '
+                        />
+                        <strong>{oauthApp.id}</strong>
+                        <CopyText
+                            label={messages.copyClientId}
+                            value={oauthApp.id}
+                        />
+                    </span>
+                </div>
+                <div className='item-details__row'>
+                    {clientSecret}
+                </div>
+                {urls}
+                <div className='item-details__row'>
+                    <span className='item-details__creation'>
+                        <FormattedMessage
+                            id='installed_integrations.creation'
+                            defaultMessage='Created by {creator} on {createAt, date, full}'
+                            values={{
+                                creator: creatorName,
+                                createAt: oauthApp.create_at,
+                            }}
+                        />
+                    </span>
+                </div>
+            </>
+        );
 
         return (
             <div className='backstage-list__item'>

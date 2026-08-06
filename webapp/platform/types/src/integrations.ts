@@ -137,8 +137,6 @@ export type IntegrationsState = {
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
     outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
-    appsOAuthAppIDs: string[];
-    appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
     dialogArguments?: DialogArgs;

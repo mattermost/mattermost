@@ -35,7 +35,6 @@ jest.mock('utils/constants', () => ({
     },
     Integrations: {
         EXECUTE_CURRENT_COMMAND_ITEM_ID: 'execute_current_command',
-        OPEN_COMMAND_IN_MODAL_ITEM_ID: 'open_command_in_modal',
     },
 }));
 

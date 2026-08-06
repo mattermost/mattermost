@@ -40,9 +40,6 @@ jest.mock('mattermost-redux/actions/integrations', () => ({
     getOutgoingOAuthConnections: jest.fn(() => {
         return {type: 'MOCK_GET_OUTGOING_OAUTH_CONNECTIONS', data: []};
     }),
-    getAppsOAuthAppIDs: jest.fn(() => {
-        return {type: 'MOCK_GET_APPS_OAUTH_APP_IDS'};
-    }),
     isIncomingWebhooksWithCount: jest.fn(() => false),
 }));
 

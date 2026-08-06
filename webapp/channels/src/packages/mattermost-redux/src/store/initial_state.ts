@@ -152,8 +152,6 @@ const state: GlobalState = {
             oauthApps: {},
             systemCommands: {},
             commands: {},
-            appsBotIDs: [],
-            appsOAuthAppIDs: [],
             dialogTriggerId: '',
             dialogs: {},
             outgoingOAuthConnections: {},

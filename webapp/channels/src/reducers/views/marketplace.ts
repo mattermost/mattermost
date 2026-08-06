@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
@@ -16,26 +16,6 @@ function plugins(state: MarketplacePlugin[] = [], action: MMAction): Marketplace
     switch (action.type) {
     case ActionTypes.RECEIVED_MARKETPLACE_PLUGINS:
         return action.plugins ? action.plugins : [];
-
-    case ActionTypes.MODAL_CLOSE:
-        if (action.modalId !== ModalIdentifiers.PLUGIN_MARKETPLACE) {
-            return state;
-        }
-
-        return [];
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
-    default:
-        return state;
-    }
-}
-
-// apps tracks the set of marketplace apps returned by the apps plugin
-function apps(state: MarketplaceApp[] = [], action: MMAction): MarketplaceApp[] {
-    switch (action.type) {
-    case ActionTypes.RECEIVED_MARKETPLACE_APPS:
-        return action.apps ? action.apps : [];
 
     case ActionTypes.MODAL_CLOSE:
         if (action.modalId !== ModalIdentifiers.PLUGIN_MARKETPLACE) {
@@ -147,7 +127,6 @@ function filter(state = '', action: MMAction): string {
 
 export default combineReducers({
     plugins,
-    apps,
     installing,
     errors,
     filter,

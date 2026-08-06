@@ -47,14 +47,6 @@ export const getFilteredIncomingHooks: (state: GlobalState) => IncomingWebhook[]
     },
 );
 
-export function getAppsOAuthAppIDs(state: GlobalState): string[] {
-    return state.entities.integrations.appsOAuthAppIDs;
-}
-
-export function getAppsBotIDs(state: GlobalState): string[] {
-    return state.entities.integrations.appsBotIDs;
-}
-
 export function getSystemCommands(state: GlobalState) {
     return state.entities.integrations.systemCommands;
 }

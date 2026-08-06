@@ -1,33 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {Client4} from 'mattermost-redux/client';
-import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
-import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
-import {getIntl} from 'utils/i18n';
 
-import type {DoAppCallResult} from 'types/apps';
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
-import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
-
 // fetchPlugins fetches the latest marketplace plugins, subject to any existing search filter.
-export function fetchListing(localOnly = false): ActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>> {
+export function fetchListing(localOnly = false): ActionFuncAsync<MarketplacePlugin[]> {
     return async (dispatch, getState) => {
         const state = getState();
         const filter = getFilter(state);
 
         let plugins: MarketplacePlugin[];
-        const apps: MarketplaceApp[] = [];
 
         try {
             plugins = await Client4.getMarketplacePlugins(filter, localOnly);
@@ -44,11 +34,7 @@ export function fetchListing(localOnly = false): ActionFuncAsync<Array<Marketpla
             plugins,
         });
 
-        if (plugins) {
-            return {data: (plugins as Array<MarketplacePlugin | MarketplaceApp>).concat(apps)};
-        }
-
-        return {data: apps};
+        return {data: plugins ?? []};
     };
 }
 
@@ -102,71 +88,5 @@ export function installPlugin(id: string): ThunkActionFunc<void> {
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED,
             id,
         });
-    };
-}
-
-// installApp installed an App using a given URL a call to the `/install-listed` call path.
-//
-// On success, it also requests the current state of the apps to reflect the newly installed app.
-export function installApp(id: string): ThunkActionFunc<Promise<boolean>> {
-    return async (dispatch, getState) => {
-        const intl = getIntl();
-        dispatch({
-            type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
-            id,
-        });
-
-        const callPath = '/install-listed';
-        const call: AppCall = {
-            path: callPath,
-        };
-
-        const expand: AppExpand = {
-            acting_user: '+summary',
-            locale: 'all',
-        };
-
-        const values: AppFormValues = {
-            app: {
-                label: id,
-                value: id,
-            },
-        };
-
-        const state = getState();
-        const channelID = getCurrentChannelId(state);
-        const teamID = getCurrentTeamId(state);
-        const location = AppBindingLocations.MARKETPLACE;
-        const context = createCallContext('apps', location, channelID, teamID);
-
-        const creq = createCallRequest(call, context, expand, values);
-
-        const res = await dispatch(doAppSubmit(creq, intl)) as DoAppCallResult;
-
-        if (res.error) {
-            const errorResponse = res.error;
-            dispatch({
-                type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED,
-                id,
-                error: errorResponse.text,
-            });
-            return false;
-        }
-
-        dispatch({
-            type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED,
-            id,
-        });
-
-        const callResp = res.data!;
-        if (callResp.type === AppCallResponseTypes.FORM && callResp.form) {
-            dispatch(openAppsModal(callResp.form, creq.context));
-        }
-
-        if (callResp.text) {
-            dispatch(postEphemeralCallResponseForContext(callResp, callResp.text, context));
-        }
-
-        return true;
     };
 }

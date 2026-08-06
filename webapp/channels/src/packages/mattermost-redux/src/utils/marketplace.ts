@@ -1,15 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
-export function isPlugin(item: MarketplacePlugin | MarketplaceApp): item is MarketplacePlugin {
-    return (item as MarketplacePlugin).manifest.id !== undefined;
-}
-
-export function getName(item: MarketplacePlugin | MarketplaceApp): string {
-    if (isPlugin(item)) {
-        return item.manifest.name;
-    }
-    return item.manifest.display_name;
+export function getName(item: MarketplacePlugin): string {
+    return item.manifest.name;
 }

@@ -6,7 +6,6 @@
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
-import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -103,10 +102,7 @@ import type {
 } from '@mattermost/types/integrations';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
-import type {
-    MarketplaceApp,
-    MarketplacePlugin,
-} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
 import type {
     ClientPluginManifest,
@@ -275,10 +271,6 @@ export default class Client4 {
 
     getBaseRoute() {
         return `${this.url}${this.urlVersion}`;
-    }
-
-    getAppsProxyRoute() {
-        return `${this.url}/plugins/com.mattermost.apps`;
     }
 
     getUsersRoute() {
@@ -3302,20 +3294,6 @@ export default class Client4 {
         );
     };
 
-    getAppsOAuthAppIDs = () => {
-        return this.doFetch<string[]>(
-            `${this.getAppsProxyRoute()}/api/v1/oauth-app-ids`,
-            {method: 'get'},
-        );
-    };
-
-    getAppsBotIDs = () => {
-        return this.doFetch<string[]>(
-            `${this.getAppsProxyRoute()}/api/v1/bot-ids`,
-            {method: 'get'},
-        );
-    };
-
     getOAuthApp = (appId: string) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppRoute(appId)}`,
@@ -4320,13 +4298,6 @@ export default class Client4 {
         );
     };
 
-    getMarketplaceApps = (filter: string) => {
-        return this.doFetch<MarketplaceApp[]>(
-            `${this.getAppsProxyRoute()}/api/v1/marketplace${buildQueryString({filter: filter || ''})}`,
-            {method: 'get'},
-        );
-    };
-
     getPluginStatuses = () => {
         return this.doFetch<PluginStatus[]>(
             `${this.getPluginsRoute()}/statuses`,
@@ -4467,34 +4438,6 @@ export default class Client4 {
     searchGroups = (params: GroupSearchParams) => {
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString(params)}`,
-            {method: 'get'},
-        );
-    };
-
-    executeAppCall = async (call: AppCallRequest, trackAsSubmit: boolean) => {
-        const callCopy: AppCallRequest = {
-            ...call,
-            context: {
-                ...call.context,
-                track_as_submit: trackAsSubmit,
-                user_agent: 'webapp',
-            },
-        };
-        return this.doFetch<AppCallResponse>(
-            `${this.getAppsProxyRoute()}/api/v1/call`,
-            {method: 'post', body: JSON.stringify(callCopy)},
-        );
-    };
-
-    getAppsBindings = async (channelID: string, teamID: string) => {
-        const params = {
-            channel_id: channelID,
-            team_id: teamID,
-            user_agent: 'webapp',
-        };
-
-        return this.doFetch<AppBinding[]>(
-            `${this.getAppsProxyRoute()}/api/v1/bindings${buildQueryString(params)}`,
             {method: 'get'},
         );
     };

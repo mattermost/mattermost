@@ -22,7 +22,6 @@ import {
 } from '../suggestion_results';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
-const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const KeyCodes = Constants.KeyCodes;
 
 /** @extends {React.PureComponent<import('./suggestion_box').SuggestionBoxProps>} */
@@ -400,16 +399,9 @@ export default class SuggestionBox extends React.PureComponent {
     handleCompleteWord = (term, matchedPretext, e) => {
         let fixedTerm = term;
         let finish = false;
-        let openCommandInModal = false;
         if (term.endsWith(EXECUTE_CURRENT_COMMAND_ITEM_ID)) {
             fixedTerm = term.substring(0, term.length - EXECUTE_CURRENT_COMMAND_ITEM_ID.length);
             finish = true;
-        }
-
-        if (term.endsWith(OPEN_COMMAND_IN_MODAL_ITEM_ID)) {
-            fixedTerm = term.substring(0, term.length - OPEN_COMMAND_IN_MODAL_ITEM_ID.length);
-            finish = true;
-            openCommandInModal = true;
         }
 
         if (!finish) {
@@ -429,18 +421,6 @@ export default class SuggestionBox extends React.PureComponent {
 
         this.clear();
         this.handlePretextChanged('');
-
-        if (openCommandInModal) {
-            const appProvider = this.props.providers.find((p) => p.openAppsModalFromCommand);
-            if (!appProvider) {
-                return false;
-            }
-            appProvider.openAppsModalFromCommand(fixedTerm);
-            this.props.actions.addMessageIntoHistory(fixedTerm);
-            this.inputRef.current.value = '';
-            this.handleChange({target: this.inputRef.current});
-            return false;
-        }
 
         this.inputRef.current.focus();
 

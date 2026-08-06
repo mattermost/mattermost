@@ -32,7 +32,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={{}}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
 
@@ -58,7 +57,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={{}}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
 
@@ -77,7 +75,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={{}}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
 
@@ -86,50 +83,6 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
-    });
-
-    it('app bot', () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1'});
-        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
-            <Bot
-                bot={bot}
-                user={user}
-                owner={undefined}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={true}
-            />,
-        );
-
-        expect(screen.getByText(/\(@\)/)).toBeInTheDocument();
-        expect(screen.getByText('Managed by Apps Framework')).toBeInTheDocument();
-
-        // if bot managed by app framework, ability to edit from UI is retained
-        expect(screen.getByText('Create New Token')).toBeInTheDocument();
-        expect(screen.getByText('Edit')).toBeInTheDocument();
-        expect(screen.getByText('Disable')).toBeInTheDocument();
-        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
-    });
-
-    it('app bot takes precedence over a plugin owner id', () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: 'com.mattermost.calls'});
-        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
-            <Bot
-                bot={bot}
-                user={user}
-                owner={undefined}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={true}
-            />,
-        );
-
-        expect(screen.getByText('Managed by Apps Framework')).toBeInTheDocument();
-        expect(screen.queryByText(/Managed by plugin/)).not.toBeInTheDocument();
     });
 
     it('disabled plugin bot keeps the plugin id and only offers Enable', () => {
@@ -144,7 +97,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={{}}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
         expect(screen.getByText(/\(@\)/)).toBeInTheDocument();
@@ -167,7 +119,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={{}}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
         expect(screen.getByText(`Managed by ${owner.username}`)).toBeInTheDocument();
@@ -198,7 +149,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={accessTokens}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
 
@@ -228,7 +178,6 @@ describe('components/integrations/bots/Bot', () => {
                 accessTokens={accessTokens}
                 team={team}
                 actions={actions}
-                fromApp={false}
             />,
         );
 

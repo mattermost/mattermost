@@ -5,7 +5,6 @@ import React from 'react';
 import {defineMessage} from 'react-intl';
 import type {Store} from 'redux';
 
-import {DockWindowIcon} from '@mattermost/compass-icons/components';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
@@ -25,7 +24,6 @@ import {SuggestionContainer} from '../suggestion';
 import type {SuggestionProps} from '../suggestion';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
-const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
 const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
@@ -36,19 +34,12 @@ const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Autoco
     case EXECUTE_CURRENT_COMMAND_ITEM_ID:
         symbolSpan = <span className='block mt-1'>{'↵'}</span>;
         break;
-    case OPEN_COMMAND_IN_MODAL_ITEM_ID:
-        symbolSpan = (
-            <span className='block mt-1'>
-                <DockWindowIcon size={28}/>
-            </span>
-        );
-        break;
     case COMMAND_SUGGESTION_ERROR:
         symbolSpan = <span>{'!'}</span>;
         break;
     }
     let icon = <div className='slash-command__icon'>{symbolSpan}</div>;
-    if (item.IconData && ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR, OPEN_COMMAND_IN_MODAL_ITEM_ID].includes(item.IconData)) {
+    if (item.IconData && ![EXECUTE_CURRENT_COMMAND_ITEM_ID, COMMAND_SUGGESTION_ERROR].includes(item.IconData)) {
         icon = (
             <div
                 className='slash-command__icon'

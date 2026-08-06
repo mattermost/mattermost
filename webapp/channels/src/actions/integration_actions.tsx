@@ -115,7 +115,6 @@ export function loadProfilesForCommands(commands: Command[]): ActionFuncAsync {
 
 export function loadOAuthAppsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFuncAsync {
     return async (dispatch) => {
-        dispatch(IntegrationActions.getAppsOAuthAppIDs());
         const {data} = await dispatch(IntegrationActions.getOAuthApps(page, perPage));
         if (data) {
             dispatch(loadProfilesForOAuthApps(data));

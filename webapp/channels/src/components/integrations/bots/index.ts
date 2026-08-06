@@ -9,11 +9,9 @@ import type {Bot as BotType} from '@mattermost/types/bots';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
-import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
 import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser} from 'mattermost-redux/actions/users';
 import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -50,14 +48,12 @@ function mapStateToProps(state: GlobalState) {
         owners,
         users,
         pluginDisplayNames,
-        appsBotIDs: getAppsBotIDs(state),
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            fetchAppsBotIDs,
             loadBots,
             getUserAccessTokensForUser,
             createUserAccessToken,

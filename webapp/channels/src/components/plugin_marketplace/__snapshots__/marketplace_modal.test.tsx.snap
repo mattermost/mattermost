@@ -247,7 +247,7 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg
@@ -403,7 +403,7 @@ exports[`components/marketplace/ should render default 1`] = `
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg
@@ -575,7 +575,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg
@@ -757,7 +757,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg
@@ -981,7 +981,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg
@@ -1295,7 +1295,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                 target="_blank"
               >
                 <div
-                  class="Title-gYlSGh tzosk"
+                  class="Title-gqksKv ebimpJ"
                 >
                   Discover community integrations
                   <svg

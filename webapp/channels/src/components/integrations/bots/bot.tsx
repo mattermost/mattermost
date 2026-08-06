@@ -65,11 +65,6 @@ type Props = {
     */
     filter?: string;
 
-    /**
-     * Determine whether this bot is managed by the app framework
-     */
-    fromApp: boolean;
-
     pluginDisplayName?: string;
 
     actions: {
@@ -200,9 +195,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         const displayName = this.props.bot.display_name || '';
 
         let ownerUsername = 'plugin';
-        if (this.props.fromApp) {
-            ownerUsername = 'Apps Framework';
-        } else if (this.props.owner && this.props.owner.username) {
+        if (this.props.owner && this.props.owner.username) {
             ownerUsername = this.props.owner.username;
         }
         const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
@@ -482,14 +475,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         let managedBy;
-        if (this.props.fromApp) {
-            managedBy = (
-                <FormattedMessage
-                    id='bots.managed_by.app'
-                    defaultMessage='Managed by Apps Framework'
-                />
-            );
-        } else if (this.props.owner && this.props.owner.username) {
+        if (this.props.owner && this.props.owner.username) {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.user'
