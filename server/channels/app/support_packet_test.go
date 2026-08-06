@@ -630,12 +630,13 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	// schemes, which generate an admin/user/guest role each, on top of the
 	// historical built-in count.
 	builtInRoles := 24 + seededSpaceRoles()
+	seededSchemes := len(model.SpaceSchemeNames)
 
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		assert.Len(t, permissions.Roles, builtInRoles)
-		assert.Len(t, permissions.Schemes, 3)
+		assert.Len(t, permissions.Schemes, seededSchemes)
 	})
 
 	scheme, appErr := th.App.CreateScheme(&model.Scheme{
@@ -649,7 +650,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		assert.Len(t, permissions.Roles, builtInRoles+10) // built-in roles + 10 custom roles from the scheme
-		require.Len(t, permissions.Schemes, 4)            // 3 seeded space preset schemes + the custom one
+		require.Len(t, permissions.Schemes, seededSchemes+1) // seeded space preset schemes + the custom one
 
 		var custom *model.Scheme
 		for _, s := range permissions.Schemes {
@@ -677,7 +678,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 
 		permissions := generatePermissionInfo(t)
 
-		require.Len(t, permissions.Schemes, 4)
+		require.Len(t, permissions.Schemes, seededSchemes+1)
 		require.Len(t, permissions.Roles, builtInRoles+10+1) // built-in roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {

@@ -1239,14 +1239,18 @@ func TestExportRoles(t *testing.T) {
 	t.Run("custom roles", func(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
-		exportedRoles, appErr := th1.App.GetAllRoles()
+		// Permissions are copied from a named role rather than an arbitrary entry
+		// of GetAllRoles, whose order the store does not fix. Landing on a space
+		// role would put a channel-scoped space permission on a custom role, which
+		// the scope guard rejects.
+		sourceRole, appErr := th1.App.GetRoleByName(th1.Context, model.TeamUserRoleId)
 		require.Nil(t, appErr)
-		require.NotEmpty(t, exportedRoles)
+		require.NotEmpty(t, sourceRole.Permissions)
 
 		customRole, appErr := th1.App.CreateRole(&model.Role{
 			Name:        "custom_role",
 			DisplayName: "custom_role",
-			Permissions: exportedRoles[0].Permissions,
+			Permissions: sourceRole.Permissions,
 		})
 		require.Nil(t, appErr)
 

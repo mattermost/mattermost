@@ -281,19 +281,18 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 			if err == nil {
 				adopted = false
 			} else {
-				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case; another node likely won the insert race, re-reading", mlog.String("scheme_name", preset.name), mlog.Err(err))
+				mlog.Warn("Couldn't save the space preset scheme, this can be an expected case; another node likely won the insert race, re-reading on the primary", mlog.String("scheme_name", preset.name), mlog.Err(err))
 
 				// Re-read before treating the save error as real, the same
 				// recovery doAdvancedPermissionsMigration performs on a role.
-				// The read is served by a replica, so a peer's just-committed
-				// insert can still be missed and the boot fails; the node picks
-				// the row up on its next start. The original save error is the
-				// root cause, so it is the one reported, with the re-read
-				// failure carried alongside it.
+				// The read goes to the primary so a lagging replica cannot miss
+				// the other node's just-committed insert and fatal the boot. The
+				// original save error is the root cause, so it is the one
+				// reported, with the re-read failure carried alongside it.
 				var rErr error
-				scheme, rErr = s.Store().Scheme().GetByName(preset.name)
+				scheme, rErr = s.Store().Scheme().GetByNameFromMaster(preset.name)
 				if rErr != nil {
-					return fmt.Errorf("failed to create space scheme %q: %w (re-read also failed: %v)", preset.name, err, rErr)
+					return fmt.Errorf("failed to create space scheme %q: %w (re-read on the primary also failed: %v)", preset.name, err, rErr)
 				}
 			}
 		}

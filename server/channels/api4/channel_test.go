@@ -8084,8 +8084,9 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 
 	t.Run("patchChannelModerations rejects a space with the explicit guard 400", func(t *testing.T) {
 		// The handler's license check runs before the guard.
+		originalLicense := th.App.Srv().License()
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		defer th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(originalLicense)
 
 		_, resp, err := th.SystemAdminClient.PatchChannelModerations(ctx, space.Id, []*model.ChannelModerationPatch{})
 		require.Error(t, err)
