@@ -468,10 +468,9 @@ test.describe('Post height', () => {
         await postComponent.toContainText('edited post');
 
         // * Verify that the post height didn't change
-        // MM-69980 The post height shouldn't increase when it's edited, but it increases by 1px
-        expect(await sizeWatcher.getObservations()).toHaveLength(2);
+        expect(await sizeWatcher.getObservations()).toHaveLength(1);
 
-        // # Edit the post to be multiple linesfrom another client
+        // # Edit the post to be multiple lines from another client
         await userClient.updatePost({
             ...post,
             message: 'edited post\nwith multiple lines',
@@ -480,8 +479,8 @@ test.describe('Post height', () => {
         // * Verify that the post text has changed
         await postComponent.toContainText('edited post\nwith multiple lines');
 
-        // * Verify that the post height didn't change
-        expect(await sizeWatcher.getObservations()).toHaveLength(3);
+        // * Verify that the post height changed since it now takes up an extra line
+        expect(await sizeWatcher.getObservations()).toHaveLength(2);
     });
 
     // Helpers specific to these tests
