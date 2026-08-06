@@ -93,6 +93,20 @@ const AdminNavbarDropdown = ({...firstMenuItemProps}: Menu.FirstMenuItemProps) =
                 {...firstMenuItemProps}
             />
         );
+    } else if (sortedTeams.length === 1) {
+        switchTeamsMenuItem = (
+            <Menu.LinkItem
+                id='adminConsoleSwitchTeams'
+                to={'/' + sortedTeams[0].name}
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.switchTeams'
+                        defaultMessage='Switch teams'
+                    />
+                }
+                {...firstMenuItemProps}
+            />
+        );
     } else if (sortedTeams.length > 1) {
         switchTeamsMenuItem = (
             <Menu.SubMenu

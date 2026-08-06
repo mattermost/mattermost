@@ -72,13 +72,12 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         );
     }
 
-    test('should hide Switch teams when user has only one team', async () => {
+    test('should show Switch teams link when user has only one team', async () => {
         renderDropdown({[team1.id]: team1});
 
         await userEvent.click(screen.getByRole('button', {name: 'Open menu'}));
 
-        expect(screen.queryByText('Switch teams')).not.toBeInTheDocument();
-        expect(screen.getByText('Log Out')).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Switch teams'})).toBeInTheDocument();
     });
 
     test('should show Switch teams submenu when user has multiple teams', async () => {

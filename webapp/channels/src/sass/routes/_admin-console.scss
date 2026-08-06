@@ -425,8 +425,8 @@
     .admin-console__header {
         z-index: 100;
         display: flex;
-        height: 72px;
-        flex: 0 0 72px;
+        height: 64px;
+        flex: 0 0 64px;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -635,12 +635,13 @@
     .filter-container {
         position: relative;
         z-index: 1;
-        padding: 4px 12px 0px 12px;
+        margin-top: 8px;
+        padding: 0px 12px;
         box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
 
         .search__icon {
             position: absolute;
-            top: 11px;
+            top: 7px;
             left: 22px;
             width: 16px;
             height: 16px;
@@ -656,8 +657,8 @@
                 border: none;
                 border-radius: var(--radius-s);
                 background: rgba(var(--sys-sidebar-text-rgb), 0.08);
-                transition: background-color 0.2s ease-in-out;
                 color: var(--sys-sidebar-text);
+                transition: background-color 0.2s ease-in-out;
                 font-size: 14px;
                 outline: none;
 
@@ -681,7 +682,7 @@
             .input-clear {
                 .input-clear-x {
                     position: absolute;
-                    top: 9px;
+                    top: 5px;
                     right: 13px;
                     color: rgba(var(--sys-sidebar-text-rgb), 0.56);
                     font-weight: bold;
@@ -849,16 +850,6 @@
         }
     }
 
-    .sidebar-subsection-title {
-        padding: 8px 20px 8px 20px;
-
-        &--active {
-            &::after {
-                top: 4px;
-            }
-        }
-    }
-
     .sidebar-section-title,
     .sidebar-subsection-title {
         position: relative;
@@ -899,6 +890,10 @@
                 }
             }
         }
+    }
+
+    .sidebar-subsection-title {
+        padding: 6px 24px 6px 20px;
     }
 
     .menu-icon--right {
