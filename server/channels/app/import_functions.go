@@ -198,9 +198,7 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 		}
 	}
 
-	if team.Id == "" {
-		team.DisplayName = *data.DisplayName
-	}
+	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
 	if data.Description != nil {
