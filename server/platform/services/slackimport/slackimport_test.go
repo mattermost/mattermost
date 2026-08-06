@@ -6,7 +6,6 @@ package slackimport
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -897,8 +896,6 @@ func TestSlackAddUsersNonAdminImportDoesNotMergeExistingUser(t *testing.T) {
 
 	existingUser := &model.User{Id: "existing-user-id", Username: "existinguser", Email: "shared@example.com"}
 	userStore.On("GetByEmail", "shared@example.com").Return(existingUser, nil)
-	teamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "test-team-id", "existing-user-id").
-		Return(nil, errors.New("not found"))
 
 	var joinedUserIDs []string
 	actions := Actions{
@@ -922,7 +919,7 @@ func TestSlackAddUsersNonAdminImportDoesNotMergeExistingUser(t *testing.T) {
 	importerLog := new(bytes.Buffer)
 	addedUsers := importer.slackAddUsers(rctx, "test-team-id", slackUsers, importerLog)
 
-	assert.NotContains(t, addedUsers, "U001", "user not on the team should be skipped entirely")
+	assert.NotContains(t, addedUsers, "U001", "user should be skipped entirely on email conflict")
 	assert.Empty(t, joinedUserIDs, "no account should be joined to the team")
 	userStore.AssertNotCalled(t, "Save", mock.Anything, mock.Anything)
 	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.merge_existing_skipped_non_admin")
@@ -930,10 +927,10 @@ func TestSlackAddUsersNonAdminImportDoesNotMergeExistingUser(t *testing.T) {
 	assert.NotContains(t, importerLog.String(), "api.slackimport.slack_add_users.unable_import")
 }
 
-// TestSlackAddUsersNonAdminImportMergesExistingTeamMember tests that a non-admin import
-// correctly merges a Slack user into an existing Mattermost account when that account is
-// already a member of the target team. This supports idempotent re-imports.
-func TestSlackAddUsersNonAdminImportMergesExistingTeamMember(t *testing.T) {
+// TestSlackAddUsersNonAdminImportSkipsExistingTeamMember tests that a non-admin import skips
+// a Slack user whose email matches an existing Mattermost account even when that account is
+// already a team member, preventing post authorship forgery.
+func TestSlackAddUsersNonAdminImportSkipsExistingTeamMember(t *testing.T) {
 	rctx := request.TestContext(t)
 
 	store := &mocks.Store{}
@@ -947,8 +944,6 @@ func TestSlackAddUsersNonAdminImportMergesExistingTeamMember(t *testing.T) {
 
 	existingUser := &model.User{Id: "existing-user-id", Username: "existinguser", Email: "shared@example.com"}
 	userStore.On("GetByEmail", "shared@example.com").Return(existingUser, nil)
-	teamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "test-team-id", "existing-user-id").
-		Return(&model.TeamMember{TeamId: "test-team-id", UserId: "existing-user-id"}, nil)
 
 	var joinedUserIDs []string
 	actions := Actions{
@@ -972,11 +967,10 @@ func TestSlackAddUsersNonAdminImportMergesExistingTeamMember(t *testing.T) {
 	importerLog := new(bytes.Buffer)
 	addedUsers := importer.slackAddUsers(rctx, "test-team-id", slackUsers, importerLog)
 
-	require.Contains(t, addedUsers, "U001")
-	assert.Equal(t, "existing-user-id", addedUsers["U001"].Id, "non-admin import should merge into existing account when already on team")
-	assert.Empty(t, joinedUserIDs, "JoinUserToTeam should not be called when user is already a team member")
+	assert.NotContains(t, addedUsers, "U001", "existing account should be skipped even when already on the team")
+	assert.Empty(t, joinedUserIDs, "no account should be joined to the team")
 	userStore.AssertNotCalled(t, "Save", mock.Anything, mock.Anything)
-	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.merge_existing_already_member")
+	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.merge_existing_skipped_non_admin")
 }
 
 // TestSlackAddUsersAdminImportMergesExistingUser tests that an admin import preserves the
