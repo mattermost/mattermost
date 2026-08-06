@@ -7,14 +7,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -223,4 +229,222 @@ func (s *ElasticsearchInterfaceTestSuite) TestTemplateCreationClientError() {
 		// clean up after test
 		_, _ = s.client.Indices.DeleteIndexTemplate("test-invalid-template").Do(s.ctx)
 	})
+}
+
+func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
+	th := api4.SetupEnterprise(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
+		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/_cat/plugins"):
+			_, _ = w.Write([]byte(`[]`))
+		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{"error":{"type":"illegal_argument_exception","reason":"composable template [posts] template after composition is invalid","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer server.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 10
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer es.Stop()
+	appErr := es.Start(context.Background())
+	require.Error(t, appErr)
+	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
+	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
+	require.Equal(t, int32(0), es.ready.Load())
+	require.Nil(t, es.bulkProcessor)
+	require.Nil(t, es.syncBulkProcessor)
+}
+
+func TestWrapElasticsearchTemplateError(t *testing.T) {
+	analysisICUGuidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"})
+	nestedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"
+	nested := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &nestedReason}
+	filterReason := "Custom Analyzer [mm_lowercaser] failed to find filter under name [icu_normalizer]"
+	filterCause := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &filterReason}
+	outerReason := "failed to build posts template"
+	unrelatedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [standard]"
+	unrelated := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &unrelatedReason}
+	legacyICUReason := "unknown tokenizer type [icu_tokenizer]"
+	legacyICU := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &legacyICUReason}
+
+	tests := []struct {
+		name    string
+		cause   types.ErrorCause
+		posts   bool
+		want    []string
+		notWant []string
+	}{
+		{
+			name: "nested cause details",
+			cause: types.ErrorCause{
+				Type:     "illegal_argument_exception",
+				Reason:   &outerReason,
+				CausedBy: nested,
+			},
+			want: []string{
+				"status: 400, failed: [illegal_argument_exception], reason: failed to build posts template",
+				"caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
+			},
+			notWant: []string{"stack trace", "arbitrary metadata"},
+		},
+		{
+			name: "missing analysis ICU guidance",
+			cause: types.ErrorCause{
+				Type:     "illegal_argument_exception",
+				Reason:   &outerReason,
+				CausedBy: nested,
+			},
+			posts: true,
+			want:  []string{analysisICUGuidance},
+		},
+		{
+			name: "root missing analysis ICU guidance",
+			cause: types.ErrorCause{
+				Type:   "illegal_argument_exception",
+				Reason: &nestedReason,
+			},
+			posts: true,
+			want:  []string{analysisICUGuidance},
+		},
+		{
+			name: "missing analysis ICU filter guidance",
+			cause: types.ErrorCause{
+				Type:     "illegal_argument_exception",
+				Reason:   &outerReason,
+				CausedBy: filterCause,
+			},
+			posts: true,
+			want:  []string{analysisICUGuidance},
+		},
+		{
+			name: "unrelated template error",
+			cause: types.ErrorCause{
+				Type:     "illegal_argument_exception",
+				Reason:   &outerReason,
+				CausedBy: unrelated,
+			},
+			posts:   true,
+			want:    []string{"caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [standard]"},
+			notWant: []string{analysisICUGuidance},
+		},
+		{
+			name: "legacy ICU wording is not treated as authoritative",
+			cause: types.ErrorCause{
+				Type:     "illegal_argument_exception",
+				Reason:   &outerReason,
+				CausedBy: legacyICU,
+			},
+			posts:   true,
+			notWant: []string{analysisICUGuidance},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stackTrace := "stack trace"
+			original := &types.ElasticsearchError{
+				ErrorCause: tt.cause,
+				Status:     400,
+			}
+			original.ErrorCause.StackTrace = &stackTrace
+			original.ErrorCause.Metadata = map[string]json.RawMessage{
+				"arbitrary": json.RawMessage(`"metadata"`),
+			}
+			wrapped := fmt.Errorf("request context: %w", original)
+
+			formatted := wrapElasticsearchTemplateError(wrapped, tt.posts)
+			for _, expected := range tt.want {
+				require.Contains(t, formatted.Error(), expected)
+			}
+			for _, unexpected := range tt.notWant {
+				require.NotContains(t, formatted.Error(), unexpected)
+			}
+
+			require.ErrorIs(t, formatted, wrapped)
+			var extracted *types.ElasticsearchError
+			require.True(t, errors.As(formatted, &extracted))
+			require.Same(t, original, extracted)
+		})
+	}
+}
+
+type testBulkClient struct {
+	stopCalls int
+	stopErr   error
+}
+
+func (b *testBulkClient) IndexOp(types.IndexOperation, any) error {
+	return nil
+}
+
+func (b *testBulkClient) DeleteOp(types.DeleteOperation) error {
+	return nil
+}
+
+func (b *testBulkClient) Flush() error {
+	return nil
+}
+
+func (b *testBulkClient) Stop() error {
+	b.stopCalls++
+	return b.stopErr
+}
+
+func TestElasticsearchStopCleansUpProcessors(t *testing.T) {
+	tests := []struct {
+		name       string
+		ready      bool
+		firstError bool
+	}{
+		{name: "ready", ready: true},
+		{name: "ready first stop error", ready: true, firstError: true},
+		{name: "partially initialized", ready: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bulk := &testBulkClient{}
+			syncBulk := &testBulkClient{}
+			if tt.firstError {
+				bulk.stopErr = errors.New("bulk stop failed")
+			}
+
+			es := &ElasticsearchInterfaceImpl{
+				client:            &elastic.TypedClient{},
+				bulkProcessor:     bulk,
+				syncBulkProcessor: syncBulk,
+			}
+			if tt.ready {
+				es.ready.Store(1)
+				es.healthy.Store(1)
+			}
+
+			require.Nil(t, es.Stop())
+			require.Equal(t, int32(0), es.ready.Load())
+			require.Equal(t, int32(0), es.healthy.Load())
+			require.Nil(t, es.client)
+			require.Nil(t, es.bulkProcessor)
+			require.Nil(t, es.syncBulkProcessor)
+			require.Equal(t, 1, bulk.stopCalls)
+			require.Equal(t, 1, syncBulk.stopCalls)
+
+			require.Nil(t, es.Stop())
+			require.Equal(t, 1, bulk.stopCalls)
+			require.Equal(t, 1, syncBulk.stopCalls)
+		})
+	}
 }

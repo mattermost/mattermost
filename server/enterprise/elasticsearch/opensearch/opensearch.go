@@ -16,13 +16,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/updatebyquery"
@@ -33,6 +26,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 const opensearchMaxVersion = 3
@@ -47,6 +48,49 @@ var (
 func isIndexNotFound(err error) bool {
 	var osErr *opensearch.StructError
 	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
+}
+
+// wrapPostsTemplateError appends actionable guidance when OpenSearch reports
+// that one of the ICU analyzers used by the posts template is unavailable.
+// StructError.Error already includes the complete nested caused_by chain, so
+// retain the original error and only add the backend-specific diagnostic.
+func wrapPostsTemplateError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	var osErr *opensearch.StructError
+	if !errors.As(err, &osErr) || osErr == nil {
+		return err
+	}
+
+	if isMissingICUAnalyzer(osErr.Err.Reason) {
+		return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
+	}
+
+	for cause := osErr.Err.CausedBy; cause != nil; cause = cause.CausedBy {
+		if isMissingICUAnalyzer(cause.Reason) {
+			return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
+		}
+	}
+
+	return err
+}
+
+func isMissingICUAnalyzer(reason string) bool {
+	// OpenSearch source for 2.0.0, 2.19.6, 3.0.0, and 3.8.0 uses these reason suffixes in
+	// AnalyzerComponents and CustomNormalizerProvider when an inline custom analyzer or normalizer
+	// cannot find an ICU component. Mattermost defines those components inline, so this is the
+	// relevant missing-plugin path. The separate AnalysisRegistry path reports "Unknown ... type [...]"
+	// for named components and is deliberately not treated as proof that this inline template is
+	// missing analysis-icu.
+	const (
+		missingICUTokenizerReason = "failed to find tokenizer under name [icu_tokenizer]"
+		missingICUFilterReason    = "failed to find filter under name [icu_normalizer]"
+	)
+
+	reason = strings.ToLower(reason)
+	return strings.Contains(reason, missingICUTokenizerReason) || strings.Contains(reason, missingICUFilterReason)
 }
 
 type OpensearchInterfaceImpl struct {
@@ -165,27 +209,6 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	}
 
 	esSettings := os.Platform.Config().ElasticsearchSettings
-	if *esSettings.LiveIndexingBatchSize > 1 {
-		os.bulkProcessor = NewBulk(
-			common.BulkSettings{
-				FlushBytes:    0,
-				FlushInterval: common.BulkFlushInterval,
-				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
-			},
-			os.client,
-			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-			os.Platform.Log())
-	}
-	os.syncBulkProcessor = NewBulk(
-		common.BulkSettings{
-			FlushBytes:    common.BulkFlushBytes,
-			FlushInterval: 0,
-			FlushNumReqs:  0,
-		},
-		os.client,
-		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-		os.Platform.Log())
-
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
@@ -214,7 +237,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(wrapPostsTemplateError(err))
 	}
 
 	// Set up channels index template.
@@ -256,6 +279,27 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		os.bulkProcessor = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			os.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			os.Platform.Log())
+	}
+	os.syncBulkProcessor = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		os.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		os.Platform.Log())
+
 	os.ready.Store(1)
 	os.healthy.Store(1)
 
@@ -296,21 +340,27 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	os.mutex.Lock()
 	defer os.mutex.Unlock()
 
-	if os.ready.Load() == 0 {
-		return nil
-	}
-
-	// Flushing any pending requests
-	if os.bulkProcessor != nil {
-		if err := os.bulkProcessor.Stop(); err != nil {
-			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
-		}
-		os.bulkProcessor = nil
-	}
-
-	os.client = nil
 	os.ready.Store(0)
 	os.healthy.Store(0)
+
+	bulkProcessor := os.bulkProcessor
+	syncBulkProcessor := os.syncBulkProcessor
+	os.bulkProcessor = nil
+	os.syncBulkProcessor = nil
+	os.client = nil
+
+	// Flush any pending requests. Attempt both processors even if the first
+	// stop reports an error.
+	if bulkProcessor != nil {
+		if err := bulkProcessor.Stop(); err != nil && os.Platform != nil && os.Platform.Log() != nil {
+			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
+		}
+	}
+	if syncBulkProcessor != nil {
+		if err := syncBulkProcessor.Stop(); err != nil && os.Platform != nil && os.Platform.Log() != nil {
+			os.Platform.Log().Warn("Error stopping synchronous bulk processor", mlog.Err(err))
+		}
+	}
 
 	return nil
 }

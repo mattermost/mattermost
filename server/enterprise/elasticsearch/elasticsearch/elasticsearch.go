@@ -6,6 +6,7 @@ package elasticsearch
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -13,13 +14,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
@@ -30,6 +24,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/scriptlanguage"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 const elasticsearchMinVersion = 8
@@ -59,6 +61,77 @@ func getJSONOrErrorStr(obj any) string {
 		return err.Error()
 	}
 	return string(b)
+}
+
+// wrapElasticsearchTemplateError preserves the original Elasticsearch error while adding the nested
+// cause details that the generated client's Error method omits. Only the cause type and reason are
+// included so stack traces and arbitrary metadata from the backend do not end up in the normal
+// startup error.
+func wrapElasticsearchTemplateError(err error, postsTemplate bool) error {
+	var elasticsearchErr *types.ElasticsearchError
+	if !errors.As(err, &elasticsearchErr) || elasticsearchErr == nil {
+		return err
+	}
+
+	causes := formatElasticsearchCauses(elasticsearchErr.ErrorCause.CausedBy)
+	needsAnalysisICU := postsTemplate && isMissingAnalysisICU(elasticsearchErr.ErrorCause)
+	if causes == "" && !needsAnalysisICU {
+		return err
+	}
+
+	details := make([]string, 0, 2)
+	if causes != "" {
+		details = append(details, "caused by: "+causes)
+	}
+	if needsAnalysisICU {
+		details = append(details, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
+	}
+
+	return fmt.Errorf("%s: %w", strings.Join(details, "; "), err)
+}
+
+func formatElasticsearchCauses(cause *types.ErrorCause) string {
+	causes := make([]string, 0)
+	for cause != nil {
+		reason := ""
+		if cause.Reason != nil {
+			reason = *cause.Reason
+		}
+		if reason == "" {
+			causes = append(causes, fmt.Sprintf("[%s]", cause.Type))
+		} else {
+			causes = append(causes, fmt.Sprintf("[%s] %s", cause.Type, reason))
+		}
+		cause = cause.CausedBy
+	}
+	return strings.Join(causes, " -> ")
+}
+
+func isMissingAnalysisICU(cause types.ErrorCause) bool {
+	// Investigation of the local Elasticsearch v6.8.23, v7.17.29, v8.19.6, and v9.0.0 source found
+	// two relevant missing-analysis error paths. A named analysis component with an unregistered
+	// type is handled by AnalysisRegistry and reports "Unknown ... type [...]". Mattermost's
+	// templates define their analyzers inline, so they reach AnalyzerComponents instead and report
+	// the reason suffixes below, including the bracketed component names, when the ICU plugin is
+	// absent. Match only those suffixes so an unrelated named-component error does not trigger
+	// misleading analysis-icu guidance.
+	const (
+		missingICUTokenizerReason = "failed to find tokenizer under name [icu_tokenizer]"
+		missingICUFilterReason    = "failed to find filter under name [icu_normalizer]"
+	)
+
+	for current := &cause; current != nil; current = current.CausedBy {
+		if current.Reason == nil {
+			continue
+		}
+
+		reason := strings.ToLower(*current.Reason)
+		if strings.Contains(reason, missingICUTokenizerReason) || strings.Contains(reason, missingICUFilterReason) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (*ElasticsearchInterfaceImpl) UpdateConfig(cfg *model.Config) {
@@ -155,41 +228,6 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	}
 
 	var err error
-	esSettings := es.Platform.Config().ElasticsearchSettings
-	if *esSettings.LiveIndexingBatchSize > 1 {
-		es.bulkProcessor, err = NewBulk(
-			common.BulkSettings{
-				FlushBytes:    0,
-				FlushInterval: common.BulkFlushInterval,
-				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
-			},
-			es.client,
-			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-			es.Platform.Log())
-		if err != nil {
-			return model.NewAppError("elasticsearch.start",
-				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
-				nil, "",
-				http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	es.syncBulkProcessor, err = NewBulk(
-		common.BulkSettings{
-			FlushBytes:    common.BulkFlushBytes,
-			FlushInterval: 0,
-			FlushNumReqs:  0,
-		},
-		es.client,
-		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-		es.Platform.Log())
-	if err != nil {
-		return model.NewAppError("elasticsearch.start",
-			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
-			nil, "",
-			http.StatusInternalServerError).Wrap(err)
-	}
-
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
@@ -213,7 +251,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetPostTemplate(es.Platform.Config(), opts...)).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, true))
 	}
 
 	// Set up channels index template.
@@ -221,7 +259,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetChannelTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
 	}
 
 	// Set up users index template.
@@ -229,7 +267,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetUserTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
 	}
 
 	// Set up files index template.
@@ -237,7 +275,50 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetFileInfoTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
+	}
+
+	esSettings := es.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		es.bulkProcessor, err = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			es.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			es.Platform.Log())
+
+		if err != nil {
+			return model.NewAppError("elasticsearch.start",
+				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+				nil, "",
+				http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	es.syncBulkProcessor, err = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		es.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		es.Platform.Log())
+
+	if err != nil {
+		if es.bulkProcessor != nil {
+			if stopErr := es.bulkProcessor.Stop(); stopErr != nil && es.Platform != nil && es.Platform.Log() != nil {
+				es.Platform.Log().Warn("Error stopping bulk processor after synchronous processor creation failed", mlog.Err(stopErr))
+			}
+			es.bulkProcessor = nil
+		}
+		return model.NewAppError("elasticsearch.start",
+			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+			nil, "",
+			http.StatusInternalServerError).Wrap(err)
 	}
 
 	es.ready.Store(1)
@@ -255,11 +336,12 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 // Start() (which need the write lock) — exactly when fast lifecycle
 // transitions matter most.
 //
-// Why we can't drop the mutex entirely: Stop() sets es.client = nil before
-// setting ready = 0, so without synchronization HealthCheck could see
-// ready == 1 but dereference a nil client. Using atomic.Pointer for the
-// client would work but would be a larger refactor across all methods.
-// Copying the reference under the lock is the minimal, safe fix.
+// Why we can't drop the mutex entirely: Stop() updates readiness and detaches
+// the client under the write lock. Without synchronization, HealthCheck could
+// race with that transition and observe an inconsistent readiness/client
+// snapshot. Using atomic.Pointer for the client would work but would be a
+// larger refactor across all methods. Copying the reference under the lock is
+// the minimal, safe fix.
 //
 // Worst case after releasing the lock: Stop() runs and nils es.client while
 // our snapshot is in-flight. The snapshot remains valid (Stop doesn't close
@@ -295,21 +377,27 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	es.mutex.Lock()
 	defer es.mutex.Unlock()
 
-	if es.ready.Load() == 0 {
-		return nil
-	}
-
-	es.client = nil
-	// Flushing any pending requests
-	if es.bulkProcessor != nil {
-		if err := es.bulkProcessor.Stop(); err != nil {
-			es.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
-		}
-		es.bulkProcessor = nil
-	}
-
 	es.ready.Store(0)
 	es.healthy.Store(0)
+
+	bulkProcessor := es.bulkProcessor
+	syncBulkProcessor := es.syncBulkProcessor
+	es.client = nil
+	es.bulkProcessor = nil
+	es.syncBulkProcessor = nil
+
+	// Flushing any pending requests. Attempt both processors even when the
+	// first one reports an error so a failed flush cannot leak the other worker.
+	if bulkProcessor != nil {
+		if err := bulkProcessor.Stop(); err != nil && es.Platform != nil && es.Platform.Log() != nil {
+			es.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
+		}
+	}
+	if syncBulkProcessor != nil {
+		if err := syncBulkProcessor.Stop(); err != nil && es.Platform != nil && es.Platform.Log() != nil {
+			es.Platform.Log().Warn("Error stopping synchronous bulk processor", mlog.Err(err))
+		}
+	}
 
 	return nil
 }

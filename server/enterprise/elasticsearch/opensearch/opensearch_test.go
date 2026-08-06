@@ -7,15 +7,23 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -36,6 +44,174 @@ func TestOpensearchInterfaceTestSuite(t *testing.T) {
 		CommonTestSuite: common.CommonTestSuite{},
 	}
 	suite.Run(t, testSuite)
+}
+
+func TestWrapPostsTemplateError(t *testing.T) {
+	guidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"})
+
+	nestedError := &opensearch.StructError{
+		Status: 400,
+		Err: opensearch.Err{
+			Type:   "illegal_argument_exception",
+			Reason: "failed to parse template",
+			CausedBy: &opensearch.CausedBy{
+				Type:   "analyzer_exception",
+				Reason: "analyzer failed",
+				CausedBy: &opensearch.CausedBy{
+					Type:   "unknown_tokenizer",
+					Reason: "tokenizer [missing_tokenizer] is unavailable",
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		name            string
+		err             error
+		wantGuidance    bool
+		wantCauseFields []string
+	}{
+		{
+			name:            "nested cause type and reason",
+			err:             nestedError,
+			wantCauseFields: []string{"unknown_tokenizer", "tokenizer [missing_tokenizer] is unavailable"},
+		},
+		{
+			name: "icu tokenizer cause",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "illegal_argument_exception",
+					Reason: "failed to parse template",
+					CausedBy: &opensearch.CausedBy{
+						Type:   "illegal_argument_exception",
+						Reason: "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
+					},
+				},
+			},
+			wantGuidance: true,
+		},
+		{
+			name: "root ICU cause",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "illegal_argument_exception",
+					Reason: "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
+				},
+			},
+			wantGuidance: true,
+		},
+		{
+			name: "icu normalizer cause",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "illegal_argument_exception",
+					Reason: "Custom Analyzer [mm_hashtag] failed to find filter under name [icu_normalizer]",
+				},
+			},
+			wantGuidance: true,
+		},
+		{
+			name: "unrelated template error",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "illegal_argument_exception",
+					Reason: "failed to parse template",
+					CausedBy: &opensearch.CausedBy{
+						Type:   "unknown_filter",
+						Reason: "failed to find filter [missing_filter]",
+					},
+				},
+			},
+		},
+		{
+			name:         "preserves wrapped original error",
+			err:          fmt.Errorf("transport failure: %w", &opensearch.StructError{Status: 400, Err: opensearch.Err{Type: "illegal_argument_exception", Reason: "template rejected", CausedBy: &opensearch.CausedBy{Type: "illegal_argument_exception", Reason: "Custom Analyzer [mm_hashtag] failed to find filter under name [icu_normalizer]"}}}),
+			wantGuidance: true,
+		},
+		{
+			name: "generic unknown component message",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "illegal_argument_exception",
+					Reason: "Unknown tokenizer type [icu_tokenizer] for [mm_tokenizer]",
+				},
+			},
+		},
+		{
+			name: "unrelated availability wording",
+			err: &opensearch.StructError{
+				Status: 400,
+				Err: opensearch.Err{
+					Type:   "unknown_tokenizer",
+					Reason: "icu_tokenizer unavailable",
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			wrapped := wrapPostsTemplateError(tc.err)
+			require.NotNil(t, wrapped)
+			for _, field := range tc.wantCauseFields {
+				require.Contains(t, wrapped.Error(), field)
+			}
+			if tc.wantGuidance {
+				require.Contains(t, wrapped.Error(), guidance)
+			} else {
+				require.NotContains(t, wrapped.Error(), guidance)
+			}
+
+			var original *opensearch.StructError
+			require.ErrorAs(t, tc.err, &original)
+			require.ErrorIs(t, wrapped, tc.err)
+			require.ErrorIs(t, wrapped, original)
+		})
+	}
+}
+
+func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, `[]`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 2
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	appErr := impl.Start(context.Background())
+	require.Error(t, appErr)
+	require.Contains(t, appErr.Error(), "icu_tokenizer")
+	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+
+	require.Nil(t, impl.Stop())
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
@@ -137,6 +313,87 @@ func (s *OpensearchInterfaceTestSuite) SetupTest() {
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
 	s.NoError(s.RefreshIndexFn())
+}
+
+func (s *OpensearchInterfaceTestSuite) newBulk(client *opensearchapi.Client) *Bulk {
+	return NewBulk(
+		common.BulkSettings{
+			FlushBytes:    0,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		client,
+		time.Second,
+		s.th.Server.Platform().Log())
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopReleasesBothBulkProcessors() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
+
+	// Stop is idempotent after all resources have been detached.
+	s.Require().Nil(impl.Stop())
+}
+
+type failingRoundTripper struct {
+	calls atomic.Int32
+}
+
+func (t *failingRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
+	t.calls.Add(1)
+	return nil, errors.New("bulk request failed")
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopAttemptsBothBulkProcessorsAfterError() {
+	transport := &failingRoundTripper{}
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:    []string{"http://localhost:9201"},
+			DisableRetry: true,
+			Transport:    transport,
+		},
+	})
+	s.Require().NoError(err)
+
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = client
+	impl.bulkProcessor = s.newBulk(client)
+	impl.bulkProcessor.pendingRequests = 1
+	impl.syncBulkProcessor = s.newBulk(client)
+	impl.syncBulkProcessor.pendingRequests = 1
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Equal(int32(2), transport.calls.Load())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopCleansPartiallyInitializedEngine() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = s.client
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(0)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
 }
 
 func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
