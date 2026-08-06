@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
@@ -18,12 +18,14 @@ describe('components/TeamSettings', () => {
     const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
     const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
     const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
+    const validateExpressionAgainstRequester = jest.fn().mockResolvedValue({data: {requester_matches: true}});
     const baseActions = {
         patchTeam,
         regenerateTeamInviteId,
         getTeamStats,
         getTeamAccessControlPolicy,
         searchUsersForExpression,
+        validateExpressionAgainstRequester,
         createAccessControlTeamSyncJob,
     };
     const defaultProps: ComponentProps<typeof AccessTab> = {
@@ -171,11 +173,11 @@ describe('components/TeamSettings', () => {
         await userEvent.click(screen.getByText('Private Team'));
 
         // Public -> Private on a governed team opens the mode-flip confirmation.
+        // Confirming it saves immediately — no second click on the panel.
         await userEvent.click(await screen.findByText('Switch to Private'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
 
         // Privacy is written via patchTeam on every path — team.type is never synced.
-        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+        await waitFor(() => expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false}));
     });
 
     test('ABAC-governed team: selecting Public patches allow_open_invite=true', async () => {
@@ -202,5 +204,202 @@ describe('components/TeamSettings', () => {
         await userEvent.click(screen.getByText('Private Team'));
         await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
         expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+    });
+
+    test('auto-add-ON governed public team: Private card opens mode-flip modal (not trapped)', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({
+                id: 'team_id',
+                type: 'O',
+                allow_open_invite: true,
+                policy_enforced: true,
+                policy_is_active: true,
+            }),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        expect(await screen.findByText('Switch to Private Team?')).toBeInTheDocument();
+        expect(await screen.findByText('Switch to Private')).toBeInTheDocument();
+    });
+
+    test('parent-policy governed team: mode-flip modal shows the resolved member count', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {id: 'team_id', rules: [], imports: ['parent1']},
+                enforced: true,
+                parent_policies: [{
+                    id: 'parent1',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                }],
+            },
+        });
+        searchUsersForExpression.mockResolvedValueOnce({data: {users: [], total: 9}});
+        getTeamStats.mockResolvedValueOnce({data: {total_member_count: 10, active_member_count: 10}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText(/1 current member does not meet criteria/i)).toBeInTheDocument();
+        expect(searchUsersForExpression).toHaveBeenCalledWith(
+            'user.attributes.Department == "Engineering"', '', '', 1, undefined, 'team_id',
+        );
+    });
+
+    test('parent-policy governed team: self-exclusion still blocks the switch', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {id: 'team_id', rules: [], imports: ['parent1']},
+                enforced: true,
+                parent_policies: [{
+                    id: 'parent1',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                }],
+            },
+        });
+        validateExpressionAgainstRequester.mockResolvedValueOnce({data: {requester_matches: false}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText('Cannot switch to Private Team')).toBeInTheDocument();
+        expect(screen.queryByText('Switch to Private Team?')).not.toBeInTheDocument();
+        expect(patchTeam).not.toHaveBeenCalled();
+    });
+
+    test('unresolved parent import: modal falls back to the generic message', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {policy: {id: 'team_id', rules: [], imports: ['parent1']}, enforced: true},
+        });
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText(/Some members may not meet/i)).toBeInTheDocument();
+        expect(screen.queryByText(/do not meet criteria/i)).not.toBeInTheDocument();
+    });
+
+    test('own-rules governed team: mode-flip modal counts from the inline expression', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                },
+                enforced: true,
+            },
+        });
+        searchUsersForExpression.mockResolvedValueOnce({data: {users: [], total: 8}});
+        getTeamStats.mockResolvedValueOnce({data: {total_member_count: 10, active_member_count: 10}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText(/2 current members do not meet criteria/i)).toBeInTheDocument();
+    });
+
+    test('self-exclusion: blocks the switch to Private when the admin does not meet the rules', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                },
+                enforced: true,
+            },
+        });
+        validateExpressionAgainstRequester.mockResolvedValueOnce({data: {requester_matches: false}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        // Self-exclusion block appears; the mode-flip confirmation does not; nothing is saved.
+        expect(await screen.findByText('Cannot switch to Private Team')).toBeInTheDocument();
+        expect(screen.queryByText('Switch to Private Team?')).not.toBeInTheDocument();
+        expect(validateExpressionAgainstRequester).toHaveBeenCalledWith(
+            'user.attributes.Department == "Engineering"', undefined, 'team_id',
+        );
+        expect(patchTeam).not.toHaveBeenCalled();
+    });
+
+    test('self-exclusion: allows the switch when the admin meets the rules', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                },
+                enforced: true,
+            },
+        });
+        validateExpressionAgainstRequester.mockResolvedValueOnce({data: {requester_matches: true}});
+        searchUsersForExpression.mockResolvedValueOnce({data: {users: [], total: 10}});
+        getTeamStats.mockResolvedValueOnce({data: {total_member_count: 10, active_member_count: 10}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText('Switch to Private Team?')).toBeInTheDocument();
+        expect(screen.queryByText('Cannot switch to Private Team')).not.toBeInTheDocument();
+    });
+
+    test('governed team with all members qualifying: modal shows a no-removals reassurance', async () => {
+        getTeamAccessControlPolicy.mockResolvedValueOnce({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    imports: [],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}],
+                },
+                enforced: true,
+            },
+        });
+        searchUsersForExpression.mockResolvedValueOnce({data: {users: [], total: 10}});
+        getTeamStats.mockResolvedValueOnce({data: {total_member_count: 10, active_member_count: 10}});
+
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        expect(await screen.findByText(/no one will be removed/i)).toBeInTheDocument();
+        expect(screen.queryByText(/do not meet criteria/i)).not.toBeInTheDocument();
     });
 });

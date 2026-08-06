@@ -96,6 +96,7 @@ import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import SessionAttributesFeatureDiscovery from './feature_discovery/features/session_attributes';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
+import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -134,6 +135,7 @@ import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
+import UnlimitedNumberSetting from './unlimited_number_setting';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
@@ -637,10 +639,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 schema: {
                     id: 'SystemProperties',
                     component: SystemProperties,
@@ -650,10 +649,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
-                ),
+                isHidden: it.minLicenseTier(LicenseSkus.Enterprise),
                 schema: {
                     id: 'SystemProperties',
                     name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
@@ -719,6 +715,20 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            global_attributes: {
+                url: 'system_attributes/manage_attributes',
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
+                searchableStrings: globalAttributesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributes',
+                    component: GlobalAttributes,
+                },
+            },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
@@ -749,6 +759,17 @@ const AdminDefinition: AdminDefinitionType = {
                                             </a>
                                         ),
                                     },
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                                        it.clientConfigIsFalse('AuditLoggingActive'),
+                                    ),
                                 },
                                 {
                                     type: 'bool',
@@ -1561,352 +1582,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_LOCAL),
                             ),
-                        },
-                    ],
-                },
-            },
-            export_storage: {
-                url: 'environment/export_storage',
-                title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
-                isHidden: it.any(
-                    it.not(it.licensedForFeature('Cloud')),
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                    it.configIsFalse('FeatureFlags', 'CloudDedicatedExportUI'),
-                ),
-                schema: {
-                    id: 'ExportFileSettings',
-                    name: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.DedicatedExportStore',
-                            label: defineMessage({id: 'admin.exportStorage.dedicatedExportStore', defaultMessage: 'Enable Dedicated Export Store:'}),
-                            help_text: defineMessage({id: 'admin.exportStorage.dedicatedExportStoreDescription', defaultMessage: 'When enabled, Mattermost will use a dedicated export storage bucket for all export operations. This is required for Mattermost Cloud deployments.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportDriverName',
-                            label: defineMessage({id: 'admin.exportStorage.exportDriverName', defaultMessage: 'Export Storage Driver:'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            options: [
-                                {
-                                    value: FILE_STORAGE_DRIVER_S3,
-                                    display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
-                                },
-                                {
-                                    value: FILE_STORAGE_DRIVER_AZURE,
-                                    display_name: defineMessage({id: 'admin.image.storeAzureBlob', defaultMessage: 'Azure Blob Storage'}),
-                                },
-                            ],
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportDirectory',
-                            label: defineMessage({id: 'admin.exportStorage.exportDirectory', defaultMessage: 'Export Directory'}),
-                            help_text: defineMessage({id: 'admin.image.exportDirectoryDescription', defaultMessage: 'Directory to which files are written. If blank, defaults to ./data/.'}),
-                            placeholder: defineMessage({id: 'admin.image.localExample', defaultMessage: 'E.g.: "./data/"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3AccessKeyId',
-                            label: defineMessage({id: 'admin.image.amazonS3IdTitle', defaultMessage: 'Amazon S3 Access Key ID:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.image.amazonS3IdExample', defaultMessage: 'E.g.: "AKIADTOVBGERKLCBV"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3SecretAccessKey',
-                            label: defineMessage({id: 'admin.image.amazonS3SecretTitle', defaultMessage: 'Amazon S3 Secret Access Key:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SecretDescription', defaultMessage: '(Optional) The secret access key associated with your Amazon S3 Access Key ID.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3SecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Bucket',
-                            label: defineMessage({id: 'admin.image.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExampleExport', defaultMessage: 'E.g.: "mattermost-export"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3PathPrefix',
-                            label: defineMessage({id: 'admin.image.amazonS3PathPrefixTitle', defaultMessage: 'Amazon S3 Path Prefix:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3PathPrefixDescription', defaultMessage: 'Prefix you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3PathPrefixExample', defaultMessage: 'E.g.: "subdir1" or you can leave it empty.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Region',
-                            label: defineMessage({id: 'admin.image.amazonS3RegionTitle', defaultMessage: 'Amazon S3 Region:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3RegionDescription', defaultMessage: 'AWS region you selected when creating your S3 bucket. If no region is set, Mattermost attempts to get the appropriate region from AWS, or sets it to "us-east-1" if none found.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3RegionExample', defaultMessage: 'E.g.: "us-east-1"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Endpoint',
-                            label: defineMessage({id: 'admin.image.amazonS3EndpointTitle', defaultMessage: 'Amazon S3 Endpoint:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3EndpointDescription', defaultMessage: 'Hostname of your S3 Compatible Storage provider. Defaults to "s3.amazonaws.com".'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3EndpointExample', defaultMessage: 'E.g.: "s3.amazonaws.com"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonS3SSL',
-                            label: defineMessage({id: 'admin.image.amazonS3SSLTitle', defaultMessage: 'Enable Secure Amazon S3 Connections:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSLDescription', defaultMessage: 'When false, allow insecure connections to Amazon S3. Defaults to secure connections only.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonSignV2',
-                            label: defineMessage({id: 'admin.image.amazonS3SignV2', defaultMessage: 'Enable Sign V2'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SignV2Description', defaultMessage: 'When true, use Sign V2 for Amazon S3 connections'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonS3SSE',
-                            label: defineMessage({id: 'admin.image.amazonS3SSETitle', defaultMessage: 'Enable Server-Side Encryption for Amazon S3:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.SESSION_LENGTHS}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3StorageClass',
-                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportAzureCloud',
-                            label: defineMessage({id: 'admin.image.azureCloudTitle', defaultMessage: 'Azure Cloud:'}),
-                            help_text: defineMessage({id: 'admin.image.azureCloudDescription', defaultMessage: 'The Azure cloud to connect to. Choose "Azure Commercial" or "Azure Government" to use the well-known endpoint for that cloud; only the storage account name is required. Choose "Custom Endpoint" to point at an arbitrary host such as Azurite, a reverse proxy, or any other Azure cloud (for example Azure China).'}),
-                            options: [
-                                {
-                                    value: AZURE_CLOUD_COMMERCIAL,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudCommercial', defaultMessage: 'Azure Commercial'}),
-                                },
-                                {
-                                    value: AZURE_CLOUD_GOVERNMENT,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudGovernment', defaultMessage: 'Azure Government'}),
-                                },
-                                {
-                                    value: AZURE_CLOUD_CUSTOM,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudCustom', defaultMessage: 'Custom Endpoint'}),
-                                },
-                            ],
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureStorageAccount',
-                            label: defineMessage({id: 'admin.image.azureStorageAccountTitle', defaultMessage: 'Azure Storage Account:'}),
-                            help_text: defineMessage({id: 'admin.image.azureStorageAccountDescription', defaultMessage: 'The name of your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureStorageAccountExample', defaultMessage: 'E.g.: "mattermoststorage"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureContainer',
-                            label: defineMessage({id: 'admin.image.azureContainerTitle', defaultMessage: 'Azure Container:'}),
-                            help_text: defineMessage({id: 'admin.image.azureContainerExportDescription', defaultMessage: 'Name of the container in your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureContainerExportExample', defaultMessage: 'E.g.: "mattermost-export"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzurePathPrefix',
-                            label: defineMessage({id: 'admin.image.azurePathPrefixTitle', defaultMessage: 'Azure Path Prefix:'}),
-                            help_text: defineMessage({id: 'admin.image.azurePathPrefixDescription', defaultMessage: 'Optional path prefix to use for blobs in your Azure container.'}),
-                            placeholder: defineMessage({id: 'admin.image.azurePathPrefixExample', defaultMessage: 'E.g.: "files/" or leave empty'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportAzureAuthMode',
-                            label: defineMessage({id: 'admin.image.azureAuthModeTitle', defaultMessage: 'Azure Authentication:'}),
-                            help_text: defineMessage({id: 'admin.image.azureAuthModeDescription', defaultMessage: '"Shared key" signs requests with the Storage Account access key.\n \n"Default credential (Microsoft Entra ID)" reads the identity from the host environment - managed identity on Azure-hosted deployments, workload identity, service principal env vars, or "az login" for local development. No access key required.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: AZURE_AUTH_MODE_SHARED_KEY,
-                                    display_name: defineMessage({id: 'admin.image.azureAuthModeSharedKey', defaultMessage: 'Shared key'}),
-                                },
-                                {
-                                    value: AZURE_AUTH_MODE_DEFAULT_CREDENTIAL,
-                                    display_name: defineMessage({id: 'admin.image.azureAuthModeDefaultCredential', defaultMessage: 'Default credential (Microsoft Entra ID)'}),
-                                },
-                            ],
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureAccessKey',
-                            label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Storage Account Key:'}),
-                            help_text: defineMessage({id: 'admin.image.azureAccessKeyDescription', defaultMessage: 'The shared key for your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureAccessKeyExample', defaultMessage: 'E.g.: "9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So="'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureEndpoint',
-                            label: defineMessage({id: 'admin.image.azureEndpointTitle', defaultMessage: 'Custom Azure Endpoint:'}),
-                            help_text: defineMessage({id: 'admin.image.azureEndpointDescription', defaultMessage: 'Full Blob service URL, including scheme and storage account. Mattermost does not modify this URL, so the storage account must already be embedded in the hostname (vhost-style, e.g. "https://acmemattermost.blob.core.chinacloudapi.cn/") or in the path (path-style, e.g. "http://localhost:10000/devstoreaccount1/"). Shared-key auth signs against the host this URL points at, so make sure it actually serves the storage account named above.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureEndpointExample', defaultMessage: 'E.g.: "http://localhost:10000/devstoreaccount1/"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM)),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM)),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAzureSSL',
-                            label: defineMessage({id: 'admin.image.azureSSLTitle', defaultMessage: 'Enable Secure Azure Blob Storage Connections:'}),
-                            help_text: defineMessage({id: 'admin.image.azureSSLDescription', defaultMessage: 'When false, allow insecure connections to Azure Blob Storage. Defaults to secure connections only. Ignored for the Custom Endpoint cloud (the scheme is part of the endpoint URL).'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM),
-                            ),
-                        },
-                        {
-                            type: 'number',
-                            key: 'FileSettings.ExportAzureRequestTimeoutMilliseconds',
-                            label: defineMessage({id: 'admin.image.azureRequestTimeoutTitle', defaultMessage: 'Azure Request Timeout (Milliseconds):'}),
-                            help_text: defineMessage({id: 'admin.image.azureRequestTimeoutDescription', defaultMessage: 'Number of milliseconds to wait for a response from Azure Blob Storage before timing out.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureRequestTimeoutExample', defaultMessage: 'E.g.: "30000"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'button',
-                            action: testFileStoreConnection,
-                            key: 'TestFileStoreConnection',
-                            label: defineMessage({id: 'admin.filestore.connectionTest', defaultMessage: 'Test Connection'}),
-                            loading: defineMessage({id: 'admin.filestore.testing', defaultMessage: 'Testing...'}),
-                            error_message: defineMessage({id: 'admin.filestore.testFail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
-                            success_message: defineMessage({id: 'admin.filestore.testSuccess', defaultMessage: 'Connection was successful'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
                         },
                     ],
                 },
@@ -3489,7 +3164,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 searchableStrings: classificationMarkingsSearchableStrings,
                 isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 isDisabled: it.not(it.isSystemAdmin),
@@ -3503,7 +3178,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 schema: {
@@ -4102,6 +3777,129 @@ const AdminDefinition: AdminDefinitionType = {
 
                                         return new ValidationResult(true, '');
                                     },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+            recaps: {
+                url: 'site_config/recaps',
+                title: defineMessage({id: 'admin.sidebar.recaps', defaultMessage: 'Recaps'}),
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                schema: {
+                    id: 'RecapSettings',
+                    name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
+                    sections: [
+                        {
+                            key: 'AIRecapSettings.Global',
+                            title: '',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AIRecapSettings.Enable',
+                                    label: defineMessage({id: 'admin.recaps.enable.title', defaultMessage: 'Enable AI Recaps:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.enable.desc', defaultMessage: 'When enabled, users can create and schedule AI recaps subject to the configured limits.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.QuotaLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.quota.title', defaultMessage: 'Quota Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.quota.description', defaultMessage: 'Control how many recaps users can create.'}),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxScheduledRecaps',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxScheduledRecaps.title', defaultMessage: 'Maximum Scheduled Recaps:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxScheduledRecaps.desc', defaultMessage: 'Maximum number of scheduled recaps a user can have active at once.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxRecapsPerDay',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxRecapsPerDay.title', defaultMessage: 'Maximum Recaps Per Day:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxRecapsPerDay.desc', defaultMessage: 'Maximum number of recaps a user can generate per day. Resets at midnight in the user\'s timezone.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxPostsPerDay',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxPostsPerDay.title', defaultMessage: 'Maximum Posts Per Day:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxPostsPerDay.desc', defaultMessage: 'Maximum total posts that can be processed for recaps per user per day.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.ContentLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.content.title', defaultMessage: 'Content Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.content.description', defaultMessage: 'Control how much content can be included in each recap.'}),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxChannelsPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxChannelsPerRecap.title', defaultMessage: 'Maximum Channels Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxChannelsPerRecap.desc', defaultMessage: 'Maximum number of channels that can be included in a single recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxPostsPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxPostsPerRecap.title', defaultMessage: 'Maximum Posts Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxPostsPerRecap.desc', defaultMessage: 'Maximum number of posts to include when generating a recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxTokensPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxTokensPerRecap.title', defaultMessage: 'Maximum Tokens Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxTokensPerRecap.desc', defaultMessage: 'Maximum estimated token count for LLM context when generating a recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.TimeLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.time.title', defaultMessage: 'Time Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.time.description', defaultMessage: 'Control timing between recap requests.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'AIRecapSettings.DefaultLimits.CooldownMinutes',
+                                    label: defineMessage({id: 'admin.recaps.cooldownMinutes.title', defaultMessage: 'Cooldown Between Recaps (minutes):'}),
+                                    help_text: defineMessage({id: 'admin.recaps.cooldownMinutes.desc', defaultMessage: 'Minimum time in minutes between recap generations for each user. Set to 0 to disable cooldown.'}),
+                                    placeholder: defineMessage({id: 'admin.recaps.cooldownMinutes.placeholder', defaultMessage: 'E.g.: "60"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                    validate: validators.minValue(0, defineMessage({id: 'admin.recaps.cooldownMinutes.minValue', defaultMessage: 'Cooldown must be 0 or greater'})),
                                 },
                             ],
                         },
@@ -4999,10 +4797,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             key: 'SamlSettings.CustomProfileAttributes',
                             component: CustomProfileAttributes,
-                            isHidden: it.not(it.all(
-                                it.minLicenseTier(LicenseSkus.Enterprise),
-                                it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                            )),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                         },
                         {
                             type: 'text',

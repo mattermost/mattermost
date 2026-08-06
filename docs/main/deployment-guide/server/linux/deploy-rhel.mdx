@@ -37,14 +37,14 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.8.3/mattermost-11.8.3-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.9.0/mattermost-11.9.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
 <TabItem value="esr" label="Current ESR">
 
 ```sh
-wget https://releases.mattermost.com/11.7.6/mattermost-11.7.6-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.7.7/mattermost-11.7.7-linux-amd64.tar.gz
 ```
 
 </TabItem>
@@ -250,7 +250,7 @@ sudo firewall-cmd --reload
 - Port 8045 (TCP) is the rtcd API.
 - TCP support for RTC requires Calls v0.17+ and rtcd v0.11+.
 
-See the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) for the full topology.
+See the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) for the full topology.
 
 </TabItem>
 <TabItem value="fapolicyd" label="fapolicyd">
@@ -314,7 +314,7 @@ allow perm=execute exe=/opt/rtcd/bin/rtcd : dir=/opt/rtcd all trust=0
 allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/rtcd/ all trust=0
 ```
 
-Then reload fapolicyd as above. See [RTCD setup and configuration](/administration-guide/configure/calls-deployment-guide) for the full rtcd install path.
+Then reload fapolicyd as above. See [RTCD setup and configuration](/deployment-guide/calls/calls-rtcd-setup) for the full rtcd install path.
 
 <Note title="Rule numbering">
 

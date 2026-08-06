@@ -13,6 +13,9 @@ const (
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 
+	AuditEventSavePluginAccessControlPolicy   = "savePluginAccessControlPolicy"   // create/update plugin-owned access control policy (activation implicit)
+	AuditEventDeletePluginAccessControlPolicy = "deletePluginAccessControlPolicy" // delete plugin-owned access control policy
+
 	AuditEventCreateTeamAccessPolicy   = "createTeamAccessPolicy"   // create team-scoped access control policy
 	AuditEventUpdateTeamAccessPolicy   = "updateTeamAccessPolicy"   // update team-scoped access control policy
 	AuditEventDeleteTeamAccessPolicy   = "deleteTeamAccessPolicy"   // delete team-scoped access control policy
@@ -335,6 +338,17 @@ const (
 	AuditEventMarkRecapsAsViewed = "markRecapsAsViewed" // bulk mark user's finished recaps as viewed
 	AuditEventRegenerateRecap    = "regenerateRecap"    // regenerate recap with updated channel content
 	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
+)
+
+// Scheduled Recaps
+const (
+	AuditEventCreateScheduledRecap = "createScheduledRecap" // create scheduled recap configuration
+	AuditEventGetScheduledRecap    = "getScheduledRecap"    // view a single scheduled recap
+	AuditEventGetScheduledRecaps   = "getScheduledRecaps"   // list user's scheduled recaps
+	AuditEventUpdateScheduledRecap = "updateScheduledRecap" // update scheduled recap configuration
+	AuditEventDeleteScheduledRecap = "deleteScheduledRecap" // delete scheduled recap
+	AuditEventPauseScheduledRecap  = "pauseScheduledRecap"  // pause scheduled recap execution
+	AuditEventResumeScheduledRecap = "resumeScheduledRecap" // resume paused scheduled recap
 )
 
 // Preferences

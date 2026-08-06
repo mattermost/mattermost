@@ -1,11 +1,13 @@
 ---
 title: "Navigate boards"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-ent" />
 
 ## Access boards
 
-To access Mattermost Boards, select the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu in the top left corner of Mattermost, and then select **Boards** to view all the boards for your team.
+To access Mattermost Boards, select the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu in the top left corner of Mattermost, and then select **Boards** to view all the boards for your team.
 
 To access boards linked to a channel, select the **Toggle Linked Boards** icon to the far right.
 
@@ -29,13 +31,13 @@ All the boards previously associated with the workspace will automatically appea
 
 ## Unlink a board from a channel
 
-If you're a board admin and want to unlink a board from a channel you're in, open the Boards Apps Bar, select the options <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu and select **Unlink**. Alternatively, you can open the **Share** dialog on the board, open the **Role** drop-down menu next to the channel's name and select **Unlink**.
+If you're a board admin and want to unlink a board from a channel you're in, open the Boards Apps Bar, select the options <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu and select **Unlink**. Alternatively, you can open the **Share** dialog on the board, open the **Role** drop-down menu next to the channel's name and select **Unlink**.
 
 ## Sidebar categories
 
-You can organize your boards in the left-hand sidebar using custom categories. By default, all boards will appear under the **Boards** category. To manage your categories, open the <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to the category to create, delete, or rename a category. With the exception to the default **Boards** category, all other categories can be renamed or deleted.
+You can organize your boards in the left-hand sidebar using custom categories. By default, all boards will appear under the **Boards** category. To manage your categories, open the <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to the category to create, delete, or rename a category. With the exception to the default **Boards** category, all other categories can be renamed or deleted.
 
-After creating categories, you can move your boards to those categories by opening the more <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to the board and selecting **Move To…** to select the category where you want the board to be moved.
+After creating categories, you can move your boards to those categories by opening the more <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to the board and selecting **Move To…** to select the category where you want the board to be moved.
 
 If you delete a category with boards in it, then those boards will return to the default **Boards** category.
 
@@ -62,7 +64,7 @@ To do this, select and hold the cursor over the category or board name. Then mov
 
 ## Manage boards on the sidebar
 
-In addition to moving boards to other categories, from the <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to each board name you can perform the following actions:
+In addition to moving boards to other categories, from the <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> menu next to each board name you can perform the following actions:
 
 - **Delete board**: If you're an admin of the board, you will see an option to delete the board. Deleting the board permanently removes the board from the sidebar of all board members.
 - **Duplicate board**: Creates a copy of the board and all the cards on the board. The duplicated board will appear under the same category as the original board. Board members and comments from the original board aren't migrated to the new board.
