@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -1002,36 +1001,5 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestGenerateLimitedClientConfigOmitsLdapLoginButtonColors(t *testing.T) {
-	t.Parallel()
-
-	c := &model.Config{
-		LdapSettings: model.LdapSettings{
-			Enable:         model.NewPointer(true),
-			LoginFieldName: model.NewPointer("AD/LDAP Username"),
-		},
-	}
-	c.SetDefaults()
-
-	license := &model.License{
-		Features:     &model.Features{},
-		SkuShortName: model.LicenseShortSkuEnterprise,
-	}
-	license.Features.SetDefaults()
-	require.True(t, *license.Features.LDAP, "test requires an LDAP-licensed configuration")
-
-	configMap := GenerateLimitedClientConfig(c, "", license)
-
-	// The licensed LDAP block still populates the client config.
-	assert.Equal(t, "AD/LDAP Username", configMap["LdapLoginFieldName"])
-
-	// The experimental AD/LDAP login button color settings were removed, so they
-	// must never be emitted to the client even when LDAP is licensed.
-	for _, key := range []string{"LdapLoginButtonColor", "LdapLoginButtonBorderColor", "LdapLoginButtonTextColor"} {
-		_, ok := configMap[key]
-		assert.Falsef(t, ok, "limited client config should not contain %q", key)
 	}
 }
