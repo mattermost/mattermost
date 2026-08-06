@@ -36,8 +36,6 @@ type FeatureFlags struct {
 
 	NotificationMonitoring bool
 
-	CustomProfileAttributes bool
-
 	// Mask non-held attribute values in the policy editor for delegated admins.
 	AttributeValueMasking bool
 
@@ -117,6 +115,9 @@ type FeatureFlags struct {
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
 
+	// Gates the Post Attributes feature (post_attributes property group).
+	PostAttributes bool
+
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
 	// non-members find a private channel in Browse Channels and request to join it.
@@ -164,7 +165,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.NotificationMonitoring = true
-	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
@@ -199,6 +199,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ManagedChannelCategories = false
 
 	f.SessionAttributes = false
+
+	f.PostAttributes = false
 
 	f.DiscoverableChannels = false
 

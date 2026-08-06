@@ -805,7 +805,6 @@ const defaultServerConfig: AdminConfig = {
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         NotificationMonitoring: true,
-        CustomProfileAttributes: true,
         AttributeValueMasking: false,
         PermissionPolicies: false,
         ChannelPermissionPolicies: false,
