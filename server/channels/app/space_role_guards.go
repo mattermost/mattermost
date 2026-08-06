@@ -191,12 +191,15 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		// A store failure is not a scope violation; reporting it as one would tell
 		// the caller their role is malformed when the database is simply
 		// unreachable. Both outcomes refuse the write.
-		scheme, appErr := a.getSchemeWithMasterFallback("checkSpacePermissionScope", *role.SchemeId)
+		scheme, appErr := a.getSchemeFromMaster("checkSpacePermissionScope", *role.SchemeId)
 		if appErr != nil {
 			return appErr
 		}
-		if scheme == nil {
-			// Fail closed: an unresolvable scheme cannot prove space scope.
+		if scheme == nil || scheme.DeleteAt != 0 {
+			// Fail closed: neither an unresolvable scheme nor a deleted one can
+			// prove space scope. The read carries no DeleteAt filter, and a deleted
+			// scheme's channels have had their SchemeId blanked, so it would
+			// otherwise reach the counts below.
 			return reject()
 		}
 		// Channel scope alone is too wide: an ordinary customer channel scheme

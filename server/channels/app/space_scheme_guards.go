@@ -40,6 +40,30 @@ func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme
 	return scheme, nil
 }
 
+// getSchemeFromMaster resolves a scheme on the primary only. The two guards that
+// read a scheme to decide whether it may hold space authority use this rather
+// than the replica-first fallback above: the fallback re-reads the primary only
+// when the replica has no row, so a replica that has not yet seen a delete
+// answers DeleteAt == 0 for a row the primary has already soft-deleted, and the
+// deleted-scheme refusal passes on stale state. The channel counts those guards
+// fall back on cannot catch it either, because deleting a scheme blanks SchemeId
+// on every channel that used it, so they come back empty and agree. Both callers
+// are sysconsole-gated and low frequency, so the replica offload buys nothing.
+//
+// A nil scheme with a nil error means the id resolves to no row. Each caller
+// refuses that its own way.
+func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model.AppError) {
+	scheme, err := a.Srv().Store().Scheme().GetFromMaster(schemeId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil, nil
+	}
+	return scheme, nil
+}
+
 // isSeededSpaceScheme reports whether schemeId is one of the three seeded space
 // preset schemes. Resolving the id and reading its name costs one lookup, where
 // resolving each reserved name in turn would cost three; the by-id read is also
@@ -58,8 +82,9 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	}
 	// Scope is part of the identity: a scheme of another scope carrying a
 	// reserved name is a conflicting row the seeding migration refuses to adopt,
-	// and deleting it is the operator's remedy.
-	return scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
+	// and deleting it is the operator's remedy. A deleted row is not a preset
+	// either: the read carries no DeleteAt filter, so it comes back like any other.
+	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
 // schemeHoldsSpaceGrants reports whether a scheme's generated channel roles

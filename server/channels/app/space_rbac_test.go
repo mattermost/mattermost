@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,7 +115,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 				schemeID := model.NewId()
 				mockStore := th.App.Srv().Store().(*mocks.Store)
 				mockSchemeStore := mocks.SchemeStore{}
-				mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+				mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
 					Id: schemeID, Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel,
 				}, nil)
 				mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -135,7 +134,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.SchemeNameSpaceContribute, Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
@@ -151,7 +150,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
@@ -171,7 +170,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
 			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeTeam,
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -192,7 +191,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
@@ -211,7 +210,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
@@ -231,7 +230,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
 			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -252,7 +251,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(nil, errors.New("connection reset"))
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("connection reset"))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
@@ -269,7 +268,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Scope: model.SchemeScopeTeam}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
@@ -283,7 +282,6 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
@@ -291,15 +289,16 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		require.NotNil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
-	t.Run("scheme missed on the replica is resolved on the primary", func(t *testing.T) {
+	// A scheme created moments earlier is absent from the replica, and one just
+	// deleted is still live there. The guard reads the primary for both, so the
+	// replica's answer never reaches the decision.
+	t.Run("scheme resolved on the primary, never the replica", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		// The replica has not caught up with a scheme created moments earlier;
-		// the primary has it, and it is a seeded preset, so the write is allowed.
 		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
 			Id:    schemeID,
@@ -310,6 +309,35 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+	})
+
+	// Deleting a scheme blanks SchemeId on every channel that used it, so the
+	// space-association count below cannot catch a deleted scheme either — the
+	// DeleteAt refusal is the only thing standing between a scheme on its way out
+	// and a role write taking space authority on it.
+	t.Run("a soft-deleted scheme proves nothing and fails closed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		// A seeded preset name, which would otherwise prove space scope outright.
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id:       schemeID,
+			Name:     model.SchemeNameSpaceContribute,
+			Scope:    model.SchemeScopeChannel,
+			DeleteAt: model.GetMillis(),
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
+		appErr := th.App.checkSpacePermissionScope(role, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+		mockChannelStore.AssertNotCalled(t, "CountSpaceChannelsByScheme", mock.Anything)
 	})
 
 	t.Run("nil-SchemeId unrecognized name fails closed", func(t *testing.T) {
@@ -1390,8 +1418,9 @@ func TestRejectUnusableSpaceSchemeFailsClosedOnCountError(t *testing.T) {
 	schemeID := model.NewId()
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockSchemeStore := mocks.SchemeStore{}
-	mockSchemeStore.On("Get", schemeID).
-		Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	scheme := &model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}
+	mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+	mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
@@ -1463,8 +1492,9 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).
-			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		scheme := &model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
@@ -1480,8 +1510,9 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", schemeID).
-			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		scheme := &model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}
+		mockSchemeStore.On("Get", schemeID).Return(scheme, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
@@ -1530,6 +1561,34 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+	})
+
+	// Deleting a scheme blanks SchemeId on every channel that used it, so the
+	// ordinary-channel count comes back empty for a deleted scheme and agrees
+	// that it is unused. The DeleteAt refusal is what stops a space being pointed
+	// at a scheme on its way out, and the read it trusts has to be the primary's:
+	// a lagging replica still reports the row live.
+	t.Run("a soft-deleted scheme is refused even though it governs no channel", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+		}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel, DeleteAt: model.GetMillis(),
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+		mockChannelStore.AssertNotCalled(t, "CountNonSpaceChannelsByScheme", mock.Anything)
 	})
 }
 
@@ -1745,23 +1804,14 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
 	mockStore.On("System").Return(&mockSystemStore)
 
-	// GetByName is called twice for each preset: the get-or-create read, which
-	// has to miss so the failing Save below runs, and the recovery re-read that
-	// follows it. SchemeStore.GetByName takes no context, so the two are told
-	// apart by call order per name rather than by a master flag.
-	var mu sync.Mutex
-	reads := map[string]int{}
+	// The get-or-create read has to miss so the failing Save below runs, and the
+	// recovery re-read that follows it goes to the primary.
 	mockSchemeStore := mocks.SchemeStore{}
 	mockSchemeStore.On("GetByName", mock.AnythingOfType("string")).Return(
 		func(name string) (*model.Scheme, error) {
-			mu.Lock()
-			defer mu.Unlock()
-			reads[name]++
-			if reads[name] == 1 {
-				return nil, store.NewErrNotFound("Scheme", name)
-			}
-			return reread(name)
+			return nil, store.NewErrNotFound("Scheme", name)
 		})
+	mockSchemeStore.On("GetByNameFromMaster", mock.AnythingOfType("string")).Return(reread)
 	mockSchemeStore.On("Save", mock.Anything).Return(nil, errors.New("duplicate key"))
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 
@@ -2178,7 +2228,7 @@ func TestCheckSpacePermissionScopeRefusesSchemeSharedWithOrdinaryChannel(t *test
 	schemeID := model.NewId()
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockSchemeStore := mocks.SchemeStore{}
-	mockSchemeStore.On("Get", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+	mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)

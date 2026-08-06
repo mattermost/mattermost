@@ -107,14 +107,19 @@ func (a *App) rejectUnusableSpaceScheme(where string, schemeId *string) *model.A
 		return nil
 	}
 
-	// Create a scheme, then point a space at it is the ordinary way a caller
-	// reaches here, so the read has to fall back to the primary.
-	scheme, appErr := a.getSchemeWithMasterFallback(where, *schemeId)
+	// Read on the primary. Create a scheme, then point a space at it is the
+	// ordinary way a caller reaches here, so the replica routinely has no row
+	// yet; and a replica that has not yet seen a delete would report a deleted
+	// scheme as live, which the DeleteAt refusal below has to be able to trust.
+	scheme, appErr := a.getSchemeFromMaster(where, *schemeId)
 	if appErr != nil {
 		return appErr
 	}
-	if scheme == nil {
-		// Fail closed: a scheme that does not resolve cannot prove anything.
+	if scheme == nil || scheme.DeleteAt != 0 {
+		// Fail closed: a scheme that does not resolve cannot prove anything, and
+		// neither can a deleted one. The scheme read carries no DeleteAt filter, and
+		// deleting a scheme blanks SchemeId on every channel that used it, so a
+		// soft-deleted row would otherwise reach the count below and pass it.
 		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
 	}
 

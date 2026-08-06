@@ -649,7 +649,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, builtInRoles+10) // built-in roles + 10 custom roles from the scheme
+		assert.Len(t, permissions.Roles, builtInRoles+10)    // built-in roles + 10 custom roles from the scheme
 		require.Len(t, permissions.Schemes, seededSchemes+1) // seeded space preset schemes + the custom one
 
 		var custom *model.Scheme
