@@ -6741,6 +6741,14 @@
     "translation": "Failed to add file to zip archive during export."
   },
   {
+    "id": "app.export.export_all_teams.team_not_found.error",
+    "translation": "The specified team was not found."
+  },
+  {
+    "id": "app.export.export_all_teams.team_deleted.error",
+    "translation": "The specified team has been deleted."
+  },
+  {
     "id": "app.file.cloud.get.app_error",
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
