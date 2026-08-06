@@ -425,10 +425,14 @@ func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer,
 	if teamNameFilter != "" {
 		team, err := a.Srv().Store().Team().GetByName(teamNameFilter)
 		if err != nil {
+			var nfErr *store.ErrNotFound
+			if errors.As(err, &nfErr) {
+				return nil, model.NewAppError("exportAllTeams", "app.export.export_all_teams.team_not_found.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
 			return nil, model.NewAppError("exportAllTeams", "app.team.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if team.DeleteAt != 0 {
-			return nil, model.NewAppError("exportAllTeams", "app.team.get_by_name.app_error", nil, "team is deleted", http.StatusBadRequest)
+			return nil, model.NewAppError("exportAllTeams", "app.export.export_all_teams.team_deleted.error", nil, "", http.StatusBadRequest)
 		}
 		teamNames[team.Name] = true
 		// SchemeName is not populated here; teams with a custom permission scheme will have it omitted from the export.
