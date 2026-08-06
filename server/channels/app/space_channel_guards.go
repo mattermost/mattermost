@@ -4,13 +4,24 @@
 package app
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// checkChannelSchemeAssignment routes a channel's SchemeId to the guard for its
+// type. Which schemes are allowed depends on the channel type, so the two
+// enforce opposite rules: a space may only take a scheme that can serve as a
+// space's, and an ordinary channel may not take a scheme that carries space
+// authority. Callers pass the type read from the stored channel, never from the
+// caller-supplied one, which could falsely claim to be a space.
+func (a *App) checkChannelSchemeAssignment(where string, isSpace bool, schemeId *string) *model.AppError {
+	if isSpace {
+		return a.rejectUnusableSpaceScheme(where, schemeId)
+	}
+	return a.rejectSpaceSchemeOnOrdinaryChannel(where, schemeId)
+}
 
 // rejectSpaceSchemeOnOrdinaryChannel refuses to put a space preset scheme on a
 // channel that is not a space. The preset has the moderated permissions
@@ -96,24 +107,15 @@ func (a *App) rejectUnusableSpaceScheme(where string, schemeId *string) *model.A
 		return nil
 	}
 
-	scheme, err := a.Srv().Store().Scheme().Get(*schemeId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		// Re-read on the primary: nothing populates the scheme cache on create, so
-		// a scheme created moments earlier is absent from the replica. That is the
-		// ordinary way a caller reaches here: create a scheme, then point a space
-		// at it.
-		scheme, err = a.Srv().Store().Scheme().GetFromMaster(*schemeId)
-		if err != nil {
-			if !errors.As(err, &nfErr) {
-				return model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			// Fail closed: a scheme that does not resolve cannot prove anything.
-			return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Create a scheme, then point a space at it is the ordinary way a caller
+	// reaches here, so the read has to fall back to the primary.
+	scheme, appErr := a.getSchemeWithMasterFallback(where, *schemeId)
+	if appErr != nil {
+		return appErr
+	}
+	if scheme == nil {
+		// Fail closed: a scheme that does not resolve cannot prove anything.
+		return model.NewAppError(where, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if scheme.Scope == model.SchemeScopeChannel {

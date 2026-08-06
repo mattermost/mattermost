@@ -188,26 +188,16 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 	}
 
 	if role.SchemeId != nil && *role.SchemeId != "" {
-		scheme, err := a.Srv().Store().Scheme().Get(*role.SchemeId)
-		if err != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(err, &nfErr) {
-				// A store failure is not a scope violation; reporting it as one
-				// would tell the caller their role is malformed when the database
-				// is simply unreachable. Both outcomes refuse the write.
-				return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			// Re-read on the primary: a scheme created shortly before this role write
-			// is absent from the replica, and the write would be refused for the
-			// wrong reason.
-			scheme, err = a.Srv().Store().Scheme().GetFromMaster(*role.SchemeId)
-			if err != nil {
-				if !errors.As(err, &nfErr) {
-					return model.NewAppError("checkSpacePermissionScope", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-				}
-				// Fail closed: an unresolvable scheme cannot prove space scope.
-				return reject()
-			}
+		// A store failure is not a scope violation; reporting it as one would tell
+		// the caller their role is malformed when the database is simply
+		// unreachable. Both outcomes refuse the write.
+		scheme, appErr := a.getSchemeWithMasterFallback("checkSpacePermissionScope", *role.SchemeId)
+		if appErr != nil {
+			return appErr
+		}
+		if scheme == nil {
+			// Fail closed: an unresolvable scheme cannot prove space scope.
+			return reject()
 		}
 		// Channel scope alone is too wide: an ordinary customer channel scheme
 		// is channel-scoped too, so accepting it would let anyone who can write

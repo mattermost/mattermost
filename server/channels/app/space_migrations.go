@@ -22,6 +22,17 @@ func sortedPermissions(permissions []string) []string {
 	return sorted
 }
 
+// validateAdoptableSpaceRole rejects a row found under a reserved capability
+// role name whose permissions differ from the built-in definition. Such a row is
+// a name collision rather than this migration's own earlier work, and adopting
+// it would hand out space permissions this migration never defined.
+func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
+	if slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(want.Permissions)) {
+		return nil
+	}
+	return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+}
+
 // validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
 // scheme's name but cannot serve as one: adopting a foreign row would rewrite
 // that scheme's generated role permission sets on every boot, and a row without
@@ -128,12 +139,10 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	for _, roleID := range model.SpaceCapabilityRoles {
 		if stored, err := s.Store().Role().GetByName(context.Background(), roleID); err == nil {
 			// A row already under the reserved name is only this migration's own
-			// earlier work if its permissions match the built-in definition.
-			// Anything else is a name collision: adopting it would hand out
-			// space permissions this migration never defined. The lost-insert-race
-			// branch below refuses the same way.
-			if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(roles[roleID].Permissions)) {
-				return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+			// earlier work if its permissions match the built-in definition. The
+			// lost-insert-race branch below refuses the same way.
+			if vErr := validateAdoptableSpaceRole(roleID, stored, roles[roleID]); vErr != nil {
+				return vErr
 			}
 			continue
 		} else if !errors.As(err, &nfErr) {
@@ -153,12 +162,11 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 			}
 
 			// A row under the reserved name is only proof the race was lost if
-			// it is the row this migration would have written. Anything else is
-			// a name collision: adopting it would hand out space permissions
-			// this migration never defined. validateAdoptableSpaceScheme
-			// refuses the same way when seeding schemes.
-			if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(roles[roleID].Permissions)) {
-				return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+			// it is the row this migration would have written.
+			// validateAdoptableSpaceScheme refuses the same way when seeding
+			// schemes.
+			if err := validateAdoptableSpaceRole(roleID, stored, roles[roleID]); err != nil {
+				return err
 			}
 		}
 	}

@@ -245,19 +245,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
-	// Which schemes are allowed depends on the channel type, so the two guards
-	// enforce opposite rules: a space may only take a scheme that can serve as a
-	// space's, and an ordinary channel may not take a scheme that carries space
-	// authority. CreateChannel takes SchemeId straight from the caller, so
-	// without this guard it would bypass the check UpdateChannelScheme enforces.
-	if channel.IsSpace() {
-		if appErr := a.rejectUnusableSpaceScheme("CreateChannel", channel.SchemeId); appErr != nil {
-			return nil, appErr
-		}
-	} else {
-		if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("CreateChannel", channel.SchemeId); appErr != nil {
-			return nil, appErr
-		}
+	// CreateChannel takes SchemeId straight from the caller, so without this
+	// guard it would bypass the check UpdateChannelScheme enforces.
+	if appErr := a.checkChannelSchemeAssignment("CreateChannel", channel.IsSpace(), channel.SchemeId); appErr != nil {
+		return nil, appErr
 	}
 
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
@@ -785,23 +776,13 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		}
 	}
 
-	// Which schemes are allowed depends on the channel type, so the two guards
-	// enforce opposite rules: a space may only take a scheme that can serve as a
-	// space's, and an ordinary channel may not take a scheme that carries space
-	// authority. UpdateChannel takes SchemeId straight from the caller, and both
-	// bulk import and the plugin API reach it without passing UpdateChannelScheme,
-	// so the guard has to sit here rather than on that narrower entry point.
-	//
-	// The type is read from oldChannel, not from channel: the incoming type is
-	// caller-supplied and could falsely claim to be a space. The SchemeId
-	// comparison keeps an ordinary edit from being refused over a scheme the
-	// channel already carries.
+	// UpdateChannel takes SchemeId straight from the caller, and both bulk import
+	// and the plugin API reach it without passing UpdateChannelScheme, so the
+	// guard has to sit here rather than on that narrower entry point. The
+	// SchemeId comparison keeps an ordinary edit from being refused over a scheme
+	// the channel already carries.
 	if model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
-		if oldChannel.IsSpace() {
-			if appErr := a.rejectUnusableSpaceScheme("UpdateChannel", channel.SchemeId); appErr != nil {
-				return nil, appErr
-			}
-		} else if appErr := a.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannel", channel.SchemeId); appErr != nil {
+		if appErr := a.checkChannelSchemeAssignment("UpdateChannel", oldChannel.IsSpace(), channel.SchemeId); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -1531,11 +1512,9 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			// per-member capability grants on a space's backing channel; on any
 			// other channel they would grant space authority to a member.
 			//
-			// The lookup runs only for a capability role, so an ordinary role
-			// write keeps the reads it already had, and it is memoised because
-			// channelID does not change across the loop: a write carrying
-			// several capability roles would otherwise repeat an uncached
-			// primary read once per role.
+			// Only a capability role needs this lookup, so an ordinary role write
+			// costs no extra read. channelID is the same for every role in the
+			// loop, so the result is reused rather than re-read once per role.
 			if model.IsSpaceCapabilityRole(roleName) && !spaceLookupDone {
 				if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
 					return nil, err

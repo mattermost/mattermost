@@ -11,6 +11,35 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// getSchemeWithMasterFallback resolves a scheme, re-reading on the primary when
+// the replica has no row: nothing populates the scheme cache on create, so a
+// scheme created moments earlier is absent from the replica, and a guard that
+// resolves one right after it was created would refuse for the wrong reason.
+//
+// A nil scheme with a nil error means the id resolves on neither. Each caller
+// refuses that its own way, because an unresolvable scheme means something
+// different to each of them.
+func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme, *model.AppError) {
+	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
+	if err == nil {
+		return scheme, nil
+	}
+
+	var nfErr *store.ErrNotFound
+	if !errors.As(err, &nfErr) {
+		return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	scheme, err = a.Srv().Store().Scheme().GetFromMaster(schemeId)
+	if err != nil {
+		if !errors.As(err, &nfErr) {
+			return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil, nil
+	}
+	return scheme, nil
+}
+
 // isSeededSpaceScheme reports whether schemeId is one of the three seeded space
 // preset schemes. Resolving the id and reading its name costs one lookup, where
 // resolving each reserved name in turn would cost three; the by-id read is also
@@ -98,23 +127,14 @@ func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 // The stored row has to be read to see the name the update replaces, so this
 // runs before the save on every update.
 func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
-	stored, err := a.Srv().Store().Scheme().Get(scheme.Id)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		// Re-read on the primary: a scheme created moments earlier is absent from
-		// the replica. The import path reaches here that way — GetSchemeByName
-		// resolves the row on the primary, then hands its id straight to
-		// UpdateScheme.
-		stored, err = a.Srv().Store().Scheme().GetFromMaster(scheme.Id)
-		if err != nil {
-			if !errors.As(err, &nfErr) {
-				return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		}
+	// The import path relies on the primary fallback: GetSchemeByName resolves
+	// the row on the primary, then hands its id straight to UpdateScheme.
+	stored, appErr := a.getSchemeWithMasterFallback("UpdateScheme", scheme.Id)
+	if appErr != nil {
+		return appErr
+	}
+	if stored == nil {
+		return model.NewAppError("UpdateScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound)
 	}
 	if stored.Name == scheme.Name {
 		return nil
