@@ -37,8 +37,8 @@
     // within the flex button and truncate instead of overflowing the column.
     // Spacing from the icon comes from the button's own gap.
     &__label {
-        min-width: 0;
         overflow: hidden;
+        min-width: 0;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
