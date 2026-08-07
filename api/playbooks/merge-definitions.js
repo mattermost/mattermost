@@ -11,19 +11,28 @@ class MergeDefinitions {
      * @param data {Record<String, any>}
      */
     writeFile(filename, data) {
-        fs.writeFileSync(filename, YAML.stringify(data, { lineWidth: 0 }).trimEnd());
-        console.log("wrote file " + filename);
+        try {
+            fs.writeFileSync(filename, YAML.stringify(data, { lineWidth: 0 }).trimEnd());
+            console.log("Wrote file " + filename);
+        } catch (error) {
+            console.error("Error writing file " + filename + ":", error.message);
+        }
     }
 
     /**
      * Read a YAML file, parse it, and return the resulting object
      * @param filename {String} The YAML file to read
-     * @returns {Record<String,any>} The parsed object
+     * @returns {Record<String,any>|null} The parsed object
      */
     readFile(filename) {
-        const rawYaml = fs.readFileSync(filename);
-        console.log("read file " + filename);
-        return YAML.parse(rawYaml.toString());
+        try {
+            const rawYaml = fs.readFileSync(filename, 'utf8');
+            console.log("Read file " + filename);
+            return YAML.parse(rawYaml) || {};
+        } catch (error) {
+            console.error("Error reading file " + filename + ":", error.message);
+            return null;
+        }
     }
 
     /**
@@ -31,29 +40,32 @@ class MergeDefinitions {
      * @param args {Array<String>} Program arguments
      */
     run(args) {
-        if (args.length < 3) {
-            console.error("please specify an input file");
+        if (args.length < 3 || !args[2]) {
+            console.error("Please specify an input file");
             return;
         }
-        if (args[2] === "") {
-            console.error("input file not specified");
-            return;
-        }
-        // read definitions.yaml
+
+        // Read definitions.yaml
         const parsed = this.readFile(args[2]);
-        // read schemas.yaml
-        const schemas = this.readFile("schemas.yaml");
-        // read responses.yaml
-        const responses = this.readFile("responses.yaml");
-        // read securitySchemes.yaml
-        const securitySchemes = this.readFile("securitySchemes.yaml");
-        // merge schemas with definitions.yaml
-        parsed["components"]["schemas"] = Object.assign(parsed["components"]["schemas"], schemas);
-        // merge responses with definitions.yaml
-        parsed["components"]["responses"] = Object.assign(parsed["components"]["responses"], responses);
-        // merge securitySchemes with definitions.yaml
-        parsed["components"]["securitySchemes"] = Object.assign(parsed["components"]["securitySchemes"], securitySchemes);
-        // write merged definitions to a new file
+        if (!parsed) return;
+
+        // Ensure 'components' structure exists safely
+        parsed.components = parsed.components || {};
+        parsed.components.schemas = parsed.components.schemas || {};
+        parsed.components.responses = parsed.components.responses || {};
+        parsed.components.securitySchemes = parsed.components.securitySchemes || {};
+
+        // Read other files safely (defaults to empty object if file fails/missing)
+        const schemas = this.readFile("schemas.yaml") || {};
+        const responses = this.readFile("responses.yaml") || {};
+        const securitySchemes = this.readFile("securitySchemes.yaml") || {};
+
+        // Merge components
+        Object.assign(parsed.components.schemas, schemas);
+        Object.assign(parsed.components.responses, responses);
+        Object.assign(parsed.components.securitySchemes, securitySchemes);
+
+        // Write merged definitions to a new file
         this.writeFile("merged-definitions.yaml", parsed);
     }
 }
