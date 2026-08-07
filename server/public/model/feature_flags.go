@@ -132,6 +132,9 @@ type FeatureFlags struct {
 
 	TeamMembershipAccessControl bool
 
+	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
+	ChannelAttributes bool
+
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 
@@ -207,6 +210,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.ChannelAttributes = false
 
 	f.MmBlocksEnabled = true
 
