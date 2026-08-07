@@ -379,7 +379,6 @@ func rewriteTeamName(line *imports.LineImportData, sourceTeam, destTeam string) 
 	case "team":
 		if line.Team != nil && line.Team.Name != nil && *line.Team.Name == sourceTeam {
 			*line.Team.Name = destTeam
-			line.Team.DisplayName = &destTeam
 		}
 	case "channel":
 		if line.Channel != nil && line.Channel.Team != nil && *line.Channel.Team == sourceTeam {

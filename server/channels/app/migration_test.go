@@ -1225,8 +1225,8 @@ func TestRewriteTeamNameSetsDisplayNameToSlug(t *testing.T) {
 	rewriteTeamName(line, srcName, destName)
 	require.NotNil(t, line.Team.DisplayName)
 	assert.Equal(t, destName, *line.Team.Name, "team Name must be updated to destTeam slug")
-	assert.Equal(t, destName, *line.Team.DisplayName,
-		"display name must be set to the dest slug verbatim")
+	assert.Equal(t, "Large Team (20k)", *line.Team.DisplayName,
+		"display name must be preserved from the export, not replaced with the dest slug")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -1249,8 +1249,8 @@ func TestRewriteTeamNameHyphenatedSlugUsedAsDisplayName(t *testing.T) {
 	}
 	rewriteTeamName(line, srcName, destName)
 	require.NotNil(t, line.Team.DisplayName)
-	assert.Equal(t, destName, *line.Team.DisplayName,
-		"hyphenated slug must be used verbatim as the display name")
+	assert.Equal(t, "Large Team (20k)", *line.Team.DisplayName,
+		"display name must be preserved from the export, not replaced with the dest slug")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -1272,8 +1272,8 @@ func TestRewriteTeamNameMultiSegmentSlugUsedAsDisplayName(t *testing.T) {
 		},
 	}
 	rewriteTeamName(line, srcName, destName)
-	assert.Equal(t, destName, *line.Team.DisplayName,
-		"multi-segment slug must be used verbatim as the display name")
+	assert.Equal(t, "Large Team", *line.Team.DisplayName,
+		"display name must be preserved from the export, not replaced with the dest slug")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
