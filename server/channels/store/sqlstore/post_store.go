@@ -3342,7 +3342,9 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	meta := &store.PostReminderMetadata{}
 	err := s.GetReplica().Get(meta, `SELECT c.id as ChannelID,
 		COALESCE(t.name, '') as TeamName,
-		u.locale as UserLocale, u.username as Username
+		u.locale as UserLocale, 
+		u.username as Username,
+		COALESCE(dt.name, '') as DefaultTeam
 	FROM Posts p
 	JOIN Channels c ON p.ChannelId=c.Id
 	LEFT JOIN Teams t ON c.TeamId=t.Id
@@ -3353,7 +3355,7 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	}
 
 	return meta, nil
-}
+} 
 
 func (s *SqlPostStore) RefreshPostStats() error {
 	// CONCURRENTLY is not used deliberately because as per Postgres docs,
