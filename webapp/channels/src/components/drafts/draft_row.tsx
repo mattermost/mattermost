@@ -222,7 +222,7 @@ function DraftRow({
     }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {
-        if (!channel) {
+        if (!channel || isScheduledPost) {
             return null;
         }
         return (
@@ -238,6 +238,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
+                allowRecurring={!item.fileInfos.length && !item.uploadsInProgress.length}
             />
         );
     }, [
@@ -247,6 +248,8 @@ function DraftRow({
         goToMessage,
         handleOnDelete,
         handleOnSend,
+        isScheduledPost,
+        item,
         user.id,
         onScheduleDraft,
     ]);

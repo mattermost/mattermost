@@ -203,4 +203,23 @@ func TestCreateScheduledPost(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, created.RepeatType)
 		require.Equal(t, "America/New_York", created.RepeatTimezone)
 	})
+
+	t.Run("weekly recurring rejects file attachments", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly message with a file",
+				FileIds:   model.StringArray{model.NewId()},
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		created, resp, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, created)
+	})
 }

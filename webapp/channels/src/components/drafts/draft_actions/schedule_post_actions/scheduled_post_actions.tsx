@@ -81,6 +81,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
     const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const isWeeklyRecurringScheduledPost = isRecurringScheduledPost(scheduledPost);
+    const hasFiles = Boolean(scheduledPost.file_ids?.length || scheduledPost.metadata?.files?.length);
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -104,9 +105,10 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 onConfirm: onReschedule,
                 initialTime,
                 initialRepeatWeekly: isWeeklyRecurringScheduledPost,
+                allowRecurring: !hasFiles,
             },
         }));
-    }, [dispatch, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, hasFiles, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({

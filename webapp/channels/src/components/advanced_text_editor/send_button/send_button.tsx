@@ -24,9 +24,10 @@ type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
     channelId: string;
+    allowRecurring?: boolean;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, allowRecurring}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -87,6 +88,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     disabled={disabled}
                     onSelect={handleSubmit}
                     channelId={channelId}
+                    allowRecurring={allowRecurring}
                 />
             }
         </div>

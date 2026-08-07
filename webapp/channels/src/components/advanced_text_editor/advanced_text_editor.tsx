@@ -715,6 +715,7 @@ const AdvancedTextEditor = ({
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
+            allowRecurring={!draft.fileInfos.length && !draft.uploadsInProgress.length}
         />
     );
 

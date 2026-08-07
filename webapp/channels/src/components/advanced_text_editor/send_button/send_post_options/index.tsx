@@ -24,9 +24,10 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
+    allowRecurring?: boolean;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -53,9 +54,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
+                allowRecurring,
             },
         }));
-    }, [channelId, dispatch, handleSelectCustomTime]);
+    }, [allowRecurring, channelId, dispatch, handleSelectCustomTime]);
 
     return (
         <Menu.Container
