@@ -20,7 +20,10 @@ describe('Interactive Dialog - Apps Form', () => {
     const inputTypes = {
         realname: 'text',
         someemail: 'email',
-        somenumber: 'number',
+
+        // Number fields render as type=text so intermediate edits ("-", "1.") work in a
+        // controlled input; values are still parsed/validated as numbers on submit.
+        somenumber: 'text',
         somepassword: 'password',
     };
 
@@ -33,6 +36,11 @@ describe('Interactive Dialog - Apps Form', () => {
 
     let createdCommand;
     let fullDialog;
+
+    // Legacy dialogs render via BlocksDialogShell/mm_blocks.
+    // Field control ids are mmBlocksFieldDomId('', name) → mm-blocks--{name}.
+    const FIELD_SELECTOR = '.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input';
+    const fieldDomId = (name) => `#mm-blocks--${name}`;
 
     before(() => {
         cy.requireWebhookServer();
@@ -87,7 +95,7 @@ describe('Interactive Dialog - Apps Form', () => {
             });
 
             // * Verify that the body contains all the elements
-            cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
+            cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).each(($elForm, index) => {
                 const element = fullDialog.dialog.elements[index];
 
                 // Skip if element is undefined (more DOM elements than expected)
@@ -99,16 +107,18 @@ describe('Interactive Dialog - Apps Form', () => {
                     cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
                     if (['someuserselector', 'somechannelselector', 'someoptionselector'].includes(element.name)) {
-                        // ReactSelect structure - check for MultiInput element
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                        // AutocompleteSelector for users/channels/static single-select
+                        cy.get('input').first().should('be.visible').click();
 
-                        // * Verify that the dropdown opens on click
-                        cy.get('[id^=\'MultiInput_\']').click();
-
-                        // Break out of .within() scope to find options in document
-                        cy.document().then((doc) => {
-                            cy.wrap(doc).find('.react-select__menu').should('be.visible');
-                        });
+                        cy.get('#suggestionList').should('be.visible');
+                        if (element.name === 'someoptionselector') {
+                            cy.get('#suggestionList').should('contain', 'Option1');
+                        } else if (element.name === 'somechannelselector') {
+                            cy.get('#suggestionList').should('contain', 'Town Square');
+                        } else {
+                            // Users autocomplete: at least one suggestion is rendered.
+                            cy.get('#suggestionList').children().should('have.length.greaterThan', 0);
+                        }
 
                         // # Click label to close any opened drop-downs
                         cy.get('label').first().click({force: true});
@@ -128,13 +138,12 @@ describe('Interactive Dialog - Apps Form', () => {
                             cy.get('span').should('have.text', element.placeholder);
                         });
                     } else {
-                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
+                        cy.get(fieldDomId(element.name)).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
                     }
 
-                    // * Verify that input element are given with the correct type of "input", "email", "number" and "password".
-                    // * To take advantage of supported built-in validation.
+                    // * Verify input type attributes (number subtype uses text; see inputTypes).
                     if (inputTypes[element.name]) {
-                        cy.get(`#${element.name}`).should('have.attr', 'type', inputTypes[element.name]);
+                        cy.get(fieldDomId(element.name)).should('have.attr', 'type', inputTypes[element.name]);
                     }
 
                     if (element.help_text) {
@@ -197,13 +206,13 @@ describe('Interactive Dialog - Apps Form', () => {
         cy.get('#appsModal').should('be.visible');
 
         // * Verify that not optional element without text value shows an error and vice versa
-        cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).each(($elForm, index) => {
             const element = fullDialog.dialog.elements[index];
 
             if (!element.optional && !element.default) {
-                cy.wrap($elForm).find('div.error-text').should('exist').and('contain', 'This field is required.');
+                cy.wrap($elForm).find('.has-error').should('exist').and('contain', 'This field is required.');
             } else {
-                cy.wrap($elForm).find('div.error-text').should('not.exist');
+                cy.wrap($elForm).find('.has-error').should('not.exist');
             }
         });
 
@@ -220,12 +229,12 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter invalid and valid email
         // * Verify that error is: shown for invalid email and not shown for valid email.
         const invalidEmail = 'invalid-email';
-        cy.get('#someemail').scrollIntoView().clear().type(invalidEmail);
+        cy.get(fieldDomId('someemail')).scrollIntoView().clear().type(invalidEmail);
 
         cy.get('#appsModalSubmit').click();
 
         cy.get('input:invalid').should('have.length', 1);
-        cy.get('#someemail').then(($input) => {
+        cy.get(fieldDomId('someemail')).then(($input) => {
             expect($input[0].validationMessage).to.eq(`Please include an '@' in the email address. '${invalidEmail}' is missing an '@'.`);
         });
 
@@ -242,7 +251,7 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter valid email
         // * Verify that error is not shown for valid email.
         const validEmail = 'test@mattermost.com';
-        cy.get('#someemail').scrollIntoView().clear().type(validEmail);
+        cy.get(fieldDomId('someemail')).scrollIntoView().clear().type(validEmail);
 
         cy.get('#appsModalSubmit').click();
 
@@ -259,12 +268,12 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter invalid number
         // * Verify that error is shown for invalid number.
         const invalidNumber = 'invalid-number';
-        cy.get('#somenumber').scrollIntoView().clear().type(invalidNumber);
+        cy.get(fieldDomId('somenumber')).scrollIntoView().clear().type(invalidNumber);
 
         cy.get('#appsModalSubmit').click();
 
-        cy.get('.modal-body').should('be.visible').children('.form-group').eq(2).within(($elForm) => {
-            cy.wrap($elForm).find('div.error-text').should('exist').and('contain', 'This field is required.');
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).eq(2).within(($elForm) => {
+            cy.wrap($elForm).find('.has-error').should('exist').and('contain', 'This field is required.');
         });
 
         closeAppsFormModal();
@@ -278,12 +287,12 @@ describe('Interactive Dialog - Apps Form', () => {
         // # Enter a valid number
         // * Verify that error is not shown for valid number.
         const validNumber = 12;
-        cy.get('#somenumber').scrollIntoView().clear().type(validNumber);
+        cy.get(fieldDomId('somenumber')).scrollIntoView().clear().type(validNumber);
 
         cy.get('#appsModalSubmit').click();
 
-        cy.get('.modal-body').should('be.visible').children('.form-group').eq(2).within(($elForm) => {
-            cy.wrap($elForm).find('div.error-text').should('not.exist');
+        cy.get('.modal-body').should('be.visible').find(FIELD_SELECTOR).eq(2).within(($elForm) => {
+            cy.wrap($elForm).find('.has-error').should('not.exist');
         });
 
         closeAppsFormModal();
@@ -297,10 +306,10 @@ describe('Interactive Dialog - Apps Form', () => {
         cy.get('#appsModal').should('be.visible');
 
         // * Verify that the password text area is visible
-        cy.get('#somepassword').should('be.visible');
+        cy.get(fieldDomId('somepassword')).should('be.visible');
 
         // * Verify that the password is masked on enter of text
-        cy.get('#somepassword').should('have.attr', 'type', 'password');
+        cy.get(fieldDomId('somepassword')).should('have.attr', 'type', 'password');
 
         closeAppsFormModal();
     });

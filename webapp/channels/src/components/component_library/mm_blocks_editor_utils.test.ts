@@ -63,6 +63,41 @@ describe('mm_blocks_editor_utils', () => {
 
     test('createDefaultBlock returns valid shapes', () => {
         expect(createDefaultBlock('column_set').type).toBe('column_set');
+        expect(createDefaultBlock('text_input')).toMatchObject({type: 'text_input', name: 'field_name', label: 'Label'});
+        expect(createDefaultBlock('bool_input').type).toBe('bool_input');
+        expect(createDefaultBlock('select').type).toBe('select');
+        expect(createDefaultBlock('date_input').type).toBe('date_input');
+        expect(createDefaultBlock('datetime_input').type).toBe('datetime_input');
+        expect(createDefaultBlock('file_input').type).toBe('file_input');
+    });
+
+    test('form inputs expose shared property fields', () => {
+        const date = createDefaultBlock('date_input');
+        const fields = propertyFieldsForBlock(date);
+        expect(fields.map((f) => f.key)).toEqual(expect.arrayContaining([
+            'name', 'label', 'help_text', 'optional', 'disabled', 'onChange', 'placeholder', 'initial_value', 'datetime_config',
+        ]));
+
+        const file = createDefaultBlock('file_input');
+        expect(propertyFieldsForBlock(file).map((f) => f.key)).toEqual(expect.arrayContaining([
+            'placeholder', 'allow_multiple', 'initial_value',
+        ]));
+    });
+
+    test('button exposes subtype enum with execute and submit', () => {
+        const button = createDefaultBlock('button');
+        expect(button.type === 'button' && button.subtype).toBeUndefined();
+
+        const subtypeField = propertyFieldsForBlock(button).find((f) => f.key === 'subtype');
+        expect(subtypeField).toEqual({
+            key: 'subtype',
+            label: 'subtype',
+            type: 'enum',
+            options: ['execute', 'submit'],
+        });
+
+        const updated = setPropertyValue(button, 'subtype', 'submit', subtypeField!);
+        expect(updated.type === 'button' && updated.subtype).toBe('submit');
     });
 
     test('column exposes gap in the property editor', () => {

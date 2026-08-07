@@ -14,6 +14,7 @@ var whiteList = map[string]bool{
 	"createEphemeralPost":                  true,
 	"deleteReaction":                       true,
 	"doPostAction":                         true,
+	"doBlockAction":                        true,
 	"getAllChannels":                       true,
 	"getAllTeams":                          true,
 	"getAnalytics":                         true,

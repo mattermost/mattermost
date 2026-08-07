@@ -38,6 +38,7 @@ type Props = {
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
     listPosition?: AutocompleteListPosition;
+    deferLoad?: boolean;
 };
 
 type State = {
@@ -53,6 +54,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         labelClassName: '',
         inputClassName: '',
         listComponent: SuggestionList,
+        deferLoad: false,
     };
 
     suggestionRef?: SuggestionBoxHandle;
@@ -132,6 +134,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             disabled,
             listComponent,
             listPosition: listPositionProp,
+            deferLoad,
         } = this.props;
 
         const listPosition = listPositionProp === 'auto' ?
@@ -176,6 +179,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         ref={this.setSuggestionRef}
+                        id={this.props.id || undefined}
                         placeholder={placeholder}
                         listComponent={listComponent}
                         className='form-control'
@@ -190,6 +194,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                         renderNoResults={true}
                         openOnFocus={true}
                         openWhenEmpty={true}
+                        deferLoad={deferLoad}
                         replaceAllInputOnSelect={true}
                         disabled={disabled}
                         listPosition={listPosition}

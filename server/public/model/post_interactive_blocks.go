@@ -440,12 +440,20 @@ func appendMmBlockActionIDsFromMap(ids map[string]struct{}, m map[string]any) ma
 		if interactiveControlDisabled(m) {
 			break
 		}
-		if id, ok := m["action_id"].(string); ok && id != "" {
-			if ids == nil {
-				ids = make(map[string]struct{})
-			}
-			ids[id] = struct{}{}
+		ids = addReferencedActionID(ids, stringProp(m, "action_id"))
+	case "select":
+		// Form select: lookup options via data_source_action; optional onChange refresh.
+		if interactiveControlDisabled(m) {
+			break
 		}
+		ids = addReferencedActionID(ids, stringProp(m, "data_source_action"))
+		ids = addReferencedActionID(ids, stringProp(m, "onChange"))
+	case "text_input", "bool_input", "date_input", "datetime_input", "file_input":
+		// Form inputs: optional onChange refresh.
+		if interactiveControlDisabled(m) {
+			break
+		}
+		ids = addReferencedActionID(ids, stringProp(m, "onChange"))
 	case "container":
 		ids = appendMmBlockActionIDsFromArray(ids, m["content"])
 	case "collapsible":
@@ -469,6 +477,22 @@ func appendMmBlockActionIDsFromMap(ids map[string]struct{}, m map[string]any) ma
 	return ids
 }
 
+func stringProp(m map[string]any, key string) string {
+	s, _ := m[key].(string)
+	return s
+}
+
+func addReferencedActionID(ids map[string]struct{}, id string) map[string]struct{} {
+	if id == "" {
+		return ids
+	}
+	if ids == nil {
+		ids = make(map[string]struct{})
+	}
+	ids[id] = struct{}{}
+	return ids
+}
+
 func appendMmBlockActionIDsFromArray(ids map[string]struct{}, raw any) map[string]struct{} {
 	arr, ok := interactivePropJSONArray(raw)
 	if !ok {
@@ -484,7 +508,9 @@ func appendMmBlockActionIDsFromArray(ids map[string]struct{}, raw any) map[strin
 	return ids
 }
 
-// CollectMmBlockActionIDs returns action_id values referenced by interactive mm_blocks controls.
+// CollectMmBlockActionIDs returns action ids referenced by interactive mm_blocks controls
+// (button/static_select action_id, select data_source_action/onChange, form input onChange,
+// mmaction:// links, nested layouts).
 func CollectMmBlockActionIDs(blocks []any) map[string]struct{} {
 	var ids map[string]struct{}
 	for _, b := range blocks {
@@ -513,20 +539,7 @@ func appendBlockKitTextMmaction(ids map[string]struct{}, raw any) map[string]str
 }
 
 func appendBlockKitAccessory(ids map[string]struct{}, accessory map[string]any) map[string]struct{} {
-	typ, _ := accessory["type"].(string)
-	switch typ {
-	case "button", "static_select":
-		if interactiveControlDisabled(accessory) {
-			return ids
-		}
-		if id, ok := accessory["action_id"].(string); ok && id != "" {
-			if ids == nil {
-				ids = make(map[string]struct{})
-			}
-			ids[id] = struct{}{}
-		}
-	}
-	return ids
+	return appendBlockKitInteractiveElement(ids, accessory)
 }
 
 func appendBlockKitActionElement(ids map[string]struct{}, el any) map[string]struct{} {
@@ -534,18 +547,35 @@ func appendBlockKitActionElement(ids map[string]struct{}, el any) map[string]str
 	if !ok {
 		return ids
 	}
+	return appendBlockKitInteractiveElement(ids, e)
+}
+
+// appendBlockKitInteractiveElement collects action_id from Block Kit controls that fire
+// interactions (actions row / section accessory). Input-block form fields are handled
+// separately via dispatch_action.
+func appendBlockKitInteractiveElement(ids map[string]struct{}, e map[string]any) map[string]struct{} {
 	typ, _ := e["type"].(string)
 	switch typ {
-	case "button", "static_select":
+	case "button",
+		"static_select",
+		"multi_static_select",
+		"radio_buttons",
+		"checkboxes",
+		"datepicker",
+		"datetimepicker",
+		"overflow",
+		"users_select",
+		"multi_users_select",
+		"channels_select",
+		"multi_channels_select",
+		"conversations_select",
+		"multi_conversations_select",
+		"external_select",
+		"multi_external_select":
 		if interactiveControlDisabled(e) {
 			return ids
 		}
-		if id, ok := e["action_id"].(string); ok && id != "" {
-			if ids == nil {
-				ids = make(map[string]struct{})
-			}
-			ids[id] = struct{}{}
-		}
+		return addReferencedActionID(ids, stringProp(e, "action_id"))
 	}
 	return ids
 }
@@ -558,6 +588,18 @@ func appendBlockKitActionIDsFromBlock(ids map[string]struct{}, m map[string]any)
 			for _, el := range elements {
 				ids = appendBlockKitActionElement(ids, el)
 			}
+		}
+	case "input":
+		// Form input: action_id is only referenced when dispatch_action re-fires on change
+		// (maps to mm_blocks onChange after translation).
+		if m["dispatch_action"] != true {
+			break
+		}
+		if element, ok := m["element"].(map[string]any); ok {
+			if interactiveControlDisabled(element) {
+				break
+			}
+			ids = addReferencedActionID(ids, stringProp(element, "action_id"))
 		}
 	case "section":
 		ids = appendBlockKitTextMmaction(ids, m["text"])
@@ -757,10 +799,8 @@ func ApplyMmBlocksWithActionsToProps(props map[string]any, blocks []any, allActi
 	return props
 }
 
-// validateMmBlocksActionsPairing requires mm_blocks_actions to define exactly the actions
-// referenced by mm_blocks, blocks, cards, and mmaction:// links in the post message.
-func validateMmBlocksActionsPairing(o *Post, actions map[string]any) error {
-	referenced := CollectInteractiveActionIDsFromPost(o)
+// validateMmBlocksActionsPairing requires actions to define exactly the referenced action ids.
+func validateMmBlocksActionsPairing(referenced map[string]struct{}, actions map[string]any) error {
 	if len(referenced) == 0 {
 		if len(actions) > 0 {
 			return fmt.Errorf("mm_blocks_actions must only define actions referenced by interactive content")

@@ -1459,6 +1459,132 @@ describe('Actions.Posts', () => {
         expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
+    it('doBlockAction', async () => {
+        const postId = 'posth67ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+        const triggerId = 'trigger7ja7ntdkek6g13dp3wka';
+        const channelId = 'channel7ja7ntdkek6g13dp3wka';
+
+        store = configureStore({
+            entities: {
+                posts: {
+                    posts: {
+                        [postId]: {id: postId, channel_id: channelId},
+                    },
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/blocks/do', {
+                subtype: 'execute',
+                post_id: postId,
+                action_id: actionId,
+                selected_option: 'option',
+                integration_format: 'mm_block',
+                context: 'post',
+            }).
+            reply(200, {trigger_id: triggerId, type: 'ok'});
+
+        const {data} = await store.dispatch(Actions.doBlockAction({
+            subtype: 'execute',
+            context: 'post',
+            post_id: postId,
+            action_id: actionId,
+            selected_option: 'option',
+            integration_format: 'mm_block',
+        }));
+
+        const state = store.getState();
+        expect(data).toEqual({trigger_id: triggerId, type: 'ok'});
+        expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
+        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
+    });
+
+    it('doBlockAction dialog context sends current channel_id', async () => {
+        const currentChannelId = 'channel7ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+
+        store = configureStore({
+            entities: {
+                channels: {
+                    currentChannelId,
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/blocks/do', {
+                subtype: 'execute',
+                context: 'dialog',
+                post_id: '',
+                channel_id: currentChannelId,
+                action_id: actionId,
+                cookie: 'dialog-cookie',
+                integration_format: 'mm_block',
+            }).
+            reply(200, {type: 'ok'});
+
+        const {data} = await store.dispatch(Actions.doBlockAction({
+            subtype: 'execute',
+            context: 'dialog',
+            post_id: '',
+            action_id: actionId,
+            cookie: 'dialog-cookie',
+            integration_format: 'mm_block',
+        }));
+
+        expect(data).toEqual({type: 'ok'});
+    });
+
+    it('doBlockAction post context does not inject channel_id', async () => {
+        const postId = 'posth67ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+        const currentChannelId = 'channel7ja7ntdkek6g13dp3wka';
+
+        store = configureStore({
+            entities: {
+                channels: {
+                    currentChannelId,
+                },
+                posts: {
+                    posts: {
+                        [postId]: {id: postId, channel_id: currentChannelId},
+                    },
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/blocks/do', {
+                subtype: 'execute',
+                post_id: postId,
+                action_id: actionId,
+                integration_format: 'mm_block',
+                context: 'post',
+            }).
+            reply(200, {type: 'ok'});
+
+        const {data} = await store.dispatch(Actions.doBlockAction({
+            subtype: 'execute',
+            context: 'post',
+            post_id: postId,
+            action_id: actionId,
+            integration_format: 'mm_block',
+        }));
+
+        expect(data).toEqual({type: 'ok'});
+    });
+
     it('addMessageIntoHistory', async () => {
         const {dispatch, getState} = store;
 

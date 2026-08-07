@@ -12,8 +12,8 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import Markdown from 'components/markdown';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {MmBlocksInteractionsDisabledContext} from './context';
-import type {ActionHandler} from './types';
+import {MmBlocksHasUploadingFieldsContext, MmBlocksInteractionsDisabledContext, useMmBlocksHandlers} from './context';
+import {useMmBlocksForm} from './form';
 import {mmBlocksButtonClassName, mmBlocksButtonInlineStyle} from './utils/button';
 
 const buttonMarkdownOptions = {
@@ -23,25 +23,31 @@ const buttonMarkdownOptions = {
 
 type ButtonElementProps = {
     element: MmButtonBlock;
-    onAction: ActionHandler;
 };
 
-export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
+export const ButtonElement = ({element}: ButtonElementProps) => {
     const theme = useSelector(getTheme);
     const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
+    const hasUploadingFields = useContext(MmBlocksHasUploadingFieldsContext);
+    const {onAction} = useMmBlocksHandlers();
+    const {values} = useMmBlocksForm();
     const [isExecuting, setIsExecuting] = useState(false);
 
+    const isSubmit = element.subtype === 'submit';
+    const blockedByUpload = isSubmit && hasUploadingFields;
+
     const handleClick = useCallback(async () => {
-        if (interactionsDisabled || isExecuting || !element.text || !element.action_id) {
+        if (interactionsDisabled || isExecuting || blockedByUpload || !element.text || !element.action_id) {
             return;
         }
         setIsExecuting(true);
         try {
-            await onAction(element.action_id, undefined, element.query, element.cookie);
+            const formValues = isSubmit ? values : undefined;
+            await onAction(element.action_id, undefined, element.query, element.cookie, formValues);
         } finally {
             setIsExecuting(false);
         }
-    }, [element.action_id, element.cookie, element.query, element.text, interactionsDisabled, isExecuting, onAction]);
+    }, [blockedByUpload, element.action_id, element.cookie, element.query, element.text, interactionsDisabled, isExecuting, isSubmit, onAction, values]);
 
     if (!element.text || (!element.action_id)) {
         return null;
@@ -53,7 +59,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
             className={mmBlocksButtonClassName(element.style)}
             style={mmBlocksButtonInlineStyle(element.style, theme)}
             onClick={handleClick}
-            disabled={interactionsDisabled || element.disabled === true || isExecuting}
+            disabled={interactionsDisabled || element.disabled === true || isExecuting || blockedByUpload}
             aria-busy={isExecuting}
         >
             {isExecuting && <LoadingSpinner/>}

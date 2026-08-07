@@ -226,6 +226,63 @@ func TestStripMmBlocksActionSecrets(t *testing.T) {
 	})
 }
 
+func TestEncryptBlockDialogMmBlocksActions(t *testing.T) {
+	secret := make([]byte, 32)
+	for i := range secret {
+		secret[i] = byte(i + 3)
+	}
+
+	t.Run("encrypts dialog actions without a post", func(t *testing.T) {
+		d := &BlockDialog{
+			Title: "Dialog",
+			Blocks: []any{
+				map[string]any{"type": "text", "text": "Hi"},
+			},
+			Actions: map[string]any{
+				"submit": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "https://example.com/submit",
+				},
+			},
+		}
+		enc, err := EncryptBlockDialogMmBlocksActions(d, secret, "user-123")
+		require.NoError(t, err)
+		require.NotEmpty(t, enc)
+
+		plain, err := DecryptPostActionCookie(enc, secret)
+		require.NoError(t, err)
+		_, mm, err := ParseDecryptedActionCookiePayload(plain)
+		require.NoError(t, err)
+		require.NotNil(t, mm)
+		assert.Equal(t, MmBlocksActionCookieKind, mm.Kind)
+		assert.Empty(t, mm.PostId)
+		assert.Empty(t, mm.ChannelId)
+		assert.Equal(t, "user-123", mm.UserId)
+		require.Contains(t, mm.Actions, "submit")
+	})
+
+	t.Run("rejects non-object actions", func(t *testing.T) {
+		d := &BlockDialog{
+			Actions: "already-encrypted",
+		}
+		_, err := EncryptBlockDialogMmBlocksActions(d, secret, "user-123")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be a map")
+	})
+
+	t.Run("nil dialog is a no-op", func(t *testing.T) {
+		enc, err := EncryptBlockDialogMmBlocksActions(nil, secret, "user-123")
+		require.NoError(t, err)
+		assert.Empty(t, enc)
+	})
+
+	t.Run("nil actions is a no-op", func(t *testing.T) {
+		enc, err := EncryptBlockDialogMmBlocksActions(&BlockDialog{}, secret, "user-123")
+		require.NoError(t, err)
+		assert.Empty(t, enc)
+	})
+}
+
 func TestAddMmBlocksActionCookies(t *testing.T) {
 	t.Run("replacesWithEncryptedString", func(t *testing.T) {
 		secret := make([]byte, 32)

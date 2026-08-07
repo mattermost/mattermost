@@ -6,7 +6,7 @@ import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {openModal} from 'actions/views/modals';
 import store from 'stores/redux_store';
 
-import DialogRouter from 'components/dialog_router';
+import LazyDialogRouter from 'components/dialog_router/lazy_dialog_router';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
@@ -24,7 +24,7 @@ export function openInteractiveDialog(dialog: any): void {
     const modalId = triggerId ? `${ModalIdentifiers.INTERACTIVE_DIALOG}_${triggerId}` : ModalIdentifiers.INTERACTIVE_DIALOG;
     store.dispatch(openModal({
         modalId,
-        dialogType: DialogRouter,
+        dialogType: LazyDialogRouter,
         dialogProps: {
             triggerId,
             onExited: () => triggerId && store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: triggerId}),
@@ -65,7 +65,7 @@ store.subscribe(() => {
     const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${currentTriggerId}`;
     store.dispatch(openModal({
         modalId,
-        dialogType: DialogRouter,
+        dialogType: LazyDialogRouter,
         dialogProps: {
             triggerId: currentTriggerId,
             onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: currentTriggerId}),

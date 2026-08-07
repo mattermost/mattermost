@@ -68,7 +68,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.NotNil(t, err)
 	assert.ErrorContains(t, err, "missing protocol scheme")
 }
@@ -120,7 +120,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 		require.True(t, ok)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.Nil(t, err)
 	})
 
@@ -168,7 +168,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 		assert.ErrorContains(t, err, "context deadline exceeded")
 	})
@@ -217,7 +217,7 @@ func TestDoPostActionWithCookieGotoLocation(t *testing.T) {
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
 
-	_, gotoLoc, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	_, gotoLoc, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 	assert.Equal(t, wantGoto, gotoLoc)
 }
@@ -284,8 +284,7 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 		require.True(t, ok)
 
 		// Should return error due to truncated JSON, but NOT crash or OOM
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
-			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 		// Truncated JSON causes unmarshal error
 		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
@@ -327,8 +326,7 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 		require.True(t, ok)
 
 		// Should return error due to invalid JSON, but NOT crash or OOM
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
-			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 	})
@@ -474,16 +472,16 @@ func TestPostAction(t *testing.T) {
 			require.NotEmpty(t, attachments2[0].Actions)
 			require.NotEmpty(t, attachments2[0].Actions[0].Id)
 
-			clientTriggerID, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil, nil, nil, "")
+			clientTriggerID, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil, nil)
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
 			assert.Len(t, clientTriggerID, 0)
 
-			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.Nil(t, err)
 			assert.Len(t, clientTriggerID, 26)
 
-			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil, nil, nil, "")
+			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil, nil)
 			require.Nil(t, err)
 			assert.Len(t, clientTriggerID, 26)
 
@@ -491,7 +489,7 @@ func TestPostAction(t *testing.T) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
 			})
 
-			_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.NotNil(t, err)
 			assert.ErrorContains(t, err, "address forbidden")
 
@@ -529,14 +527,14 @@ func TestPostAction(t *testing.T) {
 			attachmentsPlugin, ok := postplugin.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			})
 
-			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -580,7 +578,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSiteURL, ok := postSiteURL.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.NotNil(t, err)
 			assert.ErrorContains(t, err, "connection refused")
 
@@ -622,7 +620,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSubpath, ok := postSubpath.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 			require.Nil(t, err)
 		})
 	}
@@ -696,7 +694,7 @@ func TestPostActionProps(t *testing.T) {
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
 
-	clientTriggerId, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	clientTriggerId, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 	assert.Len(t, clientTriggerId, 26)
 
@@ -888,7 +886,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 
@@ -928,7 +926,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 
@@ -968,7 +966,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 
@@ -1008,7 +1006,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 
@@ -1048,7 +1046,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 }
@@ -1125,7 +1123,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.NotNil(t, err)
 	})
 
@@ -1165,7 +1163,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.Nil(t, err)
 	})
 
@@ -1205,7 +1203,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.Nil(t, err)
 	})
 
@@ -1245,7 +1243,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 		require.Nil(t, err)
 	})
 }
@@ -1517,6 +1515,63 @@ func TestOpenInteractiveDialog(t *testing.T) {
 
 		err = th.App.OpenInteractiveDialog(th.Context, request)
 		require.Nil(t, err)
+	})
+
+	t.Run("should reject blocks dialog with actions as encrypted string", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			BlockDialog: &model.BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "text", "text": "Hello"},
+				},
+				Actions: "already-encrypted-cookie",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Contains(t, err.Error(), "mm_blocks_actions must be a map")
+	})
+
+	t.Run("should reject invalid blocks dialog", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			BlockDialog: &model.BlockDialog{
+				Title: "Blocks Dialog",
+				Blocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "go"},
+				},
+				Actions: map[string]any{
+					"go": map[string]any{
+						"type": "external",
+						"url":  "javascript:alert(1)",
+					},
+				},
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Contains(t, err.Error(), "valid integration URL")
 	})
 
 	t.Run("should fail with invalid trigger ID", func(t *testing.T) {
@@ -1883,7 +1938,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
 		require.Nil(t, err)
 	})
 
@@ -1897,7 +1952,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "postId doesn't match")
 	})
@@ -1910,7 +1965,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			Integration: nil,
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "no Integration in action cookie")
 	})
@@ -1931,13 +1986,13 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie, nil, nil, "")
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie, nil)
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Unable to find the user.")
 	})
 
 	t.Run("rejects oversized query at the App boundary (independent of API handler)", func(t *testing.T) {
-		// ValidateActionQuery is called at the top of DoPostActionWithCookie,
+		// ValidateActionQuery is called at the top of DoBlockAction,
 		// not just in the API handler. Direct App-layer callers (plugins,
 		// tests, internal triggers) get the same enforcement as REST clients.
 		oversized := make(map[string]string, model.MaxActionQueryEntries+1)
@@ -1945,7 +2000,13 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			oversized["k"+strconv.Itoa(i)] = "v"
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, "any_post", "any_action", th.BasicUser.Id, "", nil, nil, oversized, "")
+		_, err := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            "any_post",
+			ActionId:          "any_action",
+			Query:             oversized,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, nil)
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 		assert.Equal(t, "api.post.do_action.query.app_error", err.Id)
@@ -2087,7 +2148,12 @@ func TestDoPostActionWithCookie(t *testing.T) {
 			},
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "apply_update", th.BasicUser.Id, "", nil, mmCookie, nil, "")
+		_, err := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            missingPostID,
+			ActionId:          "apply_update",
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, mmCookie)
 		require.Nil(t, err)
 	})
 
@@ -2115,7 +2181,7 @@ func TestDoPostActionWithCookie(t *testing.T) {
 			},
 		}
 
-		_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "action_id", th.BasicUser.Id, "", cookie, nil)
 		require.Nil(t, err)
 	})
 
@@ -2156,17 +2222,12 @@ func TestDoPostActionWithCookie(t *testing.T) {
 		post, _, appErr := th.App.CreatePostAsUser(intSeedCtx, &root, "", true)
 		require.Nil(t, appErr)
 
-		_, _, err := th.App.DoPostActionWithCookie(
-			th.Context,
-			post.Id,
-			"mm_blocks_act",
-			th.BasicUser.Id,
-			"",
-			nil,
-			nil,
-			nil,
-			model.PostActionIntegrationFormatMmBlock,
-		)
+		_, err := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            post.Id,
+			ActionId:          "mm_blocks_act",
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, nil)
 		require.NotNil(t, err)
 		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 		assert.Contains(t, err.Error(), "mm_blocks are not enabled")
@@ -2222,17 +2283,13 @@ func TestDoPostActionWithCookie(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
-		_, _, err := th.App.DoPostActionWithCookie(
-			th.Context,
-			post.Id,
-			"mm_blocks_sel_act",
-			th.BasicUser.Id,
-			"opt_beta",
-			nil,
-			nil,
-			nil,
-			model.PostActionIntegrationFormatMmBlock,
-		)
+		_, err := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            post.Id,
+			ActionId:          "mm_blocks_sel_act",
+			SelectedOption:    "opt_beta",
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, nil)
 		require.Nil(t, err)
 
 		var req model.PostActionIntegrationRequest
@@ -2500,14 +2557,19 @@ func TestDoPostActionIntegrationFormatCollision(t *testing.T) {
 
 	sawAttachment = false
 	sawMmBlock = false
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, sharedActionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatAttachment)
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, sharedActionID, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 	assert.True(t, sawAttachment)
 	assert.False(t, sawMmBlock)
 
 	sawAttachment = false
 	sawMmBlock = false
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, sharedActionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatMmBlock)
+	_, err = th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+		Context:           model.BlockActionContextPost,
+		PostId:            post.Id,
+		ActionId:          sharedActionID,
+		IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+	}, nil)
 	require.Nil(t, err)
 	assert.False(t, sawAttachment)
 	assert.True(t, sawMmBlock)
@@ -3237,7 +3299,13 @@ func TestDoPostActionQueryMergedIntoURL(t *testing.T) {
 	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
 	query := map[string]string{"tail": "214"}
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, query, model.PostActionIntegrationFormatMmBlock)
+	_, err = th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+		Context:           model.BlockActionContextPost,
+		PostId:            created.Id,
+		ActionId:          "inline1",
+		Query:             query,
+		IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+	}, nil)
 	require.Nil(t, err)
 
 	// Query was appended to the upstream URL.
@@ -3291,7 +3359,13 @@ func TestDoPostActionStaticQueryMergedWithPerClickQuery(t *testing.T) {
 	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "214"}, model.PostActionIntegrationFormatMmBlock)
+	_, err = th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+		Context:           model.BlockActionContextPost,
+		PostId:            created.Id,
+		ActionId:          "inline1",
+		Query:             map[string]string{"tail": "214"},
+		IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+	}, nil)
 	require.Nil(t, err)
 
 	parsedQuery, qErr := url.ParseQuery(capturedRawQuery)
@@ -3332,7 +3406,13 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	require.Nil(t, err)
 
 	// First click: carries one set of per-click query values.
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "214"}, model.PostActionIntegrationFormatMmBlock)
+	_, err = th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+		Context:           model.BlockActionContextPost,
+		PostId:            created.Id,
+		ActionId:          "inline1",
+		Query:             map[string]string{"tail": "214"},
+		IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+	}, nil)
 	require.Nil(t, err)
 
 	// Post's stored mm_blocks_actions Context must not be mutated by the click.
@@ -3344,7 +3424,13 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	assert.Equal(t, ts.URL, spec.URL, "stored URL must not absorb per-click query")
 
 	// Second click with a different per-click query.
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "999"}, model.PostActionIntegrationFormatMmBlock)
+	_, err = th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+		Context:           model.BlockActionContextPost,
+		PostId:            created.Id,
+		ActionId:          "inline1",
+		Query:             map[string]string{"tail": "999"},
+		IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+	}, nil)
 	require.Nil(t, err)
 
 	stored, nErr = th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
@@ -3416,7 +3502,7 @@ func TestDoPostActionPluginResponseMmBlocksActionsDropped(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 	require.Nil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
@@ -3477,7 +3563,13 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
 		clientQuery := map[string]string{"c": "fromClient"}
-		_, _, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, clientQuery, model.PostActionIntegrationFormatMmBlock)
+		_, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            post.Id,
+			ActionId:          actionID,
+			Query:             clientQuery,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, nil)
 		require.Nil(t, appErr)
 	})
 
@@ -3505,13 +3597,18 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
-		trigger, gotoLoc, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatMmBlock)
+		resp, appErr := th.App.DoBlockAction(th.Context, th.BasicUser.Id, &model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            post.Id,
+			ActionId:          actionID,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		}, nil)
 		require.Nil(t, appErr)
-		assert.Equal(t, "", trigger)
-		assert.Equal(t, "https://example.com/page?a=b&keep=2", gotoLoc)
+		require.NotNil(t, resp)
+		assert.Equal(t, "", resp.TriggerId)
+		assert.Equal(t, "https://example.com/page?a=b&keep=2", resp.GotoLocation)
 	})
 }
-
 func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -3580,7 +3677,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
@@ -3649,7 +3746,7 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
 
-	_, _, appErr = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	_, _, appErr = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, appErr)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)

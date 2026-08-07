@@ -7,8 +7,14 @@ import type {
     MmBlock,
     MmColumnBlock,
     MmContainerBlock,
+    MmDateInputBlock,
+    MmDateTimeInputBlock,
+    MmFileInputBlock,
     MmImageSize,
+    MmSelectInputBlock,
+    MmSelectOptionGroup,
     MmStaticSelectOption,
+    MmTextInputBlock,
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
 
@@ -63,9 +69,262 @@ function translateBlockKitBlock(
     case 'actions': {
         return translateBlockKitActionRows(b.elements);
     }
+    case 'input': {
+        return translateBlockKitInput(b);
+    }
     default:
         return null;
     }
+}
+
+function translateBlockKitInput(b: Record<string, unknown>): MmBlock | null {
+    const label = extractBlockKitTextContent(b.label);
+    if (!label) {
+        return null;
+    }
+
+    const element = b.element;
+    if (typeof element !== 'object' || !element) {
+        return null;
+    }
+    const el = element as Record<string, unknown>;
+    const name = ensureString(el.action_id);
+    if (!name.trim()) {
+        return null;
+    }
+
+    switch (el.type) {
+    case 'plain_text_input':
+        return translateBlockKitPlainTextInput(b, el, name, label);
+    case 'datepicker':
+        return translateBlockKitDatepicker(b, el, name, label);
+    case 'datetimepicker':
+        return translateBlockKitDatetimepicker(b, el, name, label);
+    case 'file_input':
+        return translateBlockKitFileInput(b, el, name, label);
+    case 'static_select':
+    case 'radio_buttons':
+    case 'checkboxes':
+    case 'multi_static_select':
+        return translateBlockKitSelectInput(b, el, name, label);
+    default:
+        return null;
+    }
+}
+
+function applyBlockKitInputSharedProps(
+    out: {optional?: boolean; help_text?: string; onChange?: string},
+    b: Record<string, unknown>,
+    name: string,
+) {
+    if (b.optional === true) {
+        out.optional = true;
+    }
+    const hint = extractBlockKitTextContent(b.hint);
+    if (hint) {
+        out.help_text = hint;
+    }
+    if (b.dispatch_action === true) {
+        out.onChange = name;
+    }
+}
+
+function translateBlockKitDatepicker(
+    b: Record<string, unknown>,
+    el: Record<string, unknown>,
+    name: string,
+    label: string,
+): MmDateInputBlock {
+    const out: MmDateInputBlock = {
+        type: 'date_input',
+        name,
+        label,
+    };
+    applyBlockKitInputSharedProps(out, b, name);
+
+    const placeholder = extractBlockKitTextContent(el.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    const initial = ensureString(el.initial_date);
+    if (initial) {
+        out.initial_value = initial;
+    }
+
+    return out;
+}
+
+function translateBlockKitDatetimepicker(
+    b: Record<string, unknown>,
+    el: Record<string, unknown>,
+    name: string,
+    label: string,
+): MmDateTimeInputBlock {
+    const out: MmDateTimeInputBlock = {
+        type: 'datetime_input',
+        name,
+        label,
+    };
+    applyBlockKitInputSharedProps(out, b, name);
+
+    if (typeof el.initial_date_time === 'number' && Number.isFinite(el.initial_date_time)) {
+        out.initial_value = new Date(el.initial_date_time * 1000).toISOString();
+    }
+
+    return out;
+}
+
+function translateBlockKitFileInput(
+    b: Record<string, unknown>,
+    el: Record<string, unknown>,
+    name: string,
+    label: string,
+): MmFileInputBlock {
+    const out: MmFileInputBlock = {
+        type: 'file_input',
+        name,
+        label,
+    };
+    applyBlockKitInputSharedProps(out, b, name);
+
+    // Block Kit defaults max_files to 10 when omitted; only an explicit max_files of 1 is single-file.
+    if (el.max_files === undefined || (typeof el.max_files === 'number' && el.max_files > 1)) {
+        out.allow_multiple = true;
+    }
+
+    return out;
+}
+
+function translateBlockKitPlainTextInput(
+    b: Record<string, unknown>,
+    el: Record<string, unknown>,
+    name: string,
+    label: string,
+): MmTextInputBlock {
+    const out: MmTextInputBlock = {
+        type: 'text_input',
+        name,
+        label,
+    };
+    applyBlockKitInputSharedProps(out, b, name);
+
+    if (el.multiline === true) {
+        out.multiline = true;
+    }
+
+    const placeholder = extractBlockKitTextContent(el.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    const initialValue = ensureString(el.initial_value);
+    if (initialValue) {
+        out.initial_value = initialValue;
+    }
+
+    if (typeof el.min_length === 'number' && Number.isFinite(el.min_length)) {
+        out.min_length = el.min_length;
+    }
+    if (typeof el.max_length === 'number' && Number.isFinite(el.max_length)) {
+        out.max_length = el.max_length;
+    }
+
+    return out;
+}
+
+function translateBlockKitSelectInput(
+    b: Record<string, unknown>,
+    el: Record<string, unknown>,
+    name: string,
+    label: string,
+): MmSelectInputBlock | null {
+    const options = translateBlockKitSelectOptions(el.options);
+    const optionGroups = translateBlockKitOptionGroups(el.option_groups);
+    if (options.length > 0 && optionGroups.length > 0) {
+        return null;
+    }
+    if (options.length === 0 && optionGroups.length === 0) {
+        return null;
+    }
+
+    const out: MmSelectInputBlock = {
+        type: 'select',
+        name,
+        label,
+    };
+    applyBlockKitInputSharedProps(out, b, name);
+
+    const placeholder = extractBlockKitTextContent(el.placeholder);
+    if (placeholder) {
+        out.placeholder = placeholder;
+    }
+
+    if (options.length > 0) {
+        out.options = options;
+    }
+    if (optionGroups.length > 0) {
+        out.option_groups = optionGroups;
+    }
+
+    if (el.type === 'radio_buttons' || el.type === 'checkboxes') {
+        out.style = 'expanded';
+    }
+    if (el.type === 'checkboxes' || el.type === 'multi_static_select') {
+        out.multiselect = true;
+    }
+
+    const initialOption = translateBlockKitInitialOptionValue(el.initial_option);
+    if (initialOption) {
+        out.initial_option = initialOption;
+    }
+
+    const initialOptions = translateBlockKitInitialOptionsValues(el.initial_options);
+    if (initialOptions.length > 0) {
+        out.initial_options = initialOptions;
+    }
+
+    return out;
+}
+
+function translateBlockKitOptionGroups(raw: unknown): MmSelectOptionGroup[] {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    const result: MmSelectOptionGroup[] = [];
+    for (const group of raw) {
+        if (typeof group !== 'object' || !group) {
+            continue;
+        }
+        const g = group as Record<string, unknown>;
+        const groupLabel = extractBlockKitTextContent(g.label);
+        const options = translateBlockKitSelectOptions(g.options);
+        if (groupLabel && options.length > 0) {
+            result.push({label: groupLabel, options});
+        }
+    }
+    return result;
+}
+
+function translateBlockKitInitialOptionValue(raw: unknown): string {
+    if (typeof raw !== 'object' || !raw) {
+        return '';
+    }
+    return ensureString((raw as Record<string, unknown>).value);
+}
+
+function translateBlockKitInitialOptionsValues(raw: unknown): string[] {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    const result: string[] = [];
+    for (const opt of raw) {
+        const value = translateBlockKitInitialOptionValue(opt);
+        if (value) {
+            result.push(value);
+        }
+    }
+    return result;
 }
 
 function translateBlockKitSection(

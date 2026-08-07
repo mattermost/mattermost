@@ -755,7 +755,23 @@ export function convertAppFormValuesToDialogSubmission(
             break;
 
         case DialogElementTypes.BOOL:
-            submission[element.name] = Boolean(value);
+            // Preserve real booleans; coerce stringified values from older paths
+            // (Boolean("false") would incorrectly become true).
+            if (typeof value === 'boolean') {
+                submission[element.name] = value;
+            } else if (typeof value === 'string') {
+                const lower = value.toLowerCase().trim();
+                if (lower === 'true' || lower === '1' || lower === 'yes') {
+                    submission[element.name] = true;
+                } else if (lower === 'false' || lower === '0' || lower === 'no') {
+                    submission[element.name] = false;
+                } else {
+                    // Noncanonical truthy strings (e.g. "on") keep Boolean() coercion.
+                    submission[element.name] = Boolean(value);
+                }
+            } else {
+                submission[element.name] = Boolean(value);
+            }
             break;
 
         case DialogElementTypes.RADIO:
@@ -826,8 +842,12 @@ export function convertAppFormValuesToDialogSubmission(
             submission[element.name] = String(value);
             break;
         case DialogElementTypes.FILE:
-            // File elements store file IDs as strings
-            submission[element.name] = String(value || '');
+            // File elements store file IDs as a comma-separated string (Apps Form path).
+            if (Array.isArray(value)) {
+                submission[element.name] = value.filter(Boolean).map(String).join(',');
+            } else {
+                submission[element.name] = String(value || '');
+            }
             break;
 
         case DialogElementTypes.ACTION_BUTTON:

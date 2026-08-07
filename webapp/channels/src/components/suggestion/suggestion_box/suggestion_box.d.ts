@@ -101,6 +101,11 @@ export type SuggestionBoxProps = {
     openOnFocus?: boolean;
 
     /**
+     * If true, skip provider lookups on mount and load on focus instead
+     */
+    deferLoad?: boolean;
+
+    /**
      * If true, the suggestion box is disabled
      */
     disabled?: boolean;

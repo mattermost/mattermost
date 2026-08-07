@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 
+import {getPostInteractiveIntegrationFormat} from 'components/block_renderer/translation';
 import Markdown from 'components/markdown';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
@@ -136,7 +137,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
             postProps.mm_blocks_actions :
             undefined;
-        const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
+        const integrationFormat = getPostInteractiveIntegrationFormat(postProps ?? {});
 
         const options = this.getOptions(
             this.props.options,

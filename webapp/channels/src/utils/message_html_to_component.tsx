@@ -47,7 +47,7 @@ export type Options = Partial<{
     /** Encrypted mm_blocks_actions cookie (ephemeral posts). */
     mmBlocksActionCookie: string;
 
-    /** integration_format when using mmBlocksActionCookie. */
+    /** integration_format for doBlockAction when converting mmaction:// links. */
     integrationFormat: PostActionIntegrationFormat;
 }>;
 

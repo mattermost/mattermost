@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
+import {doBlockAction} from 'mattermost-redux/actions/posts';
 
 import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
@@ -11,19 +11,19 @@ import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 import InlineActionButton from './index';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
-    doPostActionWithCookie: jest.fn(),
+    doBlockAction: jest.fn(),
 }));
 
 jest.mock('utils/integration_navigation', () => ({
     applyIntegrationGotoLocation: jest.fn(),
 }));
 
-const mockedDoPostActionWithCookie = doPostActionWithCookie as jest.MockedFunction<typeof doPostActionWithCookie>;
+const mockedDoBlockAction = doBlockAction as jest.MockedFunction<typeof doBlockAction>;
 const mockedApplyIntegrationGotoLocation = applyIntegrationGotoLocation as jest.MockedFunction<typeof applyIntegrationGotoLocation>;
 
 /**
  * Creates a thunk-shaped mock whose inner promise is externally controllable.
- * The thunk returned by `doPostActionWithCookie` is invoked by redux-thunk
+ * The thunk returned by `doBlockAction` is invoked by redux-thunk
  * middleware; the returned promise is what the component awaits.
  */
 function setupControllablePromise() {
@@ -32,8 +32,8 @@ function setupControllablePromise() {
         resolveFn = resolve;
     });
 
-    mockedDoPostActionWithCookie.mockImplementation(() => {
-        return (() => promise) as unknown as ReturnType<typeof doPostActionWithCookie>;
+    mockedDoBlockAction.mockImplementation(() => {
+        return (() => promise) as unknown as ReturnType<typeof doBlockAction>;
     });
 
     return {promise, resolve: () => resolveFn({data: {}})};
@@ -47,13 +47,13 @@ describe('InlineActionButton', () => {
     };
 
     beforeEach(() => {
-        mockedDoPostActionWithCookie.mockReset();
+        mockedDoBlockAction.mockReset();
         mockedApplyIntegrationGotoLocation.mockReset();
     });
 
     test('renders with children as button label', () => {
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -70,8 +70,16 @@ describe('InlineActionButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', 'mx', '', '', {tail: '214', mds: 'C130J'}, 'mm_block');
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: 'mx',
+            cookie: undefined,
+            query: {tail: '214', mds: 'C130J'},
+            integration_format: 'mm_block',
+        });
 
         // Resolve pending dispatch inside act so the trailing setState commits cleanly.
         await act(async () => {
@@ -91,8 +99,16 @@ describe('InlineActionButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', 'mx', '', '', {}, 'mm_block');
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: 'mx',
+            cookie: undefined,
+            query: {},
+            integration_format: 'mm_block',
+        });
 
         await act(async () => {
             resolve();
@@ -113,7 +129,15 @@ describe('InlineActionButton', () => {
 
         // Server action ID regex allows [A-Za-z0-9_-]+; losing case would
         // cause lookups to 404 when mm_blocks_actions keys are mixed-case.
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', 'MxPlan42', '', '', {tail: '214'}, 'mm_block');
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: 'MxPlan42',
+            cookie: undefined,
+            query: {tail: '214'},
+            integration_format: 'mm_block',
+        });
 
         await act(async () => {
             resolve();
@@ -122,8 +146,8 @@ describe('InlineActionButton', () => {
 
     test('double-click prevented by ref guard', async () => {
         // Use a never-resolving promise so the first dispatch stays in-flight.
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -135,7 +159,7 @@ describe('InlineActionButton', () => {
         fireEvent.click(button);
         fireEvent.click(button);
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
 
         // Let any pending microtasks settle so teardown is clean. The dispatch
         // promise never resolves, which is fine — we only care about the guard.
@@ -176,8 +200,8 @@ describe('InlineActionButton', () => {
         // Without native `disabled`, the browser fires onClick on
         // aria-disabled buttons. The component's executingRef guard must
         // catch the second click and no-op.
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -186,7 +210,7 @@ describe('InlineActionButton', () => {
         fireEvent.click(button);
         fireEvent.click(button);
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
 
         await act(async () => {
             await Promise.resolve();
@@ -275,7 +299,15 @@ describe('InlineActionButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', actionId, '', '', query, 'mm_block');
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: actionId,
+            cookie: undefined,
+            query,
+            integration_format: 'mm_block',
+        });
 
         await act(async () => {
             resolve();
@@ -377,8 +409,8 @@ describe('InlineActionButton', () => {
         // inline (matching the MessageAttachment.handleAction pattern) so
         // the user has feedback on a failed click — the thunk's logError
         // call is silent in production.
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => Promise.resolve({error: new Error('network down')})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => Promise.resolve({error: new Error('network down')})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -392,8 +424,8 @@ describe('InlineActionButton', () => {
     });
 
     test('falls back to default action_failed message when thunk error has no message', async () => {
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => Promise.resolve({error: {}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => Promise.resolve({error: {}})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -404,8 +436,8 @@ describe('InlineActionButton', () => {
     });
 
     test('clears prior error on next click', async () => {
-        mockedDoPostActionWithCookie.mockImplementationOnce(
-            () => (() => Promise.resolve({error: new Error('first failure')})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementationOnce(
+            () => (() => Promise.resolve({error: new Error('first failure')})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(<InlineActionButton {...baseProps}/>);
@@ -415,8 +447,8 @@ describe('InlineActionButton', () => {
         expect(screen.getByText('first failure')).toBeVisible();
 
         // Second click resolves successfully — prior error must clear.
-        mockedDoPostActionWithCookie.mockImplementationOnce(
-            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementationOnce(
+            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doBlockAction>,
         );
         await userEvent.click(button);
 
@@ -426,8 +458,8 @@ describe('InlineActionButton', () => {
     test('shows timeout error when dispatch hangs longer than INLINE_ACTION_TIMEOUT_MS', async () => {
         // Dispatch never resolves — only the client-side timeout can win
         // the race.
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => new Promise(() => {})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         jest.useFakeTimers();
@@ -452,10 +484,10 @@ describe('InlineActionButton', () => {
         }
     });
 
-    test('uses doPostActionWithCookie when mmBlocksActionCookie is set and applies goto_location from response', async () => {
+    test('uses doBlockAction when mmBlocksActionCookie is set and applies goto_location from response', async () => {
         const gotoLocation = '/some-location';
-        mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => Promise.resolve({data: {goto_location: gotoLocation}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+        mockedDoBlockAction.mockImplementation(
+            () => (() => Promise.resolve({data: {goto_location: gotoLocation}})) as unknown as ReturnType<typeof doBlockAction>,
         );
 
         renderWithContext(
@@ -468,16 +500,44 @@ describe('InlineActionButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
 
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith(
-            'abc',
-            'mx',
-            'encrypted-cookie',
-            '',
-            {tail: '214', mds: 'C130J'},
-            'mm_block',
-        );
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: 'mx',
+            cookie: 'encrypted-cookie',
+            query: {tail: '214', mds: 'C130J'},
+            integration_format: 'mm_block',
+        });
         expect(mockedApplyIntegrationGotoLocation).toHaveBeenCalledTimes(1);
         expect(mockedApplyIntegrationGotoLocation).toHaveBeenCalledWith(gotoLocation);
+    });
+
+    test('uses doBlockAction for legacy attachment integration format', async () => {
+        mockedDoBlockAction.mockImplementation(
+            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doBlockAction>,
+        );
+
+        renderWithContext(
+            <InlineActionButton
+                {...baseProps}
+                mmBlocksActionCookie='legacy-cookie'
+                integrationFormat='attachment'
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(mockedDoBlockAction).toHaveBeenCalledTimes(1);
+        expect(mockedDoBlockAction).toHaveBeenCalledWith({
+            subtype: 'execute',
+            context: 'post',
+            post_id: 'abc',
+            action_id: 'mx',
+            cookie: 'legacy-cookie',
+            query: {tail: '214', mds: 'C130J'},
+            integration_format: 'attachment',
+        });
     });
 });

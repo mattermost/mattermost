@@ -3057,6 +3057,10 @@
     "translation": "Action integration error."
   },
   {
+    "id": "api.post.do_action.form_values.app_error",
+    "translation": "Invalid action form values."
+  },
+  {
     "id": "api.post.do_action.query.app_error",
     "translation": "Invalid action query."
   },

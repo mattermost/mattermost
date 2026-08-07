@@ -40,6 +40,41 @@ $mm-blocks-container-max-heights: (
     margin-bottom: 8px;
     gap: 12px;
 
+    .mm-blocks-text-input,
+    .mm-blocks-bool-input,
+    .mm-blocks-select-input {
+        width: 100%;
+        min-width: 0;
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
+    .mm-blocks-select-input {
+        fieldset {
+            min-width: 0;
+            padding: 0;
+            border: none;
+            margin: 0;
+        }
+
+        .mm-blocks-select-input__option-group {
+            margin-top: 8px;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+
+        .mm-blocks-select-input__option-group-label {
+            margin-bottom: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-weight: 600;
+        }
+    }
+
     // Reset the margin on the first paragraph of a text block.
     // Removes the style added by bootstrap.
     p {

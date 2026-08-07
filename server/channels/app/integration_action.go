@@ -38,14 +38,23 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, legacyCookie *model.PostActionCookie, mmBlocksCookie *model.MmBlocksActionCookie, clientQuery map[string]string, integrationFormat string) (string, string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, clientQuery map[string]string) (string, string, *model.AppError) {
 	// Bound the per-click query at the App boundary so any caller — REST
 	// handler, plugin, future internal trigger — gets the same enforcement.
 	if err := model.ValidateActionQuery(clientQuery); err != nil {
 		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	setup, gotoURL, appErr := a.resolvePostActionSetup(rctx, postID, actionId, userID, legacyCookie, mmBlocksCookie, clientQuery, integrationFormat)
+	setup, gotoURL, appErr := a.resolvePostActionSetup(
+		rctx,
+		postID,
+		actionId,
+		userID,
+		cookie,
+		nil,
+		clientQuery,
+		model.PostActionIntegrationFormatAttachment,
+	)
 	if appErr != nil {
 		return "", "", appErr
 	}
@@ -316,7 +325,21 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 	request.TriggerId = clientTriggerId
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
+		// Legacy dialogs keep warn-and-open for backward compatibility.
+		// Blocks mode encrypts executable action cookies — reject invalid payloads.
+		if request.IsBlocksMode() {
+			return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(dialogErr)
+		}
 		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
+	}
+
+	if request.IsBlocksMode() {
+		if !a.Config().FeatureFlags.MmBlocksEnabled {
+			return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "mm_blocks are not enabled", http.StatusBadRequest)
+		}
+		if encErr := a.encryptOpenDialogMmBlocksActions(&request, userID); encErr != nil {
+			return encErr
+		}
 	}
 
 	jsonRequest, err := json.Marshal(request)
@@ -328,6 +351,23 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 
+	return nil
+}
+
+func (a *App) encryptOpenDialogMmBlocksActions(request *model.OpenDialogRequest, userID string) *model.AppError {
+	if request.BlockDialog == nil || request.BlockDialog.Actions == nil {
+		return nil
+	}
+
+	cookie, err := model.EncryptBlockDialogMmBlocksActions(request.BlockDialog, a.PostActionCookieSecret(), userID)
+	if err != nil {
+		return model.NewAppError("OpenInteractiveDialog", "api.post.do_action.action_integration.app_error", nil, "mm_blocks_actions must be an object", http.StatusBadRequest).Wrap(err)
+	}
+	if cookie == "" {
+		request.BlockDialog.Actions = nil
+		return nil
+	}
+	request.BlockDialog.Actions = cookie
 	return nil
 }
 

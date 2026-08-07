@@ -232,6 +232,7 @@ type Props = {
     manualTimeEntry?: boolean;
     minDateTime?: Moment;
     maxDateTime?: Moment;
+    id?: string;
 };
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -245,6 +246,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     manualTimeEntry = false,
     minDateTime,
     maxDateTime,
+    id,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
@@ -451,10 +453,14 @@ const DateTimeInputContainer: React.FC<Props> = ({
         showOutsideDays: true,
     };
 
+    const timeButtonId = id ? `${id}_time_button` : 'time_button';
+    const expiryTimeMenuId = id ? `${id}_expiryTimeMenu` : 'expiryTimeMenu';
+
     return (
         <div className='dateTime'>
             <div className='dateTime__date'>
                 <DatePicker
+                    id={id}
                     isPopperOpen={isPopperOpen}
                     handlePopperOpenState={handlePopperOpenState}
                     locale={locale}
@@ -490,7 +496,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 ) : (
                     <Menu.Container
                         menuButton={{
-                            id: 'time_button',
+                            id: timeButtonId,
                             dataTestId: 'time_button',
                             'aria-label': formatMessage({
                                 id: 'datetime.time',
@@ -517,7 +523,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             ),
                         }}
                         menu={{
-                            id: 'expiryTimeMenu',
+                            id: expiryTimeMenuId,
                             'aria-label': formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'}),
                             onToggle: handleTimeMenuToggle,
                             width: menuWidth,

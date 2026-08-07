@@ -9,6 +9,12 @@
 // opens use `url`. Optional per-control `query` is sent in the post-action API body alongside
 // `selected_option`, `cookie`, and `integration_format` (e.g. `mm_block`).
 //
+// Form input blocks (`text_input`, `select`, `bool_input`, etc.) identify fields by `name` and
+// accumulate values for batch form submission (Interactive Dialog / Apps Form parity). Immediate
+// post actions continue to use `action_id` on `button` (subtype `execute`, the default) and
+// `static_select`. Buttons with subtype `submit` send typed form field values as `form_values`
+// (forwarded on the upstream integration request under `context.form_values`); block `query` stays separate (URL params).
+//
 // Cookie handling:
 // - Native mm_blocks: the client sends `props.mm_blocks_actions` (string) as the post-action cookie.
 // - Legacy attachments translated into mm_blocks: each control may carry `cookie` copied from
@@ -17,8 +23,15 @@
 /** Semantic attachment / integration action colors. Hex colors use the same `style` field (`#RRGGBB`). */
 export type MmButtonStyle = 'default' | 'primary' | 'danger' | 'good' | 'success' | 'warning';
 
+/**
+ * Button behavior subtype.
+ * - `execute` (default): immediate action via `action_id` (existing post-action behavior).
+ * - `submit`: sends all form input values as typed `form_values` (forwarded under `context.form_values` on the upstream request).
+ */
+export type MmButtonSubtype = 'execute' | 'submit';
+
 // ---------------------------------------------------------------------------
-// Interactive controls
+// Interactive controls (immediate-fire post actions)
 // ---------------------------------------------------------------------------
 
 export type MmStaticSelectOption = {
@@ -30,6 +43,9 @@ export type MmButtonBlock = {
     type: 'button';
     text: string;
     action_id: string;
+
+    /** Omitted is equivalent to `execute`. */
+    subtype?: MmButtonSubtype;
 
     /** Semantic name (`MmButtonStyle`) or `#RRGGBB` hex (legacy attachment parity). */
     style?: MmButtonStyle | string;
@@ -59,6 +75,123 @@ export type MmStaticSelectBlock = {
      * Omitted for native mm_blocks (use post `mm_blocks_actions` instead).
      */
     cookie?: string;
+};
+
+// ---------------------------------------------------------------------------
+// Form input blocks (Interactive Dialog / Apps Form parity)
+// ---------------------------------------------------------------------------
+
+/**
+ * Shared props for form input blocks. Field identity is `name` (submission key), matching
+ * Interactive Dialog elements and Apps Form fields — not `action_id`.
+ */
+export type MmFormFieldProps = {
+    name: string;
+
+    /** Field label. Empty string hides the label (and required/optional markers) in the UI. */
+    label: string;
+    help_text?: string;
+    optional?: boolean;
+    disabled?: boolean;
+
+    /** Action id to execute when the field value changes (e.g. form refresh). */
+    onChange?: string;
+};
+
+export type MmTextInputSubtype = 'text' | 'email' | 'number' | 'password' | 'tel' | 'url';
+
+/** Single- or multi-line text field. Dialog `text` / `textarea` both map here (`multiline` for textarea). */
+export type MmTextInputBlock = MmFormFieldProps & {
+    type: 'text_input';
+    subtype?: MmTextInputSubtype;
+    multiline?: boolean;
+    min_length?: number;
+    max_length?: number;
+    placeholder?: string;
+    initial_value?: string;
+};
+
+/** Checkbox. Dialog `bool`. */
+export type MmBoolInputBlock = MmFormFieldProps & {
+    type: 'bool_input';
+
+    /** Hint text shown beside the checkbox (dialog `placeholder`). */
+    placeholder?: string;
+    initial_value?: boolean;
+};
+
+/**
+ * Presentation for form `select` (Adaptive Cards `Input.ChoiceSet` style).
+ * - `compact` (default): dropdown.
+ * - `expanded`: radio list when single-select; checkbox list when `multiselect`.
+ */
+export type MmSelectInputStyle = 'compact' | 'expanded';
+
+/** Grouped options for form `select` (Block Kit `option_groups` parity). */
+export type MmSelectOptionGroup = {
+    label: string;
+    options: MmStaticSelectOption[];
+};
+
+/**
+ * Form choice field with deferred submission. Dialog `select` / `radio`, Adaptive Cards
+ * `Input.ChoiceSet`. Distinct from immediate-fire `static_select` (post actions).
+ *
+ * Provide either `options` or `option_groups`, not both (Block Kit rule).
+ */
+export type MmSelectInputBlock = MmFormFieldProps & {
+    type: 'select';
+    placeholder?: string;
+
+    /** Omitted is equivalent to `compact`. */
+    style?: MmSelectInputStyle;
+
+    options?: MmStaticSelectOption[];
+    option_groups?: MmSelectOptionGroup[];
+
+    /** `users`, `channels`, `dynamic`, or a custom data source string. */
+    data_source?: 'users' | 'channels' | 'dynamic' | string;
+
+    /** Action id used to fetch options when `data_source` is `dynamic`. */
+    data_source_action?: string;
+    multiselect?: boolean;
+    initial_option?: string;
+    initial_options?: string[];
+};
+
+/** Date / datetime constraints (dialog `datetime_config`; no deprecated top-level aliases). */
+export type MmDateTimeConfig = {
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
+    location_timezone?: string;
+    manual_time_entry?: boolean;
+};
+
+/** Date picker. Dialog `date`. */
+export type MmDateInputBlock = MmFormFieldProps & {
+    type: 'date_input';
+    placeholder?: string;
+    initial_value?: string;
+    datetime_config?: MmDateTimeConfig;
+};
+
+/** Date and time picker. Dialog `datetime`. */
+export type MmDateTimeInputBlock = MmFormFieldProps & {
+    type: 'datetime_input';
+    placeholder?: string;
+    initial_value?: string;
+    datetime_config?: MmDateTimeConfig;
+};
+
+/** File upload. Dialog `file`. */
+export type MmFileInputBlock = MmFormFieldProps & {
+    type: 'file_input';
+    placeholder?: string;
+    allow_multiple?: boolean;
+
+    /** Comma-separated file IDs (dialog `default`). */
+    initial_value?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -194,6 +327,12 @@ export type MmBlock =
     MmDividerBlock |
     MmButtonBlock |
     MmStaticSelectBlock |
+    MmTextInputBlock |
+    MmBoolInputBlock |
+    MmSelectInputBlock |
+    MmDateInputBlock |
+    MmDateTimeInputBlock |
+    MmFileInputBlock |
     MmColumnSetBlock |
     MmColumnBlock |
     MmContainerBlock |

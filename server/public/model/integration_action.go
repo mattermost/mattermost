@@ -382,6 +382,7 @@ type MmBlocksActionCookie struct {
 	PostId      string                    `json:"post_id,omitempty"`
 	RootPostId  string                    `json:"root_post_id,omitempty"`
 	ChannelId   string                    `json:"channel_id,omitempty"`
+	UserId      string                    `json:"user_id,omitempty"`
 	RetainProps map[string]any            `json:"retain_props,omitempty"`
 	RemoveProps []string                  `json:"remove_props,omitempty"`
 	Actions     map[string]map[string]any `json:"actions"`
@@ -425,6 +426,11 @@ type PostActionIntegrationRequest struct {
 	DataSource  string         `json:"data_source"`
 	Context     map[string]any `json:"context,omitempty"`
 }
+
+// PostActionContextFormValuesKey is where mm_blocks form field values are placed
+// on PostActionIntegrationRequest.Context (kept out of the top-level static
+// action context keys so inputs cannot overwrite them).
+const PostActionContextFormValuesKey = "form_values"
 
 type PostActionIntegrationResponse struct {
 	Update           *Post  `json:"update"`
@@ -539,10 +545,46 @@ type DialogActionButton struct {
 	Context map[string]string `json:"context,omitempty"`
 }
 
+// BlockDialogButton is footer chrome for submit/cancel on a blocks dialog.
+// Presence of the object shows the button; Label defaults to "Submit"/"Cancel" on the client.
+// Action, when set, must reference an entry in BlockDialog.Actions.
+type BlockDialogButton struct {
+	Label  string `json:"label,omitempty"`
+	Action string `json:"action,omitempty"`
+}
+
+// BlockDialog is the blocks-mode counterpart to [Dialog]. It carries modal chrome
+// plus mm_blocks content and action specs (encrypted to a cookie before WebSocket publish).
+type BlockDialog struct {
+	Title string `json:"title"`
+	// IconURL is shown in the modal header (same role as Dialog.IconURL).
+	IconURL string `json:"icon_url,omitempty"`
+	// State is opaque integration state (same role as Dialog.State).
+	State string `json:"state,omitempty"`
+
+	// Submit, when set, renders a primary footer submit button.
+	Submit *BlockDialogButton `json:"submit,omitempty"`
+	// Cancel, when set, renders a footer cancel button; the header close control
+	// also invokes cancel when Action is set. Cancel notification is done via
+	// Cancel.Action.
+	Cancel *BlockDialogButton `json:"cancel,omitempty"`
+
+	// Blocks is the mm_blocks payload rendered by BlockRenderer. May be empty
+	// (chrome-only dialog with submit/cancel).
+	Blocks []any `json:"blocks,omitempty"`
+	// Actions is the plaintext mm_blocks_actions map on input; after open processing
+	// it is replaced with an opaque encrypted cookie string before WebSocket publish.
+	Actions any `json:"actions,omitempty"`
+}
+
 type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
-	URL       string `json:"url"`
-	Dialog    Dialog `json:"dialog"`
+	// URL is required for legacy Dialog mode; optional for blocks mode.
+	URL string `json:"url,omitempty"`
+
+	// Exactly one of Dialog (legacy) or BlockDialog should be set.
+	Dialog      Dialog       `json:"dialog,omitzero"`
+	BlockDialog *BlockDialog `json:"block_dialog,omitempty"`
 }
 
 type SubmitDialogRequest struct {
@@ -707,18 +749,36 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	return clientTriggerId, userId, nil
 }
 
+func (r *OpenDialogRequest) IsBlocksMode() bool {
+	return r != nil && r.BlockDialog != nil
+}
+
 func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s, timeout)
 }
 
 func (r *OpenDialogRequest) IsValid() error {
 	var multiErr *multierror.Error
-	if r.URL == "" {
-		multiErr = multierror.Append(multiErr, errors.New("empty URL"))
-	}
 
 	if r.TriggerId == "" {
 		multiErr = multierror.Append(multiErr, errors.New("empty trigger id"))
+	}
+
+	if r.IsBlocksMode() {
+		if r.Dialog.Title != "" || len(r.Dialog.Elements) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("dialog and block_dialog are mutually exclusive"))
+		}
+		if err := r.BlockDialog.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+		if err := ValidateBlockDialogMmBlocksActions(r.BlockDialog); err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+		return multiErr.ErrorOrNil()
+	}
+
+	if r.URL == "" {
+		multiErr = multierror.Append(multiErr, errors.New("empty URL"))
 	}
 
 	err := r.Dialog.IsValid()
@@ -727,6 +787,63 @@ func (r *OpenDialogRequest) IsValid() error {
 	}
 
 	return multiErr.ErrorOrNil()
+}
+
+func (d *BlockDialog) IsValid() error {
+	if d == nil {
+		return errors.New("nil block_dialog")
+	}
+	var multiErr *multierror.Error
+
+	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid block_dialog title %q", d.Title))
+	}
+	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
+		multiErr = multierror.Append(multiErr, errors.New("invalid icon url"))
+	}
+	if err := d.Submit.isValidChrome("submit"); err != nil {
+		multiErr = multierror.Append(multiErr, err)
+	}
+	if err := d.Cancel.isValidChrome("cancel"); err != nil {
+		multiErr = multierror.Append(multiErr, err)
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+func (b *BlockDialogButton) isValidChrome(name string) error {
+	if b == nil {
+		return nil
+	}
+	if b.Action != "" && !mmBlocksActionIDRegex.MatchString(b.Action) {
+		return fmt.Errorf("block_dialog.%s.action %q must contain only letters, numbers, underscores, or hyphens", name, b.Action)
+	}
+	return nil
+}
+
+// BlocksForActionsValidation returns blocks plus synthetic buttons for submit/cancel
+// action ids so ValidateBlockDialogMmBlocksActions pairing accepts chrome-only actions.
+func (d *BlockDialog) BlocksForActionsValidation() []any {
+	if d == nil {
+		return nil
+	}
+	out := make([]any, 0, len(d.Blocks)+2)
+	out = append(out, d.Blocks...)
+	if d.Submit != nil && d.Submit.Action != "" {
+		out = append(out, map[string]any{
+			"type":      "button",
+			"text":      "submit",
+			"action_id": d.Submit.Action,
+		})
+	}
+	if d.Cancel != nil && d.Cancel.Action != "" {
+		out = append(out, map[string]any{
+			"type":      "button",
+			"text":      "cancel",
+			"action_id": d.Cancel.Action,
+		})
+	}
+	return out
 }
 
 func (d *Dialog) IsValid() error {
@@ -1098,11 +1215,26 @@ func (o *Post) GetAction(id string) *PostAction {
 var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 // ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
-// expected shape and bounds. Each entry must coerce to a valid spec via
-// mmBlocksEntryMapToSpec.
+// expected shape and bounds, and is paired with interactive content on the post.
 func ValidateMmBlocksActions(o *Post) error {
-	referenced := CollectInteractiveActionIDsFromPost(o)
-	raw := o.GetProp(PostPropsMmBlocksActions)
+	return validateMmBlocksActionsRaw(o.GetProp(PostPropsMmBlocksActions), CollectInteractiveActionIDsFromPost(o))
+}
+
+// ValidateBlockDialogMmBlocksActions verifies a block dialog's actions map has the
+// expected shape/bounds and is paired with action ids from its blocks plus submit/cancel chrome.
+func ValidateBlockDialogMmBlocksActions(d *BlockDialog) error {
+	if d == nil {
+		return errors.New("nil block_dialog")
+	}
+	referenced := CollectInteractiveActionIDs(map[string]any{
+		PostPropsMmBlocks: d.BlocksForActionsValidation(),
+	})
+	return validateMmBlocksActionsRaw(d.Actions, referenced)
+}
+
+// validateMmBlocksActionsRaw validates an mm_blocks_actions value and pairs it
+// with the given referenced action ids. Shared by posts and block dialogs.
+func validateMmBlocksActionsRaw(raw any, referenced map[string]struct{}) error {
 	if raw == nil {
 		if len(referenced) > 0 {
 			return fmt.Errorf("interactive content requires mm_blocks_actions")
@@ -1163,7 +1295,7 @@ func ValidateMmBlocksActions(o *Post) error {
 			}
 		}
 	}
-	return validateMmBlocksActionsPairing(o, actions)
+	return validateMmBlocksActionsPairing(referenced, actions)
 }
 
 // ValidateActionQuery bounds the size of user-supplied per-click query
@@ -1182,6 +1314,59 @@ func ValidateActionQuery(q map[string]string) error {
 		}
 	}
 	return nil
+}
+
+// ValidateActionFormValues bounds mm_blocks form_values forwarded on the upstream
+// integration request. Allowed value kinds: null, bool, number, string, and
+// flat arrays of those scalars. Nested objects/arrays are rejected.
+func ValidateActionFormValues(fv map[string]any) error {
+	if len(fv) > MaxActionQueryEntries {
+		return fmt.Errorf("form_values exceeds maximum of %d entries", MaxActionQueryEntries)
+	}
+	for key, value := range fv {
+		if len(key) > MaxActionQueryKeyLength {
+			return fmt.Errorf("form_values key exceeds %d chars", MaxActionQueryKeyLength)
+		}
+		if err := validateActionFormValue(key, value, 0); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateActionFormValue(key string, value any, depth int) error {
+	const maxDepth = 1 // scalars at 0; array elements at 1
+	if depth > maxDepth {
+		return fmt.Errorf("form_values value for %q must not be nested", key)
+	}
+
+	switch v := value.(type) {
+	case nil, bool:
+		return nil
+	case float64:
+		return nil
+	case json.Number:
+		return nil
+	case string:
+		if len(v) > MaxActionQueryValueLength {
+			return fmt.Errorf("form_values value for %q exceeds %d chars", key, MaxActionQueryValueLength)
+		}
+		return nil
+	case []any:
+		if len(v) > MaxActionQueryEntries {
+			return fmt.Errorf("form_values array for %q exceeds maximum of %d entries", key, MaxActionQueryEntries)
+		}
+		for _, el := range v {
+			if err := validateActionFormValue(key, el, depth+1); err != nil {
+				return err
+			}
+		}
+		return nil
+	case map[string]any:
+		return fmt.Errorf("form_values value for %q must not be an object", key)
+	default:
+		return fmt.Errorf("form_values value for %q has unsupported type %T", key, value)
+	}
 }
 
 func validateIntegrationURL(rawURL string) error {

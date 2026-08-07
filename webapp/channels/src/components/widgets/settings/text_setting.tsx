@@ -27,6 +27,7 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
+    'aria-describedby'?: string;
 };
 
 function TextSetting(props: Props) {
@@ -62,6 +63,7 @@ function TextSetting(props: Props) {
                 maxLength={maxLength}
                 onChange={handleChange}
                 disabled={props.disabled}
+                aria-describedby={props['aria-describedby']}
             />
         );
     } else {
@@ -82,6 +84,7 @@ function TextSetting(props: Props) {
                 maxLength={maxLength}
                 onChange={handleChange}
                 disabled={props.disabled}
+                aria-describedby={props['aria-describedby']}
             />
         );
     }

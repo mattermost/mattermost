@@ -30,9 +30,10 @@ type Props = {
     label?: string;
     icon?: React.ReactNode;
     value?: string;
+    id?: string;
 };
 
-const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value}: Props) => {
+const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value, id}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
     const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open: isPopperOpen,
@@ -81,6 +82,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     return (
         <div className='date-picker__wrapper'>
             <div
+                id={id}
                 ref={setReference}
                 {...getReferenceProps()}
                 onClick={handleWrapperClick}

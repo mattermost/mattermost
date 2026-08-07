@@ -118,6 +118,11 @@ export default class SuggestionBox extends React.PureComponent {
         openOnFocus: PropTypes.bool,
 
         /**
+         * If true, skip provider lookups on mount and load on focus instead
+         */
+        deferLoad: PropTypes.bool,
+
+        /**
          * If true, the suggestion box is disabled
          */
         disabled: PropTypes.bool,
@@ -186,6 +191,7 @@ export default class SuggestionBox extends React.PureComponent {
         completeOnTab: true,
         requiredCharacters: 1,
         openOnFocus: false,
+        deferLoad: false,
         openWhenEmpty: false,
         replaceAllInputOnSelect: false,
         forceSuggestionsWhenBlur: false,
@@ -220,6 +226,10 @@ export default class SuggestionBox extends React.PureComponent {
     }
 
     componentDidMount() {
+        // deferLoad skips empty provider lookups until focus (used by MM blocks selects).
+        if (this.props.deferLoad) {
+            return;
+        }
         this.handlePretextChanged(this.pretext);
     }
 
@@ -309,7 +319,8 @@ export default class SuggestionBox extends React.PureComponent {
                 if (textbox) {
                     const pretext = textbox.value.substring(0, textbox.selectionEnd);
                     if (this.props.openWhenEmpty || pretext.length >= this.props.requiredCharacters) {
-                        if (this.pretext !== pretext) {
+                        // deferLoad skips mount lookup, so always load even if pretext is unchanged.
+                        if (this.props.deferLoad || this.pretext !== pretext) {
                             this.handlePretextChanged(pretext);
                         }
                     }
@@ -729,6 +740,7 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'completeOnTab');
         Reflect.deleteProperty(props, 'requiredCharacters');
         Reflect.deleteProperty(props, 'openOnFocus');
+        Reflect.deleteProperty(props, 'deferLoad');
         Reflect.deleteProperty(props, 'openWhenEmpty');
         Reflect.deleteProperty(props, 'onFocus');
         Reflect.deleteProperty(props, 'onBlur');

@@ -1,3 +1,181 @@
+  /api/v4/actions/blocks/do:
+    post:
+      tags:
+        - integration_actions
+      summary: Perform an mm_blocks action
+      description: >
+        Synchronous endpoint used by Mattermost clients to execute or look up
+        an mm_blocks action resolved from `post_id` + `action_id` (and optional
+        encrypted cookie). Unlike `POST /api/v4/posts/{post_id}/actions/{action_id}`,
+        the upstream integration response is proxied back to the client.
+
+
+        The integration URL and static context are never client-supplied; they
+        are resolved from the post or cookie.
+
+
+        ##### Permissions
+
+        Must be authenticated. For post-backed actions, or cookies that include a
+        `channel_id`, the session must have the `read_channel` permission for that
+        channel. Channel-less dialog cookies are authorized through the cookie's
+        user binding and do not require `read_channel`.
+
+
+        __Minimum server version: 11.10__
+      operationId: DoBlockAction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - context
+                - action_id
+              properties:
+                subtype:
+                  type: string
+                  description: >
+                    Action subtype. `execute` (default) runs the action;
+                    `lookup` returns select options for dynamic fields.
+                  enum:
+                    - execute
+                    - lookup
+                context:
+                  type: string
+                  description: Where the action was triggered.
+                  enum:
+                    - post
+                    - dialog
+                post_id:
+                  type: string
+                  description: >
+                    Post ID that owns the action. Required for post context.
+                    May be empty for dialog-scoped cookies.
+                channel_id:
+                  type: string
+                  description: >
+                    Client-supplied current channel ID for dialog context only.
+                    Used for ephemeral delivery; not forwarded upstream.
+                action_id:
+                  type: string
+                  description: Action ID to resolve from the post or cookie
+                cookie:
+                  type: string
+                  description: Encrypted mm_blocks action cookie when resolving
+                    outside a post (e.g. dialog-scoped actions)
+                selected_option:
+                  type: string
+                  description: Selected option value for select-style actions
+                query:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Per-click query parameters merged into the
+                    upstream integration URL
+                form_values:
+                  type: object
+                  description: Current mm_blocks form field values keyed by
+                    field name
+                  additionalProperties: true
+                integration_format:
+                  type: string
+                  description: >
+                    Format that originally declared the action
+                    (`attachment`, `mm_block`, `block`, `card`, …). Empty is
+                    treated as `attachment`.
+        description: Block action request
+        required: true
+      responses:
+        "200":
+          description: Block action completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trigger_id:
+                    type: string
+                    description: Trigger ID when the integration opens a dialog
+                  goto_location:
+                    type: string
+                    description: Optional URL the client should navigate to
+                  error:
+                    type: string
+                    description: Top-level error message from the integration
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: Per-field validation errors keyed by field name
+                  type:
+                    type: string
+                    description: >
+                      Response type. Empty/`ok` acknowledges success;
+                      `refresh` updates the current UI; `dialog` opens a new
+                      stacked block dialog.
+                    enum:
+                      - ok
+                      - refresh
+                      - dialog
+                  mm_blocks:
+                    type: array
+                    description: Opaque block tree for type `refresh` (post
+                      context)
+                    items:
+                      type: object
+                  mm_blocks_actions:
+                    type: string
+                    description: Encrypted mm_blocks_actions cookie string after
+                      server-side cookie injection
+                  block_dialog:
+                    type: object
+                    description: Block dialog payload for type `dialog`, or for
+                      type `refresh` when request context is `dialog`
+                  keep_dialog_open:
+                    type: boolean
+                    description: When request context is `dialog`, leave the
+                      current dialog open after handling
+                  items:
+                    type: array
+                    description: Lookup options returned for subtype `lookup`
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        value:
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          description: The upstream integration rate-limited the request. The
+            original status code is preserved so clients can honor retry
+            semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "502":
+          description: The upstream integration returned a 5xx (other than 503).
+            Surfaced as Bad Gateway because the failure is upstream of Mattermost.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "503":
+          description: The upstream integration is unavailable. The original
+            status code is preserved so clients can honor retry semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   /api/v4/actions/dialogs/open:
     post:
       tags:

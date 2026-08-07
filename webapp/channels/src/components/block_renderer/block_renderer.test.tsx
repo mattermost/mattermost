@@ -63,9 +63,11 @@ jest.mock('components/file_preview_modal', () => ({
 
 describe('BlockRenderer', () => {
     const onAction = jest.fn();
+    const onFormErrorsChange = jest.fn();
 
     beforeEach(() => {
         onAction.mockClear();
+        onFormErrorsChange.mockClear();
         jest.mocked(openModal).mockReturnValue({type: 'MODAL_OPEN'} as ReturnType<typeof openModal>);
     });
 
@@ -78,6 +80,8 @@ describe('BlockRenderer', () => {
                 ]}
                 postId='post-root'
                 onAction={onAction}
+                formErrors={{}}
+                onFormErrorsChange={onFormErrorsChange}
             />,
         );
 
@@ -99,6 +103,8 @@ describe('BlockRenderer', () => {
                 postId='post-img'
                 onAction={onAction}
                 imagesMetadata={imagesMetadata}
+                formErrors={{}}
+                onFormErrorsChange={onFormErrorsChange}
             />,
         );
 
@@ -148,10 +154,12 @@ describe('BlockRenderer', () => {
                 ]}
                 postId='post-action'
                 onAction={onAction}
+                formErrors={{}}
+                onFormErrorsChange={onFormErrorsChange}
             />,
         );
 
         await user.click(screen.getByRole('button', {name: 'Nested'}));
-        expect(onAction).toHaveBeenCalledWith('nested', undefined, undefined, 'c');
+        expect(onAction).toHaveBeenCalledWith('nested', undefined, undefined, 'c', undefined);
     });
 });
