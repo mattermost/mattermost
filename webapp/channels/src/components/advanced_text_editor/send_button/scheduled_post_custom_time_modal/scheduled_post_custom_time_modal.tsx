@@ -47,8 +47,9 @@ export default function ScheduledPostCustomTimeModal({
     const recurringEnabled = useSelector(isRecurringScheduledPostsEnabled);
     const [repeatWeeklyChecked, setRepeatWeeklyChecked] = useState(initialRepeatWeekly);
 
-    // While recurring posts are off, an existing weekly repeat is ignored, so confirming clears it.
-    const repeatWeekly = recurringEnabled && repeatWeeklyChecked;
+    // While the checkbox can't be offered, keep whatever recurrence the post already has instead
+    // of silently clearing it; the job keeps sending existing series while the feature is off.
+    const repeatWeekly = recurringEnabled ? repeatWeeklyChecked : initialRepeatWeekly;
     const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();

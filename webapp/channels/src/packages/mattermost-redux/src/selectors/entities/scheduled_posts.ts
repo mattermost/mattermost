@@ -101,8 +101,6 @@ export const isScheduledPostsEnabled: (a: GlobalState) => boolean = createSelect
     },
 );
 
-// Recurring scheduled posts ride on the regular scheduled posts setting and license, plus their
-// own rollout feature flag.
 export const isRecurringScheduledPostsEnabled: (a: GlobalState) => boolean = createSelector(
     'isRecurringScheduledPostsEnabled',
     isScheduledPostsEnabled,

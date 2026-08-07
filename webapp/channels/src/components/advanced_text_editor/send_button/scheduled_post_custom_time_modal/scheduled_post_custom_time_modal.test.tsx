@@ -56,8 +56,17 @@ describe('ScheduledPostCustomTimeModal', () => {
         expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
     });
 
-    it('should not send repeat fields when recurring scheduled posts are disabled, even if the post already repeats', async () => {
+    it('should preserve existing recurrence when recurring scheduled posts are disabled', async () => {
         renderModal(false, true);
+
+        await userEvent.click(screen.getByText('Schedule'));
+
+        await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: 'weekly'}));
+    });
+
+    it('should send empty repeat fields when recurring scheduled posts are disabled and the post does not repeat', async () => {
+        renderModal(false, false);
 
         await userEvent.click(screen.getByText('Schedule'));
 

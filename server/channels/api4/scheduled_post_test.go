@@ -283,6 +283,20 @@ func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeNone, updated.RepeatType)
 	})
 
+	t.Run("editing an existing recurring scheduled post keeps repeating when the flag is off", func(t *testing.T) {
+		setFlag(t, true)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+
+		setFlag(t, false)
+		created.Message = "updated message for an existing weekly series"
+
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, "updated message for an existing weekly series", updated.Message)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
+	})
+
 	t.Run("converting a one-shot scheduled post to recurring is rejected when the flag is off", func(t *testing.T) {
 		setFlag(t, false)
 		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))

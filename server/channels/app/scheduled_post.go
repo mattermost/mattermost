@@ -12,12 +12,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// recurringScheduledPostsEnabled reports whether users may create or keep scheduling recurring
-// scheduled posts. Recurring posts ride on the regular scheduled posts setting and license, plus
-// their own rollout feature flag. Existing recurring posts keep being sent by the job regardless.
+// recurringScheduledPostsEnabled gates turning recurrence on. The api4 routes already enforce
+// the ScheduledPosts setting and license for every scheduled post request, and the job keeps
+// sending existing recurring series regardless of the flag.
 func (a *App) recurringScheduledPostsEnabled() bool {
-	config := a.Config()
-	return config.FeatureFlags.RecurringScheduledPosts && *config.ServiceSettings.ScheduledPosts && a.License() != nil
+	return a.Config().FeatureFlags.RecurringScheduledPosts
 }
 
 func recurringScheduledPostsDisabledError(where string) *model.AppError {
@@ -96,12 +95,6 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, validationErr
 	}
 
-	// Only turning recurrence on is blocked; turning it off must stay possible so users can
-	// clean up series created while the flag was on.
-	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone && !a.recurringScheduledPostsEnabled() {
-		return nil, recurringScheduledPostsDisabledError("App.UpdateScheduledPost")
-	}
-
 	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
 	if err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
@@ -109,6 +102,15 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 
 	if existingScheduledPost == nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusNotFound)
+	}
+
+	// Only turning recurrence ON is blocked while the flag is off; editing or rescheduling an
+	// already-recurring post and turning recurrence off must stay possible so users can manage
+	// series created while the flag was on.
+	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone &&
+		existingScheduledPost.RepeatType == model.ScheduledPostRepeatTypeNone &&
+		!a.recurringScheduledPostsEnabled() {
+		return nil, recurringScheduledPostsDisabledError("App.UpdateScheduledPost")
 	}
 
 	// This step is not required for update but is useful as we want to return the
