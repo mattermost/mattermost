@@ -23,14 +23,29 @@ func sortedPermissions(permissions []string) []string {
 }
 
 // validateAdoptableSpaceRole rejects a row found under a reserved capability
-// role name whose permissions differ from the built-in definition. Such a row is
+// role name that is not the row this migration would have written. Such a row is
 // a name collision rather than this migration's own earlier work, and adopting
-// it would hand out space permissions this migration never defined.
+// it would hand out space permissions this migration never defined — or leave
+// the capability behind a row that cannot carry it: a deleted row leaves no
+// live capability role, and a scheme-managed row or one owned by a scheme is
+// another scheme's generated role, which the member-assignment guards refuse
+// as an explicit role.
 func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
-	if slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(want.Permissions)) {
-		return nil
+	// GetByName and GetByNamesFromMaster carry no DeleteAt filter, so a deleted
+	// row reaches this check like any other.
+	if stored.DeleteAt != 0 {
+		return fmt.Errorf("role %q already exists but is deleted; restore or permanently remove the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
 	}
-	return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+	if stored.SchemeManaged {
+		return fmt.Errorf("role %q already exists but is scheme-managed; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+	}
+	if stored.SchemeId != nil && *stored.SchemeId != "" {
+		return fmt.Errorf("role %q already exists but is owned by scheme %q; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID, *stored.SchemeId)
+	}
+	if !slices.Equal(sortedPermissions(stored.Permissions), sortedPermissions(want.Permissions)) {
+		return fmt.Errorf("role %q already exists with a different permission set than the built-in definition; rename or delete the conflicting role to proceed; this blocks the upgrade on every node, not just this one", roleID)
+	}
+	return nil
 }
 
 // validateAdoptableSpaceScheme rejects a scheme row that carries a preset space
@@ -51,6 +66,15 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	if existing.DefaultChannelUserRole == "" || existing.DefaultChannelAdminRole == "" || existing.DefaultChannelGuestRole == "" {
 		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
 	}
+	// Three distinct roles are part of the shape: the seeding writes each
+	// generated role its own permission set, so two references converging on one
+	// row would merge those sets — the user or guest role would end up carrying
+	// the admin grants.
+	if existing.DefaultChannelUserRole == existing.DefaultChannelAdminRole ||
+		existing.DefaultChannelUserRole == existing.DefaultChannelGuestRole ||
+		existing.DefaultChannelAdminRole == existing.DefaultChannelGuestRole {
+		return fmt.Errorf("scheme %q already exists with generated channel roles that are not distinct; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", existing.Name)
+	}
 	// The three checks above are all satisfied by an ordinary channel scheme, so
 	// on a server that already had one under a reserved name they would adopt it
 	// — and the role-permission seeding below would then strip the moderated
@@ -68,10 +92,15 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 
 // validateAdoptedSpaceSchemeRoles refuses a row that is shaped like a preset but
 // does not grant like one. validateAdoptableSpaceScheme proves the shape; this
-// proves the authority, which has to be checked separately because the seeding
-// only strips the moderated permissions and adds the targets — every other
-// permission already on a generated role survives into what becomes, from here
-// on, an unforgeable proof of space scope wherever the scope guards read it.
+// proves the authority and the ownership, which have to be checked separately
+// because the seeding only strips the moderated permissions and adds the
+// targets — every other permission already on a generated role survives into
+// what becomes, from here on, an unforgeable proof of space scope wherever the
+// scope guards read it. Ownership matters as much as contents: on the
+// direct-SQL collision path this migration exists to survive, the scheme row
+// can name a standalone role that is already assigned outside spaces, and the
+// store-direct seeding would add the page and admin permissions to it — below
+// the runtime scope guard, making those grants assignable wherever the role is.
 //
 // Only permissions this build recognises are judged, so a server downgraded from
 // a newer release is not blocked by permissions it merely does not know yet —
@@ -91,9 +120,26 @@ func (s *Server) validateAdoptedSpaceSchemeRoles(scheme *model.Scheme, userTarge
 		{scheme.DefaultChannelAdminRole, false, model.SpaceAdminRolePermissions},
 		{scheme.DefaultChannelGuestRole, true, model.SpaceDefaultReadOnlyPermissions},
 	} {
-		role, err := s.Store().Role().GetByName(store.WithMaster(context.Background()), generated.roleName)
+		// GetByNamesFromMaster rather than GetByName with a master context: the
+		// role cache answers GetByName before the context is consulted, and this
+		// validation is a one-shot security check that must see the primary's row.
+		matched, err := s.Store().Role().GetByNamesFromMaster([]string{generated.roleName})
 		if err != nil {
 			return fmt.Errorf("could not query scheme role %q for scheme %q: %w", generated.roleName, scheme.Name, err)
+		}
+		if len(matched) == 0 {
+			return fmt.Errorf("scheme role %q for scheme %q has no row on the primary", generated.roleName, scheme.Name)
+		}
+		role := matched[0]
+
+		if role.DeleteAt != 0 {
+			return fmt.Errorf("scheme %q already exists and its generated role %q is deleted; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", scheme.Name, generated.roleName)
+		}
+		if !role.SchemeManaged {
+			return fmt.Errorf("scheme %q already exists and its generated role %q is not scheme-managed; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", scheme.Name, generated.roleName)
+		}
+		if role.SchemeId == nil || *role.SchemeId != scheme.Id {
+			return fmt.Errorf("scheme %q already exists and its generated role %q is not owned by it; rename or delete the conflicting scheme to proceed; this blocks the upgrade on every node, not just this one", scheme.Name, generated.roleName)
 		}
 
 		// What the seeding would have produced, which is not the global default
@@ -155,11 +201,17 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 			// The store wraps the raw duplicate-key error, so a lost HA insert
 			// race is detected by re-reading the row on the primary: a lagging
 			// replica could miss the other node's just-committed insert and
-			// fatal the boot.
-			stored, rErr := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleID)
+			// fatal the boot. GetByNamesFromMaster is the uncached primary read —
+			// GetByName is answered from the role cache before its context is
+			// consulted, so a master context would not make it fresh.
+			matched, rErr := s.Store().Role().GetByNamesFromMaster([]string{roleID})
 			if rErr != nil {
 				return fmt.Errorf("failed to create space capability role %q: %w (re-read on the primary also failed: %v)", roleID, err, rErr)
 			}
+			if len(matched) == 0 {
+				return fmt.Errorf("failed to create space capability role %q: %w (re-read on the primary found no row)", roleID, err)
+			}
+			stored := matched[0]
 
 			// A row under the reserved name is only proof the race was lost if
 			// it is the row this migration would have written.
@@ -190,10 +242,17 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 // it again from the result of a prior run — or interleaved with another
 // node's run — always lands on the same final permission set.
 func (s *Server) applySpaceSchemeRolePermissions(roleName string, target []*model.Permission, strip bool) error {
-	role, err := s.Store().Role().GetByName(store.WithMaster(context.Background()), roleName)
+	// The uncached primary read: GetByName is answered from the role cache
+	// before its context is consulted, and converging on a peer node's write
+	// needs the row the primary holds now.
+	matched, err := s.Store().Role().GetByNamesFromMaster([]string{roleName})
 	if err != nil {
 		return fmt.Errorf("could not query scheme role %q: %w", roleName, err)
 	}
+	if len(matched) == 0 {
+		return fmt.Errorf("scheme role %q has no row on the primary", roleName)
+	}
+	role := matched[0]
 
 	perms := asPermissionSet(role.Permissions)
 	changed := false

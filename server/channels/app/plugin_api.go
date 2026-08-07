@@ -63,10 +63,22 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 // reaching that write through a plugin must not skip it. App.PatchRole carries
 // only the permission blocklist, so this check is what stops the plugin path
 // from granting guest-role permissions on an unlicensed server.
+//
+// It reaches wider than the REST gate's three built-in names: a scheme's
+// generated guest role carries a unique name, so it is recognised by the scheme
+// row that references it. Matching the names alone would let a plugin edit
+// guest permissions through any team or channel scheme.
 func (api *PluginAPI) checkGuestPermissionsLicense(stored *model.Role, patch *model.RolePatch) *model.AppError {
 	isGuest := stored.Name == model.SystemGuestRoleId ||
 		stored.Name == model.TeamGuestRoleId ||
 		stored.Name == model.ChannelGuestRoleId
+	if !isGuest {
+		var appErr *model.AppError
+		isGuest, appErr = api.isGuestRoleOfNonSpaceScheme(stored)
+		if appErr != nil {
+			return appErr
+		}
+	}
 	if !isGuest {
 		return nil
 	}
@@ -82,6 +94,59 @@ func (api *PluginAPI) checkGuestPermissionsLicense(stored *model.Role, patch *mo
 		return model.NewAppError("PluginAPI.PatchRole", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 	}
 	return nil
+}
+
+// isGuestRoleOfNonSpaceScheme reports whether stored is the guest role a team
+// or ordinary channel scheme generated, which is what the guest license gate
+// covers beyond the three built-in names.
+//
+// The guest role of a scheme that governs spaces is exempt. The space guest
+// tier is core-defined — the seeding migration writes read-only guest roles on
+// every edition, below any license gate — and writing it onto a per-space
+// custom scheme belongs to the capability the custom-schemes license already
+// gates at CreateScheme. Gating it here too would refuse that write on the
+// Professional SKU, which CreateScheme's license clause deliberately admits but
+// whose license does not carry GuestAccountsPermissions. Space scope is proven
+// the way checkSpacePermissionScope proves it — a seeded preset identity, or a
+// space backing channel pointing at a scheme no ordinary channel shares — so a
+// caller cannot mint the exemption by naming or content alone.
+func (api *PluginAPI) isGuestRoleOfNonSpaceScheme(stored *model.Role) (bool, *model.AppError) {
+	if stored.SchemeId == nil || *stored.SchemeId == "" {
+		return false, nil
+	}
+	scheme, appErr := api.app.getSchemeFromMaster("PluginAPI.PatchRole", *stored.SchemeId)
+	if appErr != nil {
+		return false, appErr
+	}
+	if scheme == nil {
+		// A dangling SchemeId references no scheme, so it names no guest role.
+		return false, nil
+	}
+	if stored.Name != scheme.DefaultTeamGuestRole && stored.Name != scheme.DefaultChannelGuestRole {
+		return false, nil
+	}
+	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
+		// Only a live channel-scoped scheme can govern a space; every other
+		// scheme's guest role is gated.
+		return true, nil
+	}
+	if model.IsSpaceSchemeName(scheme.Name) {
+		return false, nil
+	}
+	count, err := api.app.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
+	if err != nil {
+		return false, model.NewAppError("PluginAPI.PatchRole", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if count > 0 {
+		governed, gErr := api.app.Srv().Store().Channel().CountNonSpaceChannelsByScheme(scheme.Id)
+		if gErr != nil {
+			return false, model.NewAppError("PluginAPI.PatchRole", "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
+		}
+		if governed == 0 {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {

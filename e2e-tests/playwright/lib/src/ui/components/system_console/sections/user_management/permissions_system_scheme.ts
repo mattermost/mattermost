@@ -83,12 +83,13 @@ export default class PermissionsSystemScheme {
     }
 
     /**
-     * Asserts the Spaces group renders every team-scoped space permission for the given role.
+     * Asserts the Spaces group renders each of the given permissions for the given role.
      * Rendering is what makes them administrable at all; whether each is checked is the scheme's
-     * current state, which the caller asserts separately.
+     * current state, which the caller asserts separately. The permissions come from the caller so
+     * the list a spec asserts against and the list looked for here cannot drift apart.
      */
-    async toHaveSpacePermissionRows(roleName: string) {
-        for (const permission of ['read_space', 'create_space', 'manage_space', 'delete_space']) {
+    async toHaveSpacePermissionRows(roleName: string, permissions: string[]) {
+        for (const permission of permissions) {
             await expect(this.getSpacePermissionCheckbox(roleName, permission)).toBeVisible();
         }
     }
@@ -106,8 +107,8 @@ export default class PermissionsSystemScheme {
      * Saves the scheme and waits for the save to settle. The button is disabled until the form is
      * dirty, so it is asserted enabled first: without an edit the click would otherwise wait out
      * its timeout on a permanently disabled button, and the settle assertion below would pass on
-     * the initial state rather than on a completed save. The button re-enables only once the role
-     * writes have come back, so waiting on it is what makes a later API read see the result.
+     * the initial state rather than on a completed save. It returns to disabled only once the role
+     * writes have come back, so waiting on that is what makes a later API read see the result.
      */
     async save() {
         const saveButton = this.container.page().getByTestId('saveSetting');

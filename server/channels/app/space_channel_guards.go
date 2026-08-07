@@ -16,6 +16,16 @@ import (
 // space's, and an ordinary channel may not take a scheme that carries space
 // authority. Callers pass the type read from the stored channel, never from the
 // caller-supplied one, which could falsely claim to be a space.
+//
+// The counts both guards read are point-in-time, not serialized with the
+// channel save that follows: two writes racing each other — one attaching the
+// scheme to an ordinary channel, one to a space — can each pass its own check
+// before either row lands, leaving the scheme governing both. That state stays
+// inert: checkSpacePermissionScope re-reads both counts on the primary before
+// any role write can turn the association into live grants, and refuses while
+// an ordinary channel shares the scheme. Turning the race into authority would
+// take a third concurrent write slipping between those counts as well, which
+// is accepted rather than serialized.
 func (a *App) checkChannelSchemeAssignment(where string, isSpace bool, schemeId *string) *model.AppError {
 	if isSpace {
 		return a.rejectUnusableSpaceScheme(where, schemeId)

@@ -13,7 +13,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -364,7 +363,7 @@ func schemeGrantsSpacePermissions(scheme *model.Scheme, rolesMap map[string]*mod
 		if !ok {
 			continue
 		}
-		if slices.ContainsFunc(role.Permissions, model.IsSpaceChannelScopedPermissionID) {
+		if hasSpaceChannelScopedPermission(role.Permissions) {
 			return true
 		}
 	}

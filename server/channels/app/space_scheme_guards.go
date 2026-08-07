@@ -155,8 +155,10 @@ func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 // The stored row has to be read to see the name the update replaces, so this
 // runs before the save on every update.
 func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
-	// The import path relies on the primary fallback: GetSchemeByName resolves
-	// the row on the primary, then hands its id straight to UpdateScheme.
+	// The import path relies on the primary fallback: GetSchemeByName re-reads
+	// on the primary when the replica has no row yet, then hands the id straight
+	// to UpdateScheme — so the stored-row read here has to reach the primary the
+	// same way, or a just-created scheme would look missing.
 	stored, appErr := a.getSchemeWithMasterFallback("UpdateScheme", scheme.Id)
 	if appErr != nil {
 		return appErr

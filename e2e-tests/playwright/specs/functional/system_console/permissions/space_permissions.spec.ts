@@ -1,9 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
 const SPACE_PERMISSIONS = ['read_space', 'create_space', 'manage_space', 'delete_space'];
+
+// The roles the System Scheme editor rewrites on save. Captured before the save and put back
+// afterwards: the editor does not patch the roles it was shown, it rebuilds every default role
+// from the aggregated All Members / Guests trees, so a save here is a server-wide write that
+// outlives this spec. Playwright shares one server across the suite (Testcontainers) or points at
+// a persistent one (external), so leaving the rewrite in place would hand sibling specs a set of
+// default roles nobody asked for.
+const REWRITTEN_ROLES = [
+    'team_user',
+    'team_guest',
+    'team_admin',
+    'system_user',
+    'channel_user',
+    'channel_guest',
+    'channel_admin',
+];
 
 /**
  * @objective Verify the team-scoped Docs space permissions are administrable in the System Scheme
@@ -21,6 +37,19 @@ const SPACE_PERMISSIONS = ['read_space', 'create_space', 'manage_space', 'delete
  * boot, so this asserts the flag rather than switching it. That holds in either mode: Testcontainers
  * (the suite owns the server) or external (PW_BASE_URL points at an already-running one).
  */
+// Snapshotted in the test and put back here, so the scheme save cannot outlive the spec.
+let rolesBeforeSave: Array<{id: string; permissions: string[]}> = [];
+
+test.afterAll(async () => {
+    if (!rolesBeforeSave.length) {
+        return;
+    }
+    const {adminClient} = await getAdminClient({skipLog: true});
+    for (const role of rolesBeforeSave) {
+        await adminClient.patchRole(role.id, {permissions: role.permissions});
+    }
+});
+
 test(
     'space permissions render in the System Scheme and survive a save',
     {tag: ['@system_console', '@permissions']},
@@ -45,12 +74,19 @@ test(
         expect(permissionsOf(before, 'team_guest')).toEqual(expect.arrayContaining(['read_space']));
         expect(permissionsOf(before, 'team_admin')).toEqual(expect.arrayContaining(['manage_space', 'delete_space']));
 
+        // Captured before anything is saved: afterAll puts these back, because the save below
+        // rewrites the whole default-role set on a server the rest of the suite shares.
+        rolesBeforeSave = (await adminClient.getRolesByNames(REWRITTEN_ROLES)).map((role) => ({
+            id: role.id,
+            permissions: role.permissions,
+        }));
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.gotoPermissionsSystemScheme();
         await systemConsolePage.permissionsSystemScheme.toBeVisible();
 
         // The rows exist, so the permissions can be administered here at all.
-        await systemConsolePage.permissionsSystemScheme.toHaveSpacePermissionRows('all_users');
+        await systemConsolePage.permissionsSystemScheme.toHaveSpacePermissionRows('all_users', SPACE_PERMISSIONS);
 
         // Toggle an unrelated permission and put it straight back. The net edit is nothing, but the
         // editor latches "unsaved changes" on any interaction, so Save becomes available — the

@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -4044,6 +4045,42 @@ func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+// TestPluginAPIChannelMemberNotificationsRejectSpaceStoreError pins that the
+// guard fails closed on an unreadable channel. The test above only exercises the
+// two answers a healthy store gives, so nothing there notices if the lookup
+// error stops being propagated — and dropping it would let every notify-prop
+// write through whenever the lookup fails, which is the opposite of the guard's
+// documented behavior.
+func TestPluginAPIChannelMemberNotificationsRejectSpaceStoreError(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+	api := th.SetupPluginAPI()
+
+	channelID, userID := model.NewId(), model.NewId()
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockChannelStore := storemocks.ChannelStore{}
+	mockChannelStore.On("GetChannelOfType", mock.Anything, channelID, model.ChannelTypeSpace).
+		Return(nil, errors.New("connection reset"))
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	notifications := map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+	_, appErr := api.UpdateChannelMemberNotifications(channelID, userID, notifications)
+	require.NotNil(t, appErr, "an unreadable channel must refuse the write, not let it through")
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	appErr = api.PatchChannelMembersNotifications(
+		[]*model.ChannelMemberIdentifier{{ChannelId: channelID, UserId: userID}},
+		notifications,
+	)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	// The guard refused ahead of the write, so nothing reached the notify-prop update.
+	mockChannelStore.AssertNotCalled(t, "UpdateMemberNotifyProps", mock.Anything, mock.Anything, mock.Anything)
+}
+
 func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4569,6 +4606,90 @@ func TestPluginAPIPatchRoleGuestLicenseGate(t *testing.T) {
 				assert.Equal(t, permissions, updated.Permissions)
 			})
 		}
+	})
+
+	// A scheme's generated guest role carries a unique name, so the gate
+	// recognises it by the scheme row that references it — the three built-in
+	// names alone would let a plugin edit guest permissions through any team or
+	// channel scheme.
+	t.Run("scheme-generated guest roles are gated like the built-ins", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		// Store-direct, below the licensed CreateScheme path: the license gate
+		// under test must be the only thing standing between the plugin and
+		// the write.
+		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: "team scheme",
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		for _, roleName := range []string{scheme.DefaultTeamGuestRole, scheme.DefaultChannelGuestRole} {
+			role, appErr := api.GetRoleByName(roleName)
+			require.Nil(t, appErr)
+
+			updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
+			require.NotNil(t, appErr, "guest role %q must be gated", roleName)
+			assert.Nil(t, updated)
+			assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		}
+
+		// The scheme's user role shares the SchemeId; only the guest
+		// references are gated.
+		userRole, appErr := api.GetRoleByName(scheme.DefaultChannelUserRole)
+		require.Nil(t, appErr)
+		permissions := []string{model.PermissionAddReaction.Id}
+		updated, appErr := api.PatchRole(userRole.Id, &model.RolePatch{Permissions: &permissions})
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+	})
+
+	t.Run("channel scheme guest role without a space is gated", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: "channel scheme",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.NoError(t, err)
+
+		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+
+		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
+	})
+
+	t.Run("space scheme guest role is exempt from the guest gate", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: "pooled space scheme",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.NoError(t, err)
+		saveSpaceChannelWithScheme(t, th, scheme.Id)
+
+		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+
+		// The pooled-scheme guest baseline the consumer plugin writes: exactly
+		// the read permission. Unlicensed, and still allowed — the space guest
+		// tier is core-defined, not the licensed guest-permission capability.
+		permissions := []string{model.PermissionReadPage.Id}
+		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &permissions})
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+		assert.Equal(t, permissions, updated.Permissions)
 	})
 
 	t.Run("non-guest role is unaffected by the guest license gate in every license state", func(t *testing.T) {

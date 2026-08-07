@@ -142,10 +142,12 @@ func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName str
 
 // checkSpacePermissionScope rejects a role write that adds any channel-scoped
 // space permission (the six page operations and admin_space) to a role whose
-// scheme does not govern a space, which a seeded preset name or a space backing
-// channel pointing at the scheme proves; system_admin is the single exception.
-// The guard governs PatchRole and UpdateRole only; migration seeding writes to the
-// store directly, below it.
+// scheme does not govern a space, which only a space backing channel pointing
+// at the scheme proves; system_admin is the single exception. The space
+// capability roles and the roles generated for the seeded preset schemes are
+// frozen outright, in both directions — changing either is a code plus
+// migration change, never a runtime role write. The guard governs PatchRole and
+// UpdateRole only; migration seeding writes to the store directly, below it.
 //
 // Deliberately not gated on the docs feature flag. The permissions, roles and
 // preset schemes are seeded unconditionally at boot, so a grant planted while
@@ -166,15 +168,45 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 	}
 
+	// The scheme is resolved ahead of the add diff because a role generated for
+	// a seeded preset is frozen the same way the capability roles are: every
+	// space pointing at the preset shares its generated roles, and the seeding
+	// migration never repairs a drifted one — its completion key short-circuits
+	// the next boot. Waiting for the diff would accept a write that only
+	// removes a grant, or one that changes nothing the diff watches, such as
+	// clearing SchemeManaged. The read prices every scheme-role write at one
+	// primary lookup; those writes are all sysconsole-, import- or
+	// plugin-gated and low frequency.
+	var scheme *model.Scheme
+	if role.SchemeId != nil && *role.SchemeId != "" {
+		// A store failure is not a scope violation; reporting it as one would
+		// tell the caller their role is malformed when the database is simply
+		// unreachable. Both outcomes refuse the write.
+		var appErr *model.AppError
+		scheme, appErr = a.getSchemeFromMaster("checkSpacePermissionScope", *role.SchemeId)
+		if appErr != nil {
+			return appErr
+		}
+		// The same identity isSeededSpaceScheme tests: a reserved name outside
+		// channel scope is a squatter's row, not a preset, and a deleted row's
+		// roles are refused space authority by the deleted-scheme branch below.
+		if scheme != nil && scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name) {
+			return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_preset_role.app_error",
+				map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+		}
+	}
+
 	added := spacePermissionAddDiff(role.Permissions, stored)
 	if len(added) == 0 {
 		// A write that adds nothing can still change what the grants already on
-		// the role are worth. The acceptance guards admit a non-scheme-managed
-		// role on its name alone and know only the five capability names, so a
-		// scheme-generated space role that keeps its grants while dropping
-		// SchemeManaged becomes assignable as an arbitrary explicit user, team or
-		// ordinary channel role. Its authority comes from the scheme, so it has to
-		// stay scheme-managed for as long as it holds the grants.
+		// the role are worth. The explicit-role write paths — UpdateChannelMemberRoles,
+		// UpdateTeamMemberRoles, UpdateUserRoles and the bulk-import member writes,
+		// rejectSpaceCapabilityRoleOutsideSpace's callers — admit a
+		// non-scheme-managed role on its name alone and match capability roles only
+		// by the five fixed names, so a scheme-generated space role that keeps its
+		// grants while dropping SchemeManaged becomes assignable as an arbitrary
+		// explicit user, team or ordinary channel role. Its authority comes from the
+		// scheme, so it has to stay scheme-managed for as long as it holds the grants.
 		//
 		// Built-ins are exempt: they carry a reserved name those same guards match
 		// on, so one never becomes freely assignable this way, and a grant already
@@ -203,13 +235,6 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 	}
 
 	if role.SchemeId != nil && *role.SchemeId != "" {
-		// A store failure is not a scope violation; reporting it as one would tell
-		// the caller their role is malformed when the database is simply
-		// unreachable. Both outcomes refuse the write.
-		scheme, appErr := a.getSchemeFromMaster("checkSpacePermissionScope", *role.SchemeId)
-		if appErr != nil {
-			return appErr
-		}
 		if scheme == nil || scheme.DeleteAt != 0 {
 			// Fail closed: neither an unresolvable scheme nor a deleted one can
 			// prove space scope. The read carries no DeleteAt filter, and a deleted
@@ -222,11 +247,10 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		// a channel scheme hand its roles space authority. The scheme has to
 		// prove it governs a space.
 		//
-		// Two proofs, both unforgeable. A seeded preset name is one: the names
-		// are reserved, so no caller can mint or rename into them. A space
-		// backing channel already pointing at the scheme is the other, and it
-		// is what a per-space custom scheme presents — a name cannot be that
-		// proof, because the caller chooses it. A scheme must therefore already
+		// The one proof left is a space backing channel already pointing at the
+		// scheme, which is what a per-space custom scheme presents — a name
+		// cannot be that proof, because the caller chooses it, and the reserved
+		// preset names were frozen out above. A scheme must therefore already
 		// be attached to a space before its roles can take space permissions; a
 		// role write that arrives first is rejected.
 		//
@@ -236,10 +260,6 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		// channel-scoped path, so the scheme stays channel-scoped and the proof
 		// moves here instead.
 		if scheme.Scope == model.SchemeScopeChannel {
-			if model.IsSpaceSchemeName(scheme.Name) {
-				return nil
-			}
-
 			count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(*role.SchemeId)
 			if cErr != nil {
 				return model.NewAppError("checkSpacePermissionScope", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
@@ -258,6 +278,20 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 					return model.NewAppError("checkSpacePermissionScope", "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
 				}
 				if governed == 0 {
+					// The proof accepts the write only for a role that stays
+					// scheme-managed. That closes the one-write gap the
+					// metadata branch above cannot see: a save that both adds
+					// a grant and clears SchemeManaged — reachable through
+					// importRole, the sole role write whose SchemeManaged is
+					// caller-controlled — would otherwise ride the proof to an
+					// accept and land as a freely assignable role holding
+					// space grants. Tested at the accept, not ahead of it, so
+					// every rejection here still reports the scope violation
+					// that actually stopped it.
+					if !role.SchemeManaged {
+						return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_role_scheme_managed.app_error",
+							map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+					}
 					return nil
 				}
 			}
