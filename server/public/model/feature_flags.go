@@ -34,11 +34,7 @@ type FeatureFlags struct {
 
 	MoveThreadsEnabled bool
 
-	CloudDedicatedExportUI bool
-
 	NotificationMonitoring bool
-
-	CustomProfileAttributes bool
 
 	// Mask non-held attribute values in the policy editor for delegated admins.
 	AttributeValueMasking bool
@@ -119,6 +115,9 @@ type FeatureFlags struct {
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
 
+	// Gates the Post Attributes feature (post_attributes property group).
+	PostAttributes bool
+
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
 	// non-members find a private channel in Browse Channels and request to join it.
@@ -148,6 +147,10 @@ type FeatureFlags struct {
 
 	// Enable React concurrent rendering
 	EnableConcurrentReact bool
+
+	// Enable verifying plugin signatures against the MFI public key, in addition to the
+	// existing hard-coded Mattermost public key and any admin-configured public keys.
+	EnableMFIPluginSignaturePublicKey bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -161,12 +164,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
-	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
-	f.TeamMembershipAccessControl = false
+	f.TeamMembershipAccessControl = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -199,6 +200,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.SessionAttributes = false
 
+	f.PostAttributes = false
+
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
@@ -210,6 +213,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 
 	f.EnableConcurrentReact = false
+
+	f.EnableMFIPluginSignaturePublicKey = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
