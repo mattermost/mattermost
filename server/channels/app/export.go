@@ -168,7 +168,7 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 	}
 
 	rctx.Logger().Info("Bulk export: exporting bots")
-	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures, opts.TeamName, opts.ChannelName)
+	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures, opts.IncludeArchivedChannels, opts.TeamName, opts.ChannelName)
 	if appErr != nil {
 		return appErr
 	}
@@ -529,7 +529,7 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 	// so the importer can resolve post authorship.
 	postAuthorIDs := make(map[string]bool)
 	if teamNameFilter != "" {
-		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter)
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter, includeArchivedChannels)
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.post.get_author_ids_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -556,7 +556,7 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 		for _, id := range ids {
 			channelMemberIDs[id] = true
 		}
-		authorIDs, err := a.Srv().Store().Post().GetPostAuthorIDsForChannel(teamNameFilter, destinationChannel)
+		authorIDs, err := a.Srv().Store().Post().GetPostAuthorIDsForChannel(teamNameFilter, destinationChannel, includeArchivedChannels)
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.post.get_author_ids_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -703,7 +703,7 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 	return profilePictures, nil
 }
 
-func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool, teamNameFilter string, channelNameFilter string) ([]string, *model.AppError) {
+func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool, includeArchivedChannels bool, teamNameFilter string, channelNameFilter string) ([]string, *model.AppError) {
 	afterId := ""
 	cnt := 0
 	profilePictures := []string{}
@@ -711,7 +711,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 	// For scoped exports, only include bots that authored posts in the target scope.
 	var botAuthorIDs map[string]bool
 	if channelNameFilter != "" {
-		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForChannel(teamNameFilter, channelNameFilter)
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForChannel(teamNameFilter, channelNameFilter, includeArchivedChannels)
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllBots", "app.post.get_author_ids_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -720,7 +720,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 			botAuthorIDs[id] = true
 		}
 	} else if teamNameFilter != "" {
-		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter)
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter, includeArchivedChannels)
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllBots", "app.post.get_author_ids_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
