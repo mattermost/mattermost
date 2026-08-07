@@ -167,7 +167,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 production_warning: {
                     isEnabled: it.stateIsTrue('LdapSettings.SkipCertificateVerification'),
                     title: defineMessage({id: 'admin.ldap.skipCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
-                    text: defineMessage({id: 'admin.ldap.skipCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the AD/LDAP server's TLS certificate, exposing the connection to man-in-the-middle attacks. Enable only while troubleshooting."}),
+                    text: defineMessage({id: 'admin.ldap.skipCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the AD/LDAP server's TLS certificate, exposing the connection to man-in-the-middle attacks. Enable only while troubleshooting in non-production environments."}),
                 },
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),

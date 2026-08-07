@@ -2264,7 +2264,7 @@ const AdminDefinition: AdminDefinitionType = {
                             production_warning: {
                                 isEnabled: it.stateIsTrue('ServiceSettings.EnableDeveloper'),
                                 title: defineMessage({id: 'admin.service.developerProductionWarning.title', defaultMessage: 'Developer mode is not recommended for production environments'}),
-                                text: defineMessage({id: 'admin.service.developerProductionWarning.text', defaultMessage: 'Developer mode surfaces JavaScript errors in the UI and relaxes webapp restrictions. Enable only in development environments.'}),
+                                text: defineMessage({id: 'admin.service.developerProductionWarning.text', defaultMessage: 'Developer mode surfaces JavaScript errors in the UI and relaxes web app restrictions. Enable only in development environments.'}),
                             },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
@@ -4546,7 +4546,7 @@ const AdminDefinition: AdminDefinitionType = {
                             production_warning: {
                                 isEnabled: it.stateIsFalse('SamlSettings.Verify'),
                                 title: defineMessage({id: 'admin.saml.verifyProductionWarning.title', defaultMessage: 'Disabling verification is not recommended for production environments'}),
-                                text: defineMessage({id: 'admin.saml.verifyProductionWarning.text', defaultMessage: 'Without verification, forged SAML responses can authenticate as any user. Disable only while troubleshooting your SAML setup.'}),
+                                text: defineMessage({id: 'admin.saml.verifyProductionWarning.text', defaultMessage: 'Without verification, forged SAML responses can authenticate as any user. Disable only while troubleshooting your SAML setup in non-production environments.'}),
                             },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
@@ -4597,7 +4597,7 @@ const AdminDefinition: AdminDefinitionType = {
                             production_warning: {
                                 isEnabled: it.stateIsFalse('SamlSettings.Encrypt'),
                                 title: defineMessage({id: 'admin.saml.encryptProductionWarning.title', defaultMessage: 'Disabling encryption is not recommended for production environments'}),
-                                text: defineMessage({id: 'admin.saml.encryptProductionWarning.text', defaultMessage: 'Without encryption, SAML assertions are sent in plain text and may expose user attributes. Disable only while troubleshooting your SAML setup.'}),
+                                text: defineMessage({id: 'admin.saml.encryptProductionWarning.text', defaultMessage: 'Without encryption, SAML assertions are sent in plain text and may expose user attributes. Disable only while troubleshooting your SAML setup in non-production environments.'}),
                             },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
