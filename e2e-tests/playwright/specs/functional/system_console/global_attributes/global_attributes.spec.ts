@@ -438,9 +438,13 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // one, so "E2E ..." would actually slugify to "e2_e_..." (verified against
             // slugifyForCEL directly), not the naively-expected "e2e_...". "Playwright"
             // has no internal case/digit boundary, so its derived slug is unambiguous.
+            // The prefix is kept short on purpose: the Unique name input is capped at
+            // Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH (40), and a 13-digit Date.now()
+            // leaves only 27 characters for everything before it. A longer prefix derives
+            // a silently truncated slug that no longer matches the expectation below.
             const timestamp = Date.now();
-            const displayName = `Playwright Created Attribute ${timestamp}`;
-            const expectedName = `playwright_created_attribute_${timestamp}`;
+            const displayName = `Playwright Attr ${timestamp}`;
+            const expectedName = `playwright_attr_${timestamp}`;
 
             try {
                 // # Log in and open the Manage Attributes page
@@ -683,8 +687,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Select Attribute ${timestamp}`;
-            const expectedName = `playwright_select_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Select ${timestamp}`;
+            const expectedName = `playwright_select_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -738,8 +743,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Ranked Attribute ${timestamp}`;
-            const expectedName = `playwright_ranked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Ranked ${timestamp}`;
+            const expectedName = `playwright_ranked_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -824,8 +830,11 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright LDAP Linked Attribute ${timestamp}`;
-            const expectedName = `playwright_ldap_linked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above.
+            // This one only uses expectedName for cleanup, so an over-long prefix leaked the
+            // created field onto the shared server instead of failing loudly.
+            const displayName = `Playwright Ldap ${timestamp}`;
+            const expectedName = `playwright_ldap_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -869,8 +878,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Dual Linked Attribute ${timestamp}`;
-            const expectedName = `playwright_dual_linked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Dual ${timestamp}`;
+            const expectedName = `playwright_dual_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
