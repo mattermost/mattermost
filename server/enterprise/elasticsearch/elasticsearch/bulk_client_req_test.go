@@ -4,6 +4,7 @@
 package elasticsearch
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -251,4 +252,77 @@ func TestStop(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, bulkClient.pendingRequests)
 	})
+
+	t.Run("stop with periodic flusher after a successful pending flush", func(t *testing.T) {
+		bulkClient := setupReqBulkClientWithHandler(t, http.StatusOK, 100*time.Millisecond)
+
+		post := createTestPost(t, "test message")
+		err := bulkClient.IndexOp(types.IndexOperation{
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
+		}, post)
+		require.NoError(t, err)
+		require.Equal(t, 1, bulkClient.pendingRequests)
+
+		err = bulkClient.Stop()
+		require.NoError(t, err)
+		require.Equal(t, 0, bulkClient.pendingRequests)
+		assertFlusherStopped(t, bulkClient)
+	})
+
+	t.Run("stop with periodic flusher after a failed pending flush", func(t *testing.T) {
+		bulkClient := setupReqBulkClientWithHandler(t, http.StatusInternalServerError, 100*time.Millisecond)
+
+		post := createTestPost(t, "test message")
+		err := bulkClient.IndexOp(types.IndexOperation{
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
+		}, post)
+		require.NoError(t, err)
+		require.Equal(t, 1, bulkClient.pendingRequests)
+
+		err = bulkClient.Stop()
+		require.Error(t, err)
+		require.Equal(t, 1, bulkClient.pendingRequests)
+		assertFlusherStopped(t, bulkClient)
+	})
+}
+
+func setupReqBulkClientWithHandler(t *testing.T, status int, flushInterval time.Duration) *ReqBulkClient {
+	t.Helper()
+
+	th := api4.SetupEnterprise(t)
+	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.WriteHeader(status)
+		if status == http.StatusOK {
+			_, _ = w.Write([]byte(`{"errors":false,"items":[]}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"error":{"type":"test_error","reason":"bulk request failed"},"status":500}`))
+	}))
+
+	bulkClient, err := NewReqBulkClient(
+		common.BulkSettings{
+			FlushBytes:    0,
+			FlushInterval: flushInterval,
+			FlushNumReqs:  10,
+		},
+		client,
+		time.Duration(*th.App.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
+		th.Server.Platform().Log())
+	require.NoError(t, err)
+
+	return bulkClient
+}
+
+func assertFlusherStopped(t *testing.T, bulkClient *ReqBulkClient) {
+	t.Helper()
+
+	select {
+	case <-bulkClient.quitFlusher:
+	default:
+		t.Fatal("periodic flusher was not stopped")
+	}
 }
