@@ -6047,6 +6047,8 @@
   "more_channels.create": "Create New Channel",
   "more_channels.discoverable": "Discoverable",
   "more_channels.discoverable.aria": "Discoverable private channel",
+  "more_channels.hide_archived": "Hide Archived",
+  "more_channels.hide_archived_channels": "Hide archived channels",
   "more_channels.hide_joined": "Hide Joined",
   "more_channels.hide_joined_channels": "Hide joined channels",
   "more_channels.joined": "Joined",
