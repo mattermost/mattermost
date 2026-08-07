@@ -27,7 +27,7 @@ const NonProductionLicenseAnnouncementBar: React.FC = () => {
             message={
                 <FormattedMessage
                     id='announcement_bar.non_production_license.message'
-                    defaultMessage='Developer key — not for use in production environments.'
+                    defaultMessage='Non-production license. Test or staging use only.'
                 />
             }
             icon={<AlertOutlineIcon size={16}/>}

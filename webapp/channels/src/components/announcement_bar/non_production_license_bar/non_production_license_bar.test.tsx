@@ -26,7 +26,7 @@ describe('components/announcement_bar/NonProductionLicenseAnnouncementBar', () =
         );
 
         expect(container.querySelector('.announcement-bar')).not.toBeNull();
-        expect(container.textContent).toContain('Developer key — not for use in production environments.');
+        expect(container.textContent).toContain('Non-production license. Test or staging use only.');
     });
 
     it('should not show banner when license is not non-production', () => {
