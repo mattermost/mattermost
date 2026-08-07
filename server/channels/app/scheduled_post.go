@@ -12,11 +12,27 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// recurringScheduledPostsEnabled reports whether users may create or keep scheduling recurring
+// scheduled posts. Recurring posts ride on the regular scheduled posts setting and license, plus
+// their own rollout feature flag. Existing recurring posts keep being sent by the job regardless.
+func (a *App) recurringScheduledPostsEnabled() bool {
+	config := a.Config()
+	return config.FeatureFlags.RecurringScheduledPosts && *config.ServiceSettings.ScheduledPosts && a.License() != nil
+}
+
+func recurringScheduledPostsDisabledError(where string) *model.AppError {
+	return model.NewAppError(where, "app.scheduled_post.recurring_disabled.app_error", nil, "", http.StatusBadRequest)
+}
+
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreSave()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
 		return nil, validationErr
+	}
+
+	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone && !a.recurringScheduledPostsEnabled() {
+		return nil, recurringScheduledPostsDisabledError("App.SaveScheduledPost")
 	}
 
 	// validate the channel is not archived
@@ -78,6 +94,12 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	scheduledPost.PreUpdate()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
 		return nil, validationErr
+	}
+
+	// Only turning recurrence on is blocked; turning it off must stay possible so users can
+	// clean up series created while the flag was on.
+	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone && !a.recurringScheduledPostsEnabled() {
+		return nil, recurringScheduledPostsDisabledError("App.UpdateScheduledPost")
 	}
 
 	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)

@@ -4,7 +4,7 @@
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getScheduledPostTeamId} from './scheduled_posts';
+import {getScheduledPostTeamId, isRecurringScheduledPostsEnabled} from './scheduled_posts';
 
 describe('getScheduledPostTeamId', () => {
     const scheduledPost = {id: 'post1', channel_id: 'channel1'} as ScheduledPost;
@@ -36,5 +36,41 @@ describe('getScheduledPostTeamId', () => {
     it('should return undefined when the channel is not loaded and no bucket holds the post', () => {
         const state = makeState({}, {team2: ['other']});
         expect(getScheduledPostTeamId(state, scheduledPost)).toBeUndefined();
+    });
+});
+
+describe('isRecurringScheduledPostsEnabled', () => {
+    function makeState(scheduledPosts: string, featureFlag: string, isLicensed: string): GlobalState {
+        return {
+            entities: {
+                general: {
+                    config: {
+                        ScheduledPosts: scheduledPosts,
+                        FeatureFlagRecurringScheduledPosts: featureFlag,
+                    },
+                    license: {IsLicensed: isLicensed},
+                },
+            },
+        } as unknown as GlobalState;
+    }
+
+    it('should be enabled only when scheduled posts, the license and the feature flag all allow it', () => {
+        expect(isRecurringScheduledPostsEnabled(makeState('true', 'true', 'true'))).toBe(true);
+        expect(isRecurringScheduledPostsEnabled(makeState('false', 'true', 'true'))).toBe(false);
+        expect(isRecurringScheduledPostsEnabled(makeState('true', 'false', 'true'))).toBe(false);
+        expect(isRecurringScheduledPostsEnabled(makeState('true', 'true', 'false'))).toBe(false);
+    });
+
+    it('should be disabled when the feature flag is missing from the config', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {ScheduledPosts: 'true'},
+                    license: {IsLicensed: 'true'},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(isRecurringScheduledPostsEnabled(state)).toBe(false);
     });
 });

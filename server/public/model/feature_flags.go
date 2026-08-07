@@ -148,6 +148,12 @@ type FeatureFlags struct {
 
 	// Enable React concurrent rendering
 	EnableConcurrentReact bool
+
+	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
+	// Gates weekly recurring scheduled posts: when off, the app layer rejects creating a
+	// recurring scheduled post or converting an existing one-shot post to recurring, and the
+	// webapp hides the "Repeat weekly" option. Already-recurring posts keep being sent.
+	RecurringScheduledPosts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -210,6 +216,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 
 	f.EnableConcurrentReact = false
+
+	f.RecurringScheduledPosts = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

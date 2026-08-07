@@ -6,7 +6,7 @@ import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedul
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getTeamIdByChannelId} from 'mattermost-redux/selectors/entities/teams';
 
 const emptyList: string[] = [];
@@ -98,5 +98,16 @@ export const isScheduledPostsEnabled: (a: GlobalState) => boolean = createSelect
     getLicense,
     (config: Partial<ClientConfig>, license: ClientLicense): boolean => {
         return config.ScheduledPosts === 'true' && license.IsLicensed === 'true';
+    },
+);
+
+// Recurring scheduled posts ride on the regular scheduled posts setting and license, plus their
+// own rollout feature flag.
+export const isRecurringScheduledPostsEnabled: (a: GlobalState) => boolean = createSelector(
+    'isRecurringScheduledPostsEnabled',
+    isScheduledPostsEnabled,
+    (state: GlobalState) => getFeatureFlagValue(state, 'RecurringScheduledPosts'),
+    (scheduledPostsEnabled: boolean, featureFlagValue: string | undefined): boolean => {
+        return scheduledPostsEnabled && featureFlagValue === 'true';
     },
 );

@@ -26,6 +26,8 @@ const (
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
+	// Intentionally not gated on FeatureFlags.RecurringScheduledPosts: existing recurring rows
+	// keep sending and advancing even after the flag is turned off.
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return
 	}

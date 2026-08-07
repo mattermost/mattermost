@@ -11,6 +11,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {testingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isRecurringScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -43,7 +44,11 @@ export default function ScheduledPostCustomTimeModal({
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
-    const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
+    const recurringEnabled = useSelector(isRecurringScheduledPostsEnabled);
+    const [repeatWeeklyChecked, setRepeatWeeklyChecked] = useState(initialRepeatWeekly);
+
+    // While recurring posts are off, an existing weekly repeat is ignored, so confirming clears it.
+    const repeatWeekly = recurringEnabled && repeatWeeklyChecked;
     const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
@@ -88,27 +93,29 @@ export default function ScheduledPostCustomTimeModal({
     const bodySuffix = useMemo(() => {
         return (
             <>
-                <div className='ScheduledPostCustomTimeModal__repeat'>
-                    <input
-                        id='scheduled_post_repeat_weekly'
-                        type='checkbox'
-                        checked={repeatWeekly}
-                        onChange={(e) => setRepeatWeekly(e.target.checked)}
-                    />
-                    <label htmlFor='scheduled_post_repeat_weekly'>
-                        <FormattedMessage
-                            id='schedule_post.custom_time_modal.repeat_weekly'
-                            defaultMessage='Repeat weekly'
+                {recurringEnabled && (
+                    <div className='ScheduledPostCustomTimeModal__repeat'>
+                        <input
+                            id='scheduled_post_repeat_weekly'
+                            type='checkbox'
+                            checked={repeatWeekly}
+                            onChange={(e) => setRepeatWeeklyChecked(e.target.checked)}
                         />
-                    </label>
-                </div>
+                        <label htmlFor='scheduled_post_repeat_weekly'>
+                            <FormattedMessage
+                                id='schedule_post.custom_time_modal.repeat_weekly'
+                                defaultMessage='Repeat weekly'
+                            />
+                        </label>
+                    </div>
+                )}
                 <DMUserTimezone
                     channelId={channelId}
                     selectedTime={selectedDateTime?.toDate()}
                 />
             </>
         );
-    }, [channelId, selectedDateTime, repeatWeekly]);
+    }, [channelId, selectedDateTime, recurringEnabled, repeatWeekly]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
