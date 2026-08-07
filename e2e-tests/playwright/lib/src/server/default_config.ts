@@ -14,7 +14,7 @@ import type {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
-import {CollapsedThreads} from '@mattermost/types/config';
+import {CollapsedThreads, TimestampFormat} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -769,6 +769,8 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
+        DateTimeDisplayFormat: TimestampFormat.STANDARD,
+        ShowTimestampSeconds: false,
     },
     GuestAccountsSettings: {
         Enable: false,

@@ -39,6 +39,8 @@ export type ClientConfig = {
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionHours: string;
     DataRetentionMessageRetentionHours: string;
+    DateTimeDisplayFormat: TimestampFormat;
+    ShowTimestampSeconds: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -1024,6 +1026,8 @@ export type PluginSettings = {
 export type DisplaySettings = {
     CustomURLSchemes: string[];
     MaxMarkdownNodes: number;
+    DateTimeDisplayFormat: TimestampFormat;
+    ShowTimestampSeconds: boolean;
 };
 
 export type GuestAccountsSettings = {
@@ -1194,6 +1198,12 @@ export enum CollapsedThreads {
     DEFAULT_ON = 'default_on',
     DEFAULT_OFF = 'default_off',
     ALWAYS_ON = 'always_on',
+}
+
+export enum TimestampFormat {
+    STANDARD = 'standard',
+    RELATIVE = 'relative',
+    DATE_AND_TIME = 'date_and_time',
 }
 
 export enum ServiceEnvironment {

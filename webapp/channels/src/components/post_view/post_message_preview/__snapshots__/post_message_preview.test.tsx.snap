@@ -55,7 +55,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
@@ -148,7 +148,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
@@ -241,7 +241,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
@@ -334,7 +334,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
@@ -427,7 +427,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
@@ -522,7 +522,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
                   class="post-preview__time"
                   datetime="2020-01-15T12:00:00.000"
                 >
-                  January 15, 2020
+                  Jan 15 2020, 12:00 PM
                 </time>
               </div>
             </div>
