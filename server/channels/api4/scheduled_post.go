@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -177,8 +178,25 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.SetInvalidParamWithErr("schedule_post", err)
+		return
+	}
+
 	var scheduledPost model.ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
+	if err := json.Unmarshal(body, &scheduledPost); err != nil {
+		c.SetInvalidParamWithErr("schedule_post", err)
+		return
+	}
+
+	// Clients that predate recurring scheduled posts omit the repeat fields entirely, so an
+	// absent repeat_type has to preserve the existing recurrence rather than end the series.
+	// Sending an explicit, empty repeat_type remains the way to stop repeating.
+	var rawPayload struct {
+		RepeatType json.RawMessage `json:"repeat_type"`
+	}
+	if err := json.Unmarshal(body, &rawPayload); err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
 		return
 	}
@@ -205,6 +223,11 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if existingScheduledPost.UserId != userId {
 		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.update_permission.error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	if rawPayload.RepeatType == nil {
+		scheduledPost.RepeatType = existingScheduledPost.RepeatType
+		scheduledPost.RepeatTimezone = existingScheduledPost.RepeatTimezone
 	}
 
 	if len(scheduledPost.FileIds) > 0 {
