@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {ServerChannel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import {Client4} from 'mattermost-redux/client';
@@ -12,7 +12,9 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 
 import ChannelMultiSelector from './channel_multiselector';
 
-function makeChannel(id: string, displayName: string, teamId = 'team1'): Channel {
+// Returns a ServerChannel, the shape Client4.getChannel resolves to. It is a superset of
+// Channel, so the same factory also serves the search-result mocks.
+function makeChannel(id: string, displayName: string, teamId = 'team1'): ServerChannel {
     return {
         id,
         display_name: displayName,
@@ -20,7 +22,9 @@ function makeChannel(id: string, displayName: string, teamId = 'team1'): Channel
         type: 'O',
         team_id: teamId,
         delete_at: 0,
-    } as Channel;
+        total_msg_count: 0,
+        total_msg_count_root: 0,
+    } as ServerChannel;
 }
 
 function makeTeam(id: string, displayName: string): Team {
@@ -83,9 +87,12 @@ describe('ChannelMultiSelector', () => {
     });
 
     test('should render an unresolved pill and keep the id when a channel cannot be fetched', async () => {
-        getChannel.mockImplementation((channelId: string) => (channelId === 'deletedchannel' ?
-            Promise.reject(new Error('not found')) :
-            Promise.resolve(makeChannel(channelId, `Channel ${channelId}`))));
+        getChannel.mockImplementation((channelId: string) => {
+            if (channelId === 'deletedchannel') {
+                return Promise.reject(new Error('not found'));
+            }
+            return Promise.resolve(makeChannel(channelId, `Channel ${channelId}`));
+        });
 
         const {onChange} = renderSelector(['channel1', 'deletedchannel']);
 
@@ -102,8 +109,8 @@ describe('ChannelMultiSelector', () => {
     });
 
     test('should not drop an id that is still hydrating when a selection is made', async () => {
-        let resolveChannel: (channel: Channel) => void = () => {};
-        getChannel.mockImplementation(() => new Promise<Channel>((resolve) => {
+        let resolveChannel: (channel: ServerChannel) => void = () => {};
+        getChannel.mockImplementation(() => new Promise<ServerChannel>((resolve) => {
             resolveChannel = resolve;
         }));
 
