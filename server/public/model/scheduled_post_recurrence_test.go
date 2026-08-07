@@ -21,6 +21,7 @@ func TestComputeNextScheduledAt(t *testing.T) {
 	t.Run("advances one week preserving wall-clock time", func(t *testing.T) {
 		scheduledPost := &ScheduledPost{
 			ScheduledAt:    base.UnixMilli(),
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: tz,
 		}
 		now := base.Add(1 * time.Minute) // just after send
@@ -39,6 +40,7 @@ func TestComputeNextScheduledAt(t *testing.T) {
 	t.Run("skips past occurrences when the post is overdue by more than a week", func(t *testing.T) {
 		scheduledPost := &ScheduledPost{
 			ScheduledAt:    base.UnixMilli(),
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: tz,
 		}
 		now := base.AddDate(0, 0, 16) // more than two weeks later
@@ -54,7 +56,19 @@ func TestComputeNextScheduledAt(t *testing.T) {
 	t.Run("returns an error for an invalid timezone", func(t *testing.T) {
 		scheduledPost := &ScheduledPost{
 			ScheduledAt:    base.UnixMilli(),
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "Not/AZone",
+		}
+
+		_, err := scheduledPost.ComputeNextScheduledAt(base.UnixMilli())
+		require.Error(t, err)
+	})
+
+	t.Run("returns an error for an unsupported repeat type", func(t *testing.T) {
+		scheduledPost := &ScheduledPost{
+			ScheduledAt:    base.UnixMilli(),
+			RepeatType:     "daily",
+			RepeatTimezone: tz,
 		}
 
 		_, err := scheduledPost.ComputeNextScheduledAt(base.UnixMilli())

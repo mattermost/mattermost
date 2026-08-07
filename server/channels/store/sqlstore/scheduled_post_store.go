@@ -48,19 +48,20 @@ func baseColumns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
+		prefix + "RepeatType",
+		prefix + "RepeatTimezone",
 	}
 }
 
+// Type is nullable, so it's kept out of baseColumns and coalesced on read.
 func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
 	prefix = normalizePrefix(prefix)
-	columns := baseColumns(prefix)
-	return append(columns, prefix+"Type", prefix+"RepeatType", prefix+"RepeatTimezone")
+	return append(baseColumns(prefix), prefix+"Type")
 }
 
 func (s *SqlScheduledPostStore) columnsForRead(prefix string) []string {
 	prefix = normalizePrefix(prefix)
-	columns := baseColumns(prefix)
-	return append(columns, "COALESCE("+prefix+"Type, '') AS Type", prefix+"RepeatType", prefix+"RepeatTimezone")
+	return append(baseColumns(prefix), "COALESCE("+prefix+"Type, '') AS Type")
 }
 
 func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []any {
@@ -78,9 +79,9 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 		scheduledPost.ScheduledAt,
 		scheduledPost.ProcessedAt,
 		scheduledPost.ErrorCode,
-		scheduledPost.Type,
 		scheduledPost.RepeatType,
 		scheduledPost.RepeatTimezone,
+		scheduledPost.Type,
 	}
 }
 
