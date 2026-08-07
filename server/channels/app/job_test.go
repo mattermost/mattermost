@@ -706,6 +706,16 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 			Type:     model.JobTypeMessageExport,
 			CreateAt: 1001,
 		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypePostPersistentNotifications,
+			CreateAt: 1002,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeDeleteExpiredPosts,
+			CreateAt: 1003,
+		},
 	}
 	testCases := []struct {
 		Job                model.Job
@@ -718,6 +728,14 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		{
 			Job:                jobs[1],
 			PermissionRequired: model.PermissionReadComplianceExportJob,
+		},
+		{
+			Job:                jobs[2],
+			PermissionRequired: model.PermissionReadJobs,
+		},
+		{
+			Job:                jobs[3],
+			PermissionRequired: model.PermissionReadJobs,
 		},
 	}
 
@@ -761,12 +779,12 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id, model.PermissionReadJobs.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
 
-	// Now system read only admin should have ability to create all jobs
+	// Now system read only admin should have ability to read all jobs
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
 		assert.Equal(t, true, hasPermission)
