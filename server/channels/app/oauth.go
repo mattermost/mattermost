@@ -1209,6 +1209,10 @@ func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId 
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if rctx.Session().IsOAuth {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.integration_session.app_error", nil, "", http.StatusForbidden)
+	}
+
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail {
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.auth_switch.not_available.email_signup_disabled.app_error", nil, "", http.StatusForbidden)
 	}
