@@ -2069,6 +2069,38 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 	return nil
 }
 
+func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
+	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+}
+
+func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+}
+
+func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
+	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+}
+
+func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
+	return api.app.DeletePluginAccessControlPolicy(api.ctx, api.id, actingUserID, resourceType, id)
+}
+
+func (api *PluginAPI) CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	return api.app.CheckPluginAccessControlExpression(api.ctx, api.id, actingUserID, resourceType, expression)
+}
+
+func (api *PluginAPI) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
+	return api.app.QueryUsersForPluginAccessControlExpression(api.ctx, api.id, actingUserID, resourceType, expression, term, cursorID, limit)
+}
+
+func (api *PluginAPI) GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	return api.app.GetPluginAccessControlFieldsAutocomplete(api.ctx, api.id, actingUserID, after, limit)
+}
+
+func (api *PluginAPI) GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
+	return api.app.GetPluginAccessControlVisualAST(api.ctx, api.id, actingUserID, resourceType, expression)
+}
+
 func (api *PluginAPI) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
 	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContextWithOptions(options), values, "", "", "")
 	if appErr != nil {
