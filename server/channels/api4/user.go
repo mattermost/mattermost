@@ -2823,6 +2823,12 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if c.AppContext.Session().IsOAuth {
+			c.SetPermissionError(model.PermissionEditOtherUsers)
+			c.Err.DetailedError += ", attempted access by oauth app"
+			return
+		}
+
 		link, err = c.App.SwitchOAuthToEmail(c.AppContext, switchRequest.Email, switchRequest.NewPassword, c.AppContext.Session().UserId)
 	} else if switchRequest.EmailToLdap() {
 		link, err = c.App.SwitchEmailToLdap(c.AppContext, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
