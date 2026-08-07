@@ -33,6 +33,7 @@ func normalizePrefix(prefix string) string {
 	return prefix
 }
 
+// Type is nullable, so it's kept out of baseColumns and coalesced on read.
 func baseColumns(prefix string) []string {
 	return []string{
 		prefix + "Id",
@@ -53,7 +54,6 @@ func baseColumns(prefix string) []string {
 	}
 }
 
-// Type is nullable, so it's kept out of baseColumns and coalesced on read.
 func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
 	prefix = normalizePrefix(prefix)
 	return append(baseColumns(prefix), prefix+"Type")
