@@ -5,6 +5,9 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -84,6 +87,87 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Zero(t, updatedScheduledPost.ProcessedAt)
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
 		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
+		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
+	})
+
+	t.Run("should preserve recurrence when the update omits the repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		// Clients that predate recurring scheduled posts leave the repeat fields out of their
+		// update payloads. Marshalling a model.ScheduledPost always emits them, so the payload
+		// has to be built by hand to reproduce what those clients send.
+		payload := fmt.Sprintf(
+			`{"id":"%s","create_at":%d,"user_id":"%s","channel_id":"%s","message":"rescheduled by an old client","scheduled_at":%d}`,
+			createdScheduledPost.Id,
+			createdScheduledPost.CreateAt,
+			th.BasicUser.Id,
+			th.BasicChannel.Id,
+			model.GetMillis()+300000,
+		)
+
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/schedule/"+createdScheduledPost.Id, payload)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, httpResp.StatusCode)
+
+		var updatedScheduledPost model.ScheduledPost
+		require.NoError(t, json.NewDecoder(httpResp.Body).Decode(&updatedScheduledPost))
+		require.NoError(t, httpResp.Body.Close())
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
+		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, "rescheduled by an old client", fetchedPost.Message)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
+		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
+	})
+
+	t.Run("should stop recurrence when the update sends empty repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		createdScheduledPost.RepeatType = model.ScheduledPostRepeatTypeNone
+		createdScheduledPost.RepeatTimezone = ""
+
+		updatedScheduledPost, _, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, updatedScheduledPost)
+		require.Empty(t, updatedScheduledPost.RepeatType)
+		require.Empty(t, updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Empty(t, fetchedPost.RepeatType)
+		require.Empty(t, fetchedPost.RepeatTimezone)
 	})
 }
 
