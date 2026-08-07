@@ -860,6 +860,13 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         min_date: f.datetime_config?.min_date ?? f.min_date,
         max_date: f.datetime_config?.max_date ?? f.max_date,
         time_interval: f.datetime_config?.time_interval ?? f.time_interval,
+        options: f.options?.map((opt) => ({text: opt.label, value: opt.value})),
+        matrix_config: f.matrix_config ? {
+            rows: f.matrix_config.rows?.map((row) => ({text: row.label, value: row.value})),
+            columns: f.matrix_config.columns?.map((col) => ({text: col.label, value: col.value})),
+            row_selection: f.matrix_config.row_selection,
+        } : undefined,
+        label_position: f.label_position,
     })) as DialogElement[];
 }
 

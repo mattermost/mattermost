@@ -17,6 +17,7 @@ type Props = {
     inputClassName?: string;
     onChange(name: string, value: any): void; // value is any since onChange is a common func for inputs and checkboxes
     autoFocus?: boolean;
+    labelPosition?: 'before' | 'after';
 };
 
 const BoolSetting = ({
@@ -30,6 +31,7 @@ const BoolSetting = ({
     inputClassName = '',
     onChange,
     autoFocus,
+    labelPosition = 'after',
 }: Props) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
@@ -39,12 +41,15 @@ const BoolSetting = ({
         <Setting
             label={label}
             labelClassName={labelClassName}
-            inputClassName={inputClassName}
+            inputClassName={`inline-choice-setting ${inputClassName}`.trim()}
             helpText={helpText}
             inputId={id}
         >
             <div className='checkbox'>
                 <label>
+                    {labelPosition === 'before' && (
+                        <span className='inline-choice-setting__text'>{placeholder}</span>
+                    )}
                     <input
                         id={id}
                         disabled={disabled}
@@ -53,7 +58,9 @@ const BoolSetting = ({
                         checked={value}
                         onChange={handleChange}
                     />
-                    <span>{placeholder}</span>
+                    {labelPosition === 'after' && (
+                        <span className='inline-choice-setting__text'>{placeholder}</span>
+                    )}
                 </label>
             </div>
         </Setting>

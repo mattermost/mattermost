@@ -1122,6 +1122,20 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		assert.True(t, result)
 	})
 
+	t.Run("should preserve internal spaces in option values", func(t *testing.T) {
+		spacedOptions := []*PostActionOptions{
+			{Text: "High risk", Value: "high risk"},
+			{Text: "Low risk", Value: "low risk"},
+		}
+
+		// A default matching an option value that legitimately contains a space
+		// must validate — the trim only strips whitespace around the comma
+		// separators, not inside a value.
+		assert.True(t, isMultiSelectDefaultInOptions("high risk", spacedOptions))
+		assert.True(t, isMultiSelectDefaultInOptions("high risk, low risk", spacedOptions))
+		assert.False(t, isMultiSelectDefaultInOptions("highrisk", spacedOptions))
+	})
+
 	t.Run("should return false for single invalid default", func(t *testing.T) {
 		result := isMultiSelectDefaultInOptions("invalid", options)
 		assert.False(t, result)
@@ -2526,6 +2540,184 @@ func TestMmBlocksContextMap(t *testing.T) {
 		got := MmBlocksContextMap(`{"unclosed":`)
 		require.NotNil(t, got)
 		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+func TestDialogElementCheckboxGroupValidation(t *testing.T) {
+	validOptions := []*PostActionOptions{
+		{Text: "Reason 1", Value: "reason_1"},
+		{Text: "Reason 2", Value: "reason_2"},
+	}
+
+	t.Run("valid checkbox_group", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Reasons",
+			Name:          "reasons",
+			Type:          "checkbox_group",
+			Options:       validOptions,
+			Default:       "reason_1,reason_2",
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group accepts default value with internal spaces", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Risk",
+			Name:        "risk",
+			Type:        "checkbox_group",
+			Options: []*PostActionOptions{
+				{Text: "High risk", Value: "high risk"},
+				{Text: "Low risk", Value: "low risk"},
+			},
+			Default: "high risk,low risk",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group rejects matrix_config", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Reasons",
+			Name:        "reasons",
+			Type:        "checkbox_group",
+			Options:     validOptions,
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: validOptions,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "matrix_config can only be used with checkbox_matrix")
+	})
+
+	t.Run("checkbox_group rejects invalid label_position on select", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Department",
+			Name:          "department",
+			Type:          "select",
+			Options:       validOptions,
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "label_position cannot be used with type")
+	})
+}
+
+func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
+	matrixConfig := &DialogMatrixConfig{
+		Rows: []*PostActionOptions{
+			{Text: "Reason 1", Value: "reason_1"},
+			{Text: "Reason 2", Value: "reason_2"},
+		},
+		Columns: []*PostActionOptions{
+			{Text: "High", Value: "high"},
+			{Text: "Severe", Value: "severe"},
+		},
+		RowSelection: DialogMatrixRowSelectionMultiple,
+	}
+
+	t.Run("valid checkbox_matrix", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high,severe;reason_2:high",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_matrix rejects colon in row value", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "bad:row"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects default column not in columns", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:nonexistent",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not in matrix_config.columns")
+	})
+
+	t.Run("checkbox_matrix rejects duplicate row in default string", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high;reason_1:severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate row")
+	})
+
+	t.Run("checkbox_matrix rejects multiple columns in one row when row_selection is single", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows:         matrixConfig.Rows,
+				Columns:      matrixConfig.Columns,
+				RowSelection: DialogMatrixRowSelectionSingle,
+			},
+			Default: "reason_1:high,severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "row_selection is single")
+	})
+
+	t.Run("checkbox_matrix rejects semicolon in row value", func(t *testing.T) {
+		// ";" separates row entries in the default string, so a row value
+		// containing it would corrupt default parsing and must be rejected.
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "a;b"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects top-level options", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Options:      matrixConfig.Rows,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
 	})
 }
 
