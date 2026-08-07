@@ -191,6 +191,13 @@ const (
 	AuditEventRemoveTeamsFromPolicy    = "removeTeamsFromPolicy"    // remove teams from data retention policy
 )
 
+// Ephemeral Mode
+const (
+	AuditEventAutoCacheCleanupRun = "autoCacheCleanupRun" // automatic cache cleanup run
+	AuditEventOfflinePurge        = "offlinePurge"        // offline purge
+	AuditEventSessionWipe         = "sessionWipe"         // session wipe
+)
+
 // Emojis
 const (
 	AuditEventCreateEmoji = "createEmoji" // create emoji
