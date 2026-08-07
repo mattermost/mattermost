@@ -138,7 +138,10 @@
         text-decoration: underline;
     }
 
-    &:disabled {
+    // aria-disabled covers Done while the typed Name is invalid -- it stays
+    // focusable (so the reason is reachable), but must read as unavailable.
+    &:disabled,
+    &[aria-disabled='true'] {
         color: rgba(var(--center-channel-color-rgb), 0.32);
         cursor: default;
 

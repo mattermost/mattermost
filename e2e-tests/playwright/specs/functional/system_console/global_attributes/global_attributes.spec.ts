@@ -511,6 +511,168 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
         });
 
         /**
+         * @objective Ensure "Done" and Enter both refuse to commit an invalid manual Unique name,
+         * so a reserved word can never be left sitting in the field, and that correcting the value
+         * unblocks the commit and lets the attribute save for real.
+         */
+        test('blocks Done and Enter while the manual Unique name is a reserved word, then commits once corrected', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // The prefix is kept short deliberately: the Unique name input is capped at
+            // Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH (40), and a 13-digit Date.now() leaves
+            // only 27 characters ahead of it. A longer prefix derives a silently truncated slug
+            // that no longer matches the expectations below.
+            const displayName = `Playwright Resv ${timestamp}`;
+            const autoDerivedName = `playwright_resv_${timestamp}`;
+            // The corrected value -- typed by appending to the rejected "for", which is how an
+            // admin would actually fix it. Still starts with a letter, so it stays a valid
+            // CEL identifier, and the timestamp keeps it unique across runs.
+            const correctedName = `for_${timestamp}`;
+
+            try {
+                // # Log in and open the create page
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(
+                    autoDerivedName,
+                );
+
+                // # Open the manual Name editor and replace the auto-derived slug with a reserved word
+                await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+                const nameInput = systemConsolePage.page.getByTestId('attributeNameInput');
+                await nameInput.fill('for');
+
+                // * The inline error appears and Done reports itself as unavailable, while staying
+                // focusable (aria-disabled, not the disabled attribute) and pointing at the reason
+                const doneLink = systemConsolePage.page.getByTestId('attributeNameEditLink');
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toContainText(
+                    'reserved word',
+                );
+                await expect(doneLink).toHaveAttribute('aria-disabled', 'true');
+                await expect(doneLink).toHaveAttribute('aria-describedby', 'attribute-unique-name-error');
+
+                // * Still reachable by keyboard -- this is the whole reason the block is expressed
+                // as aria-disabled rather than the disabled attribute, which would drop Done out
+                // of the tab order and leave a keyboard user with no way to discover why
+                await nameInput.press('Tab');
+                await expect(doneLink).toBeFocused();
+
+                // # Click Done anyway. `force` skips Playwright's own actionability checks, which
+                // treat aria-disabled as disabled and would otherwise refuse to dispatch the click
+                // -- the point of this step is that the click really does reach the handler and is
+                // rejected there, not that Playwright declined to send it.
+                await doneLink.click({force: true});
+
+                // * Rejected -- the editor is still open with the reserved word still in it,
+                // rather than the value being committed into the field behind a lingering error
+                await expect(nameInput).toBeVisible();
+                await expect(nameInput).toHaveValue('for');
+                await expect(doneLink).toHaveText('Done');
+
+                // # Press Enter, which routes through the same commit path
+                await nameInput.press('Enter');
+
+                // * Also rejected
+                await expect(nameInput).toBeVisible();
+                await expect(nameInput).toHaveValue('for');
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toContainText(
+                    'reserved word',
+                );
+
+                // # Correct the value by typing the rest of the identifier
+                await nameInput.press('End');
+                await nameInput.pressSequentially(`_${timestamp}`);
+
+                // * The error clears and Done is live again
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toHaveCount(0);
+                await expect(doneLink).not.toHaveAttribute('aria-disabled', 'true');
+
+                // # Commit with Enter this time
+                await nameInput.press('Enter');
+
+                // * Committed -- the editor closed and the corrected Name is shown
+                await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toHaveCount(0);
+                await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(correctedName);
+
+                // # Save
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * The attribute was created with the corrected Name
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-name')).toHaveText(displayName);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, correctedName);
+            }
+        });
+
+        /**
+         * @objective Ensure the blocked Done is not a dead end: an admin who has typed an invalid
+         * Unique name can still get out by clearing the field (which reverts) or by pressing
+         * Escape (which discards), without ever having to fix the value first.
+         */
+        test('leaves both escape hatches open when the manual Unique name is invalid', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // Short prefix: see the 40-char Unique name cap noted in the reserved-word test above
+            const displayName = `Playwright Esc ${timestamp}`;
+            const autoDerivedName = `playwright_esc_${timestamp}`;
+
+            // # Log in and open the create page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+            await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+            // # Escape hatch 1: clear the field. An empty Name has no validation error, so Done
+            // goes live again and applies its usual revert.
+            await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+            const nameInput = systemConsolePage.page.getByTestId('attributeNameInput');
+            await nameInput.fill('for');
+
+            const doneLink = systemConsolePage.page.getByTestId('attributeNameEditLink');
+            await expect(doneLink).toHaveAttribute('aria-disabled', 'true');
+
+            await nameInput.fill('');
+            await expect(doneLink).not.toHaveAttribute('aria-disabled', 'true');
+            await doneLink.click();
+
+            // * Exited edit mode, reverted to the auto-derived slug, no error left behind
+            await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toHaveCount(0);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(autoDerivedName);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toHaveCount(0);
+
+            // # Escape hatch 2: press Escape while the field is invalid, discarding the edit
+            await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+            await systemConsolePage.page.getByTestId('attributeNameInput').fill('for');
+            await expect(systemConsolePage.page.getByTestId('attributeNameEditLink')).toHaveAttribute(
+                'aria-disabled',
+                'true',
+            );
+            await systemConsolePage.page.getByTestId('attributeNameInput').press('Escape');
+
+            // * Exited edit mode with the reserved word discarded
+            await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toHaveCount(0);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(autoDerivedName);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameError')).toHaveCount(0);
+
+            // * Save is available again, since the Name is back to a valid auto-derived slug
+            await expect(systemConsolePage.page.getByTestId('saveSetting')).toBeEnabled();
+        });
+
+        /**
          * @objective Ensure a Select attribute can be created end-to-end with a real options
          * editor: type switch, add two options via Enter, Save is blocked until an option exists,
          * and the saved attribute shows the correct type/option count back in the list.

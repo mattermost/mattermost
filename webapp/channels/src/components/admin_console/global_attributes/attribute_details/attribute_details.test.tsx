@@ -175,6 +175,88 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
+    it('refuses to commit an invalid Name via Done or Enter, keeping the editor open', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'for');
+
+        const doneLink = screen.getByTestId('attributeNameEditLink');
+        expect(doneLink).toHaveAttribute('aria-disabled', 'true');
+        expect(doneLink).toHaveAttribute('aria-describedby', 'attribute-unique-name-error');
+
+        await userEvent.click(doneLink);
+        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
+        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
+
+        await userEvent.type(screen.getByTestId('attributeNameInput'), '{Enter}');
+        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
+        expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
+    });
+
+    it('commits the Name once the invalid value is corrected', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'for');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        expect(screen.getByTestId('attributeNameInput')).toBeInTheDocument();
+
+        await userEvent.type(nameInput, '_each');
+
+        const doneLink = screen.getByTestId('attributeNameEditLink');
+        expect(doneLink).not.toHaveAttribute('aria-disabled');
+
+        await userEvent.click(doneLink);
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('for_each');
+        expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+    });
+
+    it('lets Done through on an emptied field even after an invalid value was typed, applying the usual revert', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'for');
+        await userEvent.clear(nameInput);
+
+        // An empty field has no validation error, so Done is live again -- this
+        // is the escape hatch that keeps the blocked Done from being a trap.
+        const doneLink = screen.getByTestId('attributeNameEditLink');
+        expect(doneLink).not.toHaveAttribute('aria-disabled');
+
+        await userEvent.click(doneLink);
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+    });
+
+    it('lets Escape out of an edit session left in an invalid state', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'for{Escape}');
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+    });
+
     it('opens the Type menu showing all four types selectable, Text checked by default', async () => {
         renderComponent();
 

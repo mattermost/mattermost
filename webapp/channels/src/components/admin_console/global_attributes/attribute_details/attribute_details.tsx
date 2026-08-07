@@ -170,6 +170,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
     const nameValidationError = currentName ? validateCPAFieldName(currentName) : null;
 
+    // Kept as a primitive rather than passing nameValidationError itself into
+    // handleDoneClick's dep array -- the error object is rebuilt on every
+    // render while invalid, which would churn the callback identity needlessly.
+    const hasNameError = Boolean(nameValidationError);
+
     // Display name was typed but auto-derivation produced nothing usable (e.g.
     // a non-Latin-script or symbol-only Display name normalizes to slugifyForCEL's
     // empty-input sentinel) -- distinct from nameValidationError (which requires
@@ -177,6 +182,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // needs its own explanation rather than a silently-disabled Save button.
     const autoSlugCollapsedToEmpty = !isEditingName && !isNameManuallyEdited &&
         Boolean(displayName.trim()) && autoSlugDisplay === null;
+
+    // Done refuses to commit an invalid Name (see handleDoneClick). Surfaced as
+    // aria-disabled rather than the disabled attribute so the button stays
+    // focusable -- a keyboard user who tabs to it still lands on it and hears
+    // the reason via aria-describedby, instead of it silently vanishing from
+    // the tab order with no explanation.
+    const isDoneBlocked = isEditingName && hasNameError;
 
     const isServerNameError = errorKind === 'name_conflict' || errorKind === 'reserved_word' || errorKind === 'invalid_charset';
     let nameDescribedBy: string | undefined;
@@ -224,7 +236,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setIsEditingName(true);
     }, [autoSlugDisplay, isNameManuallyEdited, manualName]);
 
+    // Done (and Enter, which routes here) is inert while the typed Name is
+    // invalid, so a reserved word or bad charset can never be committed into
+    // the field -- the admin must fix it first. This is not a focus trap:
+    // clearing the field makes Done live again (an empty name has no
+    // validation error, and Done then applies the revert rules below), and
+    // Escape still discards the whole edit outright.
     const handleDoneClick = useCallback(() => {
+        if (hasNameError) {
+            return;
+        }
         if (manualName === '') {
             if (isNameManuallyEdited) {
                 setManualName(previousManualNameRef.current);
@@ -235,7 +256,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             setIsNameManuallyEdited(manualName !== (autoSlugDisplay ?? ''));
         }
         setIsEditingName(false);
-    }, [manualName, isNameManuallyEdited, autoSlugDisplay]);
+    }, [hasNameError, manualName, isNameManuallyEdited, autoSlugDisplay]);
 
     const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setManualName(filterCELIdentifier(e.target.value));
@@ -243,8 +264,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [markDirty]);
 
     // Escape discards whatever was typed this session and exits edit mode,
-    // as distinct from Done (which commits a non-empty value, or applies the
-    // same empty-field revert rules as clicking Done -- see handleDoneClick).
+    // as distinct from Done (which commits it -- see handleDoneClick).
+    // Deliberately NOT gated on hasNameError: Escape is the unconditional way
+    // out of an edit session, including one left in an invalid state.
     const handleCancelEdit = useCallback(() => {
         setManualName(previousManualNameRef.current);
         setIsEditingName(false);
@@ -425,6 +447,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 className='AttributeDetails__editLink'
                                                 onClick={isEditingName ? handleDoneClick : handleEditClick}
                                                 disabled={saving || disabled}
+                                                aria-disabled={isDoneBlocked || undefined}
+                                                aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
                                                 aria-label={formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
                                                 data-testid='attributeNameEditLink'
                                             >
