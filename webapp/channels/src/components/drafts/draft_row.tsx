@@ -43,7 +43,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {scheduledPostToPostDraft} from 'types/store/draft';
+import {draftHasAttachments, scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -222,7 +222,7 @@ function DraftRow({
     }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {
-        if (!channel) {
+        if (!channel || isScheduledPost) {
             return null;
         }
         return (
@@ -238,6 +238,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
+                allowRecurring={!draftHasAttachments(item)}
             />
         );
     }, [
@@ -247,6 +248,8 @@ function DraftRow({
         goToMessage,
         handleOnDelete,
         handleOnSend,
+        isScheduledPost,
+        item,
         user.id,
         onScheduleDraft,
     ]);

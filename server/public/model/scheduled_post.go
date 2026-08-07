@@ -75,6 +75,11 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 	}
 
 	if s.RepeatType == ScheduledPostRepeatTypeWeekly {
+		// Files are bound to the first post they're attached to, so later occurrences
+		// would silently send without them.
+		if len(s.FileIds) > 0 {
+			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_files.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+		}
 		if s.RepeatTimezone == "" {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 		}

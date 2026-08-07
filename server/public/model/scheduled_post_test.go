@@ -153,6 +153,43 @@ func TestScheduledPostBaseIsValid(t *testing.T) {
 		assert.Equal(t, "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", err.Id)
 	})
 
+	t.Run("weekly repeat rejects file attachments", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+				FileIds:   StringArray{NewId()},
+			},
+			Id:             NewId(),
+			ScheduledAt:    GetMillis() + 100000,
+			RepeatType:     ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "Europe/Berlin",
+		}
+		err := s.BaseIsValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.scheduled_post.is_valid.repeat_files.app_error", err.Id)
+	})
+
+	t.Run("one-shot allows file attachments", func(t *testing.T) {
+		s := ScheduledPost{
+			Draft: Draft{
+				CreateAt:  GetMillis(),
+				UpdateAt:  GetMillis(),
+				UserId:    NewId(),
+				ChannelId: NewId(),
+				Message:   "test",
+				FileIds:   StringArray{NewId()},
+			},
+			Id:          NewId(),
+			ScheduledAt: GetMillis() + 100000,
+		}
+		err := s.BaseIsValid()
+		require.Nil(t, err)
+	})
+
 	t.Run("valid weekly repeat", func(t *testing.T) {
 		s := ScheduledPost{
 			Draft: Draft{

@@ -34,6 +34,7 @@ type Props = {
     canSend: boolean;
     onSchedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     channelId: string;
+    allowRecurring: boolean;
 };
 
 function DraftActions({
@@ -45,6 +46,7 @@ function DraftActions({
     canSend,
     onSchedule,
     channelId,
+    allowRecurring,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -77,9 +79,10 @@ function DraftActions({
             dialogProps: {
                 channelId,
                 onConfirm: onSchedule,
+                allowRecurring,
             },
         }));
-    }, [channelId, dispatch, onSchedule]);
+    }, [allowRecurring, channelId, dispatch, onSchedule]);
 
     return (
         <>

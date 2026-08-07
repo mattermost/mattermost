@@ -13175,6 +13175,10 @@
     "translation": "Invalid processed at time."
   },
   {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Recurring scheduled posts cannot have file attachments."
+  },
+  {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
     "translation": "Repeat weekly scheduled posts require a valid timezone."
   },
