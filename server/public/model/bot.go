@@ -11,12 +11,20 @@ import (
 )
 
 const (
-	BotDisplayNameMaxRunes   = UserFirstNameMaxRunes
-	BotDescriptionMaxRunes   = 1024
-	BotCreatorIdMaxRunes     = KeyValuePluginIdMaxRunes // UserId or PluginId
-	BotWarnMetricBotUsername = "mattermost-advisor"
-	BotSystemBotUsername     = "system-bot"
+	BotDisplayNameMaxRunes = UserFirstNameMaxRunes
+	BotDescriptionMaxRunes = 1024
+	BotCreatorIdMaxRunes   = KeyValuePluginIdMaxRunes // UserId or PluginId
+	BotSystemBotUsername   = "system-bot"
 )
+
+// ProtectedBotUsernames is the set of system-owned bots that must not be
+// disabled. These bots back core functionality (post reminders, reports,
+// channel notifications, content review), so disabling them silently breaks
+// features for the lifetime of the installation.
+var ProtectedBotUsernames = map[string]struct{}{
+	BotSystemBotUsername:       {},
+	ContentFlaggingBotUsername: {},
+}
 
 // Bot is a special type of User meant for programmatic interactions.
 // Note that the primary key of a bot is the UserId, and matches the primary key of the

@@ -20,6 +20,10 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
 
+// System-owned bots that must not be edited or disabled from the UI. The API
+// rejects disabling them with a 403 as a backstop if this check is missed.
+const protectedBotUsernames = ['system-bot', 'content-review'];
+
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {
         return true;
@@ -307,6 +311,8 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         });
 
+        const isProtectedBot = protectedBotUsernames.includes(username);
+
         let options;
         if (ownerUsername !== 'plugin') {
             options = (
@@ -321,23 +327,27 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Create New Token'
                         />
                     </button>
-                    {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
-                        <FormattedMessage
-                            id='bots.manage.edit'
-                            defaultMessage='Edit'
-                        />
-                    </Link>
-                    {' - '}
-                    <button
-                        className='style--none color--link'
-                        onClick={this.disableBot}
-                    >
-                        <FormattedMessage
-                            id='bot.manage.disable'
-                            defaultMessage='Disable'
-                        />
-                    </button>
+                    {!isProtectedBot && (
+                        <>
+                            {' - '}
+                            <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
+                                <FormattedMessage
+                                    id='bots.manage.edit'
+                                    defaultMessage='Edit'
+                                />
+                            </Link>
+                            {' - '}
+                            <button
+                                className='style--none color--link'
+                                onClick={this.disableBot}
+                            >
+                                <FormattedMessage
+                                    id='bot.manage.disable'
+                                    defaultMessage='Disable'
+                                />
+                            </button>
+                        </>
+                    )}
                 </div>
             );
         }
@@ -482,7 +492,14 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         let managedBy;
-        if (this.props.fromApp) {
+        if (isProtectedBot) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.system'
+                    defaultMessage='Managed by Mattermost'
+                />
+            );
+        } else if (this.props.fromApp) {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.app'
