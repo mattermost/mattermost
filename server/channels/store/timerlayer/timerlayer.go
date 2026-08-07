@@ -7141,10 +7141,10 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string) ([]string, error) {
+func (s *TimerLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostAuthorIDsForChannel(teamName, channelName)
+	result, err := s.PostStore.GetPostAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7157,10 +7157,10 @@ func (s *TimerLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channe
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+func (s *TimerLayerPostStore) GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName)
+	result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

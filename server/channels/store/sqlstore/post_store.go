@@ -2751,8 +2751,12 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error) {
 	userIDs := []string{}
+	channelFilter := "AND Channels.DeleteAt = 0"
+	if includeArchivedChannels {
+		channelFilter = ""
+	}
 	err := s.GetReplica().Select(&userIDs,
 		`SELECT DISTINCT Posts.UserId
 		FROM Posts
@@ -2760,7 +2764,7 @@ func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error
 		INNER JOIN Teams ON Channels.TeamId = Teams.Id
 		WHERE Teams.Name = ?
 		  AND Posts.DeleteAt = 0
-		  AND Channels.DeleteAt = 0
+		  `+channelFilter+`
 		  AND Teams.DeleteAt = 0`,
 		teamName)
 	if err != nil {
@@ -2769,8 +2773,12 @@ func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error
 	return userIDs, nil
 }
 
-func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string) ([]string, error) {
+func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
 	userIDs := []string{}
+	channelFilter := "AND Channels.DeleteAt = 0"
+	if includeArchivedChannels {
+		channelFilter = ""
+	}
 	err := s.GetReplica().Select(&userIDs,
 		`SELECT DISTINCT Posts.UserId
 		FROM Posts
@@ -2779,7 +2787,7 @@ func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName s
 		WHERE Teams.Name = ?
 		  AND Channels.Name = ?
 		  AND Posts.DeleteAt = 0
-		  AND Channels.DeleteAt = 0
+		  `+channelFilter+`
 		  AND Teams.DeleteAt = 0`,
 		teamName, channelName)
 	if err != nil {

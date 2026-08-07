@@ -8896,11 +8896,11 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 
 }
 
-func (s *RetryLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string) ([]string, error) {
+func (s *RetryLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostAuthorIDsForChannel(teamName, channelName)
+		result, err := s.PostStore.GetPostAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
@@ -8917,11 +8917,11 @@ func (s *RetryLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channe
 
 }
 
-func (s *RetryLayerPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+func (s *RetryLayerPostStore) GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName)
+		result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
