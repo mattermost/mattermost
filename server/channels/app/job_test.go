@@ -706,6 +706,16 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 			Type:     model.JobTypeMessageExport,
 			CreateAt: 1001,
 		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypePostPersistentNotifications,
+			CreateAt: 1002,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeDeleteExpiredPosts,
+			CreateAt: 1003,
+		},
 	}
 	testCases := []struct {
 		Job                model.Job
@@ -718,6 +728,14 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		{
 			Job:                jobs[1],
 			PermissionRequired: model.PermissionReadComplianceExportJob,
+		},
+		{
+			Job:                jobs[2],
+			PermissionRequired: model.PermissionReadJobs,
+		},
+		{
+			Job:                jobs[3],
+			PermissionRequired: model.PermissionReadJobs,
 		},
 	}
 
