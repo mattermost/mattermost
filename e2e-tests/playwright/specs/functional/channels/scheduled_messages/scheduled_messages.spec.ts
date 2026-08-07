@@ -69,13 +69,13 @@ test.fixme(
 );
 
 /**
- * @objective Verify the ability to create a weekly recurring scheduled message from a channel and show recurring-only UI state.
+ * @objective Verify that a weekly recurring scheduled message does not pin the channel indicator above the composer.
  *
  * @precondition
  * A test server with valid license and the RecurringScheduledPosts feature flag enabled
  */
 test(
-    'creates weekly recurring scheduled message from channel and shows recurring UI state',
+    'creates weekly recurring scheduled message from channel without showing the channel indicator',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
         await pw.skipIfFeatureFlagNotSet('RecurringScheduledPosts', true);
@@ -83,7 +83,7 @@ test(
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 
         // # Initialize test user, login and navigate to a channel
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
         const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
         await channelsPage.toBeVisible();
@@ -91,12 +91,14 @@ test(
         // # Create a weekly recurring scheduled message for tomorrow
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
 
-        // * Verify scheduled post indicator shows recurring weekly details
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime);
-        await expect(channelsPage.centerView.scheduledPostIndicator.container).toContainText('repeats weekly');
+        // * Verify scheduled post badge appears with count of 1
+        await verifyScheduledPostBadgeOnLeftSidebar(channelsPage, 1);
 
-        // # Navigate to scheduled posts page via indicator link
-        await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
+        // * Verify the channel indicator stays hidden since every scheduled post is recurring
+        await channelsPage.centerView.scheduledPostIndicator.toBeNotVisible();
+
+        // # Navigate to scheduled posts page
+        await scheduledPostsPage.goto(team.name);
 
         // * Verify scheduled post appears with recurring weekly details
         const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
@@ -241,7 +243,7 @@ test(
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 
         // # Initialize test user, login and navigate to a channel
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
         const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
         await channelsPage.toBeVisible();
@@ -249,8 +251,8 @@ test(
         // # Create a weekly recurring scheduled message for tomorrow
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
 
-        // # Navigate to scheduled posts page via indicator link
-        await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
+        // # Navigate to scheduled posts page
+        await scheduledPostsPage.goto(team.name);
 
         // * Verify scheduled post appears with recurring weekly details
         let scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
@@ -284,13 +286,9 @@ test(
         // # Return to channel page
         await channelsPage.goto();
 
-        // * Verify the channel indicator still shows weekly recurring details after rescheduling
-        await verifyScheduledPostIndicator(
-            channelsPage.centerView.scheduledPostIndicator,
-            newSelectedDate,
-            newSelectedTime,
-        );
-        await expect(channelsPage.centerView.scheduledPostIndicator.container).toContainText('repeats weekly');
+        // * Verify the channel indicator stays hidden since every scheduled post is recurring
+        await verifyScheduledPostBadgeOnLeftSidebar(channelsPage, 1);
+        await channelsPage.centerView.scheduledPostIndicator.toBeNotVisible();
     },
 );
 
