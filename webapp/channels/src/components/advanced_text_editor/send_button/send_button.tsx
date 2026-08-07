@@ -24,7 +24,7 @@ type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
     channelId: string;
-    allowRecurring?: boolean;
+    allowRecurring: boolean;
 };
 
 const SendButton = ({disabled, handleSubmit, channelId, allowRecurring}: SendButtonProps) => {

@@ -43,7 +43,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {scheduledPostToPostDraft} from 'types/store/draft';
+import {draftHasAttachments, scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -238,7 +238,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
-                allowRecurring={!item.fileInfos.length && !item.uploadsInProgress.length}
+                allowRecurring={!draftHasAttachments(item)}
             />
         );
     }, [

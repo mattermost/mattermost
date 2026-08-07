@@ -24,7 +24,7 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
-    allowRecurring?: boolean;
+    allowRecurring: boolean;
 };
 
 export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
