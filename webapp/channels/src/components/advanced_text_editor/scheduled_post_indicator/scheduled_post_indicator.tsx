@@ -41,7 +41,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     const currentTeamName = useSelector((state: GlobalState) => getCurrentTeam(state)?.name);
     const scheduledPostLinkURL = `/${currentTeamName}/scheduled_posts?target_id=${id}`;
 
-    if (!scheduledPostData?.count || !scheduledPostData.hasNonRecurringPost) {
+    if (!scheduledPostData) {
         return null;
     }
 

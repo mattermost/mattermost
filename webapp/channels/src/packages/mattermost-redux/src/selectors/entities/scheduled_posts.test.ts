@@ -55,25 +55,21 @@ describe('showChannelOrThreadScheduledPostIndicator', () => {
         return {id, channel_id: 'channel1', ...overrides} as ScheduledPost;
     }
 
-    it('should report no non-recurring post when every scheduled post is recurring', () => {
+    it('should return null when every scheduled post is recurring', () => {
         const state = makeState([
             makePost('post1', {repeat_type: 'weekly'}),
             makePost('post2', {repeat_type: 'weekly'}),
         ]);
 
-        expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toEqual({
-            count: 2,
-            hasNonRecurringPost: false,
-        });
+        expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toBeNull();
     });
 
-    it('should report a non-recurring post when the only scheduled post is a one-shot', () => {
+    it('should show the indicator when the only scheduled post is a one-shot', () => {
         const scheduledPost = makePost('post1');
         const state = makeState([scheduledPost]);
 
         expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toEqual({
             count: 1,
-            hasNonRecurringPost: true,
             scheduledPost,
         });
     });
@@ -86,28 +82,30 @@ describe('showChannelOrThreadScheduledPostIndicator', () => {
 
         expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toEqual({
             count: 2,
-            hasNonRecurringPost: true,
         });
     });
 
     it('should ignore errored posts', () => {
-        const scheduledPost = makePost('post2', {repeat_type: 'weekly'});
         const state = makeState([
             makePost('post1', {error_code: 'unknown'}),
-            scheduledPost,
+            makePost('post2', {repeat_type: 'weekly'}),
         ]);
+
+        expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toBeNull();
+    });
+
+    it('should ignore ids without a loaded post', () => {
+        const scheduledPost = makePost('post1');
+        const state = makeState([scheduledPost]);
+        (state.entities.scheduledPosts.byChannelOrThreadId.channel1 as string[]).push('dangling');
 
         expect(showChannelOrThreadScheduledPostIndicator(state, 'channel1')).toEqual({
             count: 1,
-            hasNonRecurringPost: false,
             scheduledPost,
         });
     });
 
-    it('should report an empty channel', () => {
-        expect(showChannelOrThreadScheduledPostIndicator(makeState([]), 'channel2')).toEqual({
-            count: 0,
-            hasNonRecurringPost: false,
-        });
+    it('should return null for an empty channel', () => {
+        expect(showChannelOrThreadScheduledPostIndicator(makeState([]), 'channel2')).toBeNull();
     });
 });

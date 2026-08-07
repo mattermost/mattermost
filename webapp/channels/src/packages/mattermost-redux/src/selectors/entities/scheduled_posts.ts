@@ -15,10 +15,6 @@ const emptyList: string[] = [];
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;
     count: number;
-
-    // A recurring series always has a next occurrence, so it must not keep the indicator
-    // pinned above the composer on its own.
-    hasNonRecurringPost: boolean;
 };
 
 export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
@@ -78,15 +74,21 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
     return state.entities.scheduledPosts.errorsByTeamId[teamId]?.length > 0 || state.entities.scheduledPosts.errorsByTeamId.directChannels?.length > 0;
 }
 
-export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
+// Returns the indicator data for a channel or thread, or null when the indicator must not show.
+// A recurring series always has a next occurrence, so recurring posts never keep the indicator
+// pinned above the composer on their own: at least one non-recurring scheduled post is required.
+export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData | null {
     const allChannelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList;
     const eligibleScheduledPosts = allChannelScheduledPosts.
         map((scheduledPostId: string) => state.entities.scheduledPosts.byId[scheduledPostId]).
         filter((scheduledPost): scheduledPost is ScheduledPost => scheduledPost !== undefined && !scheduledPost.error_code);
 
+    if (!eligibleScheduledPosts.some((scheduledPost) => !isRecurringScheduledPost(scheduledPost))) {
+        return null;
+    }
+
     const data: ChannelScheduledPostIndicatorData = {
         count: eligibleScheduledPosts.length,
-        hasNonRecurringPost: eligibleScheduledPosts.some((scheduledPost) => !isRecurringScheduledPost(scheduledPost)),
     };
 
     if (data.count === 1) {
