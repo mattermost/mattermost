@@ -57,6 +57,40 @@ func TestPreferenceIsValid(t *testing.T) {
 		require.Nil(t, preference.IsValid())
 	})
 
+	t.Run("should validate that a theme_dark preference's value is a map", func(t *testing.T) {
+		preference.Category = PreferenceCategoryThemeDark
+		preference.Value = "invalid json"
+		require.NotNil(t, preference.IsValid())
+
+		preference.Value = `{"color": "#ff0000", "color2": "#faf"}`
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("theme_auto_switch has a valid boolean value", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameThemeAutoSwitch
+
+		preference.Value = "true"
+		require.Nil(t, preference.IsValid())
+
+		preference.Value = "false"
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("theme_auto_switch has an invalid value", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameThemeAutoSwitch
+
+		preference.Value = "1"
+		require.NotNil(t, preference.IsValid())
+
+		preference.Value = "0"
+		require.NotNil(t, preference.IsValid())
+
+		preference.Value = "yes"
+		require.NotNil(t, preference.IsValid())
+	})
+
 	t.Run("MM-57913 should be able to store an array of 200 IDs for the team sidebar order preference", func(t *testing.T) {
 		preference.Category = "teams_order"
 		preference.Name = ""
@@ -116,4 +150,21 @@ func TestPreferencePreUpdate(t *testing.T) {
 	require.Equal(t, "github", props["codeTheme"], "shouldn't have changed valid props")
 
 	require.NotEqual(t, "invalid", props["invalid"], "should have changed invalid prop")
+
+	// Test for theme_dark category
+	darkPreference := Preference{
+		Category: PreferenceCategoryThemeDark,
+		Value:    `{"color": "#000000", "color2": "#123", "codeTheme": "monokai", "invalid": "invalid"}`,
+	}
+
+	darkPreference.PreUpdate()
+
+	var darkProps map[string]string
+	require.NoError(t, json.NewDecoder(strings.NewReader(darkPreference.Value)).Decode(&darkProps))
+
+	require.Equal(t, "#000000", darkProps["color"], "shouldn't have changed valid props")
+	require.Equal(t, "#123", darkProps["color2"], "shouldn't have changed valid props")
+	require.Equal(t, "monokai", darkProps["codeTheme"], "shouldn't have changed valid props")
+
+	require.NotEqual(t, "invalid", darkProps["invalid"], "should have changed invalid prop")
 }
