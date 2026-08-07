@@ -1,0 +1,6 @@
+# Ignore build output
+dist/
+
+# Ignore testcontainers output files
+.tc.out
+.tc.*
