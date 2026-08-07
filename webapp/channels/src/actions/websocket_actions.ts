@@ -116,7 +116,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -343,7 +343,7 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
+    if (isEnterpriseLicense(getLicense(state))) {
         dispatch(getCustomProfileAttributeFields());
     }
 

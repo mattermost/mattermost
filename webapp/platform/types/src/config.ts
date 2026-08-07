@@ -129,7 +129,6 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
-    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
@@ -139,6 +138,7 @@ export type ClientConfig = {
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
+    FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
     FeatureFlagRecurringScheduledPosts: string;
 

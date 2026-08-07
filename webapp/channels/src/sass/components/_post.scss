@@ -913,6 +913,8 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
+        line-height: normal;
+
         -webkit-user-select: none; /* Chrome all / Safari all */
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
