@@ -4,18 +4,20 @@
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
 import classNames from 'classnames';
 import type {ComponentType} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import type {ClientError} from '@mattermost/client';
 import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -29,6 +31,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
+import AlertBanner from 'components/alert_banner';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
@@ -37,6 +40,8 @@ import {LicenseSkus} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import {deleteAttributeField} from './utils';
 
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable} from '../list_table';
@@ -204,9 +209,33 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
     );
 }
 
-function ActionsCell({field, isClassificationRow, isMobileView}: ClassificationAwareCellProps & {isMobileView: boolean}) {
+type ActionsCellProps = ClassificationAwareCellProps & {
+    isMobileView: boolean;
+    onDeleteError: (message: string | null) => void;
+};
+
+function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: ActionsCellProps) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+    const promptDelete = useGlobalAttributeFieldDelete();
     const menuId = `global-attribute-actions-${field.id}`;
+
+    // Plugin-owned fields are server-protected; deleting them would 4xx anyway,
+    // so the item stays disabled with a reason instead of offering a dead action.
+    const isPluginOwned = getSourceKind(field) === 'plugin';
+
+    const handleConfirmed = useCallback(async () => {
+        onDeleteError(null);
+
+        try {
+            await deleteAttributeField(field.id);
+            dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
+        } catch (error) {
+            onDeleteError(formatMessage(
+                (error as ClientError)?.status_code === 409 ? actionsLabels.deleteErrorHasDependents : actionsLabels.deleteErrorGeneric,
+            ));
+        }
+    }, [dispatch, field.id, formatMessage, onDeleteError]);
 
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
@@ -273,13 +302,14 @@ function ActionsCell({field, isClassificationRow, isMobileView}: ClassificationA
             />
             <Menu.Item
                 id={`${menuId}-delete`}
-                disabled={true}
+                disabled={isPluginOwned}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
+                onClick={isPluginOwned ? undefined : () => promptDelete(getDisplayName(field), handleConfirmed)}
                 labels={(
                     <>
                         <span><FormattedMessage {...actionsLabels.delete}/></span>
-                        <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
+                        {isPluginOwned && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
                     </>
                 )}
             />
@@ -292,6 +322,8 @@ export default function GlobalAttributesTable() {
 
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const bannerRef = useRef<HTMLDivElement>(null);
 
     const groupId = useSelector((state: GlobalState) =>
         getPropertyGroupByName(state, GLOBAL_ATTRIBUTES_GROUP_NAME)?.id ?? '',
@@ -332,6 +364,14 @@ export default function GlobalAttributesTable() {
             active = false;
         };
     }, [dispatch]);
+
+    // The banner sits above the table, so a delete triggered from a row further
+    // down can land off-screen. Pull it into view whenever a new error appears.
+    useEffect(() => {
+        if (deleteError) {
+            bannerRef.current?.scrollIntoView?.({block: 'nearest'});
+        }
+    }, [deleteError]);
 
     const rows = useMemo(
         () => [...fields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),
@@ -409,6 +449,7 @@ export default function GlobalAttributesTable() {
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
                         isMobileView={isMobileView}
+                        onDeleteError={setDeleteError}
                     />
                 ),
                 enableHiding: false,
@@ -456,6 +497,16 @@ export default function GlobalAttributesTable() {
 
     return (
         <div className='GlobalAttributesTable__wrapper'>
+            {deleteError && (
+                <div ref={bannerRef}>
+                    <AlertBanner
+                        id='global-attributes-delete-error'
+                        mode='danger'
+                        message={deleteError}
+                        onDismiss={() => setDeleteError(null)}
+                    />
+                </div>
+            )}
             <AdminConsoleListTable<PropertyField> table={table}/>
         </div>
     );
@@ -509,6 +560,15 @@ export const actionsLabels = defineMessages({
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},
+    pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
+    deleteErrorHasDependents: {
+        id: 'admin.global_attributes.confirm.delete.error.has_dependents',
+        defaultMessage: "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
+    },
+    deleteErrorGeneric: {
+        id: 'admin.global_attributes.confirm.delete.error.generic',
+        defaultMessage: 'An error occurred while deleting this attribute. Please try again.',
+    },
     classificationLink: {
         id: 'admin.global_attributes.table.actions.classification_link',
         defaultMessage: 'Open Classification Markings',
