@@ -11771,6 +11771,10 @@
     "translation": "To must be greater than From."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0."
+  },
+  {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
     "translation": "Invalid access control sync job interval. Must be at least 60 seconds."
   },
