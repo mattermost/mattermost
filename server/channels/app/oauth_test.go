@@ -1569,6 +1569,55 @@ func TestOAuthImplicitGrantRejectsDeactivatedUser(t *testing.T) {
 	require.Empty(t, accessData, "no access data may be persisted for an inactive user")
 }
 
+func TestSwitchOAuthToEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setupOAuthUser := func(t *testing.T) *model.User {
+		t.Helper()
+
+		authData := model.NewId()
+		_, err := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &authData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(th.BasicUser.Id)
+
+		user, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+
+		return user
+	}
+
+	t.Run("rejects integration session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId(), IsOAuth: true})
+
+		_, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.oauth_to_email.integration_session.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		user, appErr = th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+	})
+
+	t.Run("allows regular session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId()})
+
+		link, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "/login?extra=signin_change", link)
+
+		user, appErr = th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, user.AuthService)
+	})
+}
+
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")
