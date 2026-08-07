@@ -10344,7 +10344,7 @@
   },
   {
     "id": "ent.elasticsearch.analysis_icu_required",
-    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node; install it and restart {{.Backend}}."
+    "translation": "Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",

@@ -64,27 +64,29 @@ func getJSONOrErrorStr(obj any) string {
 }
 
 // wrapElasticsearchTemplateError preserves the original Elasticsearch error while adding the nested
-// cause details that the generated client's Error method omits. Only the cause type and reason are
-// included so stack traces and arbitrary metadata from the backend do not end up in the normal
-// startup error.
+// cause details that the generated client's Error method omits. Posts-template failures also include
+// a reminder to verify the required analysis-icu plugin, regardless of the backend's error wording.
+// Only the cause type and reason are included so stack traces and arbitrary metadata from the backend
+// do not end up in the normal startup error.
 func wrapElasticsearchTemplateError(err error, postsTemplate bool) error {
-	var elasticsearchErr *types.ElasticsearchError
-	if !errors.As(err, &elasticsearchErr) || elasticsearchErr == nil {
-		return err
-	}
-
-	causes := formatElasticsearchCauses(elasticsearchErr.ErrorCause.CausedBy)
-	needsAnalysisICU := postsTemplate && isMissingAnalysisICU(elasticsearchErr.ErrorCause)
-	if causes == "" && !needsAnalysisICU {
-		return err
+	if err == nil {
+		return nil
 	}
 
 	details := make([]string, 0, 2)
-	if causes != "" {
-		details = append(details, "caused by: "+causes)
+	var elasticsearchErr *types.ElasticsearchError
+	if errors.As(err, &elasticsearchErr) && elasticsearchErr != nil {
+		if causes := formatElasticsearchCauses(elasticsearchErr.ErrorCause.CausedBy); causes != "" {
+			details = append(details, "caused by: "+causes)
+		}
 	}
-	if needsAnalysisICU {
+
+	if postsTemplate {
 		details = append(details, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
+	}
+
+	if len(details) == 0 {
+		return err
 	}
 
 	return fmt.Errorf("%s: %w", strings.Join(details, "; "), err)
@@ -105,33 +107,6 @@ func formatElasticsearchCauses(cause *types.ErrorCause) string {
 		cause = cause.CausedBy
 	}
 	return strings.Join(causes, " -> ")
-}
-
-func isMissingAnalysisICU(cause types.ErrorCause) bool {
-	// Investigation of the local Elasticsearch v6.8.23, v7.17.29, v8.19.6, and v9.0.0 source found
-	// two relevant missing-analysis error paths. A named analysis component with an unregistered
-	// type is handled by AnalysisRegistry and reports "Unknown ... type [...]". Mattermost's
-	// templates define their analyzers inline, so they reach AnalyzerComponents instead and report
-	// the reason suffixes below, including the bracketed component names, when the ICU plugin is
-	// absent. Match only those suffixes so an unrelated named-component error does not trigger
-	// misleading analysis-icu guidance.
-	const (
-		missingICUTokenizerReason = "failed to find tokenizer under name [icu_tokenizer]"
-		missingICUFilterReason    = "failed to find filter under name [icu_normalizer]"
-	)
-
-	for current := &cause; current != nil; current = current.CausedBy {
-		if current.Reason == nil {
-			continue
-		}
-
-		reason := strings.ToLower(*current.Reason)
-		if strings.Contains(reason, missingICUTokenizerReason) || strings.Contains(reason, missingICUFilterReason) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (*ElasticsearchInterfaceImpl) UpdateConfig(cfg *model.Config) {

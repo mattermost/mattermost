@@ -49,7 +49,7 @@ func TestOpensearchInterfaceTestSuite(t *testing.T) {
 func TestWrapPostsTemplateError(t *testing.T) {
 	guidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"})
 
-	nestedError := &opensearch.StructError{
+	original := &opensearch.StructError{
 		Status: 400,
 		Err: opensearch.Err{
 			Type:   "illegal_argument_exception",
@@ -64,115 +64,19 @@ func TestWrapPostsTemplateError(t *testing.T) {
 			},
 		},
 	}
+	written := fmt.Errorf("transport failure: %w", original)
+	formatted := wrapPostsTemplateError(written)
+	require.Contains(t, formatted.Error(), "unknown_tokenizer")
+	require.Contains(t, formatted.Error(), "tokenizer [missing_tokenizer] is unavailable")
+	require.Contains(t, formatted.Error(), guidance)
+	require.ErrorIs(t, formatted, written)
+	require.ErrorIs(t, formatted, original)
 
-	tests := []struct {
-		name            string
-		err             error
-		wantGuidance    bool
-		wantCauseFields []string
-	}{
-		{
-			name:            "nested cause type and reason",
-			err:             nestedError,
-			wantCauseFields: []string{"unknown_tokenizer", "tokenizer [missing_tokenizer] is unavailable"},
-		},
-		{
-			name: "icu tokenizer cause",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "illegal_argument_exception",
-					Reason: "failed to parse template",
-					CausedBy: &opensearch.CausedBy{
-						Type:   "illegal_argument_exception",
-						Reason: "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
-					},
-				},
-			},
-			wantGuidance: true,
-		},
-		{
-			name: "root ICU cause",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "illegal_argument_exception",
-					Reason: "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
-				},
-			},
-			wantGuidance: true,
-		},
-		{
-			name: "icu normalizer cause",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "illegal_argument_exception",
-					Reason: "Custom Analyzer [mm_hashtag] failed to find filter under name [icu_normalizer]",
-				},
-			},
-			wantGuidance: true,
-		},
-		{
-			name: "unrelated template error",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "illegal_argument_exception",
-					Reason: "failed to parse template",
-					CausedBy: &opensearch.CausedBy{
-						Type:   "unknown_filter",
-						Reason: "failed to find filter [missing_filter]",
-					},
-				},
-			},
-		},
-		{
-			name:         "preserves wrapped original error",
-			err:          fmt.Errorf("transport failure: %w", &opensearch.StructError{Status: 400, Err: opensearch.Err{Type: "illegal_argument_exception", Reason: "template rejected", CausedBy: &opensearch.CausedBy{Type: "illegal_argument_exception", Reason: "Custom Analyzer [mm_hashtag] failed to find filter under name [icu_normalizer]"}}}),
-			wantGuidance: true,
-		},
-		{
-			name: "generic unknown component message",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "illegal_argument_exception",
-					Reason: "Unknown tokenizer type [icu_tokenizer] for [mm_tokenizer]",
-				},
-			},
-		},
-		{
-			name: "unrelated availability wording",
-			err: &opensearch.StructError{
-				Status: 400,
-				Err: opensearch.Err{
-					Type:   "unknown_tokenizer",
-					Reason: "icu_tokenizer unavailable",
-				},
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			wrapped := wrapPostsTemplateError(tc.err)
-			require.Error(t, wrapped)
-			for _, field := range tc.wantCauseFields {
-				require.Contains(t, wrapped.Error(), field)
-			}
-			if tc.wantGuidance {
-				require.Contains(t, wrapped.Error(), guidance)
-			} else {
-				require.NotContains(t, wrapped.Error(), guidance)
-			}
-
-			var original *opensearch.StructError
-			require.ErrorAs(t, tc.err, &original)
-			require.ErrorIs(t, wrapped, tc.err)
-			require.ErrorIs(t, wrapped, original)
-		})
-	}
+	generic := errors.New("template request failed")
+	formatted = wrapPostsTemplateError(generic)
+	require.Contains(t, formatted.Error(), guidance)
+	require.ErrorIs(t, formatted, generic)
+	require.NoError(t, wrapPostsTemplateError(nil))
 }
 
 func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {

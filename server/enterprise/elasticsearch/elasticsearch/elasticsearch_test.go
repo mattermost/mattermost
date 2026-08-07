@@ -272,116 +272,43 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 }
 
 func TestWrapElasticsearchTemplateError(t *testing.T) {
-	analysisICUGuidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"})
+	guidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"})
 	nestedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"
 	nested := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &nestedReason}
-	filterReason := "Custom Analyzer [mm_lowercaser] failed to find filter under name [icu_normalizer]"
-	filterCause := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &filterReason}
 	outerReason := "failed to build posts template"
-	unrelatedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [standard]"
-	unrelated := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &unrelatedReason}
-	legacyICUReason := "unknown tokenizer type [icu_tokenizer]"
-	legacyICU := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &legacyICUReason}
-
-	tests := []struct {
-		name    string
-		cause   types.ErrorCause
-		posts   bool
-		want    []string
-		notWant []string
-	}{
-		{
-			name: "nested cause details",
-			cause: types.ErrorCause{
-				Type:     "illegal_argument_exception",
-				Reason:   &outerReason,
-				CausedBy: nested,
-			},
-			want: []string{
-				"status: 400, failed: [illegal_argument_exception], reason: failed to build posts template",
-				"caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]",
-			},
-			notWant: []string{"stack trace", "arbitrary metadata"},
-		},
-		{
-			name: "missing analysis ICU guidance",
-			cause: types.ErrorCause{
-				Type:     "illegal_argument_exception",
-				Reason:   &outerReason,
-				CausedBy: nested,
-			},
-			posts: true,
-			want:  []string{analysisICUGuidance},
-		},
-		{
-			name: "root missing analysis ICU guidance",
-			cause: types.ErrorCause{
-				Type:   "illegal_argument_exception",
-				Reason: &nestedReason,
-			},
-			posts: true,
-			want:  []string{analysisICUGuidance},
-		},
-		{
-			name: "missing analysis ICU filter guidance",
-			cause: types.ErrorCause{
-				Type:     "illegal_argument_exception",
-				Reason:   &outerReason,
-				CausedBy: filterCause,
-			},
-			posts: true,
-			want:  []string{analysisICUGuidance},
-		},
-		{
-			name: "unrelated template error",
-			cause: types.ErrorCause{
-				Type:     "illegal_argument_exception",
-				Reason:   &outerReason,
-				CausedBy: unrelated,
-			},
-			posts:   true,
-			want:    []string{"caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [standard]"},
-			notWant: []string{analysisICUGuidance},
-		},
-		{
-			name: "legacy ICU wording is not treated as authoritative",
-			cause: types.ErrorCause{
-				Type:     "illegal_argument_exception",
-				Reason:   &outerReason,
-				CausedBy: legacyICU,
-			},
-			posts:   true,
-			notWant: []string{analysisICUGuidance},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stackTrace := "stack trace"
-			original := &types.ElasticsearchError{
-				ErrorCause: tt.cause,
-				Status:     400,
-			}
-			original.ErrorCause.StackTrace = &stackTrace
-			original.ErrorCause.Metadata = map[string]json.RawMessage{
+	stackTrace := "stack trace"
+	original := &types.ElasticsearchError{
+		ErrorCause: types.ErrorCause{
+			Type:       "illegal_argument_exception",
+			Reason:     &outerReason,
+			CausedBy:   nested,
+			StackTrace: &stackTrace,
+			Metadata: map[string]json.RawMessage{
 				"arbitrary": json.RawMessage(`"metadata"`),
-			}
-			wrapped := fmt.Errorf("request context: %w", original)
-
-			formatted := wrapElasticsearchTemplateError(wrapped, tt.posts)
-			for _, expected := range tt.want {
-				require.Contains(t, formatted.Error(), expected)
-			}
-			for _, unexpected := range tt.notWant {
-				require.NotContains(t, formatted.Error(), unexpected)
-			}
-
-			require.ErrorIs(t, formatted, wrapped)
-			var extracted *types.ElasticsearchError
-			require.True(t, errors.As(formatted, &extracted))
-			require.Same(t, original, extracted)
-		})
+			},
+		},
+		Status: 400,
 	}
+	wrapped := fmt.Errorf("request context: %w", original)
+
+	formatted := wrapElasticsearchTemplateError(wrapped, true)
+	require.Contains(t, formatted.Error(), "status: 400, failed: [illegal_argument_exception], reason: failed to build posts template")
+	require.Contains(t, formatted.Error(), "caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
+	require.Contains(t, formatted.Error(), guidance)
+	require.NotContains(t, formatted.Error(), "stack trace")
+	require.NotContains(t, formatted.Error(), "arbitrary metadata")
+	require.ErrorIs(t, formatted, wrapped)
+	var extracted *types.ElasticsearchError
+	require.True(t, errors.As(formatted, &extracted))
+	require.Same(t, original, extracted)
+
+	generic := errors.New("template request failed")
+	formatted = wrapElasticsearchTemplateError(generic, true)
+	require.Contains(t, formatted.Error(), guidance)
+	require.ErrorIs(t, formatted, generic)
+
+	require.Same(t, generic, wrapElasticsearchTemplateError(generic, false))
+	require.NoError(t, wrapElasticsearchTemplateError(nil, true))
 }
 
 type testBulkClient struct {

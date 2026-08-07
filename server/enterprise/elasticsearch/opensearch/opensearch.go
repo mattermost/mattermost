@@ -50,47 +50,14 @@ func isIndexNotFound(err error) bool {
 	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
 }
 
-// wrapPostsTemplateError appends actionable guidance when OpenSearch reports
-// that one of the ICU analyzers used by the posts template is unavailable.
-// StructError.Error already includes the complete nested caused_by chain, so
-// retain the original error and only add the backend-specific diagnostic.
+// wrapPostsTemplateError preserves the original OpenSearch error and appends a reminder to verify
+// the required analysis-icu plugin, regardless of the backend's error wording.
 func wrapPostsTemplateError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	var osErr *opensearch.StructError
-	if !errors.As(err, &osErr) || osErr == nil {
-		return err
-	}
-
-	if isMissingICUAnalyzer(osErr.Err.Reason) {
-		return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
-	}
-
-	for cause := osErr.Err.CausedBy; cause != nil; cause = cause.CausedBy {
-		if isMissingICUAnalyzer(cause.Reason) {
-			return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
-		}
-	}
-
-	return err
-}
-
-func isMissingICUAnalyzer(reason string) bool {
-	// OpenSearch source for 2.0.0, 2.19.6, 3.0.0, and 3.8.0 uses these reason suffixes in
-	// AnalyzerComponents and CustomNormalizerProvider when an inline custom analyzer or normalizer
-	// cannot find an ICU component. Mattermost defines those components inline, so this is the
-	// relevant missing-plugin path. The separate AnalysisRegistry path reports "Unknown ... type [...]"
-	// for named components and is deliberately not treated as proof that this inline template is
-	// missing analysis-icu.
-	const (
-		missingICUTokenizerReason = "failed to find tokenizer under name [icu_tokenizer]"
-		missingICUFilterReason    = "failed to find filter under name [icu_normalizer]"
-	)
-
-	reason = strings.ToLower(reason)
-	return strings.Contains(reason, missingICUTokenizerReason) || strings.Contains(reason, missingICUFilterReason)
+	return fmt.Errorf("%w: %s", err, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 }
 
 type OpensearchInterfaceImpl struct {
