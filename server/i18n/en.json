@@ -2198,6 +2198,14 @@
     "translation": "Failed to read the flagged post report file information."
   },
   {
+    "id": "api.delivery_tracking.error.feature_flag",
+    "translation": "Post delivery audit logging is not enabled on this server."
+  },
+  {
+    "id": "api.delivery_tracking.error.license",
+    "translation": "Your license does not support post delivery audit logging."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -6587,6 +6595,22 @@
   {
     "id": "app.delete_scheduled_post.get_scheduled_post.error",
     "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group messages cannot be selected for post delivery audit logging."
+  },
+  {
+    "id": "app.delivery_tracking.get_config.app_error",
+    "translation": "Failed to read the post delivery audit logging settings from the database."
+  },
+  {
+    "id": "app.delivery_tracking.invalid_channel.app_error",
+    "translation": "One or more of the selected channels could not be found."
+  },
+  {
+    "id": "app.delivery_tracking.save_config.app_error",
+    "translation": "Failed to save the post delivery audit logging settings to the database."
   },
   {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
@@ -12541,6 +12565,14 @@
   {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
     "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.all_channels.app_error",
+    "translation": "Select at least one channel to record deliveries in."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID provided in the post delivery audit logging settings."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",

@@ -1,0 +1,66 @@
+  /api/v4/delivery_tracking/config:
+    get:
+      summary: Get the post delivery audit logging configuration
+      description: |
+        Returns the post delivery audit logging configuration: whether the feature is enabled, whether it applies to
+        all channels, and the ids of the channels deliveries are recorded in.
+
+        Requires an Enterprise Advanced license and the `PostDeliveryTracking` feature flag. Only system admins can
+        access this endpoint.
+      tags:
+        - Delivery Tracking
+      operationId: GetDeliveryTrackingConfig
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryTrackingConfig"
+        '403':
+          description: User does not have permission to manage system configuration.
+        '500':
+          description: Internal server error.
+        '404':
+          description: |
+            The endpoint is not registered because the `PostDeliveryTracking` feature flag was disabled at server start. Enabling the flag requires a server restart.
+        '501':
+          description: An Enterprise Advanced license is not available, or the `PostDeliveryTracking` feature flag was disabled after the server started.
+    put:
+      summary: Update the post delivery audit logging configuration
+      description: |
+        Updates the post delivery audit logging configuration.
+
+        `ChannelIds` fully replaces the stored list. Omit the field to leave the stored list unchanged; send an empty
+        array to clear it. Turning `Enable` off does not clear the list.
+
+        Direct and group message channels can never be recorded. The request is rejected in full if any submitted
+        channel is a DM or GM, or does not exist.
+
+        Requires an Enterprise Advanced license and the `PostDeliveryTracking` feature flag. Only system admins can
+        access this endpoint.
+      tags:
+        - Delivery Tracking
+      operationId: UpdateDeliveryTrackingConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeliveryTrackingConfig"
+      responses:
+        '200':
+          description: Configuration updated successfully
+        '400':
+          description: |
+            Bad request. Returned when `EnableForAllChannels` is false and no channels are selected, when a channel id
+            is malformed, when a submitted channel does not exist, or when a submitted channel is a DM or GM.
+        '403':
+          description: User does not have permission to manage system configuration.
+        '500':
+          description: Internal server error.
+        '404':
+          description: |
+            The endpoint is not registered because the `PostDeliveryTracking` feature flag was disabled at server start. Enabling the flag requires a server restart.
+        '501':
+          description: An Enterprise Advanced license is not available, or the `PostDeliveryTracking` feature flag was disabled after the server started.

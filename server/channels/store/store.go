@@ -102,6 +102,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
@@ -1289,6 +1290,15 @@ type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+// DeliveryTrackingStore persists the explicit per-channel allow-list for post delivery
+// audit logging. The on/off and all-channels toggles live in
+// Config.DeliveryTrackingSettings; only the channel ids live here.
+type DeliveryTrackingStore interface {
+	// SaveTrackedChannelIDs replaces the entire stored set with channelIDs.
+	SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error
+	GetTrackedChannelIDs(rctx request.CTX) ([]string, error)
 }
 
 type ReadReceiptStore interface {
