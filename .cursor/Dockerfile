@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG GO_VERSION=1.25.9
+ARG GO_VERSION=1.26.4
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
 ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
