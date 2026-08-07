@@ -779,12 +779,12 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id, model.PermissionReadJobs.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
 
-	// Now system read only admin should have ability to create all jobs
+	// Now system read only admin should have ability to read all jobs
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
 		assert.Equal(t, true, hasPermission)
