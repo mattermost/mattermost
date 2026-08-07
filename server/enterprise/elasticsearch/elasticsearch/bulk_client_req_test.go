@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/stretchr/testify/require"
 )
 
 // setupBulkClient creates a test bulk client with common setup
@@ -254,7 +255,6 @@ func TestStop(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, bulkClient.pendingRequests)
 	})
-
 }
 
 func TestStopShutsDownPeriodicFlusher(t *testing.T) {
