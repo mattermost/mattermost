@@ -638,6 +638,31 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, regularUser.Id, token.Token)
 		require.NotNil(t, err, "Should fail when adding regular user with guest magic link token")
 	})
+
+	t.Run("guest magic link invitation token with mismatched email fails", func(t *testing.T) {
+		otherGuest := th.CreateGuest(t)
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    otherGuest.Email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
+		require.NotNil(t, err, "Should fail when the redeeming guest's email does not match the token's email")
+		assert.Equal(t, "api.user.create_user.bad_token_email_data.app_error", err.Id)
+	})
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
