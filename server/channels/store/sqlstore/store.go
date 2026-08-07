@@ -116,6 +116,7 @@ type SqlStoreStores struct {
 	sessionAttribute           store.SessionAttributeStore
 	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	deliveryTracking           store.DeliveryTrackingStore
 	recap                      store.RecapStore
 	scheduledRecap             store.ScheduledRecapStore
 	readReceipt                store.ReadReceiptStore
@@ -311,6 +312,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.sessionAttribute = newSqlSessionAttributeStore(store)
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.deliveryTracking = newSqlDeliveryTrackingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.scheduledRecap = newSqlScheduledRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
@@ -1147,6 +1149,10 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) DeliveryTracking() store.DeliveryTrackingStore {
+	return ss.stores.deliveryTracking
 }
 
 // preMigration	runs before running the actual Morph migrations.

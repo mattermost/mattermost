@@ -4262,6 +4262,7 @@ type Config struct {
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
+	DeliveryTrackingSettings    DeliveryTrackingSettings
 	AutoTranslationSettings     AutoTranslationSettings
 	AIRecapSettings             AIRecapSettings
 }
@@ -4384,6 +4385,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.DeliveryTrackingSettings.SetDefaults()
 	o.AIRecapSettings.SetDefaults()
 }
 
@@ -4542,6 +4544,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.DeliveryTrackingSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 

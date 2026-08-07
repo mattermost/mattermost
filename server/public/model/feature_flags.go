@@ -151,6 +151,10 @@ type FeatureFlags struct {
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -215,6 +219,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableConcurrentReact = false
 
 	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.PostDeliveryTracking = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

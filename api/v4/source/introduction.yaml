@@ -477,6 +477,8 @@ tags:
     description: Endpoints for creating and managing scheduled recaps that run automatically on a configured schedule.
   - name: agents
     description: Endpoints for interacting with AI agents and LLM services.
+  - name: Delivery Tracking
+    description: Endpoints for configuring post delivery audit logging.
 servers:
   - url: "{your-mattermost-url}"
     variables:
