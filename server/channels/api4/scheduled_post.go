@@ -185,8 +185,8 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var scheduledPost model.ScheduledPost
-	if err := json.Unmarshal(body, &scheduledPost); err != nil {
-		c.SetInvalidParamWithErr("schedule_post", err)
+	if unmarshalErr := json.Unmarshal(body, &scheduledPost); unmarshalErr != nil {
+		c.SetInvalidParamWithErr("schedule_post", unmarshalErr)
 		return
 	}
 
@@ -194,8 +194,8 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var rawPayload struct {
 		RepeatType json.RawMessage `json:"repeat_type"`
 	}
-	if err := json.Unmarshal(body, &rawPayload); err != nil {
-		c.SetInvalidParamWithErr("schedule_post", err)
+	if unmarshalErr := json.Unmarshal(body, &rawPayload); unmarshalErr != nil {
+		c.SetInvalidParamWithErr("schedule_post", unmarshalErr)
 		return
 	}
 
