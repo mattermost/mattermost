@@ -178,6 +178,50 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.Greater(t, updated.ScheduledAt, model.GetMillis())
 	})
 
+	t.Run("permanently deletes recurring and one-shot posts when the channel no longer exists", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		scheduledAt := model.GetMillis() - 1000
+		deletedChannelId := model.NewId()
+
+		recurringScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: deletedChannelId,
+				Message:   "recurring scheduled post for a channel that no longer exists",
+			},
+			ScheduledAt:    scheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		recurringCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		require.NoError(t, err)
+
+		oneShotScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: deletedChannelId,
+				Message:   "one-shot scheduled post for a channel that no longer exists",
+			},
+			ScheduledAt: scheduledAt,
+		}
+		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(oneShotScheduledPost)
+		require.NoError(t, err)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		// Both rows must be permanently deleted: the series ends rather than advancing,
+		// erroring, or being silently reposted on later runs.
+		_, err = th.Server.Store().ScheduledPost().Get(recurringCreated.Id)
+		require.Error(t, err)
+		_, err = th.Server.Store().ScheduledPost().Get(oneShotCreated.Id)
+		require.Error(t, err)
+	})
+
 	t.Run("marks overdue one-shot posts even when overdue weekly posts move pagination backward", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
