@@ -10,24 +10,28 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       class="AdminUserCard__header"
       data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__picture"
       >
-        <span
-          class="profile-icon "
-          data-testid="profile-icon"
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profile-icon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
         data-testid="adminUserCard-userInfo"
@@ -76,24 +80,28 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
       data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__picture"
       >
-        <span
-          class="profile-icon "
-          data-testid="profile-icon"
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profile-icon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
         data-testid="adminUserCard-userInfo"
@@ -137,24 +145,28 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
       data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__picture"
       >
-        <span
-          class="profile-icon "
-          data-testid="profile-icon"
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profile-icon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
         data-testid="adminUserCard-userInfo"
@@ -196,24 +208,28 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
       data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__picture"
       >
-        <span
-          class="profile-icon "
-          data-testid="profile-icon"
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profile-icon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
         data-testid="adminUserCard-userInfo"
