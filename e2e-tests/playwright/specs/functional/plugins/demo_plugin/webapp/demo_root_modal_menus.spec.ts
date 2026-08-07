@@ -62,7 +62,12 @@ test('should open Root Modal from channel header dropdown More actions', async (
     await closeRootModal(channelsPage.page);
 });
 
-test('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({pw}) => {
+// Skipped: demo plugin v0.10.3 does not set a URL on the openInteractiveDialog call.
+// The webapp logs "Interactive dialog missing URL - this is a configuration error" and no dialog renders.
+// Re-enable once the demo plugin is fixed and the build URL in helpers.ts is updated.
+test.skip('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({
+    pw,
+}) => {
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);

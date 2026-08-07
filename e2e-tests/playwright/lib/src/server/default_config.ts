@@ -861,7 +861,6 @@ const defaultServerConfig: AdminConfig = {
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
-        EnableAccessControlAuditLogging: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
@@ -909,24 +908,5 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
-    },
-    AIRecapSettings: {
-        Enable: true,
-        DefaultLimits: {
-            MaxRecapsPerDay: 10,
-            MaxScheduledRecaps: 5,
-            MaxChannelsPerRecap: -1,
-            MaxPostsPerRecap: 500,
-            MaxTokensPerRecap: 100000,
-            MaxPostsPerDay: 5000,
-            CooldownMinutes: 60,
-        },
-        EnforceRecapsPerDay: true,
-        EnforceScheduledRecaps: true,
-        EnforceChannelsPerRecap: true,
-        EnforcePostsPerRecap: true,
-        EnforceTokensPerRecap: true,
-        EnforcePostsPerDay: true,
-        EnforceCooldown: true,
     },
 };
