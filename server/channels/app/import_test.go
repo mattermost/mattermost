@@ -75,42 +75,42 @@ func TestImportImportLine(t *testing.T) {
 		Type: "gibberish",
 	}
 
-	err := th.App.importLine(th.Context, line, false)
+	err := th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
 	// Try import line with scheme type but nil scheme.
 	line.Type = "scheme"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
 }
 
@@ -705,6 +705,118 @@ func TestImportBulkImportWithNestedJsonl(t *testing.T) {
 
 	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
+}
+
+func TestRewriteTeamName(t *testing.T) {
+	strPtr := func(s string) *string { return &s }
+
+	t.Run("rewrites team line name", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{Name: strPtr("source-team")},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Team.Name)
+	})
+
+	t.Run("does not rewrite non-matching team name", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{Name: strPtr("other-team")},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "other-team", *line.Team.Name)
+	})
+
+	t.Run("rewrites channel line team reference", func(t *testing.T) {
+		team := "source-team"
+		line := imports.LineImportData{
+			Type:    "channel",
+			Channel: &imports.ChannelImportData{Team: &team},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Channel.Team)
+	})
+
+	t.Run("rewrites user team membership", func(t *testing.T) {
+		teamName := "source-team"
+		teams := []imports.UserTeamImportData{{Name: &teamName}}
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: &teams},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *(*line.User.Teams)[0].Name)
+	})
+
+	t.Run("rewrites post team reference", func(t *testing.T) {
+		team := "source-team"
+		line := imports.LineImportData{
+			Type: "post",
+			Post: &imports.PostImportData{Team: &team},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Post.Team)
+	})
+}
+
+func TestExistingUsersOnlyMode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Create a user that exists on this server.
+	existingUser := th.CreateUser(t)
+
+	// Build a channel-scoped import JSONL — the additional field in the
+	// version line triggers existingUsersOnly mode automatically.
+	teamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	newUsername := model.NewUsername() // does not exist on this server
+
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"` + teamName + `","channel_name":"` + channelName + `"}}}
+{"type":"team","team":{"type":"O","display_name":"Test Team","name":"` + teamName + `"}}
+{"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + teamName + `","name":"` + channelName + `"}}
+{"type":"user","user":{"username":"` + existingUser.Username + `","email":"` + existingUser.Email + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
+{"type":"user","user":{"username":"` + newUsername + `","email":"` + newUsername + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
+
+	_, appErr := th.App.BulkImportWithPath(th.Context, strings.NewReader(data), nil, false, false, 1, "")
+	require.Nil(t, appErr)
+
+	// The existing user should still exist.
+	_, err := th.App.Srv().Store().User().GetByUsername(existingUser.Username)
+	require.NoError(t, err, "existing user should still be present")
+
+	// The new user should have been created as a deactivated placeholder account.
+	u, err := th.App.Srv().Store().User().GetByUsername(newUsername)
+	require.NoError(t, err, "new user should have been created in existingUsersOnly mode")
+	assert.NotZero(t, u.DeleteAt, "newly-created user should be deactivated")
+}
+
+func TestRewriteTeamNameEndToEnd(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Create the destination team on this server.
+	destTeam := th.CreateTeam(t)
+
+	// Build a channel-scoped import that names a different source team.
+	// The --destination-team flag should remap all references to destTeam.
+	srcTeamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	username := model.NewUsername()
+
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"` + srcTeamName + `","channel_name":"` + channelName + `"}}}
+{"type":"team","team":{"type":"O","display_name":"Source Team","name":"` + srcTeamName + `"}}
+{"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + srcTeamName + `","name":"` + channelName + `"}}
+{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + srcTeamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
+
+	opts := model.BulkImportOpts{DestinationTeam: destTeam.Name}
+	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	require.Nil(t, appErr)
+
+	// The channel should have been created under the destination team.
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, destTeam.Id, false)
+	require.Nil(t, appErr, "channel should exist under the destination team after name remapping")
 }
 
 func TestDeleteImport(t *testing.T) {

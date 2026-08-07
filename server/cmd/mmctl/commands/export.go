@@ -99,6 +99,8 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
+	ExportCreateCmd.Flags().String("team", "", "Export only the specified team (by name).")
+	ExportCreateCmd.Flags().String("channel", "", "Export only the specified channel. Requires a team to export the channel from.")
 
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
@@ -143,6 +145,37 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	includeProfilePictures, _ := command.Flags().GetBool("include-profile-pictures")
 	if includeProfilePictures {
 		data["include_profile_pictures"] = "true"
+	}
+
+	teamName, _ := command.Flags().GetString("team")
+	channelName, _ := command.Flags().GetString("channel")
+
+	if teamName == "" && channelName != "" {
+		return fmt.Errorf("Please specify a team to export a channel from.")
+	}
+
+	var teamID string
+	if teamName != "" {
+		team, _, err := c.GetTeamByName(context.TODO(), teamName, "")
+		if err != nil {
+			return fmt.Errorf("failed to lookup team %q: %w", teamName, err)
+		}
+		if team == nil {
+			return fmt.Errorf("team %q not found", teamName)
+		}
+		teamID = team.Id
+		data["team_name"] = teamName
+	}
+
+	if channelName != "" {
+		channel, _, err := c.GetChannelByName(context.TODO(), channelName, teamID, "")
+		if err != nil {
+			return fmt.Errorf("failed to lookup channel %q in team %q: %w", channelName, teamName, err)
+		}
+		if channel == nil {
+			return fmt.Errorf("channel %q not found in team %q", channelName, teamName)
+		}
+		data["channel_name"] = channelName
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{

@@ -4727,7 +4727,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	t.Run("without archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "", "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4750,7 +4750,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	})
 
 	t.Run("with archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, "", "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4778,7 +4778,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}))
 		require.NoError(t, err)
 
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "", "")
 		assert.NoError(t, err)
 
 		for _, p := range posts {
@@ -4787,6 +4787,25 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 				assert.Equal(t, model.StringArray([]string{u1.Username}), p.FlaggedBy)
 			}
 		}
+	})
+
+	t.Run("with channel name filter", func(t *testing.T) {
+		// c1 has p1, c2 (archived) has p2. Filtering by c1.Name should return p1 only.
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, "", c1.Name)
+		assert.NoError(t, err)
+
+		found := false
+		foundOther := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				found = true
+			}
+			if p.Id == p2.Id {
+				foundOther = true
+			}
+		}
+		assert.True(t, found, "post from target channel should be returned")
+		assert.False(t, foundOther, "post from other channel should be excluded by channel filter")
 	})
 }
 
