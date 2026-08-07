@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -268,37 +267,6 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
 	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
 	require.Equal(t, int32(0), es.ready.Load())
-	require.Nil(t, es.bulkProcessor)
-	require.Nil(t, es.syncBulkProcessor)
-}
-
-func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
-	analysisICUFreeURL := os.Getenv("MM_TEST_ELASTICSEARCH_ANALYSIS_ICU_FREE_URL")
-	if analysisICUFreeURL == "" {
-		t.Skip("MM_TEST_ELASTICSEARCH_ANALYSIS_ICU_FREE_URL is not set")
-	}
-	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", analysisICUFreeURL)
-	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
-
-	th := api4.SetupEnterprise(t)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ElasticsearchSettings.ConnectionURL = analysisICUFreeURL
-		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsESBackend
-		*cfg.ElasticsearchSettings.EnableIndexing = true
-		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
-		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 10
-	})
-	th.App.Srv().SetLicense(model.NewTestLicense())
-
-	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
-	defer func() { require.Nil(t, es.Stop()) }()
-
-	appErr := es.Start(context.Background())
-	require.NotNil(t, appErr)
-	require.Contains(t, appErr.Error(), "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
-	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
-	require.Equal(t, int32(0), es.ready.Load())
-	require.Equal(t, int32(0), es.healthy.Load())
 	require.Nil(t, es.bulkProcessor)
 	require.Nil(t, es.syncBulkProcessor)
 }

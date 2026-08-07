@@ -216,37 +216,6 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	require.Nil(t, impl.Stop())
 }
 
-func TestStartWithoutAnalysisICUPluginReturnsGuidance(t *testing.T) {
-	analysisICUFreeURL := os.Getenv("MM_TEST_OPENSEARCH_ANALYSIS_ICU_FREE_URL")
-	if analysisICUFreeURL == "" {
-		t.Skip("MM_TEST_OPENSEARCH_ANALYSIS_ICU_FREE_URL is not set")
-	}
-	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", analysisICUFreeURL)
-	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
-
-	th := api4.SetupEnterprise(t)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ElasticsearchSettings.ConnectionURL = analysisICUFreeURL
-		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
-		*cfg.ElasticsearchSettings.EnableIndexing = true
-		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
-		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 10
-	})
-	th.App.Srv().SetLicense(model.NewTestLicense())
-
-	osImpl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
-	defer func() { require.Nil(t, osImpl.Stop()) }()
-
-	appErr := osImpl.Start(context.Background())
-	require.NotNil(t, appErr)
-	require.Contains(t, appErr.Error(), "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
-	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
-	require.Equal(t, int32(0), osImpl.ready.Load())
-	require.Equal(t, int32(0), osImpl.healthy.Load())
-	require.Nil(t, osImpl.bulkProcessor)
-	require.Nil(t, osImpl.syncBulkProcessor)
-}
-
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
 	if os.Getenv("IS_CI") == "true" {
 		os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://opensearch:9201")
