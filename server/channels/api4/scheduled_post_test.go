@@ -16,7 +16,9 @@ import (
 
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = true
+	}).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -211,7 +213,9 @@ func TestDeleteScheduledPost(t *testing.T) {
 
 func TestCreateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = true
+	}).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -305,5 +309,112 @@ func TestCreateScheduledPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, created)
+	})
+}
+
+func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	// SetupConfig also makes feature flags writable, so the subtests below can toggle the flag.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = false
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	setFlag := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.RecurringScheduledPosts = enabled
+		})
+	}
+
+	newScheduledPost := func(repeatType string) *model.ScheduledPost {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "recurring feature flag scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+			RepeatType:  repeatType,
+		}
+		if repeatType == model.ScheduledPostRepeatTypeWeekly {
+			scheduledPost.RepeatTimezone = "UTC"
+		}
+		return scheduledPost
+	}
+
+	t.Run("creating a recurring scheduled post is rejected when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+
+		created, resp, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
+		require.Nil(t, created)
+	})
+
+	t.Run("creating a one-shot scheduled post is still allowed when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("creating a recurring scheduled post succeeds when the flag is on", func(t *testing.T) {
+		setFlag(t, true)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, created.RepeatType)
+	})
+
+	t.Run("converting a recurring scheduled post to one-shot is allowed when the flag is off", func(t *testing.T) {
+		setFlag(t, true)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+
+		setFlag(t, false)
+		created.RepeatType = model.ScheduledPostRepeatTypeNone
+		created.RepeatTimezone = ""
+
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, model.ScheduledPostRepeatTypeNone, updated.RepeatType)
+	})
+
+	t.Run("editing an existing recurring scheduled post keeps repeating when the flag is off", func(t *testing.T) {
+		setFlag(t, true)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+
+		setFlag(t, false)
+		created.Message = "updated message for an existing weekly series"
+
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, "updated message for an existing weekly series", updated.Message)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
+	})
+
+	t.Run("converting a one-shot scheduled post to recurring is rejected when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))
+		require.NoError(t, err)
+
+		created.RepeatType = model.ScheduledPostRepeatTypeWeekly
+		created.RepeatTimezone = "UTC"
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
 	})
 }

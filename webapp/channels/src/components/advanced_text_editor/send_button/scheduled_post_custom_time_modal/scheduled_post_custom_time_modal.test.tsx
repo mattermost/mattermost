@@ -1,77 +1,92 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
-import type {ChannelType} from '@mattermost/types/channels';
-
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
 
-const initialState = {
-    entities: {
-        users: {
-            currentUserId: 'user_id',
-            profiles: {
-                user_id: {
-                    id: 'user_id',
-                    roles: 'system_user',
-                    timezone: {
-                        useAutomaticTimezone: false,
-                        automaticTimezone: '',
-                        manualTimezone: 'Europe/Berlin',
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn(() => ({type: 'MOCK_SAVE_PREFERENCES'})),
+}));
+
+describe('ScheduledPostCustomTimeModal', () => {
+    const onConfirm = jest.fn().mockResolvedValue({});
+
+    beforeEach(() => {
+        onConfirm.mockClear();
+    });
+
+    function renderModal({recurringEnabled = true, initialRepeatWeekly = false, allowRecurring = true} = {}) {
+        return renderWithContext(
+            <ScheduledPostCustomTimeModal
+                channelId='channel_id'
+                onExited={jest.fn()}
+                onConfirm={onConfirm}
+                initialRepeatWeekly={initialRepeatWeekly}
+                allowRecurring={allowRecurring}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                            FeatureFlagRecurringScheduledPosts: String(recurringEnabled),
+                        },
+                        license: {IsLicensed: 'true'},
+                    },
+                    users: {
+                        currentUserId: 'current_user_id',
+                        profiles: {current_user_id: {id: 'current_user_id', roles: ''}},
                     },
                 },
             },
-        },
-        general: {
-            config: {},
-            license: {},
-        },
-        channels: {
-            currentChannelId: 'channel_id',
-            channels: {
-                channel_id: {
-                    id: 'channel_id',
-                    type: 'O' as ChannelType,
-                    display_name: 'Test Channel',
-                    delete_at: 0,
-                },
-            },
-        },
-        preferences: {
-            myPreferences: {},
-        },
-    },
-};
-
-const baseProps = {
-    channelId: 'channel_id',
-    onExited: jest.fn(),
-    onConfirm: jest.fn().mockResolvedValue({}),
-};
-
-describe('ScheduledPostCustomTimeModal', () => {
-    it('shows the repeat weekly checkbox by default', () => {
-        renderWithContext(
-            <ScheduledPostCustomTimeModal {...baseProps}/>,
-            initialState,
         );
+    }
 
-        expect(screen.getByRole('checkbox', {name: 'Repeat weekly'})).toBeInTheDocument();
+    it('should render the repeat weekly checkbox when recurring scheduled posts are enabled', () => {
+        renderModal();
+
+        expect(screen.getByLabelText('Repeat weekly')).toBeInTheDocument();
     });
 
-    it('hides the repeat weekly checkbox when recurring is not allowed', () => {
-        renderWithContext(
-            <ScheduledPostCustomTimeModal
-                {...baseProps}
-                allowRecurring={false}
-            />,
-            initialState,
-        );
+    it('should not render the repeat weekly checkbox when recurring scheduled posts are disabled', () => {
+        renderModal({recurringEnabled: false});
 
-        expect(screen.queryByRole('checkbox', {name: 'Repeat weekly'})).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
+    });
+
+    it('should not render the repeat weekly checkbox when the message has attachments', () => {
+        renderModal({allowRecurring: false});
+
+        expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
+    });
+
+    it('should preserve existing recurrence when recurring scheduled posts are disabled', async () => {
+        renderModal({recurringEnabled: false, initialRepeatWeekly: true});
+
+        await userEvent.click(screen.getByText('Schedule'));
+
+        await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: 'weekly'}));
+    });
+
+    it('should send empty repeat fields when recurring scheduled posts are disabled and the post does not repeat', async () => {
+        renderModal({recurringEnabled: false});
+
+        await userEvent.click(screen.getByText('Schedule'));
+
+        await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: '', repeat_timezone: ''}));
+    });
+
+    it('should send repeat fields when recurring scheduled posts are enabled and the post repeats', async () => {
+        renderModal({initialRepeatWeekly: true});
+
+        await userEvent.click(screen.getByText('Schedule'));
+
+        await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: 'weekly'}));
     });
 });

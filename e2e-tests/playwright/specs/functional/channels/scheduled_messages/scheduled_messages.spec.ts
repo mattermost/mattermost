@@ -72,12 +72,14 @@ test.fixme(
  * @objective Verify the ability to create a weekly recurring scheduled message from a channel and show recurring-only UI state.
  *
  * @precondition
- * A test server with valid license to support scheduled message features
+ * A test server with valid license and the RecurringScheduledPosts feature flag enabled
  */
 test(
     'creates weekly recurring scheduled message from channel and shows recurring UI state',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
+        await pw.skipIfFeatureFlagNotSet('RecurringScheduledPosts', true);
+
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 
         // # Initialize test user, login and navigate to a channel
@@ -228,12 +230,14 @@ test(
  * @objective Verify rescheduling a weekly recurring scheduled message keeps its weekly recurrence.
  *
  * @precondition
- * A test server with valid license to support scheduled message features
+ * A test server with valid license and the RecurringScheduledPosts feature flag enabled
  */
 test(
     'reschedules weekly recurring scheduled message from scheduled posts page and keeps weekly recurrence',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
+        await pw.skipIfFeatureFlagNotSet('RecurringScheduledPosts', true);
+
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 
         // # Initialize test user, login and navigate to a channel

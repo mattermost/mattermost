@@ -9067,6 +9067,10 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Recurring scheduled posts are disabled on this server."
+  },
+  {
     "id": "app.scheduled_post.save.rejected_by_plugin",
     "translation": "Scheduled post rejected by plugin: {{.Reason}}"
   },

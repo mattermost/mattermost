@@ -11,6 +11,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {testingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isRecurringScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -47,8 +48,13 @@ export default function ScheduledPostCustomTimeModal({
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
+    const recurringEnabled = useSelector(isRecurringScheduledPostsEnabled);
     const [repeatWeeklyChecked, setRepeatWeeklyChecked] = useState(initialRepeatWeekly);
-    const repeatWeekly = allowRecurring && repeatWeeklyChecked;
+    const offerRecurring = recurringEnabled && allowRecurring;
+
+    // While the checkbox can't be offered, keep whatever recurrence the post already has instead
+    // of silently clearing it; the job keeps sending existing series while the feature is off.
+    const repeatWeekly = offerRecurring ? repeatWeeklyChecked : initialRepeatWeekly;
     const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
@@ -93,7 +99,7 @@ export default function ScheduledPostCustomTimeModal({
     const bodySuffix = useMemo(() => {
         return (
             <>
-                {allowRecurring && (
+                {offerRecurring && (
                     <div className='ScheduledPostCustomTimeModal__repeat'>
                         <input
                             id='scheduled_post_repeat_weekly'
@@ -115,7 +121,7 @@ export default function ScheduledPostCustomTimeModal({
                 />
             </>
         );
-    }, [allowRecurring, channelId, selectedDateTime, repeatWeekly]);
+    }, [channelId, selectedDateTime, offerRecurring, repeatWeekly]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
