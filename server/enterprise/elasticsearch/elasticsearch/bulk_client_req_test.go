@@ -323,6 +323,6 @@ func assertFlusherStopped(t *testing.T, bulkClient *ReqBulkClient) {
 	select {
 	case <-bulkClient.quitFlusher:
 	default:
-		t.Fatal("periodic flusher was not stopped")
+		require.Fail(t, "periodic flusher was not stopped")
 	}
 }
