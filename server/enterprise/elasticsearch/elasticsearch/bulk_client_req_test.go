@@ -5,11 +5,13 @@ package elasticsearch
 
 import (
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/stretchr/testify/require"
@@ -253,55 +255,91 @@ func TestStop(t *testing.T) {
 		require.Equal(t, 0, bulkClient.pendingRequests)
 	})
 
-	t.Run("stop with periodic flusher after a successful pending flush", func(t *testing.T) {
-		bulkClient := setupReqBulkClientWithHandler(t, http.StatusOK, 100*time.Millisecond)
-
-		post := createTestPost(t, "test message")
-		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: new("testindex"),
-			Id_:    new(post.Id),
-		}, post)
-		require.NoError(t, err)
-		require.Equal(t, 1, bulkClient.pendingRequests)
-
-		err = bulkClient.Stop()
-		require.NoError(t, err)
-		require.Equal(t, 0, bulkClient.pendingRequests)
-		assertFlusherStopped(t, bulkClient)
-	})
-
-	t.Run("stop with periodic flusher after a failed pending flush", func(t *testing.T) {
-		bulkClient := setupReqBulkClientWithHandler(t, http.StatusInternalServerError, 100*time.Millisecond)
-
-		post := createTestPost(t, "test message")
-		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: new("testindex"),
-			Id_:    new(post.Id),
-		}, post)
-		require.NoError(t, err)
-		require.Equal(t, 1, bulkClient.pendingRequests)
-
-		err = bulkClient.Stop()
-		require.Error(t, err)
-		require.Equal(t, 1, bulkClient.pendingRequests)
-		assertFlusherStopped(t, bulkClient)
-	})
 }
 
-func setupReqBulkClientWithHandler(t *testing.T, status int, flushInterval time.Duration) *ReqBulkClient {
+func TestStopShutsDownPeriodicFlusher(t *testing.T) {
+	tests := []struct {
+		name            string
+		status          int
+		wantErr         bool
+		pendingRequests int
+	}{
+		{name: "successful pending flush", status: http.StatusOK},
+		{name: "failed pending flush", status: http.StatusInternalServerError, wantErr: true, pendingRequests: 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const flushInterval = 50 * time.Millisecond
+			requestStarted := make(chan struct{}, 1)
+			releaseRequest := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseRequest) })
+			}
+			t.Cleanup(release)
+
+			bulkClient := setupReqBulkClientWithHandler(t, flushInterval, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				select {
+				case requestStarted <- struct{}{}:
+				default:
+				}
+				<-releaseRequest
+
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("X-Elastic-Product", "Elasticsearch")
+				w.WriteHeader(tt.status)
+				if tt.status == http.StatusOK {
+					_, _ = w.Write([]byte(`{"errors":false,"items":[]}`))
+					return
+				}
+				_, _ = w.Write([]byte(`{"error":{"type":"test_error","reason":"bulk request failed"},"status":500}`))
+			}))
+
+			post := createTestPost(t, "test message")
+			err := bulkClient.IndexOp(types.IndexOperation{
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
+			}, post)
+			require.NoError(t, err)
+
+			stopDone := make(chan error, 1)
+			go func() {
+				stopDone <- bulkClient.Stop()
+			}()
+
+			select {
+			case <-requestStarted:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "timed out waiting for final flush to start")
+			}
+
+			// Stop still holds mut while the final flush is blocked. Waiting for a
+			// timer interval forces the periodic flusher to contend for that mutex.
+			time.Sleep(2 * flushInterval)
+			release()
+
+			select {
+			case err = <-stopDone:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "Stop deadlocked while waiting for the periodic flusher")
+			}
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.pendingRequests, bulkClient.pendingRequests)
+			assertFlusherStopped(t, bulkClient)
+		})
+	}
+}
+
+func setupReqBulkClientWithHandler(t *testing.T, flushInterval time.Duration, handler http.Handler) *ReqBulkClient {
 	t.Helper()
 
-	th := api4.SetupEnterprise(t)
-	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		w.WriteHeader(status)
-		if status == http.StatusOK {
-			_, _ = w.Write([]byte(`{"errors":false,"items":[]}`))
-			return
-		}
-		_, _ = w.Write([]byte(`{"error":{"type":"test_error","reason":"bulk request failed"},"status":500}`))
-	}))
+	client := newTestClient(t, handler)
 
 	bulkClient, err := NewReqBulkClient(
 		common.BulkSettings{
@@ -310,8 +348,8 @@ func setupReqBulkClientWithHandler(t *testing.T, status int, flushInterval time.
 			FlushNumReqs:  10,
 		},
 		client,
-		time.Duration(*th.App.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
-		th.Server.Platform().Log())
+		time.Second,
+		mlog.CreateConsoleTestLogger(t))
 	require.NoError(t, err)
 
 	return bulkClient
