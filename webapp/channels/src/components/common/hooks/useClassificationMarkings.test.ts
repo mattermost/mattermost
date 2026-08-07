@@ -26,7 +26,7 @@ jest.mock('react-redux', () => ({
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: GROUP_ID,
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
@@ -43,6 +43,8 @@ function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField
     };
 }
 
+const GROUP_ID = 'group_access_control';
+
 const ENTERPRISE_LICENSE = {IsLicensed: 'true', SkuShortName: 'enterprise'};
 const STARTER_LICENSE = {IsLicensed: 'true', SkuShortName: 'starter'};
 
@@ -51,6 +53,8 @@ function stateWith({featureFlag, license, fields = {}}: {
     license?: typeof ENTERPRISE_LICENSE | typeof STARTER_LICENSE | Record<string, never>;
     fields?: Record<string, PropertyField>;
 }): PartialState {
+    // Fields are looked up through the group-scoped map, which the fetch action
+    // populates together with the name -> id mapping, so both are set here.
     return {
         entities: {
             general: {
@@ -58,7 +62,15 @@ function stateWith({featureFlag, license, fields = {}}: {
                 license: license ?? {},
             },
             properties: {
-                fields: {byId: fields},
+                groups: {
+                    byId: {[GROUP_ID]: {id: GROUP_ID, name: CLASSIFICATIONS_GROUP_NAME}},
+                    byName: {[CLASSIFICATIONS_GROUP_NAME]: {id: GROUP_ID, name: CLASSIFICATIONS_GROUP_NAME}},
+                },
+                fields: {
+                    byId: fields,
+                    byObjectType: {[CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: {[GROUP_ID]: fields}},
+                },
+                values: {byTargetId: {}, byFieldId: {}},
             },
         },
     } as PartialState;

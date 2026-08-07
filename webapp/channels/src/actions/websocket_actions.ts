@@ -19,6 +19,7 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PropertyValue} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -1460,7 +1461,20 @@ function handlePropertyFieldDeleted(
     };
 }
 
-function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+// The server emits four distinct payloads under one event, distinguished only by
+// which keys are present (see TestPropertyValuesUpdatedPayloadShapes):
+//
+//   upsert            object_type + target_id + the target's full values array
+//   single delete     same keys, but one synthesized row with an empty id
+//   delete for target same keys, values "[]"
+//   delete for field  field_id, no object_type/target_id, values "[]"
+//
+// A delete tombstone carries no value, and a nil RawMessage marshals to null, so
+// it is byte-identical to a user-initiated `PATCH value: null` apart from the
+// empty id. Treating either of the empty-array shapes as an upsert is a no-op,
+// and treating a tombstone as one leaves a blank row in place of the deleted
+// value — so each shape has to be routed to its own reducer action.
+export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         let values;
         try {
@@ -1477,13 +1491,35 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
             values,
         };
 
-        // Populate the Redux property values store so any component that reads
-        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
-        // real-time updates without an extra network round-trip.
-        doDispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
+        const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
+        const isTargetScoped = Boolean(objectType && targetId);
+
+        if (!isTargetScoped && fieldId) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_FIELD,
+                data: {fieldId},
+            });
+        } else if (isTargetScoped && values.length === 0) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET,
+                data: {targetId},
+            });
+        } else if (isTargetScoped && values.every((value: PropertyValue<unknown>) => !value.id)) {
+            for (const value of values) {
+                doDispatch({
+                    type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                    data: {targetId: value.target_id ?? targetId, fieldId: value.field_id},
+                });
+            }
+        } else {
+            // Populate the Redux property values store so any component that reads
+            // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+            // real-time updates without an extra network round-trip.
+            doDispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values},
+            });
+        }
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
