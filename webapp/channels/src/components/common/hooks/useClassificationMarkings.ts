@@ -9,6 +9,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getChannelAttributeFields} from 'mattermost-redux/selectors/entities/properties';
 
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
@@ -22,13 +23,12 @@ import type {ClassificationLevel} from 'components/admin_console/classification_
 
 import {isEnterpriseLicense} from 'utils/license_utils';
 
+// Scoped to the channel-object fields of this group rather than scanning every
+// field in the store. linked_field_id is what distinguishes the channel field
+// from the template it inherits its options from.
 function selectChannelClassificationField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === CLASSIFICATIONS_CHANNEL_OBJECT_TYPE && f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
+    return getChannelAttributeFields(state).find(
+        (f) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && Boolean(f.linked_field_id),
     );
 }
 

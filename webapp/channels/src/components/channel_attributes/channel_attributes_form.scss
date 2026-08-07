@@ -1,0 +1,55 @@
+.channel-attributes-form {
+    padding-top: 24px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    &__title {
+        margin: 0 0 4px;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__description {
+        margin: 0 0 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 16px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    // Matches the classification rows above: a long attribute name wraps rather
+    // than being clipped, since the name is the only thing identifying the row.
+    &__label {
+        width: 140px;
+        flex-shrink: 0;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        overflow-wrap: anywhere;
+    }
+
+    &__control {
+        min-width: 0;
+        flex: 1 1 auto;
+
+        // Bootstrap's .form-control carries its own border, which paints a second
+        // box inside the fieldset's. Same override the purpose textarea needs.
+        .Input_wrapper input.form-control {
+            border: none;
+        }
+    }
+}

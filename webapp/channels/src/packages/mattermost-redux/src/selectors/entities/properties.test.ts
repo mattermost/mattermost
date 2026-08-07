@@ -5,6 +5,8 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import {
     getPropertyFieldsForObjectTypeAndGroup,
     getPropertyFieldById,
@@ -15,6 +17,9 @@ import {
     getPropertyValueForTargetField,
     getPropertyValuesForTargetByFieldIds,
     getPropertyValuesForField,
+    getChannelAttributeFields,
+    getChannelLabelFields,
+    makeGetResolvedChannelAttributes,
 } from './properties';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -424,5 +429,194 @@ describe('Group selectors', () => {
 
             expect(getPropertyGroupByName(state as GlobalState, 'unknown')).toBeUndefined();
         });
+    });
+});
+
+const GROUP_ID = 'group_access_control';
+const CHANNEL_ID = 'channel1';
+
+function attrField(overrides: Partial<PropertyField> & {id: string}): PropertyField {
+    return {
+        group_id: GROUP_ID,
+        name: overrides.id,
+        type: 'select',
+        target_id: '',
+        target_type: 'system',
+        object_type: 'channel',
+        create_at: 1,
+        update_at: 1,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        ...overrides,
+    };
+}
+
+function attrValue(fieldId: string, raw: unknown, targetId = CHANNEL_ID): PropertyValue<unknown> {
+    return {
+        id: `value_${fieldId}`,
+        target_id: targetId,
+        target_type: 'channel',
+        group_id: GROUP_ID,
+        field_id: fieldId,
+        value: raw,
+        create_at: 1,
+        update_at: 1,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+    };
+}
+
+function makeAttrState(fields: PropertyField[], values: Array<PropertyValue<unknown>> = [], groupLoaded = true): GlobalState {
+    const byTargetId: Record<string, Record<string, PropertyValue<unknown>>> = {};
+    for (const v of values) {
+        byTargetId[v.target_id] = {...byTargetId[v.target_id], [v.field_id]: v};
+    }
+
+    return deepFreeze({
+        entities: {
+            properties: {
+                groups: groupLoaded ? {
+                    byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}},
+                    byName: {access_control: {id: GROUP_ID, name: 'access_control'}},
+                } : {byId: {}, byName: {}},
+                fields: {
+                    byId: Object.fromEntries(fields.map((f) => [f.id, f])),
+                    byObjectType: {
+                        channel: {
+                            [GROUP_ID]: Object.fromEntries(fields.map((f) => [f.id, f])),
+                        },
+                    },
+                },
+                values: {byTargetId, byFieldId: {}},
+            },
+        },
+    }) as unknown as GlobalState;
+}
+
+describe('getChannelAttributeFields', () => {
+    // Reachable in practice, not just in theory: a websocket field event populates
+    // byObjectType on its own, and only fetchPropertyFields carries the group name,
+    // so the fields can be in the store with nothing able to read them. That is why
+    // useChannelAttributes tracks the fetch outcome instead of inferring it here.
+    test('returns nothing while the group name has not resolved to an id', () => {
+        const state = makeAttrState([attrField({id: 'a'})], [], false);
+        expect(getChannelAttributeFields(state)).toEqual([]);
+    });
+
+    test('orders by sort_order, falling back to create_at', () => {
+        const state = makeAttrState([
+            attrField({id: 'third', attrs: {sort_order: 30}}),
+            attrField({id: 'first', attrs: {sort_order: 10}}),
+            attrField({id: 'unranked_older', create_at: 5}),
+            attrField({id: 'second', attrs: {sort_order: 20}}),
+            attrField({id: 'unranked_newer', create_at: 9}),
+        ]);
+
+        expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual([
+            'first', 'second', 'third', 'unranked_older', 'unranked_newer',
+        ]);
+    });
+
+    test('omits a deleted field, which must not be offered for assignment', () => {
+        const state = makeAttrState([
+            attrField({id: 'live'}),
+            attrField({id: 'gone', delete_at: 12345}),
+        ]);
+
+        expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual(['live']);
+    });
+});
+
+describe('getChannelLabelFields', () => {
+    test('keeps only fields designated for a label surface', () => {
+        const state = makeAttrState([
+            attrField({id: 'header', attrs: {actions: ['display_label_header']}}),
+            attrField({id: 'info', attrs: {actions: ['display_label_info']}}),
+            attrField({id: 'banner_only', attrs: {actions: ['display_banner_top']}}),
+            attrField({id: 'no_actions'}),
+        ]);
+
+        expect(getChannelLabelFields(state).map((f) => f.id)).toEqual(['header', 'info']);
+    });
+});
+
+describe('makeGetResolvedChannelAttributes', () => {
+    const options = [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'NOFORN'}];
+
+    let getResolvedChannelAttributes: ReturnType<typeof makeGetResolvedChannelAttributes>;
+
+    beforeEach(() => {
+        getResolvedChannelAttributes = makeGetResolvedChannelAttributes();
+    });
+
+    test('resolves a select value to its option name', () => {
+        const state = makeAttrState([attrField({id: 'program', attrs: {options}})], [attrValue('program', 'opt_a')]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.option?.name).toBe('AURORA');
+        expect(resolved.displayValue).toBe('AURORA');
+    });
+
+    test('treats null and empty string as unset', () => {
+        const state = makeAttrState(
+            [attrField({id: 'program', attrs: {options}}), attrField({id: 'note', type: 'text'})],
+            [attrValue('program', null), attrValue('note', '')],
+        );
+
+        expect(getResolvedChannelAttributes(state, CHANNEL_ID).map((a) => a.displayValue)).toEqual(['', '']);
+    });
+
+    test('includes fields with no value at all, as unset', () => {
+        const state = makeAttrState([attrField({id: 'program', attrs: {options}})]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.value).toBeUndefined();
+        expect(resolved.displayValue).toBe('');
+    });
+
+    test('joins multiselect values in option order of the stored array', () => {
+        const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_b', 'opt_a'])]);
+
+        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('NOFORN, AURORA');
+    });
+
+    test('falls back to the raw value when the option no longer exists', () => {
+        // A deleted option would otherwise silently drop the marking. Showing the
+        // raw id is wrong but visible, which is the safer failure here.
+        const state = makeAttrState([attrField({id: 'program', attrs: {options}})], [attrValue('program', 'opt_deleted')]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.option).toBeUndefined();
+        expect(resolved.displayValue).toBe('opt_deleted');
+    });
+
+    test('text fields display their stored string directly', () => {
+        const state = makeAttrState([attrField({id: 'note', type: 'text'})], [attrValue('note', 'handle with care')]);
+
+        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('handle with care');
+    });
+
+    test('does not leak another channel value into this channel', () => {
+        const state = makeAttrState([attrField({id: 'program', attrs: {options}})], [attrValue('program', 'opt_a', 'other_channel')]);
+
+        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('');
+    });
+
+    test('each instance memoizes its own channel, so two channels do not evict each other', () => {
+        const state = makeAttrState(
+            [attrField({id: 'program', attrs: {options}})],
+            [attrValue('program', 'opt_a'), attrValue('program', 'opt_b', 'other_channel')],
+        );
+
+        const forThis = makeGetResolvedChannelAttributes();
+        const forOther = makeGetResolvedChannelAttributes();
+
+        const first = forThis(state, CHANNEL_ID);
+        forOther(state, 'other_channel');
+
+        expect(forThis(state, CHANNEL_ID)).toBe(first);
+        expect(forOther(state, 'other_channel')[0].displayValue).toBe('NOFORN');
     });
 });

@@ -4,6 +4,7 @@
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
@@ -26,8 +27,9 @@ import {PRESET_CUSTOM, presets} from './presets';
 // endpoint and use the sentinel target_id 'system'.
 // ---------------------------------------------------------------------------
 
-// Property-field group for all classification-markings entities.
-export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
+// Property-field group for all classification-markings entities. Shared with the
+// generic channel attributes, so the name has one definition.
+export const CLASSIFICATIONS_GROUP_NAME = ACCESS_CONTROL_PROPERTY_GROUP;
 
 // Field-level target attributes shared by template, system, and channel fields.
 // `target_type` is always 'system'; `target_id` is empty for system-scoped
@@ -50,8 +52,7 @@ export const CLASSIFICATIONS_CHANNEL_OBJECT_TYPE = 'channel';
 export const CLASSIFICATIONS_CHANNEL_FIELD_NAME = 'classification';
 
 // Actions stored on the linked fields' attrs.actions to control banner placement.
-export const DISPLAY_BANNER_TOP = 'display_banner_top';
-export const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
+export {DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM};
 
 export type GlobalBannerPlacement = 'top' | 'top_and_bottom';
 
