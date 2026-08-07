@@ -190,9 +190,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Clients that predate recurring scheduled posts omit the repeat fields entirely, so an
-	// absent repeat_type has to preserve the existing recurrence rather than end the series.
-	// Sending an explicit, empty repeat_type remains the way to stop repeating.
+	// Detect whether the payload included repeat_type at all.
 	var rawPayload struct {
 		RepeatType json.RawMessage `json:"repeat_type"`
 	}
@@ -225,6 +223,9 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Clients that predate recurring scheduled posts omit the repeat fields entirely, so an
+	// absent repeat_type preserves the existing recurrence rather than ending the series.
+	// Sending an explicit, empty repeat_type remains the way to stop repeating.
 	if rawPayload.RepeatType == nil {
 		scheduledPost.RepeatType = existingScheduledPost.RepeatType
 		scheduledPost.RepeatTimezone = existingScheduledPost.RepeatTimezone
