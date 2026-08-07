@@ -2797,22 +2797,57 @@ func (s *SqlPostStore) GetPostAuthorIDsForChannel(teamName string, channelName s
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string, channelNameFilter string) ([]*model.PostForExport, error) {
+	needsScopeJoin := teamNameFilter != "" || channelNameFilter != "" || !includeArchivedChannel
+
+	excludeDeletedCond := sq.And{sq.Eq{"Teams.DeleteAt": 0}}
+	if !includeArchivedChannel {
+		excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
+	}
+	if teamNameFilter != "" {
+		excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Teams.Name": teamNameFilter})
+	}
+	if channelNameFilter != "" {
+		excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.Name": channelNameFilter})
+	}
+
+	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
+
 	for {
 		rootIds := []string{}
-		err := s.GetReplica().Select(&rootIds,
-			`SELECT
-				Id
-			FROM
-				Posts
-			WHERE
-				Posts.Id > ?
-				AND Posts.RootId = ''
-				AND Posts.DeleteAt = 0
-			ORDER BY Posts.Id
-			LIMIT ?`,
-			afterId, limit)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to find Posts")
+
+		if needsScopeJoin {
+			idQuery := s.getQueryBuilder().
+				Select("Posts.Id").
+				From("Posts").
+				InnerJoin("Channels ON Posts.ChannelId = Channels.Id").
+				InnerJoin("Teams ON Channels.TeamId = Teams.Id").
+				Where(sq.And{
+					sq.Gt{"Posts.Id": afterId},
+					sq.Eq{"Posts.RootId": ""},
+					sq.Eq{"Posts.DeleteAt": 0},
+				}).
+				Where(excludeDeletedCond).
+				OrderBy("Posts.Id").
+				Limit(uint64(limit))
+
+			if err := s.GetReplica().SelectBuilder(&rootIds, idQuery); err != nil {
+				return nil, errors.Wrap(err, "failed to find Posts")
+			}
+		} else {
+			if err := s.GetReplica().Select(&rootIds,
+				`SELECT
+					Id
+				FROM
+					Posts
+				WHERE
+					Posts.Id > ?
+					AND Posts.RootId = ''
+					AND Posts.DeleteAt = 0
+				ORDER BY Posts.Id
+				LIMIT ?`,
+				afterId, limit); err != nil {
+				return nil, errors.Wrap(err, "failed to find Posts")
+			}
 		}
 
 		postsForExport := []*model.PostForExport{}
@@ -2820,22 +2855,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			return postsForExport, nil
 		}
 
-		excludeDeletedCond := sq.And{
-			sq.Eq{"Teams.DeleteAt": 0},
-		}
-		if !includeArchivedChannel {
-			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
-		}
-
-		if teamNameFilter != "" {
-			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Teams.Name": teamNameFilter})
-		}
-
-		if channelNameFilter != "" {
-			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.Name": channelNameFilter})
-		}
-
-		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
 		result := []*model.PostForExport{}
 
 		query := s.getQueryBuilder().
