@@ -18,6 +18,7 @@ import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/ty
 import {supportsOptions} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
+import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -364,6 +365,23 @@ export default function GlobalAttributesTable() {
             active = false;
         };
     }, [dispatch]);
+
+    // The Source column resolves plugin-owned rows to a plugin display name, but
+    // server-only plugins are absent from the webapp manifest registry — their names
+    // live in the admin plugin statuses, which nothing else on this page loads.
+    // Fetched once, and only when a plugin-owned row is actually present; failure
+    // just leaves the column showing the plugin ID, so the result is not awaited.
+    const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
+    const pluginStatusesRequested = useRef(false);
+
+    useEffect(() => {
+        if (!hasPluginOwnedFields || pluginStatusesRequested.current) {
+            return;
+        }
+
+        pluginStatusesRequested.current = true;
+        dispatch(getPluginStatuses());
+    }, [dispatch, hasPluginOwnedFields]);
 
     // The banner sits above the table, so a delete triggered from a row further
     // down can land off-screen. Pull it into view whenever a new error appears.

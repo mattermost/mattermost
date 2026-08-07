@@ -358,6 +358,50 @@ describe('GlobalAttributesTable', () => {
             expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
+        it('resolves a server-only plugin name from the admin plugin statuses rather than showing the raw plugin ID', async () => {
+            const getPluginStatuses = jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue([{
+                plugin_id: 'com.mattermost.gahelper',
+                name: 'Global Attributes Helper',
+                description: '',
+                version: '1.0.0',
+                cluster_id: '',
+                plugin_path: '',
+                state: 1,
+            }]);
+
+            // No entry in state.plugins: a server-only plugin ships no webapp bundle,
+            // so it never registers a client manifest.
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                attrs: {source_plugin_id: 'com.mattermost.gahelper', protected: true},
+            })]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await waitFor(() => {
+                expect(getPluginStatuses).toHaveBeenCalled();
+            });
+
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('Global Attributes Helper');
+            expect(cell).not.toHaveTextContent('com.mattermost.gahelper');
+
+            getPluginStatuses.mockRestore();
+        });
+
+        it('does not fetch plugin statuses when no row is plugin-owned', async () => {
+            const getPluginStatuses = jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue([]);
+
+            getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await screen.findByTestId('global-attribute-source');
+
+            expect(getPluginStatuses).not.toHaveBeenCalled();
+
+            getPluginStatuses.mockRestore();
+        });
+
         it('shows AD/LDAP when attrs.ldap is set', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
 
