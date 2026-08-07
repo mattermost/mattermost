@@ -7,6 +7,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -97,23 +98,36 @@ export default function ScheduledPostCustomTimeModal({
     }, [onConfirm, onExited, repeatWeekly, userTimezone, dispatch, currentUserId]);
 
     const bodySuffix = useMemo(() => {
+        const repeatRow = (
+            <div className='ScheduledPostCustomTimeModal__repeat'>
+                <input
+                    id='scheduled_post_repeat_weekly'
+                    type='checkbox'
+                    checked={repeatWeekly}
+                    disabled={!allowRecurring}
+                    onChange={(e) => setRepeatWeeklyChecked(e.target.checked)}
+                />
+                <label htmlFor='scheduled_post_repeat_weekly'>
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.repeat_weekly'
+                        defaultMessage='Repeat weekly'
+                    />
+                </label>
+            </div>
+        );
+
         return (
             <>
-                {offerRecurring && (
-                    <div className='ScheduledPostCustomTimeModal__repeat'>
-                        <input
-                            id='scheduled_post_repeat_weekly'
-                            type='checkbox'
-                            checked={repeatWeekly}
-                            onChange={(e) => setRepeatWeeklyChecked(e.target.checked)}
-                        />
-                        <label htmlFor='scheduled_post_repeat_weekly'>
-                            <FormattedMessage
-                                id='schedule_post.custom_time_modal.repeat_weekly'
-                                defaultMessage='Repeat weekly'
-                            />
-                        </label>
-                    </div>
+                {recurringEnabled && allowRecurring && repeatRow}
+                {recurringEnabled && !allowRecurring && (
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip',
+                            defaultMessage: "Messages with attachments can't repeat",
+                        })}
+                    >
+                        {repeatRow}
+                    </WithTooltip>
                 )}
                 <DMUserTimezone
                     channelId={channelId}
@@ -121,7 +135,7 @@ export default function ScheduledPostCustomTimeModal({
                 />
             </>
         );
-    }, [channelId, selectedDateTime, offerRecurring, repeatWeekly]);
+    }, [channelId, selectedDateTime, recurringEnabled, allowRecurring, repeatWeekly, formatMessage]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 

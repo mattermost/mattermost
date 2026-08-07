@@ -57,10 +57,10 @@ describe('ScheduledPostCustomTimeModal', () => {
         expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
     });
 
-    it('should not render the repeat weekly checkbox when the message has attachments', () => {
+    it('should disable the repeat weekly checkbox when the message has attachments', () => {
         renderModal({allowRecurring: false});
 
-        expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Repeat weekly')).toBeDisabled();
     });
 
     it('should preserve existing recurrence when recurring scheduled posts are disabled', async () => {

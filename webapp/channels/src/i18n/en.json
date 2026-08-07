@@ -6726,6 +6726,7 @@
   "schedule_post.custom_time_modal.confirm_button_text": "Schedule",
   "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} for {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Repeat weekly",
+  "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Messages with attachments can't repeat",
   "schedule_post.custom_time_modal.title": "Schedule message",
   "Schedule_post.empty_state.subtitle": "Schedule drafts to send messages at a later time. Any scheduled drafts will show up here and can be modified after being scheduled.",
   "Schedule_post.empty_state.title": "No scheduled drafts at the moment",

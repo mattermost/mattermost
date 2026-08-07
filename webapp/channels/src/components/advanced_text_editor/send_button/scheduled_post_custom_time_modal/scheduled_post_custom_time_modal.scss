@@ -12,5 +12,11 @@
         label {
             cursor: pointer;
         }
+
+        input[type='checkbox']:disabled,
+        input[type='checkbox']:disabled + label {
+            cursor: default;
+            opacity: 0.5;
+        }
     }
 }
