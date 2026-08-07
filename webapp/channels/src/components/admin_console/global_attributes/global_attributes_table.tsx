@@ -515,16 +515,22 @@ export default function GlobalAttributesTable() {
 
     return (
         <div className='GlobalAttributesTable__wrapper'>
-            {deleteError && (
-                <div ref={bannerRef}>
+            {/* Kept mounted with only its content swapped in -- an alert inserted at the
+                same moment as its text is not reliably announced (same reason
+                attribute_external_source.tsx keeps its status region mounted). */}
+            <div
+                ref={bannerRef}
+                role='alert'
+            >
+                {deleteError && (
                     <AlertBanner
                         id='global-attributes-delete-error'
                         mode='danger'
                         message={deleteError}
                         onDismiss={() => setDeleteError(null)}
                     />
-                </div>
-            )}
+                )}
+            </div>
             <AdminConsoleListTable<PropertyField> table={table}/>
         </div>
     );

@@ -602,6 +602,28 @@ describe('GlobalAttributesTable', () => {
             expect(deletePropertyField).toHaveBeenCalledTimes(1);
         });
 
+        it('keeps the error live region mounted so the banner is announced when it appears', async () => {
+            deletePropertyField.mockRejectedValue(makeClientError(500));
+            renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            // * The region exists before any error, so the banner arriving is a content
+            // change inside a live region rather than a newly-inserted region — the
+            // latter is not reliably announced
+            const liveRegion = await screen.findByRole('alert');
+            expect(liveRegion).toBeEmptyDOMElement();
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            // * The node captured before the error now carries the message. A region
+            // remounted alongside its content would have left this reference detached
+            // and empty, so this also proves the region persisted.
+            await waitFor(() => {
+                expect(liveRegion).toHaveTextContent('An error occurred while deleting this attribute');
+            });
+            expect(liveRegion).toBeInTheDocument();
+        });
+
         it('keeps Delete disabled with a reason on a plugin-owned row', async () => {
             renderTable([makeField({attrs: {display_name: 'Department', source_plugin_id: 'com.acme.plugin', protected: true}})]);
 
