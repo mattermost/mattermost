@@ -3,6 +3,7 @@
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -14,6 +15,10 @@ const emptyList: string[] = [];
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;
     count: number;
+
+    // A recurring series always has a next occurrence, so it must not keep the indicator
+    // pinned above the composer on its own.
+    hasNonRecurringPost: boolean;
 };
 
 export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
@@ -75,18 +80,17 @@ export function hasScheduledPostError(state: GlobalState, teamId: string) {
 
 export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, channelOrThreadId: string): ChannelScheduledPostIndicatorData {
     const allChannelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList;
-    const eligibleScheduledPosts = allChannelScheduledPosts.filter((scheduledPostId: string) => {
-        const scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
-        return !scheduledPost?.error_code;
-    });
+    const eligibleScheduledPosts = allChannelScheduledPosts.
+        map((scheduledPostId: string) => state.entities.scheduledPosts.byId[scheduledPostId]).
+        filter((scheduledPost): scheduledPost is ScheduledPost => scheduledPost !== undefined && !scheduledPost.error_code);
 
-    const data = {
+    const data: ChannelScheduledPostIndicatorData = {
         count: eligibleScheduledPosts.length,
-    } as ChannelScheduledPostIndicatorData;
+        hasNonRecurringPost: eligibleScheduledPosts.some((scheduledPost) => !isRecurringScheduledPost(scheduledPost)),
+    };
 
     if (data.count === 1) {
-        const scheduledPostId = eligibleScheduledPosts[0];
-        data.scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
+        data.scheduledPost = eligibleScheduledPosts[0];
     }
 
     return data;

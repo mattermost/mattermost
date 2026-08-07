@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
-
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -43,7 +41,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     const currentTeamName = useSelector((state: GlobalState) => getCurrentTeam(state)?.name);
     const scheduledPostLinkURL = `/${currentTeamName}/scheduled_posts?target_id=${id}`;
 
-    if (!scheduledPostData?.count) {
+    if (!scheduledPostData?.count || !scheduledPostData.hasNonRecurringPost) {
         return null;
     }
 
@@ -69,13 +67,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
                 useTime={scheduledPostTimeFormat}
             />
         );
-        scheduledPostText = isRecurringScheduledPost(scheduledPost) ? (
-            <FormattedMessage
-                id='scheduled_post.channel_indicator.single_repeats_weekly'
-                defaultMessage='Message scheduled for {dateTime}; repeats weekly.'
-                values={{dateTime}}
-            />
-        ) : (
+        scheduledPostText = (
             <FormattedMessage
                 id='scheduled_post.channel_indicator.single'
                 defaultMessage='Message scheduled for {dateTime}.'
