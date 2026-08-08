@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ReactDOMClient from 'react-dom/client';
 
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -57,18 +56,7 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
 
-    if (window.enableConcurrentReact) {
-        // eslint-disable-next-line no-console
-        console.log('Enabling concurrent React 18 due to server-wide feature flag');
-
-        // Enable this experimentally since it may cause other issues
-        ReactDOMClient.createRoot(container).render(<App/>);
-    } else {
-        // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
-        // new features such as automatic batching which breaks some components. This will need to be changed in the future
-        // because this method of starting the app will be removed in React 19.
-        ReactDOM.render(<App/>, container);
-    }
+    ReactDOMClient.createRoot(container).render(<App/>);
 }
 
 /**
