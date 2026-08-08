@@ -1269,6 +1269,13 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string) *model.AppError {
+	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, "")
+}
+
+// removeUserFromTeam is RemoveUserFromTeam with the ABAC sync job id attached, so
+// a policy-driven removal can stamp job_id on the audit records it emits. Callers
+// outside the membership sync pass an empty policyJobID.
+func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, policyJobID string) *model.AppError {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1307,7 +1314,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 	}
 	user := userChanResult.Data
 
-	if err := a.LeaveTeam(rctx, team, user, requestorId); err != nil {
+	if err := a.leaveTeam(rctx, team, user, requestorId, policyJobID); err != nil {
 		return err
 	}
 
@@ -1360,6 +1367,12 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 }
 
 func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
+	return a.leaveTeam(rctx, team, user, requestorId, "")
+}
+
+// leaveTeam is LeaveTeam with the ABAC sync job id attached; see
+// removeUserFromTeam.
+func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, policyJobID string) *model.AppError {
 	teamMember, err := a.GetTeamMember(rctx, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1386,9 +1399,17 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// a per-channel cascade record referencing it; an ordinary or non-policy
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
-	var cascadeParentEventID string
+	var removalAudit accessControlTeamRemovalAudit
 	if policyDriven {
-		cascadeParentEventID = model.NewId()
+		removalAudit = accessControlTeamRemovalAudit{
+			teamID:  team.Id,
+			userID:  user.Id,
+			jobID:   policyJobID,
+			eventID: model.NewId(),
+		}
+		if a.accessControlAuditLoggingEnabled() {
+			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
+		}
 	}
 
 	for _, channel := range channelList {
@@ -1398,12 +1419,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 				return appErr
 			}
 			if policyDriven {
-				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
-				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
-				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
-				a.LogAuditRec(rctx, rec, nil)
+				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 			}
 		}
 	}
@@ -1419,6 +1435,9 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		a.invalidateCacheForChannelMembers(channel.Id)
 		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
 			return appErr
+		}
+		if policyDriven {
+			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 		}
 	}
 
@@ -1451,11 +1470,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		if removeErr != nil {
 			auditStatus = model.AuditStatusFail
 		}
-		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
-		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
-		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-		a.LogAuditRec(rctx, rec, nil)
+		a.logAccessControlTeamRemoval(rctx, removalAudit, auditStatus)
 	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
