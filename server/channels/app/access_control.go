@@ -1790,6 +1790,10 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// This write bypasses SavePolicy, so the cache needs to be invalidated
+	// here directly.
+	acs.InvalidatePolicyCache(rctx, policies)
+
 	for _, policy := range policies {
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
