@@ -1,0 +1,126 @@
+---
+name: PR Manual QA Execute
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+      head_sha:
+        required: true
+        type: string
+    secrets:
+      GH_TOKEN:
+        required: true
+      WEBHOOK_URL:
+        required: false
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+      head_sha:
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  execute:
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Resolve head SHA
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_HEAD_SHA: ${{ inputs.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          PR="$PR_NUMBER"
+          if [ -n "$INPUT_HEAD_SHA" ]; then
+            SHA="$INPUT_HEAD_SHA"
+          else
+            SHA=$(gh pr view "$PR" --repo "$REPO" --json headRefOid -q .headRefOid)
+          fi
+          echo "head_sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Download qa artifacts
+        uses: actions/download-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        continue-on-error: true
+        with:
+          name: qa-result-pr-${{ inputs.pr_number }}
+          path: /tmp/amqa
+
+      - name: Install Python dependencies
+        run: pip install requests pyyaml
+
+      # Orchestration only — no LLM in GHA. Manual verification runs in Cursor Cloud
+      # Agent via computerUse per .cursor/qa-playbook.md (avoids prompt injection from
+      # user-controlled PR/CodeRabbit content in CI).
+      - name: Queue Cloud Agent verification
+        working-directory: .github/scripts/amqa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          pr = int(os.environ["PR_NUMBER"])
+          sha = os.environ["HEAD_SHA"]
+          result_path = Path("/tmp/amqa/qa-result.json")
+          result_path.parent.mkdir(parents=True, exist_ok=True)
+
+          if result_path.is_file():
+              data = json.loads(result_path.read_text())
+          else:
+              data = {
+                  "schema_version": "1.0",
+                  "pr_number": pr,
+                  "head_sha": sha,
+                  "overall": "pending",
+                  "verified_at_pr": False,
+              }
+
+          data["overall"] = "pending"
+          data["verified_at_pr"] = False
+          data["executor"] = "github-actions-orchestrator"
+          data["next_step"] = "cursor-cloud-agent-computerUse"
+          result_path.write_text(json.dumps(data, indent=2) + "\n")
+
+          env = os.environ.copy()
+          env.update({
+              "STATUS_CONTEXT": "QA/execution",
+              "STATUS_STATE": "pending",
+              "STATUS_DESCRIPTION": "Complete verification via Cloud Agent computerUse — see plan comment",
+              "OVERALL": "pending",
+              "STAGE": "execution",
+              "AMQA_RESULT_PATH": str(result_path),
+              "EVIDENCE_URLS": os.environ.get("RUN_URL", ""),
+          })
+          subprocess.run(["python3", "amqa_update_result.py"], check=True, env=env)
+          PY
+
+      - name: Upload qa-result
+        uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        with:
+          name: qa-result-pr-${{ inputs.pr_number }}
+          path: /tmp/amqa/
+          overwrite: true
+          retention-days: 90
