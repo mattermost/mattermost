@@ -5,7 +5,7 @@ import React from 'react';
 
 import {generateId} from 'mattermost-redux/utils/helpers';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 
 import Bot from './bot';
@@ -235,5 +235,31 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.getByText(tokenId)).toBeInTheDocument();
         expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
         expect(screen.getByText(/^Enable$/)).toBeInTheDocument();
+    });
+
+    it('shows a copy button for a newly created token secret', async () => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1'});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        const createUserAccessToken = jest.fn().mockResolvedValue({data: {id: 'new-token-id', description: 'bot token', token: 'bot-secret'}});
+
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={{...actions, createUserAccessToken}}
+                fromApp={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByText('Create New Token'));
+        fireEvent.change(screen.getByLabelText('Token Description:'), {target: {value: 'bot token'}});
+        fireEvent.click(screen.getByText('Save'));
+
+        expect(await screen.findByText(/bot-secret/)).toBeInTheDocument();
+        expect(screen.getByLabelText('Copy Token')).toBeInTheDocument();
     });
 });
