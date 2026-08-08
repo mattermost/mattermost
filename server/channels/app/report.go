@@ -26,12 +26,38 @@ func (a *App) SaveReportChunk(format string, prefix string, count int, reportDat
 	return model.NewAppError("SaveReportChunk", "app.save_report_chunk.unsupported_format", nil, "unsupported report format", http.StatusBadRequest)
 }
 
+// dangerousCSVPrefixes are leading characters a spreadsheet application may
+// interpret as the start of a formula. encoding/csv only quotes for CSV
+// structural correctness and does not defend against formula injection, so
+// fields beginning with one of these are neutralized before being written.
+var dangerousCSVPrefixes = [...]byte{'=', '+', '-', '@', '\t', '\r'}
+
+// neutralizeCSVField prefixes a single quote to any field a spreadsheet could
+// evaluate as a formula, preventing CSV formula injection when an exported
+// report is opened in Excel, LibreOffice Calc, or Google Sheets. The report
+// data includes user-controlled values (display name, nickname, etc.).
+func neutralizeCSVField(field string) string {
+	if field == "" {
+		return field
+	}
+	for _, c := range dangerousCSVPrefixes {
+		if field[0] == c {
+			return "'" + field
+		}
+	}
+	return field
+}
+
 func (a *App) saveCSVChunk(prefix string, count int, reportData []model.ReportableObject) *model.AppError {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
 	for _, report := range reportData {
-		err := w.Write(report.ToReport())
+		record := report.ToReport()
+		for i := range record {
+			record[i] = neutralizeCSVField(record[i])
+		}
+		err := w.Write(record)
 		if err != nil {
 			return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
