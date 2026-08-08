@@ -4,8 +4,12 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -873,4 +877,78 @@ func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.
 	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
 	require.Nil(t, appErr)
 	require.True(t, chAfter.IsShared())
+}
+
+func TestRemoteClusterConfirmInviteRemoteIdBinding(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense("remote_cluster_service"))
+
+	tokenA := model.NewId()
+
+	// rcA is a confirmed remote cluster with a known token.
+	rcA, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:      "cluster-a",
+		SiteURL:   "http://cluster-a.example.com",
+		Token:     tokenA,
+		CreatorId: th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	// rcB is a separate pending remote cluster.
+	rcB, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:      "cluster-b",
+		SiteURL:   model.SiteURLPending + model.NewId(),
+		CreatorId: th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	buildFrame := func(frameRemoteId string, payloadRemoteId string) []byte {
+		confirm := model.RemoteClusterInvite{
+			RemoteId: payloadRemoteId,
+			SiteURL:  "http://cluster-b.example.com",
+			Token:    model.NewId(),
+			Version:  2,
+		}
+		payload, _ := json.Marshal(confirm)
+		frame := model.RemoteClusterFrame{
+			RemoteId: frameRemoteId,
+			Msg:      model.NewRemoteClusterMsg("confirm_invite", payload),
+		}
+		body, _ := json.Marshal(frame)
+		return body
+	}
+
+	serverURL := fmt.Sprintf("http://localhost:%d", th.Server.ListenAddr.Port)
+
+	doRequest := func(body []byte, authRemoteId, authToken string) int {
+		req, err := http.NewRequest(http.MethodPost, serverURL+"/api/v4/remotecluster/confirm_invite", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set(model.HeaderRemoteclusterId, authRemoteId)
+		req.Header.Set(model.HeaderRemoteclusterToken, authToken)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+
+	t.Run("mismatched payload RemoteId is rejected with 400", func(t *testing.T) {
+		// frame.RemoteId identifies rcA but the payload targets rcB — must be rejected.
+		body := buildFrame(rcA.RemoteId, rcB.RemoteId)
+		status := doRequest(body, rcA.RemoteId, tokenA)
+		require.Equal(t, http.StatusBadRequest, status,
+			"payload RemoteId must match the authenticated frame RemoteId")
+	})
+
+	t.Run("matching payload RemoteId passes the identity check", func(t *testing.T) {
+		// frame.RemoteId and payload RemoteId both identify rcA — identity check passes.
+		// ReceiveInviteConfirmation may still fail for unrelated reasons, but the
+		// response must not be 400 from the identity check itself.
+		body := buildFrame(rcA.RemoteId, rcA.RemoteId)
+		status := doRequest(body, rcA.RemoteId, tokenA)
+		require.NotEqual(t, http.StatusBadRequest, status,
+			"matching RemoteId should pass the identity check")
+	})
 }
