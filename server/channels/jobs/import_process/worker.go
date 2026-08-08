@@ -5,7 +5,6 @@ package import_process
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,8 +54,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		if job.Data["local_mode"] == "true" {
 			// We simply read the file from the local filesystem.
 			info, err := os.Stat(importFileName)
-			if errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("file %s doesn't exist.", importFileName)
+			if err != nil {
+				return fmt.Errorf("failed to stat file %s: %w", importFileName, err)
 			}
 
 			importFileSize = info.Size()
