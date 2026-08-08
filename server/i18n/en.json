@@ -10351,6 +10351,10 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Verify that the required analysis-icu plugin is installed on every {{.Backend}} node, then restart {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
