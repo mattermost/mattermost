@@ -1515,6 +1515,135 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
+func TestHookOnLicenseChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("invoked on SetLicense and plugin stays active", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) error {
+			oldID := "nil"
+			if oldLicense != nil {
+				oldID = oldLicense.Id
+			}
+			newID := "nil"
+			if newLicense != nil {
+				newID = newLicense.Id
+			}
+			if appErr := p.API.KVSet("old_license_id", []byte(oldID)); appErr != nil {
+				return appErr
+			}
+			if appErr := p.API.KVSet("new_license_id", []byte(newID)); appErr != nil {
+				return appErr
+			}
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+			}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		require.NoError(t, activationErrors[0])
+		pluginID := pluginIDs[0]
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		oldLicense := model.NewTestLicense()
+		oldLicense.Id = model.NewId()
+		require.True(t, th.App.Srv().SetLicense(oldLicense))
+
+		newLicense := model.NewTestLicense()
+		newLicense.Id = model.NewId()
+		require.True(t, th.App.Srv().SetLicense(newLicense))
+
+		oldID, appErr := th.App.GetPluginKey(pluginID, "old_license_id")
+		require.Nil(t, appErr)
+		require.Equal(t, []byte(oldLicense.Id), oldID)
+
+		newID, appErr := th.App.GetPluginKey(pluginID, "new_license_id")
+		require.Nil(t, appErr)
+		require.Equal(t, []byte(newLicense.Id), newID)
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.Equal(t, model.PluginStateRunning, th.App.GetPluginsEnvironment().GetPluginState(pluginID))
+	})
+
+	t.Run("error deactivates plugin without rolling back license", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+		package main
+
+		import (
+			"errors"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) error {
+			return errors.New("license not supported")
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+			}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		require.NoError(t, activationErrors[0])
+		pluginID := pluginIDs[0]
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		license := model.NewTestLicense()
+		license.Id = model.NewId()
+		require.True(t, th.App.Srv().SetLicense(license))
+
+		require.Equal(t, license.Id, th.App.Srv().License().Id)
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.Equal(t, model.PluginStateFailedToStayRunning, th.App.GetPluginsEnvironment().GetPluginState(pluginID))
+
+		statuses, err := th.App.GetPluginsEnvironment().Statuses()
+		require.NoError(t, err)
+		var found bool
+		for _, status := range statuses {
+			if status.PluginId == pluginID {
+				found = true
+				require.Equal(t, "license not supported", status.Error)
+				require.Equal(t, model.PluginStateFailedToStayRunning, status.State)
+			}
+		}
+		require.True(t, found)
+	})
+}
+
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
 var hookNotificationWillBePushedTmpl string
 

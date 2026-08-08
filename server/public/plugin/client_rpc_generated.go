@@ -1383,6 +1383,60 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 }
 
 func init() {
+	hookNameToId["OnLicenseChanged"] = OnLicenseChangedID
+}
+
+type Z_OnLicenseChangedArgs struct {
+	A *model.License
+	B *model.License
+}
+
+type Z_OnLicenseChangedReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License) error {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	if g.implemented[OnLicenseChangedID] {
+		if err := g.client.Call("Plugin.OnLicenseChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnLicenseChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+// OnLicenseChangedWithRPCErr returns the same values as OnLicenseChanged, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) (error, error) {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	var _err error
+	if g.implemented[OnLicenseChangedID] {
+		_err = g.client.Call("Plugin.OnLicenseChanged", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnLicenseChangedReturns{}
+			g.log.Debug("RPC call OnLicenseChanged to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _err
+}
+
+func (s *hooksRPCServer) OnLicenseChanged(args *Z_OnLicenseChangedArgs, returns *Z_OnLicenseChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnLicenseChanged(oldLicense, newLicense *model.License) error
+	}); ok {
+		returns.A = hook.OnLicenseChanged(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnLicenseChanged called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
 }
 
@@ -2250,6 +2304,8 @@ type HooksWithRPCErrGenerated interface {
 	OnSendDailyTelemetryWithRPCErr() error
 
 	OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error
+
+	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) (error, error)
 
 	ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error)
 
