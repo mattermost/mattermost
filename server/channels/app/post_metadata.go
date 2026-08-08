@@ -43,9 +43,7 @@ func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
-			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
-			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
-			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) {
 			if err := platform.PurgeLinkCache(); err != nil {
 				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
 			}
