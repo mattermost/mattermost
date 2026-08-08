@@ -30,7 +30,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -42,14 +42,14 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		time.Sleep(1 * time.Second)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 0)
 	})
@@ -72,7 +72,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -84,7 +84,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		time.Sleep(1 * time.Second)
@@ -93,7 +93,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		// since the channel ID we set in the above created scheduled posts is of a
 		// non-existing channel, the job should have set the appropriate error code for them in the database
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -119,7 +119,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -131,7 +131,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser, false)
@@ -145,7 +145,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -171,7 +171,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -183,7 +183,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		appErr := th.App.LeaveChannel(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -197,7 +197,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -223,7 +223,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -235,7 +235,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		appErr := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
@@ -249,7 +249,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -317,7 +317,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 
 		// Save the failed scheduled posts in the store
 		for _, sp := range failedScheduledPosts {
-			_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(sp)
+			_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, sp)
 			assert.NoError(t, err)
 		}
 

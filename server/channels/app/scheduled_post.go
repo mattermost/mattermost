@@ -46,7 +46,7 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, appErr
 	}
 
-	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
+	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	if err != nil {
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -57,7 +57,7 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 }
 
 func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError) {
-	scheduledPosts, err := a.Srv().Store().ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+	scheduledPosts, err := a.Srv().Store().ScheduledPost().GetScheduledPostsForUser(rctx, userId, teamId)
 	if err != nil {
 		return nil, model.NewAppError("App.GetUserTeamScheduledPosts", "app.get_user_team_scheduled_posts.error", map[string]any{"user_id": userId, "team_id": teamId}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -80,7 +80,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, validationErr
 	}
 
-	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
+	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(rctx, scheduledPost.Id)
 	if err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -101,7 +101,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, appErr
 	}
 
-	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(scheduledPost); err != nil {
+	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(rctx, scheduledPost); err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -111,7 +111,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 }
 
 func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError) {
-	scheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	scheduledPost, err := a.Srv().Store().ScheduledPost().Get(rctx, scheduledPostId)
 	if err != nil {
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError).Wrap(err)
 	}

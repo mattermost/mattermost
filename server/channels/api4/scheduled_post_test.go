@@ -47,7 +47,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		// Switch back to original user and verify the post wasn't modified
 		th.LoginBasic(t)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, originalMessage, fetchedPost.Message)
@@ -85,7 +85,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		// Switch back to original user and verify the post wasn't deleted
 		th.LoginBasic(t)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, createdScheduledPost.Id, fetchedPost.Id)

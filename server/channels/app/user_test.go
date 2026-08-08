@@ -1618,11 +1618,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 
 	// verify scheduled posts have been deleted
-	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost1.Id)
+	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost1.Id)
 	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
 	require.Nil(t, fetchedScheduledPost)
 
-	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost2.Id)
+	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost2.Id)
 	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
 	require.Nil(t, fetchedScheduledPost)
 }
