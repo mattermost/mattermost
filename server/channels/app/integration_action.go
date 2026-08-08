@@ -546,7 +546,7 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 		Context:   ctx,
 	}
 
-	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	user, userErr := a.Srv().Store().User().Get(rctx, userID)
 	if userErr != nil {
 		return "", model.NewAppError("ExecuteDialogAction", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}

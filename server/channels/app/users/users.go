@@ -4,7 +4,6 @@
 package users
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 
@@ -95,8 +94,8 @@ func (us *UserService) verifyUserEmail(userID, email string) error {
 	return nil
 }
 
-func (us *UserService) GetUser(userID string) (*model.User, error) {
-	return us.store.Get(context.Background(), userID)
+func (us *UserService) GetUser(rctx request.CTX, userID string) (*model.User, error) {
+	return us.store.Get(rctx, userID)
 }
 
 func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {

@@ -193,7 +193,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
 
-		promotedUser, err := th.Service.Store.User().Get(th.Context.Context(), user.Id)
+		promotedUser, err := th.Service.Store.User().Get(th.Context, user.Id)
 		require.NoError(t, err)
 		err = th.Service.UpdateSessionsIsGuest(th.Context, promotedUser, false)
 		require.NoError(t, err)

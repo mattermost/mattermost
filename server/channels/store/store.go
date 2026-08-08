@@ -460,7 +460,7 @@ type UserStore interface {
 	UpdateMfaActive(userID string, active bool) error
 	StoreMfaUsedTimestamps(userID string, ts []int) error
 	GetMfaUsedTimestamps(userID string) ([]int, error)
-	Get(ctx context.Context, id string) (*model.User, error)
+	Get(rctx request.CTX, id string) (*model.User, error)
 	GetMany(rctx request.CTX, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
