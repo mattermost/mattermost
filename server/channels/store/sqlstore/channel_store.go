@@ -1584,6 +1584,34 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, erro
 	return data, nil
 }
 
+// GetTeamChannelsCount returns the number of non-deleted open (O) and private (P) channels
+// for a team. The Type and DeleteAt filters intentionally mirror the per-team channel limit
+// check in saveChannelT, so the app-layer pre-check (GetNumberOfChannelsOnTeam) and the
+// store-layer final check agree on what counts toward MaxChannelsPerTeam. Unlike
+// GetTeamChannels it performs a COUNT(*) instead of loading every channel row.
+func (s SqlChannelStore) GetTeamChannelsCount(teamID string) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*) AS Value").
+		From("Channels").
+		Where(sq.And{
+			sq.Eq{"TeamId": teamID},
+			sq.Eq{"DeleteAt": 0},
+			sq.Eq{"Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
+		})
+
+	sqlStr, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "GetTeamChannelsCount_ToSql")
+	}
+
+	var count int64
+	if err := s.GetReplica().Get(&count, sqlStr, args...); err != nil {
+		return 0, errors.Wrapf(err, "failed to count Channels with teamId=%s", teamID)
+	}
+
+	return count, nil
+}
+
 // GetTeamSpaceChannels returns all space (S) channels for a team, including archived ones, so
 // team teardown can remove them. GetTeamChannels/GetAll exclude spaces, hence this dedicated
 // enumerator. Returns an empty list (not ErrNotFound) when the team has no spaces. It reads from

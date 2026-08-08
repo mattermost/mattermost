@@ -173,7 +173,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Get total number of channels on current team
+	// Count the channels that count toward MaxChannelsPerTeam (open/private, non-deleted).
 	count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
 	if err != nil {
 		return nil, err
@@ -3138,18 +3138,15 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 }
 
 func (a *App) GetNumberOfChannelsOnTeam(rctx request.CTX, teamID string) (int, *model.AppError) {
-	// Get total number of channels on current team
-	list, err := a.Srv().Store().Channel().GetTeamChannels(teamID)
+	// Count the channels that count toward MaxChannelsPerTeam on the current team. This
+	// mirrors the limit check in SqlChannelStore.saveChannelT (open/private, non-deleted) so
+	// the app-layer pre-check and the store-layer final check agree, and it avoids loading
+	// every channel row into memory just to take len() of the slice.
+	count, err := a.Srv().Store().Channel().GetTeamChannelsCount(teamID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return len(list), nil
+	return int(count), nil
 }
 
 func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string) *model.AppError {

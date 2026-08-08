@@ -2222,6 +2222,34 @@ func (_m *ChannelStore) GetTeamChannels(teamID string) (model.ChannelList, error
 	return r0, r1
 }
 
+// GetTeamChannelsCount provides a mock function with given fields: teamID
+func (_m *ChannelStore) GetTeamChannelsCount(teamID string) (int64, error) {
+	ret := _m.Called(teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamChannelsCount")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(teamID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamChannelsWithUnreadAndMentions provides a mock function with given fields: rctx, teamID, userID, userNotifyProps
 func (_m *ChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	ret := _m.Called(rctx, teamID, userID, userNotifyProps)

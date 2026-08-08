@@ -147,6 +147,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, rctx, ss) })
 	t.Run("GetPinnedPostCount", func(t *testing.T) { testChannelStoreGetPinnedPostCount(t, rctx, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, rctx, ss) })
+	t.Run("GetTeamChannelsCount", func(t *testing.T) { testChannelStoreGetTeamChannelsCount(t, rctx, ss) })
 	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, rctx, ss) })
 	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, rctx, ss) })
 	t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, rctx, ss) })
@@ -7803,6 +7804,45 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, rctx request.CTX, ss store
 	channel.Id = ""
 	_, nErr = ss.Channel().Save(rctx, channel, 1)
 	assert.NoError(t, nErr)
+}
+
+func testChannelStoreGetTeamChannelsCount(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	saveChannel := func(channelType model.ChannelType) *model.Channel {
+		c, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Name",
+			Name:        NewTestID(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return c
+	}
+
+	// Two open + one private channel count toward the per-team limit.
+	saveChannel(model.ChannelTypeOpen)
+	saveChannel(model.ChannelTypeOpen)
+	saveChannel(model.ChannelTypePrivate)
+
+	// Group channels must NOT count toward the limit. saveChannelT exempts Group entirely
+	// (its guard skips Group/Direct/Space), so GetTeamChannelsCount's Type IN (O,P) filter
+	// must exclude them too. Seed a group channel on the same team and assert it is ignored.
+	saveChannel(model.ChannelTypeGroup)
+
+	// Deleted channels must also be excluded, mirroring the DeleteAt = 0 filter in saveChannelT.
+	deleted := saveChannel(model.ChannelTypeOpen)
+	require.NoError(t, ss.Channel().Delete(deleted.Id, model.GetMillis()))
+
+	count, err := ss.Channel().GetTeamChannelsCount(teamID)
+	require.NoError(t, err)
+	require.EqualValues(t, 3, count, "expected 2 open + 1 private; group and deleted channels must be excluded")
+
+	// A team with no matching channels reports 0. Unlike GetTeamChannels, a COUNT(*) never
+	// returns ErrNotFound — it returns a single row with value 0.
+	emptyCount, err := ss.Channel().GetTeamChannelsCount(model.NewId())
+	require.NoError(t, err)
+	require.EqualValues(t, 0, emptyCount)
 }
 
 func testChannelStoreGetChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {
