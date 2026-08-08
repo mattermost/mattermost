@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {duration} from '@/util';
+
 export default class BurnOnReadConcealedPlaceholder {
     readonly container: Locator;
     readonly icon: Locator;
@@ -30,6 +32,7 @@ export default class BurnOnReadConcealedPlaceholder {
      * The container itself is the clickable button
      */
     async clickToReveal() {
+        await expect(this.container).toBeVisible({timeout: duration.ten_sec});
         await this.container.click();
     }
 

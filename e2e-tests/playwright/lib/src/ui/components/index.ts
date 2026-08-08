@@ -20,6 +20,7 @@ import ChannelSettingsModal from './channels/channel_settings/channel_settings_m
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
 import AddPeopleToChannelModal from './channels/add_people_to_channel_modal';
+import ChannelSelectorModal from './channels/channel_selector_modal';
 import ChannelBookmarksBar from './channels/channel_bookmarks_bar';
 import ChannelBookmarksCreateModal from './channels/channel_bookmarks_create_modal';
 import LeaveTeamModal from './channels/leave_team_modal';
@@ -108,6 +109,7 @@ const components = {
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     AddPeopleToChannelModal,
+    ChannelSelectorModal,
     ChannelBookmarksBar,
     ChannelBookmarksCreateModal,
     LeaveTeamModal,
@@ -200,6 +202,7 @@ export {
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     AddPeopleToChannelModal,
+    ChannelSelectorModal,
     ChannelBookmarksBar,
     ChannelBookmarksCreateModal,
     LeaveTeamModal,

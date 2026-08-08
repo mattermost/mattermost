@@ -149,6 +149,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"

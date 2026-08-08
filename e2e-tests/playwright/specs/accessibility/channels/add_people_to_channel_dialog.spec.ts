@@ -39,31 +39,28 @@ test(
         await channelsPage.toBeVisible();
 
         // # Open channel menu and click Members
-        await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
-        await membersMenuItem.click();
+        const channelMenu = await channelsPage.openChannelMenu();
+        await channelMenu.members.click();
 
-        // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        // # Open Add from the members RHS
+        await channelsPage.sidebarRight.toBeVisible();
+        await channelsPage.sidebarRight.addMembersButton.click();
 
         // * Verify the Add people dialog is visible
-        const dialog = page.getByRole('dialog').first();
-        await expect(dialog).toBeVisible();
+        const dialog = channelsPage.getAddPeopleToChannelModal();
+        await dialog.toBeVisible();
 
         // * Verify the heading with channel name
-        const modalName = `Add people to ${channel.display_name}`;
-        await expect(dialog.getByRole('heading', {name: modalName})).toBeVisible();
+        await expect(dialog.getHeading(channel.display_name)).toBeVisible();
         await pw.wait(pw.duration.one_sec);
 
         // * Verify the search input has proper accessibility attributes
-        const searchInput = dialog.getByLabel('Search for people or groups');
-        await expect(searchInput).toBeVisible();
-        await expect(searchInput).toHaveAttribute('aria-autocomplete', 'list');
+        await expect(dialog.searchInput).toBeVisible();
+        await expect(dialog.searchInput).toHaveAttribute('aria-autocomplete', 'list');
 
         // # Search for a text and navigate with arrow keys
         await pw.wait(pw.duration.half_sec);
-        await searchInput.fill('u');
+        await dialog.searchInput.fill('u');
         await pw.wait(pw.duration.half_sec);
 
         // # Navigate down through the list
@@ -74,28 +71,23 @@ test(
         await page.keyboard.press('ArrowUp');
 
         // * Verify the selected row has the correct class
-        const selectedRow = dialog.locator('#multiSelectList').locator('.more-modal__row--selected');
-        await expect(selectedRow).toBeVisible();
+        await expect(dialog.selectedRow).toBeVisible();
 
         // * Verify image alt is displayed for user profile
-        const avatar = selectedRow.locator('img.Avatar');
-        await expect(avatar).toHaveAttribute('alt', 'user profile image');
+        await expect(dialog.selectedAvatar).toHaveAttribute('alt', 'user profile image');
 
         // * Verify screen reader live region exists and has proper attributes
-        const srOnlyRegion = dialog.locator('.filtered-user-list div.sr-only:not([role="status"])');
-        await expect(srOnlyRegion).toHaveAttribute('aria-live', 'polite');
-        await expect(srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
+        await expect(dialog.srOnlyRegion).toHaveAttribute('aria-live', 'polite');
+        await expect(dialog.srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
 
         // # Search for an invalid text
-        await searchInput.fill('somethingwhichdoesnotexist');
+        await dialog.searchInput.fill('somethingwhichdoesnotexist');
         await pw.wait(pw.duration.half_sec);
 
         // * Check if the no results message is displayed with proper accessibility
-        const noResultsWrapper = dialog.locator('.multi-select__wrapper');
-        await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
-        const noResultsMessage = dialog.locator('.no-channel-message .primary-message');
-        await expect(noResultsMessage).toBeVisible();
-        await expect(noResultsMessage).toContainText('No results found matching');
+        await expect(dialog.noResultsWrapper).toHaveAttribute('aria-live', 'polite');
+        await expect(dialog.noResultsMessage).toBeVisible();
+        await expect(dialog.noResultsMessage).toContainText('No results found matching');
     },
 );
 
@@ -135,21 +127,20 @@ test(
         await channelsPage.toBeVisible();
 
         // # Open channel menu and click Members
-        await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
-        await membersMenuItem.click();
+        const channelMenu = await channelsPage.openChannelMenu();
+        await channelMenu.members.click();
 
-        // # Click the Add people button
-        const addButton = page.getByRole('button', {name: 'Add people'});
-        await addButton.click();
+        // # Open Add from the members RHS
+        await channelsPage.sidebarRight.toBeVisible();
+        await channelsPage.sidebarRight.addMembersButton.click();
 
         // * Verify the Add people dialog is visible
-        const dialog = page.getByRole('dialog').first();
-        await expect(dialog).toBeVisible();
+        const dialog = channelsPage.getAddPeopleToChannelModal();
+        await dialog.toBeVisible();
         await pw.wait(pw.duration.one_sec);
 
         // * Verify aria snapshot of Add people to Channel dialog
-        await expect(dialog).toMatchAriaSnapshot(`
+        await expect(dialog.container).toMatchAriaSnapshot(`
             - dialog "Add people to Test Channel":
               - document:
                 - heading "Add people to Test Channel" [level=1]

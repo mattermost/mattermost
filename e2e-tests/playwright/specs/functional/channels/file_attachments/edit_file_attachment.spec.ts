@@ -178,7 +178,9 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     await updatedPost.toContainText('sample_text_file.txt');
 
     // now we'll add multiple files
-    await post.postMenu.dotMenuButton.click();
+    await updatedPost.hover();
+    await updatedPost.postMenu.toBeVisible();
+    await updatedPost.postMenu.dotMenuButton.click();
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();

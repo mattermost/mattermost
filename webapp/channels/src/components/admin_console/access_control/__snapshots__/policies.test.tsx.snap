@@ -207,6 +207,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           >
             <div
               class="policy-name"
+              data-testid="policyName"
               id="customDescription-policy1"
             >
               Policy 1
@@ -257,6 +258,7 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
           >
             <div
               class="policy-name"
+              data-testid="policyName"
               id="customDescription-policy2"
             >
               Policy 2

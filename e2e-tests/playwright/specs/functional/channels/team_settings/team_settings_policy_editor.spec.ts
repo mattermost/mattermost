@@ -10,6 +10,7 @@ import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwrigh
 
 import {
     enableABACConfig,
+    ensureABACEnabled,
     ensureDepartmentAttribute,
     createParentPolicy,
     assignChannelsToPolicy,
@@ -19,6 +20,7 @@ import {
     setUserAttribute,
     addAttributeRule,
     addChannelToPolicy,
+    waitForAttributeViewToInclude,
 } from './helpers';
 
 test.describe('Team Settings Modal - Policy Editor', () => {
@@ -59,6 +61,8 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         await adminClient.addToChannel(teamAdmin.id, channel.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+        // # Wait for AttributeView to include the team admin
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -79,27 +83,21 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannelToPolicy(teamSettings.container, channelsPage, channel.display_name);
 
         // * Confirm the channel appears in the editor list before saving
         await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
 
-        // Re-apply guard: a concurrent initSetup() on another shard may have disabled ABAC
-        // between the initial enableABACConfig call and this save. Without ABAC enabled the
-        // server may not create the policy and the confirmation modal will never appear.
-        await enableABACConfig(adminClient);
-
-        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty).
+        // # Ensure ABAC is enabled, then save
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
         await expect(saveBtn).toBeEnabled({timeout: 20000});
+        await ensureABACEnabled(adminClient);
         await saveBtn.click();
-
-        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
-        // and the server processing the save request causes the confirmation modal to skip.
-        await enableABACConfig(adminClient);
 
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
+        // # Ensure ABAC is enabled, then apply
+        await ensureABACEnabled(adminClient);
         await page.getByRole('button', {name: /Apply policy/}).click();
 
         // * Auto-navigated back to list, policy name visible.
@@ -342,7 +340,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Open create editor, add rule + channel but leave name empty
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
         await addAttributeRule(teamSettings.container, page, 'Engineering');
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannelToPolicy(teamSettings.container, channelsPage, channel.display_name);
 
         // # Click Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -446,19 +444,15 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Open Add channels modal
         await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        const channelModal = channelsPage.getChannelSelectorModal();
+        await channelModal.toBeVisible();
+        await expect(channelModal.listItems.first()).toBeVisible();
 
         // * Already assigned channel is NOT shown in the modal
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: assignedChannel.display_name}),
-        ).not.toBeVisible();
+        await expect(channelModal.channelRow(assignedChannel.display_name)).not.toBeVisible();
 
         // * Unassigned channel IS shown in the modal
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: unassignedChannel.display_name}),
-        ).toBeVisible();
+        await expect(channelModal.channelRow(unassignedChannel.display_name)).toBeVisible();
 
         await page.keyboard.press('Escape');
         await teamSettings.close();
@@ -513,6 +507,8 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Create private channel and set admin's Department attribute
         const channel = await createPrivateChannel(adminClient, team.id);
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
+        // # Wait for AttributeView to include the admin
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -535,24 +531,21 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannelToPolicy(teamSettings.container, channelsPage, channel.display_name);
 
         // * Confirm the channel appears in the editor list before saving
         await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
 
-        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
+        // # Ensure ABAC is enabled, then save
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
         await expect(saveBtn).toBeEnabled({timeout: 10000});
-        // Re-apply guard: concurrent initSetup() may reset ABAC between setup and save
-        await enableABACConfig(adminClient);
+        await ensureABACEnabled(adminClient);
         await saveBtn.click();
-
-        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
-        // and the server processing the save request causes the confirmation modal to skip.
-        await enableABACConfig(adminClient);
 
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
+        // # Ensure ABAC is enabled, then apply
+        await ensureABACEnabled(adminClient);
         await page.getByRole('button', {name: /Apply policy/}).click();
 
         // * Auto-navigated back to list, policy appears
@@ -813,22 +806,16 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(teamSettings.container.locator('#input_policyName')).toBeVisible({timeout: 10000});
         await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
 
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        const channelModal = channelsPage.getChannelSelectorModal();
+        await channelModal.toBeVisible();
+        await expect(channelModal.listItems.first()).toBeVisible();
 
         // * Both private channels appear despite 55 public channels exceeding the cap
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: privateChannel1.display_name}),
-        ).toBeVisible();
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: privateChannel2.display_name}),
-        ).toBeVisible();
+        await expect(channelModal.channelRow(privateChannel1.display_name)).toBeVisible();
+        await expect(channelModal.channelRow(privateChannel2.display_name)).toBeVisible();
 
         // * Group-constrained channel does not appear
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: gcChannel.display_name}),
-        ).not.toBeVisible();
+        await expect(channelModal.channelRow(gcChannel.display_name)).not.toBeVisible();
 
         await page.keyboard.press('Escape');
         await teamSettings.close();
@@ -868,6 +855,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         );
         await adminClient.addToTeam(team.id, targetUser.id);
         await setUserAttribute(adminClient, targetUser.id, 'Department', 'Engineering');
+        // # Wait for AttributeView to include the team admin and target user
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            teamAdmin.id,
+            targetUser.id,
+        ]);
 
         // # Log in as team admin and open policy editor
         const {page} = await pw.testBrowser.login(teamAdmin);
@@ -887,19 +879,22 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannelToPolicy(teamSettings.container, channelsPage, channel.display_name);
         await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
 
         // # Enable Auto-add members for the channel so the sync job adds matching users
         await teamSettings.container.locator(`#auto-add-checkbox-${channel.id}`).click();
 
-        // # Save — triggers confirmation modal
+        // # Ensure ABAC is enabled, then save
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
         await expect(saveBtn).toBeEnabled({timeout: 20000});
+        await ensureABACEnabled(adminClient);
         await saveBtn.click();
 
         // # Confirm "Apply policy" (add users immediately)
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
+        // # Ensure ABAC is enabled, then apply
+        await ensureABACEnabled(adminClient);
         await page.getByRole('button', {name: /Apply policy/}).click();
 
         // * Navigate back to policy list — confirms save succeeded (no 403 on job creation)

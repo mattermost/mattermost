@@ -6,7 +6,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
+        aria-selected="false"
         class="more-modal__row clickable "
+        data-testid="multiSelectListItem"
       >
         <span
           class="more-modal__group-image"
@@ -71,7 +73,9 @@ Object {
   </body>,
   "container": <div>
     <div
+      aria-selected="false"
       class="more-modal__row clickable "
+      data-testid="multiSelectListItem"
     >
       <span
         class="more-modal__group-image"

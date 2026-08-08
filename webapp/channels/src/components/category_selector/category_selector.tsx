@@ -30,6 +30,7 @@ export type CategorySelectorProps = {
     helpText?: string;
     menuPortalTargetId?: string;
     disabled?: boolean;
+    testId?: string;
 };
 
 const IndicatorsContainer = (props: any) => (
@@ -40,7 +41,10 @@ const IndicatorsContainer = (props: any) => (
 
 const ClearIndicator = (props: ClearIndicatorProps<Option>) => (
     <components.ClearIndicator {...props}>
-        <i className='icon icon-close-circle'/>
+        <i
+            className='icon icon-close-circle'
+            data-testid='categorySelectorClear'
+        />
     </components.ClearIndicator>
 );
 
@@ -86,7 +90,7 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
     );
 };
 
-export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled}: CategorySelectorProps) {
+export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled, testId}: CategorySelectorProps) {
     const {formatMessage} = useIntl();
     const [focused, setFocused] = useState(false);
 
@@ -143,7 +147,10 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
     const showLegend = Boolean(focused || value);
 
     return (
-        <div className='CategorySelector Input_container'>
+        <div
+            className='CategorySelector Input_container'
+            data-testid={testId}
+        >
             <fieldset
                 className={classNames('Input_fieldset', {
                     Input_fieldset___legend: showLegend,

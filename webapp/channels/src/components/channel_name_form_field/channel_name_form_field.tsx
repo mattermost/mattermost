@@ -53,6 +53,19 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
     return errors;
 }
 
+function applyDisplayNameErrors(
+    intl: IntlShape,
+    name: string,
+    setDisplayNameError: (error: string) => void,
+    setInputCustomMessage: (message: CustomMessageInputType | null) => void,
+) {
+    const displayNameErrors = validateDisplayName(intl, name);
+    const lastError = displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '';
+    setDisplayNameError(lastError);
+    setInputCustomMessage(lastError ? {type: 'error', value: lastError} : null);
+    return displayNameErrors;
+}
+
 // Component for input fields for editing channel display name
 // along with stuff to edit its URL.
 const ChannelNameFormField = (props: Props): JSX.Element => {
@@ -63,16 +76,24 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     // Track if the field has been interacted with
     const [hasInteracted, setHasInteracted] = useState(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
-    const displayName = useRef<string>('');
+
+    // True only after the user edits the name — used so autofocus→blur into another
+    // control (e.g. category clear) cannot leave a sticky empty-name error.
+    const hasEditedName = useRef(false);
+    const displayName = useRef<string>(props.value);
     const urlModified = useRef<boolean>(false);
     const [url, setURL] = useState<string>(props.currentUrl || '');
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
-    // Initialize displayName.current with props.value when component mounts
+    // Keep the ref in sync and clear sticky false-positive errors when value is valid.
     useEffect(() => {
         displayName.current = props.value;
-    }, [props.value]);
+        if (displayNameError && validateDisplayName(intl, props.value).length === 0) {
+            setDisplayNameError('');
+            setInputCustomMessage(null);
+        }
+    }, [props.value, displayNameError, intl]);
 
     const currentTeamName = useSelector(getCurrentTeam)?.name;
     const teamName = props.team ? props.team.name : currentTeamName;
@@ -81,6 +102,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         e.preventDefault();
         const {target: {value: updatedDisplayName}} = e;
 
+        hasEditedName.current = true;
+
         // Mark as interacted when user types
         if (!hasInteracted && updatedDisplayName.trim() !== '') {
             setHasInteracted(true);
@@ -88,18 +111,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         // Only validate if the user has interacted with the field
         if (hasInteracted) {
-            const displayNameErrors = validateDisplayName(intl, updatedDisplayName);
-
-            if (displayNameErrors.length) {
-                setDisplayNameError(displayNameErrors[displayNameErrors.length - 1]);
-                setInputCustomMessage({
-                    type: 'error',
-                    value: displayNameErrors[displayNameErrors.length - 1],
-                });
-            } else {
-                setDisplayNameError('');
-                setInputCustomMessage(null);
-            }
+            applyDisplayNameErrors(intl, updatedDisplayName, setDisplayNameError, setInputCustomMessage);
         }
 
         displayName.current = updatedDisplayName;
@@ -112,32 +124,29 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             setURLError('');
             props.onURLChange(cleanURL);
         }
-    }, [props.onDisplayNameChange, props.onURLChange, hasInteracted, intl]);
+    }, [props.onDisplayNameChange, props.onURLChange, props.isEditingExistingChannel, hasInteracted, intl]);
 
-    const handleOnDisplayNameBlur = useCallback(() => {
-        // Always mark as interacted on blur
-        setHasInteracted(true);
+    const handleOnDisplayNameBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        // Prefer the DOM value so validation matches what the input shows
+        const nameForValidation = event.currentTarget.value || props.value || displayName.current;
+        displayName.current = nameForValidation;
 
-        // Validate on blur - always show errors on blur regardless of interaction state
-        const displayNameErrors = validateDisplayName(intl, displayName.current);
-        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-
-        if (displayNameErrors.length) {
-            setInputCustomMessage({
-                type: 'error',
-                value: displayNameErrors[displayNameErrors.length - 1],
-            });
-        } else {
-            setInputCustomMessage(null);
+        // Editing an existing channel: ignore blur until the user edits the name.
+        // Autofocus + clicking category clear was falsely flagging an empty name.
+        if (props.isEditingExistingChannel && !hasEditedName.current) {
+            return;
         }
+
+        setHasInteracted(true);
+        applyDisplayNameErrors(intl, nameForValidation, setDisplayNameError, setInputCustomMessage);
 
         // Handle URL generation if needed
-        if (displayName.current && !url) {
-            const url = generateSlug();
-            setURL(url);
-            props.onURLChange(url);
+        if (nameForValidation && !url) {
+            const generatedURL = generateSlug();
+            setURL(generatedURL);
+            props.onURLChange(generatedURL);
         }
-    }, [props.onURLChange, displayName.current, url, intl]);
+    }, [props.onURLChange, props.value, props.isEditingExistingChannel, url, intl]);
 
     const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
@@ -150,7 +159,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setURL(cleanURL);
         urlModified.current = true;
         props.onURLChange(cleanURL);
-    }, [props.onURLChange]);
+    }, [props.onURLChange, intl]);
 
     // Add a URL blur handler to validate the URL when the user moves away from the field
     const handleOnURLBlur = useCallback(() => {
@@ -189,12 +198,16 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
     const showURLEditor = props.isEditingExistingChannel || !useAnonymousURLs;
 
+    // Existing-channel edit: do not autofocus the name field (avoids blur races when
+    // interacting with other controls). New-channel flows keep default autofocus.
+    const shouldAutoFocus = props.isEditingExistingChannel ? props.autoFocus === true : props.autoFocus !== false;
+
     return (
         <>
             <Input
                 type='text'
                 autoComplete='off'
-                autoFocus={props.autoFocus !== false}
+                autoFocus={shouldAutoFocus}
                 required={true}
                 name={props.name}
                 containerClassName={`${props.name}-container`}

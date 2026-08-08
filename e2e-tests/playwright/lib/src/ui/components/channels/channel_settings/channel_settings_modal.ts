@@ -58,6 +58,7 @@ export default class ChannelSettingsModal {
 
     async save() {
         await expect(this.saveButton).toBeVisible();
+        await expect(this.saveButton).toBeEnabled();
         await this.saveButton.click();
     }
 
