@@ -807,6 +807,75 @@ func TestProcessRecapChannel(t *testing.T) {
 	})
 }
 
+func TestFetchPostsForRecapBatchUsernames(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+
+	t.Run("resolved profiles use usernames", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["h"],"action_items":["a"]}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+		th.CreatePost(t, channel, func(post *model.Post) { post.UserId = th.BasicUser.Id })
+		th.CreatePost(t, channel, func(post *model.Post) { post.UserId = th.BasicUser2.Id })
+		recapID := model.NewId()
+		now := model.GetMillis()
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id: recapID, UserId: th.BasicUser.Id, Title: "Username recap",
+			CreateAt: now, UpdateAt: now, Status: model.RecapStatusProcessing, BotID: "test-agent",
+		})
+		require.NoError(t, storeErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, "test-agent")
+		require.Nil(t, appErr)
+		require.True(t, result.Success)
+		require.Len(t, bridge.completeCalls, 1)
+		require.Len(t, bridge.completeCalls[0].request.Messages, 2)
+		userPrompt := bridge.completeCalls[0].request.Messages[1].Message
+		assert.Contains(t, userPrompt, th.BasicUser.Username)
+		assert.Contains(t, userPrompt, th.BasicUser2.Username)
+	})
+
+	t.Run("missing profile falls back to raw user ID", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["h"],"action_items":["a"]}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+		channel := th.CreateChannel(t, th.BasicTeam)
+		missingUserID := model.NewId()
+		_, storeErr := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			UserId:    missingUserID,
+			ChannelId: channel.Id,
+			Message:   "message from missing user",
+			CreateAt:  model.GetMillis() - 10000,
+		})
+		require.NoError(t, storeErr)
+		recapID := model.NewId()
+		now := model.GetMillis()
+		_, storeErr = th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id: recapID, UserId: th.BasicUser.Id, Title: "Missing username recap",
+			CreateAt: now, UpdateAt: now, Status: model.RecapStatusProcessing, BotID: "test-agent",
+		})
+		require.NoError(t, storeErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, "test-agent")
+		require.Nil(t, appErr)
+		require.True(t, result.Success)
+		require.Len(t, bridge.completeCalls, 1)
+		require.Len(t, bridge.completeCalls[0].request.Messages, 2)
+		assert.Contains(t, bridge.completeCalls[0].request.Messages[1].Message, missingUserID)
+	})
+}
+
 func TestProcessRecapChannelTokenLimit(t *testing.T) {
 	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 

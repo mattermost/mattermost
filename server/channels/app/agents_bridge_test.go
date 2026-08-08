@@ -4,6 +4,7 @@
 package app
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -20,6 +21,8 @@ type bridgeCompleteCall struct {
 }
 
 type testAgentsBridge struct {
+	mu sync.Mutex
+
 	statusAvailable bool
 	statusReason    string
 	statusFn        func(rctx request.CTX) (bool, string)
@@ -56,11 +59,13 @@ func (b *testAgentsBridge) GetServices(sessionUserID, userID string) ([]model.Br
 }
 
 func (b *testAgentsBridge) AgentCompletion(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+	b.mu.Lock()
 	b.completeCalls = append(b.completeCalls, bridgeCompleteCall{
 		sessionUserID: sessionUserID,
 		agentID:       agentID,
 		request:       req,
 	})
+	b.mu.Unlock()
 
 	if b.completeFn != nil {
 		return b.completeFn(sessionUserID, agentID, req)
@@ -70,11 +75,13 @@ func (b *testAgentsBridge) AgentCompletion(sessionUserID, agentID string, req Br
 }
 
 func (b *testAgentsBridge) ServiceCompletion(sessionUserID, serviceID string, req BridgeCompletionRequest) (string, error) {
+	b.mu.Lock()
 	b.completeCalls = append(b.completeCalls, bridgeCompleteCall{
 		sessionUserID: sessionUserID,
 		serviceID:     serviceID,
 		request:       req,
 	})
+	b.mu.Unlock()
 
 	if b.completeSvcFn != nil {
 		return b.completeSvcFn(sessionUserID, serviceID, req)
