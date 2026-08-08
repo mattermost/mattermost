@@ -41,6 +41,8 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
+//   - validates and canonicalizes actions, the render-placement allow-list
+//     shared by the classification banner and channel labels
 //   - validates property values for text fields against value_type
 //     constraints (email, url, phone)
 //   - enforces that managed="admin" can only be set by callers with
@@ -134,6 +136,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		}
 	}
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
+	if err := model.SanitizeAndValidatePropertyFieldActions(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
 	return nil
