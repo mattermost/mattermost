@@ -80,7 +80,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	GetDiagnostics(ctx context.Context) (*DatabaseDiagnostics, error)
+	GetDiagnostics(rctx request.CTX) (*DatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
