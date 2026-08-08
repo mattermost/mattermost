@@ -6,8 +6,10 @@ package commands
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -80,6 +82,7 @@ var PluginListCmd = &cobra.Command{
 
 func init() {
 	PluginAddCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
+	PluginAddCmd.Flags().BoolP("wait-for-cluster", "w", false, "wait up to 30 seconds for the plugin to be deployed to all nodes in the cluster")
 	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 
 	PluginCmd.AddCommand(
@@ -95,6 +98,7 @@ func init() {
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	waitForCluster, _ := cmd.Flags().GetBool("wait-for-cluster")
 	var multiErr *multierror.Error
 
 	for i, plugin := range args {
@@ -103,14 +107,18 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if force {
-			_, _, err = c.UploadPluginForced(context.TODO(), fileReader)
-		} else {
-			_, _, err = c.UploadPlugin(context.TODO(), fileReader)
+		options := model.PluginUploadOptions{
+			Force:          force,
+			WaitForCluster: waitForCluster,
 		}
+		_, resp, err := c.UploadPluginWithOptions(context.TODO(), fileReader, options)
 
 		if err != nil {
 			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
+		} else if resp.StatusCode == http.StatusAccepted {
+			err = errors.New("plugin was uploaded, but deployment to all nodes in the cluster wasn't confirmed within 30 seconds: " + plugin)
+			printer.PrintError(err.Error())
 			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.Print("Added plugin: " + plugin)

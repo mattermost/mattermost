@@ -8,6 +8,7 @@ import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
+import type {PluginUploadResponse} from '@mattermost/types/plugins';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -466,7 +467,7 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     actions: {
-        uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
+        uploadPlugin: (fileData: File, force: boolean, waitForCluster: boolean) => Promise<ActionResult<PluginUploadResponse>>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
         getPlugins: () => Promise<ActionResult>;
         getPluginStatuses: () => Promise<ActionResult>;
@@ -576,7 +577,10 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     helpSubmitUpload = async (file: File, force: boolean) => {
         this.setState({uploading: true});
-        const {error} = await this.props.actions.uploadPlugin(file, force);
+
+        // Block until the plugin is deployed to all nodes in the cluster, subject to a
+        // server-side timeout, so the plugin list reflects the upload when it finishes.
+        const {data, error} = await this.props.actions.uploadPlugin(file, force, true);
 
         if (error) {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
@@ -600,21 +604,40 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         }
 
         this.setState({loading: true});
-        await this.props.actions.getPlugins();
+        await Promise.all([
+            this.props.actions.getPlugins(),
+            this.props.actions.getPluginStatuses(),
+        ]);
 
-        let msg = `Successfully uploaded plugin from ${file?.name}`;
-        if (this.state.overwritingUpload) {
-            msg = `Successfully updated plugin from ${file?.name}`;
+        let serverError: string | null = null;
+        let lastMessage: string | null = null;
+        if (data && !data.deployedToAllNodes) {
+            serverError = this.props.intl.formatMessage({id: 'admin.plugin.error.cluster_deployment_timeout', defaultMessage: 'The plugin was uploaded, but its deployment to all servers in the cluster wasn\'t confirmed within 30 seconds. Check the plugin status below.'});
+        } else if (this.state.overwritingUpload) {
+            lastMessage = `Successfully updated plugin from ${file?.name}`;
+        } else {
+            lastMessage = `Successfully uploaded plugin from ${file?.name}`;
         }
 
         this.setState({
             file: null,
             fileSelected: false,
-            serverError: null,
-            lastMessage: msg,
+            serverError,
+            lastMessage,
             overwritingUpload: false,
             uploading: false,
             loading: false,
+        }, () => {
+            if (data) {
+                this.scrollToPlugin(data.manifest.id);
+            }
+        });
+    };
+
+    scrollToPlugin = (pluginId: string) => {
+        window.requestAnimationFrame(() => {
+            const element = document.querySelector(`div[data-testid="${CSS.escape(pluginId)}"]`);
+            element?.scrollIntoView({behavior: 'smooth', block: 'center'});
         });
     };
 

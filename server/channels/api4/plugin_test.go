@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -477,6 +478,123 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	pluginStored, appErr = th.App.FileExists(expectedPath)
 	require.Nil(t, appErr)
 	require.False(t, pluginStored)
+}
+
+// pluginDeploymentClusterMock extends the fake cluster with configurable cluster infos and
+// plugin statuses to exercise waiting on plugin deployment across the cluster.
+type pluginDeploymentClusterMock struct {
+	*testlib.FakeClusterInterface
+
+	mut            sync.RWMutex
+	clusterInfos   []*model.ClusterInfo
+	pluginStatuses model.PluginStatuses
+}
+
+func (c *pluginDeploymentClusterMock) GetClusterId() string {
+	return "node-1"
+}
+
+func (c *pluginDeploymentClusterMock) GetClusterInfos() ([]*model.ClusterInfo, error) {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.clusterInfos, nil
+}
+
+func (c *pluginDeploymentClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.pluginStatuses, nil
+}
+
+func (c *pluginDeploymentClusterMock) setPluginStatuses(statuses model.PluginStatuses) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.pluginStatuses = statuses
+}
+
+func TestUploadPluginWaitForCluster(t *testing.T) {
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	uploadWithWait := func(force bool) (*model.Manifest, *model.Response, error) {
+		return th.SystemAdminClient.UploadPluginWithOptions(context.Background(), bytes.NewReader(tarData), model.PluginUploadOptions{
+			Force:          force,
+			WaitForCluster: true,
+		})
+	}
+
+	t.Run("without a cluster, the plugin is deployed as soon as it's installed", func(t *testing.T) {
+		manifest, resp, err := uploadWithWait(false)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+		require.Equal(t, "testplugin", manifest.Id)
+	})
+
+	// Shorten the deployment timeout to keep the timeout test fast.
+	originalTimeout := pluginClusterDeploymentTimeout
+	pluginClusterDeploymentTimeout = 2 * time.Second
+	defer func() { pluginClusterDeploymentTimeout = originalTimeout }()
+
+	testCluster := &pluginDeploymentClusterMock{
+		FakeClusterInterface: &testlib.FakeClusterInterface{},
+		clusterInfos: []*model.ClusterInfo{
+			{Hostname: "node-1"},
+			{Hostname: "node-2"},
+		},
+	}
+	th.Server.Platform().SetCluster(testCluster)
+	defer th.Server.Platform().SetCluster(nil)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ClusterSettings.Enable = true
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ClusterSettings.Enable = false
+	})
+
+	t.Run("202 when deployment to all cluster nodes isn't confirmed before the timeout", func(t *testing.T) {
+		manifest, resp, err := uploadWithWait(true)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusAccepted, resp.StatusCode)
+		require.Equal(t, "testplugin", manifest.Id)
+	})
+
+	t.Run("201 when all cluster nodes report the plugin at the same version", func(t *testing.T) {
+		testCluster.setPluginStatuses(model.PluginStatuses{{
+			ClusterId: "node-2",
+			PluginId:  "testplugin",
+			Version:   "0.0.1",
+		}})
+
+		manifest, resp, err := uploadWithWait(true)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+		require.Equal(t, "testplugin", manifest.Id)
+	})
+
+	t.Run("202 when a cluster node reports a different version of the plugin", func(t *testing.T) {
+		testCluster.setPluginStatuses(model.PluginStatuses{{
+			ClusterId: "node-2",
+			PluginId:  "testplugin",
+			Version:   "0.0.2",
+		}})
+
+		manifest, resp, err := uploadWithWait(true)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusAccepted, resp.StatusCode)
+		require.Equal(t, "testplugin", manifest.Id)
+	})
+
+	_, err = th.SystemAdminClient.RemovePlugin(context.Background(), "testplugin")
+	require.NoError(t, err)
 }
 
 func TestDisableOnRemove(t *testing.T) {

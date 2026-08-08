@@ -2709,6 +2709,7 @@
   "admin.plugin.enable_plugin.help": "When true, this plugin is enabled.",
   "admin.plugin.enabling": "Enabling...",
   "admin.plugin.error.activate": "Unable to upload the plugin. It may conflict with another plugin on your server.",
+  "admin.plugin.error.cluster_deployment_timeout": "The plugin was uploaded, but its deployment to all servers in the cluster wasn't confirmed within 30 seconds. Check the plugin status below.",
   "admin.plugin.error.extract": "Encountered an error when extracting the plugin. Review your plugin file content and try again.",
   "admin.plugin.installedDesc": "Installed plugins on your Mattermost server.",
   "admin.plugin.installedTitle": "Installed Plugins: ",

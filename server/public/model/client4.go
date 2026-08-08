@@ -6607,21 +6607,44 @@ func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, pag
 
 // Plugin Section
 
+// PluginUploadOptions alters the behavior of uploading a plugin.
+type PluginUploadOptions struct {
+	// Force overwrites a previously installed plugin with the same id, if any.
+	Force bool
+
+	// WaitForCluster blocks the request until the plugin is deployed to all nodes in the
+	// cluster, subject to a 30 second timeout. If the timeout elapses first, the server
+	// responds with 202 Accepted instead of 201 Created, but the upload itself succeeds.
+	WaitForCluster bool
+}
+
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 func (c *Client4) UploadPlugin(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(ctx, file, false)
+	return c.UploadPluginWithOptions(ctx, file, PluginUploadOptions{})
 }
 
 func (c *Client4) UploadPluginForced(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(ctx, file, true)
+	return c.UploadPluginWithOptions(ctx, file, PluginUploadOptions{Force: true})
 }
 
-func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) (*Manifest, *Response, error) {
+// UploadPluginWithOptions takes an io.Reader stream pointing to the contents of a .tar.gz
+// plugin, along with options altering the upload behavior. Callers passing
+// PluginUploadOptions.WaitForCluster should check the Response's StatusCode for 202 Accepted,
+// indicating a successful upload that couldn't be confirmed as deployed to all nodes in the
+// cluster before the timeout.
+func (c *Client4) UploadPluginWithOptions(ctx context.Context, file io.Reader, options PluginUploadOptions) (*Manifest, *Response, error) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
-	if force {
+	if options.Force {
 		err := writer.WriteField("force", c.boolString(true))
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if options.WaitForCluster {
+		err := writer.WriteField("wait_for_cluster", c.boolString(true))
 		if err != nil {
 			return nil, nil, err
 		}

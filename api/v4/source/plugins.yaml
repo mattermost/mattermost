@@ -30,11 +30,25 @@
                   description: Set to 'true' to overwrite a previously installed plugin
                     with the same ID, if any
                   type: string
+                wait_for_cluster:
+                  description: Set to 'true' to block the request until the plugin is
+                    deployed to all nodes in the cluster, subject to a 30 second
+                    timeout. If the timeout elapses first, the server responds with
+                    `202` instead of `201`.
+                  type: string
               required:
                 - plugin
       responses:
         "201":
           description: Plugin upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "202":
+          description: Plugin upload successful, but deployment to all nodes in the
+            cluster wasn't confirmed before the timeout while `wait_for_cluster`
+            was set
           content:
             application/json:
               schema:

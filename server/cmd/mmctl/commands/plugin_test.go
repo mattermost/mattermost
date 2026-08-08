@@ -29,8 +29,8 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
-			Return(&model.Manifest{}, &model.Response{}, nil).
+			UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{}).
+			Return(&model.Manifest{}, &model.Response{StatusCode: http.StatusCreated}, nil).
 			Times(1)
 
 		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
@@ -49,8 +49,8 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPluginForced(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
-			Return(&model.Manifest{}, &model.Response{}, nil).
+			UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{Force: true}).
+			Return(&model.Manifest{}, &model.Response{StatusCode: http.StatusCreated}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -60,6 +60,53 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
+	})
+
+	s.Run("Add 1 plugin, waiting for cluster deployment", func() {
+		printer.Clean()
+		tmpFile, err := os.CreateTemp("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+
+		s.client.
+			EXPECT().
+			UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{WaitForCluster: true}).
+			Return(&model.Manifest{}, &model.Response{StatusCode: http.StatusCreated}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("wait-for-cluster", true, "")
+
+		err = pluginAddCmdF(s.client, cmd, []string{pluginName})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
+	})
+
+	s.Run("Add 1 plugin, timing out waiting for cluster deployment", func() {
+		printer.Clean()
+		tmpFile, err := os.CreateTemp("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+
+		s.client.
+			EXPECT().
+			UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{WaitForCluster: true}).
+			Return(&model.Manifest{}, &model.Response{StatusCode: http.StatusAccepted}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("wait-for-cluster", true, "")
+
+		err = pluginAddCmdF(s.client, cmd, []string{pluginName})
+		s.Require().ErrorContains(err, "deployment to all nodes in the cluster wasn't confirmed")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "plugin was uploaded, but deployment to all nodes in the cluster wasn't confirmed within 30 seconds: "+pluginName)
 	})
 
 	s.Run("Add 1 plugin no file", func() {
@@ -80,7 +127,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{}).
 			Return(&model.Manifest{}, &model.Response{}, mockError).
 			Times(1)
 
@@ -102,14 +149,14 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			if arg == "fail" {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+					UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{}).
 					Return(nil, &model.Response{}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
-					Return(&model.Manifest{}, &model.Response{}, nil).
+					UploadPluginWithOptions(context.TODO(), gomock.AssignableToTypeOf(tmpFile), model.PluginUploadOptions{}).
+					Return(&model.Manifest{}, &model.Response{StatusCode: http.StatusCreated}, nil).
 					Times(1)
 			}
 			args[idx] = tmpFile.Name()
