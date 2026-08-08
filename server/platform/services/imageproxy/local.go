@@ -42,6 +42,13 @@ var msgNotAllowed = "requested URL is not allowed"
 
 var ErrLocalRequestFailed = Error{errors.New("imageproxy.LocalBackend: failed to request proxied image")}
 
+var ErrImageTooLarge = Error{errors.New("imageproxy.LocalBackend: image exceeds maximum allowed size")}
+
+// maxImageSize caps how many bytes of a remote response GetImageDirect will
+// buffer into its in-memory recorder (var, not const, so tests can override it).
+// GetImage streams to a real connection instead of buffering, so it's unaffected.
+var maxImageSize int64 = 1024 * 1024 * 50 // 50 MiB, matching app.MaxMetadataImageSize
+
 type LocalBackend struct {
 	client  *http.Client
 	baseURL *url.URL
@@ -115,7 +122,7 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src data:; style-src 'unsafe-inline'")
 
 	rec := contentTypeRecorder{w, filepath.Base(u.Path)}
-	backend.ServeImage(&rec, req)
+	backend.ServeImage(&rec, req, 0)
 }
 
 func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
@@ -127,7 +134,16 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 
 	recorder := httptest.NewRecorder()
 
-	backend.ServeImage(recorder, req)
+	if truncated := backend.ServeImage(recorder, req, maxImageSize); truncated {
+		// Log only the host, not the full URL: the path/query may carry
+		// sensitive tokens or signed parameters that shouldn't hit the logs.
+		fields := []mlog.Field{mlog.Int("max_bytes", maxImageSize)}
+		if parsed, parseErr := url.Parse(imageURL); parseErr == nil {
+			fields = append(fields, mlog.String("host", parsed.Host))
+		}
+		mlog.Warn("Discarding proxied image that exceeded max size for direct fetch", fields...)
+		return nil, "", ErrImageTooLarge
+	}
 
 	if recorder.Code != http.StatusOK {
 		return nil, "", ErrLocalRequestFailed
@@ -136,17 +152,21 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 	return io.NopCloser(recorder.Body), recorder.Header().Get("Content-Type"), nil
 }
 
-func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request) {
+// ServeImage fetches the remote image referenced by req and writes it to w.
+// If maxBytes is positive, at most maxBytes of the remote response body will
+// be copied to w, and the return value reports whether the remote response
+// was truncated as a result.
+func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request, maxBytes int64) (truncated bool) {
 	proxyReq, err := newProxyRequest(req, backend.baseURL)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid request URL: %v", err), http.StatusBadRequest)
-		return
+		return false
 	}
 
 	actualReq, err := http.NewRequest("GET", proxyReq.String(), nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return false
 	}
 	actualReq.Header.Set("Accept", strings.Join(imageContentTypes, ", "))
 
@@ -158,7 +178,7 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 			statusCode = http.StatusGatewayTimeout
 		}
 		http.Error(w, fmt.Sprintf("error fetching remote image: %v", err), statusCode)
-		return
+		return false
 	}
 	// close the original resp.Body, even if we wrap it in a NopCloser below
 	defer resp.Body.Close()
@@ -172,7 +192,7 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	if isSVGContent(b) {
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
-		return
+		return false
 	}
 
 	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -181,12 +201,12 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(imageContentTypes, contentType) {
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
-		return
+		return false
 	}
 
 	if should304(req, resp) {
 		w.WriteHeader(http.StatusNotModified)
-		return
+		return false
 	}
 
 	w.Header().Set("Content-Type", contentType)
@@ -206,9 +226,20 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
+
+	var body io.Reader = resp.Body
+	if maxBytes > 0 {
+		// Read one byte past the limit so a source that has more data than
+		// maxBytes can be distinguished from one that has exactly maxBytes.
+		body = io.LimitReader(resp.Body, maxBytes+1)
+	}
+
+	n, err := io.Copy(w, body)
+	if err != nil {
 		mlog.Warn("error copying response", mlog.Err(err))
 	}
+
+	return maxBytes > 0 && n > maxBytes
 }
 
 // copyHeader copies header values from src to dst, adding to any existing
