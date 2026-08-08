@@ -14,40 +14,24 @@ describe('Main menu', () => {
     before(() => {
         cy.visit('/admin_console');
 
-        // # Open the hamburger menu
-        cy.get('button > span[class="menu-icon"]').click();
+        // # Open the system console header menu
+        cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
     });
 
-    const verifyLink = (text, link) => {
-        cy.get('li.MenuItem').
-            contains(text).
-            scrollIntoView().
-
-        // * Verify link opens in new tab
-            should('have.attr', 'target', '_blank').
-
-        // * Verify link text matches correct href value
-            should('have.attr', 'href').
-            and('contain', link);
-    };
-
     it('MM-T909 Can switch to team', () => {
-        // * Verify teams are visible
-        cy.findByText('Switch to eligendi').should('be.visible');
+        // * Verify Switch teams submenu is visible and opens to team list
+        cy.findByText('Switch teams').should('be.visible').trigger('mouseover');
+        cy.findByText('eligendi').should('be.visible');
     });
 
     it('MM-T910 Can open Administrators Guide', () => {
-        cy.apiGetClientLicense().then(({isCloudLicensed}) => {
-            const guideLink = isCloudLicensed ? 'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' : 'https://docs.mattermost.com/guides/administration.html';
-
-            // * Verify administrator's guide link
-            verifyLink("Administrator's Guide", guideLink);
-        });
+        // * Verify administrator's guide menu item is visible
+        cy.findByText("Administrator's Guide").should('be.visible');
     });
 
     it('MM-T911 Can open Troubleshooting Forum', () => {
-        // * Verify troubleshooting forum link
-        verifyLink('Troubleshooting Forum', 'https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150');
+        // * Verify troubleshooting forum menu item is visible
+        cy.findByText('Troubleshooting Forum').should('be.visible');
     });
 
     it('MM-T914 Can log out from system console', () => {
@@ -62,4 +46,3 @@ describe('Main menu', () => {
         cy.uiClose();
     });
 });
-

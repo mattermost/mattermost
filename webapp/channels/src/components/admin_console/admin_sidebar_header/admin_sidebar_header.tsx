@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
 import AdminNavbarDropdown from 'components/admin_console/admin_navbar_dropdown';
-import MenuIcon from 'components/widgets/icons/menu_icon';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import * as Menu from 'components/menu';
 import Avatar from 'components/widgets/users/avatar';
 
 type Props = {
@@ -18,52 +18,63 @@ type Props = {
 };
 
 const SidebarHeader = ({currentUser: me}: Props) => {
-    const intl = useIntl();
-    let profilePicture = null;
+    const {formatMessage} = useIntl();
 
-    if (!me) {
-        return null;
-    }
+    const profilePicture = useMemo(() => {
+        if (!me?.last_picture_update) {
+            return null;
+        }
 
-    if (me.last_picture_update) {
-        profilePicture = (
+        return (
             <Avatar
                 username={me.username}
                 url={Client4.getProfilePictureUrl(me.id, me.last_picture_update)}
                 size='lg'
             />
         );
+    }, [me]);
+
+    if (!me) {
+        return null;
     }
 
     return (
-        <MenuWrapper
-            className='AdminSidebarHeader'
-            id='admin-sidebar-header'
+        <Menu.Container
+            menuButton={{
+                id: 'admin-sidebar-header',
+                dataTestId: 'adminSidebarHeaderMenuButton',
+                class: 'AdminSidebarHeader',
+                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
+                children: (
+                    <>
+                        {profilePicture}
+                        <div
+                            className='header__info'
+                            data-testid='admin-sidebar-header-info'
+                        >
+                            <div className='team__name'>
+                                <FormattedMessage
+                                    id='admin.sidebarHeader.systemConsole'
+                                    defaultMessage='System Console'
+                                />
+                                <ChevronDownIcon size={20}/>
+                            </div>
+                            <div className='user__name overflow--ellipsis whitespace--nowrap'>{'@' + me.username}</div>
+                        </div>
+                    </>
+                ),
+            }}
+            menu={{
+                id: 'adminConsoleMenu',
+                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
+                className: 'AdminSidebarHeaderMenu',
+                width: 'calc(264px - 16px)',
+            }}
+            anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+            transformOrigin={{vertical: 'top', horizontal: 'left'}}
         >
-            <div>
-                {profilePicture}
-                <div
-                    className='header__info'
-                    data-testid='admin-sidebar-header-info'
-                >
-                    <div className='team__name'>
-                        <FormattedMessage
-                            id='admin.sidebarHeader.systemConsole'
-                            defaultMessage='System Console'
-                        />
-                    </div>
-                    <div className='user__name overflow--ellipsis whitespace--nowrap'>{'@' + me.username}</div>
-                </div>
-                <button
-                    type='button'
-                    className='style--none'
-                    aria-label={intl.formatMessage({id: 'generic_icons.menu', defaultMessage: 'Menu Icon'})}
-                >
-                    <MenuIcon className='menu-icon'/>
-                </button>
-            </div>
             <AdminNavbarDropdown/>
-        </MenuWrapper>
+        </Menu.Container>
     );
 };
 

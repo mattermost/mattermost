@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const SYSTEM_CONSOLE_MAIN_MENU = 'Menu Icon';
+const SYSTEM_CONSOLE_MAIN_MENU = 'Admin Console Menu';
 
 function openMenu(name, item) {
     const menu = () => cy.findByRole('button', {name}).should('be.visible');

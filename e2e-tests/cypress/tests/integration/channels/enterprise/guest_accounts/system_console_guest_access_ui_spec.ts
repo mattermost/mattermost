@@ -97,10 +97,9 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Visit the chat facing application
-        cy.get('.header__info').should('be.visible').click();
-        cy.findByLabelText('Admin Console Menu').should('exist').within(() => {
-            cy.findByText('Switch to eligendi').click();
-        });
+        cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
+        cy.findByText('Switch teams').should('be.visible').trigger('mouseover');
+        cy.findByText('eligendi').should('be.visible').click();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');
