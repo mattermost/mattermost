@@ -107,9 +107,17 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if !conn.IsAuthenticated() {
-		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
-		returnWebSocketError(conn.Platform, conn, r, err)
-		return
+		session, err := conn.Suite.GetSession(conn.GetSessionToken())
+		if err != nil {
+			conn.Platform.Log().Warn("Error while getting session token", mlog.Err(err))
+			conn.WebSocket.Close()
+			return
+		}
+		if session == nil {
+			err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
+			returnWebSocketError(conn.Platform, conn, r, err)
+			return
+		}
 	}
 
 	handler, ok := wr.handlers[r.Action]
