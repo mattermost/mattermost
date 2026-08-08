@@ -1018,9 +1018,17 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 		return plugin, nil
 	}
 
-	// Skip installing if the plugin is has not been previously enabled.
-	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
-	if pluginState == nil || !pluginState.Enable {
+	// Skip installing if the plugin has not been previously enabled — unless a plugin state override
+	// force-enables it (e.g. the MBE tech-preview plugin), so install respects the override the same
+	// way activation (syncPluginsActiveState) does.
+	enabled := false
+	if pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]; pluginState != nil {
+		enabled = pluginState.Enable
+	}
+	if hasOverride, value := ch.getPluginStateOverride(plugin.Manifest.Id); hasOverride {
+		enabled = value
+	}
+	if !enabled {
 		logger.Info("Not installing prepackaged plugin: not previously enabled")
 		return plugin, nil
 	}
@@ -1247,6 +1255,13 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return true, false
 		}
+	case "message-based-encryption":
+		// MBE tech-preview: force-enable the prepackaged Message-Based Encryption plugin so it
+		// auto-installs and activates on this image without baking MM_PLUGINSETTINGS_PLUGINSTATES
+		// (env-setting that field REPLACES the whole PluginStates map and wiped cloud's other
+		// prepackaged plugins — calls/playbooks/boards/agents). The bundle is still signature-verified
+		// against the baked mbeDevPublicKey like any prepackaged plugin. Test image only.
+		return true, true
 	}
 
 	return false, false
