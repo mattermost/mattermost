@@ -60,6 +60,7 @@ import type {StorageItem} from 'types/store/storage';
 
 import {completePostReceive} from './new_post';
 import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
+import {shouldSuppressOutOfChannelEphemeralPost} from './views/out_of_channel_mention';
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
@@ -68,8 +69,13 @@ export type CreatePostOptions = {
 
 export function handleNewPost(post: Post, msg?: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
-        let websocketMessageProps = {};
         const state = getState();
+
+        if (shouldSuppressOutOfChannelEphemeralPost(state, post)) {
+            return {data: true};
+        }
+
+        let websocketMessageProps = {};
         if (msg) {
             websocketMessageProps = msg.data!;
         }

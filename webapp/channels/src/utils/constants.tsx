@@ -296,6 +296,8 @@ export const ActionTypes = keyMirror({
 
     SELECT_ATTACHMENT_MENU_ACTION: null,
 
+    SUPPRESS_OUT_OF_CHANNEL_EPHEMERAL: null,
+
     RECEIVED_TRANSLATIONS: null,
 
     INCREMENT_WS_ERROR_COUNT: null,
@@ -424,6 +426,7 @@ export const ModalIdentifiers = {
     JOIN_CHANNEL_PROMPT: 'join_channel_prompt',
     COLLAPSED_REPLY_THREADS_MODAL: 'collapsed_reply_threads_modal',
     NOTIFY_CONFIRM_MODAL: 'notify_confirm_modal',
+    OUT_OF_CHANNEL_MENTION_CONFIRM_MODAL: 'out_of_channel_mention_confirm_modal',
     CONFIRM_LICENSE_REMOVAL: 'confirm_license_removal',
     CONFIRM: 'confirm',
     USER_GROUPS: 'user_groups',
