@@ -37,11 +37,18 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().GetByName(name)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
+		if !errors.As(err, &nfErr) {
 			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		// Re-read on the primary: a scheme another node created moments earlier is
+		// absent from the replica. A caller that loses a race to create a shared
+		// scheme reaches here to adopt the winner's.
+		scheme, err = a.Srv().Store().Scheme().GetByNameFromMaster(name)
+		if err != nil {
+			if !errors.As(err, &nfErr) {
+				return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -74,6 +81,10 @@ func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
+	}
+
+	if appErr := a.checkSpaceSchemeName("CreateScheme", scheme.Name); appErr != nil {
+		return nil, appErr
 	}
 
 	// Clear any user-provided values for trusted properties.
@@ -126,6 +137,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
+	if appErr := a.checkSpaceSchemeRename(scheme); appErr != nil {
+		return nil, appErr
+	}
+
 	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -145,6 +160,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
+	}
+
+	if appErr := a.checkSpaceSchemeDelete(schemeId); appErr != nil {
+		return nil, appErr
 	}
 
 	scheme, err := a.Srv().Store().Scheme().Delete(schemeId)

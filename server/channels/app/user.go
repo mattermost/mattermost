@@ -2067,6 +2067,17 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		return nil, err
 	}
 
+	// The space capability roles are excluded from
+	// BuiltInSchemeManagedRoleIDs so they can ride in ExplicitRoles on a space's
+	// backing channel, which also means CheckRolesExist accepts them here. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one assigned here would resolve its page permissions everywhere.
+	for roleName := range strings.FieldsSeq(newRoles) {
+		if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateUserRoles", roleName, false) {
+			return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+		}
+	}
+
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
 		// if user being updated is SysAdmin, make sure its not the last one.
 		options := model.UserCountOptions{
@@ -2867,9 +2878,41 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 		rctx.Logger().Warn("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}
 
+	// A failure to revoke a space capability role leaves the new guest still
+	// holding page-write access, so unlike the notification events below it is
+	// not something to log and forget: it is recorded and surfaced after the
+	// loop. Recording rather than returning on the spot keeps the revocation
+	// best-effort across every space, so one failing membership does not strand
+	// the grants on all the others. A failed team listing above hides every
+	// space membership the user holds, so it is recorded the same way.
+	spaceRevocationFailed := err != nil
+
 	for _, member := range teamMembers {
 		if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 			rctx.Logger().Warn("Error while sending updated team member event", mlog.Err(appErr))
+		}
+
+		// Space backing channels are excluded from GetChannelMembersForUser, and
+		// the demotion itself resets only the member's scheme flags, so a space
+		// capability role held as an explicit member role would survive and keep
+		// granting page access to the new guest. Strip it from every space
+		// membership explicitly.
+		//
+		// Ahead of the ordinary-channel members below, whose read failure skips the
+		// rest of this team: dropping the grant is the privilege half of the
+		// demotion, and it must not hinge on an unrelated lookup succeeding.
+		spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(member.TeamId, user.Id)
+		if sErr != nil {
+			rctx.Logger().Warn("Failed to get space channels for user on demote user to guest", mlog.Err(sErr))
+			// The listing failed, so a capability role on one of this team's spaces
+			// may still be in place, unseen and unrevoked.
+			spaceRevocationFailed = true
+		}
+		for _, spaceChannel := range spaceChannels {
+			if appErr := a.stripSpaceCapabilityRolesFromMember(rctx, spaceChannel.Id, user.Id); appErr != nil {
+				rctx.Logger().Warn("Failed to strip space capability roles on demote user to guest", mlog.String("channel_id", spaceChannel.Id), mlog.Err(appErr))
+				spaceRevocationFailed = true
+			}
 		}
 
 		channelMembers, appErr := a.GetChannelMembersForUser(rctx, member.TeamId, user.Id)
@@ -2892,6 +2935,13 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+
+	// The demotion itself has been applied and its sessions cleared; the caller is
+	// still told it did not fully complete, because a capability role that escaped
+	// revocation keeps the new guest able to write pages until it is retried.
+	if spaceRevocationFailed {
+		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.strip_space_roles.app_error", nil, "", http.StatusInternalServerError)
+	}
 	return nil
 }
 

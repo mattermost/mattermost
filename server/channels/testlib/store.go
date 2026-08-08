@@ -38,6 +38,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "GuestRolesCreationMigrationComplete").Return(&model.System{Name: "GuestRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "SpaceRolesCreationMigrationComplete").Return(&model.System{Name: "SpaceRolesCreationMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "SpaceSchemesCreationMigrationComplete").Return(&model.System{Name: "SpaceSchemesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "boards_property_setup_done").Return(&model.System{Name: "boards_property_setup_done", Value: "v1"}, nil)
@@ -104,6 +106,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).Return(&model.System{Name: model.MigrationKeyAddManageAgentPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddEditFileAttachmentPermission).Return(&model.System{Name: model.MigrationKeyAddEditFileAttachmentPermission, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddDiscoverableChannelPermissions).Return(&model.System{Name: model.MigrationKeyAddDiscoverableChannelPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddSpacePermissions).Return(&model.System{Name: model.MigrationKeyAddSpacePermissions, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)

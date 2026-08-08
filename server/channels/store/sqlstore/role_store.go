@@ -219,10 +219,23 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 }
 
 func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
+	return s.get(roleId, false)
+}
+
+func (s *SqlRoleStore) GetFromMaster(roleId string) (*model.Role, error) {
+	return s.get(roleId, true)
+}
+
+func (s *SqlRoleStore) get(roleId string, fromMaster bool) (*model.Role, error) {
 	dbRole := Role{}
 	query := s.tableSelectQuery.Where(sq.Eq{"Id": roleId})
 
-	if err := s.GetReplica().GetBuilder(&dbRole, query); err != nil {
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	if err := db.GetBuilder(&dbRole, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}
@@ -262,6 +275,14 @@ func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role,
 }
 
 func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
+	return s.getByNames(names, false)
+}
+
+func (s *SqlRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	return s.getByNames(names, true)
+}
+
+func (s *SqlRoleStore) getByNames(names []string, fromMaster bool) ([]*model.Role, error) {
 	if len(names) == 0 {
 		return []*model.Role{}, nil
 	}
@@ -272,7 +293,12 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
+	rows, err := db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}

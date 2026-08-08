@@ -124,6 +124,100 @@ func TestAddManageAgentPermissionsMigration(t *testing.T) {
 // MM-68830: a server downgraded from a newer release holds permissions the older
 // binary does not recognize. The permissions migration must not fail fatally, and
 // must preserve those unknown permissions rather than stripping them.
+func TestAddSpacePermissionsMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getAddSpacePermissionsMigration()
+	require.NoError(t, err)
+
+	// The upgrade path: persisted role rows predating the space permissions.
+	// A fresh install seeds these from MakeDefaultRoles() instead and never
+	// reaches this migration, so only a role starting without the grants
+	// exercises it.
+	teamGuestRole := &model.Role{
+		Name:        model.TeamGuestRoleId,
+		Permissions: []string{model.PermissionViewTeam.Id},
+	}
+	teamUserRole := &model.Role{
+		Name:        model.TeamUserRoleId,
+		Permissions: []string{model.PermissionViewTeam.Id},
+	}
+	teamAdminRole := &model.Role{
+		Name:        model.TeamAdminRoleId,
+		Permissions: []string{model.PermissionManageTeam.Id},
+	}
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id},
+	}
+	roles := []*model.Role{teamGuestRole, teamUserRole, teamAdminRole, systemAdminRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyAddSpacePermissions).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyAddSpacePermissions).
+		Return(&model.System{Name: model.MigrationKeyAddSpacePermissions, Value: "true"}, nil).Once()
+	systemStore.On("SaveOrUpdate", mock.MatchedBy(func(system *model.System) bool {
+		return system.Name == model.MigrationKeyAddSpacePermissions && system.Value == "true"
+	})).Return(nil).Once()
+
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil).Times(len(roles))
+
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddSpacePermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+
+	// Each role gains exactly its lifecycle grants and nothing more.
+	assert.ElementsMatch(t, []string{
+		model.PermissionViewTeam.Id,
+		model.PermissionReadSpace.Id,
+	}, teamGuestRole.Permissions)
+	assert.ElementsMatch(t, []string{
+		model.PermissionViewTeam.Id,
+		model.PermissionReadSpace.Id,
+		model.PermissionCreateSpace.Id,
+	}, teamUserRole.Permissions)
+	assert.ElementsMatch(t, []string{
+		model.PermissionManageTeam.Id,
+		model.PermissionManageSpace.Id,
+		model.PermissionDeleteSpace.Id,
+	}, teamAdminRole.Permissions)
+
+	// system_admin takes the team-scoped lifecycle grants plus every
+	// channel-scoped space permission, so its override resolves on an upgraded
+	// install exactly as it does on a fresh one.
+	assert.ElementsMatch(t, append([]string{
+		model.PermissionManageSystem.Id,
+		model.PermissionReadSpace.Id,
+		model.PermissionCreateSpace.Id,
+		model.PermissionManageSpace.Id,
+		model.PermissionDeleteSpace.Id,
+	}, model.PermissionIDs(model.SpaceChannelScopedPermissions)...), systemAdminRole.Permissions)
+
+	guestCount := len(teamGuestRole.Permissions)
+	userCount := len(teamUserRole.Permissions)
+	adminCount := len(teamAdminRole.Permissions)
+	sysAdminCount := len(systemAdminRole.Permissions)
+
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyAddSpacePermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Len(t, teamGuestRole.Permissions, guestCount, "team_guest should be unchanged after an idempotent re-run")
+	assert.Len(t, teamUserRole.Permissions, userCount, "team_user should be unchanged after an idempotent re-run")
+	assert.Len(t, teamAdminRole.Permissions, adminCount, "team_admin should be unchanged after an idempotent re-run")
+	assert.Len(t, systemAdminRole.Permissions, sysAdminCount, "system_admin should be unchanged after an idempotent re-run")
+
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", len(roles))
+	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
+
 func TestPermissionsMigrationPreservesUnknownPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 

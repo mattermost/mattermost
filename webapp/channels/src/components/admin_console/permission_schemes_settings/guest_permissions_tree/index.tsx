@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
@@ -22,11 +22,18 @@ export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.USE_CHANNEL_MENTIONS,
     Permissions.USE_GROUP_MENTIONS,
     Permissions.CREATE_POST,
+
+    // Rendered only while the Docs feature flag is on, but listed
+    // unconditionally: this list is what the save path treats as
+    // tree-managed, and a flag-dependent membership would make a guest's
+    // existing grant survive or vanish depending on the flag.
+    Permissions.READ_SPACE,
 ];
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
-    return {license};
+    const config = getConfig(state);
+    return {license, config};
 }
 
 export default connect(mapStateToProps)(GuestPermissionsTree);

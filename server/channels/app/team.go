@@ -456,6 +456,14 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 			return nil, err
 		}
 		if !role.SchemeManaged {
+			// The space capability roles carry channel-scoped page
+			// permissions and are excluded from BuiltInSchemeManagedRoleIDs so
+			// they can ride in ExplicitRoles on a space's backing channel. A
+			// team member is never a space backing channel, so the guard always
+			// refuses here.
+			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateTeamMemberRoles", roleName, false) {
+				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {

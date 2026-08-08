@@ -1409,6 +1409,22 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
+func (s *TimerLayerChannelStore) CountNonSpaceChannelsByScheme(schemeID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CountNonSpaceChannelsByScheme(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountNonSpaceChannelsByScheme", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
 	start := time.Now()
 
@@ -1423,6 +1439,22 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountPostsAfter", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelStore) CountSpaceChannelsByScheme(schemeID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CountSpaceChannelsByScheme(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountSpaceChannelsByScheme", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
@@ -9987,6 +10019,38 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 	return result, err
 }
 
+func (s *TimerLayerRoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetByNamesFromMaster(names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetByNamesFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRoleStore) GetFromMaster(roleID string) (*model.Role, error) {
+	start := time.Now()
+
+	result, err := s.RoleStore.GetFromMaster(roleID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRoleStore) PermanentDeleteAll() error {
 	start := time.Now()
 
@@ -10447,6 +10511,38 @@ func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetByName", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSchemeStore) GetByNameFromMaster(schemeName string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.GetByNameFromMaster(schemeName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetByNameFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSchemeStore) GetFromMaster(schemeID string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.GetFromMaster(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.GetFromMaster", success, elapsed)
 	}
 	return result, err
 }

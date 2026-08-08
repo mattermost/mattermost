@@ -268,6 +268,34 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 	return r0
 }
 
+// CountNonSpaceChannelsByScheme provides a mock function with given fields: schemeID
+func (_m *ChannelStore) CountNonSpaceChannelsByScheme(schemeID string) (int64, error) {
+	ret := _m.Called(schemeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountNonSpaceChannelsByScheme")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(schemeID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(schemeID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(schemeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CountPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
 func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
 	ret := _m.Called(channelID, timestamp, excludedUserID)
@@ -301,6 +329,34 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, exclu
 	}
 
 	return r0, r1, r2
+}
+
+// CountSpaceChannelsByScheme provides a mock function with given fields: schemeID
+func (_m *ChannelStore) CountSpaceChannelsByScheme(schemeID string) (int64, error) {
+	ret := _m.Called(schemeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountSpaceChannelsByScheme")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(schemeID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(schemeID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(schemeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID

@@ -258,6 +258,15 @@ const values = {
     RUN_MANAGE_MEMBERS: 'run_manage_members',
     RUN_VIEW: 'run_view',
 
+    // Space (Docs) lifecycle permissions. Team-scoped, so they are assignable
+    // through the system and team override schemes. The page-operation
+    // permissions a space grants its members are deliberately absent: they are
+    // carried by the space's own channel scheme, never by a team scheme.
+    READ_SPACE: 'read_space',
+    CREATE_SPACE: 'create_space',
+    MANAGE_SPACE: 'manage_space',
+    DELETE_SPACE: 'delete_space',
+
     CHANNEL_MODERATED_PERMISSIONS: {
         CREATE_POST: 'create_post',
         CREATE_REACTIONS: 'create_reactions',

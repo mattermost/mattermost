@@ -785,4 +785,44 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Manage attribute based membership policies for channels in the team.',
         },
     }),
+    read_space: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.read_space.name',
+            defaultMessage: 'View spaces',
+        },
+        description: {
+            id: 'admin.permissions.permission.read_space.description',
+            defaultMessage: 'View spaces in the team. Which spaces are visible still depends on each space\u2019s own access setting.',
+        },
+    }),
+    create_space: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_space.name',
+            defaultMessage: 'Create spaces',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_space.description',
+            defaultMessage: 'Create new spaces in the team. The creator administers the space they create.',
+        },
+    }),
+    manage_space: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_space.name',
+            defaultMessage: 'Manage spaces',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_space.description',
+            defaultMessage: 'Manage members and settings of any space in the team that the user can view.',
+        },
+    }),
+    delete_space: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_space.name',
+            defaultMessage: 'Delete spaces',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_space.description',
+            defaultMessage: 'Delete and restore any space in the team that the user can view.',
+        },
+    }),
 };

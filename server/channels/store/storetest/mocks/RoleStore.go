@@ -256,6 +256,66 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	return r0, r1
 }
 
+// GetByNamesFromMaster provides a mock function with given fields: names
+func (_m *RoleStore) GetByNamesFromMaster(names []string) ([]*model.Role, error) {
+	ret := _m.Called(names)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByNamesFromMaster")
+	}
+
+	var r0 []*model.Role
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.Role, error)); ok {
+		return rf(names)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.Role); ok {
+		r0 = rf(names)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(names)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFromMaster provides a mock function with given fields: roleID
+func (_m *RoleStore) GetFromMaster(roleID string) (*model.Role, error) {
+	ret := _m.Called(roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFromMaster")
+	}
+
+	var r0 *model.Role
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Role, error)); ok {
+		return rf(roleID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
+		r0 = rf(roleID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteAll provides a mock function with no fields
 func (_m *RoleStore) PermanentDeleteAll() error {
 	ret := _m.Called()
