@@ -33,8 +33,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const bot = (bots && botId) ? bots[botId] : undefined;
     const user = bot ? getUser(state, bot.user_id) : undefined;
     const roles = user ? user.roles : undefined;
+    const maxLifetimeDays = parseInt(config.MaximumPersonalAccessTokenLifetimeDays || '0', 10);
     return {
         maxFileSize: parseInt(config.MaxFileSize!, 10),
+        maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
         bot,
         roles,
         editingUserHasManageSystem: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
