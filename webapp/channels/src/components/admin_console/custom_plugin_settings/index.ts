@@ -24,7 +24,7 @@ import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition_helpers';
-import {escapePathPart} from '../schema_admin_settings';
+import {escapePathPart, getPluginEnabledConfigKey} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
 type OwnProps = {match: {params: {plugin_id: string}}};
@@ -43,7 +43,7 @@ function makeGetPluginSchema() {
             }
 
             const escapedPluginId = escapePathPart(plugin.id);
-            const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
+            const pluginEnabledConfigKey = getPluginEnabledConfigKey(plugin.id);
 
             const parsePluginSettings = (settings: PluginSetting[]) => {
                 return settings.map((setting) => {
@@ -60,7 +60,7 @@ function makeGetPluginSchema() {
                     } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
                         // Show a warning banner to enable the plugin in order to display the custom component.
                         type = Constants.SettingsTypes.TYPE_BANNER;
-                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin.'});
                         bannerType = 'warning';
                         isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
                     }
@@ -104,7 +104,7 @@ function makeGetPluginSchema() {
                                 type: Constants.SettingsTypes.TYPE_BANNER,
                                 label: defineMessage({
                                     id: 'admin.plugin.customSection.pluginDisabledWarning',
-                                    defaultMessage: 'In order to view this section, enable the plugin and click Save.',
+                                    defaultMessage: 'In order to view this section, enable the plugin.',
                                 }),
                                 banner_type: 'warning',
                             }];
@@ -144,7 +144,7 @@ function makeGetPluginSchema() {
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
-                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin.'}),
                         banner_type: 'warning' as const,
                     };
 
@@ -185,6 +185,7 @@ function makeGetPluginSchema() {
             return {
                 ...plugin.settings_schema,
                 id: plugin.id,
+                stateKey: plugin.id,
                 name: plugin.name,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,
@@ -204,6 +205,7 @@ function makeMapStateToProps() {
             schema: getPluginSchema(state, pluginId),
             roles: getRoles(state),
             plugin: state.entities.admin.plugins?.[pluginId],
+            pluginStatus: state.entities.admin.pluginStatuses?.[pluginId],
             pluginVersion: state.entities.admin.pluginStatuses?.[pluginId]?.version,
         };
     };

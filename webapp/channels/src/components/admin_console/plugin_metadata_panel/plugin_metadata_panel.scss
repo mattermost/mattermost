@@ -6,6 +6,25 @@
         margin-bottom: 16px;
     }
 
+    &__actions {
+        margin-top: 16px;
+    }
+
+    &__status {
+        display: flex;
+        width: fit-content;
+        margin-top: 8px;
+    }
+
+    &__actionError {
+        margin-top: 8px;
+        color: var(--error-text);
+
+        .fa {
+            margin-right: 4px;
+        }
+    }
+
     &__metadata {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 0.9em;

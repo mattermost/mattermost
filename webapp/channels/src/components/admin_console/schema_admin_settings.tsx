@@ -9,14 +9,16 @@ import {Link} from 'react-router-dom';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
-import type {PluginRedux} from '@mattermost/types/plugins';
+import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
+import PluginEnableButton from 'components/admin_console/custom_plugin_settings/enable_plugin_button';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
@@ -84,6 +86,7 @@ export type SchemaAdminSettingsProps = {
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
     plugin?: PluginRedux;
+    pluginStatus?: PluginStatusRedux;
     pluginVersion?: string;
 } & WrappedComponentProps;
 
@@ -96,7 +99,8 @@ type State = {
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string;
-    prevSchemaId?: string;
+    prevSchemaKey?: string;
+    prevConfig?: Partial<AdminConfig>;
 };
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
@@ -109,6 +113,10 @@ export function escapePathPart(pathPart: string) {
 
 export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
+}
+
+export function getPluginEnabledConfigKey(pluginId: string) {
+    return 'PluginSettings.PluginStates.' + escapePathPart(pluginId) + '.Enable';
 }
 
 export function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
@@ -161,9 +169,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     }
 
     static getDerivedStateFromProps(props: SchemaAdminSettingsProps, state: State) {
-        if (props.schema && props.schema.id !== state.prevSchemaId) {
+        const schemaKey = props.schema && (props.schema.stateKey || props.schema.id);
+        if (props.schema && (schemaKey !== state.prevSchemaKey || (state.saveNeeded === false && props.config !== state.prevConfig))) {
             return {
-                prevSchemaId: props.schema.id,
+                prevSchemaKey: schemaKey,
+                prevConfig: props.config,
                 saveNeeded: false,
                 saving: false,
                 serverError: null,
@@ -360,6 +370,8 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
+        const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <PluginMetadataPanel
@@ -369,8 +381,93 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     homepageUrl={this.props.plugin.homepage_url}
                     releaseNotesUrl={this.props.plugin.release_notes_url}
                 />
+                {this.renderPluginStateDescription(pluginState, this.props.pluginStatus?.error)}
+                <PluginEnableButton
+                    id={getPluginEnabledConfigKey(this.props.plugin.id)}
+                    disabled={this.props.isDisabled}
+                    saveNeeded={this.state.saveNeeded}
+                    value={this.props.plugin.active}
+                />
             </div>
         );
+    };
+
+    renderPluginStateDescription = (state: number, error?: string) => {
+        switch (state) {
+        case PluginState.PLUGIN_STATE_NOT_RUNNING:
+            return (
+                <div className='alert alert-info PluginMetadataPanel__status'>
+                    <i className='fa fa-ban'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.not_running.description'
+                        defaultMessage='This plugin is not enabled.'
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_STARTING:
+            return (
+                <div className='alert alert-success PluginMetadataPanel__status'>
+                    <i className='fa fa-info'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.starting.description'
+                        defaultMessage='This plugin is starting.'
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_RUNNING:
+            return (
+                <div className='alert alert-success PluginMetadataPanel__status'>
+                    <i className='fa fa-check'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.running.description'
+                        defaultMessage='This plugin is running.'
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START: {
+            const errorMessage = error || (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start.check_logs'
+                    defaultMessage='Check your system logs for errors.'
+                />
+            );
+
+            return (
+                <div className='alert alert-warning PluginMetadataPanel__status'>
+                    <i className='fa fa-warning'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.failed_to_start.description'
+                        defaultMessage='This plugin failed to start. {error}'
+                        values={{
+                            error: errorMessage,
+                        }}
+                    />
+                </div>
+            );
+        }
+        case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
+            return (
+                <div className='alert alert-warning PluginMetadataPanel__status'>
+                    <i className='fa fa-warning'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.failed_to_stay_running.description'
+                        defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_STOPPING:
+            return (
+                <div className='alert alert-info PluginMetadataPanel__status'>
+                    <i className='fa fa-info'/>
+                    <FormattedMessage
+                        id='admin.plugin.state.stopping.description'
+                        defaultMessage='This plugin is stopping.'
+                    />
+                </div>
+            );
+        default:
+            return null;
+        }
     };
 
     renderBanner = (setting: AdminDefinitionSettingBanner) => {
@@ -1038,6 +1135,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         if (setting.showTitle) {
             return (
                 <Setting
+                    key={this.props.schema.id + '_custom_' + setting.key}
                     label={label}
                     inputId={setting.key}
                     helpText={helpText}
