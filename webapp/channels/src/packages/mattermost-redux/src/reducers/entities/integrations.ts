@@ -209,34 +209,6 @@ function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: MMReduxAction)
     }
 }
 
-function appsOAuthAppIDs(state: string[] = [], action: MMReduxAction) {
-    switch (action.type) {
-    case IntegrationTypes.RECEIVED_APPS_OAUTH_APP_IDS: {
-        if (state.length === 0 && action.data.length === 0) {
-            return state;
-        }
-
-        if (state.length !== action.data.length) {
-            return action.data;
-        }
-
-        const orderedState = state.concat().sort();
-        const orderedData = action.data.concat().sort();
-        for (let i = 0; i < state.length; i++) {
-            if (orderedState[i] !== orderedData[i]) {
-                return orderedData;
-            }
-        }
-
-        return state;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
-    default:
-        return state;
-    }
-}
-
 function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS: {
@@ -259,38 +231,6 @@ function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection
     case UserTypes.LOGOUT_SUCCESS:
         return {};
 
-    default:
-        return state;
-    }
-}
-
-function appsBotIDs(state: string[] = [], action: MMReduxAction) {
-    switch (action.type) {
-    case IntegrationTypes.RECEIVED_APPS_BOT_IDS: {
-        if (!action.data) {
-            return state;
-        }
-
-        if (state.length === 0 && action.data.length === 0) {
-            return state;
-        }
-
-        if (state.length !== action.data.length) {
-            return action.data;
-        }
-
-        const orderedState = state.concat().sort();
-        const orderedData = action.data.concat().sort();
-        for (let i = 0; i < state.length; i++) {
-            if (orderedState[i] !== orderedData[i]) {
-                return orderedData;
-            }
-        }
-
-        return state;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
     default:
         return state;
     }
@@ -355,12 +295,6 @@ export default combineReducers({
 
     // object to represent registered oauth apps with app id as the key
     oauthApps,
-
-    // object to represent the list of ids for oauth apps associated to apps
-    appsOAuthAppIDs,
-
-    // object to represent the list of ids for bots associated to apps
-    appsBotIDs,
 
     // object to represent registered outgoing oauth connections with connection id as the key
     outgoingOAuthConnections,

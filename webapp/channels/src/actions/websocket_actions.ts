@@ -40,7 +40,6 @@ import {
     GeneralTypes,
     IntegrationTypes,
     PreferenceTypes,
-    AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
     PropertyTypes,
@@ -48,7 +47,6 @@ import {
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
@@ -105,7 +103,6 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -154,7 +151,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getCurrentLocale} from 'selectors/i18n';
-import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
+import {getSelectedChannelId} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
@@ -173,7 +170,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
@@ -289,10 +286,6 @@ export function reconnect() {
         const currentChannelId = getCurrentChannelId(state);
         const mostRecentId = getMostRecentPostIdInChannel(state, currentChannelId);
         const mostRecentPost = mostRecentId && getPost(state, mostRecentId);
-
-        if (appsEnabled(state)) {
-            dispatch(handleRefreshAppsBindings());
-        }
 
         dispatch(fetchAllMyTeamsChannels());
         if (isScheduledPostsEnabled(state)) {
@@ -723,15 +716,6 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.ThreadUpdated:
         dispatch(handleThreadUpdated(msg));
-        break;
-    case SocketEvents.APPS_FRAMEWORK_REFRESH_BINDINGS:
-        dispatch(handleRefreshAppsBindings());
-        break;
-    case SocketEvents.APPS_FRAMEWORK_PLUGIN_ENABLED:
-        dispatch(handleAppsPluginEnabled());
-        break;
-    case SocketEvents.APPS_FRAMEWORK_PLUGIN_DISABLED:
-        dispatch(handleAppsPluginDisabled());
         break;
     case WebSocketEvents.PostAcknowledgementAdded:
         dispatch(handlePostAcknowledgementAdded(msg));
@@ -2058,51 +2042,6 @@ export function handleCloudSubscriptionChanged(msg: WebSocketMessages.CloudSubsc
             }
         }
         return {data: true};
-    };
-}
-
-function handleRefreshAppsBindings(): ThunkActionFunc<void> {
-    return (doDispatch, doGetState) => {
-        const state = doGetState();
-
-        doDispatch(fetchAppBindings(getCurrentChannelId(state)));
-
-        const siteURL = state.entities.general.config.SiteURL;
-        const currentURL = window.location.href;
-        let threadIdentifier;
-        if (siteURL && currentURL.startsWith(siteURL)) {
-            const parts = currentURL.substr(siteURL.length + (siteURL.endsWith('/') ? 0 : 1)).split('/');
-            if (parts.length === 3 && parts[1] === 'threads') {
-                threadIdentifier = parts[2];
-            }
-        }
-        const rhsPost = getSelectedPost(state);
-        let selectedThread;
-        if (threadIdentifier) {
-            selectedThread = getThread(state, threadIdentifier);
-        }
-        const rootID = threadIdentifier || rhsPost?.id;
-        const channelID = selectedThread?.post?.channel_id || rhsPost?.channel_id;
-        if (!rootID) {
-            return {data: true};
-        }
-
-        doDispatch(fetchRHSAppsBindings(channelID));
-        return {data: true};
-    };
-}
-
-export function handleAppsPluginEnabled() {
-    dispatch(handleRefreshAppsBindings());
-
-    return {
-        type: AppsTypes.APPS_PLUGIN_ENABLED,
-    };
-}
-
-export function handleAppsPluginDisabled() {
-    return {
-        type: AppsTypes.APPS_PLUGIN_DISABLED,
     };
 }
 

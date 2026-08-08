@@ -1243,10 +1243,8 @@ func getIcon(iconPath string) (string, error) {
 func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	switch pluginID {
 	case model.PluginIdApps:
-		// Tie Apps proxy disabled status to the feature flag.
-		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
-			return true, false
-		}
+		// The Apps framework is deprecated and no longer supported by the server.
+		return true, false
 	}
 
 	return false, false

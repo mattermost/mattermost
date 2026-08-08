@@ -189,7 +189,6 @@ type PluginItemProps = {
     handleRemove: (e: any) => any;
     showInstances: boolean;
     hasSettings: boolean;
-    appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
 };
 
@@ -210,6 +209,7 @@ const messages = defineMessages({
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
+    appsFrameworkDeprecated: {id: 'admin.plugin.appsFrameworkDeprecated', defaultMessage: 'Apps framework is deprecated and no longer supported.'},
 });
 
 export const searchableStrings = [
@@ -240,7 +240,6 @@ const PluginItem = ({
     handleRemove,
     showInstances,
     hasSettings,
-    appsFeatureFlagEnabled,
     isDisabled,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
@@ -429,8 +428,8 @@ const PluginItem = ({
         );
     }
 
-    if (pluginStatus.id === appsPluginID && !appsFeatureFlagEnabled) {
-        activateButton = (<>{'Plugin disabled by feature flag'}</>);
+    if (pluginStatus.id === appsPluginID) {
+        activateButton = <FormattedMessage {...messages.appsFrameworkDeprecated}/>;
         removeButton = null;
     }
 
@@ -464,7 +463,6 @@ type Props = BaseProps & {
     config: DeepPartial<AdminConfig>;
     pluginStatuses: Record<string, PluginStatus>;
     plugins: any;
-    appsFeatureFlagEnabled: boolean;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -1009,7 +1007,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         handleRemove={this.showRemovePluginModal}
                         showInstances={showInstances}
                         hasSettings={hasSettings}
-                        appsFeatureFlagEnabled={this.props.appsFeatureFlagEnabled}
                         isDisabled={this.props.isDisabled}
                     />
                 );

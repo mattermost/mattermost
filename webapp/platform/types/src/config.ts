@@ -127,7 +127,6 @@ export type ClientConfig = {
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
     FileLevel: string;
-    FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;

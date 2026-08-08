@@ -33,16 +33,6 @@ type Props = {
     bots: Record<string, BotType>;
 
     /**
-     * List of bot IDs managed by the app framework
-     */
-    appsBotIDs: string[];
-
-    /**
-     * Whether apps framework is enabled
-     */
-    appsEnabled: boolean;
-
-    /**
     *  Map from botUserId to accessTokens.
     */
     accessTokens?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
@@ -98,7 +88,6 @@ type Props = {
         /**
          * Load bot IDs managed by the apps
          */
-        fetchAppsBotIDs: () => Promise<ActionResult>;
     };
 
     /**
@@ -128,10 +117,6 @@ export default class Bots extends React.PureComponent<Props, State> {
 
     public componentDidMount(): void {
         this.loadAllBots();
-
-        if (this.props.appsEnabled) {
-            this.props.actions.fetchAppsBotIDs();
-        }
     }
 
     private async loadAllBots(): Promise<void> {
@@ -255,7 +240,6 @@ export default class Bots extends React.PureComponent<Props, State> {
                 accessTokens={(this.props.accessTokens && this.props.accessTokens[bot.user_id]) || {}}
                 actions={this.props.actions}
                 team={this.props.team}
-                fromApp={this.props.appsBotIDs.includes(bot.user_id)}
             />
         );
     };

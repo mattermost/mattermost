@@ -52,9 +52,6 @@ jest.mock('components/suggestion/channel_mention_provider', () => {
 jest.mock('components/suggestion/command_provider/command_provider', () => {
     return jest.fn().mockImplementation(() => ({setProps: jest.fn()}));
 });
-jest.mock('components/suggestion/command_provider/app_provider', () => {
-    return jest.fn().mockImplementation(() => ({setProps: jest.fn()}));
-});
 jest.mock('components/suggestion/emoticon_provider', () => {
     return jest.fn().mockImplementation(() => ({}));
 });

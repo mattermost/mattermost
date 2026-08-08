@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
@@ -18,11 +17,10 @@ import type {
     Props,
 } from './post_body_additional_content';
 
-function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'mmBlocksEnabled' | 'actions'>) {
+function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'mmBlocksEnabled' | 'actions'>) {
     return {
         isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
         pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent,
-        appsEnabled: appsEnabled(state),
         mmBlocksEnabled: getFeatureFlagValue(state, 'MmBlocksEnabled') === 'true',
     };
 }

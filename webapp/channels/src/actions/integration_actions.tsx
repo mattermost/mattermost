@@ -9,7 +9,6 @@ import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -115,10 +114,7 @@ export function loadProfilesForCommands(commands: Command[]): ActionFuncAsync {
 }
 
 export function loadOAuthAppsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        if (appsEnabled(getState())) {
-            dispatch(IntegrationActions.getAppsOAuthAppIDs());
-        }
+    return async (dispatch) => {
         const {data} = await dispatch(IntegrationActions.getOAuthApps(page, perPage));
         if (data) {
             dispatch(loadProfilesForOAuthApps(data));

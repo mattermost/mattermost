@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {
     getPlugins,
     getListing,
     getInstalledListing,
-    getApp,
     getPlugin,
     getFilter,
     getInstalling,
@@ -50,33 +49,10 @@ describe('marketplace', () => {
         installed_version: '1.0.3',
     };
 
-    const sampleApp: MarketplaceApp = {
-        installed: false,
-        author_type: AuthorType.Mattermost,
-        release_stage: ReleaseStage.Production,
-        enterprise: false,
-        manifest: {
-            app_id: 'some.id',
-            display_name: 'Some App',
-        },
-    };
-
-    const sampleInstalledApp: MarketplaceApp = {
-        installed: true,
-        author_type: AuthorType.Mattermost,
-        release_stage: ReleaseStage.Production,
-        enterprise: false,
-        manifest: {
-            app_id: 'some.other.id',
-            display_name: 'Some other App',
-        },
-    };
-
     const state = {
         views: {
             marketplace: {
                 plugins: [samplePlugin, sampleInstalledPlugin],
-                apps: [sampleApp, sampleInstalledApp],
                 installing: {'com.mattermost.nps': true},
                 errors: {'com.mattermost.test': 'An error occurred'},
                 filter: 'existing',
@@ -84,12 +60,12 @@ describe('marketplace', () => {
         },
     } as unknown as GlobalState;
 
-    it('getListing should return all plugins and apps', () => {
-        expect(getListing(state)).toEqual([samplePlugin, sampleInstalledPlugin, sampleApp, sampleInstalledApp]);
+    it('getListing should return all plugins', () => {
+        expect(getListing(state)).toEqual([samplePlugin, sampleInstalledPlugin]);
     });
 
-    it('getInstalledListing should return only installed plugins and apps', () => {
-        expect(getInstalledListing(state)).toEqual([sampleInstalledPlugin, sampleInstalledApp]);
+    it('getInstalledListing should return only installed plugins', () => {
+        expect(getInstalledListing(state)).toEqual([sampleInstalledPlugin]);
     });
 
     it('getPlugins should return all plugins', () => {
@@ -107,20 +83,6 @@ describe('marketplace', () => {
 
         it('should return undefined for unknown plugin', () => {
             expect(getPlugin(state, 'unknown')).toBeUndefined();
-        });
-    });
-
-    describe('getApp', () => {
-        it('should return sampleApp', () => {
-            expect(getApp(state, 'some.id')).toEqual(sampleApp);
-        });
-
-        it('should return sampleInstalledApp', () => {
-            expect(getApp(state, 'some.other.id')).toEqual(sampleInstalledApp);
-        });
-
-        it('should return undefined for unknown app', () => {
-            expect(getApp(state, 'unknown')).toBeUndefined();
         });
     });
 

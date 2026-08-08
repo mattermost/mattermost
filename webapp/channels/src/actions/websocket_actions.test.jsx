@@ -53,8 +53,6 @@ import {
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
-    handleAppsPluginEnabled,
-    handleAppsPluginDisabled,
     handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
     handleStatusChangedEvent,
@@ -1461,20 +1459,6 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
-    });
-});
-
-describe('handleAppsPluginEnabled', () => {
-    test('plugin enabled action is dispatched', async () => {
-        const enableAction = handleAppsPluginEnabled();
-        expect(enableAction).toEqual({type: 'APPS_PLUGIN_ENABLED'});
-    });
-});
-
-describe('handleAppsPluginDisabled', () => {
-    test('plugin disabled action is dispatched', async () => {
-        const disableAction = handleAppsPluginDisabled();
-        expect(disableAction).toEqual({type: 'APPS_PLUGIN_DISABLED'});
     });
 });
 

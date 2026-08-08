@@ -127,54 +127,6 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/integrations/InstalledOAuthApp should match snapshot from app 1`] = `
-<div>
-  <div
-    class="backstage-list__item"
-  >
-    <div
-      class="integration__icon integration-list__icon"
-    >
-      <img
-        alt="get app screenshot"
-        src="https://test.com/icon"
-      />
-    </div>
-    <div
-      class="item-details"
-    >
-      <div
-        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
-      >
-        <strong
-          class="item-details__name"
-        >
-          testApp
-        </strong>
-      </div>
-      <div
-        class="item-details__row"
-      >
-        <span
-          class="item-details__description"
-        >
-          testing
-        </span>
-      </div>
-      <div
-        class="item-details__row"
-      >
-        <span
-          class="item-details__creation"
-        >
-          Managed by Apps Framework
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`components/integrations/InstalledOAuthApp should match snapshot, on error 1`] = `
 <div>
   <div

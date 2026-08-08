@@ -3,7 +3,7 @@
 
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
+import {appBarEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
@@ -121,11 +121,10 @@ export const getMainMenuPluginComponents = createSelector(
 export const shouldShowAppBar = createSelector(
     'shouldShowAppBar',
     appBarEnabled,
-    getAppBarAppBindings,
     getAppBarPluginComponents,
     getChannelHeaderPluginComponents,
-    (enabled, bindings, appBarComponents, channelHeaderComponents) => {
-        return enabled && Boolean(bindings.length || appBarComponents.length || channelHeaderComponents.length);
+    (enabled, appBarComponents, channelHeaderComponents) => {
+        return enabled && Boolean(appBarComponents.length || channelHeaderComponents.length);
     },
 );
 

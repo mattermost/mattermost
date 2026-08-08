@@ -22,7 +22,6 @@ describe('components/integrations/bots/Bots', () => {
         getUser: jest.fn(),
         disableBot: jest.fn(),
         enableBot: jest.fn(),
-        fetchAppsBotIDs: jest.fn(),
     };
 
     function createBotsAndUsers(count: number) {
@@ -60,8 +59,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={users}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -77,37 +74,6 @@ describe('components/integrations/bots/Bots', () => {
         managedByDivs.forEach((div) => {
             expect(div.textContent).toContain('plugin');
         });
-    });
-
-    it('bots with bots from apps', async () => {
-        const {bots, users, loadBots} = createBotsAndUsers(3);
-
-        const {container} = renderWithContext(
-            <Bots
-                bots={bots}
-                team={team}
-                accessTokens={{}}
-                owners={{}}
-                users={users}
-                actions={{...actions, loadBots}}
-                appsEnabled={true}
-                appsBotIDs={['3']}
-            />,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText(/Bot 1 \(@bot1\)/)).toBeInTheDocument();
-            expect(screen.getByText(/Bot 2 \(@bot2\)/)).toBeInTheDocument();
-            expect(screen.getByText(/Bot 3 \(@bot3\)/)).toBeInTheDocument();
-        });
-
-        // Check managed-by for each bot via DOM
-        const managedByDivs = container.querySelectorAll('.light.small');
-        expect(managedByDivs.length).toBe(3);
-
-        const managedByTexts = Array.from(managedByDivs).map((div) => div.textContent);
-        expect(managedByTexts.filter((t) => t?.includes('Apps Framework')).length).toBe(1);
-        expect(managedByTexts.filter((t) => t?.includes('plugin')).length).toBe(2);
     });
 
     it('bots with plugin display names', async () => {
@@ -129,8 +95,6 @@ describe('components/integrations/bots/Bots', () => {
                 users={users}
                 pluginDisplayNames={{[bot1.user_id]: 'Playbooks'}}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -174,8 +138,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={allUsers}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -226,8 +188,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -250,8 +210,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -292,8 +250,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={allUsers}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -321,8 +277,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -346,8 +300,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={{}}
                 users={{}}
                 actions={{...actions, loadBots, getUser}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 
@@ -394,8 +346,6 @@ describe('components/integrations/bots/Bots', () => {
                 owners={owners}
                 users={users}
                 actions={{...actions, loadBots}}
-                appsEnabled={false}
-                appsBotIDs={[]}
             />,
         );
 

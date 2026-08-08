@@ -1259,32 +1259,8 @@ func TestGetPluginStateOverride(t *testing.T) {
 	})
 
 	t.Run("apps override", func(t *testing.T) {
-		t.Run("without enabled flag", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("with enabled flag set to true", func(t *testing.T) {
-			mainHelper.Parallel(t)
-			th2 := SetupConfig(t, func(cfg *model.Config) {
-				cfg.FeatureFlags.AppsEnabled = true
-			})
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("with enabled flag set to false", func(t *testing.T) {
-			mainHelper.Parallel(t)
-			th2 := SetupConfig(t, func(cfg *model.Config) {
-				cfg.FeatureFlags.AppsEnabled = false
-			})
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
+		overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+		require.True(t, overrides)
+		require.False(t, value)
 	})
 }

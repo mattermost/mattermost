@@ -8,8 +8,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {appsEnabled} from './apps';
-
 export function getIncomingHooks(state: GlobalState) {
     return state.entities.integrations.incomingHooks;
 }
@@ -46,24 +44,6 @@ export const getFilteredIncomingHooks: (state: GlobalState) => IncomingWebhook[]
         return Object.keys(hooks).
             map((key) => hooks[key]).
             filter((incomingHook) => incomingHook.team_id === teamId);
-    },
-);
-
-export const getAppsOAuthAppIDs: (state: GlobalState) => string[] = createSelector(
-    'getAppsOAuthAppIDs',
-    appsEnabled,
-    (state: GlobalState) => state.entities.integrations.appsOAuthAppIDs,
-    (apps, ids) => {
-        return apps ? ids : [];
-    },
-);
-
-export const getAppsBotIDs: (state: GlobalState) => string[] = createSelector(
-    'getAppsBotIDs',
-    appsEnabled,
-    (state: GlobalState) => state.entities.integrations.appsBotIDs,
-    (apps, ids) => {
-        return apps ? ids : [];
     },
 );
 

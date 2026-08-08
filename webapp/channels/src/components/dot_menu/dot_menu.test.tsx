@@ -188,7 +188,6 @@ describe('components/dot_menu/DotMenu', () => {
             openModal: jest.fn(),
             closeModal: jest.fn(),
             markPostAsUnread: jest.fn(),
-            postEphemeralCallResponseForPost: jest.fn(),
             setThreadFollow: jest.fn(),
             addPostReminder: jest.fn(),
             setGlobalItem: jest.fn(),

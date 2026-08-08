@@ -308,7 +308,6 @@ export const ActionTypes = keyMirror({
     UPDATE_ACTIVE_SECTION: null,
 
     RECEIVED_MARKETPLACE_PLUGINS: null,
-    RECEIVED_MARKETPLACE_APPS: null,
     FILTER_MARKETPLACE_LISTING: null,
     INSTALLING_MARKETPLACE_ITEM: null,
     INSTALLING_MARKETPLACE_ITEM_SUCCEEDED: null,
@@ -388,7 +387,6 @@ export const ModalIdentifiers = {
     DISABLE_AUTOTRANSLATION_CONFIRM: 'disable_autotranslation_confirm',
     EMAIL_INVITE: 'email_invite',
     INTERACTIVE_DIALOG: 'interactive_dialog',
-    APPS_MODAL: 'apps_modal',
     ADD_TEAMS_TO_SCHEME: 'add_teams_to_scheme',
     INVITATION: 'invitation',
     ADD_GROUPS_TO_TEAM: 'add_groups_to_team',
@@ -642,9 +640,6 @@ export const AppEvents = {
  * @deprecated Use WebSocketEvents from @mattermost/client instead.
  */
 export const SocketEvents = {
-    APPS_FRAMEWORK_REFRESH_BINDINGS: 'custom_com.mattermost.apps_refresh_bindings',
-    APPS_FRAMEWORK_PLUGIN_ENABLED: 'custom_com.mattermost.apps_plugin_enabled',
-    APPS_FRAMEWORK_PLUGIN_DISABLED: 'custom_com.mattermost.apps_plugin_disabled',
     FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED: 'first_admin_visit_marketplace_status_received',
     THREAD_UPDATED: 'thread_updated',
     THREAD_FOLLOW_CHANGED: 'thread_follow_changed',
@@ -1999,7 +1994,6 @@ export const Constants = {
         OUTGOING_OAUTH_CONNECTIONS: 'outgoing-oauth2-connections',
         BOT: 'bots',
         EXECUTE_CURRENT_COMMAND_ITEM_ID: '_execute_current_command',
-        OPEN_COMMAND_IN_MODAL_ITEM_ID: '_open_command_in_modal',
         COMMAND_SUGGESTION_ERROR: 'error',
         COMMAND_SUGGESTION_CHANNEL: 'channel',
         COMMAND_SUGGESTION_USER: 'user',

@@ -88,7 +88,6 @@ describe('PostBodyAdditionalContent', () => {
         actions: {
             toggleEmbedVisibility: jest.fn(),
         },
-        appsEnabled: false,
         mmBlocksEnabled: false,
     };
 

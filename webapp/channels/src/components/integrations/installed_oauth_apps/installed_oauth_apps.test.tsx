@@ -71,7 +71,6 @@ describe('components/integrations/InstalledOAuthApps', () => {
             deleteOAuthApp: jest.fn(),
         },
         enableOAuthServiceProvider: true,
-        appsOAuthAppIDs: [] as string[],
     };
 
     test('should match snapshot', async () => {
@@ -120,26 +119,6 @@ describe('components/integrations/InstalledOAuthApps', () => {
 
         await screen.findAllByText('firstApp');
         expect(container2.querySelector('#addOauthApp')).not.toBeInTheDocument();
-    });
-
-    test('should match snapshot for Apps', async () => {
-        const props = {
-            ...baseProps,
-            appsOAuthAppIDs: ['fzcxd9wpzpbpfp8pad78xj75pr'],
-        };
-
-        const {container} = renderWithContext(
-            <InstalledOAuthApps {...props}/>,
-            initialState,
-        );
-
-        // Wait for loading to complete
-        await screen.findByText('firstApp');
-
-        expect(container).toMatchSnapshot();
-
-        // The app managed by Apps Framework should show managed text
-        expect(screen.getByText('Managed by Apps Framework')).toBeInTheDocument();
     });
 
     test('should props.deleteOAuthApp on deleteOAuthApp', async () => {

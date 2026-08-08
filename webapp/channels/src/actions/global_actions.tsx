@@ -9,7 +9,6 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes} from 'mattermost-redux/action_types';
-import {fetchAppBindings} from 'mattermost-redux/actions/apps';
 import {
     fetchChannelsAndMembers,
     getChannelByNameAndTeamName,
@@ -19,7 +18,6 @@ import {
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -109,10 +107,6 @@ export function emitChannelClickEvent(channel: Channel) {
             },
             setLastUnreadChannel(state, chan),
         ]));
-
-        if (appsEnabled(state)) {
-            dispatch(fetchAppBindings(chan.id));
-        }
     }
 
     switchToChannel(channel);

@@ -15,7 +15,6 @@ import {
     enablePlugin,
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 
@@ -25,7 +24,6 @@ function mapStateToProps(state: any) {
     return {
         plugins: state.entities.admin.plugins,
         pluginStatuses: state.entities.admin.pluginStatuses,
-        appsFeatureFlagEnabled: appsFeatureFlagEnabled(state),
     };
 }
 

@@ -3,10 +3,7 @@
 
 import React from 'react';
 
-import type {AppBinding} from '@mattermost/types/apps';
-
 import {Permissions} from 'mattermost-redux/constants';
-import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -37,18 +34,6 @@ describe('components/app_bar/app_bar', () => {
         },
     ];
 
-    const channelHeaderAppBindings: AppBinding[] = [
-        {
-            location: AppBindingLocations.CHANNEL_HEADER_ICON,
-            bindings: [
-                {
-                    app_id: 'com.mattermost.zendesk',
-                    label: 'Create Subscription',
-                },
-            ],
-        },
-    ] as AppBinding[];
-
     const initialState = {
         views: {
             rhs: {
@@ -65,16 +50,9 @@ describe('components/app_bar/app_bar', () => {
             },
         },
         entities: {
-            apps: {
-                main: {
-                    bindings: channelHeaderAppBindings,
-                } as {bindings: AppBinding[]},
-                pluginEnabled: true,
-            },
             general: {
                 config: {
                     DisableAppBar: 'false',
-                    FeatureFlagAppsEnabled: 'true',
                 },
             },
             channels: {
@@ -140,7 +118,6 @@ describe('components/app_bar/app_bar', () => {
                 general: {
                     config: {
                         DisableAppBar: 'true',
-                        FeatureFlagAppsEnabled: 'true',
                         EnableMarketplace: 'true',
                         PluginsEnabled: 'true',
                     },
@@ -162,7 +139,6 @@ describe('components/app_bar/app_bar', () => {
                 general: {
                     config: {
                         DisableAppBar: 'false',
-                        FeatureFlagAppsEnabled: 'true',
                         EnableMarketplace: 'true',
                         PluginsEnabled: 'true',
                     },

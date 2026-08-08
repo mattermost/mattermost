@@ -152,8 +152,6 @@ const state: GlobalState = {
             oauthApps: {},
             systemCommands: {},
             commands: {},
-            appsBotIDs: [],
-            appsOAuthAppIDs: [],
             dialogTriggerId: '',
             dialogs: {},
             outgoingOAuthConnections: {},
@@ -197,17 +195,6 @@ const state: GlobalState = {
             byId: {},
             orderByTeam: {},
             managedCategoryMappings: {},
-        },
-        apps: {
-            main: {
-                bindings: [],
-                forms: {},
-            },
-            rhs: {
-                bindings: [],
-                forms: {},
-            },
-            pluginEnabled: true,
         },
         cloud: {
             limits: {

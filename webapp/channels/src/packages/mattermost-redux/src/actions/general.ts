@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
 import {LogLevel} from '@mattermost/types/client4';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {SystemSetting} from '@mattermost/types/general';
 
-import {AppsTypes, GeneralTypes} from 'mattermost-redux/action_types';
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -28,9 +26,7 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
         Client4.setEnableLogging(data.EnableDeveloper === 'true');
         Client4.setDiagnosticId(data.DiagnosticId);
 
-        const type = data.AppsPluginEnabled === 'true' ? AppsTypes.APPS_PLUGIN_ENABLED : AppsTypes.APPS_PLUGIN_DISABLED;
-        const actions = [{type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data}, {type}];
-        dispatch(batchActions(actions));
+        dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
 
         return {data};
     };

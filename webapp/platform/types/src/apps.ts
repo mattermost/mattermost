@@ -31,24 +31,6 @@ export type AppManifest = {
     requested_locations?: Locations[];
 };
 
-export type AppModalState = {
-    form: AppForm;
-    call: AppCallRequest;
-};
-
-export type AppCommandFormMap = {[location: string]: AppForm};
-
-export type BindingsInfo = {
-    bindings: AppBinding[];
-    forms: AppCommandFormMap;
-};
-
-export type AppsState = {
-    main: BindingsInfo;
-    rhs: BindingsInfo;
-    pluginEnabled: boolean;
-};
-
 export type AppBinding = {
     app_id: string;
     location?: string;

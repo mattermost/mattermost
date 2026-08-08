@@ -21,20 +21,6 @@ exports[`components/app_bar/app_bar should match snapshot on mount 1`] = `
           fallback_component
         </div>
       </div>
-      <hr
-        class="app-bar__divider"
-      />
-      <div
-        aria-label="Create Subscription"
-        class="app-bar__icon"
-        id="app-bar-icon-com.mattermost.zendesk"
-      >
-        <div
-          class="app-bar__icon-inner"
-        >
-          <img />
-        </div>
-      </div>
     </div>
   </div>
 </DocumentFragment>
@@ -59,20 +45,6 @@ exports[`components/app_bar/app_bar should match snapshot on mount when App Bar 
           tabindex="0"
         >
           fallback_component
-        </div>
-      </div>
-      <hr
-        class="app-bar__divider"
-      />
-      <div
-        aria-label="Create Subscription"
-        class="app-bar__icon"
-        id="app-bar-icon-com.mattermost.zendesk"
-      >
-        <div
-          class="app-bar__icon-inner"
-        >
-          <img />
         </div>
       </div>
     </div>

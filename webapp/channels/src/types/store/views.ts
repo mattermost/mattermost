@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Channel} from '@mattermost/types/channels';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
@@ -184,7 +184,6 @@ export type ViewsState = {
 
     marketplace: {
         plugins: MarketplacePlugin[];
-        apps: MarketplaceApp[];
         installing: {[id: string]: boolean};
         errors: {[id: string]: string};
         filter: string;

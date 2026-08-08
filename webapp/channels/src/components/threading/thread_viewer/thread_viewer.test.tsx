@@ -72,7 +72,6 @@ describe('components/threading/ThreadViewer', () => {
         updateThreadRead: jest.fn(),
         updateThreadLastOpened: jest.fn(),
         updateThreadLastUpdateAt: jest.fn(),
-        fetchRHSAppsBindings: jest.fn(),
     };
 
     const baseProps: Props = {
@@ -84,7 +83,6 @@ describe('components/threading/ThreadViewer', () => {
         actions,
         isCollapsedThreadsEnabled: false,
         postIds: [post.id],
-        appsEnabled: true,
         rootPostId: post.id,
         isThreadView: true,
         lastUpdateAt: 1234,
@@ -281,31 +279,6 @@ describe('components/threading/ThreadViewer', () => {
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
         expect(actions.getThread).not.toHaveBeenCalled();
         Date.now = dateNowOrig;
-    });
-
-    test('should call fetchRHSAppsBindings on mount if appsEnabled', () => {
-        const {actions} = baseProps;
-
-        renderWithContext(
-            <ThreadViewer
-                {...baseProps}
-            />,
-        );
-
-        expect(actions.fetchRHSAppsBindings).toHaveBeenCalledWith('channel_id', 'id');
-    });
-
-    test('should not call fetchRHSAppsBindings on mount if not appsEnabled', () => {
-        const {actions} = baseProps;
-
-        renderWithContext(
-            <ThreadViewer
-                {...baseProps}
-                appsEnabled={false}
-            />,
-        );
-
-        expect(actions.fetchRHSAppsBindings).not.toHaveBeenCalledWith('channel_id', 'id');
     });
 
     test('should update thread with highest update_at value when lastUpdateAt is 0', async () => {

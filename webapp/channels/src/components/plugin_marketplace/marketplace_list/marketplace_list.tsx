@@ -4,19 +4,18 @@
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
+import {getName} from 'mattermost-redux/utils/marketplace';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
-import MarketplaceItemApp from '../marketplace_item/marketplace_item_app';
 import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
 
 export const ITEMS_PER_PAGE = 15;
 
 type MarketplaceListProps = {
-    listing: Array<MarketplacePlugin | MarketplaceApp>;
+    listing: MarketplacePlugin[];
     page: number;
     noResultsMessage: string;
     noResultsAction?: {
@@ -49,31 +48,18 @@ const MarketplaceList = ({
             sort((a, b) => getName(a).localeCompare(getName(b))).
             slice(pageStart, pageEnd).
             map((i) => (
-                isPlugin(i) ? (
-                    <MarketplaceItemPlugin
-                        key={i.manifest.id}
-                        id={i.manifest.id}
-                        name={i.manifest.name}
-                        description={i.manifest.description}
-                        version={i.manifest.version}
-                        homepageUrl={i.homepage_url}
-                        releaseNotesUrl={i.release_notes_url}
-                        labels={i.labels}
-                        iconData={i.icon_data}
-                        installedVersion={i.installed_version}
-                    />
-                ) : (
-                    <MarketplaceItemApp
-                        key={i.manifest.app_id}
-                        id={i.manifest.app_id}
-                        name={i.manifest.display_name}
-                        description={i.manifest.description}
-                        homepageUrl={i.manifest.homepage_url}
-                        iconURL={i.icon_url}
-                        installed={i.installed}
-                        labels={i.labels}
-                    />
-                )
+                <MarketplaceItemPlugin
+                    key={i.manifest.id}
+                    id={i.manifest.id}
+                    name={i.manifest.name}
+                    description={i.manifest.description}
+                    version={i.manifest.version}
+                    homepageUrl={i.homepage_url}
+                    releaseNotesUrl={i.release_notes_url}
+                    labels={i.labels}
+                    iconData={i.icon_data}
+                    installedVersion={i.installed_version}
+                />
             ));
     }, [listing, page]);
 

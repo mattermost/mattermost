@@ -391,20 +391,6 @@ export function validateOutgoingOAuthConnection(teamId: string, connection: Outg
     });
 }
 
-export function getAppsOAuthAppIDs() {
-    return bindClientFunc({
-        clientFunc: Client4.getAppsOAuthAppIDs,
-        onSuccess: [IntegrationTypes.RECEIVED_APPS_OAUTH_APP_IDS],
-    });
-}
-
-export function getAppsBotIDs() {
-    return bindClientFunc({
-        clientFunc: Client4.getAppsBotIDs,
-        onSuccess: [IntegrationTypes.RECEIVED_APPS_BOT_IDS],
-    });
-}
-
 export function getOAuthApp(appId: string) {
     return bindClientFunc({
         clientFunc: Client4.getOAuthApp,

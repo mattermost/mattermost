@@ -8,7 +8,6 @@ import {useSelector} from 'react-redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {Permissions} from 'mattermost-redux/constants';
-import {getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -17,7 +16,6 @@ import {getAppBarPluginComponents, getChannelHeaderPluginComponents, shouldShowA
 import {suitePluginIds} from 'utils/constants';
 import {useCurrentProduct, useCurrentProductId, inScope} from 'utils/products';
 
-import AppBarBinding, {isAppBinding} from './app_bar_binding';
 import AppBarMarketplace from './app_bar_marketplace';
 import AppBarPluginComponent, {isAppBarComponent} from './app_bar_plugin_component';
 
@@ -26,7 +24,6 @@ import './app_bar.scss';
 export default function AppBar() {
     const channelHeaderComponents = useSelector(getChannelHeaderPluginComponents);
     const appBarPluginComponents = useSelector(getAppBarPluginComponents);
-    const appBarBindings = useSelector(getAppBarAppBindings);
     const currentProduct = useCurrentProduct();
     const currentProductId = useCurrentProductId();
     const enabled = useSelector(shouldShowAppBar);
@@ -60,11 +57,10 @@ export default function AppBar() {
         ...coreProductComponents,
         getDivider(
             agentsComponents.length + coreProductComponents.length,
-            pluginComponents.length + otherChannelHeaderComponents.length + appBarBindings.length,
+            pluginComponents.length + otherChannelHeaderComponents.length,
         ),
         ...pluginComponents,
         ...otherChannelHeaderComponents,
-        ...appBarBindings,
     ].map((x) => {
         if (!x) {
             return x;
@@ -79,16 +75,6 @@ export default function AppBar() {
                 <AppBarPluginComponent
                     key={x.id}
                     component={x}
-                />
-            );
-        } else if (isAppBinding(x)) {
-            if (!inScope(x.supported_product_ids ?? null, currentProductId, currentProduct?.pluginId)) {
-                return null;
-            }
-            return (
-                <AppBarBinding
-                    key={`${x.app_id}_${x.label}`}
-                    binding={x}
                 />
             );
         }
