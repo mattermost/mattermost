@@ -4781,6 +4781,17 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockStore.On("User").Return(&mockUserStore)
 
+	// Setting an MHPNS-featured license below saves a config change, whose listeners
+	// regenerate the client config from the store. The test cases later reassign
+	// mockSystemStore in place, which resets these expectations after they are needed.
+	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockPostStore := storemocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 	// Test with no license - should return 0
 	r, err := th.App.GetLastAccessiblePostTime()
 	assert.Nil(t, err)
@@ -4808,7 +4819,7 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	th.App.Srv().SetLicense(entryLicenseWithLimits)
 
 	// Test case 1: No system value found (ErrNotFound) - should return 0
-	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
 	r, err = th.App.GetLastAccessiblePostTime()
@@ -4836,11 +4847,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	t.Run("Updates the time, if Entry license limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
-		// Set Entry license with post history limit of 100 messages
-		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
-		entryLicensePostsLimit.Limits = &model.LicenseLimits{PostHistory: 100}
-		th.App.Srv().SetLicense(entryLicensePostsLimit)
-
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockPostStore := storemocks.PostStore{}
 		mockPostStore.On("GetNthRecentPostTime", int64(100)).Return(int64(1234567890), nil)
@@ -4848,6 +4854,17 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
+		// Set Entry license with post history limit of 100 messages
+		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		entryLicensePostsLimit.Limits = &model.LicenseLimits{PostHistory: 100}
+		th.App.Srv().SetLicense(entryLicensePostsLimit)
 
 		err := th.App.ComputeLastAccessiblePostTime()
 		assert.NoError(t, err)
@@ -4862,16 +4879,24 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	t.Run("Remove the time if license limit is NOT applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
-		// Set license without post history limits (using test license without limits)
-		license := model.NewTestLicense()
-		license.Limits = nil // No limits
-		th.App.Srv().SetLicense(license)
-
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockSystemStore := storemocks.SystemStore{}
 		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "1234567890"}, nil)
 		mockSystemStore.On("PermanentDeleteByName", model.SystemLastAccessiblePostTime).Return(nil, nil)
 		mockStore.On("System").Return(&mockSystemStore)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
+		// Set license without post history limits (using test license without limits)
+		license := model.NewTestLicense()
+		license.Limits = nil // No limits
+		th.App.Srv().SetLicense(license)
 
 		err := th.App.ComputeLastAccessiblePostTime()
 		assert.NoError(t, err)

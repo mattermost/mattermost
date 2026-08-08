@@ -29,6 +29,16 @@ func TestResolvePersistentNotification(t *testing.T) {
 		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(nil, &store.ErrNotFound{})
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
@@ -72,6 +82,16 @@ func TestResolvePersistentNotification(t *testing.T) {
 		mockGroup := storemocks.GroupStore{}
 		mockStore.On("Group").Return(&mockGroup)
 		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
@@ -135,6 +155,16 @@ func TestResolvePersistentNotification(t *testing.T) {
 		mockStore.On("Group").Return(&mockGroup)
 		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
@@ -160,6 +190,16 @@ func TestDeletePersistentNotification(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
@@ -181,6 +221,16 @@ func TestDeletePersistentNotification(t *testing.T) {
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
@@ -232,6 +282,16 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
 		mockPostPersistentNotification.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
 		mockPostPersistentNotification.On("Delete", []string{post2.Id}).Return(nil)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
@@ -291,6 +351,16 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		mockPostPersistentNotification.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
 		mockPostPersistentNotification.On("Delete", []string{post2.Id}).Return(nil)
 
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
@@ -339,6 +409,16 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
@@ -390,6 +470,16 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		// Setting an MHPNS-featured license below saves a config change, whose
+		// listeners regenerate the client config from the store.
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 		cfg := th.App.Config()
