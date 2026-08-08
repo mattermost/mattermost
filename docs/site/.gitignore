@@ -9,6 +9,9 @@
 .cache-loader
 sidebars/documentation.generated.json
 sidebars/developers.generated.json
+data/plugin-godocs.json
+data/plugin-jsdocs.json
+data/plugin-manifest-docs.json
 
 # Misc
 .DS_Store
