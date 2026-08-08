@@ -18,7 +18,6 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.17.0",
-    "jest-environment-jsdom": "30.1.0",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",
@@ -32,8 +31,9 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "babel-plugin-styled-components": "2.1.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "jest-environment-jsdom": "30.1.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "rollup": "^2.75.7",
     "rollup-plugin-scss": "4.0.0",
     "rollup-plugin-ts": "^2.0.5",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@tippyjs/react": "4.2.6",
-    "react-bootstrap": "github:mattermost/react-bootstrap#05559f4c61c5a314783c390d2d82906ee8c7e558",
+    "react-bootstrap": "github:mattermost/react-bootstrap#3a04b38c564ab6112658cd7cfad6ef008a2e4289",
     "styled-components": "5.3.7"
   }
 }
