@@ -8,6 +8,47 @@
     overflow: auto;
 }
 
+.PluginUploadOverwriteReview {
+    max-width: 640px;
+    padding: 16px;
+    border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+    border-radius: 4px;
+    margin: 0;
+    background: rgba(var(--button-bg-rgb), 0.04);
+
+    &--same,
+    &--unknown {
+        border-color: rgba(var(--away-indicator-rgb), 0.4);
+        background: rgba(var(--away-indicator-rgb), 0.08);
+    }
+
+    &--downgrade {
+        border-color: rgba(var(--error-text-color-rgb), 0.48);
+        background: rgba(var(--error-text-color-rgb), 0.08);
+    }
+
+    &__message {
+        margin: 0 0 12px;
+    }
+
+    &__details {
+        display: grid;
+        margin-bottom: 16px;
+        column-gap: 12px;
+        grid-template-columns: max-content minmax(0, 1fr);
+        row-gap: 8px;
+
+        dt {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-weight: 600;
+        }
+
+        dd {
+            margin: 0;
+        }
+    }
+}
+
 .admin-console {
     overflow: auto;
     height: 100%;

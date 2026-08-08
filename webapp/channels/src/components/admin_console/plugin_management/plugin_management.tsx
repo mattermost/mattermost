@@ -8,6 +8,7 @@ import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
+import type {PluginManifest} from '@mattermost/types/plugins';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -24,7 +25,7 @@ import * as Utils from 'utils/utils';
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
-import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
+import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -175,6 +176,14 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
+};
+
+type PluginInstallVersionDirection = 'upgrade' | 'downgrade' | 'same' | 'unknown';
+
+type PluginInstallConflict = {
+    existing_manifest?: PluginManifest;
+    uploaded_manifest?: PluginManifest;
+    version_direction?: PluginInstallVersionDirection;
 };
 
 type PluginItemProps = {
@@ -487,6 +496,7 @@ type State = BaseState & {
     installing: boolean;
     overwritingUpload: boolean;
     confirmOverwriteUploadModal: boolean;
+    overwriteUploadConflict: PluginInstallConflict | null;
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
@@ -517,6 +527,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             installing: false,
             overwritingUpload: false,
             confirmOverwriteUploadModal: false,
+            overwriteUploadConflict: null,
             overwritingInstall: false,
             confirmOverwriteInstallModal: false,
             showRemoveModal: false,
@@ -570,23 +581,46 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         this.setState({lastMessage: null, serverError: null});
         const element = this.fileInput.current as HTMLInputElement;
         if (element.files && element.files.length > 0) {
-            this.setState({fileSelected: true, file: element.files[0]});
+            this.setState({fileSelected: true, file: element.files[0], overwriteUploadConflict: null});
+        }
+    };
+
+    parsePluginInstallConflict = (details?: string): PluginInstallConflict => {
+        if (!details) {
+            return {version_direction: 'unknown'};
+        }
+
+        try {
+            const conflict = JSON.parse(details) as PluginInstallConflict;
+            return {
+                ...conflict,
+                version_direction: conflict.version_direction || 'unknown',
+            };
+        } catch {
+            return {version_direction: 'unknown'};
         }
     };
 
     helpSubmitUpload = async (file: File, force: boolean) => {
-        this.setState({uploading: true});
+        this.setState({uploading: true, overwriteUploadConflict: null, serverError: null, lastMessage: null});
         const {error} = await this.props.actions.uploadPlugin(file, force);
 
         if (error) {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
-                this.setState({confirmOverwriteUploadModal: true, overwritingUpload: true});
+                this.setState({
+                    confirmOverwriteUploadModal: true,
+                    overwriteUploadConflict: this.parsePluginInstallConflict(error.detailed_error),
+                    uploading: false,
+                    overwritingUpload: false,
+                });
                 return;
             }
             this.setState({
                 file: null,
                 fileSelected: false,
                 uploading: false,
+                overwritingUpload: false,
+                overwriteUploadConflict: null,
             });
             if (error.server_error_id === 'app.plugin.activate.app_error') {
                 this.setState({serverError: this.props.intl.formatMessage({id: 'admin.plugin.error.activate', defaultMessage: 'Unable to upload the plugin. It may conflict with another plugin on your server.'})});
@@ -613,6 +647,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             serverError: null,
             lastMessage: msg,
             overwritingUpload: false,
+            overwriteUploadConflict: null,
             uploading: false,
             loading: false,
         });
@@ -638,13 +673,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             fileSelected: false,
             serverError: null,
             confirmOverwriteUploadModal: false,
+            overwriteUploadConflict: null,
             lastMessage: null,
             uploading: false,
+            overwritingUpload: false,
         });
     };
 
     handleOverwriteUploadPlugin = () => {
-        this.setState({confirmOverwriteUploadModal: false});
+        this.setState({confirmOverwriteUploadModal: false, overwriteUploadConflict: null, overwritingUpload: true});
         if (this.state.file) {
             this.helpSubmitUpload(this.state.file, true);
         }
@@ -829,39 +866,137 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return (<FormattedMessage {...messages.title}/>);
     }
 
-    renderOverwritePluginModal = (
-        {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void}) => {
+    renderOverwritePluginReviewMessage = () => {
+        const conflict = this.state.overwriteUploadConflict;
+        if (!conflict) {
+            return null;
+        }
+
+        const existingManifest = conflict.existing_manifest;
+        const uploadedManifest = conflict.uploaded_manifest;
+        const existingVersion = existingManifest?.version || '';
+        const uploadedVersion = uploadedManifest?.version || '';
+        const displayExistingVersion = formatPluginVersion(existingVersion) || (
+            <FormattedMessage
+                id='admin.plugin.upload.overwrite_review.version_unknown'
+                defaultMessage='Unknown'
+            />
+        );
+        const displayUploadedVersion = formatPluginVersion(uploadedVersion) || (
+            <FormattedMessage
+                id='admin.plugin.upload.overwrite_review.version_unknown'
+                defaultMessage='Unknown'
+            />
+        );
+        const direction = conflict.version_direction || 'unknown';
+        const directionClassName = `PluginUploadOverwriteReview--${direction}`;
+
+        let warningCopy = (
+            <FormattedMessage
+                id='admin.plugin.upload.overwrite_review.unknown'
+                defaultMessage='Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'
+            />
+        );
+        if (direction === 'upgrade') {
+            warningCopy = (
+                <FormattedMessage
+                    id='admin.plugin.upload.overwrite_review.upgrade'
+                    defaultMessage='This upload appears to upgrade the existing plugin. Overwriting will reinstall it.'
+                />
+            );
+        } else if (direction === 'same') {
+            warningCopy = (
+                <FormattedMessage
+                    id='admin.plugin.upload.overwrite_review.same'
+                    defaultMessage='This upload has the same version as the existing plugin. Overwriting will reinstall it.'
+                />
+            );
+        } else if (direction === 'downgrade') {
+            warningCopy = (
+                <FormattedMessage
+                    id='admin.plugin.upload.overwrite_review.downgrade'
+                    defaultMessage='This upload appears to downgrade the existing plugin. Downgrades can remove fixes or features.'
+                />
+            );
+        }
+
+        const pluginManifest = uploadedManifest || existingManifest;
+        const plugin = pluginManifest && (
+            <PluginMetadataPanel
+                name={pluginManifest.name || pluginManifest.id}
+                id={pluginManifest.id}
+                version=''
+                homepageUrl={pluginManifest.homepage_url}
+            />
+        );
+
+        return (
+            <div
+                className={`PluginUploadOverwriteReview ${directionClassName}`}
+                data-testid='plugin-upload-overwrite-review'
+            >
+                <p className='PluginUploadOverwriteReview__message'>
+                    {warningCopy}
+                </p>
+                <dl className='PluginUploadOverwriteReview__details'>
+                    {plugin && (
+                        <>
+                            <dt>
+                                <FormattedMessage
+                                    id='admin.plugin.upload.overwrite_review.plugin'
+                                    defaultMessage='Plugin'
+                                />
+                            </dt>
+                            <dd>{plugin}</dd>
+                        </>
+                    )}
+                    <dt>
+                        <FormattedMessage
+                            id='admin.plugin.upload.overwrite_review.version_change'
+                            defaultMessage='Version change'
+                        />
+                    </dt>
+                    <dd>
+                        {displayExistingVersion}
+                        {' \u2192 '}
+                        {displayUploadedVersion}
+                    </dd>
+                </dl>
+            </div>
+        );
+    };
+
+    renderOverwritePluginModal = () => {
+        const direction = this.state.overwriteUploadConflict?.version_direction || 'unknown';
         const title = (
             <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.title'
-                defaultMessage='Overwrite existing plugin?'
+                id='admin.plugin.upload.overwrite_review.title'
+                defaultMessage='Review plugin overwrite'
             />
         );
-
-        const message = (
-            <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.desc'
-                defaultMessage='A plugin with this ID already exists. Would you like to overwrite it?'
-            />
-        );
-
         const overwriteButton = (
             <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.overwrite'
+                id='admin.plugin.upload.overwrite_review.overwrite'
                 defaultMessage='Overwrite'
+            />
+        );
+        const cancelButton = (
+            <FormattedMessage
+                id='admin.plugin.upload.overwrite_review.cancel'
+                defaultMessage='Cancel'
             />
         );
 
         return (
             <ConfirmModal
-                show={show}
+                show={this.state.confirmOverwriteUploadModal}
                 title={title}
-                message={message}
-                confirmButtonVariant='destructive'
+                message={this.renderOverwritePluginReviewMessage()}
+                confirmButtonVariant={direction === 'downgrade' ? 'destructive' : undefined}
                 confirmButtonText={overwriteButton}
-                onConfirm={onConfirm}
-                onCancel={onCancel}
+                cancelButtonText={cancelButton}
+                onConfirm={this.handleOverwriteUploadPlugin}
+                onCancel={this.handleOverwriteUploadPluginCancel}
             />
         );
     };
@@ -1090,11 +1225,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
-        const overwriteUploadPluginModal = this.state.confirmOverwriteUploadModal && this.renderOverwritePluginModal({
-            show: this.state.confirmOverwriteUploadModal,
-            onConfirm: this.handleOverwriteUploadPlugin,
-            onCancel: this.handleOverwriteUploadPluginCancel,
-        });
+        const overwriteUploadPluginModal = this.state.confirmOverwriteUploadModal && this.renderOverwritePluginModal();
 
         const removePluginModal = this.state.showRemoveModal && this.renderRemovePluginModal(
             this.state.showRemoveModal,

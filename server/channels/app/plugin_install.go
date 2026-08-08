@@ -75,6 +75,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -250,6 +251,46 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 	)
 
 	return nil
+}
+
+func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
+	conflict := model.PluginInstallConflict{
+		ExistingManifest: existingManifest,
+		UploadedManifest: uploadedManifest,
+		VersionDirection: pluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
+	}
+
+	details := ""
+	if data, err := json.Marshal(conflict); err == nil {
+		details = string(data)
+	}
+
+	return model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+}
+
+func pluginInstallConflictVersionDirection(existingManifest, uploadedManifest *model.Manifest) string {
+	if existingManifest == nil || uploadedManifest == nil {
+		return model.PluginInstallConflictVersionDirectionUnknown
+	}
+
+	existing, err := semver.StrictNewVersion(existingManifest.Version)
+	if err != nil {
+		return model.PluginInstallConflictVersionDirectionUnknown
+	}
+
+	uploaded, err := semver.StrictNewVersion(uploadedManifest.Version)
+	if err != nil {
+		return model.PluginInstallConflictVersionDirectionUnknown
+	}
+
+	if uploaded.Equal(existing) {
+		return model.PluginInstallConflictVersionDirectionSame
+	}
+	if uploaded.GreaterThan(existing) {
+		return model.PluginInstallConflictVersionDirectionUpgrade
+	}
+
+	return model.PluginInstallConflictVersionDirectionDowngrade
 }
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
@@ -451,7 +492,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, newPluginInstallConflictAppError(existingManifest, manifest)
 		}
 
 		// Skip installation if already installed and newer.
