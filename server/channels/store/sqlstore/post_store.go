@@ -3344,7 +3344,7 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 		COALESCE(t.name, '') as TeamName,
 		u.locale as UserLocale, 
 		u.username as Username,
-		COALESCE(dt.name, '') as DefaultTeam
+		COALESCE(t.name, '') as DefaultTeam
 	FROM Posts p
 	JOIN Channels c ON p.ChannelId=c.Id
 	LEFT JOIN Teams t ON c.TeamId=t.Id
