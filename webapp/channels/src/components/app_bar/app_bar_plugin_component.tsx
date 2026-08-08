@@ -2,20 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import { WithTooltip } from '@mattermost/shared/components/tooltip';
 
-import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import { getCurrentChannel, getMyCurrentChannelMembership } from 'mattermost-redux/selectors/entities/channels';
 
-import {getActiveRhsComponent} from 'selectors/rhs';
+import { getActiveRhsComponent } from 'selectors/rhs';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
-import {suitePluginIds} from 'utils/constants';
+import { suitePluginIds } from 'utils/constants';
 
-import type {AppBarAction, ChannelHeaderButtonAction} from 'types/store/plugins';
+import type { AppBarAction, ChannelHeaderButtonAction } from 'types/store/plugins';
 
 import NewChannelWithBoardTourTip from './new_channel_with_board_tour_tip';
 
@@ -66,6 +66,7 @@ const AppBarPluginComponent = ({
         <div
             role='button'
             tabIndex={0}
+            aria-label={component.pluginId}
             className='app-bar__icon-inner'
         >
             <img
@@ -84,7 +85,7 @@ const AppBarPluginComponent = ({
             <div
                 role='button'
                 tabIndex={0}
-                className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
+                className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', { 'app-bar__old-icon--active': isButtonActive })}
             >
                 {icon}
             </div>
@@ -93,7 +94,7 @@ const AppBarPluginComponent = ({
 
     if (imageLoadState === ImageLoadState.ERROR) {
         content = (
-            <PluginIcon className='icon__plugin'/>
+            <PluginIcon className='icon__plugin' />
         );
     }
 
@@ -106,7 +107,7 @@ const AppBarPluginComponent = ({
         >
             <div
                 id={buttonId}
-                className={classNames('app-bar__icon', {'app-bar__icon--active': isButtonActive})}
+                className={classNames('app-bar__icon', { 'app-bar__icon--active': isButtonActive })}
                 onClick={() => {
                     if (channel && channelMember) {
                         component.action?.(channel, channelMember);
@@ -118,7 +119,7 @@ const AppBarPluginComponent = ({
                 }}
             >
                 {content}
-                {boardsEnabled && <NewChannelWithBoardTourTip/>}
+                {boardsEnabled && <NewChannelWithBoardTourTip />}
             </div>
         </WithTooltip>
     );
