@@ -112,7 +112,9 @@ test.describe('Space permissions in the System Scheme', () => {
 
             expect(permissionsOf(before, 'team_user')).toEqual(expect.arrayContaining(['read_space', 'create_space']));
             expect(permissionsOf(before, 'team_guest')).toEqual(expect.arrayContaining(['read_space']));
-            expect(permissionsOf(before, 'team_admin')).toEqual(expect.arrayContaining(['manage_space', 'delete_space']));
+            expect(permissionsOf(before, 'team_admin')).toEqual(
+                expect.arrayContaining(['manage_space', 'delete_space']),
+            );
 
             // Captured before anything is saved: afterAll puts these back, because the save below
             // rewrites the whole default-role set on a server the rest of the suite shares.
@@ -143,7 +145,9 @@ test.describe('Space permissions in the System Scheme', () => {
             const after = await adminClient.getRolesByNames(['team_user', 'team_guest', 'team_admin']);
 
             expect(permissionsOf(after, 'team_user')).toEqual(expect.arrayContaining(['read_space', 'create_space']));
-            expect(permissionsOf(after, 'team_admin')).toEqual(expect.arrayContaining(['manage_space', 'delete_space']));
+            expect(permissionsOf(after, 'team_admin')).toEqual(
+                expect.arrayContaining(['manage_space', 'delete_space']),
+            );
 
             // Exactly once for the guest role: it is restored by a different path from the other two
             // (the guest tree re-adds permissions it does not manage), so a permission that is both
@@ -198,7 +202,10 @@ test.describe('Space permissions in the System Scheme', () => {
 
             // create_space is team_scope, so the toggle below lands on the team_user role.
             const permission = 'create_space';
-            const checkbox = systemConsolePage.permissionsSystemScheme.getSpacePermissionCheckbox('all_users', permission);
+            const checkbox = systemConsolePage.permissionsSystemScheme.getSpacePermissionCheckbox(
+                'all_users',
+                permission,
+            );
             const wasChecked = await systemConsolePage.permissionsSystemScheme.isChecked(checkbox);
 
             // # Toggle the permission and confirm the click actually flips the checkbox.
