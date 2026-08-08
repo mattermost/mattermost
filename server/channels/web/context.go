@@ -155,8 +155,8 @@ func (c *Context) RemoteClusterTokenRequired() {
 	}
 }
 
-func (c *Context) MfaRequired() {
-	if appErr := c.App.MFARequired(c.AppContext); appErr != nil {
+func (c *Context) MfaRequired(method string) {
+	if appErr := c.App.MFARequired(c.AppContext, method); appErr != nil {
 		c.Err = appErr
 	}
 }

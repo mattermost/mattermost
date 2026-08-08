@@ -255,7 +255,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		WithSession(session)
 
 	// If MFA is required and user has not activated it, treat it as unauthenticated
-	if appErr := app.MFARequired(rctx); appErr != nil {
+	if appErr := app.MFARequired(rctx, r.Method); appErr != nil {
 		if appErr.StatusCode == http.StatusInternalServerError {
 			handleInternalServerError(rctx, "Internal server error during MFA validation", appErr)
 			return
