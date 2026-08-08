@@ -24,6 +24,8 @@ export default class ChannelMenu {
     readonly leaveChannel: Locator;
     readonly archiveToggle: Locator;
     readonly closeConversation: Locator;
+    readonly settings: Locator;
+    readonly editHeader: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -43,6 +45,8 @@ export default class ChannelMenu {
         this.leaveChannel = this.item('Leave Channel');
         this.archiveToggle = this.item(/^(Archive|Unarchive) Channel$/);
         this.closeConversation = this.item(/^Close (Direct Message|Group Message|Conversation)$/);
+        this.settings = this.item('Settings');
+        this.editHeader = container.page().getByRole('menuitem', {name: 'Edit Header'});
     }
 
     async toBeVisible() {
@@ -62,5 +66,11 @@ export default class ChannelMenu {
     async openBookmarksSubmenu() {
         await this.bookmarksBar.hover();
         await expect(this.addBookmarkLink).toBeVisible();
+    }
+
+    async openEditHeader() {
+        await this.settings.hover();
+        await expect(this.editHeader).toBeVisible();
+        await this.editHeader.click();
     }
 }
