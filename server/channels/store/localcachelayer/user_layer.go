@@ -141,7 +141,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	return s.UserStore.GetAllProfiles(options)
 }
 
-func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *LocalCacheUserStore) GetAllProfilesInChannel(rctx request.CTX, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
 		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
@@ -149,7 +149,7 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 		}
 	}
 
-	userMap, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
+	userMap, err := s.UserStore.GetAllProfilesInChannel(rctx, channelId, allowFromCache)
 	if err != nil {
 		return nil, err
 	}
