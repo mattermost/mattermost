@@ -3947,6 +3947,18 @@ const AdminDefinition: AdminDefinitionType = {
                                     ),
                                     validate: validators.minValue(1, defineMessage({id: 'admin.recaps.maxConcurrentLLMCalls.minValue', defaultMessage: 'Must be 1 or greater'})),
                                 },
+                                {
+                                    type: 'number',
+                                    key: 'AIRecapSettings.Processing.MaxDueSchedulesPerTick',
+                                    label: defineMessage({id: 'admin.recaps.maxDueSchedulesPerTick.title', defaultMessage: 'Maximum Scheduled Recaps Started Per Minute:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxDueSchedulesPerTick.desc', defaultMessage: 'Maximum number of due scheduled recaps queued for processing on each scheduler pass, about once per minute. Remaining due recaps are queued on later passes. Changes take effect on the next pass.'}),
+                                    placeholder: defineMessage({id: 'admin.recaps.maxDueSchedulesPerTick.placeholder', defaultMessage: 'E.g.: "1000"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                    validate: validators.minValue(1, defineMessage({id: 'admin.recaps.maxDueSchedulesPerTick.minValue', defaultMessage: 'Must be 1 or greater'})),
+                                },
                             ],
                         },
                     ],

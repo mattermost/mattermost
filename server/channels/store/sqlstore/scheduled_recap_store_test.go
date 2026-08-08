@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -254,7 +255,7 @@ func TestScheduledRecapStore(t *testing.T) {
 			require.NoError(t, err)
 
 			// Query for due recaps
-			dueRecaps, err := ss.ScheduledRecap().GetDueBefore(now, 10)
+			dueRecaps, err := ss.ScheduledRecap().GetDueBefore(now, 0, "", 10)
 			require.NoError(t, err)
 
 			// Should have 2: pastSR and nowSR
@@ -277,6 +278,117 @@ func TestScheduledRecapStore(t *testing.T) {
 			assert.False(t, ids[deletedSR.Id], "deleted recap should NOT be returned")
 		})
 
+		t.Run("GetDueBeforeKeysetPagination", func(t *testing.T) {
+			userId := model.NewId()
+			base := model.GetMillis() - 30*24*3600*1000
+			queryAt := base + 3600000
+
+			ties := make([]*model.ScheduledRecap, 3)
+			for i := range ties {
+				ties[i] = createTestScheduledRecap(userId)
+				ties[i].NextRunAt = base
+				_, err := ss.ScheduledRecap().Save(ties[i])
+				require.NoError(t, err)
+			}
+
+			sortedTies := scheduledRecapIDs(ties)
+			sort.Strings(sortedTies)
+
+			later1 := createTestScheduledRecap(userId)
+			later1.NextRunAt = base + 1000
+			_, err := ss.ScheduledRecap().Save(later1)
+			require.NoError(t, err)
+
+			later2 := createTestScheduledRecap(userId)
+			later2.NextRunAt = base + 2000
+			_, err = ss.ScheduledRecap().Save(later2)
+			require.NoError(t, err)
+
+			disabledInWindow := createTestScheduledRecap(userId)
+			disabledInWindow.NextRunAt = base
+			disabledInWindow.Enabled = false
+			_, err = ss.ScheduledRecap().Save(disabledInWindow)
+			require.NoError(t, err)
+
+			seededIDs := map[string]struct{}{
+				ties[0].Id:          {},
+				ties[1].Id:          {},
+				ties[2].Id:          {},
+				later1.Id:           {},
+				later2.Id:           {},
+				disabledInWindow.Id: {},
+			}
+			filterSeeded := func(recaps []*model.ScheduledRecap) []string {
+				ids := make([]string, 0, len(recaps))
+				for _, recap := range recaps {
+					if _, ok := seededIDs[recap.Id]; ok {
+						ids = append(ids, recap.Id)
+					}
+				}
+				return ids
+			}
+
+			tests := []struct {
+				name     string
+				cursorAt int64
+				cursorID string
+				limit    int
+				want     []string
+			}{
+				{
+					name:  "zero cursor starts at beginning",
+					limit: 2,
+					want:  []string{sortedTies[0], sortedTies[1]},
+				},
+				{
+					name:     "cursor resumes inside tie",
+					cursorAt: base,
+					cursorID: sortedTies[1],
+					limit:    2,
+					want:     []string{sortedTies[2], later1.Id},
+				},
+				{
+					name:     "short final page",
+					cursorAt: later1.NextRunAt,
+					cursorID: later1.Id,
+					limit:    2,
+					want:     []string{later2.Id},
+				},
+				{
+					name:     "cursor at last row",
+					cursorAt: later2.NextRunAt,
+					cursorID: later2.Id,
+					limit:    2,
+					want:     []string{},
+				},
+				{
+					name:     "cursor row excluded",
+					cursorAt: base,
+					cursorID: sortedTies[2],
+					limit:    10,
+					want:     []string{later1.Id, later2.Id},
+				},
+				{
+					name:  "limit one",
+					limit: 1,
+					want:  []string{sortedTies[0]},
+				},
+				{
+					name:  "full ordered drain",
+					limit: 10,
+					want:  []string{sortedTies[0], sortedTies[1], sortedTies[2], later1.Id, later2.Id},
+				},
+			}
+
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					recaps, err := ss.ScheduledRecap().GetDueBefore(queryAt, tt.cursorAt, tt.cursorID, tt.limit)
+					require.NoError(t, err)
+					require.Equal(t, tt.want, filterSeeded(recaps))
+				})
+			}
+		})
+
 		t.Run("GetDueBeforeReflectsMarkExecuted", func(t *testing.T) {
 			userId := model.NewId()
 			now := model.GetMillis()
@@ -286,14 +398,14 @@ func TestScheduledRecapStore(t *testing.T) {
 			_, err := ss.ScheduledRecap().Save(sr)
 			require.NoError(t, err)
 
-			dueRecaps, err := ss.ScheduledRecap().GetDueBefore(now, 10)
+			dueRecaps, err := ss.ScheduledRecap().GetDueBefore(now, 0, "", 10)
 			require.NoError(t, err)
 			require.Contains(t, scheduledRecapIDs(dueRecaps), sr.Id)
 
 			err = ss.ScheduledRecap().MarkExecuted(sr.Id, now, now+3600000)
 			require.NoError(t, err)
 
-			dueRecaps, err = ss.ScheduledRecap().GetDueBefore(now, 10)
+			dueRecaps, err = ss.ScheduledRecap().GetDueBefore(now, 0, "", 10)
 			require.NoError(t, err)
 			require.NotContains(t, scheduledRecapIDs(dueRecaps), sr.Id)
 		})
