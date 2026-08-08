@@ -1085,7 +1085,7 @@ type API interface {
 	// patching its roles, not after. Removing one is always allowed. A scheme
 	// is attached by setting SchemeId on the channel and calling UpdateChannel.
 	//
-	// The role is read back by id before the patch is applied.
+	// The patch applies to the current stored role, resolved by id.
 	//
 	// @tag Role
 	// Minimum server version: 11.11

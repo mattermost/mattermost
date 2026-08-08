@@ -65,6 +65,35 @@ func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model
 	return scheme, nil
 }
 
+// schemeGovernsOnlySpaces reports whether a live channel-scoped scheme is
+// attached to at least one space backing channel and to no ordinary channel —
+// the proof that a scheme belongs exclusively to spaces, so its roles may carry
+// space authority. A scheme of any other scope, a deleted one, or a nil one
+// governs no space and fails without a count. Both counts read the primary, so a
+// scheme that is exclusively a space's cannot look shared through replica lag, or
+// the reverse.
+//
+// checkSpacePermissionScope and PluginAPI.isGuestRoleOfNonSpaceScheme both decide
+// on this same proof; sharing it keeps the two authorization checks from drifting
+// apart.
+func (a *App) schemeGovernsOnlySpaces(where string, scheme *model.Scheme) (bool, *model.AppError) {
+	if scheme == nil || scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
+		return false, nil
+	}
+	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
+	if cErr != nil {
+		return false, model.NewAppError(where, "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+	}
+	if count == 0 {
+		return false, nil
+	}
+	governed, gErr := a.Srv().Store().Channel().CountNonSpaceChannelsByScheme(scheme.Id)
+	if gErr != nil {
+		return false, model.NewAppError(where, "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
+	}
+	return governed == 0, nil
+}
+
 // isSeededSpaceScheme reports whether schemeId is one of the three seeded space
 // preset schemes. Resolving the id and reading its name costs one lookup, where
 // resolving each reserved name in turn would cost three, and the names it is
@@ -156,7 +185,7 @@ func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 // runs before the save on every update.
 func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 	// The import path relies on the primary fallback: GetSchemeByName re-reads
-	// on the primary when the replica has no row yet, then hands the id straight
+	// on the primary when the replica has no row yet, then passes the id straight
 	// to UpdateScheme — so the stored-row read here has to reach the primary the
 	// same way, or a just-created scheme would look missing.
 	stored, appErr := a.getSchemeWithMasterFallback("UpdateScheme", scheme.Id)

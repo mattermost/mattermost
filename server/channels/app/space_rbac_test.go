@@ -204,6 +204,84 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
+	// The guest role of a space scheme is capped to the read-only space tier. The
+	// member-assignment path (UpdateChannelMemberRoles) already refuses to grant a
+	// guest a capability role or the scheme admin role; without this cap a caller
+	// could instead rewrite the guest role itself to carry admin_space or the page
+	// writes, and every guest member of the space would inherit them through the
+	// scheme.
+	t.Run("guest role of a space scheme rejects a non-read-only grant", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		guestRoleName := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+			DefaultChannelGuestRole: guestRoleName,
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: guestRoleName, SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionEditPage.Id}}
+		appErr := th.App.checkSpacePermissionScope(role, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_guest_permission_scope.app_error", appErr.Id)
+	})
+
+	// The read-only space permissions are exactly what the guest tier is seeded
+	// with, so adding one back to a guest role is not an escalation.
+	t.Run("guest role of a space scheme accepts a read-only grant", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		guestRoleName := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+			DefaultChannelGuestRole: guestRoleName,
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: guestRoleName, SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionReadPage.Id}}
+		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+	})
+
+	// The cap is guest-only: the same scheme's user and admin roles legitimately
+	// carry the wider grants, so an elevated permission on a non-guest role of the
+	// same space scheme is still accepted.
+	t.Run("non-guest role of a space scheme still accepts a wider grant", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+			DefaultChannelGuestRole: model.NewId(),
+		}, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionEditPage.Id}}
+		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+	})
+
 	// Scope is half the proof: only a channel-scoped scheme can govern a space,
 	// so a scheme of another scope is refused without asking the count.
 	t.Run("scheme at the wrong scope rejected", func(t *testing.T) {
@@ -556,7 +634,7 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 
 	t.Run("duplicate generated roles rejected", func(t *testing.T) {
 		// Two references converging on one row would merge that row's seeded
-		// permission sets, handing the user or guest role the admin grants.
+		// permission sets, giving the user or guest role the admin grants.
 		th := setup(t, 0)
 		foreign := *canonical
 		foreign.DefaultChannelAdminRole = foreign.DefaultChannelUserRole
@@ -1234,7 +1312,7 @@ func TestImportSchemeRejectsSpacePresetNames(t *testing.T) {
 
 // TestImportChannelRejectsSpaceScheme pins that bulk import cannot attach a
 // space scheme to an ordinary channel: importChannel resolves data.Scheme by
-// name and hands the id straight to CreateChannel or UpdateChannel, so the
+// name and passes the id straight to CreateChannel or UpdateChannel, so the
 // channel-scheme guard inside those two is all that stands between an import
 // line and the state UpdateChannelScheme refuses.
 func TestImportChannelRejectsSpaceScheme(t *testing.T) {
@@ -1932,7 +2010,7 @@ func TestUpdateSchemeMissedOnTheReplicaIsResolvedOnThePrimary(t *testing.T) {
 	mockSchemeStore.On("Save", mock.Anything).Return(stored, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 
-	// The import path resolves a scheme on the primary and hands its id straight
+	// The import path resolves a scheme on the primary and passes its id straight
 	// to UpdateScheme, so the rename guard has to look there too before refusing.
 	_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: "ordinary_scheme", Scope: model.SchemeScopeChannel})
 	require.Nil(t, appErr)
@@ -2202,7 +2280,7 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 
 	// The generated roles the closure reads back and rewrites. A real scheme
 	// seeds each one from the global role of the same kind, so the fixture does
-	// too — handing all three the same permission set would give the admin role
+	// too — assigning all three the same permission set would give the admin role
 	// grants channel_admin never has, which the adoption check rightly refuses.
 	roleByName := func(name string) (*model.Role, error) {
 		defaults := model.MakeDefaultRoles()
@@ -2352,8 +2430,9 @@ func TestSpaceSchemesMigrationRecoversFromLostInsertRace(t *testing.T) {
 }
 
 // TestUpdateChannelMemberRolesOnSpace covers promoting a member of a space backing channel.
-// Spaces are opaque to the generic channel resolver, so scheme-role lookup has to reach them
-// by their exact type; otherwise every role assignment on a freshly created space 404s.
+// Spaces are not returned by an ordinary channel-by-id lookup, so scheme-role lookup has to
+// fetch them by their exact channel type; otherwise every role assignment on a freshly created
+// space 404s.
 func TestUpdateChannelMemberRolesOnSpace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2803,7 +2882,7 @@ func TestCheckSpacePermissionScopeRefusesSchemeSharedWithOrdinaryChannel(t *test
 // capability-role guard in PatchRole runs before the no-op short-circuit: a
 // patch whose Permissions are identical to the role's stored permissions must
 // still be refused, not silently accepted as a 200/no-op that would let a
-// caller probing the surface read the short-circuit as permission.
+// caller testing what the API allows read the short-circuit as permission.
 func TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)

@@ -30,6 +30,15 @@ func hasSpaceChannelScopedPermission(permissions []string) bool {
 	return slices.ContainsFunc(permissions, model.IsSpaceChannelScopedPermissionID)
 }
 
+// isSpaceGuestPermissionID reports whether id is a space permission a guest may
+// hold. The guest tier is read-only, so this is the read-only baseline the
+// seeding writes onto every space scheme's guest role.
+func isSpaceGuestPermissionID(id string) bool {
+	return slices.ContainsFunc(model.SpaceDefaultReadOnlyPermissions, func(p *model.Permission) bool {
+		return p.Id == id
+	})
+}
+
 // spacePermissionAddDiff returns the channel-scoped space permissions present
 // in the incoming permission set and absent from the stored one. A diff, not a
 // presence check: removing a leaked grant must stay possible. The stored set is
@@ -146,8 +155,9 @@ func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName str
 // at the scheme proves; system_admin is the single exception. The space
 // capability roles and the roles generated for the seeded preset schemes are
 // frozen outright, in both directions — changing either is a code plus
-// migration change, never a runtime role write. The guard governs PatchRole and
-// UpdateRole only; migration seeding writes to the store directly, below it.
+// migration change, never a runtime role write. The guard runs on CreateRole and
+// UpdateRole — and so on PatchRole, which routes through UpdateRole; migration
+// seeding writes to the store directly, below it.
 //
 // Deliberately not gated on the docs feature flag. The permissions, roles and
 // preset schemes are seeded unconditionally at boot, so a grant planted while
@@ -244,7 +254,7 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		}
 		// Channel scope alone is too wide: an ordinary customer channel scheme
 		// is channel-scoped too, so accepting it would let anyone who can write
-		// a channel scheme hand its roles space authority. The scheme has to
+		// a channel scheme grant its roles space authority. The scheme has to
 		// prove it governs a space.
 		//
 		// The one proof left is a space backing channel already pointing at the
@@ -259,42 +269,48 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 		// channel is still a channel: its roles have to keep resolving through the
 		// channel-scoped path, so the scheme stays channel-scoped and the proof
 		// moves here instead.
-		if scheme.Scope == model.SchemeScopeChannel {
-			count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(*role.SchemeId)
-			if cErr != nil {
-				return model.NewAppError("checkSpacePermissionScope", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+		//
+		// A space pointing at the scheme is only half the proof, which is why
+		// schemeGovernsOnlySpaces also confirms no ordinary channel shares it: the
+		// channel guard refuses to add an ordinary channel to a scheme that already
+		// grants space permissions, but nothing stops both channels being attached
+		// first and the grant being asked for afterwards, and an ordinary channel
+		// sharing the scheme would resolve whatever is granted here for its own
+		// members.
+		onlySpaces, appErr := a.schemeGovernsOnlySpaces("checkSpacePermissionScope", scheme)
+		if appErr != nil {
+			return appErr
+		}
+		if onlySpaces {
+			// The proof accepts the write only for a role that stays
+			// scheme-managed. That closes the one-write gap the metadata branch
+			// above cannot see: a save that both adds a grant and clears
+			// SchemeManaged — reachable through importRole, the sole role write
+			// whose SchemeManaged is caller-controlled — would otherwise ride the
+			// proof to an accept and land as a freely assignable role holding
+			// space grants. Tested at the accept, not ahead of it, so every
+			// rejection here still reports the scope violation that actually
+			// stopped it.
+			if !role.SchemeManaged {
+				return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_role_scheme_managed.app_error",
+					map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
 			}
-			if count > 0 {
-				// A space pointing at the scheme is only half the proof. The
-				// channel guard refuses to add an ordinary channel to a scheme
-				// that already grants space permissions, but nothing stops both
-				// channels being attached first and the grant being asked for
-				// afterwards — and an ordinary channel sharing the scheme would
-				// resolve whatever is granted here for its own members. Both
-				// counts are read on the primary, so a scheme that is exclusively
-				// a space's cannot look shared, or the reverse.
-				governed, gErr := a.Srv().Store().Channel().CountNonSpaceChannelsByScheme(*role.SchemeId)
-				if gErr != nil {
-					return model.NewAppError("checkSpacePermissionScope", "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
-				}
-				if governed == 0 {
-					// The proof accepts the write only for a role that stays
-					// scheme-managed. That closes the one-write gap the
-					// metadata branch above cannot see: a save that both adds
-					// a grant and clears SchemeManaged — reachable through
-					// importRole, the sole role write whose SchemeManaged is
-					// caller-controlled — would otherwise ride the proof to an
-					// accept and land as a freely assignable role holding
-					// space grants. Tested at the accept, not ahead of it, so
-					// every rejection here still reports the scope violation
-					// that actually stopped it.
-					if !role.SchemeManaged {
-						return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_role_scheme_managed.app_error",
-							map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+			// A space's guest tier reads and nothing more, so the scheme's guest
+			// role may take only the read-only space permissions. A page-write or
+			// admin_space grant on it would reach every guest member of the space
+			// through the scheme, defeating the guest ceiling
+			// UpdateChannelMemberRoles enforces on the member-assignment side. Only
+			// the guest role is capped: the user and admin roles legitimately carry
+			// the wider grants.
+			if role.Name == scheme.DefaultChannelGuestRole {
+				for _, id := range added {
+					if !isSpaceGuestPermissionID(id) {
+						return model.NewAppError("checkSpacePermissionScope", "app.role.save.space_guest_permission_scope.app_error",
+							map[string]any{"RoleName": role.Name}, "permissions="+strings.Join(added, ","), http.StatusBadRequest)
 					}
-					return nil
 				}
 			}
+			return nil
 		}
 		return reject()
 	}

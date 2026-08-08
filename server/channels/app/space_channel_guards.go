@@ -98,7 +98,7 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 // resulting association as proof: checkSpacePermissionScope accepts any scheme a
 // space points at as proof of space scope, and checkSpaceSchemeDelete refuses to
 // delete one. Pointing a space at an existing customer channel scheme would
-// therefore hand that scheme's roles the right to take space permissions and
+// therefore grant that scheme's roles the right to take space permissions and
 // make it undeletable through the API.
 //
 // A seeded preset is accepted by identity. Anything else has to be a

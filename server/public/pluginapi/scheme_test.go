@@ -101,8 +101,8 @@ func TestSchemeDelete(t *testing.T) {
 		require.Equal(t, "1", deleted.Id)
 	})
 
-	// A scheme a space still references is refused, so the plugin must detach
-	// the space before deleting.
+	// A server-side refusal (for example, a scheme a space still references) is
+	// surfaced to the plugin unchanged.
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)

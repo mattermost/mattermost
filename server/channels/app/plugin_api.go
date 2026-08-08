@@ -133,20 +133,15 @@ func (api *PluginAPI) isGuestRoleOfNonSpaceScheme(stored *model.Role) (bool, *mo
 	if model.IsSpaceSchemeName(scheme.Name) {
 		return false, nil
 	}
-	count, err := api.app.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
-	if err != nil {
-		return false, model.NewAppError("PluginAPI.PatchRole", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	onlySpaces, appErr := api.app.schemeGovernsOnlySpaces("PluginAPI.PatchRole", scheme)
+	if appErr != nil {
+		return false, appErr
 	}
-	if count > 0 {
-		governed, gErr := api.app.Srv().Store().Channel().CountNonSpaceChannelsByScheme(scheme.Id)
-		if gErr != nil {
-			return false, model.NewAppError("PluginAPI.PatchRole", "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
-		}
-		if governed == 0 {
-			return false, nil
-		}
-	}
-	return true, nil
+	// A scheme that belongs exclusively to spaces holds a space guest role, which
+	// the space tier defines read-only below any license gate and
+	// checkSpacePermissionScope caps to that on every write, so its guest role is
+	// exempt. Every other channel scheme's guest role is a licensed capability.
+	return !onlySpaces, nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {

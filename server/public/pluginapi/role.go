@@ -26,7 +26,7 @@ func (r *RoleService) GetByName(name string) (*model.Role, error) {
 // roles, not after. Removing one is always allowed. A scheme is attached by
 // setting SchemeId on the channel and updating it.
 //
-// The role is read back by id before the patch is applied.
+// The patch applies to the current stored role, resolved by id.
 //
 // Patching the permissions of a guest role requires a license granting guest
 // account permissions; without one the call is refused.

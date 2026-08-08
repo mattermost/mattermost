@@ -25,7 +25,7 @@ func sortedPermissions(permissions []string) []string {
 // validateAdoptableSpaceRole rejects a row found under a reserved capability
 // role name that is not the row this migration would have written. Such a row is
 // a name collision rather than this migration's own earlier work, and adopting
-// it would hand out space permissions this migration never defined — or leave
+// it would grant space permissions this migration never defined — or leave
 // the capability behind a row that cannot carry it: a deleted row leaves no
 // live capability role, and a scheme-managed row or one owned by a scheme is
 // another scheme's generated role, which the member-assignment guards refuse

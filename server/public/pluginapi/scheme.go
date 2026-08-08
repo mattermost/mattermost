@@ -24,7 +24,7 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 //
 // Requires a license covering custom permissions schemes; without one the call
 // is refused. The seeded space preset schemes exist on every edition, so
-// pointing a space at one needs no license — this gate covers minting a new one.
+// pointing a space at one needs no license — this gate covers creating a new one.
 //
 // Minimum server version: 11.11
 func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
