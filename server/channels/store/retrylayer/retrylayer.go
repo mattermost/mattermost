@@ -18661,11 +18661,11 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userID string, page int, perP
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit, includeAllTokens)
 		if err == nil {
 			return result, nil
 		}
@@ -18682,11 +18682,11 @@ func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit, includeAllTokens)
 		if err == nil {
 			return result, nil
 		}

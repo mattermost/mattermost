@@ -550,6 +550,30 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 	return nil
 }
 
+func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.User) (bool, *model.AppError) {
+	if !user.IsBot {
+		return true, nil
+	}
+
+	bot, appErr := a.GetBot(rctx, user.Id, true)
+	if appErr != nil {
+		return false, appErr
+	}
+	if bot.Username == model.BotSystemBotUsername {
+		return false, nil
+	}
+
+	if _, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId); err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return false, nil
+		}
+		return false, model.NewAppError("userAccessTokenExpiryPolicyApplies", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return true, nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
@@ -566,11 +590,11 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// Bot accounts are exempt from the PAT expiry policy, matching the existing
-	// EnableUserAccessTokens bypass above: bots are programmatic clients that
-	// typically need long-lived credentials, and integrations that provision
-	// them would otherwise break the moment an admin enables enforcement.
-	if !user.IsBot {
+	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if policyApplies {
 		if err := a.validateUserAccessTokenExpiry(token); err != nil {
 			return nil, err
 		}
@@ -728,10 +752,9 @@ func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
 	return model.GetMillis() + maxDays*24*60*60*1000, true
 }
 
-// CountNonCompliantUserAccessTokens returns the number of active, non-bot
-// personal access tokens that violate the current maximum lifetime policy. It
-// lets an admin preview the blast radius before revoking. When no policy is in
-// effect it returns 0 — nothing is non-compliant.
+// CountNonCompliantUserAccessTokens returns the number of active user and
+// user-owned bot personal access tokens that violate the current maximum
+// lifetime policy. Plugin-owned bot tokens are exempt.
 func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
 	if !enabled {
@@ -746,9 +769,10 @@ func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	return count, nil
 }
 
-// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
-// access token that violates the current maximum lifetime policy, along with any
-// sessions minted from them. It returns the number of tokens actually deleted.
+// RevokeNonCompliantUserAccessTokens hard-deletes every active user and
+// user-owned bot personal access token that violates the current maximum
+// lifetime policy, along with any sessions minted from them. Plugin-owned bot
+// tokens are exempt. It returns the number of tokens actually deleted.
 // Work is done in bounded batches to keep transactions small, and the per-user
 // session cache is cleared so stale sessions aren't served from memory. When no
 // policy is in effect the call is refused — there is nothing to revoke and a
@@ -837,7 +861,11 @@ func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	if !user.IsBot {
+	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if policyApplies {
 		// Validate against the proposed expiry using a throwaway copy so token
 		// isn't mutated unless the rotation actually succeeds.
 		rotated := &model.UserAccessToken{

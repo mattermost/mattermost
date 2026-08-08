@@ -6307,7 +6307,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckErrorID(t, err, "app.user_access_token.expires_at_too_far.app_error")
 	})
 
-	t.Run("bot tokens are exempt from expiry enforcement", func(t *testing.T) {
+	t.Run("user-owned bot tokens are subject to expiry enforcement", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -6329,13 +6329,45 @@ func TestCreateUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		// Bot is allowed a non-expiring token even though a max lifetime is
-		// configured — bots are programmatic clients and bypass the PAT expiry
-		// policy, matching the existing EnableUserAccessTokens bypass.
-		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
+		_, resp, err = th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+
+		expiresAt := model.GetMillis() + 7*model.DayInMilliseconds
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", expiresAt)
 		require.NoError(t, err)
-		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.Equal(t, expiresAt, rtoken.ExpiresAt)
 		assert.True(t, rtoken.IsActive)
+	})
+
+	t.Run("plugin-owned bot tokens remain exempt from expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "plugin bot",
+			OwnerId:     "com.mattermost.test",
+		})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+		}()
+
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+			UserId:      bot.UserId,
+			Description: "plugin bot token",
+		})
+		require.Nil(t, appErr)
+		defer func() { require.NoError(t, th.App.Srv().Store().UserAccessToken().Delete(token.Id)) }()
+		assert.Zero(t, token.ExpiresAt)
 	})
 }
 
@@ -6626,11 +6658,10 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 }
 
-// seedNonCompliantTokens creates a mix of tokens for a user while no lifetime
-// policy is in effect (so never-expiring and far-future tokens can be saved),
-// plus a bot token, and returns the IDs of the tokens that should be considered
+// seedNonCompliantTokens creates a mix of user and bot tokens while no lifetime
+// policy is in effect and returns the IDs that should be considered
 // non-compliant once a 30-day policy is enabled.
-func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []string, compliantID string, botTokenID string) {
+func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []string, compliantID string, pluginBotTokenID string) {
 	t.Helper()
 
 	day := int64(24 * 60 * 60 * 1000)
@@ -6647,13 +6678,26 @@ func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []str
 	compliant, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: th.BasicUser.Id, Description: "compliant", ExpiresAt: model.GetMillis() + 10*day})
 	require.Nil(t, appErr)
 
-	// Bot token with no expiry — bots are exempt from the policy, must survive.
+	// User-owned bot token with no expiry — non-compliant.
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 	bot := th.CreateBotWithSystemAdminClient(t)
 	botToken, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
 	require.Nil(t, appErr)
 
-	return []string{noExpiry.Id, farFuture.Id}, compliant.Id, botToken.Id
+	// Plugin-owned bot token with no expiry — exempt.
+	pluginBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+		Username: GenerateTestUsername(),
+		OwnerId:  "com.mattermost.test",
+	})
+	require.Nil(t, appErr)
+	pluginBotToken, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: pluginBot.UserId, Description: "plugin bot token"})
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		_ = th.App.Srv().Store().UserAccessToken().Delete(pluginBotToken.Id)
+		_ = th.App.PermanentDeleteBot(th.Context, pluginBot.UserId)
+	})
+
+	return []string{noExpiry.Id, farFuture.Id, botToken.Id}, compliant.Id, pluginBotToken.Id
 }
 
 func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
@@ -6680,7 +6724,7 @@ func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
 		assert.Equal(t, int64(0), result.Count)
 	})
 
-	t.Run("counts only non-compliant non-bot tokens", func(t *testing.T) {
+	t.Run("counts non-compliant user and user-owned bot tokens", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -6691,7 +6735,7 @@ func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
 
 		result, _, err := th.SystemAdminClient.GetNonCompliantUserAccessTokenCount(context.Background())
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), result.Count)
+		assert.Equal(t, int64(3), result.Count)
 	})
 }
 
@@ -6719,18 +6763,18 @@ func TestRevokeNonCompliantUserAccessTokens(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("revokes only non-compliant non-bot tokens", func(t *testing.T) {
+	t.Run("revokes non-compliant user and user-owned bot tokens", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		nonCompliantIDs, compliantID, botTokenID := seedNonCompliantTokens(t, th)
+		nonCompliantIDs, compliantID, pluginBotTokenID := seedNonCompliantTokens(t, th)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30 })
 
 		result, _, err := th.SystemAdminClient.RevokeNonCompliantUserAccessTokens(context.Background())
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), result.Count)
+		assert.Equal(t, int64(3), result.Count)
 
 		// Non-compliant tokens are gone.
 		for _, id := range nonCompliantIDs {
@@ -6738,10 +6782,10 @@ func TestRevokeNonCompliantUserAccessTokens(t *testing.T) {
 			require.NotNil(t, appErr)
 		}
 
-		// Compliant and bot tokens survive.
+		// Compliant and plugin-owned bot tokens survive.
 		_, appErr := th.App.GetUserAccessToken(compliantID, false)
 		require.Nil(t, appErr)
-		_, appErr = th.App.GetUserAccessToken(botTokenID, false)
+		_, appErr = th.App.GetUserAccessToken(pluginBotTokenID, false)
 		require.Nil(t, appErr)
 
 		// A second run is now a no-op.
@@ -7448,6 +7492,56 @@ func TestRotateUserAccessToken(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("user-owned bot rotation requires an expiry when policy is set", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot := th.CreateBotWithSystemAdminClient(t)
+		expiresAt := model.GetMillis() + 7*model.DayInMilliseconds
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "bot token", expiresAt)
+		require.NoError(t, err)
+
+		_, resp, err := th.SystemAdminClient.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+
+		rotatedExpiry := model.GetMillis() + 14*model.DayInMilliseconds
+		rotated, _, err := th.SystemAdminClient.RotateUserAccessToken(context.Background(), token.Id, rotatedExpiry)
+		require.NoError(t, err)
+		assert.Equal(t, rotatedExpiry, rotated.ExpiresAt)
+	})
+
+	t.Run("plugin-owned bot rotation remains exempt from expiry policy", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: "com.mattermost.test"})
+		require.Nil(t, appErr)
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "plugin bot token"})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().UserAccessToken().Delete(token.Id)
+			_ = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		})
+
+		rotated, appErr := th.App.RotateUserAccessToken(th.Context, token, 0)
+		require.Nil(t, appErr)
+		assert.Zero(t, rotated.ExpiresAt)
+	})
 }
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {
@@ -7530,6 +7624,36 @@ func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
 
 	_, _, err = th.Client.GetMe(context.Background(), "")
 	require.NoError(t, err)
+}
+
+func TestExpiredBotAccessTokenIsRejected(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = false
+	})
+
+	bot, _, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username: GenerateTestUsername(),
+	})
+	require.NoError(t, err)
+
+	token := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      bot.UserId,
+		Description: "expired bot token",
+		ExpiresAt:   model.GetMillis() - 1000,
+	}
+	_, err = th.App.Srv().Store().UserAccessToken().Save(token)
+	require.NoError(t, err)
+
+	th.Client.AuthToken = token.Token
+	_, resp, err := th.Client.GetMe(context.Background(), "")
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+	CheckErrorID(t, err, "api.context.session_expired.app_error")
 }
 
 func TestGetUsersByStatus(t *testing.T) {
