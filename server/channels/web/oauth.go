@@ -33,24 +33,24 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.PathPrefix(model.OAuthMetadataEndpoint).Handler(w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
 
 	// API version independent OAuth 2.0 as a service provider endpoints
-	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
+	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.HTMLHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
 	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
 	w.MainRouter.Handle(model.OAuthDeauthorizeEndpoint, w.APISessionRequired(deauthorizeOAuthApp)).Methods(http.MethodPost)
 	w.MainRouter.Handle(model.OAuthAccessTokenEndpoint, w.APIHandlerTrustRequester(getAccessToken)).Methods(http.MethodPost)
 
 	// API version independent OAuth as a client endpoints
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.APIHandler(loginWithOAuth)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.HTMLHandler(completeOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.HTMLHandler(loginWithOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.HTMLHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.HTMLHandler(signupWithOAuth)).Methods(http.MethodGet)
 
 	// Intune MAM authentication endpoint
 	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginByIntune)).Methods(http.MethodPost)
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
-	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.HTMLHandler(completeOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.HTMLHandler(completeOAuth)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.HTMLHandler(completeOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/api/v4/oauth_test", w.APISessionRequired(testHandler)).Methods(http.MethodGet)
 }
 

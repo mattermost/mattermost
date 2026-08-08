@@ -66,6 +66,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       true,
+		IsHTML:         true,
 
 		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
 	}
@@ -81,6 +82,7 @@ type Handler struct {
 	TrustRequester            bool
 	RequireMfa                bool
 	IsStatic                  bool
+	IsHTML                    bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
 	FileAPI                   bool
@@ -228,6 +230,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.SetSiteURLHeader(siteURLHeader)
 
+	if h.shouldRejectJSONRequest(c, r) {
+		baseURL := c.App.GetSiteURL()
+		if baseURL == "" {
+			baseURL = c.GetSiteURLHeader()
+		}
+		utils.WriteHTMLEndpointJSONRequestError(w, c.AppContext.T, baseURL)
+		return
+	}
+
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
 	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Channels().License() != nil))
 
@@ -371,6 +382,26 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleContextError(c, w, r)
 		return
 	}
+}
+
+func (h Handler) shouldRejectJSONRequest(c *Context, r *http.Request) bool {
+	if !h.IsHTML {
+		return false
+	}
+
+	// Some OAuth routes live outside /api/v4/ but are JSON API endpoints (token exchange,
+	// authorize POST, etc.), not browser pages. Skip rejection for those callers.
+	if IsOAuthAPICall(c.App, r) {
+		return false
+	}
+
+	// Mobile clients use the same OAuth/SAML routes but expect JSON-like responses
+	// (redirects, session tokens). This matches existing error-handling behavior.
+	if r.Header.Get("X-Mobile-App") != "" {
+		return false
+	}
+
+	return utils.ExpectsJSON(r)
 }
 
 func (h Handler) recordMetrics(c *Context, r *http.Request, now time.Time, statusCode string) {
@@ -567,6 +598,37 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
+}
+
+// HTMLHandler provides a handler for endpoints that return HTML responses.
+func (w *Web) HTMLHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &Handler{
+		Srv:            w.srv,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsHTML:         true,
+		IsLocal:        false,
+	}
+}
+
+// HTMLHandlerTrustRequester provides a handler for HTML endpoints that do not require
+// the user to be logged in and are allowed to be requested directly.
+func (w *Web) HTMLHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &Handler{
+		Srv:            w.srv,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: true,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsHTML:         true,
+		IsLocal:        false,
+	}
 }
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to

@@ -7,6 +7,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -45,6 +47,26 @@ func CheckEmbeddedCookie(r *http.Request) bool {
 		return false
 	}
 	return cookie.Value == "1"
+}
+
+func WriteHTMLEndpointJSONRequestError(w http.ResponseWriter, translateFunc i18n.TranslateFunc, baseURL string) {
+	response := struct {
+		Id         string `json:"id"`
+		Message    string `json:"message"`
+		StatusCode int    `json:"status_code,omitempty"`
+		BaseURL    string `json:"base_url"`
+	}{
+		Id:         "api.context.html_endpoint_json_request.app_error",
+		Message:    translateFunc("api.context.html_endpoint_json_request.app_error", map[string]any{"BaseURL": baseURL}),
+		StatusCode: http.StatusNotAcceptable,
+		BaseURL:    baseURL,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotAcceptable)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mlog.Warn("Failed to write HTML endpoint JSON request error response", mlog.Err(err))
+	}
 }
 
 func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {

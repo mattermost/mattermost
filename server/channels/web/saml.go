@@ -19,8 +19,8 @@ import (
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods(http.MethodPost)
+	w.MainRouter.Handle("/login/sso/saml", w.HTMLHandler(loginWithSaml)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/sso/saml", w.HTMLHandlerTrustRequester(completeSaml)).Methods(http.MethodPost)
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {

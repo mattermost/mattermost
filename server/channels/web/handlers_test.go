@@ -61,6 +61,79 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	}
 }
 
+func TestHandlerRejectsJSONRequestOnHTMLEndpoint(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	web := New(th.Server)
+	handler := web.HTMLHandler(func(c *Context, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	tests := []struct {
+		name           string
+		method         string
+		url            string
+		headers        map[string]string
+		expectRejected bool
+	}{
+		{
+			name:           "rejects json request on html endpoint",
+			method:         http.MethodGet,
+			url:            "http://localhost:8065/login/sso/saml",
+			headers:        map[string]string{"Accept": "application/json"},
+			expectRejected: true,
+		},
+		{
+			name:           "allows oauth api request",
+			method:         http.MethodPost,
+			url:            "http://localhost:8065/oauth/access_token",
+			headers:        map[string]string{"Accept": "application/json"},
+			expectRejected: false,
+		},
+		{
+			name:   "allows mobile app request",
+			method: http.MethodGet,
+			url:    "http://localhost:8065/login/sso/saml",
+			headers: map[string]string{
+				"Accept":       "application/json",
+				"X-Mobile-App": "mattermost",
+			},
+			expectRejected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(tt.method, tt.url, nil)
+			for key, value := range tt.headers {
+				request.Header.Set(key, value)
+			}
+
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+
+			if tt.expectRejected {
+				assert.Equal(t, http.StatusNotAcceptable, response.Code)
+				assert.Equal(t, "application/json", response.Header().Get("Content-Type"))
+
+				var errorResponse struct {
+					Id         string `json:"id"`
+					Message    string `json:"message"`
+					BaseURL    string `json:"base_url"`
+					StatusCode int    `json:"status_code"`
+				}
+				require.NoError(t, json.Unmarshal(response.Body.Bytes(), &errorResponse))
+				assert.Equal(t, "api.context.html_endpoint_json_request.app_error", errorResponse.Id)
+				assert.Equal(t, "http://localhost:8065", errorResponse.BaseURL)
+				assert.Contains(t, errorResponse.Message, "http://localhost:8065")
+				return
+			}
+
+			assert.Equal(t, http.StatusOK, response.Code)
+		})
+	}
+}
+
 func handlerForServeDefaultSecurityHeaders(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 

@@ -1974,6 +1974,10 @@
     "translation": "Unable to get user from session UserID."
   },
   {
+    "id": "api.context.html_endpoint_json_request.app_error",
+    "translation": "This endpoint returns an HTML response. The server base URL is {{.BaseURL}}."
+  },
+  {
     "id": "api.context.invalid_body.app_error",
     "translation": "Invalid post props."
   },
