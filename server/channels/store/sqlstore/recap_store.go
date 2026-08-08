@@ -192,6 +192,21 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 	return recaps, nil
 }
 
+func (s *SqlRecapStore) GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error) {
+	query := s.recapSelectQuery.
+		Where(sq.Eq{"Status": status, "DeleteAt": 0}).
+		Where(sq.Lt{"UpdateAt": olderThan}).
+		OrderBy("UpdateAt ASC").
+		Limit(uint64(limit))
+
+	var recaps []*model.Recap
+	if err := s.GetReplica().SelectBuilder(&recaps, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get Recaps with status=%s older than %d", status, olderThan)
+	}
+
+	return recaps, nil
+}
+
 func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Update("Recaps").
@@ -228,6 +243,34 @@ func (s *SqlRecapStore) UpdateRecapStatus(id, status string) error {
 	}
 
 	return nil
+}
+
+// MarkRecapFailedIfIncomplete atomically fails a non-terminal recap so recovery
+// cannot overwrite a worker that completed concurrently.
+func (s *SqlRecapStore) MarkRecapFailedIfIncomplete(id string) (bool, error) {
+	query := s.getQueryBuilder().
+		Update("Recaps").
+		SetMap(map[string]any{
+			"Status":   model.RecapStatusFailed,
+			"UpdateAt": model.GetMillis(),
+		}).
+		Where(sq.Eq{
+			"Id":       id,
+			"DeleteAt": 0,
+			"Status":   []string{model.RecapStatusPending, model.RecapStatusProcessing},
+		})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to mark Recap as failed for id=%s", id)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to get affected rows after marking Recap as failed for id=%s", id)
+	}
+
+	return rowsAffected > 0, nil
 }
 
 // MarkRecapSkipped flips a still-pending recap to skipped. Scoped to pending so a

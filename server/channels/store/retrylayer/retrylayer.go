@@ -11575,6 +11575,27 @@ func (s *RetryLayerRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*mod
 
 }
 
+func (s *RetryLayerRecapStore) GetRecapsByStatusOlderThan(status string, olderThan int64, limit int) ([]*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetRecapsByStatusOlderThan(status, olderThan, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]*model.Recap, error) {
 
 	tries := 0
@@ -11611,6 +11632,27 @@ func (s *RetryLayerRecapStore) MarkRecapAsRead(id string) error {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) MarkRecapFailedIfIncomplete(id string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.MarkRecapFailedIfIncomplete(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

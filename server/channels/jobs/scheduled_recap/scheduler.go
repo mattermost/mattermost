@@ -16,6 +16,9 @@ import (
 // SchedulerPollingInterval defines how often the scheduler polls for due scheduled recaps.
 const SchedulerPollingInterval = 1 * time.Minute
 
+// ScheduledRecapJobWedgedTimeout is the maximum time a scheduled recap job may remain in progress.
+const ScheduledRecapJobWedgedTimeout = 15 * time.Minute
+
 // Scheduler polls for due scheduled recaps and creates jobs for them.
 type Scheduler struct {
 	*jobs.PeriodicScheduler
@@ -48,6 +51,16 @@ func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJo
 
 // ScheduleJob polls for due scheduled recaps and creates jobs for each.
 func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastJob *model.Job) (*model.Job, *model.AppError) {
+	if _, appErr := s.jobServer.ResetWedgedJobs(rctx, model.JobTypeScheduledRecap, ScheduledRecapJobWedgedTimeout); appErr != nil {
+		mlog.Error("Failed to reset wedged scheduled recap jobs", mlog.Err(appErr))
+		// Continue: enqueueing due schedules that are not blocked is still useful.
+	}
+	// Known accepted risk: if the dead worker crashed between committing the Recap row and
+	// MarkExecuted (a milliseconds-wide window inside CreateRecapFromSchedule), the retry
+	// creates a duplicate recap for that run. Deliberately not mitigated: it would need a
+	// recap-by-schedule store query and reconciliation semantics disproportionate to the
+	// window, and SaveRecapIfUnderDailyLimit caps the damage.
+
 	now := model.GetMillis()
 	dueRecaps, err := s.store.ScheduledRecap().GetDueBefore(now, 100)
 	if err != nil {
