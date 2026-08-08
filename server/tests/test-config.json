@@ -291,10 +291,7 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "With SAML",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonText": "With SAML"
     },
     "NativeAppSettings": {
         "AppDownloadLink": "https://mattermost.com/download/",
