@@ -551,18 +551,24 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 		{
 			driver: model.DatabaseDriverPostgres,
 			ver:    "140000",
-			ok:     true,
+			ok:     false,
 			err:    "",
 		},
 		{
 			driver: model.DatabaseDriverPostgres,
 			ver:    "141900",
-			ok:     true,
+			ok:     false,
 			err:    "",
 		},
 		{
 			driver: model.DatabaseDriverPostgres,
 			ver:    "150000",
+			ok:     true,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "151900",
 			ok:     true,
 			err:    "",
 		},
