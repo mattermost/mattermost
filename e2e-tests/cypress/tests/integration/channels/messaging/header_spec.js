@@ -36,12 +36,6 @@ describe('Header', () => {
         updateAndVerifyChannelHeader(false, '>', 'newheader'.repeat(20));
     });
 
-    it('MM-T881_1 - Header: Markdown quote', () => {
-        // # Update channel header text
-        const header = 'This is a quote in the header';
-        updateAndVerifyChannelHeader(false, '>', header);
-    });
-
     it('MM-T89 An ellipsis indicates the channel header is too long - DM', () => {
         // # Open Account Setting and enable Compact View on the Display tab
         cy.uiChangeMessageDisplaySetting('COMPACT');

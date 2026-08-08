@@ -18,6 +18,7 @@ export default class ChannelsPost {
     readonly emoticon;
     readonly messageText;
     readonly editedIndicator;
+    readonly mmBlocks;
 
     readonly removePostButton;
 
@@ -38,6 +39,7 @@ export default class ChannelsPost {
         this.emoticon = container.locator('.emoticon');
         this.messageText = container.locator('.post-message__text p');
         this.editedIndicator = container.getByRole('button', {name: 'Edited'});
+        this.mmBlocks = container.locator('.mm-blocks');
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -82,6 +84,10 @@ export default class ChannelsPost {
      */
     getLink(name: string): Locator {
         return this.container.getByRole('link', {name});
+    }
+
+    getButton(name: string) {
+        return this.container.getByRole('button', {name});
     }
 
     async openAThread() {

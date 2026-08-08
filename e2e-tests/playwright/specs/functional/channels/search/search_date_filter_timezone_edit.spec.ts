@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test, type ChannelsPage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {expectNoSearchResult, expectSearchResult, submitSearch} from './search_result_helpers';
 
 /**
  * @objective Verify changing timezone changes which posts match an on: date filter.
@@ -107,36 +109,40 @@ test('MM-T599 Edit date and search again', async ({pw}) => {
     await expect(channelsPage.searchResultItems).toHaveCount(0);
 });
 
-async function submitSearch(channelsPage: ChannelsPage, query: string) {
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill(query);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
-}
+/**
+ * @objective Verify an on: date filter includes posts at both boundaries of the selected day and excludes adjacent days.
+ */
+test('MM-T604 Use "on:" to return only results from the selected day', async ({pw}) => {
+    const {adminClient, team, user} = await pw.initSetup();
+    const channel = await adminClient.getChannelByName(team.id, 'off-topic');
+    const identifier = `date-boundary-${pw.random.id()}`;
+    const posts = [
+        {message: `before ${identifier}`, create_at: Date.UTC(2018, 11, 24, 23, 59)},
+        {message: `target AM ${identifier}`, create_at: Date.UTC(2018, 11, 25, 0, 0)},
+        {message: `target PM ${identifier}`, create_at: Date.UTC(2018, 11, 25, 23, 59, 59, 999)},
+        {message: `after ${identifier}`, create_at: Date.UTC(2018, 11, 26, 0, 0)},
+    ];
 
-async function expectSearchResult(
-    channelsPage: ChannelsPage,
-    text: string,
-    query?: string,
-    timeout = duration.half_min,
-) {
-    const result = channelsPage.getSearchResultItem(text);
+    // # Create posts immediately before, at both ends of, and immediately after the selected day
+    for (const post of posts) {
+        await adminClient.createPost({
+            channel_id: channel.id,
+            user_id: user.id,
+            message: post.message,
+            create_at: post.create_at,
+        });
+    }
 
-    await expect(async () => {
-        if (await result.isVisible({timeout: duration.one_sec}).catch(() => false)) {
-            return;
-        }
+    // # Search for the unique identifier on the selected date
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+    await submitSearch(channelsPage, `on:2018-12-25 ${identifier}`);
 
-        if (query) {
-            await submitSearch(channelsPage, query);
-        } else {
-            await channelsPage.searchBox.searchInput.press('Enter');
-        }
-        await expect(result).toBeVisible({timeout: duration.one_sec * 5});
-    }).toPass({timeout});
-}
-
-async function expectNoSearchResult(channelsPage: ChannelsPage, text: string) {
-    await expect(channelsPage.getSearchResultItem(text)).toHaveCount(0);
-}
+    // * Verify only the two posts created on the selected day are returned
+    await expect(channelsPage.searchResultItems).toHaveCount(2);
+    await expect(channelsPage.getSearchResultItem(`target AM ${identifier}`)).toBeVisible();
+    await expect(channelsPage.getSearchResultItem(`target PM ${identifier}`)).toBeVisible();
+    await expectNoSearchResult(channelsPage, `before ${identifier}`);
+    await expectNoSearchResult(channelsPage, `after ${identifier}`);
+});

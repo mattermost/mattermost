@@ -15,10 +15,7 @@ import {getRandomId} from '@/utils';
 describe('Channel Settings', () => {
     let testTeam: Cypress.Team;
     let firstUser: Cypress.UserProfile;
-    let addedUsersChannel: Cypress.Channel;
-    let username: string;
     let groupId: string;
-    const usernames: string[] = [];
 
     const users: Cypress.UserProfile[] = [];
 
@@ -31,17 +28,13 @@ describe('Channel Settings', () => {
             firstUser = user;
             const teamId = testTeam.id;
 
-            // # Add 10 users
-            for (let i = 0; i < 10; i++) {
+            // # Add users for a custom group
+            for (let i = 0; i < 2; i++) {
                 cy.apiCreateUser().then(({user: newUser}) => {
                     users.push(newUser);
                     cy.apiAddUserToTeam(teamId, newUser.id);
                 });
             }
-            cy.apiCreateChannel(teamId, 'channel-test', 'Channel').then(({channel}) => {
-                addedUsersChannel = channel;
-            });
-
             // # Change permission so that regular users can't add team members
             cy.apiGetRolesByNames(['team_user']).then(({roles}) => {
                 if (roles?.length) {
@@ -99,88 +92,6 @@ describe('Channel Settings', () => {
     //         });
     //     });
     // });
-
-    it('MM-T856_1 Add existing users to public channel from drop-down > Add Members', () => {
-        // # Visit the add users channel
-        cy.visit(`/${testTeam.name}/channels/${addedUsersChannel.name}`);
-
-        // # Open channel menu and click 'Add Members'
-        cy.uiOpenChannelMenu('Members');
-        cy.uiGetButton('Add').click();
-
-        // * Assert that modal appears
-        cy.get('#addUsersToChannelModal').should('be.visible');
-
-        // # Type into the input box to search for a user
-        cy.get('#selectItems input').typeWithForce('user');
-
-        // # First add one user in order to see them disappearing from the list
-        cy.get('#multiSelectList > div').not(':contains("Already in channel")').first().then((el) => {
-            const childNodes = Array.from(el[0].childNodes);
-            childNodes.map((child: ChildNode) => usernames.push((child as HTMLElement).innerText));
-
-            // # Get username from text for comparison
-            username = usernames.toString().match(/\w+/g)![0];
-            cy.get('#multiSelectList').should('contain', username);
-
-            // # Verify status wrapper is present within the modal list
-            cy.get(el as unknown as string).children().first().should('have.class', 'status-wrapper');
-
-            // # Click to add the first user
-            cy.wrap(el).click();
-
-            // # Verify users list is not visible
-            cy.get('#multiSelectList').should('not.exist');
-
-            // # Click 'Add' button
-            cy.uiGetButton('Add').click();
-            cy.get('#addUsersToChannelModal').should('not.exist');
-        });
-
-        // # Verify that the last system post also contains the username
-        cy.getLastPostId().then((id) => {
-            cy.get(`#postMessageText_${id}`).should('contain', `${username} added to the channel by you.`);
-        });
-
-        // Add two more users
-        addNumberOfUsersToChannel(2, false);
-
-        // Verify that the system post reflects the number of added users
-        cy.getLastPostId().then((id) => {
-            cy.get(`#postMessageText_${id}`).should('contain', 'added to the channel by you');
-        });
-    });
-
-    it('MM-T856_2 Existing users cannot be added to public channel from drop-down > Add Members', () => {
-        cy.apiAdminLogin();
-
-        // # Visit the add users channel
-        cy.visit(`/${testTeam.name}/channels/${addedUsersChannel.name}`);
-
-        // # Verify that the system message for adding users displays
-        cy.getLastPostId().then((id) => {
-            cy.get(`#postMessageText_${id}`).should('contain', `added to the channel by @${firstUser.username}`);
-        });
-
-        // Visit off topic where all users are added
-        cy.visit(`/${testTeam.name}/channels/off-topic`);
-
-        // # Open channel menu and click 'Add Members'
-        cy.uiOpenChannelMenu('Members');
-        cy.uiGetButton('Add').click();
-
-        // * Assert that modal appears
-        cy.get('#addUsersToChannelModal').should('be.visible');
-
-        // # Type into the input box to search for already added user
-        cy.get('#selectItems input').typeWithForce(firstUser.username);
-
-        // * Verify user list exist
-        cy.get('#multiSelectList').should('exist').within(() => {
-            cy.findByText('Already in channel').should('be.visible');
-        });
-        cy.get('body').type('{esc}');
-    });
 
     it('Add group members to channel', () => {
         cy.apiLogin(firstUser);
@@ -378,30 +289,4 @@ function verifyMentionedUserAndProfilePopover(postId: string) {
         // Click anywhere to close profile popover
         cy.get('#channelHeaderInfo').click();
     });
-}
-
-function addNumberOfUsersToChannel(num = 1, allowExisting = false) {
-    // # Open channel menu and click 'Add Members'
-    cy.uiOpenChannelMenu('Members');
-    cy.uiGetButton('Add').click();
-    cy.get('#addUsersToChannelModal').should('be.visible');
-
-    // * Assert that modal appears
-    // # Click the first row for a number of times
-    Cypress._.times(num, () => {
-        cy.get('#selectItems input').typeWithForce('user');
-
-        // cy.get('#multiSelectList').should('be.visible').first().click();
-        if (allowExisting) {
-            cy.get('#multiSelectList').should('exist').children().first().click();
-        } else {
-            cy.get('#multiSelectList').should('exist').children().not(':contains("Already in channel")').first().click();
-        }
-    });
-
-    // # Click the button "Add" to add user to a channel
-    cy.uiGetButton('Add').click();
-
-    // # Wait for the modal to disappear
-    cy.get('#addUsersToChannelModal').should('not.exist');
 }

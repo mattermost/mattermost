@@ -4,55 +4,70 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
- * @objective Verify the Ctrl/Cmd+K quick switcher can find and open a direct message, a group message,
- * and a public channel.
+ * @objective Verify Ctrl/Cmd+K can search for and open a direct message by @username, a group message
+ * with the mouse, and a public channel.
+ *
+ * MM-T1245 and MM-T1246 overlap the group-message and direct-message portions of MM-T1247, so the
+ * three keys share one setup while retaining each original Cypress interaction and assertion.
  */
 test(
-    'MM-T1247 finds and opens a direct message, group message, and channel with Ctrl/Cmd+K',
+    'MM-T1245 MM-T1246 MM-T1247 finds and opens direct messages, group messages, and channels with CTRL/CMD+K',
     {tag: '@keyboard_shortcuts'},
     async ({pw}) => {
         const {adminClient, team, user} = await pw.initSetup();
         const [member1, member2] = await adminClient.createUsers(team.id, 2, 'switch');
 
-        // # Create a direct message, a group message, and a public channel for the user
-        const dm = await adminClient.createDirectChannel([user.id, member1.id]);
-        await adminClient.createPost({channel_id: dm.id, user_id: member1.id, message: 'dm hello'});
-        const gm = await adminClient.createGroupChannel([user.id, member1.id, member2.id]);
-        await adminClient.createPost({channel_id: gm.id, user_id: member2.id, message: 'gm hello'});
+        // # Create a direct message, a group message, and a public channel for the test user
+        const directMessage = await adminClient.createDirectChannel([user.id, member1.id]);
+        await adminClient.createPost({
+            channel_id: directMessage.id,
+            user_id: member1.id,
+            message: 'Direct message for quick switch',
+        });
+        const groupMessage = await adminClient.createGroupChannel([user.id, member1.id, member2.id]);
+        await adminClient.createPost({
+            channel_id: groupMessage.id,
+            user_id: member2.id,
+            message: 'Group message for quick switch',
+        });
         const publicChannel = await adminClient.createPublicChannel(team.id, `Switcher ${pw.random.id()}`);
         await adminClient.addToChannel(user.id, publicChannel.id);
 
+        // # Log in and open Town Square
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
-
         const {findChannelsModal} = channelsPage;
-        const options = () => findChannelsModal.container.getByRole('option');
 
-        // # Open the quick switcher and open the direct message with member1 (the option with only member1)
+        // # Open Find Channels and search with @ followed by the start of member1's username
         await page.keyboard.press('ControlOrMeta+K');
-        await findChannelsModal.input.fill(member1.username);
-        await options().filter({hasText: member1.username, hasNotText: member2.username}).first().click();
+        await findChannelsModal.input.fill(`@${member1.username.slice(0, 3)}`);
+        await findChannelsModal.getDirectMessageOption(member1.username, member2.username).click();
 
-        // * Verify the direct message with member1 is opened
+        // * Verify member1's direct-message channel opens
+        await expect(page).toHaveURL(new RegExp(`/${team.name}/messages/@${member1.username}$`));
         await channelsPage.centerView.header.toHaveTitle(member1.username);
 
-        // # Open the quick switcher and open the group message (the option containing both members)
+        // # Reopen Find Channels, search for member2, and click the group-message option with the mouse
         await page.keyboard.press('ControlOrMeta+K');
         await findChannelsModal.input.fill(member2.username);
-        await options().filter({hasText: member1.username}).filter({hasText: member2.username}).first().click();
+        await findChannelsModal.getGroupMessageOption([member1.username, member2.username]).click();
 
-        // * Verify the group message (containing both members) is opened
+        // * Verify the group-message intro and both other members are visible
+        await expect(channelsPage.centerView.channelIntro).toContainText(
+            'This is the start of your group message history with these teammates',
+        );
         await channelsPage.centerView.header.toHaveTitle(member1.username);
         await channelsPage.centerView.header.toHaveTitle(member2.username);
 
-        // # Open the quick switcher and open the public channel
+        // # Reopen Find Channels, search for the public channel, and click its option
         await page.keyboard.press('ControlOrMeta+K');
         await findChannelsModal.input.fill(publicChannel.display_name);
-        await options().filter({hasText: publicChannel.display_name}).first().click();
+        await findChannelsModal.getOption(new RegExp(publicChannel.display_name)).click();
 
-        // * Verify the public channel is opened
+        // * Verify the public channel opens
         await channelsPage.centerView.header.toHaveTitle(publicChannel.display_name);
+        await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${publicChannel.name}$`));
     },
 );
 
@@ -171,6 +186,6 @@ test(
 
         // * Verify the right sidebar is shown again with the reply thread
         await channelsPage.sidebarRight.toBeVisible();
-        await expect(channelsPage.sidebarRight.container.getByText('this post is from today')).toBeVisible();
+        await channelsPage.sidebarRight.toContainText('this post is from today');
     },
 );

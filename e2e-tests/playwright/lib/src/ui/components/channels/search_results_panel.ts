@@ -47,6 +47,14 @@ export default class SearchResultsPanel {
         return this.getResultItems().filter({hasText: text});
     }
 
+    getResultHeading(resultText: string, heading: string) {
+        return this.getResultByText(resultText).first().getByRole('heading', {name: heading});
+    }
+
+    getResultCodeBlock(resultText: string) {
+        return this.getResultByText(resultText).first().getByRole('code');
+    }
+
     /**
      * All highlighted search terms currently rendered in the panel.
      */

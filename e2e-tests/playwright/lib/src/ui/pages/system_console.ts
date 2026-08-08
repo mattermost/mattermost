@@ -110,6 +110,10 @@ export default class SystemConsolePage {
         await this.page.goto('/admin_console');
     }
 
+    async gotoSystemAnalytics() {
+        await this.page.goto('/admin_console/reporting/system_analytics');
+    }
+
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
         await this.page.goto('/admin_console/environment/notifications');
