@@ -5,13 +5,24 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import type {Browser, BrowserContext} from '@playwright/test';
+import type {Browser, BrowserContext, Page} from '@playwright/test';
 import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {testConfig} from './test_config';
+import {resolveAppUrl, testConfig} from './test_config';
 import {pages} from './ui/pages';
 import {resolvePlaywrightPath} from './util';
+
+/** Keep page.goto pointed at testConfig.baseURL after testcontainers remaps the host port. */
+export function bindPageToLiveBaseURL(page: Page): void {
+    const originalGoto = page.goto.bind(page);
+    page.goto = ((url, options) => {
+        if (typeof url === 'string') {
+            return originalGoto(resolveAppUrl(url), options);
+        }
+        return originalGoto(url, options);
+    }) as typeof page.goto;
+}
 
 export class TestBrowser {
     readonly browser: Browser;
@@ -22,7 +33,11 @@ export class TestBrowser {
     }
 
     async login(user: UserProfile) {
-        const options = {storageState: ''};
+        const options: {storageState: string; baseURL: string} = {
+            storageState: '',
+            // Capture the current mapped URL at context creation (updated after server restarts).
+            baseURL: testConfig.baseURL,
+        };
         if (user) {
             // Log in via API request and save user storage
             const storagePath = await loginByAPI(user.username, user.password);
@@ -32,6 +47,7 @@ export class TestBrowser {
         // Sign in a user in new browser context
         const context = await this.browser.newContext(options);
         const page = await context.newPage();
+        bindPageToLiveBaseURL(page);
 
         const channelsPage = new pages.ChannelsPage(page);
         const systemConsolePage = new pages.SystemConsolePage(page);
