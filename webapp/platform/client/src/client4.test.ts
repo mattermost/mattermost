@@ -368,6 +368,93 @@ describe('Client4', () => {
             expect(await result.text()).toEqual('zip contents');
         });
     });
+
+    describe('getOptions header merging', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        const contentTypeKeys = (headers: {[x: string]: string}) =>
+            Object.keys(headers).filter((key) => key.toLowerCase() === 'content-type');
+
+        test('dedupes a differently-cased content-type from the caller', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: JSON.stringify({}),
+                headers: {'content-type': 'application/json'},
+            });
+
+            expect(contentTypeKeys(headers)).toHaveLength(1);
+            expect(headers[contentTypeKeys(headers)[0]]).toEqual('application/json');
+        });
+
+        test('caller header overwrites a canonical header case-insensitively', () => {
+            const {headers} = client.getOptions({
+                method: 'get',
+                headers: {'x-requested-with': 'custom'},
+            });
+
+            const requestedWithKeys = Object.keys(headers).filter((key) => key.toLowerCase() === 'x-requested-with');
+            expect(requestedWithKeys).toHaveLength(1);
+            expect(headers[requestedWithKeys[0]]).toEqual('custom');
+        });
+
+        test('does not add a second Content-Type when caller supplies a lowercase one', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: JSON.stringify({}),
+                headers: {'content-type': 'text/plain'},
+            });
+
+            expect(contentTypeKeys(headers)).toHaveLength(1);
+            expect(headers[contentTypeKeys(headers)[0]]).toEqual('text/plain');
+        });
+
+        test('does not set Content-Type for a FormData body', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: new FormData(),
+            });
+
+            expect(contentTypeKeys(headers)).toHaveLength(0);
+        });
+
+        test('sets canonical headers and adds JSON Content-Type when caller supplies none', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: JSON.stringify({}),
+            });
+
+            expect(headers['X-Requested-With']).toEqual('XMLHttpRequest');
+            expect(contentTypeKeys(headers)).toHaveLength(1);
+            expect(headers[contentTypeKeys(headers)[0]]).toEqual('application/json');
+        });
+
+        test('overwrites the value when caller header casing matches exactly', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: JSON.stringify({}),
+                headers: {'Content-Type': 'application/xml'},
+            });
+
+            expect(contentTypeKeys(headers)).toHaveLength(1);
+            expect(headers['Content-Type']).toEqual('application/xml');
+        });
+
+        test('collapses caller headers that differ only in case to a single entry', () => {
+            const {headers} = client.getOptions({
+                method: 'post',
+                body: JSON.stringify({}),
+                headers: {'Content-Type': 'application/xml', 'content-type': 'application/json'},
+            });
+
+            expect(contentTypeKeys(headers)).toHaveLength(1);
+            expect(headers[contentTypeKeys(headers)[0]]).toEqual('application/json');
+        });
+    });
 });
 
 describe('ClientError', () => {
