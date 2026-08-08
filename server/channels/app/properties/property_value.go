@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -18,7 +17,9 @@ import (
 // field. Template fields are definition-only and must never hold values.
 // This is enforced at the service layer to cover all entry points (API,
 // CPA endpoints, plugin API).
-func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) error {
+func (ps *PropertyService) rejectTemplateValues(rctx request.CTX, values []*model.PropertyValue) error {
+	rctx = ps.requestContext(rctx)
+
 	// Collect unique field IDs
 	seen := make(map[string]struct{}, len(values))
 	for _, v := range values {
@@ -37,7 +38,7 @@ func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) e
 	}
 
 	// Batch lookup from master to avoid replication lag
-	fields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), "", fieldIDs)
+	fields, err := ps.fieldStore.GetMany(store.RequestContextWithMaster(rctx), "", fieldIDs)
 	if err != nil {
 		return fmt.Errorf("failed to look up fields for template check: %w", err)
 	}
@@ -58,15 +59,15 @@ func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) e
 
 // Private implementation methods (database access)
 
-func (ps *PropertyService) createPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues([]*model.PropertyValue{value}); err != nil {
+func (ps *PropertyService) createPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Create(value)
 }
 
-func (ps *PropertyService) createPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values); err != nil {
+func (ps *PropertyService) createPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.CreateMany(values)
@@ -87,8 +88,8 @@ func (ps *PropertyService) searchPropertyValues(groupID string, opts model.Prope
 	return ps.valueStore.SearchPropertyValues(opts)
 }
 
-func (ps *PropertyService) updatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	values, err := ps.updatePropertyValues(groupID, []*model.PropertyValue{value})
+func (ps *PropertyService) updatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	values, err := ps.updatePropertyValues(rctx, groupID, []*model.PropertyValue{value})
 	if err != nil {
 		return nil, err
 	}
@@ -96,15 +97,15 @@ func (ps *PropertyService) updatePropertyValue(groupID string, value *model.Prop
 	return values[0], nil
 }
 
-func (ps *PropertyService) updatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values); err != nil {
+func (ps *PropertyService) updatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Update(groupID, values)
 }
 
-func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	values, err := ps.upsertPropertyValues([]*model.PropertyValue{value})
+func (ps *PropertyService) upsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	values, err := ps.upsertPropertyValues(rctx, []*model.PropertyValue{value})
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +113,8 @@ func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue) (*mod
 	return values[0], nil
 }
 
-func (ps *PropertyService) upsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values); err != nil {
+func (ps *PropertyService) upsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Upsert(values)
@@ -143,7 +144,7 @@ func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.Pr
 		return nil, fmt.Errorf("CreatePropertyValue: %w", err)
 	}
 
-	created, err := ps.createPropertyValue(processed)
+	created, err := ps.createPropertyValue(rctx, processed)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*mode
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
 	}
 
-	created, err := ps.createPropertyValues(processed)
+	created, err := ps.createPropertyValues(rctx, processed)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +212,7 @@ func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string,
 		return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
 	}
 
-	updated, err := ps.updatePropertyValue(groupID, processed)
+	updated, err := ps.updatePropertyValue(rctx, groupID, processed)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +243,7 @@ func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
 	}
 
-	updated, err := ps.updatePropertyValues(groupID, processed)
+	updated, err := ps.updatePropertyValues(rctx, groupID, processed)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +261,7 @@ func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.Pr
 		return nil, fmt.Errorf("UpsertPropertyValue: %w", err)
 	}
 
-	upserted, err := ps.upsertPropertyValue(processed)
+	upserted, err := ps.upsertPropertyValue(rctx, processed)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +288,7 @@ func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*mode
 		return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
 	}
 
-	upserted, err := ps.upsertPropertyValues(processed)
+	upserted, err := ps.upsertPropertyValues(rctx, processed)
 	if err != nil {
 		return nil, err
 	}
