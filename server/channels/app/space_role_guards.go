@@ -302,3 +302,34 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 	// nil SchemeId with an unrecognized name: fail closed.
 	return reject()
 }
+
+// stripSpaceCapabilityRolesFromMember removes every space capability role from
+// the member's explicit roles on channelID. Demoting a user to guest resets
+// the member's scheme flags but leaves the explicit roles column untouched, so
+// a capability role held there would keep granting page access to the new
+// guest. The member is read from the primary: a lagging replica could return
+// pre-demotion scheme flags, and saving those back would undo the demotion on
+// this membership.
+func (a *App) stripSpaceCapabilityRolesFromMember(rctx request.CTX, channelID, userID string) *model.AppError {
+	member, appErr := a.GetChannelMember(RequestContextWithMaster(rctx), channelID, userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	kept := make([]string, 0)
+	stripped := false
+	for roleName := range strings.FieldsSeq(member.ExplicitRoles) {
+		if model.IsSpaceCapabilityRole(roleName) {
+			stripped = true
+			continue
+		}
+		kept = append(kept, roleName)
+	}
+	if !stripped {
+		return nil
+	}
+
+	member.ExplicitRoles = strings.Join(kept, " ")
+	_, appErr = a.updateChannelMember(rctx, member)
+	return appErr
+}

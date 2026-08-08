@@ -951,6 +951,65 @@ func TestSpacePresetResolutionThroughRealSpace(t *testing.T) {
 	})
 }
 
+// TestSpaceCapabilityRolesPinnedPermissions mirrors the "space capability role
+// in ExplicitRoles unions on top of a read-only default" subtest in
+// TestSpacePresetResolutionThroughRealSpace, which only ever exercised
+// SpacePageCreatorRoleId. Mutation analysis showed
+// SpacePageDeleterOwnRolePermissions and SpacePageDeleterRolePermissions could
+// be swapped in permission.go with no test failing, so each capability role
+// here is pinned by both a permission it must grant and a permission held by
+// its closest sibling that it must not.
+func TestSpaceCapabilityRolesPinnedPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	readOnly := getSeededSpaceScheme(t, th, model.SchemeNameSpaceReadOnly)
+	space := saveSpaceChannelWithScheme(t, th, readOnly.Id)
+
+	assignRole := func(roleName string) *model.User {
+		user := th.CreateUser(t)
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			ExplicitRoles: roleName,
+		})
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+		return user
+	}
+
+	check := func(userID string, perm *model.Permission) bool {
+		has, _ := th.App.HasPermissionToChannel(th.Context, userID, space.Id, perm)
+		return has
+	}
+
+	t.Run("editor grants edit_page but not comment_page", func(t *testing.T) {
+		editor := assignRole(model.SpacePageEditorRoleId)
+		assert.True(t, check(editor.Id, model.PermissionEditPage))
+		assert.False(t, check(editor.Id, model.PermissionCommentPage))
+	})
+
+	t.Run("commenter grants comment_page but not edit_page", func(t *testing.T) {
+		commenter := assignRole(model.SpacePageCommenterRoleId)
+		assert.True(t, check(commenter.Id, model.PermissionCommentPage))
+		assert.False(t, check(commenter.Id, model.PermissionEditPage))
+	})
+
+	t.Run("deleter grants delete_page but not delete_own_page", func(t *testing.T) {
+		deleter := assignRole(model.SpacePageDeleterRoleId)
+		assert.True(t, check(deleter.Id, model.PermissionDeletePage))
+		assert.False(t, check(deleter.Id, model.PermissionDeleteOwnPage))
+	})
+
+	t.Run("deleter_own grants delete_own_page but not delete_page", func(t *testing.T) {
+		deleterOwn := assignRole(model.SpacePageDeleterOwnRoleId)
+		assert.True(t, check(deleterOwn.Id, model.PermissionDeleteOwnPage))
+		assert.False(t, check(deleterOwn.Id, model.PermissionDeletePage))
+	})
+}
+
 // TestSpaceDefaultSwitchImmediatelyEffective proves the UpdateChannel
 // SchemeId-change invalidation: with the member-roles cache warm, a default
 // switch takes effect on the very next request.
@@ -2766,4 +2825,49 @@ func TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit(t *testing.T) {
 	assert.Equal(t, "app.role.save.space_capability_role.app_error", appErr.Id)
 	mockRoleStore.AssertNotCalled(t, "Get", mock.Anything)
 	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
+}
+
+// TestCreateAndUpdateChannelRejectUnusableSpaceScheme drives the isSpace==true
+// branch of checkChannelSchemeAssignment (rejectUnusableSpaceScheme) end to
+// end through the real CreateChannel and UpdateChannel entry points, using a
+// scheme that already governs an ordinary channel. Every other space fixture
+// in this file writes the channel straight through
+// Store().Channel().Save, which never runs the guard at all, so a mutant
+// that skips it for a real space channel would not be caught anywhere else.
+func TestCreateAndUpdateChannelRejectUnusableSpaceScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableDocs = true
+	}).InitBasic(t)
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	ordinaryScheme, appErr := th.App.CreateChannelScheme(th.Context, th.BasicChannel)
+	require.Nil(t, appErr)
+
+	t.Run("CreateChannel refuses a space pointed at a scheme governing an ordinary channel", func(t *testing.T) {
+		_, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+			SchemeId:    &ordinaryScheme.Id,
+		}, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
+
+	t.Run("UpdateChannel refuses repointing an existing space at the same scheme", func(t *testing.T) {
+		space, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+		}, false)
+		require.Nil(t, appErr)
+
+		space.SchemeId = &ordinaryScheme.Id
+		_, appErr = th.App.UpdateChannel(th.Context, space)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
+	})
 }

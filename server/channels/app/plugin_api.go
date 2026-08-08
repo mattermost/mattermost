@@ -843,7 +843,18 @@ func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage i
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberRoles(api.ctx, channelID, userID, newRoles)
+	channel, err := api.resolveChannel(channelID)
+	if err != nil {
+		return nil, err
+	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		// The role update re-reads the member before writing, and the space flows promote a
+		// member added an instant earlier — a replica read can miss that row and fail a valid
+		// promotion.
+		ctx = RequestContextWithMaster(api.ctx)
+	}
+	return api.app.UpdateChannelMemberRoles(ctx, channelID, userID, newRoles)
 }
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {

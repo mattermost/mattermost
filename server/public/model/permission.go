@@ -485,6 +485,13 @@ var SpaceDefaultContributePermissions []*Permission
 var SpaceDefaultCommentPermissions []*Permission
 var SpaceDefaultReadOnlyPermissions []*Permission
 
+// RolePatchDeniedPermissionIDs are refused on any role patch regardless of the
+// caller's own authority: granting one hands the permission to every account
+// holding that role at once, invisible from the per-user views where role
+// membership is normally audited. Enforced by both the REST handler and
+// App.PatchRole so every entry point, including the plugin API, applies it.
+var RolePatchDeniedPermissionIDs []string
+
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
 		"invite_user",
@@ -2526,6 +2533,13 @@ func initializePermissions() {
 	spaceChannelScopedPermissionIDs = make(map[string]bool, len(SpaceChannelScopedPermissions))
 	for _, p := range SpaceChannelScopedPermissions {
 		spaceChannelScopedPermissionIDs[p.Id] = true
+	}
+
+	RolePatchDeniedPermissionIDs = []string{
+		PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+		PermissionSysconsoleReadUserManagementSystemRoles.Id,
+		PermissionManageRoles.Id,
+		PermissionManageSystem.Id,
 	}
 
 	SpacePageCreatorRolePermissions = []*Permission{

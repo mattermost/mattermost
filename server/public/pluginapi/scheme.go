@@ -12,7 +12,7 @@ type SchemeService struct {
 
 // GetByName gets a scheme by its unique name.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 	scheme, appErr := s.api.GetSchemeByName(name)
 
@@ -26,7 +26,7 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 // is refused. The seeded space preset schemes exist on every edition, so
 // pointing a space at one needs no license — this gate covers minting a new one.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
 	created, appErr := s.api.CreateScheme(scheme)
 
@@ -41,7 +41,7 @@ func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
 // Requires a license covering custom permissions schemes; without one the call
 // is refused.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (s *SchemeService) Delete(schemeID string) (*model.Scheme, error) {
 	deleted, appErr := s.api.DeleteScheme(schemeID)
 
@@ -51,7 +51,7 @@ func (s *SchemeService) Delete(schemeID string) (*model.Scheme, error) {
 // GetRolesForChannel returns the generated role names of the scheme governing
 // the given channel, in guest, user, admin order.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (s *SchemeService) GetRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err error) {
 	guest, user, admin, appErr := s.api.GetSchemeRolesForChannel(channelID)
 

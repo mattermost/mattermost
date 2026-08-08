@@ -2365,6 +2365,34 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, channelMember.SchemeAdmin)
 		assert.True(t, channelMember.SchemeGuest)
 	})
+
+	// Must strip a space capability role held as an explicit member role.
+	// Demoting a user only resets the member's scheme flags; a capability role
+	// left in ExplicitRoles would keep granting page access to the new guest.
+	t.Run("Must strip a space capability role from an explicit space membership", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		space := saveSpaceChannelWithScheme(t, th, "")
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			ExplicitRoles: model.SpacePageEditorRoleId,
+		})
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+		assert.False(t, member.SchemeUser)
+		assert.True(t, member.SchemeGuest)
+	})
 }
 
 func TestDeactivateGuests(t *testing.T) {

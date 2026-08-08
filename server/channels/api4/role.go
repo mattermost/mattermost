@@ -13,12 +13,7 @@ import (
 
 const GetRolesByNamesMax = 100
 
-var notAllowedPermissions = []string{
-	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
-	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
-	model.PermissionManageRoles.Id,
-	model.PermissionManageSystem.Id,
-}
+var notAllowedPermissions = model.RolePatchDeniedPermissionIDs
 
 func (api *API) InitRole() {
 	api.BaseRoutes.Roles.Handle("", api.APISessionRequired(getAllRoles)).Methods(http.MethodGet)

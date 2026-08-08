@@ -1043,14 +1043,14 @@ type API interface {
 	// GetSchemeByName gets a scheme by its unique name.
 	//
 	// @tag Scheme
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 
 	// CreateScheme creates a scheme and its generated roles. The scheme's role
 	// fields are server-assigned and any caller-supplied values are ignored.
 	//
 	// @tag Scheme
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 
 	// DeleteScheme soft-deletes a scheme and its generated roles, reverting any
@@ -1060,7 +1060,7 @@ type API interface {
 	// space first.
 	//
 	// @tag Scheme
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	DeleteScheme(schemeID string) (*model.Scheme, *model.AppError)
 
 	// GetSchemeRolesForChannel returns the generated role names of the scheme
@@ -1068,13 +1068,13 @@ type API interface {
 	//
 	// @tag Scheme
 	// @tag Channel
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 
 	// GetRoleByName gets a role by its unique name.
 	//
 	// @tag Role
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 
 	// PatchRole partially updates a role. Only the fields set on the patch are
@@ -1088,7 +1088,7 @@ type API interface {
 	// The role is read back by id before the patch is applied.
 	//
 	// @tag Role
-	// Minimum server version: 11.10
+	// Minimum server version: 11.11
 	PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError)
 
 	// LogDebug writes a log message to the Mattermost server log file.

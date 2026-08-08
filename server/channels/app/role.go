@@ -162,20 +162,6 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 	return a.Srv().mergeChannelHigherScopedPermissions(roles)
 }
 
-// rolePatchDeniedPermissions are refused on any role patch regardless of the
-// caller's own authority: granting one hands the permission to every account
-// holding that role at once, invisible from the per-user views where role
-// membership is normally audited.
-//
-// The REST handler enforces its own copy of this list. Consolidating the two on
-// a single source is a follow-up: api4/role.go is not otherwise touched here.
-var rolePatchDeniedPermissions = []string{
-	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
-	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
-	model.PermissionManageRoles.Id,
-	model.PermissionManageSystem.Id,
-}
-
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	// Ahead of the no-op short-circuit below, so the answer to "may I write this
 	// role?" does not depend on whether the caller happened to send the
@@ -197,7 +183,7 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 	// directly.
 	if patch.Permissions != nil {
 		for _, permission := range model.PermissionsChangedByPatch(role, patch) {
-			if slices.Contains(rolePatchDeniedPermissions, permission) {
+			if slices.Contains(model.RolePatchDeniedPermissionIDs, permission) {
 				return nil, model.NewAppError("PatchRole", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
 			}
 		}
@@ -422,6 +408,21 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			offset += pageSize
 		}
 	case model.SchemeScopeChannel:
+		// Space backing channels are excluded from GetChannelsByScheme, so a scheme
+		// that governs one has no channel to address and the loop below would
+		// broadcast to nobody, leaving every client's cached permissions stale. A
+		// scheme carrying space permissions is always in this position: the scope
+		// guard only accepts the grant when no ordinary channel shares the scheme.
+		// Broadcast globally instead, the way the playbook and run scopes do.
+		spaceCount, sErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
+		if sErr != nil {
+			return model.NewAppError("sendUpdatedRoleEvent", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		}
+		if spaceCount > 0 {
+			publishEvent("", "")
+			return nil
+		}
+
 		totalBroadcasts := 0
 		offset := 0
 		for {

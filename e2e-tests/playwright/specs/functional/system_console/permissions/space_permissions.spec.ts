@@ -16,9 +16,13 @@ const REWRITTEN_ROLES = [
     'team_guest',
     'team_admin',
     'system_user',
+    'system_guest',
     'channel_user',
     'channel_guest',
     'channel_admin',
+    'playbook_admin',
+    'playbook_member',
+    'run_member',
 ];
 
 /**
@@ -39,6 +43,23 @@ const REWRITTEN_ROLES = [
  */
 // Snapshotted in the test and put back here, so the scheme save cannot outlive the spec.
 let rolesBeforeSave: Array<{id: string; permissions: string[]}> = [];
+
+type AdminClient = Awaited<ReturnType<typeof getAdminClient>>['adminClient'];
+
+// Records the baseline at most once for the whole spec. Every test that saves the scheme needs a
+// snapshot, but only the first one sees the pristine server: a save rebuilds the default roles from
+// the aggregated trees and is not guaranteed to be net-zero, so re-snapshotting in a later test
+// would record a rewritten set as the baseline and afterAll would restore the rewrite instead of
+// undoing it.
+const snapshotRewrittenRoles = async (adminClient: AdminClient) => {
+    if (rolesBeforeSave.length) {
+        return;
+    }
+    rolesBeforeSave = (await adminClient.getRolesByNames(REWRITTEN_ROLES)).map((role) => ({
+        id: role.id,
+        permissions: role.permissions,
+    }));
+};
 
 test.afterAll(async () => {
     if (!rolesBeforeSave.length) {
@@ -76,10 +97,7 @@ test(
 
         // Captured before anything is saved: afterAll puts these back, because the save below
         // rewrites the whole default-role set on a server the rest of the suite shares.
-        rolesBeforeSave = (await adminClient.getRolesByNames(REWRITTEN_ROLES)).map((role) => ({
-            id: role.id,
-            permissions: role.permissions,
-        }));
+        await snapshotRewrittenRoles(adminClient);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.gotoPermissionsSystemScheme();
@@ -94,8 +112,11 @@ test(
         const unrelated = systemConsolePage.permissionsSystemScheme.getPermissionCheckbox(
             'all_users-posts-use_channel_mentions-checkbox',
         );
+        const unrelatedWasChecked = await systemConsolePage.permissionsSystemScheme.isChecked(unrelated);
         await unrelated.click();
+        await systemConsolePage.permissionsSystemScheme.expectCheckedState(unrelated, !unrelatedWasChecked);
         await unrelated.click();
+        await systemConsolePage.permissionsSystemScheme.expectCheckedState(unrelated, unrelatedWasChecked);
 
         await systemConsolePage.permissionsSystemScheme.save();
 
@@ -121,5 +142,82 @@ test(
         // edit — so anything that did change came from the save path, not from the test.
         const channelUser = await adminClient.getRoleByName('channel_user');
         expect(channelUser.permissions).toContain('use_channel_mentions');
+    },
+);
+
+/**
+ * @objective Verify a Docs space permission can actually be toggled and saved through the System
+ * Scheme editor, and that the toggle persists across a page reload rather than only in the form's
+ * in-memory state.
+ *
+ * @precondition
+ * A server built from the paired core branch, booted with EnableDocs on — flags are read only at
+ * boot, so this asserts the flag rather than switching it. That holds in either mode: Testcontainers
+ * (the suite owns the server) or external (PW_BASE_URL points at an already-running one).
+ */
+test(
+    'toggles a space permission in the System Scheme and its saved value survives a reload',
+    {tag: ['@system_console', '@permissions']},
+    async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
+
+        const config = await adminClient.getConfig();
+        expect(
+            String(config.FeatureFlags?.EnableDocs),
+            'EnableDocs must be on — boot the server with MM_FEATUREFLAGS_ENABLEDOCS=true',
+        ).toBe('true');
+
+        // Captured before anything is saved: afterAll puts these back, because the save below
+        // rewrites the whole default-role set on a server the rest of the suite shares.
+        await snapshotRewrittenRoles(adminClient);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.gotoPermissionsSystemScheme();
+        await systemConsolePage.permissionsSystemScheme.toBeVisible();
+
+        // create_space is team_scope, so the toggle below lands on the team_user role.
+        const permission = 'create_space';
+        const checkbox = systemConsolePage.permissionsSystemScheme.getSpacePermissionCheckbox('all_users', permission);
+        const wasChecked = await systemConsolePage.permissionsSystemScheme.isChecked(checkbox);
+
+        // # Toggle the permission and confirm the click actually flips the checkbox.
+        await checkbox.click();
+        await systemConsolePage.permissionsSystemScheme.expectCheckedState(checkbox, !wasChecked);
+
+        // # Save the scheme with the toggled permission.
+        await systemConsolePage.permissionsSystemScheme.save();
+
+        // * The role that owns the team-scoped permission reflects the toggle on the server.
+        const teamUserAfterToggle = await adminClient.getRoleByName('team_user');
+        if (wasChecked) {
+            expect(teamUserAfterToggle.permissions).not.toContain(permission);
+        } else {
+            expect(teamUserAfterToggle.permissions).toContain(permission);
+        }
+
+        // # Reload the editor so the assertion below proves the toggle survived a save, not just
+        // that the form still held its own in-memory state.
+        await systemConsolePage.gotoPermissionsSystemScheme();
+        await systemConsolePage.permissionsSystemScheme.toBeVisible();
+
+        // * The checkbox reflects the saved (toggled) value after the reload.
+        const checkboxAfterReload = systemConsolePage.permissionsSystemScheme.getSpacePermissionCheckbox(
+            'all_users',
+            permission,
+        );
+        await systemConsolePage.permissionsSystemScheme.expectCheckedState(checkboxAfterReload, !wasChecked);
+
+        // # Toggle the permission back and save, restoring the pre-test state.
+        await checkboxAfterReload.click();
+        await systemConsolePage.permissionsSystemScheme.expectCheckedState(checkboxAfterReload, wasChecked);
+        await systemConsolePage.permissionsSystemScheme.save();
+
+        // * The permission is back to its original state on the server.
+        const teamUserRestored = await adminClient.getRoleByName('team_user');
+        if (wasChecked) {
+            expect(teamUserRestored.permissions).toContain(permission);
+        } else {
+            expect(teamUserRestored.permissions).not.toContain(permission);
+        }
     },
 );

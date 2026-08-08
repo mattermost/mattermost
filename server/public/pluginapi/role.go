@@ -12,7 +12,7 @@ type RoleService struct {
 
 // GetByName gets a role by its unique name.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (r *RoleService) GetByName(name string) (*model.Role, error) {
 	role, appErr := r.api.GetRoleByName(name)
 
@@ -31,7 +31,7 @@ func (r *RoleService) GetByName(name string) (*model.Role, error) {
 // Patching the permissions of a guest role requires a license granting guest
 // account permissions; without one the call is refused.
 //
-// Minimum server version: 11.10
+// Minimum server version: 11.11
 func (r *RoleService) Patch(roleID string, patch *model.RolePatch) (*model.Role, error) {
 	patched, appErr := r.api.PatchRole(roleID, patch)
 

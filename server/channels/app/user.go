@@ -2883,6 +2883,25 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 			rctx.Logger().Warn("Error while sending updated team member event", mlog.Err(appErr))
 		}
 
+		// Space backing channels are excluded from GetChannelMembersForUser, and
+		// the demotion itself resets only the member's scheme flags, so a space
+		// capability role held as an explicit member role would survive and keep
+		// granting page access to the new guest. Strip it from every space
+		// membership explicitly.
+		//
+		// Ahead of the ordinary-channel members below, whose read failure skips the
+		// rest of this team: dropping the grant is the privilege half of the
+		// demotion, and it must not hinge on an unrelated lookup succeeding.
+		spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(member.TeamId, user.Id)
+		if sErr != nil {
+			rctx.Logger().Warn("Failed to get space channels for user on demote user to guest", mlog.Err(sErr))
+		}
+		for _, spaceChannel := range spaceChannels {
+			if appErr := a.stripSpaceCapabilityRolesFromMember(rctx, spaceChannel.Id, user.Id); appErr != nil {
+				rctx.Logger().Warn("Failed to strip space capability roles on demote user to guest", mlog.String("channel_id", spaceChannel.Id), mlog.Err(appErr))
+			}
+		}
+
 		channelMembers, appErr := a.GetChannelMembersForUser(rctx, member.TeamId, user.Id)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to get channel members for users on demote user to guest", mlog.Err(appErr))

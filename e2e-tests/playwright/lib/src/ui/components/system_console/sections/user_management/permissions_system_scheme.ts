@@ -104,6 +104,26 @@ export default class PermissionsSystemScheme {
     }
 
     /**
+     * Whether the given permission checkbox is currently checked (ON). The checkbox only renders
+     * the `permissionCheckbox-checked` child when its value is `checked`, so its visibility is the
+     * checked state itself.
+     */
+    async isChecked(checkbox: Locator): Promise<boolean> {
+        return checkbox.getByTestId('permissionCheckbox-checked').isVisible();
+    }
+
+    /**
+     * Asserts the given permission checkbox's checked (ON) state matches `checked`.
+     */
+    async expectCheckedState(checkbox: Locator, checked: boolean) {
+        if (checked) {
+            await expect(checkbox.getByTestId('permissionCheckbox-checked')).toBeVisible();
+        } else {
+            await expect(checkbox.getByTestId('permissionCheckbox-checked')).not.toBeVisible();
+        }
+    }
+
+    /**
      * Saves the scheme and waits for the save to settle. The button is disabled until the form is
      * dirty, so it is asserted enabled first: without an edit the click would otherwise wait out
      * its timeout on a permanently disabled button, and the settle assertion below would pass on
