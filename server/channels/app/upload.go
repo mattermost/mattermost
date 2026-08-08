@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"mime"
@@ -93,8 +94,26 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 		return nil
 	}
 
+	// A plugin that doesn't write to the output leaves the file unchanged
+	// (see FileWillBeUploaded contract). Probe for one byte to distinguish
+	// "nothing written" from real content before creating the .tmp replacement,
+	// since some S3-compatible backends reject empty, unknown-size writes.
+	probe := make([]byte, 1)
+	n, probeErr := io.ReadFull(r, probe)
+	if probeErr == io.EOF {
+		// No plugin wrote replacement contents, so the uploaded file is kept
+		// as is. The upload may still have been rejected.
+		if err := <-errChan; err != nil {
+			if fileErr := a.RemoveFile(info.Path); fileErr != nil {
+				rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
+			}
+			return err
+		}
+		return nil
+	}
+
 	tmpPath := filePath + ".tmp"
-	written, err := a.WriteFile(r, tmpPath)
+	written, err := a.WriteFile(io.MultiReader(bytes.NewReader(probe[:n]), r), tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
 			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
@@ -113,16 +132,13 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 		return err
 	}
 
-	if written > 0 {
-		info.Size = written
-		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
-			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
-				nil, "", http.StatusInternalServerError).Wrap(fileErr)
+	info.Size = written
+	if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
+		if removeErr := a.RemoveFile(tmpPath); removeErr != nil {
+			rctx.Logger().Warn("Failed to remove file", mlog.Err(removeErr))
 		}
-	} else {
-		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			rctx.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
-		}
+		return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
+			nil, "", http.StatusInternalServerError).Wrap(fileErr)
 	}
 
 	return nil
