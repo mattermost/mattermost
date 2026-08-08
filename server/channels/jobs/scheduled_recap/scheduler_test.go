@@ -14,11 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	metricsmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func newSchedulerTest(t *testing.T, cfg *model.Config) (*Scheduler, *storetest.Store) {
+func newSchedulerTestWithMetrics(t *testing.T, cfg *model.Config, metrics einterfaces.MetricsInterface) (*Scheduler, *storetest.Store) {
 	t.Helper()
 
 	mockStore := &storetest.Store{}
@@ -34,7 +36,18 @@ func newSchedulerTest(t *testing.T, cfg *model.Config) (*Scheduler, *storetest.S
 		func(cfg *model.Config) bool { return true },
 	), nil)
 
-	return MakeScheduler(jobServer, mockStore), mockStore
+	return MakeScheduler(jobServer, mockStore, func() einterfaces.MetricsInterface { return metrics }), mockStore
+}
+
+func newSchedulerTest(t *testing.T, cfg *model.Config) (*Scheduler, *storetest.Store, *metricsmocks.MetricsInterface) {
+	t.Helper()
+
+	mockMetrics := &metricsmocks.MetricsInterface{}
+	t.Cleanup(func() {
+		mockMetrics.AssertExpectations(t)
+	})
+	scheduler, mockStore := newSchedulerTestWithMetrics(t, cfg, mockMetrics)
+	return scheduler, mockStore, mockMetrics
 }
 
 func expectNoWedgedJobs(mockStore *storetest.Store) {
@@ -97,7 +110,7 @@ func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
 
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 
 	dueRecap1 := testScheduledRecap(true)
 	dueRecap2 := testScheduledRecap(true)
@@ -112,6 +125,7 @@ func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T
 	}
 
 	expectEnqueueDuplicate(mockStore, dueRecap1)
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(3)).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), cfg, false, nil)
 	require.Nil(t, appErr)
@@ -123,7 +137,7 @@ func TestScheduleJobResetsWedgedJobThenEnqueuesSameTick(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
 
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 
 	scheduledRecap := testScheduledRecap(true)
 	stale := model.GetMillis() - (ScheduledRecapJobWedgedTimeout + time.Minute).Milliseconds()
@@ -163,6 +177,7 @@ func TestScheduleJobResetsWedgedJobThenEnqueuesSameTick(t *testing.T) {
 		}).
 		Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
 		Once()
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(1)).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
@@ -175,7 +190,7 @@ func TestScheduleJobContinuesWhenWedgedResetFails(t *testing.T) {
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
 
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 
 	scheduledRecap := testScheduledRecap(true)
 	mockStore.JobStore.
@@ -190,6 +205,7 @@ func TestScheduleJobContinuesWhenWedgedResetFails(t *testing.T) {
 		On("SaveOnceByTypeAndData", mock.Anything, map[string]string{"scheduled_recap_id": scheduledRecap.Id}).
 		Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
 		Once()
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(1)).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
@@ -200,7 +216,7 @@ func TestScheduleJobDrainsBacklogAcrossBatches(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 	expectNoWedgedJobs(mockStore)
 
 	recaps := makeDueRecaps(250, model.GetMillis()-1000)
@@ -210,6 +226,7 @@ func TestScheduleJobDrainsBacklogAcrossBatches(t *testing.T) {
 	for _, sr := range recaps {
 		expectEnqueueOK(mockStore, sr)
 	}
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(250)).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
@@ -261,7 +278,7 @@ func TestScheduleJobStopsAtMaxDueSchedulesPerTick(t *testing.T) {
 			cfg.SetDefaults()
 			cfg.FeatureFlags.EnableAIRecaps = true
 			cfg.AIRecapSettings.Processing.MaxDueSchedulesPerTick = model.NewPointer(tt.cap)
-			scheduler, mockStore := newSchedulerTest(t, cfg)
+			scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 			expectNoWedgedJobs(mockStore)
 
 			recaps := makeDueRecaps(tt.wantEnqueued, model.GetMillis()-1000)
@@ -278,6 +295,7 @@ func TestScheduleJobStopsAtMaxDueSchedulesPerTick(t *testing.T) {
 			for _, sr := range recaps {
 				expectEnqueueOK(mockStore, sr)
 			}
+			mockMetrics.On("ObserveRecapScheduledBacklog", int64(tt.wantEnqueued)).Once()
 
 			job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 			require.Nil(t, appErr)
@@ -290,7 +308,7 @@ func TestScheduleJobCountsDuplicatesTowardCapAndContinuesDrain(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 	expectNoWedgedJobs(mockStore)
 
 	recaps := makeDueRecaps(120, model.GetMillis()-1000)
@@ -305,6 +323,7 @@ func TestScheduleJobCountsDuplicatesTowardCapAndContinuesDrain(t *testing.T) {
 			expectEnqueueOK(mockStore, sr)
 		}
 	}
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(120)).Once()
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
@@ -315,7 +334,7 @@ func TestScheduleJobAbortsTickOnStoreErrorMidDrain(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 	expectNoWedgedJobs(mockStore)
 
 	recaps := makeDueRecaps(100, model.GetMillis()-1000)
@@ -331,13 +350,14 @@ func TestScheduleJobAbortsTickOnStoreErrorMidDrain(t *testing.T) {
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)
 	require.Nil(t, job)
+	mockMetrics.AssertNotCalled(t, "ObserveRecapScheduledBacklog", mock.Anything)
 }
 
 func TestScheduleJobContinuesPastEnqueueErrorMidBatch(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.FeatureFlags.EnableAIRecaps = true
-	scheduler, mockStore := newSchedulerTest(t, cfg)
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
 	expectNoWedgedJobs(mockStore)
 
 	recaps := makeDueRecaps(3, model.GetMillis()-1000)
@@ -345,6 +365,53 @@ func TestScheduleJobContinuesPastEnqueueErrorMidBatch(t *testing.T) {
 	expectEnqueueOK(mockStore, recaps[0])
 	expectEnqueueError(mockStore, recaps[1])
 	expectEnqueueOK(mockStore, recaps[2])
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(3)).Once()
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestScheduleJobSetsBacklogGaugeToZeroWhenIdle(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+	expectBatch(mockStore, 0, "", 100, []*model.ScheduledRecap{})
+	mockMetrics.On("ObserveRecapScheduledBacklog", int64(0)).Once()
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+}
+
+func TestScheduleJobSkipsBacklogGaugeOnStoreError(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore, mockMetrics := newSchedulerTest(t, cfg)
+	expectNoWedgedJobs(mockStore)
+	mockStore.ScheduledRecapStore.
+		On("GetDueBefore", mock.AnythingOfType("int64"), int64(0), "", 100).
+		Return(nil, errors.New("boom")).
+		Once()
+
+	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
+	require.Nil(t, appErr)
+	require.Nil(t, job)
+	mockMetrics.AssertNotCalled(t, "ObserveRecapScheduledBacklog", mock.Anything)
+}
+
+func TestScheduleJobNilMetricsIsSafe(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.EnableAIRecaps = true
+	scheduler, mockStore := newSchedulerTestWithMetrics(t, cfg, nil)
+	expectNoWedgedJobs(mockStore)
+	scheduledRecap := testScheduledRecap(true)
+	expectBatch(mockStore, 0, "", 100, []*model.ScheduledRecap{scheduledRecap})
+	expectEnqueueOK(mockStore, scheduledRecap)
 
 	job, appErr := scheduler.ScheduleJob(request.TestContext(t), cfg, false, nil)
 	require.Nil(t, appErr)

@@ -46,6 +46,7 @@ const (
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsSubsystemAccessControl      = "access_control"
 	MetricsSubsystemAutoTranslation    = "autotranslation"
+	MetricsSubsystemRecaps             = "recaps"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -255,6 +256,12 @@ type MetricsInterfaceImpl struct {
 	AutoTranslateWorkerTaskDuration      prometheus.Histogram
 	AutoTranslateRecoveryStuckFound      prometheus.Counter
 	AutoTranslateNormHashCounter         *prometheus.CounterVec
+
+	// Recap metrics
+	RecapDeliveryDelayHistogram      prometheus.Histogram
+	RecapScheduledBacklogGauge       prometheus.Gauge
+	RecapLLMInFlightGauge            prometheus.Gauge
+	RecapChannelProcessTimeHistogram *prometheus.HistogramVec
 }
 
 func init() {
@@ -1742,6 +1749,46 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.AutoTranslateNormHashCounter)
 
+	// Recaps Subsystem
+	m.RecapDeliveryDelayHistogram = prometheus.NewHistogram(withLabels(prometheus.HistogramOpts{
+		Namespace: MetricsNamespace,
+		Subsystem: MetricsSubsystemRecaps,
+		Name:      "delivery_delay_seconds",
+		Help:      "Delay between a scheduled recap's due time and its delivery to the user (seconds)",
+		Buckets:   []float64{5, 15, 30, 60, 90, 120, 180, 300, 600, 1200, 1800, 3600},
+	}))
+	m.Registry.MustRegister(m.RecapDeliveryDelayHistogram)
+
+	m.RecapScheduledBacklogGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemRecaps,
+		Name:        "scheduled_backlog",
+		Help:        "Number of due scheduled recaps found by the last scheduler tick on the cluster leader, capped at MaxDueSchedulesPerTick",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.RecapScheduledBacklogGauge)
+
+	m.RecapLLMInFlightGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemRecaps,
+		Name:        "llm_calls_in_flight",
+		Help:        "Current number of in-flight recap channel-summarization LLM calls on this node",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.RecapLLMInFlightGauge)
+
+	m.RecapChannelProcessTimeHistogram = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemRecaps,
+			Name:      "channel_process_time_seconds",
+			Help:      "Time to process a single channel within a recap job, including the LLM call (seconds)",
+			Buckets:   []float64{0.5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300},
+		}),
+		[]string{"success"},
+	)
+	m.Registry.MustRegister(m.RecapChannelProcessTimeHistogram)
+
 	return m
 }
 
@@ -2404,6 +2451,26 @@ func (mi *MetricsInterfaceImpl) AddAutoTranslateRecoveryStuckFound(count float64
 
 func (mi *MetricsInterfaceImpl) IncrementAutoTranslateNormHash(result string) {
 	mi.AutoTranslateNormHashCounter.With(prometheus.Labels{"result": result}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveRecapDeliveryDelay(seconds float64) {
+	mi.RecapDeliveryDelayHistogram.Observe(seconds)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveRecapScheduledBacklog(count int64) {
+	mi.RecapScheduledBacklogGauge.Set(float64(count))
+}
+
+func (mi *MetricsInterfaceImpl) IncrementRecapLLMInFlight() {
+	mi.RecapLLMInFlightGauge.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) DecrementRecapLLMInFlight() {
+	mi.RecapLLMInFlightGauge.Dec()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveRecapChannelProcessTime(success bool, seconds float64) {
+	mi.RecapChannelProcessTimeHistogram.With(prometheus.Labels{"success": strconv.FormatBool(success)}).Observe(seconds)
 }
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {

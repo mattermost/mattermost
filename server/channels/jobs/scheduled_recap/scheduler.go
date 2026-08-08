@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // SchedulerPollingInterval defines how often the scheduler polls for due scheduled recaps.
@@ -26,12 +27,13 @@ const dueScheduleBatchSize = 100
 // Scheduler polls for due scheduled recaps and creates jobs for them.
 type Scheduler struct {
 	*jobs.PeriodicScheduler
-	store     store.Store
-	jobServer *jobs.JobServer
+	store      store.Store
+	jobServer  *jobs.JobServer
+	getMetrics func() einterfaces.MetricsInterface
 }
 
 // MakeScheduler creates a new scheduler for scheduled recaps.
-func MakeScheduler(jobServer *jobs.JobServer, storeInstance store.Store) *Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, storeInstance store.Store, getMetrics func() einterfaces.MetricsInterface) *Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return cfg.AIRecapsEnabled()
 	}
@@ -42,8 +44,9 @@ func MakeScheduler(jobServer *jobs.JobServer, storeInstance store.Store) *Schedu
 			SchedulerPollingInterval,
 			isEnabled,
 		),
-		store:     storeInstance,
-		jobServer: jobServer,
+		store:      storeInstance,
+		jobServer:  jobServer,
+		getMetrics: getMetrics,
 	}
 }
 
@@ -76,10 +79,12 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 
 	var cursorNextRunAt int64
 	var cursorID string
-	processed := 0
+	totalDue := 0
+	enqueuedCount := 0
+	var maxEnqueueLagMs int64
 
 	for {
-		remaining := maxPerTick - processed
+		remaining := maxPerTick - totalDue
 		if remaining <= 0 {
 			mlog.Warn("Reached the per-tick cap while enqueueing due scheduled recaps; remaining due schedules will be enqueued on the next tick",
 				mlog.Int("max_due_schedules_per_tick", maxPerTick))
@@ -91,12 +96,14 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 		if err != nil {
 			// Already-enqueued jobs stand; the next tick restarts from the zero cursor.
 			mlog.Error("Failed to get due scheduled recaps",
-				mlog.Int("enqueued_so_far", processed),
+				mlog.Int("enqueued_so_far", totalDue),
 				mlog.Err(err))
 			return nil, nil
 		}
 
 		for _, sr := range dueRecaps {
+			maxEnqueueLagMs = max(maxEnqueueLagMs, now-sr.NextRunAt)
+
 			// The worker re-fetches the full row by ID, so the job only needs the ID.
 			jobData := model.StringMap{
 				"scheduled_recap_id": sr.Id,
@@ -117,10 +124,15 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 			if job == nil {
 				mlog.Debug("Scheduled recap job already queued",
 					mlog.String("scheduled_recap_id", sr.Id))
+				continue
 			}
+			enqueuedCount++
+			mlog.Debug("Enqueued scheduled recap job",
+				mlog.String("scheduled_recap_id", sr.Id),
+				mlog.Int("enqueue_lag_ms", now-sr.NextRunAt))
 		}
 
-		processed += len(dueRecaps)
+		totalDue += len(dueRecaps)
 
 		if len(dueRecaps) < batchLimit {
 			break
@@ -128,6 +140,16 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 
 		last := dueRecaps[len(dueRecaps)-1]
 		cursorNextRunAt, cursorID = last.NextRunAt, last.Id
+	}
+
+	if metrics := s.getMetrics(); metrics != nil {
+		metrics.ObserveRecapScheduledBacklog(int64(totalDue))
+	}
+	if totalDue > 0 {
+		mlog.Info("Scheduled recap scheduler tick completed",
+			mlog.Int("due_count", totalDue),
+			mlog.Int("enqueued_count", enqueuedCount),
+			mlog.Int("max_enqueue_lag_ms", maxEnqueueLagMs))
 	}
 
 	return nil, nil
