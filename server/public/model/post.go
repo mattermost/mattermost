@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -424,13 +425,14 @@ type CreatePostFlags struct {
 }
 
 type GetPostsSinceOptions struct {
-	UserId                   string
-	ChannelId                string
-	Time                     int64
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	SortAscending            bool
+	UserId                       string
+	ChannelId                    string
+	Time                         int64
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	SortAscending                bool
+	ExcludeMembershipSystemPosts bool
 }
 
 type GetPostsSinceForSyncCursor struct {
@@ -454,21 +456,22 @@ type GetPostsSinceForSyncOptions struct {
 }
 
 type GetPostsOptions struct {
-	UserId                   string
-	ChannelId                string
-	PostId                   string
-	Page                     int
-	PerPage                  int
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	FromPost                 string // PostId after which to send the items
-	FromCreateAt             int64  // CreateAt after which to send the items
-	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
-	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
-	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
-	IncludeDeleted           bool
-	IncludePostPriority      bool
+	UserId                       string
+	ChannelId                    string
+	PostId                       string
+	Page                         int
+	PerPage                      int
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	FromPost                     string // PostId after which to send the items
+	FromCreateAt                 int64  // CreateAt after which to send the items
+	FromUpdateAt                 int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
+	Direction                    string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly                  bool   // This flag is used to make the API work with the updateAt value.
+	IncludeDeleted               bool
+	IncludePostPriority          bool
+	ExcludeMembershipSystemPosts bool
 	// ExcludeExpiredBurnOnReadPosts, when set, makes the query skip burn-on-read
 	// posts whose read receipt has already expired for UserId. It is only set by
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
@@ -1116,17 +1119,35 @@ func (o *Post) GetRemoteID() string {
 	return ""
 }
 
+// JoinLeaveMessagePostTypes returns the post types checked by IsJoinLeaveMessage.
+func JoinLeaveMessagePostTypes() []string {
+	return []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type == PostTypeJoinLeave ||
-		o.Type == PostTypeAddRemove ||
-		o.Type == PostTypeJoinChannel ||
-		o.Type == PostTypeLeaveChannel ||
-		o.Type == PostTypeJoinTeam ||
-		o.Type == PostTypeLeaveTeam ||
-		o.Type == PostTypeAddToChannel ||
-		o.Type == PostTypeRemoveFromChannel ||
-		o.Type == PostTypeAddToTeam ||
-		o.Type == PostTypeRemoveFromTeam
+	return slices.Contains(JoinLeaveMessagePostTypes(), o.Type)
+}
+
+// MembershipSystemPostTypes is the superset of JoinLeaveMessagePostTypes that
+// additionally includes guest join/add types, used by the per-channel
+// disable-join-leave-messages read filter.
+func MembershipSystemPostTypes() []string {
+	return append(JoinLeaveMessagePostTypes(), PostTypeGuestJoinChannel, PostTypeAddGuestToChannel)
+}
+
+func IsMembershipSystemPost(post *Post) bool {
+	return post != nil && slices.Contains(MembershipSystemPostTypes(), post.Type)
 }
 
 func (o *Post) Patch(patch *PostPatch) {

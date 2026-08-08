@@ -1642,3 +1642,44 @@ func TestPost_PropsIsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestMembershipSystemPostTypes(t *testing.T) {
+	types := MembershipSystemPostTypes()
+	require.NotEmpty(t, types)
+
+	expected := []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeGuestJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeAddGuestToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+	require.ElementsMatch(t, expected, types)
+}
+
+func TestIsMembershipSystemPost(t *testing.T) {
+	t.Run("nil post returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(nil))
+	})
+
+	t.Run("regular message post returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(&Post{Type: ""}))
+	})
+
+	t.Run("custom post type returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(&Post{Type: "custom_some_type"}))
+	})
+
+	for _, postType := range MembershipSystemPostTypes() {
+		t.Run("returns true for "+postType, func(t *testing.T) {
+			require.True(t, IsMembershipSystemPost(&Post{Type: postType}))
+		})
+	}
+}

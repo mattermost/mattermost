@@ -30,6 +30,33 @@ var (
 	wildCardRegex      = regexp.MustCompile(`\*($| )`)
 )
 
+func membershipSystemPostTypesSQLList() string {
+	types := model.MembershipSystemPostTypes()
+	quoted := make([]string, len(types))
+	for i, t := range types {
+		quoted[i] = "'" + t + "'"
+	}
+	return strings.Join(quoted, ", ")
+}
+
+func membershipSystemPostsExcludeSQLClause(tablePrefix string, exclude bool) string {
+	if !exclude {
+		return ""
+	}
+	return fmt.Sprintf(" AND %sType NOT IN (%s)", tablePrefix, membershipSystemPostTypesSQLList())
+}
+
+func appendMembershipSystemPostsExcludeCondition(query sq.SelectBuilder, tableAlias string, exclude bool) sq.SelectBuilder {
+	if !exclude {
+		return query
+	}
+	typeCol := "Type"
+	if tableAlias != "" {
+		typeCol = tableAlias + ".Type"
+	}
+	return query.Where(sq.NotEq{typeCol: model.MembershipSystemPostTypes()})
+}
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -1344,6 +1371,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC")
+	query = appendMembershipSystemPostsExcludeCondition(query, "Posts", options.ExcludeMembershipSystemPosts)
 
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
@@ -1363,13 +1391,13 @@ func (s *SqlPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions,
 
 	rpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
-		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
+		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted, options.ExcludeMembershipSystemPosts)
 		rpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
 	cpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
-		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
+		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted, options.ExcludeMembershipSystemPosts)
 		cpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
@@ -1426,6 +1454,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.RootId": ""}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000)
+	query = appendMembershipSystemPostsExcludeCondition(query, "Posts", options.ExcludeMembershipSystemPosts)
 
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
@@ -1459,16 +1488,18 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	postColumnsCte := strings.Join(postSliceColumnsWithName("cte"), ", ")
 	postColumnsP1 := strings.Join(postSliceColumnsWithName("p1"), ", ")
 
+	membershipExcludeClause := membershipSystemPostsExcludeSQLClause("", options.ExcludeMembershipSystemPosts)
+	membershipExcludeP1 := membershipSystemPostsExcludeSQLClause("p1.", options.ExcludeMembershipSystemPosts)
 	query = `WITH cte AS (SELECT
 	       ` + postColumnsPosts + `
 	FROM
 	       Posts
 	WHERE
-	       UpdateAt > ? AND ChannelId = ?
+	       UpdateAt > ? AND ChannelId = ?` + membershipExcludeClause + `
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
-	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
+	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte)` + membershipExcludeP1 + `)
 	ORDER BY CreateAt ` + order
 
 	params = []any{options.Time, options.ChannelId}
@@ -1732,32 +1763,32 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	query := s.getQueryBuilder().Select(columns...)
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"))
 
-	conditions := sq.And{
-		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
-		sq.Eq{"p.ChannelId": options.ChannelId},
-	}
+	query = query.
+		Where(sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId)).
+		Where(sq.Eq{"p.ChannelId": options.ChannelId})
 
 	// Skip burn-on-read posts already expired for the user so pagination can page
 	// past a run of them instead of returning a window that filters to empty and
 	// looks like the end of the channel (MM-67500). Only applied when the feature
 	// is enabled, so there is no query overhead otherwise.
 	if options.ExcludeExpiredBurnOnReadPosts {
-		conditions = append(conditions, burnOnReadVisibleCondition("p", options.UserId))
+		query = query.Where(burnOnReadVisibleCondition("p", options.UserId))
 	}
 
 	if !options.IncludeDeleted {
 		replyCountSubQuery = replyCountSubQuery.Where(sq.Expr("Posts.DeleteAt = 0"))
-		conditions = append(conditions, sq.Eq{"p.DeleteAt": int(0)})
+		query = query.Where(sq.Eq{"p.DeleteAt": int(0)})
 	}
 
+	query = appendMembershipSystemPostsExcludeCondition(query, "p", options.ExcludeMembershipSystemPosts)
+
 	if options.CollapsedThreads {
-		conditions = append(conditions, sq.Eq{"RootId": ""})
+		query = query.Where(sq.Eq{"RootId": ""})
 		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	}
 	query = query.From("Posts p").
-		Where(conditions).
 		OrderBy("p.CreateAt " + sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
@@ -1794,6 +1825,8 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 			rootQuery = rootQuery.Where(sq.Eq{"p.DeleteAt": 0})
 		}
 
+		rootQuery = appendMembershipSystemPostsExcludeCondition(rootQuery, "p", options.ExcludeMembershipSystemPosts)
+
 		if err := s.GetReplica().SelectBuilder(&parents, rootQuery); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
@@ -1811,15 +1844,15 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludeMembershipSystemPosts)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludeMembershipSystemPosts)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1830,20 +1863,18 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		sort = "ASC"
 	}
 
-	conditions := sq.And{
-		direction,
-		sq.Eq{"Posts.ChannelId": channelId},
-		sq.Eq{"Posts.DeleteAt": int(0)},
-	}
-	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
-	}
 	query := s.getQueryBuilder().
 		Select("Id").
 		From("Posts").
-		Where(conditions).
+		Where(direction).
+		Where(sq.Eq{"Posts.ChannelId": channelId}).
+		Where(sq.Eq{"Posts.DeleteAt": int(0)}).
 		OrderBy("Posts.CreateAt " + sort).
 		Limit(1)
+	if collapsedThreads {
+		query = query.Where(sq.Eq{"Posts.RootId": ""})
+	}
+	query = appendMembershipSystemPostsExcludeCondition(query, "Posts", excludeMembershipSystemPosts)
 
 	var postId string
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
@@ -1884,7 +1915,7 @@ func burnOnReadVisibleCondition(alias, userID string) sq.Sqlizer {
 // read receipt has already expired for that user. Because the filtering happens
 // in a single query, any number of consecutive expired posts are skipped in one
 // round trip, so pagination cursors never point at a post the user can't see.
-func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string) (string, error) {
+func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string, excludeMembershipSystemPosts bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1903,6 +1934,9 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 	}
 	if collapsedThreads {
 		conditions = append(conditions, sq.Eq{"Posts.RootId": ""})
+	}
+	if excludeMembershipSystemPosts {
+		conditions = append(conditions, sq.NotEq{"Posts.Type": model.MembershipSystemPostTypes()})
 	}
 
 	query := s.getQueryBuilder().
@@ -1946,23 +1980,24 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	return &post, nil
 }
 
-func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool, excludeMembershipSystemPosts bool) ([]*model.Post, error) {
 	posts := []*model.Post{}
 	var fetchQuery string
 	postColumnsP := strings.Join(postSliceColumnsWithName("p"), ", ")
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
+	membershipExcludeP := membershipSystemPostsExcludeSQLClause("p.", excludeMembershipSystemPosts)
+	membershipExcludePosts := membershipSystemPostsExcludeSQLClause("Posts.", excludeMembershipSystemPosts)
 	if skipFetchThreads {
-		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ?" + membershipExcludeP + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0" + membershipExcludeP + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	} else {
-		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ?" + membershipExcludePosts + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0" + membershipExcludePosts + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	}
-
 	err := s.GetReplica().Select(&posts, fetchQuery, channelId, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
@@ -1970,7 +2005,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	return posts, nil
 }
 
-func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool, excludeMembershipSystemPosts bool) ([]*model.Post, error) {
 	posts := []*model.Post{}
 	replyCountQuery := ""
 	onStatement := "q1.RootId = q2.Id"
@@ -1990,6 +2025,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	}
 
 	postColumnsQ2 := strings.Join(postSliceColumnsWithName("q2"), ", ")
+	membershipExcludeQ2 := membershipSystemPostsExcludeSQLClause("q2.", excludeMembershipSystemPosts)
 
 	err := s.GetReplica().Select(&posts,
 		`SELECT `+postColumnsQ2+replyCountQuery+`
@@ -2010,7 +2046,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            q2.ChannelId = ? `+deleteAtQueryCondition+`
+            q2.ChannelId = ? `+deleteAtQueryCondition+membershipExcludeQ2+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
