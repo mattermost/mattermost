@@ -2883,8 +2883,9 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	// not something to log and forget: it is recorded and surfaced after the
 	// loop. Recording rather than returning on the spot keeps the revocation
 	// best-effort across every space, so one failing membership does not strand
-	// the grants on all the others.
-	spaceRevocationFailed := false
+	// the grants on all the others. A failed team listing above hides every
+	// space membership the user holds, so it is recorded the same way.
+	spaceRevocationFailed := err != nil
 
 	for _, member := range teamMembers {
 		if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {

@@ -847,7 +847,9 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		// The cache is keyed by user, so there is no per-channel key to evict;
 		// enumerating members one by one would page the member list and emit two
 		// cluster messages per member inside this request. A preset switch is a
-		// rare admin action, so purge the cache once.
+		// rare admin action, so purge the cache once. Logged because the purge
+		// is cluster-wide: every user's member-roles entry refills on next use.
+		rctx.Logger().Info("Purging the member-roles cache for a space capability preset switch", mlog.String("channel_id", channel.Id))
 		a.Srv().Store().Channel().ClearMembersForUserCache()
 	}
 
