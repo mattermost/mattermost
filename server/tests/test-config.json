@@ -255,10 +255,7 @@
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
         "MaxPageSize": 0,
-        "LoginFieldName": "",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,
