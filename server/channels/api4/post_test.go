@@ -282,7 +282,7 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
@@ -298,9 +298,10 @@ func TestCreatePost(t *testing.T) {
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, postErr)
-		CheckBadRequestStatus(t, postResp)
-		assert.Nil(t, rpost)
+		require.NoError(t, postErr)
+		CheckCreatedStatus(t, postResp)
+		require.NotNil(t, rpost)
+		assert.Empty(t, rpost.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("invalid post type", func(t *testing.T) {
@@ -711,16 +712,12 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
 
-	t.Run("allow username and icon overrides", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
-		})
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
-		})
-
+	t.Run("username and icon overrides are not honored for an OAuth client", func(t *testing.T) {
+		// v12: override_username/override_icon_url are stripped for every
+		// locally-originated post and only re-injected for FromIncomingWebhook
+		// (see app.CreatePost) — an OAuth-app session posting directly via the
+		// REST API is not FromIncomingWebhook, so the reserved prop is never
+		// honored, independent of the hardened-mode setting.
 		post, _, err = client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "test message",
@@ -728,8 +725,8 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideUsername))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideIconURL))
 	})
 }
 
@@ -1971,7 +1968,7 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
@@ -1981,14 +1978,17 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+		updated, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			Id:        rpost.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated)
+		assert.Empty(t, updated.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel (team scheme)", func(t *testing.T) {
@@ -2912,7 +2912,7 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
@@ -2927,15 +2927,17 @@ func TestPatchPost(t *testing.T) {
 			Message:   "#hashtag a message",
 			CreateAt:  model.GetMillis() - 2000,
 		}
-		post, _, createErr := th.SystemAdminClient.CreatePost(context.Background(), post)
+		post, _, createErr := client.CreatePost(context.Background(), post)
 		require.NoError(t, createErr)
 
 		patch := &model.PostPatch{}
 		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
-		_, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
+		patched, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
 
-		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, patchResp)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, patchResp)
+		require.NotNil(t, patched)
+		assert.Empty(t, patched.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should be able to add new files", func(t *testing.T) {

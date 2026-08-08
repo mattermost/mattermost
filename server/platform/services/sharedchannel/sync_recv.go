@@ -558,10 +558,15 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		// First update the basic post. The post is federated and remote-owned
-		// (verified above); the origin cluster already enforced mm_blocks_actions
-		// authority, so allow the synced value through the UpdatePost freeze so
-		// button edits (or removals) made upstream propagate to this cluster.
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
+		// (verified above); the origin cluster already enforced both
+		// mm_blocks_actions and integration-prop authority, so allow the synced
+		// values through the UpdatePost freeze — button edits made upstream
+		// propagate, and the remote's display-identity values are honored
+		// instead of restoring stale local ones from the prior post.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{
+			AllowMmBlocksActionsUpdate: true,
+			AllowIdentityPropsUpdate:   true,
+		})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr
