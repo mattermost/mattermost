@@ -307,7 +307,7 @@ describe('PostComponent', () => {
                 await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
-                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost, false);
             });
 
             test('should select post in RHS when clicked in center channel in a DM/GM', async () => {
@@ -320,7 +320,7 @@ describe('PostComponent', () => {
                 await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
-                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost, false);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
@@ -333,7 +333,7 @@ describe('PostComponent', () => {
 
                 await userEvent.click(screen.getByText('1 reply'));
 
-                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost, true);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
@@ -405,7 +405,7 @@ describe('PostComponent', () => {
 
                 await userEvent.click(screen.getByText('1 reply'));
 
-                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost, false);
                 expect(getHistory().replace).not.toHaveBeenCalled();
 
                 jest.restoreAllMocks();
