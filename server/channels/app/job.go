@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -356,40 +357,16 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 }
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
-	switch jobType {
-	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionReadDataRetentionJob), model.PermissionReadDataRetentionJob
-	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionReadComplianceExportJob), model.PermissionReadComplianceExportJob
-	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostIndexingJob), model.PermissionReadElasticsearchPostIndexingJob
-	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostAggregationJob), model.PermissionReadElasticsearchPostAggregationJob
-	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
-	case
-		model.JobTypeMigrations,
-		model.JobTypePlugins,
-		model.JobTypeProductNotices,
-		model.JobTypeExpiryNotify,
-		model.JobTypeActiveUsers,
-		model.JobTypeImportProcess,
-		model.JobTypeImportDelete,
-		model.JobTypeExportProcess,
-		model.JobTypeExportDelete,
-		model.JobTypeCloud,
-		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
-		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
-	case model.JobTypeAccessControlSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
-	case model.JobTypeAccessControlTeamSync:
+	if jobType == model.JobTypeAccessControlTeamSync {
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem
 		}
-		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
 	}
 
-	return false, nil
+	permission := jobs.ReadPermissionForType(jobType)
+	if permission == nil {
+		return false, nil
+	}
+
+	return a.SessionHasPermissionTo(session, permission), permission
 }
