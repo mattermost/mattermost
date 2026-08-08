@@ -10,7 +10,11 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
-import {getBestImage, getIsLargeImage, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
+import {getBestImage, getIsLargeImage, getScaledImageDimensions, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
+import {
+    OPEN_GRAPH_MAX_IMAGE_WIDTH,
+    OPEN_GRAPH_THUMBNAIL_SIZE,
+} from './constants';
 
 import PostAttachmentOpenGraph from './index';
 
@@ -486,6 +490,41 @@ describe('Helpers', () => {
                 height: 100,
                 width: 100,
             })).toBe(false);
+        });
+    });
+
+    describe('getScaledImageDimensions', () => {
+        test('should scale large images to fit within open graph max dimensions', () => {
+            expect(getScaledImageDimensions({
+                format: 'png',
+                frameCount: 0,
+                height: 1256,
+                width: 2400,
+            }, true)).toEqual({
+                height: 1256 * (OPEN_GRAPH_MAX_IMAGE_WIDTH / 2400),
+                width: OPEN_GRAPH_MAX_IMAGE_WIDTH,
+            });
+        });
+
+        test('should scale small images to fit within the thumbnail box', () => {
+            expect(getScaledImageDimensions({
+                format: 'png',
+                frameCount: 0,
+                height: 100,
+                width: 100,
+            }, false)).toEqual({
+                height: OPEN_GRAPH_THUMBNAIL_SIZE,
+                width: OPEN_GRAPH_THUMBNAIL_SIZE,
+            });
+        });
+
+        test('should return empty dimensions when metadata is invalid', () => {
+            expect(getScaledImageDimensions({
+                format: 'png',
+                frameCount: 0,
+                height: -1,
+                width: -1,
+            }, true)).toEqual({});
         });
     });
 });

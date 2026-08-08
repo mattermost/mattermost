@@ -54,12 +54,53 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
               />
             </svg>
           </button>
-          <figure>
-            <img
-              alt="Mattermost | Open Source Collaboration for Developers"
-              src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+          <div
+            class="image-loading__container undefined"
+            style="max-width: 392px;"
+          >
+            <div
+              style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+            >
+              <div
+                class="file__image-loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
+              </div>
+            </div>
+            <svg
+              style="max-height: 205.14666666666668px; max-width: 392px; vertical-align: middle;"
+              viewBox="0 0 392 205.14666666666668"
+              xmlns="http://www.w3.org/2000/svg"
             />
-          </figure>
+          </div>
+          <div
+            class="file-preview__button"
+            style="display: none;"
+          >
+            <figure
+              class="image-loaded-container"
+            >
+              <img
+                alt="Mattermost | Open Source Collaboration for Developers"
+                aria-label="file thumbnail"
+                class="undefined"
+                src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+                tabindex="0"
+              />
+            </figure>
+          </div>
         </div>
       </div>
     </div>
@@ -136,12 +177,53 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             />
           </svg>
         </button>
-        <figure>
-          <img
-            alt="test_image"
-            src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+        <div
+          class="image-loading__container undefined"
+          style="max-width: 392px;"
+        >
+          <div
+            style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+          >
+            <div
+              class="file__image-loading"
+            >
+              <span
+                class="LoadingSpinner"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  class="fa fa-spinner fa-fw fa-pulse spinner"
+                  title="Loading Icon"
+                />
+              </span>
+              <span
+                class="loader-percent"
+              />
+            </div>
+          </div>
+          <svg
+            style="max-height: 205.14666666666668px; max-width: 392px; vertical-align: middle;"
+            viewBox="0 0 392 205.14666666666668"
+            xmlns="http://www.w3.org/2000/svg"
           />
-        </figure>
+        </div>
+        <div
+          class="file-preview__button"
+          style="display: none;"
+        >
+          <figure
+            class="image-loaded-container"
+          >
+            <img
+              alt="test_image"
+              aria-label="file thumbnail"
+              class="undefined"
+              src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+              tabindex="0"
+            />
+          </figure>
+        </div>
       </div>
     </div>
   </div>
