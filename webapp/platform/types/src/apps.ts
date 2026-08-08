@@ -439,6 +439,12 @@ export function isAppSelectOption(v: unknown): v is AppSelectOption {
 export type AppFieldType = string;
 
 // DateTime field configuration
+export type CollapsibleConfig = {
+    fields?: AppField[]; // Child fields grouped inside this collapsible section
+    expanded?: boolean; // Whether the section starts expanded (default: true)
+    bordered?: boolean; // Whether the section renders with a border (default: true)
+};
+
 export type DateTimeConfig = {
     min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
     max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
@@ -495,6 +501,10 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Collapsible section config. A field of type 'collapsible' groups child
+    // fields behind an expandable title and contributes no value of its own.
+    collapsible_config?: CollapsibleConfig;
 
     // Action button props
     action_button_url?: string;

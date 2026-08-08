@@ -221,6 +221,16 @@ export type DialogElement = {
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
 
+    // Collapsible section configuration. A "collapsible" element groups child
+    // elements behind an expandable title and contributes no value of its own.
+    elements?: DialogElement[];
+
+    // Initial open/closed state. Omitted/false means the section starts expanded.
+    collapsed?: boolean;
+
+    // Whether the section renders without a box outline. Omitted/false means bordered.
+    borderless?: boolean;
+
     // Action button configuration (type "action_button")
     action_button?: {
         url: string;
