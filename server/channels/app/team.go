@@ -639,10 +639,22 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 	if err != nil {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	return a.AddUserToTeamWithToken(rctx, userID, token)
+	return a.addUserToTeamWithToken(rctx, userID, token, false)
 }
 
+// AddUserToTeamWithToken joins userID to the team referenced by an already-consumed
+// invitation token (e.g. guest magic link, which atomically consumes the token before
+// calling this function).
 func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *model.Token) (*model.Team, *model.TeamMember, *model.AppError) {
+	return a.addUserToTeamWithToken(rctx, userID, token, true)
+}
+
+// addUserToTeamWithToken validates the invitation token and joins the user to the team.
+// tokenConsumed indicates whether the caller already atomically consumed the token from
+// the store; if not, the token is atomically consumed here immediately before the join,
+// which is the side effect it guards, to prevent two concurrent requests from both
+// redeeming the same one-time token.
+func (a *App) addUserToTeamWithToken(rctx request.CTX, userID string, token *model.Token, tokenConsumed bool) (*model.Team, *model.TeamMember, *model.AppError) {
 	if !token.IsInvitationToken() {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -703,6 +715,14 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 	}
 	if !user.IsGuest() && (token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation) {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !tokenConsumed {
+		// Atomically consume the token as the last step before the join side effect so a
+		// concurrent redemption of the same token fails here instead of both succeeding.
+		if _, cErr := a.ConsumeTokenOnce(token.Type, token.Token); cErr != nil {
+			return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(cErr)
+		}
 	}
 
 	teamMember, appErr := a.JoinUserToTeam(rctx, team, user, "")
