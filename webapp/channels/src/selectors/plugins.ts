@@ -4,9 +4,12 @@
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
+
+import {filterCallsPluginComponents} from 'selectors/calls';
 
 import type {GlobalState} from 'types/store';
 
@@ -39,14 +42,15 @@ export const getChannelHeaderPluginComponents = createSelector(
     (state: GlobalState) => appBarEnabled(state),
     (state: GlobalState) => state.plugins.components.ChannelHeaderButton,
     (state: GlobalState) => state.plugins.components.AppBar,
-    (enabled, channelHeaderComponents = [], appBarComponents = []) => {
-        if (!enabled || !appBarComponents.length) {
-            return channelHeaderComponents;
+    getCurrentChannel,
+    getLicense,
+    (enabled, channelHeaderComponents = [], appBarComponents = [], channel, license) => {
+        let components = channelHeaderComponents;
+        if (enabled && appBarComponents.length) {
+            const appBarPluginIds = appBarComponents.map((appBarComponent) => appBarComponent.pluginId);
+            components = components.filter((channelHeaderComponent) => !appBarPluginIds.includes(channelHeaderComponent.pluginId));
         }
-
-        // Remove channel header icons for plugins that have also registered an app bar component
-        const appBarPluginIds = appBarComponents.map((appBarComponent) => appBarComponent.pluginId);
-        return channelHeaderComponents.filter((channelHeaderComponent) => !appBarPluginIds.includes(channelHeaderComponent.pluginId));
+        return filterCallsPluginComponents(components, license, channel?.type);
     },
 );
 
@@ -69,8 +73,11 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     'getChannelHeaderMenuPluginComponents',
     getChannelHeaderMenuPluginComponentsShouldRender,
     (state: GlobalState) => state.plugins.components.ChannelHeader,
-    (componentShouldRender = [], channelHeaderMenuComponents = []) => {
-        return channelHeaderMenuComponents.filter((component, idx) => componentShouldRender[idx]);
+    getCurrentChannel,
+    getLicense,
+    (componentShouldRender = [], channelHeaderMenuComponents = [], channel, license) => {
+        const components = channelHeaderMenuComponents.filter((component, idx) => componentShouldRender[idx]);
+        return filterCallsPluginComponents(components, license, channel?.type);
     },
 );
 
@@ -81,8 +88,20 @@ export function getChannelSettingsTabs(state: GlobalState) {
 export const getChannelMobileHeaderPluginButtons = createSelector(
     'getChannelMobileHeaderPluginButtons',
     (state: GlobalState) => state.plugins.components.MobileChannelHeaderButton,
-    (components = []) => {
-        return components;
+    getCurrentChannel,
+    getLicense,
+    (components = [], channel, license) => {
+        return filterCallsPluginComponents(components, license, channel?.type);
+    },
+);
+
+export const getCallButtonPluginComponents = createSelector(
+    'getCallButtonPluginComponents',
+    (state: GlobalState) => state.plugins.components.CallButton,
+    getCurrentChannel,
+    getLicense,
+    (components = [], channel, license) => {
+        return filterCallsPluginComponents(components, license, channel?.type);
     },
 );
 
