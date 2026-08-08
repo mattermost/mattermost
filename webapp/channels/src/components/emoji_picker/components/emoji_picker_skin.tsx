@@ -11,7 +11,8 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SystemEmoji} from '@mattermost/types/emojis';
 
-import imgTrans from 'images/img_trans.gif';
+import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+
 import * as Emoji from 'utils/emoji';
 
 interface SkinTone {
@@ -137,7 +138,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
         const emoji = skinTones.find(({value}) => value === this.props.userSkinTone)!.emoji;
 
         const buttonClassName = classNames('style--none', {'skin-tones__close-icon': pickerExtended, 'skin-tones__icon skin-tones__expand-icon': !pickerExtended});
-        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji?.category}`, `emoji-${emoji?.unified.toLowerCase()}`);
 
         const handleOnClick = () => {
             if (pickerExtended) {
@@ -167,8 +167,8 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     >
                         <img
                             alt={'emoji skin tone picker'}
-                            src={imgTrans}
-                            className={spriteClassName}
+                            src={getEmojiImageUrl(emoji)}
+                            className={'emoji-category emoji-category--system'}
                         />
                     </WithTooltip>
                 )}
@@ -180,7 +180,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
         return skinTones.map((skinTone) => {
             const skin = skinTone.value;
             const emoji = skinTone.emoji;
-            const spriteClassName = classNames('emojisprite', `emoji-category-${emoji.category}`, `emoji-${emoji.unified.toLowerCase()}`);
 
             return (
                 <button
@@ -192,8 +191,8 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 >
                     <img
                         alt={skinTone.label.defaultMessage}
-                        src={imgTrans}
-                        className={spriteClassName}
+                        src={getEmojiImageUrl(emoji)}
+                        className={'emoji-category emoji-category--system'}
                     />
                 </button>
             );
