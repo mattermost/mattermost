@@ -60,6 +60,28 @@ describe('Manually pinned online status', () => {
         // * An explicit choice always wins over the pin
         verifyStatusIcon('away');
 
+        // # Pin back to online so the next step overrides a pin rather than an away status
+        cy.uiGetSetStatusButton().click();
+        cy.findByText('Online').click();
+        verifyStatusIcon('online');
+
+        // # Explicitly choose Do Not Disturb, which is a submenu of end times
+        cy.uiGetSetStatusButton().click();
+        cy.findByText('Do Not Disturb').trigger('mouseover');
+        cy.get('.SubMenuItemContainer li#dndTime-dont_clear_menuitem').click();
+
+        // * DND overrides the pin, and is itself stored as a manual status
+        verifyStatusIcon('dnd');
+        getStatus(testUserId).then((status) => {
+            expect(status.status).to.equal('dnd');
+            expect(status.manual).to.equal(true);
+        });
+
+        // # Pin back to online again
+        cy.uiGetSetStatusButton().click();
+        cy.findByText('Online').click();
+        verifyStatusIcon('online');
+
         // # Explicitly choose Offline
         cy.uiGetSetStatusButton().click();
         cy.findByText('Offline').click();
