@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -52,6 +55,7 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users", api.APISessionRequired(simulatePolicyForUsers)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users/export_csv", api.APISessionRequired(exportSimulationCSV)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
@@ -1420,4 +1424,162 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// exportSimulationCSV runs the same simulation as simulatePolicyForUsers but
+// returns the results as a downloadable CSV file instead of JSON. Intended for
+// compliance and audit workflows where admins need to share simulation results
+// with stakeholders who may not have system console access.
+//
+// POST /access_control_policies/cel/simulate_users/export_csv
+func exportSimulationCSV(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.IsPolicySimulationEnabled() {
+		c.Err = model.NewAppError("exportSimulationCSV", "api.access_control_policy.policy_simulation.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	var params model.PolicySimulationByUsersParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
+		c.SetInvalidParamWithErr("simulation", jsonErr)
+		return
+	}
+
+	if params.Policy == nil {
+		c.SetInvalidParam("policy")
+		return
+	}
+	if len(params.Users) == 0 {
+		c.SetInvalidParam("users")
+		return
+	}
+	if params.ChannelID != "" && !model.IsValidId(params.ChannelID) {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	if params.TeamID != "" && !model.IsValidId(params.TeamID) {
+		c.SetInvalidParam("team_id")
+		return
+	}
+	switch params.EvaluationScope {
+	case "", model.PolicyEvaluationScopeThisRule, model.PolicyEvaluationScopeAll:
+	default:
+		c.SetInvalidParam("evaluation_scope")
+		return
+	}
+
+	if params.EvaluationScope == "" {
+		params.EvaluationScope = model.PolicyEvaluationScopeThisRule
+	}
+
+	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
+	if !ok {
+		return
+	}
+
+	if params.ChannelID != "" && params.TeamID != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, params.ChannelID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if channel.TeamId != params.TeamID {
+			c.SetInvalidParam("team_id")
+			return
+		}
+		params.TeamID = channel.TeamId
+	}
+
+	if !hasSystemPermission {
+		if appErr := c.App.ValidatePolicySimulationUsersInScope(c.AppContext, params.TeamID, params.ChannelID, params.Users); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	resp, appErr := c.App.SimulateAccessControlPolicyForUsers(c.AppContext, params)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Sanitize user profiles before export.
+	for i := range resp.Results {
+		c.App.SanitizeProfile(resp.Results[i].User, hasSystemPermission)
+	}
+
+	// Build CSV output.
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", `attachment; filename="simulation_results.csv"`)
+
+	csvWriter := csv.NewWriter(w)
+	defer csvWriter.Flush()
+
+	// Collect all attribute keys across all users to build a stable header.
+	attrKeys := collectAttributeKeys(resp)
+
+	// Header row: Username, Email, then one column per attribute, then per-action decisions.
+	header := []string{"Username", "Email"}
+	for _, k := range attrKeys {
+		header = append(header, fmt.Sprintf("attr:%s", k))
+	}
+	// Collect action names from the first result that has decisions.
+	var actionNames []string
+	for _, res := range resp.Results {
+		if len(res.Decisions) > 0 {
+			for action := range res.Decisions {
+				actionNames = append(actionNames, action)
+			}
+			sort.Strings(actionNames)
+			break
+		}
+	}
+	for _, a := range actionNames {
+		header = append(header, fmt.Sprintf("decision:%s", a))
+	}
+	if err := csvWriter.Write(header); err != nil {
+		c.Logger.Warn("Error writing CSV header", mlog.Err(err))
+		return
+	}
+
+	// Data rows.
+	for _, res := range resp.Results {
+		row := []string{
+			res.User.Username,
+			res.User.Email,
+		}
+		for _, k := range attrKeys {
+			row = append(row, res.Attributes[k])
+		}
+		for _, a := range actionNames {
+			d, ok := res.Decisions[a]
+			if !ok {
+				row = append(row, "")
+			} else if d.Decision {
+				row = append(row, "ALLOW")
+			} else {
+				row = append(row, "DENY")
+			}
+		}
+		if err := csvWriter.Write(row); err != nil {
+			c.Logger.Warn("Error writing CSV row", mlog.Err(err))
+			return
+		}
+	}
+}
+
+// collectAttributeKeys gathers the deduplicated, sorted set of attribute keys
+// across all simulation results so the CSV columns are stable.
+func collectAttributeKeys(resp *model.PolicySimulationResponse) []string {
+	seen := make(map[string]struct{})
+	for _, res := range resp.Results {
+		for k := range res.Attributes {
+			seen[k] = struct{}{}
+		}
+	}
+	keys := make([]string, 0, len(seen))
+	for k := range seen {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

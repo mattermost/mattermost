@@ -277,6 +277,34 @@ export function createAccessControlTeamSyncJob(jobData: {policy_id?: string}): A
     };
 }
 
+export function exportSimulationCSV(params: PolicySimulationByUsersParams): ActionFuncAsync<Blob> {
+    return async (_dispatch, getState) => {
+        try {
+            const response = await fetch(
+                `${Client4.getAccessControlPoliciesRoute()}/cel/simulate_users/export_csv`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...Client4.getOptions({}).headers,
+                    },
+                    body: JSON.stringify(params),
+                },
+            );
+            if (!response.ok) {
+                const err = await response.json();
+                return {error: err as ServerError};
+            }
+            const blob = await response.blob();
+            return {data: blob};
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, _dispatch, getState);
+            return {error};
+        }
+    };
+}
+
 export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[], teamId?: string) {
     return bindClientFunc({
         clientFunc: Client4.updateAccessControlPoliciesActive,
