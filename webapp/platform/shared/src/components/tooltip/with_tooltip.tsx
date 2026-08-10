@@ -154,7 +154,7 @@ export function WithTooltip({
         console.error('Children must be a valid React element for WithTooltip');
     }
 
-    const mergedRefs = useMergeRefs([setReference, (children as any)?.ref]);
+    const mergedRefs = useMergeRefs([setReference, (children as any)?.props?.ref]);
 
     const trigger = cloneElement(
         children,
