@@ -196,6 +196,41 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText(/People you add will be able to see the full message history/)).toBeInTheDocument();
     });
 
+    test('should allow selecting users not on the current team for group messages', async () => {
+        const userNotOnTeam = users[0];
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, type: 'G' as ChannelType, team_id: '', name: 'abcdef0123456789abcdef0123456789abcdef01'}}
+                profilesNotInCurrentChannel={[userNotOnTeam]}
+                profilesNotInCurrentTeam={[userNotOnTeam]}
+                membersInTeam={{}}
+            />,
+        );
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, userNotOnTeam.username);
+
+        const option = await screen.findByText(userNotOnTeam.username, {selector: '.more-modal__name > span'});
+        await userEvent.click(option);
+
+        expect(screen.queryByTestId('teamWarningBanner')).not.toBeInTheDocument();
+        expect(screen.getByText(userNotOnTeam.username)).toBeInTheDocument();
+    });
+
+    test('should not show team warning banner for group messages', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, type: 'G' as ChannelType, team_id: '', name: 'abcdef0123456789abcdef0123456789abcdef01'}}
+                profilesNotInCurrentChannel={users}
+                membersInTeam={{}}
+            />,
+        );
+
+        expect(screen.queryByTestId('teamWarningBanner')).not.toBeInTheDocument();
+    });
+
     test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
         const {container} = renderWithContext(
             <ChannelInviteModal

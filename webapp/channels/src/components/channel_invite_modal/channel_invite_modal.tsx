@@ -18,6 +18,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
@@ -143,8 +144,12 @@ const ChannelInviteModalComponent = (props: Props) => {
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
 
     // Group messages have no team_id; fall back to the current team for invite profile loading.
+    // Team membership is not required for GMs (server sets SkipTeamMemberIntegrityCheck).
     const currentTeamId = useSelector(getCurrentTeamId);
+    const config = useSelector(getConfig);
+    const isGroupMessage = props.channel.type === Constants.GM_CHANNEL;
     const inviteTeamId = props.channel.team_id || currentTeamId;
+    const restrictDirectMessageAny = isGroupMessage && config.RestrictDirectMessage === 'any';
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
     // Admins can disable the attribute indicators to avoid leaking policy
@@ -186,7 +191,9 @@ const ChannelInviteModalComponent = (props: Props) => {
     const addValue = useCallback((value: UserProfileValue | GroupValue) => {
         if (isUser(value)) {
             const profile = value;
-            if (!props.membersInTeam || !props.membersInTeam[profile.id]) {
+
+            // GMs are teamless — do not gate selection on team membership.
+            if (!isGroupMessage && (!props.membersInTeam || !props.membersInTeam[profile.id])) {
                 if (isGuest(profile.roles)) {
                     setGuestsNotInTeam((prevState) => {
                         if (prevState.findIndex((p) => p.id === profile.id) === -1) {
@@ -212,18 +219,16 @@ const ChannelInviteModalComponent = (props: Props) => {
                 return prevState;
             });
         }
-    }, [props.membersInTeam, isGuest]);
+    }, [isGroupMessage, props.membersInTeam]);
 
     // Get excluded users
     const excludedUsers = useMemo(() => {
-        if (props.excludeUsers) {
-            return new Set([
-                ...props.profilesNotInCurrentTeam.map((user) => user.id),
-                ...Object.values(props.excludeUsers).map((user) => user.id),
-            ]);
-        }
-        return new Set(props.profilesNotInCurrentTeam.map((user) => user.id));
-    }, [props.excludeUsers, props.profilesNotInCurrentTeam]);
+        const excludeIds = [
+            ...(isGroupMessage ? [] : props.profilesNotInCurrentTeam.map((user) => user.id)),
+            ...(props.excludeUsers ? Object.values(props.excludeUsers).map((user) => user.id) : []),
+        ];
+        return new Set(excludeIds);
+    }, [isGroupMessage, props.excludeUsers, props.profilesNotInCurrentTeam]);
 
     // Filter out deleted and excluded users
     const filterOutDeletedAndExcludedAndNotInTeamUsers = useCallback((users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
@@ -259,9 +264,9 @@ const ChannelInviteModalComponent = (props: Props) => {
             }
         }
 
-        // Groups are suppressed only for the hard-gated private ABAC path.
+        // Groups are team-scoped and suppressed for GMs and hard-gated private ABAC.
         const groupsAndUsers = [
-            ...(isPolicyEnforcedPrivate ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
+            ...((isPolicyEnforcedPrivate || isGroupMessage) ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -295,6 +300,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.groups,
         isPolicyEnforcedPrivate,
         isPolicyRecommendedPublic,
+        isGroupMessage,
         recommendedUserIds,
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
@@ -584,11 +590,16 @@ const ChannelInviteModalComponent = (props: Props) => {
                     return;
                 }
 
-                const options = {
-                    team_id: inviteTeamId,
+                const options: Record<string, unknown> = {
                     not_in_channel_id: props.channel.id,
                     group_constrained: Boolean(props.channel.group_constrained),
                 };
+
+                // Match MoreDirectChannels: when DMs are unrestricted, search
+                // site-wide rather than scoping to the current team.
+                if (!restrictDirectMessageAny) {
+                    options.team_id = inviteTeamId;
+                }
 
                 const opts = {
                     q: term,
@@ -603,7 +614,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     props.actions.searchProfiles(term, options),
                 ];
 
-                if (props.isGroupsEnabled) {
+                if (props.isGroupsEnabled && !isGroupMessage) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, inviteTeamId, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -611,7 +622,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
-    }, [props.actions, props.channel, props.isGroupsEnabled, isPolicyEnforcedPrivate, setUsersLoadingState]);
+    }, [props.actions, props.channel, props.isGroupsEnabled, isPolicyEnforcedPrivate, isGroupMessage, inviteTeamId, restrictDirectMessageAny, setUsersLoadingState]);
 
     // Render aria label for options
     const renderAriaLabel = useCallback((option: UserProfileValue | GroupValue): string => {
@@ -802,12 +813,12 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         if (!isEqual(computedOptions, groupAndUserOptions)) {
-            if (userIds.length > 0) {
+            if (!isGroupMessage && userIds.length > 0) {
                 props.actions.getTeamMembersByIds(inviteTeamId, userIds);
             }
             setGroupAndUserOptions(computedOptions);
         }
-    }, [computedOptions, props.actions, inviteTeamId]);
+    }, [computedOptions, props.actions, inviteTeamId, isGroupMessage]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -873,11 +884,11 @@ const ChannelInviteModalComponent = (props: Props) => {
             buttonSubmitLoadingText={buttonSubmitLoadingText}
             saving={saving}
             loading={loadingUsers}
-            placeholderText={props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
+            placeholderText={(props.isGroupsEnabled && !isGroupMessage) ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
             valueWithImage={true}
             backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
             backButtonClick={closeMembersInviteModal}
-            customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
+            customNoOptionsMessage={(props.emailInvitationsEnabled && !isGroupMessage) ? customNoOptionsMessage : null}
         />
     );
 
@@ -972,12 +983,14 @@ const ChannelInviteModalComponent = (props: Props) => {
                 )}
                 <div className='channel-invite__content'>
                     {content}
-                    <TeamWarningBanner
-                        guests={guestsNotInTeam}
-                        teamId={inviteTeamId}
-                        users={usersNotInTeam}
-                    />
-                    {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}
+                    {!isGroupMessage && (
+                        <TeamWarningBanner
+                            guests={guestsNotInTeam}
+                            teamId={inviteTeamId}
+                            users={usersNotInTeam}
+                        />
+                    )}
+                    {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate && !isGroupMessage) && inviteGuestLink}
                 </div>
             </div>
         </GenericModal>
