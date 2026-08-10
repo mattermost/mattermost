@@ -23,7 +23,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
-import PlatformIcons from 'components/admin_console/session_attributes/platform_icons';
+import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
 import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
 import * as Menu from 'components/menu';
 
@@ -199,16 +199,27 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 }
                 trailingElements={(
                     <>
-                        {platforms.length > 0 && (
-                            <PlatformIcons
-                                platforms={platforms}
-                                variant='active-only'
-                                size={16}
-                                className=''
-                                iconClassName='attribute-selector-platform-icon'
-                                iconColor='var(--button-bg)'
-                            />
-                        )}
+                        {platforms.map((platform) => {
+                            const PlatformIcon = PLATFORM_ICONS[platform];
+                            if (!PlatformIcon) {
+                                return null;
+                            }
+                            const platformLabel = formatMessage(platformLabels[platform]);
+                            return (
+                                <WithTooltip
+                                    key={platform}
+                                    title={platformLabel}
+                                >
+                                    <span className='attribute-selector-platform-icon'>
+                                        <PlatformIcon
+                                            size={16}
+                                            color='var(--button-bg)'
+                                            aria-label={platformLabel}
+                                        />
+                                    </span>
+                                </WithTooltip>
+                            );
+                        })}
                         {hasSpaces && (
                             <InformationOutlineIcon
                                 size={18}
