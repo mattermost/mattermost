@@ -17,7 +17,12 @@ test('MM-25966 Remove and leave members of an existing group message', async ({p
     );
 
     const participants = await adminClient.createUsers(team.id, 3, 'gm-manage');
-    const groupChannel = await adminClient.createGroupChannel([user.id, participants[0].id, participants[1].id, participants[2].id]);
+    const groupChannel = await adminClient.createGroupChannel([
+        user.id,
+        participants[0].id,
+        participants[1].id,
+        participants[2].id,
+    ]);
 
     const {channelsPage, page} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, groupChannel.name);
