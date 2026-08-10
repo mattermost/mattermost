@@ -5,10 +5,19 @@
 // FloatingPortal, so the rules sit at the document root rather than
 // nested under the modal — same pattern as the AddUsersInline panel.
 
+// Flex column + clipped overflow so the inner form fills the panel and
+// the field grid scrolls within it. The panel's max-height is set inline
+// by Floating UI's size middleware (the space available on the chosen
+// side); the CSS cap is a fallback so the panel never exceeds the
+// viewport even before the middleware runs (MM-70142).
 .SimulateAccessModal__editorPanel {
     z-index: 1080;
+    display: flex;
+    overflow: hidden;
     width: 520px;
     max-width: 90vw;
+    max-height: calc(100vh - 16px);
+    flex-direction: column;
     padding: 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 8px;
@@ -17,14 +26,12 @@
 }
 
 .SimulateAccessModal__editorForm {
+    // Fill the height-capped panel and let the grid below be the scroll
+    // region so the title, description and Apply / Cancel actions stay
+    // pinned and reachable when many attributes are configured.
     display: flex;
-
-    // Cap the form to the viewport height so a long session-attribute
-    // list can't grow the popover past the screen and push the
-    // Apply / Cancel actions out of reach (MM-70142). The grid below
-    // becomes the scroll region while the title, description and
-    // actions stay pinned.
-    max-height: calc(100vh - 48px);
+    min-height: 0;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 12px;
 }
