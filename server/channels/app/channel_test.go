@@ -1292,6 +1292,111 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 	})
 }
 
+func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected when feature flag is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMutableGroupMessages = false
+		}).InitBasic(t)
+
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user2.Id, th.BasicUser.Id, channel)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.remove_channel_member.type.app_error", appErr.Id)
+
+		appErr = th.App.LeaveChannel(th.Context, channel.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.leave.direct.app_error", appErr.Id)
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableMutableGroupMessages = true
+	}).InitBasic(t)
+
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	user3 := th.CreateUser(t)
+
+	t.Run("removes member, updates identity, and posts system message", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user3.Id, th.BasicUser.Id, channel)
+		require.Nil(t, appErr)
+
+		updated, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id, user2.Id})
+		require.Equal(t, expectedName, updated.Name)
+		require.NotEqual(t, originalName, updated.Name)
+
+		_, appErr = th.App.GetChannelMember(th.Context, channel.Id, user3.Id)
+		require.NotNil(t, appErr)
+
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		require.NoError(t, nErr)
+
+		var removePost *model.Post
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			if post.Type == model.PostTypeRemoveFromChannel {
+				removePost = post
+				break
+			}
+		}
+		require.NotNil(t, removePost)
+		require.Equal(t, th.BasicUser.Id, removePost.UserId)
+	})
+
+	t.Run("allows leave and updates identity", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.LeaveChannel(th.Context, channel.Id, user2.Id)
+		require.Nil(t, appErr)
+
+		updated, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id})
+		require.Equal(t, expectedName, updated.Name)
+
+		_, appErr = th.App.GetChannelMember(th.Context, channel.Id, user2.Id)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("rejects when resulting membership already exists", func(t *testing.T) {
+		channelA, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		channelB, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, channelA.Id, channelB.Id)
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user3.Id, th.BasicUser.Id, channelB)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.already_exists.app_error", appErr.Id)
+		require.Contains(t, appErr.DetailedError, channelA.Id)
+	})
+
+	t.Run("rejects shared group channels", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		shared := true
+		channel.Shared = &shared
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user2.Id, th.BasicUser.Id, channel)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.remove_user_from_group.shared.app_error", appErr.Id)
+	})
+}
+
 func TestAppUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
