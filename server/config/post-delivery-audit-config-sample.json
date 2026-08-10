@@ -1,0 +1,20 @@
+{
+  "post-delivery-audit": {
+    "type": "file",
+    "format": "json",
+    "levels": [
+      {
+        "id": 104,
+        "name": "audit-delivery"
+      }
+    ],
+    "options": {
+      "filename": "./logs/post-delivery-audit.log",
+      "max_size": 100,
+      "max_age": 0,
+      "max_backups": 0,
+      "compress": true
+    },
+    "maxqueuesize": 10000
+  }
+}
