@@ -52,10 +52,12 @@ function mapStateToProps(state: GlobalState) {
     const isGroupMessage = channel?.type === Constants.GM_CHANNEL;
     const mutableGroupMessagesEnabled = getFeatureFlagValue(state, 'EnableMutableGroupMessages') === 'true';
     let canManageMembers = false;
-    if (isGroupMessage && mutableGroupMessagesEnabled) {
-        canManageMembers = true;
-    } else if (!isGroupMessage) {
-        canManageMembers = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
+    if (!isArchived) {
+        if (isGroupMessage && mutableGroupMessagesEnabled) {
+            canManageMembers = true;
+        } else if (!isGroupMessage) {
+            canManageMembers = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
+        }
     }
     const canManageProperties = haveIChannelPermission(state, currentTeam?.id, channel?.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
 
