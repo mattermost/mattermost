@@ -5889,7 +5889,7 @@
   "leave_group_message_modal.title": "Leave Group Message {channel}",
   "leave_group_message_modal.message": "Are you sure you wish to leave the group message {channel}? You must be re-added in order to re-join this conversation in the future.",
   "remove_from_group_message_modal.title": "Remove from Group Message",
-  "remove_from_group_message_modal.message": "Are you sure you want to remove @{user} from this group message?",
+  "remove_from_group_message_modal.message": "Are you sure you want to remove {user} from this group message?",
   "remove_from_group_message_modal.confirm": "Yes, remove",
   "leave_public_channel_modal.message": "Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind.",
   "leave_public_channel_modal.title": "Leave Channel {channel}",
