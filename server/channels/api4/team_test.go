@@ -3780,6 +3780,25 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	rolesBefore := memberBefore.Roles
+
+	resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamGuestRoleId+" "+model.TeamAdminRoleId)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.team.update_team_member_roles.guest_and_admin.app_error")
+
+	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, rolesBefore, memberAfter.Roles)
+}
+
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

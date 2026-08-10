@@ -440,6 +440,10 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if member.SchemeGuest && member.SchemeAdmin {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if prevSchemeGuestValue != member.SchemeGuest {
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -665,6 +669,10 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 	}
 	if !user.IsGuest() && (token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation) {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if emailFromToken := tokenData["email"]; emailFromToken != "" && !strings.EqualFold(emailFromToken, user.Email) {
+		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	teamMember, appErr := a.JoinUserToTeam(rctx, team, user, "")
