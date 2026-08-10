@@ -1362,7 +1362,7 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id, user4.Id, retryUser.Id})
 		require.Equal(t, expectedName, updated.Name)
 
-		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
 		require.NoError(t, nErr)
 
 		var addPosts int
@@ -1378,7 +1378,7 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		_, appErr = th.App.AddChannelMember(th.Context, retryUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 
-		postList, nErr = th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		postList, nErr = th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
 		require.NoError(t, nErr)
 
 		addPosts = 0
