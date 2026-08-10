@@ -804,9 +804,7 @@ const defaultServerConfig: AdminConfig = {
         WysiwygEditor: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
-        CloudDedicatedExportUI: false,
         NotificationMonitoring: true,
-        CustomProfileAttributes: true,
         AttributeValueMasking: false,
         PermissionPolicies: false,
         ChannelPermissionPolicies: false,
@@ -828,7 +826,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoverableChannels: false,
         MobileEphemeralMode: false,
         PropertyFieldRank: false,
-        TeamMembershipAccessControl: false,
+        TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
     },
     ImportSettings: {
