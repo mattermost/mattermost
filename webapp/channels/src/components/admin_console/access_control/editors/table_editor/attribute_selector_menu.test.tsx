@@ -212,4 +212,21 @@ describe('AttributeSelectorMenu', () => {
 
         expect(document.querySelector('.MuiDivider-root')).toBeInTheDocument();
     });
+
+    // The button label must live in a dedicated element so the CSS can
+    // ellipsis-truncate long attribute names instead of overflowing the
+    // Attribute column into the Operator column.
+    test('renders the selected attribute label inside a truncatable container', () => {
+        renderWithContext(
+            <AttributeSelectorMenu
+                {...baseProps}
+                currentAttribute='department'
+                availableAttributes={[userField]}
+            />,
+        );
+
+        const label = screen.getByTestId('attributeSelectorMenuButton').querySelector('.field-selector-menu-button__label');
+        expect(label).toBeInTheDocument();
+        expect(label).toHaveTextContent('Department');
+    });
 });
