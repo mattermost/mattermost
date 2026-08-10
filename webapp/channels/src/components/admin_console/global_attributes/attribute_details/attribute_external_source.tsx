@@ -97,6 +97,31 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
         }));
     }, [dispatch, fieldType, ldapAttr, samlAttr, onLink]);
 
+    // Closing the link modal restores focus to the trigger programmatically,
+    // and it comes from a keyboard-focused control (a text input always matches
+    // :focus-visible, and Enter submits from there), so the trigger inherits
+    // :focus-visible. Clicking it with the mouse does not clear that -- an
+    // already-focused element fires no new focus event -- so the item MUI
+    // auto-focuses on open inherits it in turn and gets painted with the
+    // keyboard focus ring, on a menu the admin opened with the mouse. Dropping
+    // focus on press lets the click's own default focus re-evaluate the
+    // interaction as a pointer one; keyboard opens never fire mousedown, so
+    // their focus ring is untouched.
+    const handleTriggerMouseDown = useCallback((event: React.MouseEvent<HTMLElement>) => {
+        const trigger = event.currentTarget;
+        if (document.activeElement !== trigger) {
+            return;
+        }
+
+        try {
+            if (trigger.matches(':focus-visible')) {
+                trigger.blur();
+            }
+        } catch {
+            // :focus-visible is unsupported (jsdom) -- there is no state to clear.
+        }
+    }, []);
+
     const linkedSources = ALL_SOURCES.filter((source) => sourceValue(source, ldapAttr, samlAttr));
     const unlinkedSources = ALL_SOURCES.filter((source) => !sourceValue(source, ldapAttr, samlAttr));
 
@@ -112,6 +137,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                         id: TRIGGER_ID,
                         class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
                         disabled,
+                        onMouseDown: handleTriggerMouseDown,
                         children: (
                             <>
                                 <RefreshIcon size={16}/>
