@@ -4113,7 +4113,8 @@ type AccessControlSettings struct {
 	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
 	// Shared interval for both the channel and team membership sync schedulers;
 	// applied at scheduler construction (needs a restart to take effect).
-	SyncJobIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
+	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
+	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4146,6 +4147,10 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.SyncJobIntervalSeconds == nil {
 		s.SyncJobIntervalSeconds = new(3600)
 	}
+
+	if s.AttributeRefreshIntervalSeconds == nil {
+		s.AttributeRefreshIntervalSeconds = new(30)
+	}
 }
 
 func (s *AccessControlSettings) isValid() *AppError {
@@ -4153,6 +4158,11 @@ func (s *AccessControlSettings) isValid() *AppError {
 	// would hammer the store to no effect, so reject it outright.
 	if *s.SyncJobIntervalSeconds < 60 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
+	if *s.AttributeRefreshIntervalSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
