@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
@@ -64,32 +63,25 @@ func getJSONOrErrorStr(obj any) string {
 }
 
 // wrapElasticsearchTemplateError preserves the original Elasticsearch error while adding the nested
-// cause details that the generated client's Error method omits. Posts-template failures also include
-// a reminder to verify the required analysis-icu plugin, regardless of the backend's error wording.
-// Only the cause type and reason are included so stack traces and arbitrary metadata from the backend
-// do not end up in the normal startup error.
-func wrapElasticsearchTemplateError(err error, postsTemplate bool) error {
+// cause details that the generated client's Error method omits. Only the cause type and reason are
+// included so stack traces and arbitrary metadata from the backend do not end up in the normal
+// startup error.
+func wrapElasticsearchTemplateError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	details := make([]string, 0, 2)
 	var elasticsearchErr *types.ElasticsearchError
-	if errors.As(err, &elasticsearchErr) && elasticsearchErr != nil {
-		if causes := formatElasticsearchCauses(elasticsearchErr.ErrorCause.CausedBy); causes != "" {
-			details = append(details, "caused by: "+causes)
-		}
-	}
-
-	if postsTemplate {
-		details = append(details, i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
-	}
-
-	if len(details) == 0 {
+	if !errors.As(err, &elasticsearchErr) || elasticsearchErr == nil {
 		return err
 	}
 
-	return fmt.Errorf("%s: %w", strings.Join(details, "; "), err)
+	causes := formatElasticsearchCauses(elasticsearchErr.ErrorCause.CausedBy)
+	if causes == "" {
+		return err
+	}
+
+	return fmt.Errorf("caused by: %s: %w", causes, err)
 }
 
 func formatElasticsearchCauses(cause *types.ErrorCause) string {
@@ -163,16 +155,34 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 	es.version = major
 	es.fullVersion = version
 
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := client.API.Cat.Plugins().Do(ctx)
+	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
+	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
+	// behavior and let template creation report any resulting backend error.
+	resp, err := client.Nodes.Info().Metric("plugins").Do(ctx)
 	if err != nil {
-		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
-	} else {
-		es.plugins = nil
-		for _, p := range resp {
-			es.plugins = append(es.plugins, *p.Component)
+		es.Platform.Log().Warn("Error retrieving elasticsearch node plugins", mlog.Err(err))
+		return nil
+	}
+	if resp.NodeStats != nil && resp.NodeStats.Failed > 0 {
+		es.Platform.Log().Warn("Some elasticsearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodeStats.Failed))
+		return nil
+	}
+
+	es.plugins = nil
+	analysisICUInstalledOnEveryNode := true
+	for _, node := range resp.Nodes {
+		nodeHasAnalysisICU := false
+		for _, plugin := range node.Plugins {
+			es.plugins = append(es.plugins, plugin.Name)
+			if plugin.Name == "analysis-icu" {
+				nodeHasAnalysisICU = true
+			}
 		}
+		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && nodeHasAnalysisICU
+	}
+
+	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
+		return model.NewAppError("Elasticsearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -226,7 +236,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetPostTemplate(es.Platform.Config(), opts...)).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, true))
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err))
 	}
 
 	// Set up channels index template.
@@ -234,7 +244,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetChannelTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err))
 	}
 
 	// Set up users index template.
@@ -242,7 +252,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetUserTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err))
 	}
 
 	// Set up files index template.
@@ -250,7 +260,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		Request(common.GetFileInfoTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err, false))
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(wrapElasticsearchTemplateError(err))
 	}
 
 	esSettings := es.Platform.Config().ElasticsearchSettings

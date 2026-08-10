@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -238,8 +237,8 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
 			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
-		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/_cat/plugins"):
-			_, _ = w.Write([]byte(`[]`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`))
 		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"error":{"type":"illegal_argument_exception","reason":"composable template [posts] template after composition is invalid","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`))
@@ -265,14 +264,55 @@ func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
 	appErr := es.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
-	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}))
 	require.Equal(t, int32(0), es.ready.Load())
 	require.Nil(t, es.bulkProcessor)
 	require.Nil(t, es.syncBulkProcessor)
 }
 
+func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
+	templateRequested := make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`))
+		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
+			templateRequested <- struct{}{}
+			_, _ = w.Write([]byte(`{"acknowledged":true}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, es.Stop()) }()
+	appErr := es.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
+	require.Equal(t, int32(0), es.ready.Load())
+	require.Nil(t, es.bulkProcessor)
+	require.Nil(t, es.syncBulkProcessor)
+	select {
+	case <-templateRequested:
+		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
+	default:
+	}
+}
+
 func TestWrapElasticsearchTemplateError(t *testing.T) {
-	guidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"})
 	nestedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"
 	nested := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &nestedReason}
 	outerReason := "failed to build posts template"
@@ -291,10 +331,9 @@ func TestWrapElasticsearchTemplateError(t *testing.T) {
 	}
 	wrapped := fmt.Errorf("request context: %w", original)
 
-	formatted := wrapElasticsearchTemplateError(wrapped, true)
+	formatted := wrapElasticsearchTemplateError(wrapped)
 	require.Contains(t, formatted.Error(), "status: 400, failed: [illegal_argument_exception], reason: failed to build posts template")
 	require.Contains(t, formatted.Error(), "caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
-	require.Contains(t, formatted.Error(), guidance)
 	require.NotContains(t, formatted.Error(), "stack trace")
 	require.NotContains(t, formatted.Error(), "arbitrary metadata")
 	require.ErrorIs(t, formatted, wrapped)
@@ -303,12 +342,8 @@ func TestWrapElasticsearchTemplateError(t *testing.T) {
 	require.Same(t, original, extracted)
 
 	generic := errors.New("template request failed")
-	formatted = wrapElasticsearchTemplateError(generic, true)
-	require.Contains(t, formatted.Error(), guidance)
-	require.ErrorIs(t, formatted, generic)
-
-	require.Same(t, generic, wrapElasticsearchTemplateError(generic, false))
-	require.NoError(t, wrapElasticsearchTemplateError(nil, true))
+	require.Same(t, generic, wrapElasticsearchTemplateError(generic))
+	require.NoError(t, wrapElasticsearchTemplateError(nil))
 }
 
 type testBulkClient struct {

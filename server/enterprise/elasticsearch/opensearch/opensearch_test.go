@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -46,46 +45,13 @@ func TestOpensearchInterfaceTestSuite(t *testing.T) {
 	suite.Run(t, testSuite)
 }
 
-func TestWrapPostsTemplateError(t *testing.T) {
-	guidance := i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"})
-
-	original := &opensearch.StructError{
-		Status: 400,
-		Err: opensearch.Err{
-			Type:   "illegal_argument_exception",
-			Reason: "failed to parse template",
-			CausedBy: &opensearch.CausedBy{
-				Type:   "analyzer_exception",
-				Reason: "analyzer failed",
-				CausedBy: &opensearch.CausedBy{
-					Type:   "unknown_tokenizer",
-					Reason: "tokenizer [missing_tokenizer] is unavailable",
-				},
-			},
-		},
-	}
-	written := fmt.Errorf("transport failure: %w", original)
-	formatted := wrapPostsTemplateError(written)
-	require.Contains(t, formatted.Error(), "unknown_tokenizer")
-	require.Contains(t, formatted.Error(), "tokenizer [missing_tokenizer] is unavailable")
-	require.Contains(t, formatted.Error(), guidance)
-	require.ErrorIs(t, formatted, written)
-	require.ErrorIs(t, formatted, original)
-
-	generic := errors.New("template request failed")
-	formatted = wrapPostsTemplateError(generic)
-	require.Contains(t, formatted.Error(), guidance)
-	require.ErrorIs(t, formatted, generic)
-	require.NoError(t, wrapPostsTemplateError(nil))
-}
-
 func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.URL.Path == "/":
 			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
-		case r.URL.Path == "/_cat/plugins":
-			_, _ = fmt.Fprint(w, `[]`)
+		case r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
@@ -112,12 +78,53 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	appErr := impl.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "icu_tokenizer")
-	require.Contains(t, appErr.Error(), i18n.T("ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}))
 	require.Equal(t, int32(0), impl.ready.Load())
 	require.Nil(t, impl.bulkProcessor)
 	require.Nil(t, impl.syncBulkProcessor)
 
 	require.Nil(t, impl.Stop())
+}
+
+func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
+	templateRequested := make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			templateRequested <- struct{}{}
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	appErr := impl.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+	select {
+	case <-templateRequested:
+		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
+	default:
+	}
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
