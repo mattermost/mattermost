@@ -77,6 +77,23 @@ func TestUpdateTeam(t *testing.T) {
 	updatedTeam, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err, "Should update the team")
 	require.Equal(t, "Testing 123", updatedTeam.DisplayName, "Wrong Team DisplayName")
+
+	updatedTeam.Name = "renamed-" + model.NewRandomTeamName()
+	updatedTeam.Description = "Updated description"
+	leakedEmail := "leak+" + model.NewId() + "@simulator.amazonses.com"
+	updatedTeam.Email = leakedEmail
+	updatedTeam.Type = model.TeamInvite
+
+	updatedTeam, err = th.App.UpdateTeam(updatedTeam)
+	require.Nil(t, err, "Should update the team name and sanitized fields")
+	require.Equal(t, "Updated description", updatedTeam.Description, "Wrong Team Description")
+
+	fetchedTeam, err := th.App.GetTeam(updatedTeam.Id)
+	require.Nil(t, err)
+	require.Equal(t, updatedTeam.Name, fetchedTeam.Name, "Wrong Team Name")
+	require.Equal(t, "Updated description", fetchedTeam.Description, "Wrong Team Description")
+	require.NotEqual(t, leakedEmail, fetchedTeam.Email, "Should not update email")
+	require.Equal(t, model.TeamOpen, fetchedTeam.Type, "Should not update type")
 }
 
 func TestAddUserToTeam(t *testing.T) {
