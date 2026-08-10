@@ -1260,6 +1260,22 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Contains(t, appErr.DetailedError, channelB.Id)
 	})
 
+	t.Run("rejects when resulting membership collides with archived group channel", func(t *testing.T) {
+		channelA, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		channelB, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, channelA.Id, channelB.Id)
+
+		appErr = th.App.DeleteChannel(th.Context, channelB, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user3.Id, channelA, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.already_exists.app_error", appErr.Id)
+		require.Contains(t, appErr.DetailedError, channelB.Id)
+	})
+
 	t.Run("rejects when max members exceeded", func(t *testing.T) {
 		users := []*model.User{th.BasicUser, user1, user2, user3, user4}
 		for range model.ChannelGroupMaxUsers - len(users) {

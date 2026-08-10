@@ -2370,7 +2370,7 @@ func (a *App) validateGroupChannelMembersAdd(rctx request.CTX, channel *model.Ch
 		return model.NewAppError("AddGroupChannelMembers", "api.channel.add_user_to_group.max_members.app_error", map[string]any{"MaxUsers": model.ChannelGroupMaxUsers}, "", http.StatusBadRequest)
 	}
 
-	existing, err := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(proposed), "", false)
+	existing, err := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(proposed), "", true)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
 			return nil
