@@ -25,7 +25,6 @@ import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermo
 
 import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 import {getChannelURL} from 'selectors/urls';
-
 import store from 'stores/redux_store';
 
 import AlertBanner from 'components/alert_banner';
