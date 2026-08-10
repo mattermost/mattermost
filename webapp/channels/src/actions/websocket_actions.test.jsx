@@ -895,9 +895,6 @@ describe('reconnect', () => {
                         license: {
                             SkuShortName: 'enterprise',
                         },
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             },
@@ -911,9 +908,9 @@ describe('reconnect', () => {
     });
 
     test.each([
-        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
-        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
-    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        {SkuShortName: 'starter'},
+        {SkuShortName: 'professional'},
+    ])('should not reload custom profile attribute fields on reconnect without an Enterprise license', ({SkuShortName}) => {
         const clonedMockState = cloneDeep(mockState);
 
         mockState = mergeObjects(
@@ -923,9 +920,6 @@ describe('reconnect', () => {
                     general: {
                         license: {
                             SkuShortName,
-                        },
-                        config: {
-                            FeatureFlagCustomProfileAttributes,
                         },
                     },
                 },

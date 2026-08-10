@@ -14,11 +14,12 @@ type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
 	License struct {
-		Company      string `yaml:"company"`
-		Users        int    `yaml:"users"`
-		SkuShortName string `yaml:"sku_short_name"`
-		IsTrial      bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU     bool   `yaml:"is_gov_sku,omitempty"`
+		Company         string `yaml:"company"`
+		Users           int    `yaml:"users"`
+		SkuShortName    string `yaml:"sku_short_name"`
+		IsTrial         bool   `yaml:"is_trial,omitempty"`
+		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
 	} `yaml:"license"`
 
 	Server struct {
