@@ -572,6 +572,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
                 allUserIds={allUserIds}
                 allUsernames={allUsernames}
                 messageData={messageData}
+                channelType={channel?.type}
             />
         );
     } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {

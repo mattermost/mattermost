@@ -434,6 +434,7 @@ export const ModalIdentifiers = {
     POST_DELETED_MODAL: 'post_deleted_modal',
     FILE_PREVIEW_MODAL: 'file_preview_modal',
     LEAVE_PRIVATE_CHANNEL_MODAL: 'leave_private_channel_modal',
+    REMOVE_FROM_GROUP_MESSAGE_MODAL: 'remove_from_group_message_modal',
     MARK_ALL_AS_READ: 'mark_all_as_read',
     GET_PUBLIC_LINK_MODAL: 'get_public_link_modal',
     KEYBOARD_SHORTCUTS_MODAL: 'keyboar_shortcuts_modal',

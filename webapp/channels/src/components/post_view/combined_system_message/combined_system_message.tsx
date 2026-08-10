@@ -7,7 +7,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants';
+import {General, Posts} from 'mattermost-redux/constants';
 import type {MessageData} from 'mattermost-redux/utils/post_list';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
@@ -19,6 +19,8 @@ const {
     JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL, JOIN_LEAVE_CHANNEL,
     JOIN_TEAM, ADD_TO_TEAM, REMOVE_FROM_TEAM, LEAVE_TEAM,
 } = Posts.POST_TYPES;
+
+const REMOVE_FROM_GROUP_MESSAGE_KEY = 'remove_from_group_message';
 
 const postTypeMessage = {
     [JOIN_CHANNEL]: defineMessages({
@@ -73,6 +75,24 @@ const postTypeMessage = {
         many_expanded: {
             id: 'combined_system_message.removed_from_channel.many_expanded',
             defaultMessage: '{users} and {lastUser} were **removed from the channel**.',
+        },
+    }),
+    remove_from_group_message: defineMessages({
+        one: {
+            id: 'combined_system_message.removed_from_group.one',
+            defaultMessage: '{firstUser} was **removed from the group message** by {actor}.',
+        },
+        one_you: {
+            id: 'combined_system_message.removed_from_group.one_you',
+            defaultMessage: 'You were **removed from the group message** by {actor}.',
+        },
+        two: {
+            id: 'combined_system_message.removed_from_group.two',
+            defaultMessage: '{firstUser} and {secondUser} were **removed from the group message** by {actor}.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.removed_from_group.many_expanded',
+            defaultMessage: '{users} and {lastUser} were **removed from the group message** by {actor}.',
         },
     }),
     [LEAVE_CHANNEL]: defineMessages({
@@ -188,6 +208,7 @@ const postTypeMessage = {
 export type Props = {
     allUserIds: string[];
     allUsernames: string[];
+    channelType?: string;
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
@@ -301,7 +322,11 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
             singleline: true,
         };
 
-        const selectedPostTypeMessage = secureGetFromRecord(postTypeMessage, postType);
+        let selectedPostTypeKey = postType;
+        if (postType === REMOVE_FROM_CHANNEL && this.props.channelType === General.GM_CHANNEL) {
+            selectedPostTypeKey = REMOVE_FROM_GROUP_MESSAGE_KEY;
+        }
+        const selectedPostTypeMessage = secureGetFromRecord(postTypeMessage, selectedPostTypeKey);
         if (!selectedPostTypeMessage) {
             return <></>;
         }
@@ -312,7 +337,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                     actor={actor}
                     expandedLocale={selectedPostTypeMessage.many_expanded}
                     formatOptions={options}
-                    postType={postType}
+                    postType={selectedPostTypeKey}
                     usernames={usernames}
                 />
             );

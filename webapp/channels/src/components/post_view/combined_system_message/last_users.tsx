@@ -33,6 +33,10 @@ const typeMessage = defineMessages({
         id: 'last_users_message.removed_from_channel.type',
         defaultMessage: 'were **removed from the channel**.',
     },
+    remove_from_group_message: {
+        id: 'last_users_message.removed_from_group.type',
+        defaultMessage: 'were **removed from the group message** by {actor}.',
+    },
     [Posts.POST_TYPES.ADD_TO_TEAM]: {
         id: 'last_users_message.added_to_team.type',
         defaultMessage: 'were **added to the team** by {actor}.',
