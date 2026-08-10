@@ -17,17 +17,14 @@ import {
     InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
-    MonitorIcon,
-    CellphoneIcon,
-    GlobeIcon,
     SortAscendingIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
+import PlatformIcons from 'components/admin_console/session_attributes/platform_icons';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -77,18 +74,6 @@ const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
     }
     return <MenuVariantIcon {...iconProps}/>;
 };
-
-const PLATFORM_ICONS: Record<string, ComponentType<IconProps>> = {
-    desktop: MonitorIcon,
-    mobile: CellphoneIcon,
-    browser: GlobeIcon,
-};
-
-const platformTooltipLabels = defineMessages({
-    desktop: {id: 'admin.access_control.table_editor.selector.platform.desktop', defaultMessage: 'Desktop'},
-    mobile: {id: 'admin.access_control.table_editor.selector.platform.mobile', defaultMessage: 'Mobile'},
-    browser: {id: 'admin.access_control.table_editor.selector.platform.browser', defaultMessage: 'Web Browser'},
-});
 
 interface AttributeSelectorProps {
     currentAttribute: string;
@@ -213,28 +198,16 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 }
                 trailingElements={(
                     <>
-                        {platforms.map((platform) => {
-                            const PlatformIcon = PLATFORM_ICONS[platform];
-                            const platformLabel = platformTooltipLabels[platform as keyof typeof platformTooltipLabels];
-                            if (!PlatformIcon || !platformLabel) {
-                                return null;
-                            }
-                            const label = formatMessage(platformLabel);
-                            return (
-                                <WithTooltip
-                                    key={platform}
-                                    title={label}
-                                >
-                                    <span className='attribute-selector-platform-icon'>
-                                        <PlatformIcon
-                                            size={16}
-                                            color='var(--button-bg)'
-                                            aria-label={label}
-                                        />
-                                    </span>
-                                </WithTooltip>
-                            );
-                        })}
+                        {platforms.length > 0 && (
+                            <PlatformIcons
+                                platforms={platforms}
+                                variant='active-only'
+                                size={16}
+                                className=''
+                                iconClassName='attribute-selector-platform-icon'
+                                iconColor='var(--button-bg)'
+                            />
+                        )}
                         {hasSpaces && (
                             <InformationOutlineIcon
                                 size={18}

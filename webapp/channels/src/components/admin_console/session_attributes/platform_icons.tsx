@@ -13,45 +13,79 @@ import {SESSION_PLATFORMS, type SessionPlatform} from './utils';
 
 import './session_attributes.scss';
 
-const ICONS: Record<SessionPlatform, ComponentType<IconProps>> = {
+export const PLATFORM_ICONS: Record<SessionPlatform, ComponentType<IconProps>> = {
     desktop: MonitorIcon,
     mobile: CellphoneIcon,
     browser: GlobeIcon,
 };
 
+export const platformLabels = defineMessages({
+    desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
+    mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
+    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Web Browser'},
+});
+
 type Props = {
     platforms: SessionPlatform[];
+    /** Show all platform slots with active/inactive styling (default), or only show active platforms */
+    variant?: 'all-slots' | 'active-only';
+    /** Icon size */
+    size?: number;
+    /** Optional className for the wrapper */
+    className?: string;
+    /** Optional className for individual icon wrappers */
+    iconClassName?: string;
+    /** Optional color override for icons */
+    iconColor?: string;
 };
 
-export default function PlatformIcons({platforms}: Props) {
+export default function PlatformIcons({
+    platforms,
+    variant = 'all-slots',
+    size = 18,
+    className = 'SessionAttributes__platforms',
+    iconClassName,
+    iconColor,
+}: Props) {
     const {formatMessage} = useIntl();
+
+    const platformsToRender = variant === 'all-slots' ? SESSION_PLATFORMS : platforms;
 
     return (
         <span
-            className='SessionAttributes__platforms'
+            className={className}
             data-testid='session-attribute-platforms'
         >
-            {SESSION_PLATFORMS.map((platform) => {
-                const Icon = ICONS[platform];
+            {platformsToRender.map((platform) => {
+                const Icon = PLATFORM_ICONS[platform];
+                if (!Icon) {
+                    return null;
+                }
+
                 const active = platforms.includes(platform);
                 const platformLabel = formatMessage(platformLabels[platform]);
-                const accessibleLabel = formatMessage(
-                    active ? platformStateLabels.active : platformStateLabels.inactive,
-                    {platform: platformLabel},
-                );
+                const accessibleLabel = variant === 'all-slots'
+                    ? formatMessage(
+                        active ? platformStateLabels.active : platformStateLabels.inactive,
+                        {platform: platformLabel},
+                    )
+                    : platformLabel;
 
                 return (
                     <span
                         key={platform}
-                        className='SessionAttributes__platform-slot'
+                        className={variant === 'all-slots' ? 'SessionAttributes__platform-slot' : iconClassName}
                         data-platform={platform}
                         data-active={active}
                     >
                         <WithTooltip title={platformLabel}>
-                            <Icon
-                                size={18}
-                                aria-label={accessibleLabel}
-                            />
+                            <span>
+                                <Icon
+                                    size={size}
+                                    color={iconColor}
+                                    aria-label={accessibleLabel}
+                                />
+                            </span>
                         </WithTooltip>
                     </span>
                 );
@@ -59,12 +93,6 @@ export default function PlatformIcons({platforms}: Props) {
         </span>
     );
 }
-
-const platformLabels = defineMessages({
-    desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
-    mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
-    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Web Browser'},
-});
 
 // Icons only differ by styling, so the active/inactive state must be spelled out
 // in the accessible name for screen-reader users.
