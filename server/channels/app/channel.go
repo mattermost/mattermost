@@ -2956,13 +2956,30 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 	channel := cresult.Data
 	user := uresult.Data
 
-	if channel.IsGroupOrDirect() {
-		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
-		return err
+	if channel.Type == model.ChannelTypeDirect {
+		return model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+			return model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
+		}
+		if channel.IsShared() {
+			return model.NewAppError("LeaveChannel", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
+		}
+		if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userID); appErr != nil {
+			return appErr
+		}
 	}
 
 	if err := a.removeUserFromChannel(rctx, userID, userID, channel); err != nil {
 		return err
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
+			rctx.Logger().Error("Failed to sync group channel identity after leave", mlog.String("channel_id", channel.Id), mlog.Err(syncErr))
+		}
 	}
 
 	if channel.Name == model.DefaultChannelName && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -3212,8 +3229,26 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	var err *model.AppError
 
+	if channel.Type == model.ChannelTypeGroup {
+		if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		}
+		if channel.IsShared() {
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
+		}
+		if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userIDToRemove); appErr != nil {
+			return appErr
+		}
+	}
+
 	if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
 		return err
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
+			rctx.Logger().Error("Failed to sync group channel identity after remove", mlog.String("channel_id", channel.Id), mlog.Err(syncErr))
+		}
 	}
 
 	// Space backing channels are internal: skip the leave/remove system post.
@@ -3234,6 +3269,41 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		if err := a.postRemoveFromChannelMessage(rctx, removerUserId, user, channel); err != nil {
 			rctx.Logger().Error("Failed to post user removal message", mlog.Err(err))
 		}
+	}
+
+	return nil
+}
+
+// validateGroupChannelMemberRemove checks whether removing a member would
+// produce a member set that already identifies another group channel.
+// Undersized remaining sets (< ChannelGroupMinUsers) are allowed.
+func (a *App) validateGroupChannelMemberRemove(rctx request.CTX, channel *model.Channel, userIDToRemove string) *model.AppError {
+	members, appErr := a.GetChannelMembersPage(rctx, channel.Id, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return appErr
+	}
+
+	userIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		if member.UserId == userIDToRemove {
+			continue
+		}
+		userIDs = append(userIDs, member.UserId)
+	}
+
+	if len(userIDs) < model.ChannelGroupMinUsers {
+		return nil
+	}
+
+	existing, err := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(userIDs), "", false)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return err
+	}
+	if existing.Id != channel.Id {
+		return model.NewAppError("RemoveUserFromChannel", "api.channel.add_user_to_group.already_exists.app_error", nil, "existing_channel_id="+existing.Id, http.StatusBadRequest)
 	}
 
 	return nil

@@ -2783,7 +2783,22 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
+	if channel.Type == model.ChannelTypeDirect {
+		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if !c.App.Config().FeatureFlags.EnableMutableGroupMessages {
+			c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		// Any current member may leave or remove others when the flag is on.
+		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
+			c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.membership.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	} else if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
