@@ -2241,6 +2241,62 @@ func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs 
 	}
 }
 
+// compensateMutableGroupChannelMemberRemove restores a member after a failed
+// identity sync so Name/DisplayName cannot drift from membership.
+func (a *App) compensateMutableGroupChannelMemberRemove(rctx request.CTX, userID string, channel *model.Channel) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		rctx.Logger().Error(
+			"Failed to compensate group channel membership after remove sync failure",
+			mlog.String("channel_id", channel.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return
+	}
+	if _, addErr := a.AddUserToChannel(rctx, user, channel, true); addErr != nil {
+		rctx.Logger().Error(
+			"Failed to compensate group channel membership after remove sync failure",
+			mlog.String("channel_id", channel.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(addErr),
+		)
+	}
+}
+
+// removeGroupChannelMember validates, removes, and syncs GM identity under the
+// per-channel lock. On sync failure the removal is rolled back and the error is
+// returned so callers never observe success with a stale Name/DisplayName.
+func (a *App) removeGroupChannelMember(rctx request.CTX, userIDToRemove, removerUserId string, channel *model.Channel) *model.AppError {
+	if channel.Type != model.ChannelTypeGroup {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !a.Config().FeatureFlags.EnableMutableGroupMessages {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if channel.IsShared() {
+		return model.NewAppError("removeGroupChannelMember", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	unlock := a.lockGroupChannelMembers(channel.Id)
+	defer unlock()
+
+	if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userIDToRemove); appErr != nil {
+		return appErr
+	}
+
+	if err := a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
+		return err
+	}
+
+	if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
+		a.compensateMutableGroupChannelMemberRemove(rctx, userIDToRemove, channel)
+		return syncErr
+	}
+
+	return nil
+}
+
 // groupChannelIdentityMatchesMembership reports whether Name/DisplayName already
 // reflect the channel's current members.
 func (a *App) groupChannelIdentityMatchesMembership(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
@@ -3142,22 +3198,11 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 		if !a.Config().FeatureFlags.EnableMutableGroupMessages {
 			return model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
 		}
-		if channel.IsShared() {
-			return model.NewAppError("LeaveChannel", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
+		if err := a.removeGroupChannelMember(rctx, userID, userID, channel); err != nil {
+			return err
 		}
-		if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userID); appErr != nil {
-			return appErr
-		}
-	}
-
-	if err := a.removeUserFromChannel(rctx, userID, userID, channel); err != nil {
+	} else if err := a.removeUserFromChannel(rctx, userID, userID, channel); err != nil {
 		return err
-	}
-
-	if channel.Type == model.ChannelTypeGroup {
-		if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
-			rctx.Logger().Error("Failed to sync group channel identity after leave", mlog.String("channel_id", channel.Id), mlog.Err(syncErr))
-		}
 	}
 
 	if channel.Name == model.DefaultChannelName && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -3421,25 +3466,11 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	var err *model.AppError
 
 	if channel.Type == model.ChannelTypeGroup {
-		if !a.Config().FeatureFlags.EnableMutableGroupMessages {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		if err = a.removeGroupChannelMember(rctx, userIDToRemove, removerUserId, channel); err != nil {
+			return err
 		}
-		if channel.IsShared() {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove_user_from_group.shared.app_error", nil, "", http.StatusBadRequest)
-		}
-		if appErr := a.validateGroupChannelMemberRemove(rctx, channel, userIDToRemove); appErr != nil {
-			return appErr
-		}
-	}
-
-	if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
+	} else if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
 		return err
-	}
-
-	if channel.Type == model.ChannelTypeGroup {
-		if _, syncErr := a.syncGroupChannelIdentity(rctx, channel); syncErr != nil {
-			rctx.Logger().Error("Failed to sync group channel identity after remove", mlog.String("channel_id", channel.Id), mlog.Err(syncErr))
-		}
 	}
 
 	// Space backing channels are internal: skip the leave/remove system post.

@@ -1497,6 +1497,86 @@ func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.channel.remove_user_from_group.shared.app_error", appErr.Id)
 	})
+
+	t.Run("compensates membership when identity sync fails on remove", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				return nil, "update not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user3.Id, th.BasicUser.Id, channel)
+		require.NotNil(t, appErr)
+
+		_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, user3.Id)
+		require.Nil(t, memberErr)
+
+		persisted, getErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, getErr)
+		require.Equal(t, originalName, persisted.Name)
+	})
+
+	t.Run("compensates membership when identity sync fails on leave", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				return nil, "update not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		appErr = th.App.LeaveChannel(th.Context, channel.Id, user2.Id)
+		require.NotNil(t, appErr)
+
+		_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, user2.Id)
+		require.Nil(t, memberErr)
+
+		persisted, getErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, getErr)
+		require.Equal(t, originalName, persisted.Name)
+	})
 }
 
 func TestAppUpdateChannelScheme(t *testing.T) {
