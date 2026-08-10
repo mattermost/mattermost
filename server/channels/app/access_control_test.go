@@ -3949,6 +3949,89 @@ func TestRedactSimulationAttributesForCallerSystemAdminBypass(t *testing.T) {
 	mockValueStore.AssertExpectations(t)
 }
 
+func TestSanitizeSimulationEvaluationTracesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	topLevelTree := &model.PolicySimulationEvaluationNode{
+		Kind:    model.PolicySimulationEvaluationKindAnd,
+		Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mergedRuleTree := &model.PolicySimulationEvaluationNode{
+		Kind:        model.PolicySimulationEvaluationKindCompare,
+		Attribute:   "user.attributes.clearance",
+		ActualValue: "il5",
+		Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	mkResp := func() *model.PolicySimulationResponse {
+		return &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:         model.PolicySimulationBlameSourceThisRule,
+							RuleName:       "rule1",
+							Expression:     "user.attributes.clearance == 'il5'",
+							EvaluationTree: topLevelTree,
+							MergedRules: []model.PolicySimulationMergedRule{{
+								Name:           "rule1",
+								Expression:     "user.attributes.clearance == 'il5'",
+								EvaluationTree: mergedRuleTree,
+							}},
+						}},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID: "s1",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{{
+								Source:         model.PolicySimulationBlameSourceThisRule,
+								EvaluationTree: topLevelTree,
+							}},
+						},
+					},
+				}},
+			}},
+		}
+	}
+
+	t.Run("system admins keep evaluation trees", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, true)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, blame.EvaluationTree)
+		require.NotNil(t, blame.MergedRules[0].EvaluationTree)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		require.NotNil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("non-system-admin callers get trees stripped", func(t *testing.T) {
+		resp := mkResp()
+		th.App.SanitizeSimulationEvaluationTracesForCaller(resp, false)
+
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, blame.EvaluationTree)
+		assert.Nil(t, blame.MergedRules[0].EvaluationTree)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.Expression)
+		assert.Equal(t, "user.attributes.clearance == 'il5'", blame.MergedRules[0].Expression)
+
+		sessionBlame := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Nil(t, sessionBlame.EvaluationTree)
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			th.App.SanitizeSimulationEvaluationTracesForCaller(nil, false)
+		})
+	})
+}
+
 // TestValidatePolicySimulationUsersInScopeChannel covers the channel-
 // scope branch of the delegated-simulate input validator. The
 // channel-scope branch is reached when a non-system-admin author

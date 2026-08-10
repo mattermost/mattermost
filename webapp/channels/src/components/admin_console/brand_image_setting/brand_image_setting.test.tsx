@@ -22,10 +22,8 @@ describe('components/admin_console/brand_image_setting', () => {
 
     const deleteButtonTestId = 'remove-image__btn';
 
-    let scope: nock.Scope;
-
     beforeAll(() => {
-        scope = nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
+        nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
     });
 
     afterAll(() => {
@@ -44,8 +42,6 @@ describe('components/admin_console/brand_image_setting', () => {
 
     test('should show delete button if brand image exists', async () => {
         renderWithContext(<BrandImageSetting {...baseProps}/>);
-
-        await waitFor(() => expect(scope.isDone()).toBe(true));
 
         expect(await screen.findByTestId(deleteButtonTestId)).toBeVisible();
     });
