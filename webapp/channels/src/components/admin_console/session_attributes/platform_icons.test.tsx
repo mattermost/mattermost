@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {userEvent} from '@testing-library/user-event';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -36,6 +37,22 @@ describe('PlatformIcons', () => {
 
         expect(screen.getByLabelText('Desktop (active)')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile (inactive)')).toBeInTheDocument();
-        expect(screen.getByLabelText('Browser (inactive)')).toBeInTheDocument();
+        expect(screen.getByLabelText('Web Browser (inactive)')).toBeInTheDocument();
+    });
+
+    it.each([
+        ['desktop', 'Desktop'],
+        ['mobile', 'Mobile'],
+        ['browser', 'Web Browser'],
+    ])('reveals the %s platform tooltip on hover', async (_platform, tooltipText) => {
+        renderWithContext(<PlatformIcons platforms={['desktop', 'mobile', 'browser']}/>);
+
+        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+        const iconReference = screen.getByLabelText(`${tooltipText} (active)`).parentElement as HTMLElement;
+        await userEvent.hover(iconReference);
+
+        const tooltip = await screen.findByRole('tooltip', {hidden: true}, {timeout: 2000});
+        expect(tooltip).toHaveTextContent(tooltipText);
     });
 });

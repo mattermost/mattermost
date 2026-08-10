@@ -3254,7 +3254,7 @@
   "admin.session_attributes.empty": "No session attributes found.",
   "admin.session_attributes.load_error": "There was an error while loading the session attributes.",
   "admin.session_attributes.platform.active": "{platform} (active)",
-  "admin.session_attributes.platform.browser": "Browser",
+  "admin.session_attributes.platform.browser": "Web Browser",
   "admin.session_attributes.platform.desktop": "Desktop",
   "admin.session_attributes.platform.inactive": "{platform} (inactive)",
   "admin.session_attributes.platform.mobile": "Mobile",

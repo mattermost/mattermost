@@ -7,6 +7,7 @@ import {defineMessages, useIntl} from 'react-intl';
 
 import {MonitorIcon, CellphoneIcon, GlobeIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {SESSION_PLATFORMS, type SessionPlatform} from './utils';
 
@@ -33,6 +34,11 @@ export default function PlatformIcons({platforms}: Props) {
             {SESSION_PLATFORMS.map((platform) => {
                 const Icon = ICONS[platform];
                 const active = platforms.includes(platform);
+                const platformLabel = formatMessage(platformLabels[platform]);
+                const accessibleLabel = formatMessage(
+                    active ? platformStateLabels.active : platformStateLabels.inactive,
+                    {platform: platformLabel},
+                );
 
                 return (
                     <span
@@ -41,13 +47,12 @@ export default function PlatformIcons({platforms}: Props) {
                         data-platform={platform}
                         data-active={active}
                     >
-                        <Icon
-                            size={18}
-                            aria-label={formatMessage(
-                                active ? platformStateLabels.active : platformStateLabels.inactive,
-                                {platform: formatMessage(platformLabels[platform])},
-                            )}
-                        />
+                        <WithTooltip title={platformLabel}>
+                            <Icon
+                                size={18}
+                                aria-label={accessibleLabel}
+                            />
+                        </WithTooltip>
                     </span>
                 );
             })}
@@ -58,7 +63,7 @@ export default function PlatformIcons({platforms}: Props) {
 const platformLabels = defineMessages({
     desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
     mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
-    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Browser'},
+    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Web Browser'},
 });
 
 // Icons only differ by styling, so the active/inactive state must be spelled out
