@@ -366,6 +366,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	createDeactivated := false
 	user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
 	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 		if existingUsersOnly {
 			rctx.Logger().Info("User not found on destination during channel-scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
 			createDeactivated = true
