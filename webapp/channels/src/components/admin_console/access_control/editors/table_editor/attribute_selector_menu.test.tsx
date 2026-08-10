@@ -253,7 +253,7 @@ describe('AttributeSelectorMenu', () => {
 
         expect(screen.getByLabelText('Desktop')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile')).toBeInTheDocument();
-        expect(screen.getByLabelText('Web Browser')).toBeInTheDocument();
+        expect(screen.getByLabelText('Browser')).toBeInTheDocument();
     });
 
     test('only labels the platforms advertised by the session attribute', () => {
@@ -268,7 +268,7 @@ describe('AttributeSelectorMenu', () => {
 
         expect(screen.getByLabelText('Desktop')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile')).toBeInTheDocument();
-        expect(screen.queryByLabelText('Web Browser')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Browser')).not.toBeInTheDocument();
     });
 
     test('ignores platforms it has no icon for while still labelling known ones', () => {
@@ -292,7 +292,7 @@ describe('AttributeSelectorMenu', () => {
 
         fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
 
-        expect(screen.getByLabelText('Web Browser')).toBeInTheDocument();
+        expect(screen.getByLabelText('Browser')).toBeInTheDocument();
 
         const legacyItem = document.getElementById('attribute-f5') as HTMLElement;
         expect(legacyItem.querySelectorAll('.attribute-selector-platform-icon')).toHaveLength(1);
@@ -301,7 +301,7 @@ describe('AttributeSelectorMenu', () => {
     test.each([
         ['desktop', 'Desktop'],
         ['mobile', 'Mobile'],
-        ['browser', 'Web Browser'],
+        ['browser', 'Browser'],
     ])('reveals the %s platform tooltip on hover', async (_platform, tooltipText) => {
         renderWithContext(
             <AttributeSelectorMenu

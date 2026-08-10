@@ -37,13 +37,13 @@ describe('PlatformIcons', () => {
 
         expect(screen.getByLabelText('Desktop (active)')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile (inactive)')).toBeInTheDocument();
-        expect(screen.getByLabelText('Web Browser (inactive)')).toBeInTheDocument();
+        expect(screen.getByLabelText('Browser (inactive)')).toBeInTheDocument();
     });
 
     it.each([
         ['desktop', 'Desktop'],
         ['mobile', 'Mobile'],
-        ['browser', 'Web Browser'],
+        ['browser', 'Browser'],
     ])('reveals the %s platform tooltip on hover', async (_platform, tooltipText) => {
         renderWithContext(<PlatformIcons platforms={['desktop', 'mobile', 'browser']}/>);
 

@@ -22,7 +22,7 @@ export const PLATFORM_ICONS: Record<SessionPlatform, ComponentType<IconProps>> =
 export const platformLabels = defineMessages({
     desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
     mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
-    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Web Browser'},
+    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Browser'},
 });
 
 type Props = {
