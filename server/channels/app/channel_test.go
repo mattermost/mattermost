@@ -1290,6 +1290,80 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.channel.add_user_to_group.shared.app_error", appErr.Id)
 	})
+
+	t.Run("compensates membership when system post fails", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		// CreatePost rejects deleted channels; mutate the in-memory object so the
+		// membership save still succeeds but the required add system post fails.
+		channel.DeleteAt = model.GetMillis()
+
+		_, appErr = th.App.AddChannelMember(th.Context, user3.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+
+		_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, user3.Id)
+		require.NotNil(t, memberErr)
+
+		persisted, getErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, getErr)
+		require.Equal(t, originalName, persisted.Name)
+		require.Equal(t, int64(0), persisted.DeleteAt)
+	})
+
+	t.Run("retries complete post and identity when member already exists", func(t *testing.T) {
+		// Use a fresh member set so identity sync cannot collide with GMs from earlier subtests.
+		retryUser := th.CreateUser(t)
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user4.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		// Simulate a partial add: membership committed without system post/identity sync.
+		_, appErr = th.App.AddUserToChannel(th.Context, retryUser, channel, true)
+		require.Nil(t, appErr)
+
+		stale, getErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, getErr)
+		require.Equal(t, originalName, stale.Name)
+
+		cm, appErr := th.App.AddChannelMember(th.Context, retryUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		require.Equal(t, retryUser.Id, cm.UserId)
+
+		updated, getErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, getErr)
+		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id, user4.Id, retryUser.Id})
+		require.Equal(t, expectedName, updated.Name)
+
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		require.NoError(t, nErr)
+
+		var addPosts int
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+				addPosts++
+			}
+		}
+		require.Equal(t, 1, addPosts)
+
+		// Idempotent retry after a completed add must not create another system post.
+		_, appErr = th.App.AddChannelMember(th.Context, retryUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		postList, nErr = th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		require.NoError(t, nErr)
+
+		addPosts = 0
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+				addPosts++
+			}
+		}
+		require.Equal(t, 1, addPosts)
+	})
 }
 
 func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
