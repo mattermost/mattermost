@@ -5235,6 +5235,7 @@ func TestUpdateAccessControlPoliciesActive_InvalidatesCache(t *testing.T) {
 		})
 
 		require.Nil(t, appErr)
+		mockACPStore.AssertExpectations(t)
 		mockACS.AssertExpectations(t)
 	})
 }
