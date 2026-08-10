@@ -668,6 +668,10 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.remove_member.removed_from_group",
+    "translation": "%v was removed from the group message by %v."
+  },
+  {
     "id": "api.channel.remove_members.denied",
     "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
   },

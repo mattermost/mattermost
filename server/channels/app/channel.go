@@ -3078,18 +3078,31 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 		messageUserId = systemBot.UserId
 	}
 
+	props := model.StringInterface{
+		"removedUserId":   removedUser.Id,
+		"removedUsername": removedUser.Username,
+	}
+
+	message := fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username))
+	if removerUserId != "" {
+		if remover, err := a.GetUser(removerUserId); err == nil {
+			props["userId"] = remover.Id
+			props["username"] = remover.Username
+			if channel.Type == model.ChannelTypeGroup {
+				message = fmt.Sprintf(i18n.T("api.channel.remove_member.removed_from_group"), fmt.Sprintf("@%s", removedUser.Username), fmt.Sprintf("@%s", remover.Username))
+			}
+		}
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
-		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
+		Message: message,
 		Type:    model.PostTypeRemoveFromChannel,
 		UserId:  messageUserId,
-		Props: model.StringInterface{
-			"removedUserId":   removedUser.Id,
-			"removedUsername": removedUser.Username,
-		},
+		Props:   props,
 	}
 
 	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
