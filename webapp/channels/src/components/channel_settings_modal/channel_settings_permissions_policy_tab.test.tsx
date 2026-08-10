@@ -393,6 +393,67 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(await screen.findByText('Settings saved')).toBeInTheDocument();
     });
 
+    test('does not re-send a stale active flag when recreating a policy after empty delete', async () => {
+        // Regression: after deleting an active channel policy via the empty-
+        // rules path, adding a rule and saving again (without closing the tab)
+        // must create the new policy with active:false. Leaving originalActive
+        // as true would silently re-enable membership auto-sync.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                active: true,
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: true});
+        mockActions.saveChannelPolicy.mockResolvedValue({
+            data: {
+                rules: [{
+                    name: 'Recreated rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: EXPRESSION,
+                }],
+            },
+        });
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        // Delete the only rule and persist (triggers channel-policy delete).
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+        await waitFor(() => {
+            expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('channel_id');
+        });
+        expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+
+        // Without closing the tab, add a new rule and save again.
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('table-editor');
+        act(() => {
+            latestTableEditorProps().onChange(EXPRESSION);
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Recreated rule');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        expect(await screen.findByText('Recreated rule')).toBeInTheDocument();
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(mockActions.saveChannelPolicy.mock.calls[0][0].active).toBe(false);
+    });
+
     test('saves the remaining membership rule when the last permission rule is removed', async () => {
         // When a membership rule remains, removing the last permission rule must
         // still save the policy (keeping the membership rule) rather than delete

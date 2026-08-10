@@ -518,6 +518,11 @@ function ChannelSettingsPermissionsPolicyTab({
             }
 
             setOriginalAllRules([]);
+
+            // Mirror the Membership Policy tab's empty-delete path: once the
+            // channel policy is gone, the next save in this tab session must
+            // not re-POST the stale active flag from the deleted policy.
+            setOriginalActive(false);
             setOriginalRulesJSON(JSON.stringify(persistedPermissionRules));
             return SAVE_RESULT_SAVED;
         }
