@@ -1353,6 +1353,8 @@ func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
 		}
 		require.NotNil(t, removePost)
 		require.Equal(t, th.BasicUser.Id, removePost.UserId)
+		require.Equal(t, user3.Username, removePost.GetProp("removedUsername"))
+		require.Equal(t, th.BasicUser.Username, removePost.GetProp("username"))
 	})
 
 	t.Run("allows leave and updates identity", func(t *testing.T) {

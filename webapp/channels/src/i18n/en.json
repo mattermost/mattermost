@@ -4053,6 +4053,7 @@
   "api.channel.post_update_channel_header_message_and_forget.updated_from": "{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}",
   "api.channel.post_update_channel_header_message_and_forget.updated_to": "{username} updated the channel header to: {new}",
   "api.channel.remove_member.removed": "{removedUsername} was removed from the channel",
+  "api.channel.remove_member.removed_from_group": "{removedUsername} was removed from the group message by {username}.",
   "api.channel.restore_channel.unarchived": "{username} unarchived the channel.",
   "api.team.add_member.added": "{addedUsername} added to the team by {username}",
   "api.team.join_team.post_and_forget": "{username} joined the team.",

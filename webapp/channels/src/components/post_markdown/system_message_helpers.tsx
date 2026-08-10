@@ -119,8 +119,22 @@ function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean): Rea
     );
 }
 
-function renderRemoveFromChannelMessage(post: Post): ReactNode {
+function renderRemoveFromChannelMessage(post: Post, channel?: Channel): ReactNode {
     const removedUsername = renderUsername(post.props.removedUsername);
+    const username = post.props.username ? renderUsername(post.props.username) : null;
+
+    if (channel?.type === General.GM_CHANNEL && username) {
+        return (
+            <FormattedMessage
+                id='api.channel.remove_member.removed_from_group'
+                defaultMessage='{removedUsername} was removed from the group message by {username}.'
+                values={{
+                    removedUsername,
+                    username,
+                }}
+            />
+        );
+    }
 
     return (
         <FormattedMessage
@@ -472,7 +486,6 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: renderAddToChannelMessage,
     [Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL]: renderAddToChannelMessage,
-    [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: renderRemoveFromChannelMessage,
     [Posts.POST_TYPES.JOIN_TEAM]: renderJoinTeamMessage,
     [Posts.POST_TYPES.LEAVE_TEAM]: renderLeaveTeamMessage,
     [Posts.POST_TYPES.ADD_TO_TEAM]: renderAddToTeamMessage,
@@ -543,6 +556,8 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         }
 
         return null;
+    } else if (post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL) {
+        return renderRemoveFromChannelMessage(post, channel);
     } else if (systemMessageRenderers[post.type]) {
         return systemMessageRenderers[post.type](post);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {
