@@ -706,6 +706,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
 
+	a.markPostDeliveryForBroadcast(rctx, message, post)
+
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 

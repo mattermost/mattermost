@@ -3960,6 +3960,8 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostDelivery(c.AppContext, c.Params.UserId, thread.Post, model.DeliveryMechanismProduct)
+
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -4044,6 +4046,12 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	threadPosts := make([]*model.Post, 0, len(threads.Threads))
+	for _, thread := range threads.Threads {
+		threadPosts = append(threadPosts, thread.Post)
+	}
+	c.App.RecordPostsDelivery(c.AppContext, c.Params.UserId, threadPosts, model.DeliveryMechanismProduct)
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

@@ -59,6 +59,10 @@ func (s *SqlDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, chann
 	return nil
 }
 
+// ClearCaches is a no-op; only the local cache layer holds a cache.
+func (s *SqlDeliveryTrackingStore) ClearCaches() {
+}
+
 func (s *SqlDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 	query := s.getQueryBuilder().
 		Select("ChannelId").

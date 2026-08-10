@@ -166,6 +166,10 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return appErr
 	}
 
+	// One record per user, not per device: a push accepted for any of the user's sessions has
+	// put the post content on their endpoint.
+	recordDelivery := true
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
@@ -253,6 +257,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.Err(err),
 			)
 			continue
+		}
+
+		if recordDelivery {
+			a.RecordPushDelivery(rctx, userID, msg)
+			recordDelivery = false
 		}
 
 		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification sent to push proxy",

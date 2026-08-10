@@ -368,12 +368,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	pluginContext := pluginContext(rctx)
 
+	var willBePostedPluginIDs []string
 	if post.Type != model.PostTypeBurnOnRead {
-		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
+		newPost, deliveredIDs, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
 		if guardErr != nil {
 			return nil, false, guardErr
 		}
 		post = newPost
+		willBePostedPluginIDs = deliveredIDs
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -404,6 +406,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// MessageWillBePosted ran before the post had an ID (it is assigned on Save), so record
+	// the plugin delivery here, now that rpost carries the persisted ID.
+	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
+
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
 	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
@@ -433,11 +439,18 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// Skip plugin hooks for burn-on-read posts
 	if rpost.Type != model.PostTypeBurnOnRead {
 		pluginPost := rpost.ForPlugin()
+		trackPluginDelivery := a.deliveryTrackingEnabled()
 		a.Srv().Go(func() {
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			var pluginIDs []string
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+				if trackPluginDelivery && manifest != nil {
+					pluginIDs = append(pluginIDs, manifest.Id)
+				}
 				return true
 			}, plugin.MessageHasBeenPostedID)
+
+			a.RecordPostDeliveryToPlugins(rctx, pluginIDs, pluginPost)
 		})
 	}
 
@@ -1009,11 +1022,18 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	if newPost.Type != model.PostTypeBurnOnRead {
+		trackPluginDelivery := a.deliveryTrackingEnabled()
 		a.Srv().Go(func() {
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			var pluginIDs []string
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 				hooks.MessageHasBeenUpdated(pCtx, pluginNewPost, pluginOldPost)
+				if trackPluginDelivery && manifest != nil {
+					pluginIDs = append(pluginIDs, manifest.Id)
+				}
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
+
+			a.RecordPostDeliveryToPlugins(rctx, pluginIDs, pluginNewPost)
 		})
 	}
 
@@ -1057,6 +1077,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	a.applyPostWillBeConsumedHook(rctx, &rpost)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
+	a.markPostDeliveryForBroadcast(rctx, message, rpost)
 
 	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
 	if appErr != nil {
@@ -3041,18 +3062,39 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		rebuildPostsSlice()
 	}
 
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	// The manifest callback only fires for plugins that implement the hook, so this collects
+	// exactly the plugins that received the post content.
+	trackPluginDelivery := a.deliveryTrackingEnabled()
+	consumerIDs := make(map[string]struct{})
+
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
 		applyReplacements(postReplacements)
+		if trackPluginDelivery && manifest != nil {
+			consumerIDs[manifest.Id] = struct{}{}
+		}
 		return true
 	}, plugin.MessagesWillBeConsumedID)
 
 	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
 		applyReplacements(postReplacements)
+		if trackPluginDelivery && manifest != nil {
+			consumerIDs[manifest.Id] = struct{}{}
+		}
 		return true
 	}, plugin.MessagesWillBeConsumedWithContextID)
+
+	if len(consumerIDs) > 0 {
+		consumedPosts := make([]*model.Post, 0, len(posts))
+		for _, post := range posts {
+			consumedPosts = append(consumedPosts, post)
+		}
+		for pluginID := range consumerIDs {
+			a.RecordPostsDeliveryToPlugin(rctx, pluginID, consumedPosts)
+		}
+	}
 }
 
 func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
@@ -3388,11 +3430,18 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 
 	pluginPost := post.ForPlugin()
 	pluginContext := pluginContext(rctx)
+	trackPluginDelivery := a.deliveryTrackingEnabled()
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		var pluginIDs []string
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			if trackPluginDelivery && manifest != nil {
+				pluginIDs = append(pluginIDs, manifest.Id)
+			}
 			return true
 		}, plugin.MessageHasBeenDeletedID)
+
+		a.RecordPostDeliveryToPlugins(rctx, pluginIDs, pluginPost)
 	})
 
 	a.Srv().Go(func() {

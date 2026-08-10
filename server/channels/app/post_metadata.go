@@ -348,6 +348,11 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
 					isMemberForPreviews = true
+				} else {
+					// The previewed post's content is delivered to this user via the permalink
+					// embed. The previewed post's channel governs, so this is recorded even when
+					// the containing post lives in a channel that is not tracked.
+					a.RecordPermalinkPreviewDelivery(rctx, userID, previewPost.Post, post)
 				}
 			}
 		}

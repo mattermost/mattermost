@@ -1299,6 +1299,7 @@ type DeliveryTrackingStore interface {
 	// SaveTrackedChannelIDs replaces the entire stored set with channelIDs.
 	SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error
 	GetTrackedChannelIDs(rctx request.CTX) ([]string, error)
+	ClearCaches()
 }
 
 type ReadReceiptStore interface {

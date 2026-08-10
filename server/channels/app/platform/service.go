@@ -136,6 +136,10 @@ type PlatformService struct {
 
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
+
+	// postDeliveryRecorder is used by the websocket hub to audit log post deliveries to the
+	// connections it owns.
+	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -644,6 +648,10 @@ func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
 	ps.pluginEnv = runner
+}
+
+func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDeliveryMarker, userID string)) {
+	ps.postDeliveryRecorder = fn
 }
 
 // GetPluginStatuses meant to be used by cluster implementation

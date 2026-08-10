@@ -14,6 +14,11 @@ type DeliveryTrackingStore struct {
 	mock.Mock
 }
 
+// ClearCaches provides a mock function with no fields
+func (_m *DeliveryTrackingStore) ClearCaches() {
+	_m.Called()
+}
+
 // GetTrackedChannelIDs provides a mock function with given fields: rctx
 func (_m *DeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 	ret := _m.Called(rctx)

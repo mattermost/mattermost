@@ -111,6 +111,11 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 		}
 	}
 
+	// The callback URLs are one logical integration, so the delivery is recorded once for the
+	// hook on the first successful POST.
+	trackDelivery := a.deliveryTrackingEnabled()
+	var deliveryRecorded sync.Once
+
 	var wg sync.WaitGroup
 
 	for i := range hook.CallbackURLs {
@@ -163,6 +168,12 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 					logger.Error("Outgoing Webhook POST failed", mlog.Err(err))
 				}
 				return
+			}
+
+			if trackDelivery {
+				deliveryRecorded.Do(func() {
+					a.RecordPostDeliveryToWebhook(rctx, hook.Id, post)
+				})
 			}
 
 			if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {

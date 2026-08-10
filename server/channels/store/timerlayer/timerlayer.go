@@ -4178,6 +4178,21 @@ func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings m
 	return err
 }
 
+func (s *TimerLayerDeliveryTrackingStore) ClearCaches() {
+	start := time.Now()
+
+	s.DeliveryTrackingStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.ClearCaches", success, elapsed)
+	}
+}
+
 func (s *TimerLayerDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 	start := time.Now()
 

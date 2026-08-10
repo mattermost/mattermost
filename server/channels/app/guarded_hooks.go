@@ -106,13 +106,15 @@ func pluginIDsOf(guards []*store.ChannelGuard) []string {
 }
 
 // runGuardedMessageWillBePosted dispatches MessageWillBePosted. Returns the (possibly
-// replaced) post, or an AppError on rejection or RPC failure.
-func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
+// replaced) post, the IDs of plugins that received the post content (for delivery tracking),
+// or an AppError on rejection or RPC failure. The returned IDs are non-nil only on success;
+// the caller records delivery after the post is saved, since the post has no ID at hook time.
+func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) (*model.Post, []string, *model.AppError) {
 	guards, rejectErr := a.resolveGuards(rctx, post.ChannelId, "createPost")
 
 	// Guard plugin is unavailable — fail-closed (logged with attribution).
 	if rejectErr != nil {
-		return nil, rejectErr
+		return nil, nil, rejectErr
 	}
 
 	var metadata *model.PostMetadata
@@ -120,12 +122,19 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		metadata = post.Metadata.Copy()
 	}
 
+	trackPluginDelivery := a.deliveryTrackingEnabled()
+	var deliveredPluginIDs []string
+
 	// Phase A: fan out to non-guard plugins, fail-open. With empty guards the exclude list is
 	// empty and behavior is identical to plain RunMultiHook.
 	var rejectionError *model.AppError
 	pCtx := pluginContext(rctx)
-	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		replacementPost, rejectionReason := hooks.MessageWillBePosted(pCtx, post.ForPlugin())
+		if trackPluginDelivery && manifest != nil {
+			deliveredPluginIDs = append(deliveredPluginIDs, manifest.Id)
+		}
+
 		if rejectionReason != "" {
 			id := "Post rejected by plugin. " + rejectionReason
 			if rejectionReason == plugin.DismissPostError {
@@ -145,7 +154,7 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		return true
 	}, plugin.MessageWillBePostedID)
 	if rejectionError != nil {
-		return nil, rejectionError
+		return nil, nil, rejectionError
 	}
 
 	// Phase B: call each guard claimant in PluginId-sorted order, fail-closed.
@@ -153,18 +162,18 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		hooks, err := a.Channels().HooksForPluginWithRPCErr(g.PluginId)
 		if err != nil {
 			// Active→inactive race: plugin deactivated between resolveGuards and now.
-			return nil, logAndErrPluginInactive(rctx, post.ChannelId, []string{g.PluginId}, "CreatePost")
+			return nil, nil, logAndErrPluginInactive(rctx, post.ChannelId, []string{g.PluginId}, "CreatePost")
 		}
 		replacement, reason, rpcErr := hooks.MessageWillBePostedWithRPCErr(pCtx, post.ForPlugin())
 		if rpcErr != nil {
-			return nil, appErrHookFailed(g.PluginId, "CreatePost", rpcErr)
+			return nil, nil, appErrHookFailed(g.PluginId, "CreatePost", rpcErr)
 		}
 		if reason != "" {
 			id := "Post rejected by plugin. " + reason
 			if reason == plugin.DismissPostError {
 				id = plugin.DismissPostError
 			}
-			return nil, model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
+			return nil, nil, model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
 		}
 		if replacement != nil {
 			post = replacement
@@ -174,9 +183,12 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 				post.Metadata = metadata
 			}
 		}
+		if trackPluginDelivery {
+			deliveredPluginIDs = append(deliveredPluginIDs, g.PluginId)
+		}
 	}
 
-	return post, nil
+	return post, deliveredPluginIDs, nil
 }
 
 // runGuardedMessageWillBeUpdated dispatches MessageWillBeUpdated. In the non-guarded
@@ -198,12 +210,18 @@ func (a *App) runGuardedMessageWillBeUpdated(rctx request.CTX, newPost, oldPost 
 		return model.NewAppError("UpdatePost", id, nil, "", http.StatusBadRequest)
 	}
 
+	trackPluginDelivery := a.deliveryTrackingEnabled()
+	var deliveredPluginIDs []string
+
 	// Phase A: fan out to non-guard plugins, fail-open. With empty guards the exclude list is
 	// empty and behavior is identical to plain RunMultiHook.
 	var rejectionReason string
 	pCtx := pluginContext(rctx)
-	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pCtx, newPost.ForPlugin(), oldPost.ForPlugin())
+		if newPost != nil && trackPluginDelivery && manifest != nil {
+			deliveredPluginIDs = append(deliveredPluginIDs, manifest.Id)
+		}
 		return newPost != nil
 	}, plugin.MessageWillBeUpdatedID)
 	if newPost == nil {
@@ -229,7 +247,14 @@ func (a *App) runGuardedMessageWillBeUpdated(rctx request.CTX, newPost, oldPost 
 		if replacement != nil {
 			newPost = replacement
 		}
+		// Only record delivery for claimants that actually implemented the hook and received
+		// the post content. A (nil, "", nil) result means nothing was delivered to them.
+		if trackPluginDelivery && replacement != nil {
+			deliveredPluginIDs = append(deliveredPluginIDs, g.PluginId)
+		}
 	}
+
+	a.RecordPostDeliveryToPlugins(rctx, deliveredPluginIDs, newPost)
 
 	return newPost, nil
 }
