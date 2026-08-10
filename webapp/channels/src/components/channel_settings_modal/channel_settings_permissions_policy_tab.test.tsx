@@ -431,6 +431,64 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
     });
 
+    test('treats a 404 from the delete as success when removing the only permission rule', async () => {
+        // The rule may have been added and removed before any policy was
+        // persisted, so a 404 on delete means "already gone" — an effective
+        // success, not an error.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({error: {status_code: 404}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('saves (not deletes) the policy when imports remain after removing the last permission rule', async () => {
+        // Imports keep the policy valid even with no rules, so the policy must be
+        // saved (preserving its imports) rather than deleted.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: ['parent-policy-id'],
+            },
+        });
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {rules: [], imports: ['parent-policy-id']}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const savedPolicy = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(savedPolicy.rules).toEqual([]);
+        expect(savedPolicy.imports).toEqual(['parent-policy-id']);
+        expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+    });
+
     test('surfaces an error when deleting the emptied channel policy fails', async () => {
         // If the backend delete fails for a real reason (not a 404), the tab must
         // surface the error instead of silently reporting success.
