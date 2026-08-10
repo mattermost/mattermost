@@ -14,7 +14,6 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
         >
           <img
             class="advisor-icon"
-            src=""
           />
           Enterprise license is expired and some features may be disabled.
           <button
@@ -51,7 +50,6 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
         >
           <img
             class="advisor-icon"
-            src=""
           />
           Enterprise license is expired and some features may be disabled.
           <button
@@ -83,7 +81,6 @@ exports[`components/ConfigurationBar should match snapshot, expired, regular use
       <span>
         <img
           class="advisor-icon"
-          src=""
         />
         Enterprise license is expired and some features may be disabled. Please contact your System Administrator for details.
       </span>
@@ -108,7 +105,6 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
         >
           <img
             class="advisor-icon"
-            src=""
           />
           This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
           <button
@@ -143,7 +139,6 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
         >
           <img
             class="advisor-icon"
-            src=""
           />
           This is the last day of your free trial.
           <button
