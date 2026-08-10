@@ -86,6 +86,7 @@ type License struct {
 	SkuShortName        string    `json:"sku_short_name"`
 	IsTrial             bool      `json:"is_trial"`
 	IsGovSku            bool      `json:"is_gov_sku"`
+	IsNonProduction     bool      `json:"is_non_production"`
 	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
 	// ExtraUsers provides a grace mechanism that allows a configurable number of users
 	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
