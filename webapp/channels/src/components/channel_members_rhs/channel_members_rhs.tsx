@@ -17,6 +17,7 @@ import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
@@ -85,6 +86,7 @@ export default function ChannelMembersRHS({
     actions,
 }: Props) {
     const history = useHistory();
+    const mutableGroupMessagesEnabled = useGetFeatureFlagValue('EnableMutableGroupMessages') === 'true';
 
     const [list, setList] = useState<ListItem[]>([]);
 
@@ -229,7 +231,7 @@ export default function ChannelMembersRHS({
     }, [searchTerms]);
 
     const inviteMembers = () => {
-        if (channel.type === Constants.GM_CHANNEL) {
+        if (channel.type === Constants.GM_CHANNEL && !mutableGroupMessagesEnabled) {
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,

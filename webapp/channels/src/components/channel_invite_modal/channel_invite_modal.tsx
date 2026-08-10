@@ -17,11 +17,14 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
+import {getChannelURL} from 'selectors/urls';
 
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
@@ -35,10 +38,15 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import store from 'stores/redux_store';
+
+import {getHistory} from 'utils/browser_history';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
 import {sortUsersAndGroups} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import GroupOption from './group_option';
 import TeamWarningBanner from './team_warning_banner';
@@ -103,7 +111,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [saving, setSaving] = useState(false);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
-    const [inviteError, setInviteError] = useState<string | undefined>(undefined);
+    const [inviteError, setInviteError] = useState<React.ReactNode>(undefined);
     const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
     const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
 
@@ -134,6 +142,9 @@ const ChannelInviteModalComponent = (props: Props) => {
     // specifically instead of the broad policy_enforced flag.
     const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
+    // Group messages have no team_id; fall back to the current team for invite profile loading.
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const inviteTeamId = props.channel.team_id || currentTeamId;
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
     // Admins can disable the attribute indicators to avoid leaking policy
@@ -300,11 +311,53 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Handle invite error
     const handleInviteError = useCallback((err: any) => {
-        if (err) {
-            setSaving(false);
-            setInviteError(err.message);
+        if (!err) {
+            return;
         }
-    }, []);
+
+        setSaving(false);
+
+        if (err.server_error_id === 'api.channel.add_user_to_group.already_exists.app_error') {
+            const match = typeof err.detailed_error === 'string' ? /existing_channel_id=([a-z0-9]+)/i.exec(err.detailed_error) : null;
+            const existingChannelId = match?.[1];
+            if (existingChannelId) {
+                setInviteError(
+                    <FormattedMessage
+                        id='channel_invite.gm_already_exists'
+                        defaultMessage='A group message with these members already exists. <link>Go to existing group message</link>'
+                        values={{
+                            link: (chunks: React.ReactNode) => (
+                                <a
+                                    href='#'
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+                                        const state = store.getState() as GlobalState;
+                                        let existingChannel = getChannel(state, existingChannelId);
+                                        if (!existingChannel) {
+                                            try {
+                                                existingChannel = await Client4.getChannel(existingChannelId);
+                                            } catch {
+                                                existingChannel = undefined;
+                                            }
+                                        }
+                                        if (existingChannel) {
+                                            getHistory().push(getChannelURL(state, existingChannel, existingChannel.team_id || inviteTeamId));
+                                        }
+                                        onHide();
+                                    }}
+                                >
+                                    {chunks}
+                                </a>
+                            ),
+                        }}
+                    />,
+                );
+                return;
+            }
+        }
+
+        setInviteError(err.message);
+    }, [onHide, inviteTeamId]);
 
     // Handle delete (removing users from selection)
     const handleDelete = useCallback((values: Array<UserProfileValue | GroupValue>) => {
@@ -332,7 +385,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         const isInitialLoad = page === 0 && !cursorId;
         try {
             const profiles = await Client4.getProfilesNotInChannel(
-                props.channel.team_id,
+                inviteTeamId,
                 props.channel.id,
                 props.channel.group_constrained,
                 page,
@@ -361,7 +414,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             }
             return {error};
         }
-    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
+    }, [inviteTeamId, props.channel.id, props.channel.group_constrained]);
 
     // For advisory (public) policies, fetch the matching-user subset to
     // render a subtle "Recommended" indicator and boost them to the top.
@@ -381,7 +434,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             while (true) {
                 // eslint-disable-next-line no-await-in-loop
                 const profiles = await Client4.getProfilesMatchingChannelPolicy(
-                    props.channel.team_id,
+                    inviteTeamId,
                     props.channel.id,
                     props.channel.group_constrained,
                     USERS_PER_PAGE,
@@ -412,7 +465,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 setRecommendedUserIds(new Set());
             }
         }
-    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
+    }, [inviteTeamId, props.channel.id, props.channel.group_constrained]);
 
     // Handle page change with cursor-based pagination
     const handlePageChange = useCallback((page: number, prevPage: number) => {
@@ -428,7 +481,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             // populate profilesNotInCurrentChannel which getOptions ignores
             // on the strict-gate path, leaving subsequent pages invisible.
             const fetchPage = isPolicyEnforcedPrivate ? fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) : props.actions.getProfilesNotInChannel(
-                props.channel.team_id,
+                inviteTeamId,
                 props.channel.id,
                 props.channel.group_constrained,
                 page + 1,
@@ -511,7 +564,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     setUsersLoadingState(true);
                     try {
                         const profiles = await Client4.searchUsers(term, {
-                            team_id: props.channel.team_id,
+                            team_id: inviteTeamId,
                             not_in_channel_id: props.channel.id,
                             group_constrained: Boolean(props.channel.group_constrained),
                             limit: 100,
@@ -532,7 +585,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 }
 
                 const options = {
-                    team_id: props.channel.team_id,
+                    team_id: inviteTeamId,
                     not_in_channel_id: props.channel.id,
                     group_constrained: Boolean(props.channel.group_constrained),
                 };
@@ -551,7 +604,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 ];
 
                 if (props.isGroupsEnabled) {
-                    promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
+                    promises.push(props.actions.searchAssociatedGroupsForReference(term, inviteTeamId, props.channel.id, opts));
                 }
                 await Promise.all(promises);
                 setUsersLoadingState(false);
@@ -678,7 +731,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             // via the standard Redux action. The server returns the unfiltered
             // list for public policy-enforced channels.
             props.actions.getProfilesNotInChannel(
-                props.channel.team_id,
+                inviteTeamId,
                 props.channel.id,
                 props.channel.group_constrained,
                 0,
@@ -693,7 +746,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
-        props.actions.getTeamStats(props.channel.team_id);
+        props.actions.getTeamStats(inviteTeamId);
         props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
         props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
 
@@ -709,7 +762,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         };
     }, [
         props.channel.id,
-        props.channel.team_id,
+        inviteTeamId,
         props.channel.group_constrained,
         isPolicyEnforcedPrivate,
         isPolicyRecommendedPublic,
@@ -750,11 +803,11 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         if (!isEqual(computedOptions, groupAndUserOptions)) {
             if (userIds.length > 0) {
-                props.actions.getTeamMembersByIds(props.channel.team_id, userIds);
+                props.actions.getTeamMembersByIds(inviteTeamId, userIds);
             }
             setGroupAndUserOptions(computedOptions);
         }
-    }, [computedOptions, props.actions, props.channel.team_id]);
+    }, [computedOptions, props.actions, inviteTeamId]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -865,6 +918,26 @@ const ChannelInviteModalComponent = (props: Props) => {
         >
             <div className='channel-invite__wrapper'>
                 {inviteError && <label className='has-error control-label'>{inviteError}</label>}
+                {channel.type === Constants.GM_CHANNEL && (
+                    <div className='channel-invite__policy-banner'>
+                        <AlertBanner
+                            mode='info'
+                            variant='app'
+                            title={
+                                <FormattedMessage
+                                    id='channel_invite.gm_history_warning.title'
+                                    defaultMessage='Conversation history will be visible'
+                                />
+                            }
+                            message={
+                                <FormattedMessage
+                                    id='channel_invite.gm_history_warning.description'
+                                    defaultMessage='People you add will be able to see the full message history of this group message.'
+                                />
+                            }
+                        />
+                    </div>
+                )}
                 {isMembershipPolicy && (
                     <div className='channel-invite__policy-banner'>
                         <AlertBanner
@@ -901,7 +974,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     {content}
                     <TeamWarningBanner
                         guests={guestsNotInTeam}
-                        teamId={channel.team_id}
+                        teamId={inviteTeamId}
                         users={usersNotInTeam}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}

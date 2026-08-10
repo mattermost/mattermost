@@ -58,6 +58,7 @@ jest.mock('mattermost-redux/client', () => ({
         getProfilesNotInChannel: jest.fn(),
         getProfilesMatchingChannelPolicy: jest.fn().mockResolvedValue([]),
         searchUsers: jest.fn().mockResolvedValue([]),
+        getChannel: jest.fn(),
         getProfilePictureUrl: jest.fn(() => 'mock-url'),
         getUsersRoute: jest.fn(() => '/api/v4/users'),
         getTeamsRoute: jest.fn(() => '/api/v4/teams'),
@@ -180,6 +181,19 @@ describe('components/channel_invite_modal', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should show history warning for group messages', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, type: 'G' as ChannelType, team_id: '', name: 'abcdef0123456789abcdef0123456789abcdef01'}}
+                profilesNotInCurrentChannel={users}
+            />,
+        );
+
+        expect(screen.getByText('Conversation history will be visible')).toBeInTheDocument();
+        expect(screen.getByText(/People you add will be able to see the full message history/)).toBeInTheDocument();
     });
 
     test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
