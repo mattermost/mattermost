@@ -160,7 +160,17 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
     let title;
     let message;
     if (channel && channel.display_name) {
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (channel.type === Constants.GM_CHANNEL) {
+            title = (
+                <FormattedMessage
+                    id='leave_group_message_modal.title'
+                    defaultMessage='Leave Group Message {channel}'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             title = (
                 <FormattedMessage
                     id='leave_private_channel_modal.title'
@@ -182,7 +192,17 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
             );
         }
 
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (channel.type === Constants.GM_CHANNEL) {
+            message = (
+                <FormattedMessage
+                    id='leave_group_message_modal.message'
+                    defaultMessage='Are you sure you wish to leave the group message {channel}? You must be re-added in order to re-join this conversation in the future.'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             message = (
                 <FormattedMessage
                     id='leave_private_channel_modal.message'
