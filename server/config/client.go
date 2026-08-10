@@ -374,9 +374,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["LdapLoginButtonTextColor"] = ""
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
-	props["SamlLoginButtonColor"] = ""
-	props["SamlLoginButtonBorderColor"] = ""
-	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
 	props["EnableSignUpWithOpenId"] = "false"
@@ -405,9 +402,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		if *license.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
-			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
-			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
-			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
 		}
 
 		if *license.Features.CustomTermsOfService {

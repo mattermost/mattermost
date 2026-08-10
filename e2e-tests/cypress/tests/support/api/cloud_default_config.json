@@ -341,10 +341,7 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "SAML",
-        "LoginButtonColor": "#34a28b",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#ffffff"
+        "LoginButtonText": "SAML"
     },
     "NativeAppSettings": {
         "AppCustomURLSchemes": [
