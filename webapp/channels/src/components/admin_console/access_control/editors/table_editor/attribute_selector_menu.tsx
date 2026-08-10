@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useMemo, useState, useEffect, useCallback, useRef} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {
     CheckIcon,
@@ -83,6 +83,12 @@ const PLATFORM_ICONS: Record<string, ComponentType<IconProps>> = {
     mobile: CellphoneIcon,
     browser: GlobeIcon,
 };
+
+const platformTooltipLabels = defineMessages({
+    desktop: {id: 'admin.access_control.table_editor.selector.platform.desktop', defaultMessage: 'Desktop'},
+    mobile: {id: 'admin.access_control.table_editor.selector.platform.mobile', defaultMessage: 'Mobile'},
+    browser: {id: 'admin.access_control.table_editor.selector.platform.browser', defaultMessage: 'Web Browser'},
+});
 
 interface AttributeSelectorProps {
     currentAttribute: string;
@@ -209,13 +215,25 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                     <>
                         {platforms.map((platform) => {
                             const PlatformIcon = PLATFORM_ICONS[platform];
-                            return PlatformIcon ? (
-                                <PlatformIcon
+                            const platformLabel = platformTooltipLabels[platform as keyof typeof platformTooltipLabels];
+                            if (!PlatformIcon || !platformLabel) {
+                                return null;
+                            }
+                            const label = formatMessage(platformLabel);
+                            return (
+                                <WithTooltip
                                     key={platform}
-                                    size={16}
-                                    color='var(--button-bg)'
-                                />
-                            ) : null;
+                                    title={label}
+                                >
+                                    <span className='attribute-selector-platform-icon'>
+                                        <PlatformIcon
+                                            size={16}
+                                            color='var(--button-bg)'
+                                            aria-label={label}
+                                        />
+                                    </span>
+                                </WithTooltip>
+                            );
                         })}
                         {hasSpaces && (
                             <InformationOutlineIcon
