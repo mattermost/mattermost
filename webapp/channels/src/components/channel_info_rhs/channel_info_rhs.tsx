@@ -12,8 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
-import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';

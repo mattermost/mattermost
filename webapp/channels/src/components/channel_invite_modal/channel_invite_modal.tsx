@@ -26,6 +26,8 @@ import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermo
 import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 import {getChannelURL} from 'selectors/urls';
 
+import store from 'stores/redux_store';
+
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import InvitationModal from 'components/invitation_modal';
@@ -37,8 +39,6 @@ import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
-
-import store from 'stores/redux_store';
 
 import {getHistory} from 'utils/browser_history';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
@@ -142,6 +142,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     // specifically instead of the broad policy_enforced flag.
     const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
+
     // Group messages have no team_id; fall back to the current team for invite profile loading.
     const currentTeamId = useSelector(getCurrentTeamId);
     const inviteTeamId = props.channel.team_id || currentTeamId;
@@ -318,7 +319,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         setSaving(false);
 
         if (err.server_error_id === 'api.channel.add_user_to_group.already_exists.app_error') {
-            const match = typeof err.detailed_error === 'string' ? /existing_channel_id=([a-z0-9]+)/i.exec(err.detailed_error) : null;
+            const match = typeof err.detailed_error === 'string' ? (/existing_channel_id=([a-z0-9]+)/i).exec(err.detailed_error) : null;
             const existingChannelId = match?.[1];
             if (existingChannelId) {
                 setInviteError(
