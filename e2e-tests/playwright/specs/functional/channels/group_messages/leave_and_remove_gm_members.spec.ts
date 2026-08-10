@@ -31,6 +31,7 @@ test('MM-25966 Remove and leave members of an existing group message', async ({p
 
     // # Remove one participant
     await page.getByTestId(`memberline-${participants[2].id}`).getByTestId('removeFromChannel').click();
+    await page.getByRole('button', {name: /yes, remove/i}).click();
     await expect(page.getByTestId(`memberline-${participants[2].id}`)).toHaveCount(0);
 
     const afterRemove = await adminClient.getChannel(groupChannel.id);
