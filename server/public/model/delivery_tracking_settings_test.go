@@ -34,6 +34,49 @@ func TestDeliveryTrackingSettingsSetDefaults(t *testing.T) {
 	})
 }
 
+func TestDeliveryTrackingSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name          string
+		settings      DeliveryTrackingSettings
+		expectedError string
+	}{
+		{
+			name:     "both toggles set is valid",
+			settings: DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
+		},
+		{
+			name:          "nil Enable is invalid",
+			settings:      DeliveryTrackingSettings{EnableForAllChannels: new(true)},
+			expectedError: "model.delivery_tracking.is_valid.missing_toggle.app_error",
+		},
+		{
+			name:          "nil EnableForAllChannels is invalid",
+			settings:      DeliveryTrackingSettings{Enable: new(true)},
+			expectedError: "model.delivery_tracking.is_valid.missing_toggle.app_error",
+		},
+		{
+			name:          "both toggles nil is invalid",
+			settings:      DeliveryTrackingSettings{},
+			expectedError: "model.delivery_tracking.is_valid.missing_toggle.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appErr := tc.settings.IsValid()
+
+			if tc.expectedError == "" {
+				assert.Nil(t, appErr)
+				return
+			}
+
+			require.NotNil(t, appErr)
+			assert.Equal(t, tc.expectedError, appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+}
+
 func TestDeliveryTrackingConfigSetDefaults(t *testing.T) {
 	t.Run("leaves nil ChannelIds nil", func(t *testing.T) {
 		// nil and empty mean different things on save: nil leaves the stored list
@@ -128,6 +171,23 @@ func TestDeliveryTrackingConfigIsValid(t *testing.T) {
 				DeliveryTrackingSettings: DeliveryTrackingSettings{Enable: new(false), EnableForAllChannels: new(false)},
 			},
 			expectedError: "model.delivery_tracking.is_valid.all_channels.app_error",
+		},
+		{
+			// Without the guard on the embedded settings these would dereference nil rather
+			// than return an error, since IsValid can be reached without SetDefaults.
+			name: "nil Enable is rejected without panicking",
+			config: DeliveryTrackingConfig{
+				DeliveryTrackingSettings: DeliveryTrackingSettings{EnableForAllChannels: new(true)},
+			},
+			expectedError: "model.delivery_tracking.is_valid.missing_toggle.app_error",
+		},
+		{
+			name: "nil EnableForAllChannels is rejected without panicking",
+			config: DeliveryTrackingConfig{
+				DeliveryTrackingSettings: DeliveryTrackingSettings{Enable: new(true)},
+				ChannelIds:               []string{channelID},
+			},
+			expectedError: "model.delivery_tracking.is_valid.missing_toggle.app_error",
 		},
 	}
 

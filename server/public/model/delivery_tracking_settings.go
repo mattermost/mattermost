@@ -25,6 +25,10 @@ func (s *DeliveryTrackingSettings) SetDefaults() {
 }
 
 func (s *DeliveryTrackingSettings) IsValid() *AppError {
+	if s.Enable == nil || s.EnableForAllChannels == nil {
+		return NewAppError("DeliveryTrackingSettings.IsValid", "model.delivery_tracking.is_valid.missing_toggle.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Neither toggle can hold an invalid value on its own. The cross-check against the
 	// channel list lives on DeliveryTrackingConfig, since the ids are not part of Config.
 	return nil

@@ -12587,6 +12587,10 @@
     "translation": "Invalid channel ID provided in the post delivery audit logging settings."
   },
   {
+    "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
+    "translation": "The post delivery audit logging settings are incomplete."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },

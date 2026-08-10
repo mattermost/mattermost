@@ -32,7 +32,8 @@
         Updates the post delivery audit logging configuration.
 
         `ChannelIds` fully replaces the stored list. Omit the field to leave the stored list unchanged; send an empty
-        array to clear it. Turning `Enable` off does not clear the list.
+        array to clear it. An empty array is only accepted when the resulting configuration is still valid, which means
+        `EnableForAllChannels` must be true. Turning `Enable` off does not clear the list.
 
         Direct and group message channels can never be recorded. The request is rejected in full if any submitted
         channel is a DM or GM, or does not exist.

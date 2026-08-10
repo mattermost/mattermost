@@ -545,6 +545,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
+		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// if enabled - perform initial product notices fetch

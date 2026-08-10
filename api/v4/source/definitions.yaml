@@ -5366,8 +5366,10 @@ components:
           description: >-
             IDs of the channels deliveries are recorded in. Only used when
             EnableForAllChannels is false. On update this fully replaces the stored list;
-            omit the field to leave it unchanged, or send an empty array to clear it. Direct
-            and group message channels are rejected.
+            omit the field to leave it unchanged, or send an empty array to clear it. An
+            empty array is only accepted when the resulting configuration is still valid,
+            which means EnableForAllChannels must be true. Direct and group message channels
+            are rejected.
           example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
     AccessControlPolicyActiveUpdateRequest:
       type: object

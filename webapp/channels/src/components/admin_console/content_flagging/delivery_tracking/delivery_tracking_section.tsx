@@ -75,6 +75,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                 <Label isDisabled={false}>
                                     <input
                                         data-testid='deliveryTrackingEnable_true'
+                                        name='deliveryTrackingEnable'
                                         type='radio'
                                         value='true'
                                         checked={value.Enable}
@@ -89,6 +90,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                 <Label isDisabled={false}>
                                     <input
                                         data-testid='deliveryTrackingEnable_false'
+                                        name='deliveryTrackingEnable'
                                         type='radio'
                                         value='false'
                                         checked={!value.Enable}
@@ -124,6 +126,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                     <Label isDisabled={false}>
                                         <input
                                             data-testid='deliveryTrackingAllChannels_true'
+                                            name='deliveryTrackingAllChannels'
                                             type='radio'
                                             value='true'
                                             checked={value.EnableForAllChannels}
@@ -138,6 +141,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                     <Label isDisabled={false}>
                                         <input
                                             data-testid='deliveryTrackingAllChannels_false'
+                                            name='deliveryTrackingAllChannels'
                                             type='radio'
                                             value='false'
                                             checked={!value.EnableForAllChannels}
