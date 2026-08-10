@@ -34,6 +34,7 @@ import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
+import SectionNotice from 'components/section_notice';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -931,21 +932,16 @@ const ChannelInviteModalComponent = (props: Props) => {
                 {inviteError && <label className='has-error control-label'>{inviteError}</label>}
                 {channel.type === Constants.GM_CHANNEL && (
                     <div className='channel-invite__policy-banner'>
-                        <AlertBanner
-                            mode='info'
-                            variant='app'
-                            title={
-                                <FormattedMessage
-                                    id='channel_invite.gm_history_warning.title'
-                                    defaultMessage='Conversation history will be visible'
-                                />
-                            }
-                            message={
-                                <FormattedMessage
-                                    id='channel_invite.gm_history_warning.description'
-                                    defaultMessage='People you add will be able to see the full message history of this group message.'
-                                />
-                            }
+                        <SectionNotice
+                            type='warning'
+                            title={props.intl.formatMessage({
+                                id: 'channel_invite.gm_history_warning.title',
+                                defaultMessage: 'Conversation history will be visible',
+                            })}
+                            text={props.intl.formatMessage({
+                                id: 'channel_invite.gm_history_warning.description',
+                                defaultMessage: 'People you add will be able to see the full message history of this group message.',
+                            })}
                         />
                     </div>
                 )}
