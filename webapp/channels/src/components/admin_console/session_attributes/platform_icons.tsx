@@ -75,22 +75,22 @@ export default function PlatformIcons({
                 ) : platformLabel;
 
                 return (
-                    <span
+                    <WithTooltip
                         key={platform}
-                        className={variant === 'all-slots' ? 'SessionAttributes__platform-slot' : iconClassName}
-                        data-platform={platform}
-                        data-active={active}
+                        title={platformLabel}
                     >
-                        <WithTooltip title={platformLabel}>
-                            <span>
-                                <Icon
-                                    size={size}
-                                    color={iconColor}
-                                    aria-label={accessibleLabel}
-                                />
-                            </span>
-                        </WithTooltip>
-                    </span>
+                        <span
+                            className={variant === 'all-slots' ? 'SessionAttributes__platform-slot' : iconClassName}
+                            data-platform={platform}
+                            data-active={active}
+                        >
+                            <Icon
+                                size={size}
+                                color={iconColor}
+                                aria-label={accessibleLabel}
+                            />
+                        </span>
+                    </WithTooltip>
                 );
             })}
         </span>
