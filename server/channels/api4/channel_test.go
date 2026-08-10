@@ -5736,6 +5736,33 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("batch add fails without partial membership", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		users := []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id}
+		for len(users) < model.ChannelGroupMaxUsers-1 {
+			u := th.CreateUser(t)
+			users = append(users, u.Id)
+		}
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), users)
+		require.NoError(t, err)
+
+		extra1 := th.CreateUser(t)
+		extra2 := th.CreateUser(t)
+		_, resp, err := client.AddChannelMembers(context.Background(), groupChannel.Id, "", []string{extra1.Id, extra2.Id})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetChannelMember(context.Background(), groupChannel.Id, extra1.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		_, resp, err = client.GetChannelMember(context.Background(), groupChannel.Id, extra2.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
