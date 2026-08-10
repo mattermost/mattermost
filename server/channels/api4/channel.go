@@ -2405,9 +2405,20 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+	if channel.Type == model.ChannelTypeDirect {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if !c.App.Config().FeatureFlags.EnableMutableGroupMessages {
+			c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers); !hasPermission {
+			c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
+			return
+		}
 	}
 
 	canAddSelf := false

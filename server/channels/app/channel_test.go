@@ -1182,6 +1182,116 @@ func TestAddChannelMemberDeletedUser(t *testing.T) {
 	require.NotNil(t, appErr)
 }
 
+func TestAddChannelMemberToGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected when feature flag is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMutableGroupMessages = false
+		}).InitBasic(t)
+
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user3.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_channel.type.app_error", appErr.Id)
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableMutableGroupMessages = true
+	}).InitBasic(t)
+
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+
+	t.Run("adds member, updates identity, and posts system message", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		originalName := channel.Name
+
+		cm, appErr := th.App.AddChannelMember(th.Context, user3.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		require.Equal(t, user3.Id, cm.UserId)
+
+		updated, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id})
+		require.Equal(t, expectedName, updated.Name)
+		require.NotEqual(t, originalName, updated.Name)
+
+		foundByNewName, appErr := th.App.GetGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id})
+		require.Nil(t, appErr)
+		require.Equal(t, channel.Id, foundByNewName.Id)
+
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		require.NoError(t, nErr)
+		require.NotEmpty(t, postList.Order)
+
+		var addPost *model.Post
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			if post.Type == model.PostTypeAddToChannel {
+				addPost = post
+				break
+			}
+		}
+		require.NotNil(t, addPost)
+		require.Equal(t, th.BasicUser.Id, addPost.UserId)
+		require.Equal(t, user3.Id, addPost.GetProp(model.PostPropsAddedUserId))
+	})
+
+	t.Run("rejects when resulting membership already exists", func(t *testing.T) {
+		channelA, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		channelB, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user4.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, channelA.Id, channelB.Id)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user4.Id, channelA, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.already_exists.app_error", appErr.Id)
+		require.Contains(t, appErr.DetailedError, channelB.Id)
+	})
+
+	t.Run("rejects when max members exceeded", func(t *testing.T) {
+		users := []*model.User{th.BasicUser, user1, user2, user3, user4}
+		for range model.ChannelGroupMaxUsers - len(users) {
+			users = append(users, th.CreateUser(t))
+		}
+		userIDs := make([]string, 0, len(users))
+		for _, u := range users {
+			userIDs = append(userIDs, u.Id)
+		}
+
+		channel, appErr := th.App.CreateGroupChannel(th.Context, userIDs, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		extra := th.CreateUser(t)
+		_, appErr = th.App.AddChannelMember(th.Context, extra.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.max_members.app_error", appErr.Id)
+	})
+
+	t.Run("rejects shared group channels", func(t *testing.T) {
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		shared := true
+		channel.Shared = &shared
+
+		_, appErr = th.App.AddChannelMember(th.Context, user3.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.shared.app_error", appErr.Id)
+	})
+}
+
 func TestAppUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
