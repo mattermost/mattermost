@@ -2212,12 +2212,10 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 		})
 	}
 
-	// Retries that only find existing members still repair a stale identity, and
-	// may need the missing add/join system post from a prior partial failure.
-	if len(toAdd) == 0 && identityOK {
-		return result, nil
-	}
-
+	// System posts are tied to membership completion for this call, not to
+	// identity drift. Newly added members always get a join/add post; already
+	// present requested members only get one when a prior partial failure left
+	// that row without its system post.
 	for _, userID := range newlyAdded {
 		user, userErr := a.GetUser(userID)
 		if userErr != nil {
@@ -2240,28 +2238,40 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 		}
 	}
 
-	if !identityOK {
-		for _, member := range already {
-			user, userErr := a.GetUser(member.UserId)
-			if userErr != nil {
-				compensate()
-				return nil, userErr
-			}
-			var post *model.Post
-			var postErr *model.AppError
-			if opts.UserRequestorID == "" || member.UserId == opts.UserRequestorID {
-				post, postErr = a.postJoinChannelMessage(rctx, user, persisted)
-			} else if userRequestor != nil {
-				post, postErr = a.PostAddToChannelMessage(rctx, userRequestor, user, persisted, opts.PostRootID)
-			}
-			if postErr != nil {
-				compensate()
-				return nil, postErr
-			}
-			if post != nil {
-				createdPostIDs = append(createdPostIDs, post.Id)
-			}
+	for _, member := range already {
+		hasPost, postCheckErr := a.groupChannelMemberHasSystemPost(rctx, channel.Id, member.UserId)
+		if postCheckErr != nil {
+			compensate()
+			return nil, postCheckErr
 		}
+		if hasPost {
+			continue
+		}
+
+		user, userErr := a.GetUser(member.UserId)
+		if userErr != nil {
+			compensate()
+			return nil, userErr
+		}
+		var post *model.Post
+		var postErr *model.AppError
+		if opts.UserRequestorID == "" || member.UserId == opts.UserRequestorID {
+			post, postErr = a.postJoinChannelMessage(rctx, user, persisted)
+		} else if userRequestor != nil {
+			post, postErr = a.PostAddToChannelMessage(rctx, userRequestor, user, persisted, opts.PostRootID)
+		}
+		if postErr != nil {
+			compensate()
+			return nil, postErr
+		}
+		if post != nil {
+			createdPostIDs = append(createdPostIDs, post.Id)
+		}
+	}
+
+	// Stale Name/DisplayName is repaired independently of system posts.
+	if len(newlyAdded) == 0 && identityOK {
+		return result, nil
 	}
 
 	if _, syncErr := a.syncGroupChannelIdentity(rctx, persisted); syncErr != nil {
@@ -2270,6 +2280,31 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 	}
 
 	return result, nil
+}
+
+// groupChannelMemberHasSystemPost reports whether a join/add system message already
+// exists for userID in the group channel (used to avoid duplicate repair posts).
+func (a *App) groupChannelMemberHasSystemPost(rctx request.CTX, channelID, userID string) (bool, *model.AppError) {
+	postList, nErr := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 100}, false, map[string]bool{})
+	if nErr != nil {
+		return false, model.NewAppError("groupChannelMemberHasSystemPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, postID := range postList.Order {
+		post := postList.Posts[postID]
+		switch post.Type {
+		case model.PostTypeAddToChannel, model.PostTypeAddGuestToChannel:
+			if post.GetProp(model.PostPropsAddedUserId) == userID {
+				return true, nil
+			}
+		case model.PostTypeJoinChannel, model.PostTypeGuestJoinChannel:
+			if post.UserId == userID {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs, postIDs []string, removerUserID string, channel *model.Channel) {

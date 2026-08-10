@@ -1373,13 +1373,22 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.NoError(t, nErr)
 
 		var addPosts int
+		var otherMemberAddPosts int
 		for _, postID := range postList.Order {
 			post := postList.Posts[postID]
-			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+			if post.Type != model.PostTypeAddToChannel {
+				continue
+			}
+			addedID := post.GetProp(model.PostPropsAddedUserId)
+			if addedID == retryUser.Id {
 				addPosts++
+			}
+			if addedID == user1.Id || addedID == user4.Id {
+				otherMemberAddPosts++
 			}
 		}
 		require.Equal(t, 1, addPosts)
+		require.Zero(t, otherMemberAddPosts)
 
 		// Idempotent retry after a completed add must not create another system post.
 		_, appErr = th.App.AddChannelMember(th.Context, retryUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
@@ -1389,13 +1398,22 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.NoError(t, nErr)
 
 		addPosts = 0
+		otherMemberAddPosts = 0
 		for _, postID := range postList.Order {
 			post := postList.Posts[postID]
-			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+			if post.Type != model.PostTypeAddToChannel {
+				continue
+			}
+			addedID := post.GetProp(model.PostPropsAddedUserId)
+			if addedID == retryUser.Id {
 				addPosts++
+			}
+			if addedID == user1.Id || addedID == user4.Id {
+				otherMemberAddPosts++
 			}
 		}
 		require.Equal(t, 1, addPosts)
+		require.Zero(t, otherMemberAddPosts)
 	})
 }
 
