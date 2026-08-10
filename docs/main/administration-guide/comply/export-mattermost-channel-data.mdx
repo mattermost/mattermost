@@ -1,6 +1,8 @@
 ---
 title: "Export channel data"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="ent-plus" />
 
 Ensure important data isn't trapped in silos by migrating data between systems or backing data up for operational continuity. Once exported, channel data can be analyzed using various tools for insights into team dynamics, productivity, and communication patterns, and to fulfill reporting and auditability requirements.
@@ -15,7 +17,7 @@ For Mattermost Cloud deployments, no setup is required. See the [usage](#usage) 
 
 For self-hosted deployments, a Mattermost system admin must install the Channel Export integration from the in-product App Marketplace:
 
-1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 2.  Search for or scroll to **Channel Export**, and select **Install**.
 3.  Once installed, select **Configure**. You're taken to the System Console.
 4.  On the **Channel Export** configuration page, enable and configure the plugin, and then select **Save**. You can restrict the ability to export channels to system, team, and channel admins only, and you can configure a maximum file size for channel export files.

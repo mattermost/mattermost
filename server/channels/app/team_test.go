@@ -77,6 +77,23 @@ func TestUpdateTeam(t *testing.T) {
 	updatedTeam, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err, "Should update the team")
 	require.Equal(t, "Testing 123", updatedTeam.DisplayName, "Wrong Team DisplayName")
+
+	updatedTeam.Name = "renamed-" + model.NewRandomTeamName()
+	updatedTeam.Description = "Updated description"
+	leakedEmail := "leak+" + model.NewId() + "@simulator.amazonses.com"
+	updatedTeam.Email = leakedEmail
+	updatedTeam.Type = model.TeamInvite
+
+	updatedTeam, err = th.App.UpdateTeam(updatedTeam)
+	require.Nil(t, err, "Should update the team name and sanitized fields")
+	require.Equal(t, "Updated description", updatedTeam.Description, "Wrong Team Description")
+
+	fetchedTeam, err := th.App.GetTeam(updatedTeam.Id)
+	require.Nil(t, err)
+	require.Equal(t, updatedTeam.Name, fetchedTeam.Name, "Wrong Team Name")
+	require.Equal(t, "Updated description", fetchedTeam.Description, "Wrong Team Description")
+	require.NotEqual(t, leakedEmail, fetchedTeam.Email, "Should not update email")
+	require.Equal(t, model.TeamOpen, fetchedTeam.Type, "Should not update type")
 }
 
 func TestAddUserToTeam(t *testing.T) {
@@ -2104,9 +2121,34 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
 	})
+
+	inviteDataMatches := func(memberInvite *model.MemberInvite) any {
+		return mock.MatchedBy(func(inviteData email.InviteEmailData) bool {
+			if inviteData.Team.Id != th.BasicTeam.Id ||
+				inviteData.ErrorWhenNotSent != true ||
+				len(inviteData.Invites) != len(memberInvite.Emails) ||
+				len(inviteData.Channels) != len(memberInvite.ChannelIds) ||
+				len(inviteData.Profiles) != len(memberInvite.Profiles) {
+				return false
+			}
+			for i, invite := range inviteData.Invites {
+				if invite != memberInvite.Emails[i] {
+					return false
+				}
+			}
+			for _, profile := range memberInvite.Profiles {
+				if inviteData.Profiles[profile.Email] != profile {
+					return false
+				}
+			}
+			return true
+		})
+	}
 
 	t.Run("it return list of email with no error on success", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
@@ -2115,15 +2157,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2141,15 +2175,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2168,18 +2194,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("[]*model.Channel"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("[]uint8"),
-			memberInvite.Emails,
-			"",
-			mock.Anything,
-			mock.AnythingOfType("string"),
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2197,15 +2212,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			[]string{"idontexist@mattermost.com"},
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2214,6 +2221,99 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it passes the invite profiles keyed by email to the email service", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:     "idontexist@mattermost.com",
+				Username:  "un_" + model.NewId(),
+				FirstName: "Pre",
+				LastName:  "Set",
+			}},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			inviteDataMatches(memberInvite),
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it fails the email gracefully when the pre-set username is taken", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:    "idontexist@mattermost.com",
+				Username: th.BasicUser2.Username,
+			}},
+		}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", res[0].Error.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
+	})
+
+	t.Run("it returns error for deactivated user without sending email", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+		})
+
+		memberInvite := &model.MemberInvite{
+			Emails: []string{th.BasicUser2.Email},
+		}
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.account_deactivated.app_error", res[0].Error.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
+	})
+}
+
+func TestInviteNewUsersToTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it returns error for deactivated user without sending email", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+		})
+
+		appErr = th.App.InviteNewUsersToTeam(th.Context, []string{th.BasicUser2.Email}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.team.invite_members.account_deactivated.app_error", appErr.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
 	})
 }
 
@@ -2282,6 +2382,59 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
+	})
+
+	t.Run("it returns error for deactivated user without sending guest invite email", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+		})
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{th.BasicUser2.Email},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id, false)
+
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.account_deactivated.app_error", res[0].Error.Id)
+		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
+func TestInviteGuestsToChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it returns error for deactivated user without sending guest invite email", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+		})
+
+		appErr = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{th.BasicUser2.Email},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id, false)
+
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.team.invite_members.account_deactivated.app_error", appErr.Id)
+		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 }
 

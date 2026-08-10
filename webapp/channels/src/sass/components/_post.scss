@@ -134,7 +134,6 @@
 
 #post-list {
     position: relative;
-    height: 100%;
     flex: 1 1 auto;
     overflow-y: hidden;
 
@@ -914,6 +913,8 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
+        line-height: normal;
+
         -webkit-user-select: none; /* Chrome all / Safari all */
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
@@ -1547,12 +1548,6 @@
         position: relative;
         display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
-            display: inline-block;
-        }
-    }
-
-    .small-image-utility-buttons-wrapper {
         &:hover .image-preview-utility-buttons-container {
             display: inline-block;
         }

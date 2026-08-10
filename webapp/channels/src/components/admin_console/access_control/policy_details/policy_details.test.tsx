@@ -74,6 +74,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
+            EnableAccessControlAuditLogging: false,
         },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
@@ -433,5 +434,16 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
         expect(mockDeletePolicy).not.toHaveBeenCalled();
+    });
+
+    test('clears a stale navigation-block flag on mount', async () => {
+        // A page that links here (e.g. the per-team System Console page) may have
+        // left navigationBlocked=true. If the editor inherits it, its own leave-guard
+        // raises a spurious "Discard changes?" prompt even though nothing was edited.
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
+        });
     });
 });

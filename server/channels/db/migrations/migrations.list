@@ -403,3 +403,17 @@ channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.
 channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.up.sql
 channels/db/migrations/postgres/000204_add_channel_type_space_enum.down.sql
 channels/db/migrations/postgres/000204_add_channel_type_space_enum.up.sql
+channels/db/migrations/postgres/000205_create_scheduled_recaps.down.sql
+channels/db/migrations/postgres/000205_create_scheduled_recaps.up.sql
+channels/db/migrations/postgres/000206_create_scheduled_recaps_user_id_index.down.sql
+channels/db/migrations/postgres/000206_create_scheduled_recaps_user_id_index.up.sql
+channels/db/migrations/postgres/000207_create_scheduled_recaps_next_run_at_index.down.sql
+channels/db/migrations/postgres/000207_create_scheduled_recaps_next_run_at_index.up.sql
+channels/db/migrations/postgres/000208_create_scheduled_recaps_enabled_next_run_index.down.sql
+channels/db/migrations/postgres/000208_create_scheduled_recaps_enabled_next_run_index.up.sql
+channels/db/migrations/postgres/000209_create_scheduled_recaps_user_delete_index.down.sql
+channels/db/migrations/postgres/000209_create_scheduled_recaps_user_delete_index.up.sql
+channels/db/migrations/postgres/000210_add_recap_skip_fields.down.sql
+channels/db/migrations/postgres/000210_add_recap_skip_fields.up.sql
+channels/db/migrations/postgres/000211_add_recaps_scheduled_recap_id_index.down.sql
+channels/db/migrations/postgres/000211_add_recaps_scheduled_recap_id_index.up.sql

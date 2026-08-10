@@ -3129,10 +3129,6 @@
     "translation": "Handlingsintegrationsfejl."
   },
   {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "Kunne ikke flette forespørgsel ind i handlings-URL."
-  },
-  {
     "id": "api.post.do_action.query.app_error",
     "translation": "Ugyldig handlingsforespørgsel."
   },
