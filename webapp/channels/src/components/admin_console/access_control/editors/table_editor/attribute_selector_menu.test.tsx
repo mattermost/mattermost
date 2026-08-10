@@ -271,6 +271,33 @@ describe('AttributeSelectorMenu', () => {
         expect(screen.queryByLabelText('Web Browser')).not.toBeInTheDocument();
     });
 
+    test('ignores platforms it has no icon for while still labelling known ones', () => {
+        const unknownPlatformField = {
+            ...allPlatformsSessionField,
+            id: 'f5',
+            name: 'legacy_client',
+            attrs: {
+                ...allPlatformsSessionField.attrs,
+                display_name: 'Legacy client',
+                platforms: ['tablet', 'browser'],
+            },
+        } as unknown as UserPropertyField;
+
+        renderWithContext(
+            <AttributeSelectorMenu
+                {...baseProps}
+                availableAttributes={[unknownPlatformField]}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+
+        expect(screen.getByLabelText('Web Browser')).toBeInTheDocument();
+
+        const legacyItem = document.getElementById('attribute-f5') as HTMLElement;
+        expect(legacyItem.querySelectorAll('.attribute-selector-platform-icon')).toHaveLength(1);
+    });
+
     test.each([
         ['desktop', 'Desktop'],
         ['mobile', 'Mobile'],
@@ -289,7 +316,7 @@ describe('AttributeSelectorMenu', () => {
 
         // The icon carries the accessible label; its parent span is the tooltip's
         // hover reference, so the hover must target that span rather than the icon.
-        const iconReference = screen.getByLabelText(tooltipText).closest('.attribute-selector-platform-icon') as HTMLElement;
+        const iconReference = screen.getByLabelText(tooltipText).parentElement as HTMLElement;
         await userEvent.hover(iconReference);
 
         // The open menu marks the rest of the DOM aria-hidden, which includes the
