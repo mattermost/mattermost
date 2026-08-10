@@ -9,6 +9,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import ConfirmModalRedux from 'components/confirm_modal_redux';
@@ -31,6 +32,7 @@ export interface Props {
     channelMember: ChannelMembership;
     canChangeMemberRoles: boolean;
     canRemoveMember: boolean;
+    teammateNameDisplay: string;
     index: number;
     totalUsers: number;
     channelAdminLabel?: JSX.Element;
@@ -52,6 +54,7 @@ export default function ChannelMembersDropdown({
     channelMember,
     canChangeMemberRoles,
     canRemoveMember,
+    teammateNameDisplay,
     index,
     totalUsers,
     channelAdminLabel,
@@ -64,6 +67,7 @@ export default function ChannelMembersDropdown({
     const [removing, setRemoving] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const dispatch = useDispatch();
+    const userDisplayName = displayUsername(user, teammateNameDisplay);
 
     const handleRemoveFromChannel = async () => {
         if (removing) {
@@ -100,9 +104,9 @@ export default function ChannelMembersDropdown({
                     message: (
                         <FormattedMessage
                             id='remove_from_group_message_modal.message'
-                            defaultMessage='Are you sure you want to remove @{user} from this group message?'
+                            defaultMessage='Are you sure you want to remove {user} from this group message?'
                             values={{
-                                user: user.username,
+                                user: <b>{userDisplayName}</b>,
                             }}
                         />
                     ),

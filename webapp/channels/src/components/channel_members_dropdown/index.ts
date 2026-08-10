@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, getChannelMember} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -42,6 +43,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         currentUserId: getCurrentUserId(state),
         canChangeMemberRoles,
         canRemoveMember,
+        teammateNameDisplay: getTeammateNameDisplaySetting(state),
     };
 }
 
