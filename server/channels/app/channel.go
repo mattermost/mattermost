@@ -2071,11 +2071,34 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 	return cm, nil
 }
 
+// groupChannelMemberLock tracks waiters/holders so unused per-channel entries
+// can be removed from the process-local lock map.
+type groupChannelMemberLock struct {
+	mu   sync.Mutex
+	refs int
+}
+
 func (a *App) lockGroupChannelMembers(channelID string) func() {
-	v, _ := a.ch.groupChannelMemberLocks.LoadOrStore(channelID, &sync.Mutex{})
-	mu := v.(*sync.Mutex)
-	mu.Lock()
-	return mu.Unlock
+	a.ch.groupChannelMemberLocksMut.Lock()
+	entry, ok := a.ch.groupChannelMemberLocks[channelID]
+	if !ok {
+		entry = &groupChannelMemberLock{}
+		a.ch.groupChannelMemberLocks[channelID] = entry
+	}
+	entry.refs++
+	a.ch.groupChannelMemberLocksMut.Unlock()
+
+	entry.mu.Lock()
+	return func() {
+		entry.mu.Unlock()
+
+		a.ch.groupChannelMemberLocksMut.Lock()
+		entry.refs--
+		if entry.refs == 0 {
+			delete(a.ch.groupChannelMemberLocks, channelID)
+		}
+		a.ch.groupChannelMemberLocksMut.Unlock()
+	}
 }
 
 // AddGroupChannelMembers validates and persists GM membership changes atomically
