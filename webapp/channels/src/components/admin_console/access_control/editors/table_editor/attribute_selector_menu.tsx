@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ComponentType} from 'react';
 import React, {useMemo, useState, useEffect, useCallback, useRef} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {
     CheckIcon,
@@ -20,11 +19,13 @@ import {
     SortAscendingIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
-import * as Menu from 'components/menu';
 import PlatformIcons from 'components/admin_console/session_attributes/platform_icons';
+import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
+import * as Menu from 'components/menu';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -171,7 +172,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isSynced = option.attrs?.ldap || option.attrs?.saml;
         const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
-        const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
+        const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
 
         const menuItem = (
             <Menu.Item

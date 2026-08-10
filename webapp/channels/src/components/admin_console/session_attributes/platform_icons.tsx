@@ -27,14 +27,19 @@ export const platformLabels = defineMessages({
 
 type Props = {
     platforms: SessionPlatform[];
+
     /** Show all platform slots with active/inactive styling (default), or only show active platforms */
     variant?: 'all-slots' | 'active-only';
+
     /** Icon size */
     size?: number;
+
     /** Optional className for the wrapper */
     className?: string;
+
     /** Optional className for individual icon wrappers */
     iconClassName?: string;
+
     /** Optional color override for icons */
     iconColor?: string;
 };
@@ -64,12 +69,10 @@ export default function PlatformIcons({
 
                 const active = platforms.includes(platform);
                 const platformLabel = formatMessage(platformLabels[platform]);
-                const accessibleLabel = variant === 'all-slots'
-                    ? formatMessage(
-                        active ? platformStateLabels.active : platformStateLabels.inactive,
-                        {platform: platformLabel},
-                    )
-                    : platformLabel;
+                const accessibleLabel = variant === 'all-slots' ? formatMessage(
+                    active ? platformStateLabels.active : platformStateLabels.inactive,
+                    {platform: platformLabel},
+                ) : platformLabel;
 
                 return (
                     <span
