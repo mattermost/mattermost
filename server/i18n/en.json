@@ -3903,6 +3903,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "The account associated with {{.Addresses}} has been deactivated. Please contact your System Administrator for details."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
@@ -5055,6 +5059,10 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Unable to switch to email authentication using an integration session."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magic Link is the only sign-in method available for this account."
   },
@@ -5429,6 +5437,38 @@
   {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
+  },
+  {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Access control could not be evaluated for this resource."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "The acting user is invalid or does not exist."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "The action is not a valid access control action."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Invalid identifier supplied to the access control API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "The resource type is not a valid plugin access control resource type."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Access control policy not found."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "The calling plugin does not own this resource type."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "An access control policy of a different type already exists for this ID."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -11175,6 +11215,10 @@
     "translation": "Invalid name for the policy."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Invalid access control policy: type is not a valid plugin resource type."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision."
   },
@@ -11733,6 +11777,10 @@
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "To must be greater than From."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0."
   },
   {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
