@@ -26,6 +26,7 @@ import {
     getPendingChannelJoinRequests,
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
@@ -131,12 +132,23 @@ function mapStateToProps(state: GlobalState) {
 
     const isArchived = isCurrentChannelArchived(state);
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
-    const canManageMembers = haveIChannelPermission(
-        state,
-        currentTeam?.id,
-        channel.id,
-        isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
-    ) && !isArchived;
+    const isGroupMessage = channel.type === Constants.GM_CHANNEL;
+    const mutableGroupMessagesEnabled = getFeatureFlagValue(state, 'EnableMutableGroupMessages') === 'true';
+
+    // Mutable GMs: any current member can add/remove. Public/private keep role permissions.
+    let canManageMembers = false;
+    if (!isArchived) {
+        if (isGroupMessage && mutableGroupMessagesEnabled) {
+            canManageMembers = Boolean(currentUser);
+        } else if (!isGroupMessage) {
+            canManageMembers = haveIChannelPermission(
+                state,
+                currentTeam?.id,
+                channel.id,
+                isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+            );
+        }
+    }
 
     const searchTerms = state.views.search.channelMembersRhsSearch || '';
 

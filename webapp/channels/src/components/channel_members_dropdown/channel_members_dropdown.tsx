@@ -161,7 +161,14 @@ export default function ChannelMembersDropdown({
     const canMakeUserChannelMember = canChangeMemberRoles && isChannelAdmin;
     const canMakeUserChannelAdmin = canChangeMemberRoles && isMember;
     const canRemoveUserFromChannel = canRemoveMember && (!channel.group_constrained || user.is_bot) && (!isDefaultChannel || isGuest);
-    const removeFromChannelText = user.id === currentUserId ? intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'}) : intl.formatMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
+    const isGroupMessage = channel.type === Constants.GM_CHANNEL;
+    const leaveText = isGroupMessage ?
+        intl.formatMessage({id: 'channel_header.leave_group_message', defaultMessage: 'Leave Group Message'}) :
+        intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'});
+    const removeText = isGroupMessage ?
+        intl.formatMessage({id: 'channel_members_dropdown.remove_from_group_message', defaultMessage: 'Remove from Group Message'}) :
+        intl.formatMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
+    const removeFromChannelText = user.id === currentUserId ? leaveText : removeText;
     const removeFromChannelTestId = user.id === currentUserId ? 'leaveChannel' : 'removeFromChannel';
 
     if (canMakeUserChannelMember || canMakeUserChannelAdmin || canRemoveUserFromChannel) {

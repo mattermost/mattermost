@@ -29,7 +29,7 @@ const LeaveChannel = ({
 }: Props) => {
     const dispatch = useDispatch();
     const handleLeave = () => {
-        if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
+        if (channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.GM_CHANNEL || channel.policy_enforced) {
             dispatch(
                 openModal({
                     modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,
@@ -44,17 +44,24 @@ const LeaveChannel = ({
         }
     };
 
+    const leaveLabel = channel.type === Constants.GM_CHANNEL ? (
+        <FormattedMessage
+            id='channel_header.leave_group_message'
+            defaultMessage='Leave Group Message'
+        />
+    ) : (
+        <FormattedMessage
+            id='channel_header.leave'
+            defaultMessage='Leave Channel'
+        />
+    );
+
     return (
         <Menu.Item
             id={id}
             leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}
-            labels={
-                <FormattedMessage
-                    id='channel_header.leave'
-                    defaultMessage='Leave Channel'
-                />
-            }
+            labels={leaveLabel}
             isDestructive={true}
         />
     );

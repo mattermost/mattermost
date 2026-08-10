@@ -305,6 +305,7 @@ export default function ChannelMembersRHS({
                 membersCount={membersCount}
                 canManageMembers={canManageMembers}
                 editing={editing}
+                mutableGroupMessagesEnabled={mutableGroupMessagesEnabled}
                 actions={{
                     startEditing: () => actions.setEditChannelMembers(true),
                     stopEditing: () => actions.setEditChannelMembers(false),
