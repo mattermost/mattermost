@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify any GM member can remove others and leave when mutable GMs are enabled.
  */
 test('MM-25966 Remove and leave members of an existing group message', async ({pw}) => {
+    // Boot-time flag; CI/baseline set it, ensureFeatureFlag covers reused testcontainers stacks.
+    if (testConfig.useTestContainers) {
+        await pw.ensureFeatureFlag('EnableMutableGroupMessages', true);
+    }
+
     const {adminClient, team, user} = await pw.initSetup();
 
     const config = await adminClient.getConfig();
