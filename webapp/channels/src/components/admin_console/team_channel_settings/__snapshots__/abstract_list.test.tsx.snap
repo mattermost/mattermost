@@ -10,9 +10,11 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
       id="groups-list--body"
     >
       <div
-        class="groups-list-empty"
+        class="groups-list-loading"
       >
-        test
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
       </div>
     </div>
   </div>

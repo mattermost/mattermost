@@ -43,7 +43,6 @@ exports[`component/create_team should match snapshot default 1`] = `
               <img
                 alt="signup logo"
                 class="signup-team-logo"
-                src=""
               />
               <label
                 for="teamNameInput"
