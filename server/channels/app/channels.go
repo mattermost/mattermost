@@ -91,6 +91,10 @@ type Channels struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
+	// Serializes mutable GM membership validation + persistence per channel so
+	// concurrent adds cannot bypass max-member or identity-collision checks.
+	groupChannelMemberLocks sync.Map // map[string]*sync.Mutex
+
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 

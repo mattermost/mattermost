@@ -1291,6 +1291,32 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Equal(t, "api.channel.add_user_to_group.shared.app_error", appErr.Id)
 	})
 
+	t.Run("batch add prevalidates collective membership limits", func(t *testing.T) {
+		users := []*model.User{th.BasicUser, user1, user2, user3, user4}
+		for range model.ChannelGroupMaxUsers - len(users) {
+			users = append(users, th.CreateUser(t))
+		}
+		// Leave one slot free so single adds would pass individually, but a
+		// two-user batch must fail collective validation before any mutation.
+		userIDs := make([]string, 0, model.ChannelGroupMaxUsers-1)
+		for i := 0; i < model.ChannelGroupMaxUsers-1; i++ {
+			userIDs = append(userIDs, users[i].Id)
+		}
+		channel, appErr := th.App.CreateGroupChannel(th.Context, userIDs, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		extra1 := th.CreateUser(t)
+		extra2 := th.CreateUser(t)
+		_, appErr = th.App.AddGroupChannelMembers(th.Context, channel, []string{extra1.Id, extra2.Id}, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.max_members.app_error", appErr.Id)
+
+		_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, extra1.Id)
+		require.NotNil(t, memberErr)
+		_, memberErr = th.App.GetChannelMember(th.Context, channel.Id, extra2.Id)
+		require.NotNil(t, memberErr)
+	})
+
 	t.Run("compensates membership when system post fails", func(t *testing.T) {
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
