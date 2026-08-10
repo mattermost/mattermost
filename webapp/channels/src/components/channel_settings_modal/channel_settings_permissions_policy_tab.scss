@@ -445,4 +445,11 @@
             white-space: normal;
         }
     }
+
+    /* Two-line options top-align the menu item's row, which leaves the
+     * trailing check icon stuck to the top. Center it against the full item
+     * height so it stays aligned even when the description wraps. */
+    li.MuiMenuItem-root > .trailing-elements {
+        align-self: center;
+    }
 }
