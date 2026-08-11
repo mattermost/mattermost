@@ -657,6 +657,52 @@ func TestPermanentDeleteBot(t *testing.T) {
 	require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 }
 
+func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "token_bot",
+		Description: "a bot with tokens",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	token1, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "token 1",
+	})
+	require.Nil(t, err)
+
+	token2, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "token 2",
+	})
+	require.Nil(t, err)
+
+	session, err := th.App.GetSession(token1.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, session.Id)
+
+	tokens, err := th.App.GetUserAccessTokensForUser(bot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, tokens, 2)
+
+	require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+
+	tokens, err = th.App.GetUserAccessTokensForUser(bot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Empty(t, tokens, "bot access tokens should be deleted with the bot")
+
+	_, err = th.App.GetUserAccessToken(token1.Id, false)
+	require.NotNil(t, err)
+	_, err = th.App.GetUserAccessToken(token2.Id, false)
+	require.NotNil(t, err)
+
+	_, nErr := th.App.Srv().Store().Session().Get(th.Context, session.Id)
+	require.Error(t, nErr, "sessions backed by the bot's access tokens should be deleted")
+}
+
 func TestDisableUserBots(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

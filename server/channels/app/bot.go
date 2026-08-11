@@ -461,6 +461,10 @@ func (a *App) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppE
 		}
 	}
 
+	if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(botUserId); err != nil {
+		return model.NewAppError("PermanentDeleteBot", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().User().PermanentDelete(rctx, botUserId); err != nil {
 		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
