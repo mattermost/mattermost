@@ -16,11 +16,11 @@ export default class Footer {
     constructor(container: Locator) {
         this.container = container;
 
-        this.copyright = container.locator('.footer-copyright');
-        this.aboutLink = container.locator('text=About');
-        this.privacyPolicyLink = container.locator('text=Privacy Policy');
-        this.termsLink = container.locator('text=Terms');
-        this.helpLink = container.locator('text=Help');
+        this.copyright = container.getByTestId('footer-copyright');
+        this.aboutLink = container.getByText('About');
+        this.privacyPolicyLink = container.getByText('Privacy Policy');
+        this.termsLink = container.getByText('Terms');
+        this.helpLink = container.getByText('Help');
     }
 
     async toBeVisible() {

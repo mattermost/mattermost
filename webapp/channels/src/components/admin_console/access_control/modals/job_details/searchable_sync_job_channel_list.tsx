@@ -164,12 +164,22 @@ const SearchableSyncJobChannelList = (props: Props) => {
     };
 
     const getEmptyStateMessage = () => {
+        if (channelSearchValue) {
+            return (
+                <FormattedMessage
+                    id='more_channels.noMore'
+                    tagName='strong'
+                    defaultMessage='No results for "{text}"'
+                    values={{text: channelSearchValue}}
+                />
+            );
+        }
+
         return (
             <FormattedMessage
-                id='more_channels.noMore'
+                id='admin.jobTable.syncResults.noChanges'
                 tagName='strong'
-                defaultMessage='No results for "{text}"'
-                values={{text: channelSearchValue}}
+                defaultMessage='No channels were affected by this job.'
             />
         );
     };
@@ -185,14 +195,13 @@ const SearchableSyncJobChannelList = (props: Props) => {
         listContent = (
             <div
                 className='no-channel-message channel-switcher__suggestion-box'
-                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
-                }
+                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage(messages.noChanges)}
             >
                 <MagnifyingGlassSVG/>
                 <h3 className='primary-message'>
                     {getEmptyStateMessage()}
                 </h3>
-                {props.noResultsText}
+                {channelSearchValue.length > 0 && props.noResultsText}
             </div>
         );
     } else {
@@ -306,6 +315,10 @@ const messages = defineMessages({
     noMore: {
         id: 'more_channels.noMore',
         defaultMessage: 'No results for "{text}"',
+    },
+    noChanges: {
+        id: 'admin.jobTable.syncResults.noChanges',
+        defaultMessage: 'No channels were affected by this job.',
     },
 });
 

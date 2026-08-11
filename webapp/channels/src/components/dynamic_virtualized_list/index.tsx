@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable react/prop-types */
 
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent} from 'react';
@@ -43,7 +42,6 @@ export interface DynamicVirtualizedListProps {
     height: number;
     initRangeToRender: number[];
     initScrollToIndex: () => InitialScrollIndex;
-    initialScrollOffset?: number;
     innerRef?: React.MutableRefObject<HTMLDivElement | null> | React.RefCallback<HTMLDivElement>;
     itemData: string[];
     onItemsRendered: (args: OnItemsRenderedArgs) => void;
@@ -111,7 +109,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     state = {
         scrollDirection: 'backward' as State['scrollDirection'],
         scrolledToInitIndex: false,
-        scrollOffset: typeof this.props.initialScrollOffset === 'number' ? this.props.initialScrollOffset : 0,
+        scrollOffset: 0,
         scrollUpdateWasRequested: false,
         scrollDelta: 0,
         scrollHeight: 0,
@@ -201,16 +199,6 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     }
 
     componentDidMount() {
-        const {initialScrollOffset} = this.props;
-
-        if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
-            const element = this._outerRef;
-
-            if (element) {
-                element.scrollTop = initialScrollOffset;
-            }
-        }
-
         this._commitHook();
     }
 

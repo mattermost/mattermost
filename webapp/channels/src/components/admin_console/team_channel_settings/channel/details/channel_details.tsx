@@ -19,6 +19,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelAccessRulesConfirmModal from 'components/channel_settings_modal/channel_access_rules_confirm_modal';
 import ConfirmModal from 'components/confirm_modal';
@@ -1138,7 +1139,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }
 
             this.setState({
-                userAttributes: attributes,
+                userAttributes: excludeSessionAttributes(attributes),
                 attributesLoaded: true,
             });
         } catch (error) {

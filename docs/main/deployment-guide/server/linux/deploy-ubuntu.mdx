@@ -8,7 +8,7 @@ sidebar_label: "Ubuntu / Debian"
 
 Install Mattermost Server on Ubuntu or Debian from the signed Mattermost APT repository. The same `.deb` packages cover single-host installs and clustered deployments via tools like Packer.
 
-:::info Minimum requirements
+:::info[Minimum requirements]
 - **Operating system**: Ubuntu 20.04 / 22.04 / 24.04 LTS, or Debian (current stable). Other Debian-family distributions usually work but aren't tested by Mattermost.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
 - **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
@@ -29,7 +29,7 @@ Follow the [database preparation](/deployment-guide/server/preparations#database
 
 ## Step 3: Add the Mattermost APT repository
 
-:::important GPG key change
+:::important[GPG key change]
 The GPG public key has changed. Either [import the new public key](https://deb.packages.mattermost.com/pubkey.gpg) or run the repository setup script in the next step (recommended). Existing installations should remove the old key before adding the new one:
 
 For Ubuntu 22.04 LTS and 24.04 LTS:
@@ -66,7 +66,7 @@ sudo apt install mattermost -y
 
 Mattermost installs to `/opt/mattermost`. The package creates a `mattermost` user and group and a systemd unit file. The service is **not** enabled or started at this point.
 
-:::note systemd dependencies
+:::note[systemd dependencies]
 The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add the following to the `[Unit]` section of `/lib/systemd/system/mattermost.service`:
 
 ```ini
@@ -92,7 +92,7 @@ Edit `/opt/mattermost/config/config.json` and set:
 - `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
 - (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
 
-:::note TLS mode for `DataSource`
+:::note[TLS mode for `DataSource`]
 The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
 :::
 
@@ -124,7 +124,7 @@ sudo apt update && sudo apt upgrade
 sudo systemctl start mattermost
 ```
 
-:::important Stop the server before upgrading
+:::important[Stop the server before upgrading]
 `apt upgrade` will replace the Mattermost binary while it's running. Stop the systemd service first to avoid corrupt state.
 :::
 
@@ -141,5 +141,4 @@ This removes the package but leaves `/opt/mattermost/data`, `/opt/mattermost/log
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
 - [Set up TLS](/deployment-guide/server/setup-tls)
-- [Configure FIPS at install time](/deployment-guide/server/configure-fips-at-install-time) (FIPS is install-time only — decide before exposing the server)
 - [Server deployment planning](/deployment-guide/server/server-deployment-planning) for the full post-install checklist

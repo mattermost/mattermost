@@ -32,6 +32,19 @@
         }
     }
 
+    .team-sync-note {
+        margin-bottom: 16px;
+
+        // A global h4 margin overrides the notice's flex gap; clamp it directly.
+        h4 {
+            margin-bottom: 1em !important;
+        }
+
+        .sectionNoticeBody p {
+            margin: 0;
+        }
+    }
+
     .job-table__access-control {
         .job-table__table {
             max-height: 400px;

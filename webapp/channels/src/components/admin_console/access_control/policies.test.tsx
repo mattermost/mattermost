@@ -348,4 +348,26 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
         expect(screen.getByText('None')).toBeInTheDocument();
     });
+
+    test('selecting a policy reports its active flag so callers can seed auto-add', async () => {
+        const onPolicySelected = jest.fn();
+        const policies = [
+            {id: 'policy1', name: 'Policy 1', active: true} as AccessControlPolicy,
+            {id: 'policy2', name: 'Policy 2', active: false} as AccessControlPolicy,
+        ];
+        mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
+        renderWithContext(
+            <PolicyList
+                {...defaultProps}
+                simpleMode={true}
+                onPolicySelected={onPolicySelected}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText('Policy 1'));
+        expect(onPolicySelected).toHaveBeenCalledWith(policies[0], true);
+    });
 });

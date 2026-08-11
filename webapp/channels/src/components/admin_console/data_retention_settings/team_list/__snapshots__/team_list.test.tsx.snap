@@ -7,6 +7,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
   >
     <div
       class="DataGrid customTable"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -37,6 +38,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -49,12 +51,15 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -93,6 +98,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -107,11 +113,16 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -148,6 +159,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
   >
     <div
       class="DataGrid customTable"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -178,6 +190,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -190,12 +203,15 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -234,6 +250,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -247,9 +264,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -288,6 +307,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -301,9 +321,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -342,6 +364,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -355,9 +378,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -396,6 +421,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -409,9 +435,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -450,6 +478,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -463,9 +492,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -504,6 +535,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -517,9 +549,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -558,6 +592,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -571,9 +606,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -612,6 +649,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -625,9 +663,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -666,6 +706,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -679,9 +720,11 @@ exports[`components/admin_console/data_retention_settings/team_list should match
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
           >
             <div
               class="TeamList__nameColumn"
@@ -720,6 +763,7 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </div>
           <div
             class="DataGrid_cell TeamList__actionColumn"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <a
@@ -734,11 +778,16 @@ exports[`components/admin_console/data_retention_settings/team_list should match
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 10 of 30
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 10 of 30
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

@@ -40,7 +40,13 @@ const (
 	DialogElementTextareaMaxLength    = 3000
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
+	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	MaxDialogFileIds                  = 10
+	// MaxDialogSubmissionIDShapedTokenScan bounds defense-in-depth scanning of
+	// request.Submission for ID-shaped tokens (file IDs, user/channel select values,
+	// etc.). This is not the per-dialog file upload limit — see MaxDialogFileIds.
+	MaxDialogSubmissionIDShapedTokenScan = 256
 
 	// Go date/time format constants
 	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD
@@ -433,6 +439,10 @@ type PostActionAPIResponse struct {
 	GotoLocation string `json:"goto_location,omitempty"`
 }
 
+type ExecuteDialogActionResponse struct {
+	TriggerId string `json:"trigger_id"`
+}
+
 type Dialog struct {
 	CallbackId       string          `json:"callback_id"`
 	Title            string          `json:"title"`
@@ -477,6 +487,7 @@ type DialogElement struct {
 	DataSourceURL string               `json:"data_source_url,omitempty"`
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
+	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
 	// Date/datetime field configuration
@@ -490,6 +501,9 @@ type DialogElement struct {
 	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
 	// if DateTimeConfig is provided, its TimeInterval takes precedence.
 	TimeInterval int `json:"time_interval,omitempty"`
+
+	// Action button configuration (type "action_button")
+	ActionButton *DialogActionButton `json:"action_button,omitempty"`
 }
 
 // EffectiveDateTimeConfig returns the resolved date/datetime configuration by
@@ -520,6 +534,11 @@ func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
 	return cfg
 }
 
+type DialogActionButton struct {
+	URL     string            `json:"url"`
+	Context map[string]string `json:"context,omitempty"`
+}
+
 type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
 	URL       string `json:"url"`
@@ -536,6 +555,7 @@ type SubmitDialogRequest struct {
 	TeamId     string         `json:"team_id"`
 	Submission map[string]any `json:"submission"`
 	Cancelled  bool           `json:"cancelled"`
+	FileIds    []string       `json:"file_ids,omitempty"`
 }
 
 type SubmitDialogResponseType string
@@ -552,6 +572,13 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 	Type   string            `json:"type,omitempty"`
 	Form   *Dialog           `json:"form,omitempty"`
+}
+
+type ExecuteDialogActionRequest struct {
+	URL       string            `json:"url"`
+	Context   map[string]string `json:"context,omitempty"`
+	ChannelId string            `json:"channel_id"`
+	TeamId    string            `json:"team_id"`
 }
 
 func (r *SubmitDialogResponse) IsValid() error {
@@ -758,6 +785,10 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
 	}
 
+	if e.AllowMultiple && e.Type != "file" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -835,6 +866,46 @@ func (e *DialogElement) IsValid() error {
 			} else if 1440%timeInterval != 0 {
 				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
 			}
+		}
+
+	case "file":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
+		if e.Default != "" {
+			ids := strings.Split(e.Default, ",")
+			parsedIds := make([]string, 0, len(ids))
+			for _, id := range ids {
+				id = strings.TrimSpace(id)
+				if id == "" {
+					continue
+				}
+				if !IsValidId(id) {
+					multiErr = multierror.Append(multiErr, errors.Errorf("default file ID %q is not a valid ID", id))
+					continue
+				}
+				parsedIds = append(parsedIds, id)
+			}
+			if !e.AllowMultiple && len(parsedIds) > 1 {
+				multiErr = multierror.Append(multiErr, errors.New("default may not contain more than one file ID when allow_multiple is false"))
+			}
+			if len(parsedIds) > MaxDialogFileIds {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(parsedIds)))
+			}
+		}
+		if len(e.Options) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have options"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have a data source"))
+		}
+
+	case "action_button":
+		if e.ActionButton == nil {
+			multiErr = multierror.Append(multiErr, errors.New("action_button element requires action_button configuration"))
+		} else if e.ActionButton.URL == "" {
+			multiErr = multierror.Append(multiErr, errors.New("action_button requires a non-empty URL"))
+		} else if !IsValidLookupURL(e.ActionButton.URL) {
+			multiErr = multierror.Append(multiErr, errors.Wrap(errors.New("invalid URL"), "invalid action_button URL"))
 		}
 
 	default:

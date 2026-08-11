@@ -35,7 +35,6 @@ test.describe('System Console - Ranked value picker', () => {
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
 
         const clientInfo = await pw.getAdminClient();
         adminClient = clientInfo.adminClient;

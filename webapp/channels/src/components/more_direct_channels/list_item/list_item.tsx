@@ -62,6 +62,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
     return (
         <div
             ref={ref}
+            data-testid={isGroupChannel(option) ? 'group-message-row' : 'direct-message-row'}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}

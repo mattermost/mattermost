@@ -293,14 +293,23 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		hasTeamFilter &&
 		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
 
-	if !hasPermission && !isTeamScopedSyncRequest {
+	// A team-type policy's ID is its team ID, so filtering team sync jobs by
+	// policy_id keeps a team admin scoped to their own team. Requires the absence
+	// of team_id so this grant can never authorize an unvetted team filter.
+	policyID := r.URL.Query().Get("policy_id")
+	isTeamPolicyScopedSyncRequest := !hasPermission &&
+		c.Params.JobType == model.JobTypeAccessControlTeamSync &&
+		!hasTeamFilter &&
+		policyID != "" && model.IsValidId(policyID) &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), policyID, model.PermissionManageTeamAccessRules)
+
+	if !hasPermission && !isTeamScopedSyncRequest && !isTeamPolicyScopedSyncRequest {
 		c.SetPermissionError(permissionRequired)
 		return
 	}
 
 	var jobs []*model.Job
 
-	policyID := r.URL.Query().Get("policy_id")
 	if hasTeamFilter {
 		// When team_id is provided, return only jobs scoped to that team.
 		// Sorted by CreateAt DESC; limited to the requested page size.
@@ -319,9 +328,10 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 			end := min(start+c.Params.PerPage, len(teamJobs))
 			jobs = teamJobs[start:end]
 		}
-	} else if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
-		// Only system admins may filter by policy_id to prevent job enumeration across policies.
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	} else if policyID != "" && (c.Params.JobType == model.JobTypeAccessControlSync || c.Params.JobType == model.JobTypeAccessControlTeamSync) {
+		// Otherwise only system admins may filter by policy_id, to prevent job
+		// enumeration across policies.
+		if !isTeamPolicyScopedSyncRequest && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}

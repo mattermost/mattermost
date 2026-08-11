@@ -121,6 +121,17 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
+	s.Run("Team rename should fail when neither name nor display-name is provided", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "Team Name")
+		cmd.Flags().String("display-name", "", "Team Display Name")
+
+		err := renameTeamCmdF(s.client, cmd, []string{"existingName"})
+		s.Require().EqualError(err, "at least one of --name or --display-name is required")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
 	s.Run("Team rename should fail when unknown existing team name is entered", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
@@ -223,6 +234,104 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.client.
 			EXPECT().
 			GetTeamByName(context.TODO(), args[0], "").
+			Return(foundTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeam(context.TODO(), updatedTeam).
+			Return(updatedTeam, &model.Response{}, nil).
+			Times(1)
+
+		err := renameTeamCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
+	})
+
+	s.Run("Both name and display name should be updated when both flags are provided", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		existingName := "existingTeamName"
+		existingDisplayName := "existingDisplayName"
+		newName := "new-team-name"
+		newDisplayName := "New Display Name"
+		args := []string{existingName}
+
+		cmd.Flags().String("name", newName, "Team Name")
+		cmd.Flags().String("display-name", newDisplayName, "Team Display Name")
+
+		foundTeam := &model.Team{
+			Name:        existingName,
+			DisplayName: existingDisplayName,
+		}
+		updatedTeam := &model.Team{
+			Name:        newName,
+			DisplayName: newDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), existingName, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), existingName, "").
+			Return(foundTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeam(context.TODO(), updatedTeam).
+			Return(updatedTeam, &model.Response{}, nil).
+			Times(1)
+
+		err := renameTeamCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
+	})
+
+	s.Run("Team name (slug) should be updated when --name is provided", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		existingName := "existingTeamName"
+		existingDisplayName := "existingDisplayName"
+		newName := "new-team-name"
+		args := []string{existingName}
+
+		cmd.Flags().String("name", newName, "Team Name")
+		cmd.Flags().String("display-name", "", "Team Display Name")
+
+		foundTeam := &model.Team{
+			Name:        existingName,
+			DisplayName: existingDisplayName,
+		}
+		// Only the Name should change, the display name is left untouched.
+		updatedTeam := &model.Team{
+			Name:        newName,
+			DisplayName: existingDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), existingName, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), existingName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 

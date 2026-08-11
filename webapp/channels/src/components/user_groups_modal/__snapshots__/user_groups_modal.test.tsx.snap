@@ -415,6 +415,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
                 </div>
                 <div
                   class="no-results__wrapper"
+                  data-testid="no-results-wrapper"
                 >
                   <div
                     class="no-results__variant-wrapper"
@@ -651,6 +652,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
                   >
                     <h3
                       class="no-results__title"
+                      data-testid="no-results-title"
                     >
                       No groups yet
                     </h3>
