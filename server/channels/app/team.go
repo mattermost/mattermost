@@ -579,7 +579,7 @@ func (a *App) AddUserToTeam(rctx request.CTX, teamID string, userID string, user
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
