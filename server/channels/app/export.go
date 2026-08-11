@@ -1016,7 +1016,7 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 				}
 			}
 
-			favoritedBy, err := a.buildFavoritedByList(channel.Id)
+			favoritedBy, err := a.buildFavoritedByList(rctx, channel.Id)
 			if err != nil {
 				return err
 			}
@@ -1036,7 +1036,7 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 	return nil
 }
 
-func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
+func (a *App) buildFavoritedByList(rctx request.CTX, channelID string) ([]string, *model.AppError) {
 	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
 	if err != nil {
 		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1048,7 +1048,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 			continue
 		}
 
-		user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), pref.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, pref.UserId)
 		if err != nil {
 			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
