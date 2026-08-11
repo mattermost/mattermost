@@ -257,7 +257,15 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, SessionAttributesDisplayNameMDMEnrolled, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, SessionAttributesDisplayNameJailbreakDetected, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, SessionAttributesDisplayNameOSPlatform, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, SessionAttributesDisplayNameOSPlatform, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, StringInterface{
+			PropertyFieldAttributeOptions: []map[string]string{
+				{"name": "macos"},
+				{"name": "windows"},
+				{"name": "linux"},
+				{"name": "ios"},
+				{"name": "android"},
+			},
+		}),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSVersion, SessionAttributesDisplayNameOSVersion, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientVersion, SessionAttributesDisplayNameClientVersion, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
 
