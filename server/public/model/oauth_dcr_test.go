@@ -125,6 +125,17 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 	t.Run("query string must be explicitly allowed", func(t *testing.T) {
 		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback"))
 		require.True(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback?tenant=*"))
+		require.True(t, RedirectURIMatchesGlob("https://app.example.com/callback?a=1&b=2", "https://app.example.com/callback?**"))
+		// A pattern that requires a query must not match a URI without one.
+		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback", "https://app.example.com/callback?tenant=*"))
+	})
+
+	t.Run("invalid pattern or candidate never matches", func(t *testing.T) {
+		// Malformed pattern (wildcard run) is rejected before matching.
+		require.False(t, RedirectURIMatchesGlob("https://a.com/x", "https://a.com/***"))
+		// Opaque/unparseable candidate URIs never match a valid pattern.
+		require.False(t, RedirectURIMatchesGlob("javascript:alert(1)", "https://a.com/**"))
+		require.False(t, RedirectURIMatchesGlob("not a url", "https://a.com/**"))
 	})
 
 	t.Run("port wildcard", func(t *testing.T) {
@@ -145,6 +156,11 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 		require.True(t, RedirectURIMatchesAllowlist("https://a.com/x", allowlist))
 		require.True(t, RedirectURIMatchesAllowlist("https://b.com/y", allowlist))
 		require.False(t, RedirectURIMatchesAllowlist("https://c.com/z", allowlist))
+	})
+
+	t.Run("whitespace allowlist entries are skipped", func(t *testing.T) {
+		require.True(t, RedirectURIMatchesAllowlist("https://a.com/x", []string{"  ", "https://a.com/**"}))
+		require.False(t, RedirectURIMatchesAllowlist("https://a.com/x", []string{"  ", ""}))
 	})
 
 	t.Run("empty allowlist permits all", func(t *testing.T) {
@@ -178,6 +194,8 @@ func TestIsValidDCRRedirectURI(t *testing.T) {
 
 	invalid := []string{
 		"",
+		"   ",                 // whitespace only
+		" https://x ",         // surrounding whitespace
 		"cursor://",           // custom scheme without a host
 		"https://",            // http scheme without a host
 		"javascript:alert(1)", // opaque URI, no host
@@ -213,6 +231,9 @@ func TestIsValidDCRRedirectURIPattern(t *testing.T) {
 		"://example.com",          // missing scheme
 		"javascript:alert(1)",     // opaque URI, no host
 		"https://example.com/***", // malformed wildcard run
+		"https://example.com/\n",  // control character (newline)
+		"https://exa\tmple.com/*", // control character (tab)
+		"\x7f",                    // control character (DEL)
 	}
 	for _, p := range invalid {
 		require.False(t, IsValidDCRRedirectURIPattern(p), "expected invalid: %s", p)
