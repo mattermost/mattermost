@@ -922,6 +922,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	sessionRoles := wc.GetSession().GetUserRoles()
 	sessionHasPermission := func(permissionId string) bool {
 		if permissionId == model.PermissionManageSystem.Id {
+			// Cache the manage_system lookup because multiple broadcast filters can require it.
 			if hasReadPrivateDataPermission == nil {
 				hasPermission := wc.Suite.RolesGrantPermission(sessionRoles, model.PermissionManageSystem.Id)
 				hasReadPrivateDataPermission = &hasPermission
