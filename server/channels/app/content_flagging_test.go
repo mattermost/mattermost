@@ -997,7 +997,7 @@ func TestCanFlagPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		appErr := th.App.canFlagPost(groupId, post.Id, "en")
+		appErr := th.App.canFlagPost(th.Context, groupId, post.Id, "en")
 		require.Nil(t, appErr)
 	})
 
@@ -1020,7 +1020,7 @@ func TestCanFlagPost(t *testing.T) {
 		require.Nil(t, err)
 
 		// Can't fleg when post already flagged in pending status
-		appErr := th.App.canFlagPost(groupId, post.Id, "en")
+		appErr := th.App.canFlagPost(th.Context, groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 		require.Equal(t, "Cannot quarantine this post as it is already quarantined for review.", appErr.Id)
 
@@ -1029,7 +1029,7 @@ func TestCanFlagPost(t *testing.T) {
 		_, err = th.App.UpdatePropertyValue(rctx, groupId, propertyValue)
 		require.Nil(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id, "en")
+		appErr = th.App.canFlagPost(th.Context, groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 
 		// Can't fleg when post already flagged in retained status
@@ -1037,7 +1037,7 @@ func TestCanFlagPost(t *testing.T) {
 		_, err = th.App.UpdatePropertyValue(rctx, groupId, propertyValue)
 		require.Nil(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id, "en")
+		appErr = th.App.canFlagPost(th.Context, groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 
 		// Can't fleg when post already flagged in removed status
@@ -1045,7 +1045,7 @@ func TestCanFlagPost(t *testing.T) {
 		_, err = th.App.UpdatePropertyValue(rctx, groupId, propertyValue)
 		require.Nil(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id, "en")
+		appErr = th.App.canFlagPost(th.Context, groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 	})
 }
@@ -1642,7 +1642,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 		require.True(t, ok)
 
-		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdField.ID)
 		require.Nil(t, appErr)
 		require.Len(t, reviewerPostIds, 1)
 
@@ -1667,7 +1667,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 		require.True(t, ok)
 
-		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdField.ID)
 		require.Nil(t, appErr)
 		require.Len(t, reviewerPostIds, 0)
 	})
@@ -1701,7 +1701,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 		require.True(t, ok)
 
-		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdField.ID)
 		require.Nil(t, appErr)
 		require.Len(t, reviewerPostIds, 2)
 
@@ -1726,7 +1726,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 		require.True(t, ok)
 
-		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, "invalid_post_id", flaggedPostIdField.ID)
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, "invalid_post_id", flaggedPostIdField.ID)
 		require.Nil(t, appErr)
 		require.Len(t, reviewerPostIds, 0)
 	})
