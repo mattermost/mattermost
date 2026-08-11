@@ -17905,11 +17905,11 @@ func (s *RetryLayerUserStore) PermanentDelete(rctx request.CTX, userID string) e
 
 }
 
-func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) error {
+func (s *RetryLayerUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.UserStore.PromoteGuestToUser(userID)
+		err := s.UserStore.PromoteGuestToUser(rctx, userID)
 		if err == nil {
 			return nil
 		}

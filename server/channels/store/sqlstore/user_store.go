@@ -2193,14 +2193,14 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 	return resultQuery
 }
 
-func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
+func (us SqlUserStore) PromoteGuestToUser(rctx request.CTX, userId string) (err error) {
 	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(request.EmptyContext(us.logger), userId)
+	user, err := us.Get(rctx, userId)
 	if err != nil {
 		return err
 	}

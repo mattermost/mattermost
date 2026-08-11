@@ -190,7 +190,7 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 
 		session, _ = th.Service.CreateSession(th.Context, session)
 
-		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
+		err := th.Service.Store.User().PromoteGuestToUser(th.Context, user.Id)
 		require.NoError(t, err)
 
 		promotedUser, err := th.Service.Store.User().Get(th.Context, user.Id)

@@ -5807,7 +5807,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -5853,7 +5853,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -5884,7 +5884,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -5909,7 +5909,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -5949,7 +5949,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -5994,7 +5994,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user.Id)
 		require.NoError(t, err)
@@ -6060,7 +6060,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().PromoteGuestToUser(user1.Id)
+		err = ss.User().PromoteGuestToUser(rctx, user1.Id)
 		require.NoError(t, err)
 		updatedUser, err := ss.User().Get(rctx, user1.Id)
 		require.NoError(t, err)

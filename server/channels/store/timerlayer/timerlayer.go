@@ -14155,10 +14155,10 @@ func (s *TimerLayerUserStore) PermanentDelete(rctx request.CTX, userID string) e
 	return err
 }
 
-func (s *TimerLayerUserStore) PromoteGuestToUser(userID string) error {
+func (s *TimerLayerUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.UserStore.PromoteGuestToUser(userID)
+	err := s.UserStore.PromoteGuestToUser(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

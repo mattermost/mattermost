@@ -2778,7 +2778,7 @@ func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
-	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
+	nErr := a.ch.srv.userService.PromoteGuestToUser(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.user.promote_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)

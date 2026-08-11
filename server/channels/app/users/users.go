@@ -267,8 +267,8 @@ func (us *UserService) DeactivateMfa(user *model.User) error {
 	return mfa.New(us.store).Deactivate(user.Id)
 }
 
-func (us *UserService) PromoteGuestToUser(user *model.User) error {
-	return us.store.PromoteGuestToUser(user.Id)
+func (us *UserService) PromoteGuestToUser(rctx request.CTX, user *model.User) error {
+	return us.store.PromoteGuestToUser(rctx, user.Id)
 }
 
 func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) {
