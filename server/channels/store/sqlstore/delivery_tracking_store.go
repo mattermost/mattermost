@@ -4,12 +4,12 @@
 package sqlstore
 
 import (
+	stderrors "errors"
 	"slices"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -93,23 +93,18 @@ func (s *SqlDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID 
 	return len(exists) > 0, nil
 }
 
+// IsChannelTrackable reads through the channel store rather than querying Channels directly, so
+// that the cache layer's override resolves it from the channel cache. Unknown channels, including
+// types that do not carry posts, are not trackable.
 func (s *SqlDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
-	// Only the type is selected: the callers need one bit, and hydrating the whole channel
-	// would be far more expensive on a path that runs per recorded delivery.
-	query := s.getQueryBuilder().
-		Select("Type").
-		From("Channels").
-		Where(sq.Eq{"Id": channelID}).
-		Limit(1)
-
-	var types []model.ChannelType
-	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&types, query); err != nil {
-		return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTrackable failed for channel_id=%s", channelID)
-	}
-
-	if len(types) == 0 {
+	channel, err := s.SqlStore.Channel().Get(channelID, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !stderrors.As(err, &nfErr) {
+			return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTrackable failed for channel_id=%s", channelID)
+		}
 		return false, nil
 	}
 
-	return types[0] != model.ChannelTypeDirect && types[0] != model.ChannelTypeGroup, nil
+	return !channel.IsGroupOrDirect(), nil
 }

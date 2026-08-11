@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"errors"
+
 	lru "github.com/hashicorp/golang-lru/v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -101,11 +103,18 @@ func (s *LocalCacheDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, c
 		return cached, nil
 	}
 
-	trackable, err := s.DeliveryTrackingStore.IsChannelTrackable(rctx, channelID)
+	channel, err := s.rootStore.Channel().Get(channelID, true)
 	if err != nil {
-		return false, err
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return false, err
+		}
+
+		s.trackableChannels.Add(channelID, false)
+		return false, nil
 	}
 
+	trackable := !channel.IsGroupOrDirect()
 	s.trackableChannels.Add(channelID, trackable)
 	return trackable, nil
 }
