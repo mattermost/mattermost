@@ -6,6 +6,11 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         border-collapse: collapse;
+
+        // Fixed layout keeps columns at their declared widths so long value
+        // lists wrap within the Values cell instead of stretching the table
+        // beyond the modal width.
+        table-layout: fixed;
     }
 
     th {

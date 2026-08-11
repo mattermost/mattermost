@@ -1,6 +1,8 @@
 ---
 title: "Quarantine for Review"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-adv" />
 
 Every Mattermost user contributes to data security. From Mattermost v11.1, you can help keep your workspace secure and prevent data spillage by quarantining messages that may contain sensitive or restricted information for review by authorized moderators. Your quick actions can prevent accidental leaks before they spread, and build a culture of shared responsibility for secure communication.
@@ -9,7 +11,7 @@ Every Mattermost user contributes to data security. From Mattermost v11.1, you c
 
 For example, you notice a public post in a channel that contains internal project details that not all users should have access to. You can quarantine that message as **Sensitive data** to alert designated content reviewers right away.
 
-1.  Hover over the message, select the **More actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon, and then select **Quarantine for Review**.
+1.  Hover over the message, select the **More actions** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon, and then select **Quarantine for Review**.
 2.  Select a **reason** for quarantining the message, and add a comment explaining why you're quarantining it, when required.
 3.  Select **Submit**.
 

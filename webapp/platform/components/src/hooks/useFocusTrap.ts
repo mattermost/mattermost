@@ -198,7 +198,6 @@ function isElementVisible(element: HTMLElement): boolean {
         if (
             style.display === 'none' ||
             style.visibility === 'hidden' ||
-            style.pointerEvents === 'none' ||
             currentElement.hasAttribute('hidden')
         ) {
             return false;

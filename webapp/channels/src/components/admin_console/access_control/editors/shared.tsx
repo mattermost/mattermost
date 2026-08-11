@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import Markdown from 'components/markdown';
 
@@ -131,6 +132,17 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
+// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// admin-managed, plugin-protected, or owner-managed integration) and so cannot be
+// set by users. Such attributes are safe to reference in access control policies.
+export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
+    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isAdminManaged = field.attrs?.managed === 'admin';
+    const isProtected = Boolean(field.attrs?.protected);
+    const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
+    return isSynced || isAdminManaged || isProtected || isOwnerManaged;
+}
+
 // A native boolean attribute (e.g. user.verified) is modeled as a select whose
 // options are exactly true/false. Its CEL literal must be emitted unquoted.
 export function isNativeBooleanField(field?: UserPropertyField): boolean {
@@ -175,28 +187,28 @@ export function defaultOperatorForField(field?: UserPropertyField): string {
     return field?.type === 'multiselect' ? OperatorLabel.HAS_ANY_OF : OperatorLabel.IS;
 }
 
-export type CELEditorAttribute = {attribute: string; values: string[]; isNative?: boolean};
+export type CELEditorAttribute = {attribute: string; values: string[]; isNative?: boolean; objectType?: string};
 
 // Maps autocomplete fields to the reduced shape the CEL editor consumes, keeping
-// native attributes (always usable) alongside the safe custom profile attributes.
+// native attributes and enabled session attributes (both always usable)
+// alongside the safe custom profile attributes. Every attribute carries its
+// object_type so the editor can bucket it (user vs user.session.*).
 export function toCELEditorAttributes(
     fields: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): CELEditorAttribute[] {
     return fields.
         filter((attr) => {
-            if (isNativeField(attr) || enableUserManagedAttributes) {
+            if (isSessionAttributeField(attr) || isNativeField(attr) || enableUserManagedAttributes) {
                 return true;
             }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return Boolean(isSynced || isAdminManaged || isProtected);
+            return hasControlledAttributeValues(attr);
         }).
         map((attr) => ({
             attribute: attr.name,
             values: [],
             isNative: isNativeField(attr),
+            objectType: attr.object_type,
         }));
 }
 
@@ -207,12 +219,12 @@ export function isSimpleCondition(s: string): boolean {
     // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
     // alternation so the two-char forms match before the one-char ones.
     return Boolean(
-        trimmed.match(/^user\.attributes\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
-        trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\s+in\s+\[.*?\]$/) ||
+        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.(?:attributes|session)\.\w+$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.(?:attributes|session)\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
 
         // Native user attributes (single segment after `user.`). Restricted to
         // the field/operator pairings the table editor can round-trip: boolean
@@ -236,7 +248,7 @@ export function isMultiselectOrGroup(s: string): boolean {
     const inner = trimmed.slice(1, -1);
     return inner.split('||').every((part) => {
         const p = part.trim();
-        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
+        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.(?:attributes|session)\.\w+$/));
     });
 }
 
@@ -252,19 +264,53 @@ export function isSimpleExpression(expr: string): boolean {
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
 // 1. It doesn't contain spaces (CEL incompatible)
-// 2. It's either synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR user-managed attributes are enabled
+// 2. Its values come from a controlled source (synced from LDAP/SAML, admin-managed,
+//    plugin-protected, or owner-managed), it's a native attribute, OR user-managed
+//    attributes are enabled
 export function hasUsableAttributes(
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): boolean {
     return userAttributes.some((attr) => {
         const hasSpaces = attr.name.includes(' ');
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return !hasSpaces && allowed;
     });
+}
+
+// Membership/parent policy editors operate on long-lived user attributes only.
+// Session attributes are environmental and are rejected by the server for
+// membership rules, so strip them before they reach the editors.
+export function excludeSessionAttributes(fields: UserPropertyField[]): UserPropertyField[] {
+    return fields.filter((field) => !isSessionAttributeField(field));
+}
+
+// CEL namespaces. CPA/user attributes are referenced as user.attributes.<name>;
+// session attributes as user.session.<name> (the server convention).
+export const USER_ATTRIBUTE_CEL_PREFIX = 'user.attributes.';
+export const SESSION_ATTRIBUTE_CEL_PREFIX = 'user.session.';
+
+// The CEL namespace is chosen by object_type, not by group id.
+export function celPrefixForField(field: Pick<UserPropertyField, 'object_type'>): string {
+    return isSessionAttributeField(field) ? SESSION_ATTRIBUTE_CEL_PREFIX : USER_ATTRIBUTE_CEL_PREFIX;
+}
+
+// Permission surfaces only. Appends enabled session attributes after the user
+// attributes. Dedups by id and by object_type:name in case the autocomplete
+// endpoint ever starts returning session attributes again. Returns the original
+// array when there's nothing to add to preserve referential stability.
+export function mergeSessionAttributes(
+    autocomplete: UserPropertyField[],
+    sessionFields: UserPropertyField[],
+): UserPropertyField[] {
+    if (sessionFields.length === 0) {
+        return autocomplete;
+    }
+    const seenIds = new Set(autocomplete.map((field) => field.id));
+    const seenKeys = new Set(autocomplete.map((field) => `${field.object_type}:${field.name}`));
+    const additions = sessionFields.filter(
+        (field) => !seenIds.has(field.id) && !seenKeys.has(`${field.object_type}:${field.name}`));
+    return additions.length ? [...autocomplete, ...additions] : autocomplete;
 }
 
 interface TestButtonProps {
