@@ -5,7 +5,7 @@ title: "Migrate from Slack"
 
 ## Overview
 
-Mattermost provides a reliable migration path from Slack, enabling you to bring your organization’s collaboration history into a secure, self-hosted Mattermost environment. The migration process supports full workspaces, including users, channels and message history, direct messages, and threads so your teams can continue working without losing valuable context.
+Mattermost provides a reliable migration path from Slack, enabling you to bring your organization’s collaboration history into a secure, self-hosted Mattermost environment. The migration process supports full workspaces, including users, channels and message history, direct messages, and threads so your teams can continue working without losing valuable context. See [What migrates / What doesn’t](#what-migrates--what-doesnt) for a coverage reference before you begin.
 
 This process generally involves preparing your environment, exporting data from Slack, converting that data into a compatible format, and then importing it into Mattermost. Migrating from Slack is a multi-step process that can be complex, particularly for larger organizations or those with multiple Slack workspaces.
 
@@ -42,6 +42,37 @@ Scoping the migration appropriately during the preparation step can significantl
 Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support migrating from Slack to Mattermost.
 
 </Note>
+
+## What migrates / What doesn’t \{#what-migrates--what-doesnt}
+
+The Slack migration path focuses on core collaboration data: posts, threads, reactions, file attachments, users, and channels. Slash commands, workflows, webhooks, and similar integrations do not migrate and must be rebuilt in Mattermost. Because Slack and Mattermost differ architecturally, some content types are best-effort or unsupported.
+
+For basic content (posts, reactions, threads, attachments, and users), expect better than about 70% fidelity — often higher — excluding integrations.
+
+| Content type | Migrates? | Notes |
+| --- | --- | --- |
+| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not preserve given differences in how Mattermost and Slack threading works |
+| File attachments | Yes | Included in the Slack export when not skipped with `--skip-attachments`. Posts longer than Mattermost’s message limit are split into thread replies; more than five attachments on a post overflow into additional replies |
+| Reactions | Yes | Imported by emoji name. Custom emoji images are not imported — recreate custom emojis in Mattermost with matching names so reactions resolve |
+| Users | Yes | Created automatically; Slack guests map to Mattermost guests by default (`mmetl transform slack --guest-handling`). Correct guest behavior requires Guest Accounts licensed and enabled |
+| Deactivated or deleted Slack users | Yes | Imported as deactivated Mattermost users (`DeleteAt` set), including public/private channel memberships |
+| Public channels | Yes | Archived Slack channels import as archived when timestamps are available |
+| Private channels | Yes | Archived Slack channels import as archived when timestamps are available |
+| Multi-party DMs | Yes (converted) | Become Group Messages. Oversized MPIMs (above Mattermost’s group-channel member limit) are converted to private channels |
+| 1:1 DMs | Yes | |
+| Bots | Yes | Bot users and bot messages migrate when you pass `--bot-owner` to `mmetl transform slack` |
+| Channel mentions (embedded) | Best effort | Slack `<#CHANNEL_ID>` mentions are converted to Mattermost `~channel` mentions when the channel is in the export |
+| Links to specific posts | Preserved as-is | Original Slack URLs are preserved; they still work if Slack remains accessible |
+| External links | Preserved as-is | |
+| Slash commands | No | Must be reconfigured in Mattermost |
+| Workflow builders and other integrations | No | Must be rebuilt using [Mattermost integrations](/integrations-guide/integrations-guide-index) |
+| Slack Connect | No | No Connect-specific handling; external org membership is not preserved. Prefer retaining Connect channels in Slack |
+| Custom emoji images | No | Recreate in Mattermost; see Reactions above |
+| Emoji skin tone modifiers | No | Stripped during transform (for example `+1::skin-tone-3` becomes `+1`) |
+| Starred conversations | No | |
+| User groups | No | Recreate using [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) |
+| Canvases | No | |
+| Presence, profile pictures, custom profile fields | No | Name, email, and title/position migrate; profile images and presence do not. Users update their profiles in Mattermost |
 
 ## Migrations Steps
 
@@ -403,14 +434,6 @@ This process outputs a new archive for each team defined in `teams.json`. Once s
 
 ### Are there features of Slack that are not supported for migration to Mattermost?
 
-The Slack import process focuses on preserving core collaboration data such as messages, files, channels, and users. However, certain Slack features are not supported by the Mattermost product and thus will not be migrated using the import tools in this document:
-
-- **Slack apps and integrations**: Installed apps, bots, slash commands, webhooks, workflow builder and other integrations do not migrate. Most integrations supported by Slack can be recreated using the [integration and automation](/integrations-guide/integrations-guide-index) options in Mattermost.
-- **Starred conversations**: Starred conversations are not preserved.
-- **User groups**: User groups from Slack are not preserved, however they can be recreated in Mattermost using the [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) feature.
-- **Threaded conversations**: Slack threads are mostly supported, however some threading relationships may not always be preserved given the differences in how Mattermost and Slack threading works.
-- **Canvases**: Canvases are not supported in Mattermost and will not be migrated.
-- **User presence and profiles**: User status (online/away), profile pictures, and custom profile fields do not carry over. Users will need to update their profiles in Mattermost.
-- **Channel memberships for deactivated users**: Deactivated or deleted Slack users are not migrated to Mattermost.
+See [What migrates / What doesn’t](#what-migrates--what-doesnt) for the full coverage reference. In short, core collaboration data (messages, files, channels, users, and bots with `--bot-owner`) is preserved, while slash commands, workflows, webhooks, and similar integrations do not migrate and must be rebuilt using the [integration and automation](/integrations-guide/integrations-guide-index) options in Mattermost.
 
 Because of these limitations, some manual reconfiguration is typically required after the import, especially for workflows and integrations. Support from a [Mattermost expert is available](https://mattermost.com/contact-sales/) for your Slack migration.
