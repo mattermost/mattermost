@@ -1021,7 +1021,7 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 				return err
 			}
 
-			shownBy, err := a.buildShownByList(channel)
+			shownBy, err := a.buildShownByList(rctx, channel)
 			if err != nil {
 				return err
 			}
@@ -1059,7 +1059,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 	return userIDs, nil
 }
 
-func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string, *model.AppError) {
+func (a *App) buildShownByList(rctx request.CTX, channel *model.DirectChannelForExport) ([]string, *model.AppError) {
 	shownBy := make([]string, 0)
 	switch channel.Type {
 	case model.ChannelTypeGroup:
@@ -1071,7 +1071,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for i := range prefs {
 				if prefs[i].Name == channel.Id && prefs[i].Value == "true" {
-					user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), member.UserId)
+					user, err := a.Srv().Store().User().Get(rctx, member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
@@ -1094,7 +1094,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 
 			for _, pref := range prefs {
 				if pref.Value == "true" && pref.UserId == member.UserId {
-					user, err := a.Srv().Store().User().Get(request.EmptyContext(a.Log()), member.UserId)
+					user, err := a.Srv().Store().User().Get(rctx, member.UserId)
 					if err != nil {
 						return nil, model.NewAppError("buildShownByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
