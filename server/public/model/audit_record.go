@@ -14,7 +14,6 @@ const (
 	AuditKeyStatus    = "status"
 	AuditKeyUserID    = "user_id"
 	AuditKeySessionID = "session_id"
-	AuditKeyTokenID   = "token_id"
 	AuditKeyClient    = "client"
 	AuditKeyIPAddress = "ip_address"
 	AuditKeyClusterID = "cluster_id"
@@ -46,7 +45,6 @@ type AuditEventData struct {
 type AuditEventActor struct {
 	UserId        string `json:"user_id"`
 	SessionId     string `json:"session_id"`
-	TokenId       string `json:"token_id,omitempty"`
 	Client        string `json:"client"`
 	IpAddress     string `json:"ip_address"`
 	XForwardedFor string `json:"x_forwarded_for"`

@@ -35,8 +35,8 @@ func (c *Context) LogAuditRec(rec *model.AuditRecord) {
 	if rec.Actor.SessionId == "" {
 		rec.Actor.SessionId = c.AppContext.Session().Id
 	}
-	if rec.Actor.TokenId == "" && c.AppContext.Session().IsUserAccessToken() {
-		rec.Actor.TokenId = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+	if _, exists := rec.Meta[model.SessionPropUserAccessTokenId]; !exists && c.AppContext.Session().IsUserAccessToken() {
+		rec.Meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
 	}
 
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
@@ -62,25 +62,25 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
 // MakeAuditRecord creates an audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
-	actor := model.AuditEventActor{
-		UserId:        c.AppContext.Session().UserId,
-		SessionId:     c.AppContext.Session().Id,
-		Client:        c.AppContext.UserAgent(),
-		IpAddress:     c.AppContext.IPAddress(),
-		XForwardedFor: c.AppContext.XForwardedFor(),
+	meta := map[string]any{
+		model.AuditKeyAPIPath:   c.AppContext.Path(),
+		model.AuditKeyClusterID: c.App.GetClusterId(),
 	}
 	if c.AppContext.Session().IsUserAccessToken() {
-		actor.TokenId = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+		meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
 	}
 
 	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
-		Actor:     actor,
-		Meta: map[string]any{
-			model.AuditKeyAPIPath:   c.AppContext.Path(),
-			model.AuditKeyClusterID: c.App.GetClusterId(),
+		Actor: model.AuditEventActor{
+			UserId:        c.AppContext.Session().UserId,
+			SessionId:     c.AppContext.Session().Id,
+			Client:        c.AppContext.UserAgent(),
+			IpAddress:     c.AppContext.IPAddress(),
+			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
+		Meta: meta,
 		EventData: model.AuditEventData{
 			Parameters:  map[string]any{},
 			PriorState:  map[string]any{},

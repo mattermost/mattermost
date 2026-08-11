@@ -16,6 +16,93 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
+func TestMakeAuditRecord_WithPATSession(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	tokenID := model.NewId()
+	th.Context = th.Context.WithSession(&model.Session{
+		Id:     model.NewId(),
+		UserId: model.NewId(),
+		Props: model.StringMap{
+			model.SessionPropType:              model.SessionTypeUserAccessToken,
+			model.SessionPropUserAccessTokenId: tokenID,
+		},
+	})
+
+	c := &Context{App: th.App, AppContext: th.Context}
+	rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+	require.NotNil(t, rec)
+	assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+}
+
+func TestMakeAuditRecord_WithNonPATSession(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	th.Context = th.Context.WithSession(&model.Session{
+		Id:     model.NewId(),
+		UserId: model.NewId(),
+	})
+
+	c := &Context{App: th.App, AppContext: th.Context}
+	rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+	require.NotNil(t, rec)
+	assert.Nil(t, rec.Meta[model.SessionPropUserAccessTokenId])
+}
+
+func TestLogAuditRec_LateFilledTokenId(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	tokenID := model.NewId()
+	th.Context = th.Context.WithSession(&model.Session{
+		Id:     model.NewId(),
+		UserId: model.NewId(),
+		Props: model.StringMap{
+			model.SessionPropType:              model.SessionTypeUserAccessToken,
+			model.SessionPropUserAccessTokenId: tokenID,
+		},
+	})
+
+	c := &Context{App: th.App, AppContext: th.Context}
+
+	// Simulate a record created before the session was established (e.g., login flow)
+	rec := &model.AuditRecord{
+		EventName: "test_event",
+		Status:    model.AuditStatusAttempt,
+		Actor:     model.AuditEventActor{},
+		Meta:      map[string]any{},
+		EventData: model.AuditEventData{},
+	}
+
+	c.LogAuditRec(rec)
+
+	assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+}
+
+func TestLogAuditRec_NonPATSession_NoTokenId(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	th.Context = th.Context.WithSession(&model.Session{
+		Id:     model.NewId(),
+		UserId: model.NewId(),
+	})
+
+	c := &Context{App: th.App, AppContext: th.Context}
+
+	rec := &model.AuditRecord{
+		EventName: "test_event",
+		Status:    model.AuditStatusAttempt,
+		Actor:     model.AuditEventActor{},
+		Meta:      map[string]any{},
+		EventData: model.AuditEventData{},
+	}
+
+	c.LogAuditRec(rec)
+
+	assert.Nil(t, rec.Meta[model.SessionPropUserAccessTokenId])
+}
+
 func TestRequireHookId(t *testing.T) {
 	c := &Context{}
 	t.Run("WhenHookIdIsValid", func(t *testing.T) {
