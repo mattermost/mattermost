@@ -16,91 +16,97 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
-func TestMakeAuditRecord_WithPATSession(t *testing.T) {
-	th := SetupWithStoreMock(t)
+func TestMakeAuditRecord(t *testing.T) {
+	t.Run("PAT session includes token ID in meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
 
-	tokenID := model.NewId()
-	th.Context = th.Context.WithSession(&model.Session{
-		Id:     model.NewId(),
-		UserId: model.NewId(),
-		Props: model.StringMap{
-			model.SessionPropType:              model.SessionTypeUserAccessToken,
-			model.SessionPropUserAccessTokenId: tokenID,
-		},
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
 	})
 
-	c := &Context{App: th.App, AppContext: th.Context}
-	rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+	t.Run("non-PAT session omits token ID from meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
 
-	require.NotNil(t, rec)
-	assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
+	})
 }
 
-func TestMakeAuditRecord_WithNonPATSession(t *testing.T) {
-	th := SetupWithStoreMock(t)
+func TestLogAuditRec(t *testing.T) {
+	t.Run("late-fills token ID for PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
 
-	th.Context = th.Context.WithSession(&model.Session{
-		Id:     model.NewId(),
-		UserId: model.NewId(),
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+
+		// Simulate a record created before the session was established (e.g., login flow)
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
 	})
 
-	c := &Context{App: th.App, AppContext: th.Context}
-	rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+	t.Run("does not add token ID for non-PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
 
-	require.NotNil(t, rec)
-	assert.Nil(t, rec.Meta[model.SessionPropUserAccessTokenId])
-}
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
 
-func TestLogAuditRec_LateFilledTokenId(t *testing.T) {
-	th := SetupWithStoreMock(t)
+		c := &Context{App: th.App, AppContext: th.Context}
 
-	tokenID := model.NewId()
-	th.Context = th.Context.WithSession(&model.Session{
-		Id:     model.NewId(),
-		UserId: model.NewId(),
-		Props: model.StringMap{
-			model.SessionPropType:              model.SessionTypeUserAccessToken,
-			model.SessionPropUserAccessTokenId: tokenID,
-		},
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
 	})
-
-	c := &Context{App: th.App, AppContext: th.Context}
-
-	// Simulate a record created before the session was established (e.g., login flow)
-	rec := &model.AuditRecord{
-		EventName: "test_event",
-		Status:    model.AuditStatusAttempt,
-		Actor:     model.AuditEventActor{},
-		Meta:      map[string]any{},
-		EventData: model.AuditEventData{},
-	}
-
-	c.LogAuditRec(rec)
-
-	assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
-}
-
-func TestLogAuditRec_NonPATSession_NoTokenId(t *testing.T) {
-	th := SetupWithStoreMock(t)
-
-	th.Context = th.Context.WithSession(&model.Session{
-		Id:     model.NewId(),
-		UserId: model.NewId(),
-	})
-
-	c := &Context{App: th.App, AppContext: th.Context}
-
-	rec := &model.AuditRecord{
-		EventName: "test_event",
-		Status:    model.AuditStatusAttempt,
-		Actor:     model.AuditEventActor{},
-		Meta:      map[string]any{},
-		EventData: model.AuditEventData{},
-	}
-
-	c.LogAuditRec(rec)
-
-	assert.Nil(t, rec.Meta[model.SessionPropUserAccessTokenId])
 }
 
 func TestRequireHookId(t *testing.T) {
