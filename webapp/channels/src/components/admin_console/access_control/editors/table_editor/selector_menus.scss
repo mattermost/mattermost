@@ -31,6 +31,17 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    // The attribute selector renders its icon and label as direct button
+    // children (no inner wrapper), so the label needs min-width: 0 to shrink
+    // within the flex button and truncate instead of overflowing the column.
+    // Spacing from the icon comes from the button's own gap.
+    &__label {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .value-selector-menu-button {
@@ -53,6 +64,11 @@
         align-items: center;
         justify-content: space-between;
     }
+}
+
+.attribute-selector-platform-icon {
+    display: inline-flex;
+    align-items: center;
 }
 
 .attribute-selector-label {
